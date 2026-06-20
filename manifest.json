@@ -1,0 +1,16 @@
+{
+  "name": "Finmentor",
+  "short_name": "Finmentor",
+  "description": "Система управления бизнесом для собственников: финансы, казначейство, BI и AI.",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A1626",
+  "theme_color": "#0A1626",
+  "icons": [
+    { "src": "assets/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}

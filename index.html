@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FINMENTOR — Управление бизнесом через цифры, аналитику и AI</title>
+  <meta name="description" content="Finmentor помогает собственникам выстраивать финансовое управление, казначейство, Power BI и AI-автоматизацию — для роста прибыли и контроля бизнеса." />
+  <meta name="keywords" content="финансовый директор, CFO, управленческий учёт, казначейство, Power BI, AI автоматизация, финансовое моделирование, KPI, инвестиционный анализ, Finmentor, Кишинёв, Молдова" />
+  <meta name="author" content="Геннадий Яковлев" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0A1626" />
+  <link rel="canonical" href="https://www.finmentor.md/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Finmentor" />
+  <meta property="og:title" content="FINMENTOR — Управление бизнесом через цифры, аналитику и AI" />
+  <meta property="og:description" content="От финансового хаоса — к системе управления бизнесом. CFO, казначейство, Power BI и AI-автоматизация для собственников." />
+  <meta property="og:url" content="https://www.finmentor.md/" />
+  <meta property="og:image" content="https://www.finmentor.md/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:locale:alternate" content="ro_RO" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FINMENTOR — Управление бизнесом через цифры, аналитику и AI" />
+  <meta name="twitter:description" content="От финансового хаоса — к системе управления бизнесом." />
+  <meta name="twitter:image" content="https://www.finmentor.md/assets/og-image.png" />
+
+  <!-- Icons & manifest -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Structured data: Person + ProfessionalService -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://www.finmentor.md/#person",
+        "name": "Ghennadi Iacovlev",
+        "alternateName": "Геннадий Яковлев",
+        "jobTitle": "CFO, эксперт по финансовому управлению и AI-автоматизации",
+        "url": "https://www.finmentor.md/",
+        "image": "https://www.finmentor.md/assets/og-image.png",
+        "email": "cfo@finmentor.md",
+        "description": "CFO и эксперт по финансовому управлению, казначейству, Power BI и AI-автоматизации.",
+        "knowsAbout": ["Финансовое управление", "Управленческий учёт", "Казначейство", "Power BI", "Финансовое моделирование", "AI Automation", "KPI", "Инвестиционный анализ"],
+        "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
+        "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
+      },
+      {
+        "@type": "ProfessionalService",
+        "@id": "https://www.finmentor.md/#service",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/",
+        "image": "https://www.finmentor.md/assets/og-image.png",
+        "email": "cfo@finmentor.md",
+        "description": "Система управления бизнесом для собственников: финансы, казначейство, BI и AI в едином контуре.",
+        "slogan": "От финансового хаоса — к системе управления бизнесом.",
+        "founder": { "@id": "https://www.finmentor.md/#person" },
+        "areaServed": ["MD", "RO"],
+        "serviceType": ["Financial management", "Treasury", "Business Intelligence", "AI Automation", "Business transformation"],
+        "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
+        "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Pre-paint guard: skip intro for returning visitors / reduced-motion to avoid a flash -->
+  <script>
+    (function () {
+      try {
+        var played = sessionStorage.getItem('fm_intro_played');
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (played || reduced) document.documentElement.classList.add('intro-skip');
+      } catch (e) {}
+    })();
+  </script>
+  <noscript><style>.intro{display:none!important}</style></noscript>
+</head>
+
+<body>
+  <!-- ============================================================= INTRO -->
+  <div class="intro" id="intro">
+    <canvas class="intro__canvas" aria-hidden="true"></canvas>
+    <button class="intro__skip" type="button" id="introSkip">Пропустить →</button>
+
+    <div class="intro__center">
+      <div class="intro__wordmark" aria-label="finmentor">
+        <span class="intro__word intro__word--fin">
+          <span style="--i:0">f</span><span style="--i:1">i</span><span style="--i:2">n</span>
+        </span><span class="intro__word intro__word--mentor">
+          <span style="--i:3">m</span><span style="--i:4">e</span><span style="--i:5">n</span><span style="--i:6">t</span><span style="--i:7">o</span><span style="--i:8">r</span>
+        </span>
+      </div>
+      <div class="intro__tagline">От финансового хаоса — к системе управления бизнесом</div>
+    </div>
+  </div>
+
+  <!-- ============================================================= CURSOR -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <div class="cursor__ring"></div>
+    <div class="cursor__dot"></div>
+  </div>
+
+  <!-- ============================================================= HEADER -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a class="logo" href="#top" aria-label="finmentor — на главную">
+        <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
+      </a>
+
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="#about" class="nav__link">О проекте</a>
+        <a href="#system" class="nav__link">Экспертиза</a>
+        <a href="#solutions" class="nav__link">Решения</a>
+        <a href="#cases" class="nav__link">Кейсы</a>
+        <a href="#knowledge" class="nav__link">Материалы</a>
+        <a href="#contacts" class="nav__link">Контакты</a>
+      </nav>
+
+      <div class="header__actions">
+        <!-- Языковой переключатель убран до готовности переводов RO/EN. Вернуть, когда переводы будут готовы. -->
+        <a href="#consult" class="btn btn--primary btn--sm header__cta">Разобрать мой бизнес</a>
+        <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================= MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
+      <a href="#about" class="mobile-menu__link" style="--mi:0">О проекте</a>
+      <a href="#system" class="mobile-menu__link" style="--mi:1">Экспертиза</a>
+      <a href="#solutions" class="mobile-menu__link" style="--mi:2">Решения</a>
+      <a href="#cases" class="mobile-menu__link" style="--mi:3">Кейсы</a>
+      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Материалы</a>
+      <a href="#contacts" class="mobile-menu__link" style="--mi:5">Контакты</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <!-- Языковой переключатель убран до готовности переводов RO/EN. -->
+      <a href="#consult" class="btn btn--primary mobile-menu__cta">Разобрать мой бизнес</a>
+    </div>
+  </div>
+
+  <main>
+    <!-- ============================================================= HERO -->
+    <section class="hero" id="top">
+      <canvas class="hero__canvas" aria-hidden="true"></canvas>
+      <div class="hero__mesh" aria-hidden="true">
+        <span class="hero__blob hero__blob--gold"></span>
+        <span class="hero__blob hero__blob--blue"></span>
+        <span class="hero__blob hero__blob--navy"></span>
+      </div>
+      <div class="hero__grain" aria-hidden="true"></div>
+
+      <div class="container hero__content">
+        <p class="hero__kicker reveal">CFO · TREASURY · BI · AI</p>
+        <h1 class="hero__title reveal" data-reveal-delay="1">
+          Управляйте бизнесом через <span class="text-gold">цифры</span>, аналитику и&nbsp;искусственный интеллект
+        </h1>
+        <p class="hero__subtitle reveal" data-reveal-delay="2">
+          Finmentor помогает собственникам выстраивать финансовое управление, казначейство,
+          Power&nbsp;BI и AI-автоматизацию — для роста прибыли и полного контроля над бизнесом.
+        </p>
+
+        <div class="hero__actions reveal" data-reveal-delay="3">
+          <a href="#consult" class="btn btn--primary btn--lg">Разобрать мой бизнес</a>
+          <a href="#solutions" class="btn btn--ghost btn--lg">Посмотреть решения</a>
+        </div>
+
+        <div class="hero__stats glass reveal" data-reveal-delay="4">
+          <div class="stat">
+            <div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div>
+            <div class="stat__label">лет в финансах</div>
+          </div>
+          <div class="stat__divider"></div>
+          <div class="stat">
+            <div class="stat__num"><span data-count="5">0</span></div>
+            <div class="stat__label">опор в едином контуре</div>
+          </div>
+          <div class="stat__divider"></div>
+          <div class="stat">
+            <div class="stat__num"><span data-count="10">0</span></div>
+            <div class="stat__label">кейсов по направлениям</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="#chaos" class="hero__scroll" aria-label="Листать вниз">
+        <span class="hero__scroll-label">SCROLL</span>
+        <span class="hero__scroll-line"></span>
+      </a>
+    </section>
+
+    <!-- ============================================================= S3 · CHAOS -->
+    <section class="chaos" id="chaos">
+      <div class="chaos__haze" aria-hidden="true"></div>
+      <div class="container">
+        <div class="section-head">
+          <p class="overline overline--risk reveal">Симптомы</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Финансовый хаос выглядит так</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Когда нет единой системы, собственник видит отчёты, но не видит реальный бизнес.</p>
+        </div>
+
+        <div class="chaos__grid">
+          <article class="chaos-card reveal" data-reveal-delay="1" style="--rot:-1.4deg; --dy:0px">
+            <p class="chaos-card__text">Прибыль есть на бумаге, но денег на счёте не хватает.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.2deg; --dy:22px">
+            <p class="chaos-card__text">Отчёты приходят поздно и не помогают принимать решения.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
+            <p class="chaos-card__text">Платежи согласуются хаотично, без приоритетов и фондов.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
+            <p class="chaos-card__text">Кассовые разрывы появляются внезапно.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
+            <p class="chaos-card__text">Продажи растут, но маржа и прибыль не растут.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
+            <p class="chaos-card__text">Данные разбросаны между 1С, Excel, Google Sheets, CRM и мессенджерами.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
+            <p class="chaos-card__text">Собственник не видит KPI, риски и отклонения в одном месте.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
+            <p class="chaos-card__text">AI и автоматизация не используются, хотя ручной работы слишком много.</p>
+          </article>
+        </div>
+
+        <p class="chaos__verdict reveal">Это не проблема людей. <span class="text-gold">Это отсутствие системы.</span></p>
+        <span class="chaos__bridge" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <!-- ============================================================= SYSTEM / 5 PILLARS (first card states) -->
+    <section class="pillars" id="system">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Система FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Единый контур управления бизнесом</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">
+            Не пять услуг — один контур, где каждое решение опирается на цифры.
+          </p>
+        </div>
+
+        <div class="pillars__grid">
+          <!-- Finance -->
+          <article class="card pillar reveal" data-reveal-delay="1" tabindex="0">
+            <span class="pillar__line" aria-hidden="true"></span>
+            <div class="pillar__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/></svg>
+            </div>
+            <h3 class="pillar__title">Finance</h3>
+            <p class="pillar__desc">Финансы и управленческий учёт. Единая, достоверная картина бизнеса.</p>
+          </article>
+
+          <!-- Treasury -->
+          <article class="card pillar reveal" data-reveal-delay="2" tabindex="0">
+            <span class="pillar__line" aria-hidden="true"></span>
+            <div class="pillar__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9.5v-1M12 15.5v-1"/></svg>
+            </div>
+            <h3 class="pillar__title">Treasury</h3>
+            <p class="pillar__desc">Казначейство и фондовое планирование. Контроль над деньгами и кассовыми разрывами.</p>
+          </article>
+
+          <!-- BI -->
+          <article class="card pillar reveal" data-reveal-delay="3" tabindex="0">
+            <span class="pillar__line" aria-hidden="true"></span>
+            <div class="pillar__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg>
+            </div>
+            <h3 class="pillar__title">Business Intelligence</h3>
+            <p class="pillar__desc">Power BI и аналитика. Бизнес виден в реальном времени.</p>
+          </article>
+
+          <!-- AI -->
+          <article class="card pillar reveal" data-reveal-delay="4" tabindex="0">
+            <span class="pillar__line" aria-hidden="true"></span>
+            <div class="pillar__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <h3 class="pillar__title">AI &amp; Automation</h3>
+            <p class="pillar__desc">AI-агенты, Make, n8n. Отчётность и контроль без ручного труда.</p>
+          </article>
+
+          <!-- Capital & Investment -->
+          <article class="card pillar reveal" data-reveal-delay="5" tabindex="0">
+            <span class="pillar__line" aria-hidden="true"></span>
+            <div class="pillar__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l5-4 5 4v12"/><path d="M9 21v-5h2v5"/><path d="M19 21V13l-4-3"/></svg>
+            </div>
+            <h3 class="pillar__title">Capital &amp; Investment</h3>
+            <p class="pillar__desc">Инвестиции, недвижимость, развитие. Решения о капитале — на основе моделей.</p>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================= S5 · CASES -->
+    <section class="cases" id="cases">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Кейсы и решения</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Кейсы и решения по направлениям</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Реальные задачи собственников — и как FINMENTOR их решает.</p>
+        </div>
+
+        <div class="cases__filters reveal" id="casesFilters" role="tablist" aria-label="Направления кейсов"></div>
+
+        <div class="case-card glass reveal" id="caseCard" role="tabpanel" aria-live="polite" data-reveal-delay="1">
+          <noscript><p style="padding:1rem">Включите JavaScript, чтобы листать кейсы по направлениям.</p></noscript>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================= S5.5 · RESULTS -->
+    <section class="results" id="results">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Результаты</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Что меняется на практике</h2>
+        </div>
+        <div class="results__grid">
+          <article class="result-card reveal" data-reveal-delay="1">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Решения принимались на ощущениях.</p></div>
+            <div class="result-row"><span class="result-row__label">Решение</span><p>Единый контур управления на цифрах.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Решения на данных, а не на интуиции.</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="2">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Деньги расходовались хаотично.</p></div>
+            <div class="result-row"><span class="result-row__label">Решение</span><p>Казначейство и фондовое планирование.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Контроль денег и кассовых разрывов.</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="3">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Бизнес не виден в реальном времени.</p></div>
+            <div class="result-row"><span class="result-row__label">Решение</span><p>Power BI и AI-автоматизация.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Прозрачность и контроль без ручной работы.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================= S6 · ABOUT -->
+    <section class="about" id="about">
+      <div class="container about__grid">
+        <div class="about__portrait reveal">
+          <figure class="portrait">
+            <img class="portrait__img" src="assets/portrait.jpg" width="649" height="812" alt="Геннадий Яковлев — CFO и эксперт FINMENTOR" loading="lazy" decoding="async" />
+          </figure>
+        </div>
+
+        <div class="about__body">
+          <p class="overline reveal">О проекте</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Меня зовут Геннадий Яковлев</h2>
+          <p class="about__lead reveal" data-reveal-delay="2">
+            CFO и эксперт по финансовому управлению, казначейству, Power&nbsp;BI и AI-автоматизации.
+            Я строю не отчёты — я строю системы управления бизнесом, где каждое решение опирается на цифры.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="3">
+            За плечами — Big4 и стандарт IFRS, финансовое моделирование и реальные системы:
+            казначейство, инвестиционные модели, Power&nbsp;BI, контроль CAPEX. Опыт охватывает
+            недвижимость, строительство, производство, торговлю и e-commerce.
+          </p>
+
+          <div class="about__tags reveal" data-reveal-delay="4">
+            <span class="tag-label">Экспертиза</span>
+            <span class="tag">CFO</span>
+            <span class="tag">Treasury</span>
+            <span class="tag">Power BI</span>
+            <span class="tag">AI Automation</span>
+          </div>
+          <div class="about__tags reveal" data-reveal-delay="5">
+            <span class="tag-label">Отрасли</span>
+            <span class="tag tag--muted">Недвижимость</span>
+            <span class="tag tag--muted">Строительство</span>
+            <span class="tag tag--muted">Производство</span>
+            <span class="tag tag--muted">Торговля</span>
+            <span class="tag tag--muted">E-commerce</span>
+          </div>
+
+          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="6">Обсудить ваш бизнес</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================= S7 · PACKAGES -->
+    <section class="packages" id="solutions">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Решения</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Три уровня — от диагностики к&nbsp;трансформации</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">От диагностики — к системе — к трансформации. Выберите точку входа.</p>
+        </div>
+
+        <div class="packages__grid">
+          <!-- Starter -->
+          <article class="package reveal" data-reveal-delay="1">
+            <span class="package__tier">Старт</span>
+            <h3 class="package__name">Financial Health Check</h3>
+            <p class="package__tagline">Диагностика бизнеса</p>
+            <p class="package__price"><span class="package__price-from">от</span> 1 500 €</p>
+            <p class="package__for"><span class="package__for-label">Для кого</span> Собственникам, которые подозревают, что теряют деньги, но не видят где. Бизнесу без управленческого учёта.</p>
+            <div class="package__section">
+              <span class="package__label">Что входит</span>
+              <ul class="package__list">
+                <li>Экспресс-диагностика финансового состояния</li>
+                <li>Анализ движения денег и кассовых разрывов</li>
+                <li>Зоны потери прибыли и контроля</li>
+                <li>Оценка качества учёта и отчётности</li>
+                <li>Карта приоритетов: что чинить первым</li>
+                <li>Итоговая сессия с разбором</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Результат</span>
+              <p class="package__result">Чёткая картина, где теряются деньги и контроль, и приоритеты решений.</p>
+            </div>
+            <div class="package__term"><span>Срок внедрения</span><strong>1–2 недели</strong></div>
+            <a href="#consult" class="btn btn--ghost package__cta">Заказать диагностику</a>
+          </article>
+
+          <!-- Business Control System — FLAGSHIP -->
+          <article class="package package--flagship reveal" data-reveal-delay="2">
+            <span class="package__tier package__tier--badge">★ Флагман</span>
+            <h3 class="package__name">Business Control System</h3>
+            <p class="package__tagline">Полная система управления бизнесом</p>
+            <p class="package__price"><span class="package__price-from">от</span> 5 000 €</p>
+            <p class="package__for"><span class="package__for-label">Для кого</span> Тем, кто готов перейти от хаоса к системе. Растущему бизнесу и группам компаний.</p>
+            <div class="package__section">
+              <span class="package__label">Что входит</span>
+              <ul class="package__list">
+                <li>Финансовая система и управленческий учёт</li>
+                <li>Система KPI</li>
+                <li>Казначейство и фондовое планирование</li>
+                <li>Power BI: дашборды в реальном времени</li>
+                <li>Карта рисков</li>
+                <li>Управленческий контроль и регламенты</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Результат</span>
+              <p class="package__result">Единая картина, контроль денег, решения на цифрах, прозрачность по группе, рост прибыли.</p>
+            </div>
+            <div class="package__term"><span>Срок внедрения</span><strong>1–3 месяца</strong></div>
+            <a href="#consult" class="btn btn--primary package__cta">Построить систему управления</a>
+          </article>
+
+          <!-- CFO AI Transformation — PREMIUM -->
+          <article class="package reveal" data-reveal-delay="3">
+            <span class="package__tier">Премиум</span>
+            <h3 class="package__name">CFO AI Transformation</h3>
+            <p class="package__tagline">CFO as a Service + AI + трансформация</p>
+            <p class="package__price">Индивидуально</p>
+            <p class="package__for"><span class="package__for-label">Для кого</span> Тем, кому нужен CFO-уровень без найма в штат. Бизнесу, готовому к AI-автоматизации.</p>
+            <div class="package__section">
+              <span class="package__label">Что входит</span>
+              <ul class="package__list">
+                <li>CFO as a Service</li>
+                <li>AI Automation</li>
+                <li>AI Agents</li>
+                <li>Make / n8n</li>
+                <li>Автоматизация отчётности</li>
+                <li>Автоматизация контроля бизнеса</li>
+                <li>Трансформация системы управления</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Результат</span>
+              <p class="package__result">CFO-уровень без CFO в штате, отчётность на автопилоте, бизнес как управляемая система.</p>
+            </div>
+            <div class="package__term"><span>Срок внедрения</span><strong>3–6 месяцев</strong></div>
+            <a href="#consult" class="btn btn--ghost package__cta">Запустить трансформацию</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================= S7.5 · KNOWLEDGE BASE -->
+    <section class="knowledge" id="knowledge">
+      <div class="knowledge__glow" aria-hidden="true"></div>
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">База знаний</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">База знаний Finmentor</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Практические статьи, шаблоны и ежедневная аналитика для собственников — чтобы управлять бизнесом через цифры. Запуск скоро.</p>
+        </div>
+
+        <div class="kb__grid">
+          <!-- Articles (featured) -->
+          <article class="kb-card kb-card--articles reveal" data-reveal-delay="1">
+            <div class="kb-card__head">
+              <span class="kb-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span>
+              <div class="kb-card__titles">
+                <h3 class="kb-card__title">Articles</h3>
+                <span class="kb-card__sub">Практические статьи</span>
+              </div>
+              <span class="kb-card__status">Скоро</span>
+            </div>
+            <p class="kb-card__desc">Разборы от Геннадия — финансы, казначейство, BI и AI простым языком.</p>
+            <ul class="kb-list">
+              <li>Почему прибыль не равна деньгам</li>
+              <li>Что такое Cash Flow простыми словами</li>
+              <li>Как собственнику читать P&amp;L</li>
+              <li>Что такое казначейство в компании</li>
+              <li>Как работает фондовое планирование</li>
+              <li>Power BI для собственника бизнеса</li>
+              <li>Как подключить 1С к Power BI</li>
+              <li>Как AI помогает CFO</li>
+              <li>Что такое NOI, NPV, IRR</li>
+              <li>Как контролировать бизнес через KPI</li>
+            </ul>
+          </article>
+
+          <!-- Tools -->
+          <article class="kb-card kb-card--tools reveal" data-reveal-delay="2">
+            <div class="kb-card__head">
+              <span class="kb-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
+              <div class="kb-card__titles">
+                <h3 class="kb-card__title">Tools</h3>
+                <span class="kb-card__sub">Шаблоны и инструменты</span>
+              </div>
+              <span class="kb-card__status">Скоро</span>
+            </div>
+            <p class="kb-card__desc">Готовые модели и шаблоны для финансового управления.</p>
+            <div class="kb-tags">
+              <span class="kb-tag">P&amp;L template</span>
+              <span class="kb-tag">Cash Flow template</span>
+              <span class="kb-tag">Payment Calendar</span>
+              <span class="kb-tag">KPI Dashboard</span>
+              <span class="kb-tag">Power BI Owner Dashboard</span>
+              <span class="kb-tag">Investment Model</span>
+              <span class="kb-tag">Treasury Fund Planning Template</span>
+            </div>
+          </article>
+
+          <!-- Finmentor Intelligence -->
+          <article class="kb-card kb-card--intel reveal" data-reveal-delay="3">
+            <div class="kb-card__head">
+              <span class="kb-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 7 4-14 3 7h4"/></svg></span>
+              <div class="kb-card__titles">
+                <h3 class="kb-card__title">Finmentor Intelligence</h3>
+                <span class="kb-card__sub">Ежедневная аналитика</span>
+              </div>
+              <span class="kb-card__status kb-card__status--live">Ежедневно · скоро</span>
+            </div>
+            <p class="kb-card__desc">Ежедневный бриф: AI, BI и автоматизация для CFO.</p>
+            <div class="kb-tags">
+              <span class="kb-tag">AI news</span>
+              <span class="kb-tag">Power BI updates</span>
+              <span class="kb-tag">Microsoft Fabric</span>
+              <span class="kb-tag">n8n / Make automation</span>
+              <span class="kb-tag">CFO intelligence</span>
+              <span class="kb-tag">business analytics</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="kb__cta reveal">
+          <a href="#consult" class="btn btn--primary btn--lg">Получать Finmentor Brief</a>
+        </div>
+        <p class="kb__note">Материалы и ежедневный Finmentor Brief — скоро. Оставьте контакт, чтобы узнать первыми.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================= S8 · CONSULT -->
+    <section class="consult" id="consult">
+      <div class="consult__glow" aria-hidden="true"></div>
+      <div class="container consult__grid">
+        <div class="consult__intro">
+          <p class="overline reveal">Консультация</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Разберём ваш бизнес за одну консультацию</h2>
+          <p class="consult__lead reveal" data-reveal-delay="2">
+            Покажу, где теряются деньги и контроль — и как выстроить систему управления бизнесом.
+          </p>
+          <ul class="consult__points reveal" data-reveal-delay="3">
+            <li>Чёткий разбор: где теряются деньги и прибыль</li>
+            <li>Приоритетные решения под ваш бизнес</li>
+            <li>Понимание следующего шага — без обязательств</li>
+          </ul>
+        </div>
+
+        <form class="form glass reveal" id="consultForm" data-reveal-delay="2" novalidate>
+          <div class="field">
+            <label for="f-name">Имя</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Как к вам обращаться" required />
+          </div>
+          <div class="field">
+            <label for="f-contact">Email или мессенджер</label>
+            <input id="f-contact" name="contact" type="text" placeholder="Email, Telegram или телефон" required />
+          </div>
+          <div class="field">
+            <label for="f-biz">Тип бизнеса / отрасль</label>
+            <input id="f-biz" name="business" type="text" placeholder="Напр. недвижимость, торговля, производство" />
+          </div>
+          <div class="field">
+            <label for="f-msg">Коротко о задаче <span class="field__opt">(необязательно)</span></label>
+            <textarea id="f-msg" name="message" rows="3" placeholder="Что хотите разобрать?"></textarea>
+          </div>
+          <label class="consent" for="f-consent">
+            <input type="checkbox" id="f-consent" name="consent" class="consent__box" required />
+            <span class="consent__text">Я согласен на обработку персональных данных согласно <a href="privacy.html" target="_blank" rel="noopener">политике конфиденциальности</a>.</span>
+          </label>
+          <button type="submit" class="btn btn--primary btn--lg form__submit">Разобрать мой бизнес</button>
+          <p class="form__note">Отвечаю в течение рабочего дня. Конфиденциальность гарантирована.</p>
+          <div class="form__success" id="formSuccess" hidden>
+            <strong>Заявка отправлена.</strong> Свяжусь с вами в течение рабочего дня.
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================= S9 · FOOTER -->
+  <footer class="footer" id="contacts">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="#top" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">От финансового хаоса — к&nbsp;системе управления бизнесом.</p>
+          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H20.6v-5.3c0-1.27-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg>
+          </a>
+        </div>
+
+        <nav class="footer__col" aria-label="Подвал — навигация">
+          <span class="footer__col-label">Разделы</span>
+          <a href="#about">О проекте</a>
+          <a href="#system">Экспертиза</a>
+          <a href="#solutions">Решения</a>
+          <a href="#cases">Кейсы</a>
+        </nav>
+
+        <div class="footer__col">
+          <span class="footer__col-label">Контакты</span>
+          <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
+          <a href="tel:+37369307087">+373 69 307 087</a>
+          <a href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a>
+          <a href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <span class="footer__muted">Кишинёв, Молдова</span>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Finmentor. Все права защищены.</span>
+        <span class="footer__legal">
+          <a href="privacy.html">Политика конфиденциальности</a>
+          <span class="footer__muted">Сделано в Кишинёве</span>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
