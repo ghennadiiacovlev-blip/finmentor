@@ -402,8 +402,14 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   font-size: 1.35rem;
   letter-spacing: -0.02em;
 }
-.logo__fin { color: var(--electric); }
-.logo__mentor { color: var(--gold-400); }
+.logo__fin { color: #F4F5F7; }
+.logo__mentor {
+  background: linear-gradient(135deg, #E8C766 0%, #C9A227 45%, #8F6B18 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: #C9A227;
+  -webkit-text-fill-color: transparent;
+}
 
 .nav { display: flex; gap: var(--sp-5); }
 .nav__link {
