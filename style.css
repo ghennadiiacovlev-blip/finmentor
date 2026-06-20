@@ -6,7 +6,7 @@
 /* ----------------------------------------------------------------- TOKENS */
 :root {
   /* Color — primitives */
-  --navy-900: #08111F;
+  --navy-900: #0A1626;
   --navy-800: #0D1B2E;
   --navy-700: #12233A;
   --navy-600: #1F3864;
@@ -22,8 +22,6 @@
   --white: #FFFFFF;
   --black: #060810;
   --electric: #4F8FF7;
-  --warning: #E0A93B;
-  --critical: #D96A6A;
 
   /* Color — semantic */
   --bg-base: var(--navy-900);
@@ -328,18 +326,8 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   display: inline-flex;
 }
 .intro__word { display: inline-flex; }
-
-/* Premium logo colors — white + gold */
-.intro__word--fin {
-  color: #FFFFFF;
-}
-
-.intro__word--mentor {
-  color: #D4AF37;
-  background: none;
-  -webkit-text-fill-color: initial;
-}
-
+.intro__word--fin { color: var(--electric); }
+.intro__word--mentor { color: var(--gold-400); }
 .intro__word span {
   display: inline-block;
   opacity: 0;
@@ -414,17 +402,8 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   font-size: 1.35rem;
   letter-spacing: -0.02em;
 }
-
-/* Premium header/footer logo colors — white + gold */
-.logo__fin {
-  color: #FFFFFF;
-}
-
-.logo__mentor {
-  color: #D4AF37;
-  background: none;
-  -webkit-text-fill-color: initial;
-}
+.logo__fin { color: var(--electric); }
+.logo__mentor { color: var(--gold-400); }
 
 .nav { display: flex; gap: var(--sp-5); }
 .nav__link {
@@ -1530,43 +1509,4 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   inset: 0;
   pointer-events: none;
   background: linear-gradient(180deg, rgba(10, 22, 38, 0) 58%, rgba(10, 22, 38, 0.42) 100%);
-}
-/* ============================================================================
-   FINAL FIX — FINMENTOR logo visible: premium white + gold
-   Добавить в самый низ style.css
-   ========================================================================== */
-
-/* Header / Footer logo */
-.logo__fin,
-.logo__fin * {
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  background: none !important;
-}
-
-.logo__mentor,
-.logo__mentor * {
-  color: #D4AF37 !important;
-  -webkit-text-fill-color: #D4AF37 !important;
-  background: none !important;
-}
-
-/* Intro animation logo */
-.intro__word--fin,
-.intro__word--fin * {
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  background: none !important;
-}
-
-.intro__word--mentor,
-.intro__word--mentor * {
-  color: #D4AF37 !important;
-  -webkit-text-fill-color: #D4AF37 !important;
-  background: none !important;
-}
-
-/* На всякий случай убираем слишком сильный shimmer, который перекрывает mentor */
-.intro__wordmark::after {
-  opacity: 0.35 !important;
 }
