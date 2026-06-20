@@ -6,7 +6,7 @@
 /* ----------------------------------------------------------------- TOKENS */
 :root {
   /* Color — primitives */
-  --navy-900: #0A1626;
+  --navy-900: #08111F;
   --navy-800: #0D1B2E;
   --navy-700: #12233A;
   --navy-600: #1F3864;
@@ -22,6 +22,8 @@
   --white: #FFFFFF;
   --black: #060810;
   --electric: #4F8FF7;
+  --warning: #E0A93B;
+  --critical: #D96A6A;
 
   /* Color — semantic */
   --bg-base: var(--navy-900);
@@ -326,36 +328,18 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   display: inline-flex;
 }
 .intro__word { display: inline-flex; }
+
+/* Premium logo colors — white + gold */
 .intro__word--fin {
-    color: #F4F5F7;
+  color: #FFFFFF;
 }
 
 .intro__word--mentor {
-    background: linear-gradient(
-        135deg,
-        #F4D97A 0%,
-        #D4AF37 45%,
-        #B8860B 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.intro__word--fin {
-    color: #F4F5F7;
+  color: #D4AF37;
+  background: none;
+  -webkit-text-fill-color: initial;
 }
 
-.intro__word--mentor {
-    background: linear-gradient(
-        135deg,
-        #F4D97A 0%,
-        #D4AF37 45%,
-        #B8860B 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
 .intro__word span {
   display: inline-block;
   opacity: 0;
@@ -430,13 +414,16 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   font-size: 1.35rem;
   letter-spacing: -0.02em;
 }
-.logo__fin { color: #F4F5F7; }
+
+/* Premium header/footer logo colors — white + gold */
+.logo__fin {
+  color: #FFFFFF;
+}
+
 .logo__mentor {
-  background: linear-gradient(135deg, #E8C766 0%, #C9A227 45%, #8F6B18 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: #C9A227;
-  -webkit-text-fill-color: transparent;
+  color: #D4AF37;
+  background: none;
+  -webkit-text-fill-color: initial;
 }
 
 .nav { display: flex; gap: var(--sp-5); }
