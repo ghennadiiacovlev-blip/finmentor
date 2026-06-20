@@ -326,8 +326,36 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   display: inline-flex;
 }
 .intro__word { display: inline-flex; }
-.intro__word--fin { color: var(--electric); }
-.intro__word--mentor { color: var(--gold-400); }
+.intro__word--fin {
+    color: #F4F5F7;
+}
+
+.intro__word--mentor {
+    background: linear-gradient(
+        135deg,
+        #F4D97A 0%,
+        #D4AF37 45%,
+        #B8860B 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.intro__word--fin {
+    color: #F4F5F7;
+}
+
+.intro__word--mentor {
+    background: linear-gradient(
+        135deg,
+        #F4D97A 0%,
+        #D4AF37 45%,
+        #B8860B 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 .intro__word span {
   display: inline-block;
   opacity: 0;
