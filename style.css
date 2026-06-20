@@ -1531,3 +1531,42 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   pointer-events: none;
   background: linear-gradient(180deg, rgba(10, 22, 38, 0) 58%, rgba(10, 22, 38, 0.42) 100%);
 }
+/* ============================================================================
+   FINAL FIX — FINMENTOR logo visible: premium white + gold
+   Добавить в самый низ style.css
+   ========================================================================== */
+
+/* Header / Footer logo */
+.logo__fin,
+.logo__fin * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background: none !important;
+}
+
+.logo__mentor,
+.logo__mentor * {
+  color: #D4AF37 !important;
+  -webkit-text-fill-color: #D4AF37 !important;
+  background: none !important;
+}
+
+/* Intro animation logo */
+.intro__word--fin,
+.intro__word--fin * {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background: none !important;
+}
+
+.intro__word--mentor,
+.intro__word--mentor * {
+  color: #D4AF37 !important;
+  -webkit-text-fill-color: #D4AF37 !important;
+  background: none !important;
+}
+
+/* На всякий случай убираем слишком сильный shimmer, который перекрывает mentor */
+.intro__wordmark::after {
+  opacity: 0.35 !important;
+}
