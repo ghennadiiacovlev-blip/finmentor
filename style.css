@@ -1780,3 +1780,17 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 
 @media (max-width: 980px) { .kb-hub__grid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; } }
 @media (max-width: 600px) { .lead-magnet__row .btn { width: 100%; } }
+
+/* v5 — hero clarifying note */
+.hero__note { margin-top: var(--sp-3); font-size: 0.95rem; color: var(--text-muted); max-width: 56ch; }
+.hero__note::before { content: "→ "; color: var(--accent); }
+
+/* v5 — audience CTA + strategic (secondary) block */
+.audience__cta { margin-top: var(--sp-7); }
+.strategic { background: var(--bg-base); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.strategic__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5); }
+@media (max-width: 980px) { .strategic__grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .strategic__grid { grid-template-columns: 1fr; } }
+
+/* v5 — SEO page positioning context line */
+.doc-hero__context { margin-top: var(--sp-3); font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); padding: 6px 12px; border: 1px solid var(--border-gold); border-radius: var(--r-pill); display: inline-block; }

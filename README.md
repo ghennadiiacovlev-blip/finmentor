@@ -148,3 +148,21 @@ SEO-страницы привлекают органический трафик,
 **questionnaire → Make / n8n → AI agent → Telegram + Gmail + Google Sheets / CRM**.
 Точки подключения и AI-agent output schema описаны в `main.js` (`initQuestionnaire`),
 в HTML-комментарии `questionnaire.html` и в разделе «AI-Agent Output Schema» выше.
+
+## v5 — Focus & Positioning
+
+Позиционирование сфокусировано вокруг одного ядра:
+**FINMENTOR — внешний CFO и система финансового управления для собственников растущего бизнеса.**
+Power BI, AI и Make/n8n поданы как технологический слой автоматизации **после** построения
+финансового фундамента, а не как главное обещание. Capital / Investment вынесены из центрального
+блока в отдельную секцию «Стратегические финансовые задачи собственника» (#strategic) — ниже
+основного позиционирования.
+
+Изменено на главной: hero (H1 «Внешний CFO для растущего бизнеса» + уточнение про BI/AI),
+title/description/OG/Twitter, JSON-LD (serviceType с External CFO во главе), 5 опор
+(External CFO · Management Reporting · Cash Flow & Treasury · Business Control System · BI / AI
+Automation), блок «Для кого FINMENTOR» (описание клиента + 8 признаков + CTA), «О проекте»
+(авторская CFO-практика), пакеты как продуктовая лестница (Диагностика → Внедрение → Регулярный
+CFO-контроль → BI/AI-автоматизация), навигация (добавлено «Для кого»). SEO-страницы не удалялись:
+к каждой добавлена строка-контекст, привязывающая тему к CFO-системе; статьи не переписаны.
+Анкета, monthly support, remote work, SEO hub и lead-generation сохранены.
