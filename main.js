@@ -171,6 +171,7 @@
     if (!canHover || prefersReduced) return;
     var cursor = document.getElementById('cursor');
     if (!cursor) return;
+    document.documentElement.classList.add('has-cursor');
     var dot = cursor.querySelector('.cursor__dot');
     var ring = cursor.querySelector('.cursor__ring');
 

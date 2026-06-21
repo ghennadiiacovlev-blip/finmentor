@@ -273,9 +273,15 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
     background: rgba(255, 255, 255, 0.10);
     border-color: rgba(255, 255, 255, 0.9);
   }
-  body { cursor: none; }
-  a, button, [tabindex] { cursor: none; }
+  html.has-cursor body { cursor: none; }
+  html.has-cursor a, html.has-cursor button, html.has-cursor [tabindex] { cursor: none; }
 }
+
+/* links always show a pointer (insurance for pages without the custom cursor) */
+.nav__link, .doc-bar__nav a, .mobile-menu__link,
+.footer a, .footer__col a, .footer__legal a, .footer__brand a,
+.crumbs a, .related__grid a, .kb-hub-card__list a, .doc-foot__links a,
+.lead-magnet__row a, .faq__item summary { cursor: pointer; }
 
 /* ----------------------------------------------------------------- INTRO */
 .intro {
