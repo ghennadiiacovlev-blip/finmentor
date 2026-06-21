@@ -716,6 +716,32 @@
     });
   }
 
+  /* GA4 events — delegated, fired only if gtag is available; never blocks navigation */
+  function initGA() {
+    function send(name, params) {
+      if (typeof gtag === 'function') { try { gtag('event', name, params || {}); } catch (e) {} }
+    }
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
+      if (!a) return;
+      var name = a.getAttribute('data-ga');
+      if (!name) {
+        var href = a.getAttribute('href') || '';
+        if (/t\.me\//.test(href)) name = 'click_telegram';
+        else if (/wa\.me\//.test(href)) name = 'click_whatsapp';
+        else if (/^mailto:/.test(href)) name = 'click_email';
+        else if (/treasury-waterfall\.html/.test(href)) name = 'click_treasury_waterfall';
+        else if (/power-bi-dlya-sobstvennika\.html/.test(href)) name = 'click_powerbi_integration';
+        else if (/templates\.html/.test(href)) name = 'click_template_request';
+        else if (/methodology\.html/.test(href)) name = 'click_methodology';
+        else if (/working-capital\.html/.test(href)) name = 'click_working_capital';
+        else if (/questionnaire\.html/.test(href)) name = 'click_questionnaire';
+        else if (/#consult$/.test(href)) name = 'click_discovery_call';
+      }
+      if (name) send(name, { link_url: a.href || '', link_text: (a.textContent || '').trim().slice(0, 80) });
+    }, true);
+  }
+
   function guard(fn) { try { fn(); } catch (e) { if (window.console) console.warn('[finmentor]', e); } }
 
   /* ------------------------------------------------------------- BOOT */
@@ -732,5 +758,6 @@
     guard(initForm);
     guard(initQuestionnaire);
     guard(initLang);
+    guard(initGA);
   });
 })();

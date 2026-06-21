@@ -13,19 +13,19 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR</title>
-  <meta name="description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <title>Power BI для собственника и интеграция данных из 1С | FINMENTOR</title>
+  <meta name="description" content="Power BI для собственника на основе корректных данных: интеграция 1С, Excel, Google Sheets и CRM, роль FINMENTOR и программиста-интегратора, Data Model, частые ошибки подключения 1С." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/power-bi-dlya-sobstvennika.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR" />
-  <meta property="og:description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <meta property="og:title" content="Power BI для собственника и интеграция данных из 1С | FINMENTOR" />
+  <meta property="og:description" content="Power BI для собственника на основе корректных данных: интеграция 1С, Excel, Google Sheets и CRM, роль FINMENTOR и программиста-интегратора, Data Model, частые ошибки подключения 1С." />
   <meta property="og:url" content="https://www.finmentor.md/power-bi-dlya-sobstvennika.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR" />
-  <meta name="twitter:description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <meta name="twitter:title" content="Power BI для собственника и интеграция данных из 1С | FINMENTOR" />
+  <meta name="twitter:description" content="Power BI для собственника на основе корректных данных: интеграция 1С, Excel, Google Sheets и CRM, роль FINMENTOR и программиста-интегратора, Data Model, частые ошибки подключения 1С." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -40,8 +40,8 @@
     {
       "@type": "Article",
       "@id": "https://www.finmentor.md/power-bi-dlya-sobstvennika.html#article",
-      "headline": "Power BI для собственника: как видеть бизнес на одном экране",
-      "description": "Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных.",
+      "headline": "Power BI для собственника: dashboard на основе корректных данных",
+      "description": "Power BI для собственника на основе корректных данных: интеграция 1С, Excel, Google Sheets и CRM, роль FINMENTOR и программиста-интегратора, Data Model, частые ошибки подключения 1С.",
       "inLanguage": "ru",
       "datePublished": "2026-06-21",
       "dateModified": "2026-06-21",
@@ -90,26 +90,42 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Можно ли внедрить Power BI без идеального учёта?",
+          "name": "Можно ли подключить Power BI к 1С?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Можно начать, но дашборд будет настолько точным, насколько точны данные. Сначала нужен хотя бы базовый управленческий учёт и единый источник данных, иначе BI покажет красивые, но неверные цифры."
+            "text": "Да. Данные из 1С выгружаются и подключаются к модели данных. Техническую часть настраивает программист-интегратор, а FINMENTOR определяет, какие показатели нужны собственнику."
           }
         },
         {
           "@type": "Question",
-          "name": "Какие данные нужны для dashboard?",
+          "name": "Кто настраивает выгрузку данных?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Управленческий P&L, Cash Flow, данные о продажах, расходах и дебиторке. Источниками могут быть 1С, Excel, Google Sheets или CRM — главное, чтобы они были согласованы между собой."
+            "text": "Корректную выгрузку из 1С, базы или файлов настраивает опытный программист-интегратор совместно с FINMENTOR. Эта работа оценивается отдельно после диагностики источников данных."
           }
         },
         {
           "@type": "Question",
-          "name": "Что должен видеть собственник?",
+          "name": "Почему одного Power BI недостаточно без финансовой модели?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "5–10 ключевых показателей: прибыль и маржу, деньги и ликвидность, продажи, расходы, дебиторку и KPI. Не десятки графиков, а то, на чём принимаются решения."
+            "text": "Power BI визуализирует то, что есть. Без управленческой модели (какие показатели, из каких источников, по каким правилам) dashboard покажет красивые, но неверные цифры."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как часто могут обновляться данные?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "От ручного обновления до регулярного автоматического — зависит от источников и требований. Частота согласуется заранее и настраивается на этапе интеграции."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Что делать, если данные в 1С ведутся неидеально?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Это типичная ситуация. Сначала определяется управленческая логика и согласованная модель, затем выгрузка приводится к нужному виду. Power BI не исправляет структуру данных — её выстраивают до визуализации."
           }
         }
       ]
@@ -141,8 +157,8 @@
     <section class="doc-hero">
       <div class="container">
         <p class="doc-hero__eyebrow">База знаний · BI</p>
-        <h1>Power BI для собственника: как видеть бизнес на одном экране</h1>
-        <p class="doc-hero__lead">Когда цифры разбросаны по десяткам Excel-файлов, собственник тратит время на сбор отчётов вместо решений. Power BI собирает ключевые показатели в один живой dashboard.</p>
+        <h1>Power BI для собственника: dashboard на основе корректных данных</h1>
+        <p class="doc-hero__lead">Dashboard начинается не с дизайна, а с данных. Сначала — управленческая логика и корректная выгрузка из 1С и других систем, и только потом красивые графики, которым можно доверять.</p>
         <p class="doc-hero__context">Power BI — инструмент визуализации после того, как выстроена структура данных.</p>
       </div>
     </section>
@@ -150,16 +166,24 @@
     <div class="container">
       <article class="doc">
         <section>
-          <h2>Зачем собственнику dashboard</h2>
-          <p><strong>Dashboard</strong> — это один экран, на котором видно состояние бизнеса: деньги, прибыль, продажи, расходы, дебиторка и KPI. Вместо того чтобы собирать отчёты вручную, собственник открывает дашборд и сразу видит, что происходит.</p>
-          <h2>Какие показатели выводить</h2>
-          <ul><li><strong>P&L:</strong> выручка, маржа, EBITDA, прибыль по направлениям.</li><li><strong>Cash Flow:</strong> остатки, поступления, платежи, прогноз ликвидности.</li><li><strong>Продажи:</strong> по направлениям, клиентам, менеджерам, динамика.</li><li><strong>Расходы:</strong> структура и отклонения от плана.</li><li><strong>Дебиторка:</strong> кто и сколько должен, просрочки.</li><li><strong>KPI:</strong> 5–10 ключевых метрик бизнеса.</li></ul>
-          <h2>Ошибки при внедрении BI</h2>
-          <ul><li>Делают красивый дашборд на «грязных» данных — красиво, но неверно.</li><li>Выводят десятки графиков вместо ключевых показателей.</li><li>Нет единого источника данных — цифры не сходятся.</li><li>Внедряют BI до того, как выстроен управленческий учёт.</li><li>Дашборд никто не обновляет и не использует в решениях.</li></ul>
-          <div class="cta-band"><p class="cta-band__title">Соберите бизнес на одном экране</p><p class="cta-band__text">Обсудите Power BI dashboard или заполните анкету — на её основе готовится план внедрения BI.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить Power BI dashboard</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/Yakovlev_Ghennadi" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Telegram</a></div></div>
-          <h2>Почему сначала нужна структура данных</h2>
-          <p>Power BI — это витрина, а не источник правды. Если данные в учёте не структурированы, дашборд будет красиво показывать неверные цифры. Поэтому порядок такой: сначала управленческий учёт и единый источник данных, затем BI поверх него. Иначе автоматизируется хаос.</p>
-          <div class="callout"><span class="callout__label">Мини-пример</span><p>Собственник тратил несколько дней в месяц на сбор отчётов из разных файлов. После наведения порядка в данных и настройки Power BI ключевые показатели обновляются автоматически, а на разбор ситуации уходит не дни, а минуты.</p></div>
+          <h2>Почему dashboard начинается не с дизайна, а с данных</h2>
+          <p>Красивый dashboard на «грязных» данных показывает неверные цифры уверенно и убедительно. Поэтому порядок такой: сначала управленческая логика и корректная структура данных, затем визуализация. <strong>Power BI — это витрина, а не источник правды.</strong></p>
+          <h2>Какие источники могут использоваться</h2>
+          <ul><li><strong>1С</strong> — основная учётная система.</li><li><strong>Excel</strong> и <strong>Google Sheets</strong> — управленческие таблицы.</li><li><strong>CRM</strong> — продажи и клиенты.</li><li><strong>Банк-клиент</strong> — остатки и движения.</li><li><strong>Платёжный календарь</strong> — план платежей и поступлений.</li><li>Ручные реестры — там, где данные ведутся вручную.</li></ul>
+          <h2>Роль FINMENTOR</h2>
+          <p>FINMENTOR отвечает за управленческую часть: финансовую логику, структуру показателей и требования к данным.</p>
+          <ul><li>Финансовая логика и управленческая модель.</li><li>KPI, P&amp;L и Cash Flow.</li><li>Какие показатели считаются и из каких источников.</li><li>Структура и состав dashboard для собственника.</li></ul>
+          <h2>Роль программиста-интегратора</h2>
+          <p>Техническую интеграцию выполняет опытный программист-интегратор с практическим опытом 1С и Power BI — совместно с FINMENTOR. FINMENTOR определяет, какие данные нужны собственнику; интегратор обеспечивает корректную выгрузку, подключение и обновление.</p>
+          <ul><li>Выгрузка из 1С, базы данных, API или файлов.</li><li>Подключение источников к модели данных.</li><li>Настройка регулярного обновления.</li><li>Техническая связка: источник → модель → dashboard.</li></ul>
+          <h2>Как строится Data Model</h2>
+          <p>Данные из разных источников приводятся к единой управленческой модели: справочники, связи, расчётные показатели. Модель — это то, что превращает разрозненные выгрузки в согласованную картину, на которой строится dashboard.</p>
+          <div class="cta-band"><p class="cta-band__title">Постройте dashboard на данных, которым можно доверять</p><p class="cta-band__text">Заполните анкету или обсудите Power BI dashboard — определим источники, модель данных и состав показателей под ваш бизнес.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Обсудить Power BI dashboard</a><a href="https://t.me/Yakovlev_Ghennadi" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Telegram</a></div></div>
+          <h2>Что видит собственник в dashboard</h2>
+          <ul><li>Деньги и ликвидность: остатки, cash gap, покрытие 7 / 14 / 30 дней.</li><li>Прибыль и маржу по направлениям.</li><li>Платежи: приоритеты, заблокированные, требующие решения.</li><li>Дебиторку и кредиторку по срокам.</li><li>KPI и отклонения от плана.</li></ul>
+          <h2>Частые ошибки при подключении 1С к Power BI</h2>
+          <ul><li>Визуализация строится до того, как определена управленческая логика.</li><li>Данные выгружаются «как есть», без согласованной модели.</li><li>Нет единого справочника — цифры не сходятся между источниками.</li><li>Не настроено регулярное обновление, dashboard устаревает.</li><li>Никто не отвечает за качество данных на источнике.</li></ul>
+          <div class="callout"><span class="callout__label">Мини-пример</span><p>Собственник хотел «красивый Power BI». После диагностики источников выяснилось, что данные в 1С и Excel не сходятся. Сначала выстроили управленческую модель и корректную выгрузку, и только потом dashboard — теперь цифры обновляются автоматически и им можно доверять.</p></div>
         </section>
       </article>
     </div>
@@ -167,16 +191,18 @@
     <div class="container">
       <section class="faq">
         <h2>Частые вопросы</h2>
-        <details class="faq__item"><summary>Можно ли внедрить Power BI без идеального учёта?</summary><div class="faq__item__body">Можно начать, но дашборд будет настолько точным, насколько точны данные. Сначала нужен хотя бы базовый управленческий учёт и единый источник данных, иначе BI покажет красивые, но неверные цифры.</div></details>
-        <details class="faq__item"><summary>Какие данные нужны для dashboard?</summary><div class="faq__item__body">Управленческий P&amp;L, Cash Flow, данные о продажах, расходах и дебиторке. Источниками могут быть 1С, Excel, Google Sheets или CRM — главное, чтобы они были согласованы между собой.</div></details>
-        <details class="faq__item"><summary>Что должен видеть собственник?</summary><div class="faq__item__body">5–10 ключевых показателей: прибыль и маржу, деньги и ликвидность, продажи, расходы, дебиторку и KPI. Не десятки графиков, а то, на чём принимаются решения.</div></details>
+        <details class="faq__item"><summary>Можно ли подключить Power BI к 1С?</summary><div class="faq__item__body">Да. Данные из 1С выгружаются и подключаются к модели данных. Техническую часть настраивает программист-интегратор, а FINMENTOR определяет, какие показатели нужны собственнику.</div></details>
+        <details class="faq__item"><summary>Кто настраивает выгрузку данных?</summary><div class="faq__item__body">Корректную выгрузку из 1С, базы или файлов настраивает опытный программист-интегратор совместно с FINMENTOR. Эта работа оценивается отдельно после диагностики источников данных.</div></details>
+        <details class="faq__item"><summary>Почему одного Power BI недостаточно без финансовой модели?</summary><div class="faq__item__body">Power BI визуализирует то, что есть. Без управленческой модели (какие показатели, из каких источников, по каким правилам) dashboard покажет красивые, но неверные цифры.</div></details>
+        <details class="faq__item"><summary>Как часто могут обновляться данные?</summary><div class="faq__item__body">От ручного обновления до регулярного автоматического — зависит от источников и требований. Частота согласуется заранее и настраивается на этапе интеграции.</div></details>
+        <details class="faq__item"><summary>Что делать, если данные в 1С ведутся неидеально?</summary><div class="faq__item__body">Это типичная ситуация. Сначала определяется управленческая логика и согласованная модель, затем выгрузка приводится к нужному виду. Power BI не исправляет структуру данных — её выстраивают до визуализации.</div></details>
       </section>
     </div>
 
     <div class="container">
       <nav class="related" aria-label="Связанные материалы">
         <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="upravlencheskiy-pl.html">Управленческий P&amp;L</a><a href="ai-dlya-cfo.html">AI для CFO</a><a href="cash-flow.html">Cash Flow</a><a href="templates.html">Шаблоны</a></div>
+        <div class="related__grid"><a href="kaznacheystvo.html">Казначейство</a><a href="treasury-waterfall.html">Фондовое планирование и водопад</a><a href="working-capital.html">Оборотный капитал</a><a href="ai-dlya-cfo.html">AI для CFO</a></div>
       </nav>
     </div>
 

@@ -1794,3 +1794,107 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 
 /* v5 — SEO page positioning context line */
 .doc-hero__context { margin-top: var(--sp-3); font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); padding: 6px 12px; border: 1px solid var(--border-gold); border-radius: var(--r-pill); display: inline-block; }
+
+/* ============================================================================
+   v6 — Treasury / Technology / Working Capital methodology blocks
+   ========================================================================== */
+.sec { padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.sec--alt { background: var(--bg-base); }
+.sec__sub { color: var(--text-secondary); max-width: 70ch; margin-top: var(--sp-4); line-height: 1.7; }
+.sec__sub + .sec__sub { margin-top: var(--sp-4); }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5); }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-4); }
+.grid-mt { margin-top: var(--sp-7); }
+@media (max-width: 1000px) { .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; } }
+
+/* flow strip */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: var(--sp-6); padding: var(--sp-5); border: 1px solid var(--glass-border); border-radius: var(--r-lg); background: var(--glass-fill); }
+.flow__node { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-primary); padding: 8px 14px; border: 1px solid var(--glass-border-gold); border-radius: var(--r-pill); background: rgba(201,162,39,0.08); }
+.flow__arrow { color: var(--accent); font-weight: 700; }
+
+/* priority waterfall */
+.waterfall { display: flex; flex-direction: column; gap: 8px; max-width: 680px; counter-reset: wf; }
+.waterfall__step { counter-increment: wf; display: flex; align-items: center; gap: var(--sp-4); padding: 13px 18px; border-radius: var(--r-md); border: 1px solid var(--glass-border); background: linear-gradient(90deg, rgba(201,162,39,0.12), var(--glass-fill)); }
+.waterfall__step::before { content: counter(wf); font-family: var(--font-display); font-weight: 700; color: var(--accent); min-width: 24px; }
+.waterfall__step span { color: var(--text-primary); font-weight: 600; }
+
+/* payment statuses */
+.status-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: var(--sp-6); }
+.status-pill { font-family: var(--font-mono); font-size: 0.78rem; padding: 8px 14px; border-radius: var(--r-pill); border: 1px solid var(--glass-border); color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+
+/* coverage indicators */
+.coverage-card { padding: var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); }
+.coverage-card__num { font-family: var(--font-display); font-size: 2.4rem; font-weight: 700; color: var(--accent); line-height: 1; }
+.coverage-card__t { font-weight: 600; margin-top: var(--sp-3); }
+.coverage-card__d { color: var(--text-secondary); font-size: 0.9rem; margin-top: 6px; line-height: 1.5; }
+
+/* budget card "ориентир" badge */
+.remote-card__hint { margin-top: var(--sp-3); font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 5px 10px; display: inline-block; }
+
+/* strong quote band */
+.quote-band { margin: var(--sp-7) 0; padding: var(--sp-7); border-left: 3px solid var(--accent); background: linear-gradient(135deg, rgba(201,162,39,0.09), var(--glass-fill)); border-radius: 0 var(--r-lg) var(--r-lg) 0; }
+.quote-band p { font-family: var(--font-display); font-size: clamp(1.15rem, 2.4vw, 1.45rem); line-height: 1.45; color: var(--text-primary); }
+
+/* generic callout (homepage) + warn variant */
+.note-callout { padding: var(--sp-5) var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); color: var(--text-secondary); line-height: 1.65; margin-top: var(--sp-6); }
+.note-callout--warn { border-color: rgba(201,162,39,0.45); background: linear-gradient(135deg, rgba(201,162,39,0.07), var(--glass-fill)); }
+.note-callout--warn strong { color: var(--accent); }
+.note-callout__label { display: block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--sp-2); }
+
+/* analysis chips (working capital "what we analyze") */
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--sp-5); }
+.chips span { font-size: 0.85rem; color: var(--text-secondary); padding: 8px 14px; border-radius: var(--r-pill); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); }
+
+/* scenario card */
+.scenario { padding: var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); display: flex; flex-direction: column; }
+.scenario__tag { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; color: var(--accent); margin-bottom: var(--sp-2); }
+.scenario__title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; margin-bottom: var(--sp-3); }
+.scenario p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin-bottom: var(--sp-4); }
+.scenario__flow { margin-top: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.scenario__flow span { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); padding: 5px 10px; border-radius: var(--r-sm); border: 1px solid var(--glass-border-gold); background: rgba(201,162,39,0.07); }
+.scenario__flow b { color: var(--accent); }
+
+/* premium contact strip */
+.contact-strip { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.contact-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: var(--r-md); border: 1px solid var(--glass-border); background: var(--glass-fill); color: var(--text-primary); font-weight: 600; font-size: 0.92rem; transition: border-color var(--dur-base) ease, box-shadow var(--dur-base) ease, transform var(--dur-base) ease, color var(--dur-base) ease; }
+.contact-btn:hover { border-color: var(--glass-border-gold); box-shadow: 0 0 0 1px rgba(201,162,39,0.5), 0 10px 34px rgba(201,162,39,0.16); color: var(--accent); transform: translateY(-2px); }
+.contact-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.contact-btn svg { width: 20px; height: 20px; flex-shrink: 0; color: var(--gold-400); }
+.contact-strip--footer { margin-top: var(--sp-5); }
+@media (max-width: 600px) { .contact-btn { width: 100%; justify-content: center; } }
+
+/* ============================================================================
+   v6 Focus v2 — comparison, discovery, security, modules, anchors
+   ========================================================================== */
+.compare-card__role { color: var(--text-secondary); font-size: 0.92rem; margin-bottom: var(--sp-3); }
+.compare-card__role b { color: var(--text-primary); }
+.compare-card__limit { color: var(--text-muted); font-size: 0.88rem; line-height: 1.55; padding-top: var(--sp-3); margin-top: auto; border-top: 1px solid var(--border-hairline); }
+.compare-card--accent { border-color: var(--border-gold); background: linear-gradient(135deg, rgba(201,162,39,0.10), var(--glass-fill)); }
+.compare-card--accent .compare-card__limit { color: var(--text-secondary); border-top-color: rgba(201,162,39,0.35); }
+.compare__verdict { margin-top: var(--sp-6); font-family: var(--font-display); font-size: 1.15rem; color: var(--text-primary); max-width: 70ch; }
+.compare__verdict b { color: var(--accent); }
+
+/* trust anchors */
+.anchor-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--sp-5); }
+.anchor-list span { font-size: 0.86rem; color: var(--text-secondary); padding: 8px 14px; border-radius: var(--r-pill); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); }
+.anchor-list span b { color: var(--accent); font-weight: 600; }
+
+/* discovery entry band */
+.discovery-band { padding: var(--sp-8); border-radius: var(--r-xl); border: 1px solid var(--border-gold); background: linear-gradient(135deg, rgba(201,162,39,0.12), var(--glass-fill)); -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur)); }
+.discovery-band__badge { display: inline-block; font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 6px 12px; margin-bottom: var(--sp-4); }
+.discovery-band__title { font-family: var(--font-display); font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 700; margin-bottom: var(--sp-3); }
+.discovery-band__text { color: var(--text-secondary); line-height: 1.65; max-width: 64ch; margin-bottom: var(--sp-5); }
+.discovery-band__grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--sp-7); align-items: center; }
+.discovery-band__list { display: flex; flex-direction: column; gap: 10px; }
+.discovery-band__list li { position: relative; padding-left: var(--sp-6); color: var(--text-secondary); line-height: 1.5; }
+.discovery-band__list li::before { content: ""; position: absolute; left: 0; top: 8px; width: 12px; height: 7px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
+@media (max-width: 860px) { .discovery-band__grid { grid-template-columns: 1fr; gap: var(--sp-5); } }
+
+/* security principles reuse remote-card; module hint */
+.module-note { margin-top: var(--sp-6); color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; padding: var(--sp-5) var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); }
+.roi-note { margin-top: var(--sp-6); color: var(--text-secondary); line-height: 1.65; }
+.roi-note strong { color: var(--text-primary); }

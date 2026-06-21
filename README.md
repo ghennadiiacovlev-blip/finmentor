@@ -166,3 +166,49 @@ Automation), блок «Для кого FINMENTOR» (описание клиен
 CFO-контроль → BI/AI-автоматизация), навигация (добавлено «Для кого»). SEO-страницы не удалялись:
 к каждой добавлена строка-контекст, привязывающая тему к CFO-системе; статьи не переписаны.
 Анкета, monthly support, remote work, SEO hub и lead-generation сохранены.
+
+## v6 — Treasury Waterfall, Technology Budget, 1С → Power BI & AI Scenarios
+
+Добавлен методологический и технологический слой (позиционирование v5 сохранено: внешний CFO →
+система → автоматизация; AI/Power BI — инструменты после фундамента).
+
+Новые блоки на главной (id): `#treasury` (фондовое планирование, метафонды, водопад приоритетов),
+`#payment-discipline` (статусы + Purchase/AP/Payment Gate), `#coverage` (7/14/30 дней),
+`#working-capital` (оборотный капитал, DSO/DPO/DIO, CCC), `#treasury-tech` (Treasury + Power BI/AI),
+`#data-integration` (1С → Power BI, роль программиста-интегратора), `#tech-budget`
+(технологический бюджет — суммы «ориентировочно»), `#scenarios` (4 архитектурных сценария).
+Premium contact strip (Telegram/WhatsApp/Email/LinkedIn, inline SVG) — в блоке консультации и подвале.
+
+Новые SEO-страницы: `treasury-waterfall.html`, `working-capital.html` (добавлены в sitemap.xml и в
+перелинковку). Обновлены: `power-bi-dlya-sobstvennika.html` (1С-интеграция, Data Model, роль
+интегратора, ошибки 1С→PBI, FAQ), `kaznacheystvo.html` (фонды, водопад, gates, 7/14/30, PBI, AI),
+`cash-flow.html` / `business-control-system.html` / `monthly-cfo-support.html` / `templates.html`
+(оборотный капитал и шаблоны).
+
+GA4 сохранён на всех страницах (включая новые). В `main.js` добавлен `initGA` — делегированные
+gtag-события (click_telegram/whatsapp/email/questionnaire/template_request/business_audit/
+powerbi_integration/treasury_waterfall), защищённые `typeof gtag === 'function'` (если gtag не
+загружен — сайт и навигация не ломаются). Суммы по подпискам помечены «ориентир»; работа
+программиста-интегратора по 1С — оценивается отдельно после диагностики источников.
+
+## v6 (Focus v2, Trust & Entry) — пересмотр
+
+После стратегического аудита направление v6 изменено: **не перегружать главную методологией**, а
+сфокусировать её, усилить доверие и вход. С главной **снято** ~8 тяжёлых методологических секций
+(метафонды, водопад, gates, 7/14/30, DSO/DPO/DIO, подробный 1С→Power BI, построчный техбюджет,
+длинные AI-сценарии). Они перенесены на отдельные страницы (`methodology.html`, `working-capital.html`,
+`treasury-waterfall.html`, `kaznacheystvo.html`, `power-bi-dlya-sobstvennika.html`).
+
+Добавлено на главную: **Discovery Call** (главный вход, 20–30 мин), блок **сравнения**
+(CFO vs бухгалтер / консультант / BI-разработчик), **trust-блок** «Кто стоит за FINMENTOR»
+(Big4/IFRS-фундамент, аккуратно), **«Удалённая работа, конфиденциальность и безопасность данных»**
+(5 принципов), **методология как тизер** (4 опоры + ссылка), **оборотный капитал** как короткий
+ROI-хук. Продуктовая лестница упрощена до 3 уровней (Health Check → Business Control System →
+Monthly CFO Support); «CFO AI Transformation» убран как отдельный tier — BI/AI/Treasury/Working
+Capital/1С-интеграция вынесены в блок **«Дополнительные модули»** с фразой про согласование стека
+(без таблицы цен на главной). Добавлена ROI-рамка к ценам.
+
+Новая страница `methodology.html` (в sitemap, перелинкована). GA4 сохранён на всех 16 страницах;
+события обновлены: click_discovery_call, click_methodology, click_working_capital, click_questionnaire,
+click_telegram/whatsapp/email, click_template_request, click_powerbi_integration (guarded
+`typeof gtag === 'function'`).
