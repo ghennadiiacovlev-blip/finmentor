@@ -110,3 +110,41 @@ python3 -m http.server 8000
 
 **TODO:** questionnaire submit → webhook → AI agent → Telegram + Gmail + Google Sheets / CRM
 (точка подключения — `main.js`, функция `initQuestionnaire`).
+
+## v4 — Lead Generation & SEO Engine
+
+Сайт превращён из презентационной страницы в лидогенерационную SEO-систему:
+SEO-страницы привлекают органический трафик, дают пользу собственнику и ведут в анкету,
+заявку или контакт. Структура остаётся плоской — все страницы в корне репозитория.
+
+### Все страницы (в корне)
+- `index.html` — главная (секции + lead-gen hub «База знаний»).
+- `questionnaire.html` — диагностическая анкета (11 блоков, intake под AI-агента).
+- `privacy.html` — политика конфиденциальности.
+- **SEO-статьи:** `cash-flow.html`, `upravlencheskiy-pl.html`, `platezhnyy-kalendar.html`,
+  `kaznacheystvo.html`, `power-bi-dlya-sobstvennika.html`, `ai-dlya-cfo.html`.
+- **Шаблоны:** `templates.html`.
+- **Страницы услуг:** `financial-health-check.html`, `business-control-system.html`, `monthly-cfo-support.html`.
+
+### Назначение SEO-страниц
+Каждая страница покрывает один поисковый запрос собственника, объясняет тему простым языком,
+даёт чеклист и мини-пример (без персональных данных), FAQ и CTA в середине и в конце
+(Заполнить анкету / Запросить шаблон / Получить диагностику / Обсудить внедрение / Telegram).
+Внутренние ссылки связывают статьи и услуги между собой и с анкетой.
+
+### Как добавить новую статью
+1. Скопируйте любой из файлов статей (например, `cash-flow.html`) в корень под новым именем `тема.html`.
+2. Замените `<title>`, `meta description`, `canonical`, Open Graph / Twitter, `<h1>`, контент, FAQ и JSON-LD.
+3. Оставьте один `<h1>`, используйте `<h2>/<h3>` для структуры, добавьте внутренние ссылки и CTA.
+4. Добавьте ссылку на статью в блок «База знаний» в `index.html` и в `sitemap.xml`.
+5. Все пути — корневые (`style.css`, `favicon.svg`, `og-image.png`), без папок.
+
+### Как обновлять sitemap.xml
+Добавьте `<url><loc>https://www.finmentor.md/новая-страница.html</loc><lastmod>ГГГГ-ММ-ДД</lastmod>…</url>`
+и обновите `lastmod` актуальной датой. `robots.txt` уже разрешает обход и указывает на sitemap.
+
+### Будущая автоматизация
+`questionnaire.html` (и формы) готовятся под подключение:
+**questionnaire → Make / n8n → AI agent → Telegram + Gmail + Google Sheets / CRM**.
+Точки подключения и AI-agent output schema описаны в `main.js` (`initQuestionnaire`),
+в HTML-комментарии `questionnaire.html` и в разделе «AI-Agent Output Schema» выше.

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR</title>
+  <meta name="description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/power-bi-dlya-sobstvennika.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR" />
+  <meta property="og:description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <meta property="og:url" content="https://www.finmentor.md/power-bi-dlya-sobstvennika.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Power BI для собственника бизнеса — dashboard вместо хаоса в Excel | FINMENTOR" />
+  <meta name="twitter:description" content="Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://www.finmentor.md/power-bi-dlya-sobstvennika.html#article",
+      "headline": "Power BI для собственника: как видеть бизнес на одном экране",
+      "description": "Зачем собственнику Power BI dashboard, какие показатели выводить, ошибки при внедрении BI и почему сначала нужна структура данных.",
+      "inLanguage": "ru",
+      "datePublished": "2026-06-21",
+      "dateModified": "2026-06-21",
+      "mainEntityOfPage": "https://www.finmentor.md/power-bi-dlya-sobstvennika.html",
+      "image": "https://www.finmentor.md/og-image.png",
+      "author": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.finmentor.md/icon-512.png"
+        }
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Главная",
+          "item": "https://www.finmentor.md/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Материалы",
+          "item": "https://www.finmentor.md/index.html#knowledge"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Power BI для собственника",
+          "item": "https://www.finmentor.md/power-bi-dlya-sobstvennika.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Можно ли внедрить Power BI без идеального учёта?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Можно начать, но дашборд будет настолько точным, насколько точны данные. Сначала нужен хотя бы базовый управленческий учёт и единый источник данных, иначе BI покажет красивые, но неверные цифры."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Какие данные нужны для dashboard?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Управленческий P&L, Cash Flow, данные о продажах, расходах и дебиторке. Источниками могут быть 1С, Excel, Google Sheets или CRM — главное, чтобы они были согласованы между собой."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Что должен видеть собственник?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "5–10 ключевых показателей: прибыль и маржу, деньги и ликвидность, продажи, расходы, дебиторку и KPI. Не десятки графиков, а то, на чём принимаются решения."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Навигация">
+        <a href="index.html" class="doc-bar__hide">На главную</a>
+        <a href="index.html#knowledge" class="doc-bar__hide">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Разобрать мой бизнес</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a> / <a href="index.html#knowledge">Материалы</a> / <span>Power BI для собственника</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">База знаний · BI</p>
+        <h1>Power BI для собственника: как видеть бизнес на одном экране</h1>
+        <p class="doc-hero__lead">Когда цифры разбросаны по десяткам Excel-файлов, собственник тратит время на сбор отчётов вместо решений. Power BI собирает ключевые показатели в один живой dashboard.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section>
+          <h2>Зачем собственнику dashboard</h2>
+          <p><strong>Dashboard</strong> — это один экран, на котором видно состояние бизнеса: деньги, прибыль, продажи, расходы, дебиторка и KPI. Вместо того чтобы собирать отчёты вручную, собственник открывает дашборд и сразу видит, что происходит.</p>
+          <h2>Какие показатели выводить</h2>
+          <ul><li><strong>P&L:</strong> выручка, маржа, EBITDA, прибыль по направлениям.</li><li><strong>Cash Flow:</strong> остатки, поступления, платежи, прогноз ликвидности.</li><li><strong>Продажи:</strong> по направлениям, клиентам, менеджерам, динамика.</li><li><strong>Расходы:</strong> структура и отклонения от плана.</li><li><strong>Дебиторка:</strong> кто и сколько должен, просрочки.</li><li><strong>KPI:</strong> 5–10 ключевых метрик бизнеса.</li></ul>
+          <h2>Ошибки при внедрении BI</h2>
+          <ul><li>Делают красивый дашборд на «грязных» данных — красиво, но неверно.</li><li>Выводят десятки графиков вместо ключевых показателей.</li><li>Нет единого источника данных — цифры не сходятся.</li><li>Внедряют BI до того, как выстроен управленческий учёт.</li><li>Дашборд никто не обновляет и не использует в решениях.</li></ul>
+          <div class="cta-band"><p class="cta-band__title">Соберите бизнес на одном экране</p><p class="cta-band__text">Обсудите Power BI dashboard или заполните анкету — на её основе готовится план внедрения BI.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить Power BI dashboard</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/Yakovlev_Ghennadi" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Telegram</a></div></div>
+          <h2>Почему сначала нужна структура данных</h2>
+          <p>Power BI — это витрина, а не источник правды. Если данные в учёте не структурированы, дашборд будет красиво показывать неверные цифры. Поэтому порядок такой: сначала управленческий учёт и единый источник данных, затем BI поверх него. Иначе автоматизируется хаос.</p>
+          <div class="callout"><span class="callout__label">Мини-пример</span><p>Собственник тратил несколько дней в месяц на сбор отчётов из разных файлов. После наведения порядка в данных и настройки Power BI ключевые показатели обновляются автоматически, а на разбор ситуации уходит не дни, а минуты.</p></div>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="faq">
+        <h2>Частые вопросы</h2>
+        <details class="faq__item"><summary>Можно ли внедрить Power BI без идеального учёта?</summary><div class="faq__item__body">Можно начать, но дашборд будет настолько точным, насколько точны данные. Сначала нужен хотя бы базовый управленческий учёт и единый источник данных, иначе BI покажет красивые, но неверные цифры.</div></details>
+        <details class="faq__item"><summary>Какие данные нужны для dashboard?</summary><div class="faq__item__body">Управленческий P&amp;L, Cash Flow, данные о продажах, расходах и дебиторке. Источниками могут быть 1С, Excel, Google Sheets или CRM — главное, чтобы они были согласованы между собой.</div></details>
+        <details class="faq__item"><summary>Что должен видеть собственник?</summary><div class="faq__item__body">5–10 ключевых показателей: прибыль и маржу, деньги и ликвидность, продажи, расходы, дебиторку и KPI. Не десятки графиков, а то, на чём принимаются решения.</div></details>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Связанные материалы">
+        <p class="related__label">Связанные материалы</p>
+        <div class="related__grid"><a href="upravlencheskiy-pl.html">Управленческий P&amp;L</a><a href="ai-dlya-cfo.html">AI для CFO</a><a href="cash-flow.html">Cash Flow</a><a href="templates.html">Шаблоны</a></div>
+      </nav>
+    </div>
+
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Внедрите Power BI для собственника</p>
+        <p class="cta-band__text">Обсудите дашборд или заполните анкету — и получите план, как видеть бизнес на одном экране.</p>
+        <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить Power BI</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/Yakovlev_Ghennadi" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в Telegram</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Главная</a>
+        <a href="index.html#knowledge">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <a href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR · Кишинёв</span>
+    </div>
+  </footer>
+</body>
+</html>
