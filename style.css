@@ -1602,3 +1602,80 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 @media (max-width: 860px) { .process__steps { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) { .audience__grid { grid-template-columns: 1fr; } .process__steps { grid-template-columns: 1fr; } }
 @media (max-width: 720px) { .audience, .deliverables, .process { padding-block: var(--sp-9); } .process__cta .btn { width: 100%; } }
+
+/* ============================================================================
+   PROD2 — package goal/next, monthly support, pre-meeting teaser
+   ========================================================================== */
+.package__goal { color: var(--text-secondary); font-size: 1rem; line-height: 1.5; margin-bottom: var(--sp-4); }
+.package__next {
+  margin-top: var(--sp-4); padding-top: var(--sp-4);
+  border-top: 1px solid var(--border-hairline);
+  font-size: 0.86rem; color: var(--text-muted); line-height: 1.5;
+}
+.package__next-label {
+  display: inline-block; margin-right: 6px;
+  font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+}
+.packages__cta { margin-top: var(--sp-8); display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-4); }
+
+/* Monthly support */
+.monthly { background: var(--bg-base); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.monthly__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); align-items: start; }
+.monthly-card {
+  display: flex; flex-direction: column; padding: var(--sp-7);
+  border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+  transition: border-color var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base) ease;
+}
+.monthly-card:hover { transform: translateY(-4px); border-color: var(--glass-border-gold); box-shadow: var(--elev-2); }
+.monthly-card--featured { border-color: var(--border-gold); box-shadow: var(--elev-2), var(--glow-gold); }
+.monthly-card__name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; margin-bottom: var(--sp-2); }
+.monthly-card__price { font-size: 1.5rem; font-weight: 700; color: var(--white); margin-bottom: var(--sp-4); line-height: 1; }
+.monthly-card--featured .monthly-card__price { color: var(--gold-300); }
+.monthly-card__per { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+.monthly-card__for { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: var(--sp-5); }
+.monthly-card .package__label { margin-bottom: var(--sp-3); }
+.monthly-card .package__list { margin-bottom: var(--sp-5); }
+.monthly-card__note { font-size: 0.82rem; color: var(--text-muted); font-style: italic; margin-bottom: var(--sp-5); }
+.monthly-card__cta { margin-top: auto; width: 100%; }
+
+/* Pre-meeting teaser */
+.pre-meeting { background: var(--bg-alt); padding-block: var(--sp-9); border-top: 1px solid var(--border-hairline); }
+.pre-meeting__card {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-7); padding: var(--sp-8);
+  border-radius: var(--r-xl); border: 1px solid var(--border-gold);
+  background: linear-gradient(135deg, rgba(201,162,39,0.08), var(--glass-fill));
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+}
+.pre-meeting__title { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin: var(--sp-2) 0 var(--sp-3); }
+.pre-meeting__lead { color: var(--text-secondary); max-width: 60ch; line-height: 1.6; }
+.pre-meeting__meta { margin-top: var(--sp-3); font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); }
+.pre-meeting__action { flex-shrink: 0; }
+
+@media (max-width: 980px) { .monthly__grid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; } }
+@media (max-width: 760px) {
+  .monthly, .pre-meeting { padding-block: var(--sp-8); }
+  .pre-meeting__card { flex-direction: column; align-items: flex-start; }
+  .pre-meeting__action, .pre-meeting__action .btn { width: 100%; }
+  .packages__cta .btn { width: 100%; }
+}
+
+/* ============================================================================
+   PROD2.1 — remote work section
+   ========================================================================== */
+.remote { background: var(--bg-base); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.remote__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5); }
+.remote-card {
+  padding: var(--sp-6); border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border); background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+  transition: border-color var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base) ease;
+}
+.remote-card:hover { transform: translateY(-4px); border-color: var(--glass-border-gold); box-shadow: var(--elev-2); }
+.remote-card__tag { font-family: var(--font-mono); font-size: 0.82rem; letter-spacing: 0.08em; color: var(--accent); }
+.remote-card__title { font-family: var(--font-sans); font-size: 1.1rem; font-weight: 600; margin: var(--sp-2) 0; }
+.remote-card p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.55; }
+.remote__cta { margin-top: var(--sp-8); }
+
+@media (max-width: 980px) { .remote__grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .remote__grid { grid-template-columns: 1fr; } .remote__cta .btn { width: 100%; } }

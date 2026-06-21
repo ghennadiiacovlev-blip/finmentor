@@ -7,13 +7,14 @@
 ```
 finmentor/
 ├── index.html            одна страница со всеми секциями
-├── style.css         дизайн-система + все стили
-├── main.js            интро, частицы, курсор, меню, кейсы, форма
-├── 
-│   ├── favicon.svg        иконка вкладки
-│   ├── icon-192.png        иконка PWA / Android
-│   ├── icon-512.png        иконка PWA (maskable)
-│   ├── apple-touch-icon.png иконка для iOS
+├── questionnaire.html    анкета-диагностика перед встречей
+├── privacy.html          политика конфиденциальности
+├── style.css             дизайн-система + все стили
+├── main.js               интро, частицы, курсор, меню, кейсы, форма, анкета
+├── favicon.svg           иконка вкладки
+├── icon-192.png          иконка PWA / Android
+├── icon-512.png          иконка PWA (maskable)
+├── apple-touch-icon.png  иконка для iOS
 │   └── og-image.png        картинка для соцсетей (1200×630)
 ├── manifest.json         PWA-манифест
 ├── robots.txt            для поисковиков
@@ -79,7 +80,33 @@ python3 -m http.server 8000
 
 - **Подключить отправку формы** — инструкция прямо в коде: `main.js`, функция `initForm`.
   Готовы два варианта: A) Formspree (вставить endpoint), B) Telegram Bot (вставить TOKEN и CHAT_ID).
+- **Подключить анкету** (`questionnaire.html`) к Make/n8n webhook — TODO в `main.js`, функция `initQuestionnaire`
+  (questionnaire submit → webhook → Telegram + Gmail + Google Sheets / CRM).
 - **Проверить текст `privacy.html` с юристом** и привести в соответствие с законодательством МД / GDPR.
 - **Заменить текстовый логотип на SVG**, когда будет готов (опционально).
 - **Поставить веб-аналитику** (GA4 / Plausible) для замера конверсии (опционально, но желательно).
 
+
+## AI-Agent Output Schema (анкета → план работы)
+
+Анкета `questionnaire.html` — это diagnostic intake. Ответы (кнопка «Скопировать ответы»
+или будущий webhook) подаются AI-агенту, который формирует план работы с клиентом.
+Имена полей начинаются с `q_` (`q_name`, `q_country`, `q_pain`, `q_f1..q_f16`, `q_systems`,
+`q_doc`, `q_goal`, `q_remote_*`, `q_consent`, …); сбор ответов — `collectAnswers()` в `main.js`.
+
+Агент должен возвращать:
+
+1. **Client Summary** — country, industry, business_size, group_structure, key_contact, work_format, communication_language.
+2. **Pain Map** — main / finance / operational / system pains, data-reporting problems, remote_concerns.
+3. **Finance Maturity Score (1–5)** — 1 = хаос; 2 = базовые отчёты без регулярного контроля; 3 = P&L/CF/бюджет частично; 4 = управленческий контур + KPI; 5 = BI/automation/регулярный контроль.
+4. **Risk Map** — cash_flow, profitability, reporting, debt, tax/compliance, data_quality, governance, remote_work.
+5. **Urgency Level** — Low / Medium / High / Critical.
+6. **Recommended First Step** — Health Check / Business Control System / Monthly Support / CFO AI Transformation / request documents first / discovery call first.
+7. **Meeting Agenda** — 5–7 пунктов для первой встречи.
+8. **Document Request List** — какие документы запросить до / после встречи.
+9. **30/60/90-Day Roadmap** — first_30_days, 60_days, 90_days.
+10. **Commercial Fit** — suitable_package, potential_monthly_support, possible_next_steps.
+11. **Remote Work Plan** — communication_format, meeting_frequency, channels, quality_control, document_exchange, как снять страхи клиента.
+
+**TODO:** questionnaire submit → webhook → AI agent → Telegram + Gmail + Google Sheets / CRM
+(точка подключения — `main.js`, функция `initQuestionnaire`).

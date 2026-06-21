@@ -611,6 +611,110 @@
     };
   }
 
+  /* ------------------------------------------------------------- QUESTIONNAIRE (questionnaire.html) */
+  function initQuestionnaire() {
+    var form = document.getElementById('qForm');
+    if (!form) return;
+    var success = document.getElementById('qSuccess');
+    var copyBtn = document.getElementById('qCopy');
+    var bar = document.getElementById('qProgress');
+
+    // scroll-based progress bar
+    if (bar) {
+      var update = function () {
+        var rect = form.getBoundingClientRect();
+        var total = form.offsetHeight - window.innerHeight;
+        var scrolled = -rect.top;
+        var pct = total > 0 ? (scrolled / total) * 100 : 0;
+        bar.style.width = Math.max(2, Math.min(100, pct)) + '%';
+      };
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      update();
+    }
+
+    function collectAnswers() {
+      var lines = ['FINMENTOR — Анкета диагностики', ''];
+      var qs = form.querySelectorAll('.q');
+      Array.prototype.forEach.call(qs, function (q) {
+        var labelEl = q.querySelector('.q__label, legend');
+        var label = labelEl ? labelEl.textContent.trim() : '';
+        var val = '';
+        var sel = q.querySelector('select');
+        var radios = q.querySelectorAll('input[type="radio"]');
+        var checks = q.querySelectorAll('input[type="checkbox"]');
+        var text = q.querySelector('input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea');
+        if (sel) { val = sel.value; }
+        else if (radios.length) { Array.prototype.forEach.call(radios, function (r) { if (r.checked) val = r.parentNode.textContent.trim(); }); }
+        else if (checks.length) { var arr = []; Array.prototype.forEach.call(checks, function (c) { if (c.checked) arr.push(c.parentNode.textContent.trim()); }); val = arr.join(', '); }
+        else if (text) { val = text.value.trim(); }
+        if (label) lines.push(label + ': ' + (val || '—'));
+      });
+      return lines.join('\n');
+    }
+
+    function fallbackCopy(txt, cb) {
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta); if (cb) cb();
+    }
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var txt = collectAnswers();
+        var done = function () {
+          copyBtn.textContent = 'Скопировано ✓';
+          setTimeout(function () { copyBtn.textContent = 'Скопировать ответы'; }, 2500);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
+        } else { fallbackCopy(txt, done); }
+      });
+    }
+
+    form.addEventListener('input', function (e) {
+      if (e.target && e.target.classList) e.target.classList.remove('is-error');
+    });
+
+    form.addEventListener('change', function (e) {
+      if (e.target && e.target.name === 'q_consent') {
+        var row = document.getElementById('qConsentRow');
+        if (row) row.classList.remove('is-error');
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = form.querySelector('[name="q_name"]');
+      var consent = form.querySelector('[name="q_consent"]');
+      var consentRow = document.getElementById('qConsentRow');
+      var ok = true;
+      // имя желательно, согласие обязательно; остальные поля НЕ блокируют отправку
+      if (name && !name.value.trim()) { name.parentNode.classList.add('is-error'); ok = false; }
+      else if (name) name.parentNode.classList.remove('is-error');
+      if (consent && !consent.checked) { if (consentRow) consentRow.classList.add('is-error'); ok = false; }
+      else if (consentRow) consentRow.classList.remove('is-error');
+      if (!ok) {
+        if (name && !name.value.trim()) name.focus();
+        else if (consentRow) consentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      /* TODO: подключить Make/n8n webhook:
+         questionnaire submit -> webhook -> AI agent -> Telegram + Gmail + Google Sheets / CRM.
+         Пример:
+         // var payload = collectAnswers();
+         // fetch('WEBHOOK_URL', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload })
+         //   .then(function (r) { if (!r.ok) throw new Error('send failed'); })
+         //   .catch(function () { ... показать fallback-контакты ... });
+         Пока backend не подключён — данные НЕ уходят в CRM / AI-agent, показываем честный success ниже. */
+
+      try { console.log('[finmentor] questionnaire (не отправляется автоматически):\n' + collectAnswers()); } catch (err) {}
+      if (success) { success.hidden = false; success.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    });
+  }
+
   function guard(fn) { try { fn(); } catch (e) { if (window.console) console.warn('[finmentor]', e); } }
 
   /* ------------------------------------------------------------- BOOT */
@@ -625,6 +729,7 @@
     guard(initParallax);
     guard(initCases);
     guard(initForm);
+    guard(initQuestionnaire);
     guard(initLang);
   });
 })();
