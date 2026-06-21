@@ -583,6 +583,9 @@
          ==================================================================== */
       try { console.log('[finmentor] lead (ещё не отправляется):', lead); } catch (err) {}
 
+      // TODO (приоритет): подключить Make/n8n webhook —
+      //   form submit → webhook → Telegram + Gmail + Google Sheets.
+      //   Готовые варианты подключения (Formspree / Telegram Bot) описаны в блоке выше.
       if (success) success.hidden = false;
       if (submit) submit.disabled = true;
     });

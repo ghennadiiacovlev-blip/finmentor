@@ -6,7 +6,7 @@
 /* ----------------------------------------------------------------- TOKENS */
 :root {
   /* Color — primitives */
-  --navy-900: #0A1626;
+  --navy-900: #08111F;
   --navy-800: #0D1B2E;
   --navy-700: #12233A;
   --navy-600: #1F3864;
@@ -326,8 +326,20 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   display: inline-flex;
 }
 .intro__word { display: inline-flex; }
-.intro__word--fin { color: var(--electric); }
-.intro__word--mentor { color: var(--gold-400); }
+.intro__word--fin,
+.logo__fin {
+  color: #FFFFFF;
+  -webkit-text-fill-color: #FFFFFF;
+  background: none;
+}
+.intro__word--mentor,
+.logo__mentor {
+  color: #D4AF37;
+  -webkit-text-fill-color: #D4AF37;
+  background: none;
+}
+.intro__word--fin span { color: #FFFFFF; -webkit-text-fill-color: #FFFFFF; }
+.intro__word--mentor span { color: #D4AF37; -webkit-text-fill-color: #D4AF37; }
 .intro__word span {
   display: inline-block;
   opacity: 0;
@@ -344,7 +356,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
   transform: translateX(-130%);
   animation: introShimmer 1.1s var(--ease-inout) 1.35s forwards;
-  mix-blend-mode: overlay;
+  mix-blend-mode: screen;
   pointer-events: none;
 }
 .intro__tagline {
@@ -402,8 +414,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   font-size: 1.35rem;
   letter-spacing: -0.02em;
 }
-.logo__fin { color: var(--electric); }
-.logo__mentor { color: var(--gold-400); }
+/* header/footer logo colours are defined together with the intro wordmark above */
 
 .nav { display: flex; gap: var(--sp-5); }
 .nav__link {
@@ -1510,3 +1521,84 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   pointer-events: none;
   background: linear-gradient(180deg, rgba(10, 22, 38, 0) 58%, rgba(10, 22, 38, 0.42) 100%);
 }
+
+/* ============================================================================
+   PROD — form fallback contacts + success links
+   ========================================================================== */
+.form__fallback { font-size: 0.78rem; color: var(--text-muted); text-align: center; line-height: 1.55; }
+.form__fallback a, .form__success a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.form__fallback a:hover, .form__success a:hover { color: var(--accent-bright); }
+
+/* ============================================================================
+   PROD — UX blocks: «Для кого», «Что вы получите», «Как проходит работа»
+   ========================================================================== */
+
+/* Для кого FINMENTOR */
+.audience { background: var(--bg-alt); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.audience__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-4); }
+.audience__item {
+  position: relative;
+  padding: var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 30px);
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+  color: var(--text-secondary); font-size: 1rem;
+  transition: border-color var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo), background-color var(--dur-base) ease;
+}
+.audience__item::before {
+  content: ""; position: absolute; left: var(--sp-5); top: 50%;
+  width: 14px; height: 8px; margin-top: -5px;
+  border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+.audience__item:hover { transform: translateY(-3px); border-color: var(--glass-border-gold); background: var(--glass-fill-strong); }
+
+/* Что вы получите */
+.deliverables { background: var(--bg-base); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.deliverables__grid { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.deliverable {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 20px; border-radius: var(--r-pill);
+  border: 1px solid var(--border-gold); background: rgba(201, 162, 39, 0.07);
+  color: var(--text-primary); font-weight: 500; font-size: 0.98rem;
+  transition: background-color var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo);
+}
+.deliverable::before {
+  content: ""; width: 13px; height: 7px; flex-shrink: 0; margin-top: -3px;
+  border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+.deliverable:hover { background: rgba(201, 162, 39, 0.14); transform: translateY(-2px); }
+
+/* Как проходит работа */
+.process { background: var(--bg-alt); padding-block: var(--sp-10); border-top: 1px solid var(--border-hairline); }
+.process__steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); list-style: none; }
+.process__step {
+  display: flex; gap: var(--sp-4); padding: var(--sp-6);
+  border-radius: var(--r-lg); border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+  transition: border-color var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base) ease;
+}
+.process__step:hover { transform: translateY(-4px); border-color: var(--glass-border-gold); box-shadow: var(--elev-2); }
+.process__num {
+  flex-shrink: 0; width: 44px; height: 44px;
+  display: grid; place-items: center; border-radius: var(--r-md);
+  font-family: var(--font-display); font-size: 1.3rem; font-weight: 700;
+  color: var(--navy-900); background: var(--grad-gold);
+}
+.process__body h3 { font-family: var(--font-sans); font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+.process__body p { color: var(--text-secondary); font-size: 0.92rem; }
+.process__cta { margin-top: var(--sp-8); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-5); }
+.process__contacts { display: inline-flex; flex-wrap: wrap; gap: var(--sp-4); }
+.process__contacts a {
+  font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-secondary);
+  padding-bottom: 2px; border-bottom: 1px solid var(--border-gold);
+  transition: color var(--dur-base) ease, border-color var(--dur-base) ease;
+}
+.process__contacts a:hover { color: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 860px) { .process__steps { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .audience__grid { grid-template-columns: 1fr; } .process__steps { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .audience, .deliverables, .process { padding-block: var(--sp-9); } .process__cta .btn { width: 100%; } }
