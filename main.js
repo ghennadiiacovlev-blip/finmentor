@@ -716,6 +716,82 @@
     });
   }
 
+  /* Working Capital Quick Scan — client-side self-diagnostic, no backend, no PII to GA4 */
+  function initWcScan() {
+    var root = document.getElementById('wcScan');
+    if (!root) return;
+    function ga(name, params) { if (typeof gtag === 'function') { try { gtag('event', name, params || {}); } catch (e) {} } }
+    var questions = Array.prototype.slice.call(root.querySelectorAll('[data-scan-q]'));
+    var bar = document.getElementById('scanBar');
+    var submit = document.getElementById('scanSubmit');
+    var result = document.getElementById('scanResult');
+    var answers = {}, started = false;
+
+    function updateBar() { if (bar) bar.style.width = Math.round(Object.keys(answers).length / questions.length * 100) + '%'; }
+    questions.forEach(function (q) {
+      var qid = q.getAttribute('data-scan-q');
+      Array.prototype.slice.call(q.querySelectorAll('.scan__opt')).forEach(function (opt) {
+        opt.addEventListener('click', function () {
+          Array.prototype.slice.call(q.querySelectorAll('.scan__opt')).forEach(function (o) { o.classList.remove('is-sel'); o.setAttribute('aria-pressed', 'false'); });
+          opt.classList.add('is-sel'); opt.setAttribute('aria-pressed', 'true');
+          answers[qid] = parseInt(opt.getAttribute('data-score'), 10) || 0;
+          if (!started) { started = true; ga('start_working_capital_scan'); }
+          updateBar();
+        });
+      });
+    });
+
+    var LEVELS = {
+      low: { band: 'Низкий риск · базовый контроль есть', title: 'У вас уже есть часть контроля', text: 'Следующий шаг — связать оборотный капитал с Cash Flow, платёжным календарём и регулярной управленческой отчётностью.' },
+      medium: { band: 'Средний риск · деньги могут застревать', title: 'Есть признаки, что деньги застревают', text: 'Похоже, деньги могут застревать в дебиторке, запасах, авансах или платёжной дисциплине. Стоит провести диагностику оборотного капитала и Cash Flow.' },
+      high: { band: 'Высокий риск · нужна диагностика', title: 'Деньгами, вероятно, управляют реактивно', text: 'Высокая вероятность, что платежи решаются вручную, cash gap виден поздно, а прибыль не превращается в свободный cash flow. Рекомендуется Financial Health Check или Discovery Call.' }
+    };
+    function levelFor(total) { var pct = total / (questions.length * 3); return pct < 0.34 ? 'low' : (pct < 0.67 ? 'medium' : 'high'); }
+    function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+    function buildShare(L) {
+      var lines = ['Мини-скан оборотного капитала — FINMENTOR', 'Результат: ' + L.band];
+      var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
+      if (nm) lines.push('Имя: ' + nm);
+      if (co) lines.push('Компания: ' + co);
+      if (ct) lines.push('Контакт: ' + ct);
+      if (cm) lines.push('Комментарий: ' + cm);
+      lines.push('https://www.finmentor.md/working-capital-scan.html');
+      var text = lines.join('\n');
+      root.__shareText = text;
+      var tg = document.getElementById('scanTg');
+      if (tg) tg.href = 'https://t.me/share/url?url=' + encodeURIComponent('https://www.finmentor.md/working-capital-scan.html') + '&text=' + encodeURIComponent(text);
+    }
+    function show() {
+      if (Object.keys(answers).length < questions.length) {
+        var un = questions.filter(function (q) { return !(q.getAttribute('data-scan-q') in answers); })[0];
+        if (un) un.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      var total = 0; Object.keys(answers).forEach(function (k) { total += answers[k]; });
+      var lvl = levelFor(total), L = LEVELS[lvl];
+      document.getElementById('scanBand').textContent = L.band;
+      document.getElementById('scanTitle').textContent = L.title;
+      document.getElementById('scanText').textContent = L.text;
+      result.hidden = false;
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      ga('complete_working_capital_scan', { result_level: lvl + '_risk' });
+      root.__L = L; buildShare(L);
+    }
+    if (submit) submit.addEventListener('click', show);
+    ['scanName', 'scanCompany', 'scanContact', 'scanComment'].forEach(function (id) { var el = document.getElementById(id); if (el) el.addEventListener('input', function () { if (root.__L) buildShare(root.__L); }); });
+    var tgEl = document.getElementById('scanTg'); if (tgEl) tgEl.addEventListener('mousedown', function () { if (root.__L) buildShare(root.__L); });
+
+    var copyBtn = document.getElementById('scanCopy');
+    function fallbackCopy(text) { var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} document.body.removeChild(ta); }
+    if (copyBtn) copyBtn.addEventListener('click', function () {
+      if (root.__L) buildShare(root.__L);
+      var text = root.__shareText || '';
+      function done() { var old = copyBtn.textContent; copyBtn.textContent = 'Скопировано ✓'; setTimeout(function () { copyBtn.textContent = old; }, 1800); ga('copy_working_capital_scan_result'); }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); }); }
+      else { fallbackCopy(text); done(); }
+    });
+  }
+
   /* GA4 events — delegated, fired only if gtag is available; never blocks navigation */
   function initGA() {
     function send(name, params) {
@@ -734,6 +810,8 @@
         else if (/power-bi-dlya-sobstvennika\.html/.test(href)) name = 'click_powerbi_integration';
         else if (/templates\.html/.test(href)) name = 'click_template_request';
         else if (/methodology\.html/.test(href)) name = 'click_methodology';
+        else if (/cases\.html/.test(href)) name = 'click_cases';
+        else if (/working-capital-scan\.html/.test(href)) name = 'click_working_capital_scan';
         else if (/working-capital\.html/.test(href)) name = 'click_working_capital';
         else if (/questionnaire\.html/.test(href)) name = 'click_questionnaire';
         else if (/#consult$/.test(href)) name = 'click_discovery_call';
@@ -757,6 +835,7 @@
     guard(initCases);
     guard(initForm);
     guard(initQuestionnaire);
+    guard(initWcScan);
     guard(initLang);
     guard(initGA);
   });

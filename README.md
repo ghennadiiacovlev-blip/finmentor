@@ -212,3 +212,31 @@ Capital/1С-интеграция вынесены в блок **«Дополни
 события обновлены: click_discovery_call, click_methodology, click_working_capital, click_questionnaire,
 click_telegram/whatsapp/email, click_template_request, click_powerbi_integration (guarded
 `typeof gtag === 'function'`).
+
+## v7 — Proof, Cases & Lead Magnet
+
+Не расширение методологии, а усиление доказательности, доверия и конверсии (поверх v6 Focus v2).
+
+Добавлено на главную: блок **«Доказательства подхода»** (`#proof`) — 3 анонимные кейс-карточки
+(оборотный капитал / казначейство / dashboard) с формулировками «Анонимный сценарий», «Типовая
+ситуация», «Пример управленческого эффекта», без раскрытия клиентов и без гарантий, + ссылка на
+`cases.html`. **Mini-scan** добавлен как вторичный CTA рядом с Discovery Call (Discovery Call
+остаётся главным): «Проверить оборотный капитал за 3 минуты» → `working-capital-scan.html`.
+
+Новые страницы: **`working-capital-scan.html`** — Working Capital Quick Scan (7 вопросов, без
+backend, 3 уровня результата low/medium/high, кнопки «Скопировать результат» и «Отправить в
+Telegram» через `t.me/share/url`, необязательные поля имя/компания/контакт/комментарий — форма
+работает и без них, дисклеймер «не является финансовым заключением»); **`cases.html`** — анонимные
+сценарии (ситуация / симптомы / что делаем / что получает собственник / какие данные нужны /
+следующий шаг) + дисклеймер «не публичные кейсы и не гарантии».
+
+Обновлено: `methodology.html` (блок «Что мы обещаем и чего не обещаем»), `working-capital.html` и
+`templates.html` (CTA на мини-скан), `business-control-system.html` (ссылка на сценарии); CTA в
+шапке SEO-страниц → Discovery Call. Перелинковка: главная → cases + scan; working-capital →
+scan + cases; methodology/business-control-system → cases; templates → scan.
+
+GA4 сохранён на всех 18 страницах. Новые события (guarded `typeof gtag === 'function'`, без
+персональных данных; из скана уходит только уровень результата `low_risk/medium_risk/high_risk`):
+click_cases, click_working_capital_scan, start_working_capital_scan, complete_working_capital_scan,
+copy_working_capital_scan_result (+ click_discovery_call / click_questionnaire / click_telegram /
+click_whatsapp / click_email). Тяжёлая методология на главную не возвращалась.
