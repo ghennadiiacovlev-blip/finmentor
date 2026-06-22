@@ -1154,7 +1154,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 /* ----------------------------------------------------------------- STAGE 2 · RESPONSIVE */
 @media (max-width: 1024px) {
   .packages__grid { grid-template-columns: 1fr; max-width: 560px; margin-inline: auto; }
-  .package--flagship { transform: none; order: -1; }
+  .package--flagship { transform: none; }
   .package--flagship:hover { transform: translateY(-4px); }
   .footer__top { grid-template-columns: 1fr 1fr; }
   .footer__brand { grid-column: 1 / -1; }
@@ -1953,3 +1953,111 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 .scan__note { color: var(--text-muted); font-size: 0.84rem; line-height: 1.55; margin-top: var(--sp-5); font-style: italic; }
 .scan__submit-row { margin: var(--sp-6) 0; }
 @media (max-width: 600px) { .scan__optional { grid-template-columns: 1fr; } .scan__actions .btn { width: 100%; } }
+
+/* ============================================================================
+   v7.1 — Mobile Layout Fix (overflow, button wrapping, card padding, order)
+   Appended last so it overrides earlier rules. CSS-only, no content change.
+   ========================================================================== */
+/* buttons must never exceed their container */
+.btn { max-width: 100%; min-width: 0; }
+
+/* grid / flex children must be allowed to shrink (prevents overflow) */
+.grid-2 > *, .grid-3 > *, .grid-4 > *, .grid-5 > *,
+.cta-band__row > *, .hero__actions > *, .scan__actions > *,
+.packages__grid > *, .packages__cta > *, .discovery-band__grid > *,
+.contact-strip > *, .related__grid > * { min-width: 0; }
+
+/* long unbreakable strings (urls, long words) wrap instead of pushing width */
+.case-v7__row p, .scan__qtitle, .scan__result-text,
+.doc-hero__lead, .section-lead, .module-note, .roi-note { overflow-wrap: anywhere; }
+
+@media (max-width: 768px) {
+  /* CTA rows stack vertically and fill width; text wraps inside buttons */
+  .cta-band__row, .hero__actions, .scan__actions,
+  .packages__cta, .lead-magnet__row, .discovery-band .cta-band__row {
+    flex-direction: column; align-items: stretch;
+  }
+  .cta-band__row .btn, .hero__actions .btn, .scan__actions .btn,
+  .packages__cta .btn, .lead-magnet__row .btn, .discovery-band .btn,
+  .scan__submit-row .btn { width: 100%; }
+  /* allow button labels to wrap (root cause of overflow was white-space: nowrap) */
+  .btn { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; text-align: center; }
+  .btn--lg { --btn-px: 20px; font-size: 0.95rem; }
+  /* trim oversized paddings on phones */
+  .discovery-band { padding: var(--sp-6); }
+  .sec { padding-block: var(--sp-8); }
+  .discovery-band__badge { white-space: normal; }
+}
+
+@media (max-width: 480px) {
+  .btn { --btn-px: 18px; }
+  .btn--lg { --btn-py: 14px; --btn-px: 16px; font-size: 0.9rem; }
+  .btn--sm { --btn-px: 14px; font-size: 0.82rem; }
+  .discovery-band { padding: var(--sp-5); }
+  /* keep large display numbers/titles inside the card */
+  .package__name { font-size: 1.3rem; }
+  .package__price { font-size: 1.7rem; }
+  .scan__result-title { font-size: 1.2rem; }
+  .quote-band p { font-size: 1.1rem; }
+  /* contact buttons full width and centered */
+  .contact-btn { width: 100%; justify-content: center; }
+  /* slightly tighter card padding so content fits the viewport */
+  .package, .remote-card, .case-v7, .scenario, .coverage-card, .compare-card,
+  .promise-col, .kb-hub-card, .scan__q { padding: var(--sp-5); }
+}
+
+/* ============================================================================
+   v8 — Website Lead Assistant (rule-based, premium dark glass, no backend)
+   ========================================================================== */
+.fa-launch {
+  position: fixed; right: 20px; bottom: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 940; display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-radius: var(--r-pill); border: 1px solid var(--border-gold);
+  background: linear-gradient(135deg, rgba(201,162,39,0.16), rgba(8,17,31,0.94));
+  color: var(--text-primary); font-family: var(--font-sans); font-weight: 600; font-size: 0.92rem;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.42), 0 0 0 1px rgba(201,162,39,0.18); cursor: pointer; max-width: calc(100vw - 32px);
+  transition: transform var(--dur-base) var(--ease-out-expo), box-shadow var(--dur-base) ease, border-color var(--dur-base) ease, opacity var(--dur-base) ease;
+}
+.fa-launch:hover { transform: translateY(-2px); border-color: var(--gold-400); box-shadow: 0 14px 40px rgba(0,0,0,0.5), 0 0 26px rgba(201,162,39,0.28); }
+.fa-launch:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.fa-launch__icon { width: 18px; height: 18px; color: var(--gold-400); flex-shrink: 0; }
+.fa-launch__sm { display: none; }
+.fa-launch.is-open { opacity: 0; pointer-events: none; transform: scale(0.96); }
+
+.fa-panel {
+  position: fixed; right: 20px; bottom: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 945; width: 380px; max-width: calc(100vw - 32px); max-height: min(78vh, 640px);
+  display: flex; flex-direction: column; border-radius: var(--r-xl); border: 1px solid var(--border-gold);
+  background: linear-gradient(180deg, rgba(16,26,43,0.985), rgba(8,17,31,0.985));
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  box-shadow: var(--elev-3), 0 0 40px rgba(201,162,39,0.14); overflow: hidden;
+  animation: faIn var(--dur-base) var(--ease-out-expo);
+}
+.fa-panel[hidden] { display: none; }
+@keyframes faIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+.fa-panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-5) var(--sp-5) var(--sp-4); border-bottom: 1px solid var(--border-hairline); }
+.fa-panel__title { font-family: var(--font-display); font-size: 1.08rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.fa-panel__close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: border-color var(--dur-base) ease, color var(--dur-base) ease; }
+.fa-panel__close:hover { border-color: var(--glass-border-gold); color: var(--accent); }
+.fa-panel__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fa-panel__body { padding: var(--sp-5); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.fa-intro { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55; margin-bottom: var(--sp-5); }
+.fa-q { font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-4); }
+.fa-options { display: flex; flex-direction: column; gap: 8px; }
+.fa-opt { text-align: left; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; cursor: pointer; overflow-wrap: anywhere; transition: border-color var(--dur-base) ease, color var(--dur-base) ease, background var(--dur-base) ease; }
+.fa-opt:hover { border-color: var(--glass-border-gold); color: var(--text-primary); background: rgba(201,162,39,0.06); }
+.fa-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fa-answer__text { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin-bottom: var(--sp-4); overflow-wrap: anywhere; }
+.fa-ctas { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--sp-4); }
+.fa-ctas .btn { width: 100%; white-space: normal; }
+.fa-back { background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 6px; }
+.fa-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fa-disclaimer { margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px solid var(--border-hairline); color: var(--text-muted); font-size: 0.78rem; line-height: 1.5; font-style: italic; }
+
+@media (max-width: 560px) {
+  .fa-launch { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding: 11px 15px; font-size: 0.86rem; }
+  .fa-launch__lg { display: none; }
+  .fa-launch__sm { display: inline; }
+  .fa-panel { right: 12px; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: auto; max-width: none; max-height: 80vh; }
+}

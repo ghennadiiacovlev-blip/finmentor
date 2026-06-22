@@ -1,21 +1,18 @@
-<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="FINMENTOR">
   <defs>
-    <linearGradient id="fmbg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0E1B30"/>
-      <stop offset="1" stop-color="#08111F"/>
-    </linearGradient>
-    <linearGradient id="fmsilver" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#EEF1F5"/>
-      <stop offset="1" stop-color="#C8CDD6"/>
-    </linearGradient>
-    <linearGradient id="fmgold" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="fmGold" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#E8C766"/>
       <stop offset="1" stop-color="#C9A227"/>
     </linearGradient>
+    <linearGradient id="fmSilver" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F6F9"/>
+      <stop offset="1" stop-color="#C5CBD4"/>
+    </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="15" fill="url(#fmbg)"/>
-  <rect x="1.25" y="1.25" width="61.5" height="61.5" rx="13.75" fill="none" stroke="#D4AF37" stroke-opacity="0.28" stroke-width="1.2"/>
-  <path d="M23 47 V26 a7 7 0 0 1 7-7 h4" fill="none" stroke="url(#fmsilver)" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
-  <line x1="17.5" y1="30.5" x2="30.5" y2="30.5" stroke="url(#fmsilver)" stroke-width="4.6" stroke-linecap="round"/>
-  <circle cx="42.5" cy="43.5" r="4.7" fill="url(#fmgold)"/>
+  <rect x="2" y="2" width="96" height="96" rx="22" fill="#08111F"/>
+  <rect x="3" y="3" width="94" height="94" rx="21" fill="none" stroke="#C9A227" stroke-opacity="0.32" stroke-width="1.4"/>
+  <!-- Monogram F: silver stem + silver mid arm + gold top arm (brand accent) -->
+  <rect x="33" y="24" width="16" height="52" rx="3" fill="url(#fmSilver)"/>
+  <rect x="33" y="45" width="29" height="14" rx="3" fill="url(#fmSilver)"/>
+  <rect x="33" y="24" width="40" height="16" rx="3" fill="url(#fmGold)"/>
 </svg>
