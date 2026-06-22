@@ -415,3 +415,27 @@ working_capital_scan) и `result_level` (low/medium/high_risk). **Questionnaire*
 
 Примечание: GitHub Pages и Cloudflare отдают вложенные папки `/ro/` и `/en/` как есть; относительные
 пути `../` к общим ассетам выбраны специально, чтобы подпапки резолвились без дублирования файлов.
+
+## v9.1 — Romanian Professional Version (RU + RO only, EN deferred)
+
+Стратегия упрощена: публикуем только две версии — **RU** в корне `/` и полноценную профессиональную
+**RO** в `/ro/`. **EN отложен на следующий этап** и полностью убран из этого пакета, чтобы упростить
+SEO и поддержку и исключить риск 404 на `/en/` (как было после деплоя v9).
+
+Что сделано относительно v9:
+- Папка `/en/` удалена; в финальном архиве её нет.
+- Языковой переключатель теперь **RU | RO** (без EN) на всех RU и RO страницах; активный язык — gold.
+- hreflang оставлен взаимным **только ru / ro + x-default** (на RU); все `hreflang="en"` и
+  `og:locale:alternate en_US` убраны.
+- Из `assistant.js` удалён EN-блок (остались ru + ro); ссылок на `/en/` нет.
+- В `sitemap.xml` убраны все `/en/` URL (осталось 28: 18 RU + 10 RO; RO-главная — `…/ro/`).
+- Никаких битых ссылок на `/en/` ни в одном файле (проверено по всему дереву).
+
+RO-версия (10 страниц): index, privacy, working-capital-scan, cases, methodology, cash-flow,
+trezorerie, power-bi-pentru-proprietar, capital-circulant, questionnaire — профессиональный
+деловой румынский (CFO-язык), ассистент, mini-scan (та же логика расчёта, тексты из data-атрибутов),
+анкета (mailto на cfo@finmentor.md), privacy с юридическим уточнением. canonical на каждой странице —
+на саму себя; `<html lang="ru">` / `<html lang="ro">`; og:locale ru_RU / ro_MD; общий premium
+`og-image.png`.
+
+**EN вернём на следующем этапе** отдельной версией (v9.2+), когда будет готов к публикации.

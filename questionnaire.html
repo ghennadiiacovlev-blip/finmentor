@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="ru">
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
@@ -13,101 +13,449 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chestionar de diagnostic | FINMENTOR</title>
-  <meta name="description" content="Chestionar de diagnostic FINMENTOR înainte de Discovery Call: câteva întrebări-cheie despre afacere și controlul financiar." />
+  <title>Диагностика перед встречей — FINMENTOR</title>
+  <meta name="description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
-  <link rel="canonical" href="https://www.finmentor.md/ro/questionnaire.html" />
+  <link rel="canonical" href="https://www.finmentor.md/questionnaire.html" />
   <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/questionnaire.html" />
   <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/questionnaire.html" />
-  <link rel="alternate" hreflang="en" href="https://www.finmentor.md/en/questionnaire.html" />
   <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/questionnaire.html" />
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ro_MD" />
-  <meta property="og:title" content="Chestionar de diagnostic | FINMENTOR" />
-  <meta property="og:description" content="Chestionar de diagnostic FINMENTOR înainte de Discovery Call: câteva întrebări-cheie despre afacere și controlul financiar." />
-  <meta property="og:url" content="https://www.finmentor.md/ro/questionnaire.html" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:locale:alternate" content="ro_RO" />
+  <meta property="og:title" content="Диагностика перед встречей — FINMENTOR" />
+  <meta property="og:description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
+  <meta property="og:url" content="https://www.finmentor.md/questionnaire.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Chestionar de diagnostic | FINMENTOR" />
-  <meta name="twitter:description" content="Chestionar de diagnostic FINMENTOR înainte de Discovery Call: câteva întrebări-cheie despre afacere și controlul financiar." />
+  <meta name="twitter:title" content="Диагностика перед встречей — FINMENTOR" />
+  <meta name="twitter:description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
-  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
-  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body { cursor: auto; }
+    .q-bar { position: sticky; top: 0; z-index: 20; background: rgba(8,17,31,0.85); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-gold); }
+    .q-bar__row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+    .q-back { font-size: 0.9rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
+    .q-back:hover { color: var(--accent); }
+    .q-progress { height: 3px; background: rgba(255,255,255,0.06); }
+    .q-progress__fill { height: 100%; width: 2%; background: var(--grad-gold); transition: width 0.15s linear; }
+
+    .q-hero { padding-block: var(--sp-9) var(--sp-6); }
+    .q-hero__eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--sp-3); }
+    .q-hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -0.01em; }
+    .q-hero p { color: var(--text-secondary); max-width: 64ch; margin-top: var(--sp-4); line-height: 1.65; }
+    .q-hero__meta { display: inline-block; margin-top: var(--sp-4); font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); padding: 6px 12px; border: 1px solid var(--border-gold); border-radius: var(--r-pill); }
+
+    .q-form { max-width: 780px; padding-bottom: var(--sp-10); }
+    .q-block { margin-bottom: var(--sp-9); border: 0; padding: 0; }
+    .q-block__head { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-5); padding-bottom: var(--sp-3); border-bottom: 1px solid var(--border-hairline); }
+    .q-block__num { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; border-radius: var(--r-md); background: var(--grad-gold); color: var(--navy-900); font-family: var(--font-display); font-weight: 700; }
+    .q-block__title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; }
+    .q-block__count { margin-left: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+
+    .q { margin-bottom: var(--sp-5); border: 0; padding: 0; }
+    .q__label { display: block; font-size: 0.92rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-2); }
+    .q input[type="text"], .q input[type="email"], .q input[type="tel"], .q input[type="number"], .q select, .q textarea {
+      width: 100%; padding: 12px 14px; border-radius: var(--r-md);
+      background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+      color: var(--text-primary); font-family: var(--font-sans); font-size: 0.95rem;
+    }
+    .q textarea { resize: vertical; min-height: 84px; }
+    .q input:focus, .q select:focus, .q textarea:focus { outline: none; border-color: var(--accent); }
+    .q.is-error input { border-color: var(--critical); }
+    .q.is-error .q__label { color: var(--critical); }
+
+    .q__choices { display: flex; flex-wrap: wrap; gap: 10px; }
+    .q__choices label {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+      padding: 9px 14px; border-radius: var(--r-pill); border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.02); color: var(--text-secondary); font-size: 0.9rem;
+      transition: border-color var(--dur-base) ease, background-color var(--dur-base) ease, color var(--dur-base) ease;
+    }
+    .q__choices label:hover { border-color: var(--glass-border-gold); color: var(--text-primary); }
+    .q__choices input { accent-color: var(--gold-500); margin: 0; flex-shrink: 0; }
+    .q__choices label:has(input:checked) { border-color: var(--accent); background: rgba(201,162,39,0.12); color: var(--text-primary); }
+    .q-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+
+    .q-note { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-left: 2px solid var(--border-gold); background: rgba(255,255,255,0.02); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .q-reassure { margin-bottom: var(--sp-5); padding: var(--sp-5); border-radius: var(--r-lg); border: 1px solid var(--border-gold); background: linear-gradient(135deg, rgba(201,162,39,0.08), var(--glass-fill)); color: var(--text-secondary); line-height: 1.6; font-size: 0.92rem; }
+
+    .q-consent { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin-bottom: var(--sp-3); }
+    .q-consent input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: var(--gold-500); cursor: pointer; }
+    .q-consent span { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+    .q-consent.is-error span { color: var(--critical); }
+    .q-consent.is-error input { outline: 2px solid var(--critical); outline-offset: 2px; border-radius: 3px; }
+
+    .q-actions { display: flex; flex-wrap: wrap; gap: var(--sp-4); align-items: center; margin-top: var(--sp-7); }
+    .q-fallback { margin-top: var(--sp-6); font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+    .q-fallback a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .q-success { margin-top: var(--sp-6); padding: var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--border-gold); background: rgba(201,162,39,0.08); color: var(--text-secondary); line-height: 1.6; }
+    .q-success strong { color: var(--text-primary); }
+    .q-success a { color: var(--accent); }
+    .q-success__row { margin-top: var(--sp-4); display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+
+    @media (max-width: 600px) {
+      .q-grid { grid-template-columns: 1fr; }
+      .q-actions .btn, .q-success__row .btn { width: 100%; }
+      .q-block__count { display: none; }
+    }
+  </style>
 </head>
 <body>
-  <header class="doc-bar">
-    <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Materiale">
-        <a href="index.html" class="doc-bar__hide">Acasă</a>
-        <a href="index.html#knowledge">Materiale</a>
-        <a href="questionnaire.html">Chestionar</a>
-        <div class="lang-switch" role="group" aria-label="Limbă"><a href="../questionnaire.html" class="lang-switch__item" hreflang="ru">RU</a><a href="questionnaire.html" class="lang-switch__item is-active" aria-current="true" hreflang="ro">RO</a><a href="../en/questionnaire.html" class="lang-switch__item" hreflang="en">EN</a></div>
-        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
-      </nav>
+
+<!--
+================================================================================
+  AI-AGENT OUTPUT SCHEMA  (для будущего AI-агента, обрабатывающего ответы анкеты)
+================================================================================
+  Источник: ответы этой формы (кнопка «Скопировать ответы» / будущий webhook).
+  Имена инпутов начинаются с q_ (q_name, q_country, q_pain, q_f1..q_f16,
+  q_systems, q_doc, q_goal, q_remote_*, q_consent, ...). Полный текст ответов
+  собирается функцией collectAnswers() в main.js -> initQuestionnaire().
+
+  Агент должен сформировать структурированный план работы с клиентом:
+
+  1. CLIENT SUMMARY
+     country, industry, business_size, group_structure, key_contact,
+     work_format (remote/hybrid/onsite), communication_language.
+  2. PAIN MAP
+     main_pains, finance_pains, operational_pains, system_pains,
+     data_reporting_problems, remote_concerns.
+  3. FINANCE MATURITY SCORE (1-5)
+     1 = хаос, нет управленческого учёта;
+     2 = базовые отчёты есть, но нет регулярного контроля;
+     3 = есть P&L / CF / бюджет частично;
+     4 = есть управленческий контур и KPI;
+     5 = есть BI / automation / регулярный контроль.
+  4. RISK MAP
+     cash_flow_risk, profitability_risk, reporting_risk, debt_risk,
+     tax_compliance_risk, data_quality_risk, governance_risk, remote_work_risk.
+  5. URGENCY LEVEL
+     Low | Medium | High | Critical.
+  6. RECOMMENDED FIRST STEP
+     Health Check | Business Control System | Monthly Support |
+     CFO AI Transformation | request documents first | discovery call first.
+  7. MEETING AGENDA
+     5-7 пунктов для первой встречи.
+  8. DOCUMENT REQUEST LIST
+     какие документы запросить до / после встречи.
+  9. 30/60/90-DAY ROADMAP
+     first_30_days, 60_days, 90_days.
+  10. COMMERCIAL FIT
+     suitable_package, potential_monthly_support, possible_next_steps.
+  11. REMOTE WORK PLAN
+     communication_format, meeting_frequency, channels, quality_control,
+     document_exchange, how_to_address_client_concerns.
+
+  TODO: questionnaire submit -> webhook -> AI agent -> Telegram + Gmail + Google Sheets / CRM.
+================================================================================
+-->
+
+  <header class="q-bar">
+    <div class="container q-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <div class="lang-switch" role="group" aria-label="Язык"><a href="questionnaire.html" class="lang-switch__item is-active" aria-current="true" hreflang="ru">RU</a><a href="ro/questionnaire.html" class="lang-switch__item" hreflang="ro">RO</a></div>
+      <a class="q-back" href="index.html">← На главную</a>
     </div>
+    <div class="q-progress" aria-hidden="true"><div class="q-progress__fill" id="qProgress"></div></div>
   </header>
+
   <main>
-    <div class="container"><nav class="crumbs"><a href="index.html">Acasă</a> / <span>Chestionar de diagnostic</span></nav></div>
-    <section class="doc-hero"><div class="container"><p class="doc-hero__eyebrow">Diagnostic</p><h1>Chestionar de diagnostic</h1><p class="doc-hero__lead">Câteva întrebări-cheie pentru a pregăti o discuție utilă. Răspunsurile ajută la pregătirea Discovery Call și a pașilor următori.</p></div></section>
-    <div class="container">
-      <div class="form glass" style="max-width:680px;margin-bottom:var(--sp-7)">
-        <div class="scan__optional" style="border:0;padding:0;margin:0">
-          <div class="field--full"><label for="qfName">Nume</label><input id="qfName" type="text" autocomplete="name" /></div>
-          <div class="field--full"><label for="qfCompany">Companie / domeniu</label><input id="qfCompany" type="text" /></div>
-          <div class="field--full"><label for="qfContact">Email, telefon sau Telegram</label><input id="qfContact" type="text" /></div>
-          <div class="field--full"><label for="qfSize">Cifră de afaceri aproximativă / număr de angajați</label><input id="qfSize" type="text" /></div>
-          <div class="field--full"><label for="qfPain">Ce vă preocupă cel mai mult acum?</label><select id="qfPain" style="width:100%;padding:10px 14px;border-radius:var(--r-md);border:1px solid var(--glass-border);background:rgba(255,255,255,0.03);color:var(--text-primary);font:inherit"><option>Profit există, dar banii nu ajung</option><option>Plăți haotice, fără priorități</option><option>Nu există P&amp;L / Cash Flow clar</option><option>Vreau un dashboard Power BI</option><option>Vreau să înțeleg dacă FINMENTOR mi se potrivește</option></select></div>
-          <div class="field--full"><label for="qfMsg">Detalii suplimentare (opțional)</label><textarea id="qfMsg" rows="3"></textarea></div>
-        </div>
-        <div style="margin-top:var(--sp-5)"><button type="button" class="btn btn--primary btn--lg" id="qfSend">Trimite prin email</button></div>
-        <p class="form-consent">Trimițând formularul, confirm că am citit <a href="privacy.html">Politica de confidențialitate</a> și sunt de acord cu prelucrarea datelor pentru a fi contactat și pentru analiza solicitării mele.</p>
-        <p class="form-consent">Sau scrieți-ne direct: <a href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a> · <a href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a> · <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a></p>
+    <section class="q-hero">
+      <div class="container">
+        <p class="q-hero__eyebrow">Перед консультацией</p>
+        <h1>Диагностика перед встречей</h1>
+        <p>Заполните анкету — это помогает не тратить время на общие разговоры, а сразу перейти к сути: где теряются деньги, контроль и управляемость. На основе ответов готовится предварительный план встречи. Чем точнее ответы, тем полезнее первая консультация.</p>
+        <span class="q-hero__meta">Занимает 10–15 минут · 11 коротких блоков</span>
       </div>
+    </section>
+
+    <div class="container">
+      <form class="q-form" id="qForm" novalidate>
+
+        <!-- Блок 1 — Контакт, страна и формат коммуникации -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Контакт и формат коммуникации</h2><span class="q-block__count">1 / 11</span></div>
+          <div class="q-grid">
+            <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" autocomplete="name" /></div>
+            <div class="q"><span class="q__label">Компания</span><input type="text" name="q_company" /></div>
+            <div class="q"><span class="q__label">Должность</span><input type="text" name="q_role" /></div>
+            <div class="q"><span class="q__label">Email</span><input type="email" name="q_email" autocomplete="email" /></div>
+            <div class="q"><span class="q__label">Телефон / WhatsApp</span><input type="tel" name="q_phone" /></div>
+            <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" /></div>
+            <div class="q"><span class="q__label">Страна</span><input type="text" name="q_country" /></div>
+            <div class="q"><span class="q__label">Город</span><input type="text" name="q_city" /></div>
+            <div class="q"><span class="q__label">Часовой пояс</span><input type="text" name="q_timezone" placeholder="напр. GMT+2" /></div>
+            <div class="q"><span class="q__label">Язык общения</span><select name="q_lang"><option value="">— выберите —</option><option>Русский</option><option>Румынский</option><option>Английский</option><option>Другое</option></select></div>
+            <div class="q"><span class="q__label">Формат встречи</span><select name="q_meetfmt"><option value="">— выберите —</option><option>Zoom</option><option>Google Meet</option><option>Microsoft Teams</option><option>WhatsApp call</option><option>Telegram call</option></select></div>
+            <div class="q"><span class="q__label">Формат работы</span><select name="q_workfmt"><option value="">— выберите —</option><option>Удалённо</option><option>Гибрид</option><option>Очно</option><option>Пока не знаю</option></select></div>
+          </div>
+        </section>
+
+        <!-- Блок 2 — Бизнес-профиль -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Бизнес-профиль</h2><span class="q-block__count">2 / 11</span></div>
+          <div class="q-grid">
+            <div class="q"><span class="q__label">Сфера деятельности</span><input type="text" name="q_industry" /></div>
+            <div class="q"><span class="q__label">Компаний в группе</span><input type="number" name="q_companies" min="1" /></div>
+            <div class="q"><span class="q__label">Сотрудников</span><input type="number" name="q_employees" min="1" /></div>
+            <div class="q"><span class="q__label">Филиалов / объектов / направлений</span><input type="text" name="q_branches" /></div>
+          </div>
+          <div class="q"><span class="q__label">Примерный годовой оборот</span><select name="q_turnover"><option value="">— выберите —</option><option>до 500k €</option><option>500k–1M €</option><option>1–5M €</option><option>5–10M €</option><option>10M+ €</option></select></div>
+          <fieldset class="q"><legend class="q__label">Есть ли сезонность бизнеса?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Да</label><label><input type="radio" name="q_seasonality" value="Нет" /> Нет</label></div></fieldset>
+          <div class="q"><span class="q__label">Основные источники дохода</span><input type="text" name="q_income" /></div>
+          <div class="q"><span class="q__label">Основные статьи расходов</span><input type="text" name="q_expenses" /></div>
+          <div class="q"><span class="q__label">Кто принимает финансовые решения?</span><input type="text" name="q_decision" /></div>
+          <div class="q"><span class="q__label">Есть ли финансовый директор / главбух / финансовая команда?</span><input type="text" name="q_finteam" /></div>
+        </section>
+
+        <!-- Блок 3 — Главные боли -->
+        <fieldset class="q-block q">
+          <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Главные боли</legend><span class="q-block__count">3 / 11</span></div>
+          <div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_pain" value="Прибыль есть, но денег нет" /> Прибыль есть, но денег нет</label>
+            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Не хватает cash flow</label>
+            <label><input type="checkbox" name="q_pain" value="Кассовые разрывы" /> Кассовые разрывы</label>
+            <label><input type="checkbox" name="q_pain" value="Нет понятного P&L" /> Нет понятного P&amp;L</label>
+            <label><input type="checkbox" name="q_pain" value="Нет управленческого учёта" /> Нет управленческого учёта</label>
+            <label><input type="checkbox" name="q_pain" value="Платежи идут хаотично" /> Платежи идут хаотично</label>
+            <label><input type="checkbox" name="q_pain" value="Отчёты приходят поздно" /> Отчёты приходят поздно</label>
+            <label><input type="checkbox" name="q_pain" value="Собственник не видит реальную картину" /> Не вижу реальную картину</label>
+            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Нет KPI</label>
+            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Нет Power BI / dashboard</label>
+            <label><input type="checkbox" name="q_pain" value="Много ручной работы" /> Много ручной работы</label>
+            <label><input type="checkbox" name="q_pain" value="Excel-файлы не связаны между собой" /> Excel-файлы не связаны</label>
+            <label><input type="checkbox" name="q_pain" value="Сложно контролировать группу компаний" /> Сложно контролировать группу</label>
+            <label><input type="checkbox" name="q_pain" value="Нет контроля дебиторки" /> Нет контроля дебиторки</label>
+            <label><input type="checkbox" name="q_pain" value="Нет контроля кредиторки" /> Нет контроля кредиторки</label>
+            <label><input type="checkbox" name="q_pain" value="Есть долги / кредиты / просрочки" /> Долги / кредиты / просрочки</label>
+            <label><input type="checkbox" name="q_pain" value="Нужны инвестиции / банк / финансирование" /> Нужны инвестиции / банк</label>
+            <label><input type="checkbox" name="q_pain" value="Нужен контроль строительства / CAPEX" /> Контроль строительства / CAPEX</label>
+            <label><input type="checkbox" name="q_pain" value="Нужно внедрить AI / автоматизацию" /> Нужны AI / автоматизация</label>
+            <label><input type="checkbox" name="q_pain" value="Другое" /> Другое</label>
+          </div>
+          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text"></textarea></div>
+        </fieldset>
+
+        <!-- Блок 4 — Финансовый контроль -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Финансовый контроль</h2><span class="q-block__count">4 / 11</span></div>
+          <fieldset class="q"><legend class="q__label">Есть управленческий P&amp;L?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Да</label><label><input type="radio" name="q_f2" value="Нет" /> Нет</label><label><input type="radio" name="q_f2" value="Частично" /> Частично</label><label><input type="radio" name="q_f2" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть платёжный календарь?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Да</label><label><input type="radio" name="q_f3" value="Нет" /> Нет</label><label><input type="radio" name="q_f3" value="Частично" /> Частично</label><label><input type="radio" name="q_f3" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть бюджет?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Да" /> Да</label><label><input type="radio" name="q_f4" value="Нет" /> Нет</label><label><input type="radio" name="q_f4" value="Частично" /> Частично</label><label><input type="radio" name="q_f4" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть план-факт анализ?</legend><div class="q__choices"><label><input type="radio" name="q_f5" value="Да" /> Да</label><label><input type="radio" name="q_f5" value="Нет" /> Нет</label><label><input type="radio" name="q_f5" value="Частично" /> Частично</label><label><input type="radio" name="q_f5" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль дебиторки?</legend><div class="q__choices"><label><input type="radio" name="q_f6" value="Да" /> Да</label><label><input type="radio" name="q_f6" value="Нет" /> Нет</label><label><input type="radio" name="q_f6" value="Частично" /> Частично</label><label><input type="radio" name="q_f6" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль кредиторки?</legend><div class="q__choices"><label><input type="radio" name="q_f7" value="Да" /> Да</label><label><input type="radio" name="q_f7" value="Нет" /> Нет</label><label><input type="radio" name="q_f7" value="Частично" /> Частично</label><label><input type="radio" name="q_f7" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть финансовая модель?</legend><div class="q__choices"><label><input type="radio" name="q_f8" value="Да" /> Да</label><label><input type="radio" name="q_f8" value="Нет" /> Нет</label><label><input type="radio" name="q_f8" value="Частично" /> Частично</label><label><input type="radio" name="q_f8" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть KPI?</legend><div class="q__choices"><label><input type="radio" name="q_f9" value="Да" /> Да</label><label><input type="radio" name="q_f9" value="Нет" /> Нет</label><label><input type="radio" name="q_f9" value="Частично" /> Частично</label><label><input type="radio" name="q_f9" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть регулярный отчёт для собственника?</legend><div class="q__choices"><label><input type="radio" name="q_f10" value="Да" /> Да</label><label><input type="radio" name="q_f10" value="Нет" /> Нет</label><label><input type="radio" name="q_f10" value="Частично" /> Частично</label><label><input type="radio" name="q_f10" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль маржинальности?</legend><div class="q__choices"><label><input type="radio" name="q_f11" value="Да" /> Да</label><label><input type="radio" name="q_f11" value="Нет" /> Нет</label><label><input type="radio" name="q_f11" value="Частично" /> Частично</label><label><input type="radio" name="q_f11" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль расходов по центрам ответственности?</legend><div class="q__choices"><label><input type="radio" name="q_f12" value="Да" /> Да</label><label><input type="radio" name="q_f12" value="Нет" /> Нет</label><label><input type="radio" name="q_f12" value="Частично" /> Частично</label><label><input type="radio" name="q_f12" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть правила согласования платежей?</legend><div class="q__choices"><label><input type="radio" name="q_f13" value="Да" /> Да</label><label><input type="radio" name="q_f13" value="Нет" /> Нет</label><label><input type="radio" name="q_f13" value="Частично" /> Частично</label><label><input type="radio" name="q_f13" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть лимиты / фонды / приоритеты платежей?</legend><div class="q__choices"><label><input type="radio" name="q_f14" value="Да" /> Да</label><label><input type="radio" name="q_f14" value="Нет" /> Нет</label><label><input type="radio" name="q_f14" value="Частично" /> Частично</label><label><input type="radio" name="q_f14" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль валютных рисков?</legend><div class="q__choices"><label><input type="radio" name="q_f15" value="Да" /> Да</label><label><input type="radio" name="q_f15" value="Нет" /> Нет</label><label><input type="radio" name="q_f15" value="Частично" /> Частично</label><label><input type="radio" name="q_f15" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть контроль налоговых рисков?</legend><div class="q__choices"><label><input type="radio" name="q_f16" value="Да" /> Да</label><label><input type="radio" name="q_f16" value="Нет" /> Нет</label><label><input type="radio" name="q_f16" value="Частично" /> Частично</label><label><input type="radio" name="q_f16" value="Не знаю" /> Не знаю</label></div></fieldset>
+        </section>
+
+        <!-- Блок 5 — Данные и системы -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">5</span><h2 class="q-block__title">Данные и системы</h2><span class="q-block__count">5 / 11</span></div>
+          <div class="q"><span class="q__label">Где ведётся бухгалтерский учёт?</span><input type="text" name="q_accounting" /></div>
+          <fieldset class="q"><legend class="q__label">Что используется (отметьте, что есть):</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_systems" value="1C" /> 1C</label>
+            <label><input type="checkbox" name="q_systems" value="Excel" /> Excel</label>
+            <label><input type="checkbox" name="q_systems" value="Google Sheets" /> Google Sheets</label>
+            <label><input type="checkbox" name="q_systems" value="CRM" /> CRM</label>
+            <label><input type="checkbox" name="q_systems" value="ERP" /> ERP</label>
+            <label><input type="checkbox" name="q_systems" value="Power BI" /> Power BI</label>
+            <label><input type="checkbox" name="q_systems" value="Looker / Tableau / другой BI" /> Looker / Tableau / другой BI</label>
+            <label><input type="checkbox" name="q_systems" value="Make / n8n / Zapier / automation" /> Make / n8n / Zapier</label>
+          </div></fieldset>
+          <div class="q"><span class="q__label">Кто готовит отчёты?</span><input type="text" name="q_reporter" /></div>
+          <div class="q"><span class="q__label">Как часто собственник получает цифры?</span><input type="text" name="q_frequency" /></div>
+          <div class="q"><span class="q__label">Сколько времени занимает подготовка отчётов?</span><input type="text" name="q_prep_time" /></div>
+          <div class="q"><span class="q__label">Насколько данные достоверны?</span><select name="q_reliability"><option value="">— выберите —</option><option>Низко</option><option>Средне</option><option>Хорошо</option><option>Не знаю</option></select></div>
+          <fieldset class="q"><legend class="q__label">Есть единый источник правды по цифрам?</legend><div class="q__choices"><label><input type="radio" name="q_sot" value="Да" /> Да</label><label><input type="radio" name="q_sot" value="Нет" /> Нет</label><label><input type="radio" name="q_sot" value="Частично" /> Частично</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Готовы предоставить примеры отчётов для диагностики?</legend><div class="q__choices"><label><input type="radio" name="q_provide" value="Да" /> Да</label><label><input type="radio" name="q_provide" value="Нет" /> Нет</label><label><input type="radio" name="q_provide" value="Позже" /> Позже</label></div></fieldset>
+        </section>
+
+        <!-- Блок 6 — Документы для диагностики -->
+        <fieldset class="q-block q">
+          <div class="q-block__head"><span class="q-block__num">6</span><legend class="q-block__title">Документы для диагностики</legend><span class="q-block__count">6 / 11</span></div>
+          <div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_doc" value="P&L за 6–12 месяцев" /> P&amp;L за 6–12 месяцев</label>
+            <label><input type="checkbox" name="q_doc" value="Cash Flow / движение денег" /> Cash Flow / движение денег</label>
+            <label><input type="checkbox" name="q_doc" value="Баланс" /> Баланс</label>
+            <label><input type="checkbox" name="q_doc" value="Оборотно-сальдовая ведомость" /> Оборотно-сальдовая ведомость</label>
+            <label><input type="checkbox" name="q_doc" value="Реестр платежей" /> Реестр платежей</label>
+            <label><input type="checkbox" name="q_doc" value="Дебиторская задолженность" /> Дебиторская задолженность</label>
+            <label><input type="checkbox" name="q_doc" value="Кредиторская задолженность" /> Кредиторская задолженность</label>
+            <label><input type="checkbox" name="q_doc" value="Кредиты / займы / графики погашения" /> Кредиты / займы / графики</label>
+            <label><input type="checkbox" name="q_doc" value="Продажи по направлениям / товарам / клиентам" /> Продажи по направлениям</label>
+            <label><input type="checkbox" name="q_doc" value="Расходы по категориям" /> Расходы по категориям</label>
+            <label><input type="checkbox" name="q_doc" value="Зарплатный фонд" /> Зарплатный фонд</label>
+            <label><input type="checkbox" name="q_doc" value="Договоры с ключевыми клиентами / арендаторами / поставщиками" /> Ключевые договоры</label>
+            <label><input type="checkbox" name="q_doc" value="Инвестиционные проекты / CAPEX" /> Инвестпроекты / CAPEX</label>
+            <label><input type="checkbox" name="q_doc" value="Power BI / Excel / Google Sheets отчёты" /> Power BI / Excel / Sheets отчёты</label>
+            <label><input type="checkbox" name="q_doc" value="Другое" /> Другое</label>
+          </div>
+          <p class="q-note">На первом этапе не нужно отправлять всё сразу. Достаточно отметить, что есть в наличии. Список документов уточняется после первичной консультации.</p>
+        </fieldset>
+
+        <!-- Блок 7 — Цель клиента -->
+        <fieldset class="q-block q">
+          <div class="q-block__head"><span class="q-block__num">7</span><legend class="q-block__title">Цель</legend><span class="q-block__count">7 / 11</span></div>
+          <div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_goal" value="Видеть прибыль по направлениям" /> Видеть прибыль по направлениям</label>
+            <label><input type="checkbox" name="q_goal" value="Контролировать деньги" /> Контролировать деньги</label>
+            <label><input type="checkbox" name="q_goal" value="Убрать кассовые разрывы" /> Убрать кассовые разрывы</label>
+            <label><input type="checkbox" name="q_goal" value="Построить казначейство" /> Построить казначейство</label>
+            <label><input type="checkbox" name="q_goal" value="Внедрить платёжный календарь" /> Внедрить платёжный календарь</label>
+            <label><input type="checkbox" name="q_goal" value="Внедрить Power BI" /> Внедрить Power BI</label>
+            <label><input type="checkbox" name="q_goal" value="Автоматизировать отчётность" /> Автоматизировать отчётность</label>
+            <label><input type="checkbox" name="q_goal" value="Получить KPI" /> Получить KPI</label>
+            <label><input type="checkbox" name="q_goal" value="Подготовить бизнес к росту" /> Подготовить к росту</label>
+            <label><input type="checkbox" name="q_goal" value="Подготовить к инвестору / банку" /> Подготовить к инвестору / банку</label>
+            <label><input type="checkbox" name="q_goal" value="Контролировать группу компаний" /> Контролировать группу</label>
+            <label><input type="checkbox" name="q_goal" value="Повысить маржинальность" /> Повысить маржинальность</label>
+            <label><input type="checkbox" name="q_goal" value="Снизить расходы" /> Снизить расходы</label>
+            <label><input type="checkbox" name="q_goal" value="Навести порядок в финансах" /> Навести порядок в финансах</label>
+            <label><input type="checkbox" name="q_goal" value="Заменить хаос системой" /> Заменить хаос системой</label>
+          </div>
+          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Какой результат вы хотите получить через 3–6 месяцев?</span><textarea name="q_goal_text"></textarea></div>
+        </fieldset>
+
+        <!-- Блок 8 — Срочность и последствия -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">8</span><h2 class="q-block__title">Срочность и последствия</h2><span class="q-block__count">8 / 11</span></div>
+          <fieldset class="q"><legend class="q__label">Насколько срочно нужно решение?</legend><div class="q__choices"><label><input type="radio" name="q_urgency" value="Сейчас" /> Сейчас</label><label><input type="radio" name="q_urgency" value="1 месяц" /> 1 месяц</label><label><input type="radio" name="q_urgency" value="3 месяца" /> 3 месяца</label><label><input type="radio" name="q_urgency" value="Пока изучаю" /> Пока изучаю</label></div></fieldset>
+          <div class="q"><span class="q__label">Что будет, если ничего не менять 3 месяца?</span><textarea name="q_ifnothing"></textarea></div>
+          <fieldset class="q"><legend class="q__label">Есть сейчас критическая проблема с деньгами?</legend><div class="q__choices"><label><input type="radio" name="q_critical" value="Да" /> Да</label><label><input type="radio" name="q_critical" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть просрочки по платежам?</legend><div class="q__choices"><label><input type="radio" name="q_overdue" value="Да" /> Да</label><label><input type="radio" name="q_overdue" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть давление со стороны банков / поставщиков / инвесторов?</legend><div class="q__choices"><label><input type="radio" name="q_pressure" value="Да" /> Да</label><label><input type="radio" name="q_pressure" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть конфликт между собственником и финансовой командой?</legend><div class="q__choices"><label><input type="radio" name="q_conflict" value="Да" /> Да</label><label><input type="radio" name="q_conflict" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть риск остановки бизнеса / проекта?</legend><div class="q__choices"><label><input type="radio" name="q_stoprisk" value="Да" /> Да</label><label><input type="radio" name="q_stoprisk" value="Нет" /> Нет</label></div></fieldset>
+          <div class="q"><span class="q__label">Главное ограничение сейчас</span><select name="q_constraint"><option value="">— выберите —</option><option>Деньги</option><option>Данные</option><option>Команда</option><option>Время</option><option>Система</option><option>Другое</option></select></div>
+        </section>
+
+        <!-- Блок 9 — Удалённая работа и доверие -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">9</span><h2 class="q-block__title">Удалённая работа и доверие</h2><span class="q-block__count">9 / 11</span></div>
+          <p class="q-reassure">Удалённая работа не означает потерю контроля. Работа строится через понятный процесс: календарь встреч, список задач, отчёты по статусу, защищённый обмен файлами и регулярные управленческие выводы. Клиент видит не только результат, но и ход работы.</p>
+          <fieldset class="q"><legend class="q__label">Готовы ли вы работать удалённо?</legend><div class="q__choices"><label><input type="radio" name="q_remote_ready" value="Да" /> Да</label><label><input type="radio" name="q_remote_ready" value="Нет" /> Нет</label><label><input type="radio" name="q_remote_ready" value="Возможно" /> Возможно</label><label><input type="radio" name="q_remote_ready" value="Хочу обсудить" /> Хочу обсудить</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Работали раньше с внешними консультантами удалённо?</legend><div class="q__choices"><label><input type="radio" name="q_remote_prev" value="Да" /> Да</label><label><input type="radio" name="q_remote_prev" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Что вызывает сомнения в удалённой работе?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_remote_doubts" value="Качество работы" /> Качество работы</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Контроль процесса" /> Контроль процесса</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Конфиденциальность данных" /> Конфиденциальность данных</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Безопасность документов" /> Безопасность документов</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Разные часовые пояса" /> Разные часовые пояса</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Сложность коммуникации" /> Сложность коммуникации</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Непонимание локального бизнеса" /> Непонимание локального бизнеса</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Отсутствие личного контакта" /> Отсутствие личного контакта</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Скорость реакции" /> Скорость реакции</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Другое" /> Другое</label>
+          </div></fieldset>
+          <fieldset class="q"><legend class="q__label">Какой формат вам комфортнее?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_remote_format" value="Еженедельные Zoom/Meet встречи" /> Еженедельные Zoom/Meet встречи</label>
+            <label><input type="checkbox" name="q_remote_format" value="Общая рабочая папка" /> Общая рабочая папка</label>
+            <label><input type="checkbox" name="q_remote_format" value="Регулярный отчёт по задачам" /> Регулярный отчёт по задачам</label>
+            <label><input type="checkbox" name="q_remote_format" value="Telegram/WhatsApp связь" /> Telegram/WhatsApp связь</label>
+            <label><input type="checkbox" name="q_remote_format" value="Email summary после встречи" /> Email summary после встречи</label>
+            <label><input type="checkbox" name="q_remote_format" value="Dashboard со статусом задач" /> Dashboard со статусом задач</label>
+            <label><input type="checkbox" name="q_remote_format" value="Гибридный формат" /> Гибридный формат</label>
+            <label><input type="checkbox" name="q_remote_format" value="Другое" /> Другое</label>
+          </div></fieldset>
+          <fieldset class="q"><legend class="q__label">Какие инструменты вы готовы использовать?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_remote_tools" value="Google Drive" /> Google Drive</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Microsoft OneDrive" /> Microsoft OneDrive</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Dropbox" /> Dropbox</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Telegram" /> Telegram</label>
+            <label><input type="checkbox" name="q_remote_tools" value="WhatsApp" /> WhatsApp</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Zoom" /> Zoom</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Google Meet" /> Google Meet</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Microsoft Teams" /> Microsoft Teams</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Другое" /> Другое</label>
+          </div></fieldset>
+          <fieldset class="q"><legend class="q__label">Нужен ли NDA / соглашение о конфиденциальности?</legend><div class="q__choices"><label><input type="radio" name="q_nda" value="Да" /> Да</label><label><input type="radio" name="q_nda" value="Нет" /> Нет</label><label><input type="radio" name="q_nda" value="Возможно" /> Возможно</label></div></fieldset>
+        </section>
+
+        <!-- Блок 10 — Ожидания от первой встречи -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">10</span><h2 class="q-block__title">Ожидания от первой встречи</h2><span class="q-block__count">10 / 11</span></div>
+          <fieldset class="q"><legend class="q__label">Что вы хотите получить от первой встречи?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_expect" value="Понять главные финансовые проблемы" /> Понять главные проблемы</label>
+            <label><input type="checkbox" name="q_expect" value="Получить независимый взгляд" /> Независимый взгляд</label>
+            <label><input type="checkbox" name="q_expect" value="Понять, какие отчёты нужны" /> Какие отчёты нужны</label>
+            <label><input type="checkbox" name="q_expect" value="Оценить текущую финансовую систему" /> Оценить текущую систему</label>
+            <label><input type="checkbox" name="q_expect" value="Понять стоимость внедрения" /> Стоимость внедрения</label>
+            <label><input type="checkbox" name="q_expect" value="Понять, можно ли работать удалённо" /> Можно ли работать удалённо</label>
+            <label><input type="checkbox" name="q_expect" value="Подобрать формат сопровождения" /> Подобрать формат сопровождения</label>
+            <label><input type="checkbox" name="q_expect" value="Другое" /> Другое</label>
+          </div></fieldset>
+          <fieldset class="q"><legend class="q__label">Какой формат работы вам интересен?</legend><div class="q__choices">
+            <label><input type="checkbox" name="q_workinterest" value="Разовая диагностика" /> Разовая диагностика</label>
+            <label><input type="checkbox" name="q_workinterest" value="Внедрение системы" /> Внедрение системы</label>
+            <label><input type="checkbox" name="q_workinterest" value="Ежемесячное сопровождение" /> Ежемесячное сопровождение</label>
+            <label><input type="checkbox" name="q_workinterest" value="AI / BI автоматизация" /> AI / BI автоматизация</label>
+            <label><input type="checkbox" name="q_workinterest" value="Пока не знаю" /> Пока не знаю</label>
+          </div></fieldset>
+          <div class="q"><span class="q__label">Когда удобно провести встречу?</span><input type="text" name="q_meettime" placeholder="дни / время / часовой пояс" /></div>
+          <div class="q"><span class="q__label">Комментарий</span><textarea name="q_comment"></textarea></div>
+        </section>
+
+        <!-- Блок 11 — Согласие и конфиденциальность -->
+        <section class="q-block">
+          <div class="q-block__head"><span class="q-block__num">11</span><h2 class="q-block__title">Согласие и конфиденциальность</h2><span class="q-block__count">11 / 11</span></div>
+          <label class="q-consent" id="qConsentRow"><input type="checkbox" name="q_consent" id="qConsent" /> <span>Я согласен на обработку данных для подготовки консультации.</span></label>
+          <label class="q-consent"><input type="checkbox" name="q_consent_docs" /> <span>Я понимаю, что на данном этапе не нужно отправлять конфиденциальные документы без отдельного согласования.</span></label>
+          <label class="q-consent"><input type="checkbox" name="q_consent_plan" /> <span>Я хочу получить предварительный план встречи на основе ответов анкеты.</span></label>
+          <p class="q-note">На первом этапе достаточно общих данных и описания проблем. Конфиденциальные документы запрашиваются отдельно и только при необходимости.</p>
+        </section>
+
+        <div class="q-actions">
+          <p class="form-consent">Отправляя форму, я подтверждаю, что ознакомился с <a href="privacy.html">Политикой конфиденциальности</a> и согласен на обработку данных для связи со мной и рассмотрения моего запроса.</p>
+          <button type="submit" class="btn btn--primary btn--lg">Отправить анкету</button>
+          <button type="button" class="btn btn--ghost btn--lg" id="qCopy">Скопировать ответы</button>
+        </div>
+
+        <p class="q-fallback">
+          Автоматическая отправка будет подключена позже. Сейчас вы можете скопировать ответы
+          и отправить их напрямую:
+          <!-- TODO: при необходимости заменить контакты ниже -->
+          <a href="mailto:cfo@finmentor.md">Email</a> ·
+          <a href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a> ·
+          <a href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </p>
+
+        <div class="q-success" id="qSuccess" hidden>
+          <strong>Спасибо.</strong> Анкета сохранена на этой странице только как предварительная форма.
+          Автоматическая отправка будет подключена позже. Сейчас напишите напрямую в Telegram / WhatsApp / Email
+          или нажмите «Скопировать ответы» и отправьте их.
+          <span class="q-success__row">
+            <a class="btn btn--ghost" href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a>
+            <a class="btn btn--ghost" href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">Email</a>
+          </span>
+        </div>
+
+      </form>
     </div>
   </main>
-  <footer class="doc-foot">
-    <div class="container doc-foot__row">
-      <div class="doc-foot__links">
-        <a href="index.html">Acasă</a>
-        <a href="index.html#knowledge">Materiale</a>
-        <a href="questionnaire.html">Chestionar</a>
-        <a href="privacy.html">Politica de confidențialitate</a>
-        <a href="https://t.me/Yakovlev_Ghennadi" target="_blank" rel="noopener noreferrer">Telegram</a>
-        <a href="https://wa.me/37369307087" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-        <a href="mailto:cfo@finmentor.md">Email</a>
-      </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR · Moldova / International</span>
-    </div>
-  </footer>
-  <script>
-(function(){
-  var btn=document.getElementById('qfSend'); if(!btn) return;
-  function g(id){var e=document.getElementById(id);return e?String(e.value).trim():'';}
-  btn.addEventListener('click',function(){
-    var lines=[
-      "Nume"+': '+g('qfName'),
-      "Companie / domeniu"+': '+g('qfCompany'),
-      "Email, telefon sau Telegram"+': '+g('qfContact'),
-      "Cifr\u0103 de afaceri aproximativ\u0103 / num\u0103r de angaja\u021bi"+': '+g('qfSize'),
-      "Ce v\u0103 preocup\u0103 cel mai mult acum?"+': '+g('qfPain'),
-      "Detalii suplimentare (op\u021bional)"+': '+g('qfMsg')
-    ];
-    var subj=encodeURIComponent("FINMENTOR \u2014 solicitare de diagnostic");
-    var body=encodeURIComponent(lines.join('\n'));
-    window.location.href='mailto:cfo@finmentor.md?subject='+subj+'&body='+body;
-  });
-})();
-</script>
-  <script src="../assistant.js"></script>
+
+  <script src="main.js"></script>
+  <script src="assistant.js"></script>
 </body>
 </html>

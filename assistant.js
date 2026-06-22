@@ -96,42 +96,6 @@
                     { l: 'Vezi scenarii anonime', h: 'cases.html' },
                     { l: 'Scrie pe Telegram', h: TG, e: 'assistant_click_telegram', tg: true } ] }
         ]
-      },
-      en: {
-        launchLg: 'Need a hint?', launchSm: 'Help me choose a step',
-        launchAria: 'Open the financial navigator — help choosing the first step',
-        title: 'FINMENTOR financial navigator', closeAria: 'Close the navigator',
-        intro: 'I will help you choose a first step: a quick scan, a diagnostic, a Discovery Call or the right page. This is not a financial conclusion — analysing data requires a diagnostic.',
-        q: 'What concerns you most right now?',
-        disc: 'The navigator helps you choose a first step. It is not a financial conclusion or individual advice.',
-        back: '&larr; Back', backAria: 'Back to the options',
-        sc: [
-          { choose: 'assistant_choose_working_capital', opt: 'Profit on paper, but not enough cash',
-            a: 'The cause is often working capital: receivables, inventory, advances or payment terms. Start with a short quick scan.',
-            ctas: [ { l: 'Take the quick scan', h: 'working-capital-scan.html', e: 'assistant_click_mini_scan', p: true },
-                    { l: 'About working capital', h: 'working-capital.html' },
-                    { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' } ] },
-          { choose: 'assistant_choose_treasury', opt: 'Payments are chaotic',
-            a: 'In this situation you usually need a payment calendar, payment priorities and 7 / 14 / 30-day coverage control.',
-            ctas: [ { l: 'Open treasury', h: 'treasury.html', p: true },
-                    { l: 'See the methodology', h: 'methodology.html' },
-                    { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' } ] },
-          { choose: 'assistant_choose_reporting', opt: 'No clear P&L / Cash Flow',
-            a: 'If the owner cannot see profit, cash and risk in one logic, the first step is usually a Financial Health Check.',
-            ctas: [ { l: 'Take the full diagnostic', h: 'questionnaire.html', p: true },
-                    { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' },
-                    { l: 'Methodology', h: 'methodology.html' } ] },
-          { choose: 'assistant_choose_powerbi', opt: 'I want a Power BI dashboard',
-            a: 'Power BI makes sense only after the financial logic is defined: which metrics, from which sources and who owns data quality.',
-            ctas: [ { l: 'Power BI for the owner', h: 'power-bi-for-owner.html', p: true },
-                    { l: '1C → Power BI', h: 'power-bi-for-owner.html' },
-                    { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' } ] },
-          { choose: 'assistant_choose_fit', opt: 'I want to understand if FINMENTOR fits',
-            a: 'The best first step is a 20–30 minute Discovery Call. A short qualifying conversation to see whether a diagnostic makes sense.',
-            ctas: [ { l: 'Book a Discovery Call', h: disco(), e: 'assistant_click_discovery_call', p: true },
-                    { l: 'See anonymous scenarios', h: 'cases.html' },
-                    { l: 'Message on Telegram', h: TG, e: 'assistant_click_telegram', tg: true } ] }
-        ]
       }
     };
     if (!I18N[LANG]) LANG = 'ru';
