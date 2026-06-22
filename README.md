@@ -398,3 +398,36 @@ GA4-тег, `assistant.js`, favicon и OG-теги сохранены. В кон
 Прежняя placeholder-ссылка на бота заменена на реальную (`https://t.me/finmentor_md_bot`) во всех
 местах проекта; placeholder-токен нигде не используется. После любых изменений username проверить
 все ссылки `t.me/finmentor_md_bot` на сайте.
+
+## v8.5 — Premium AI-ready Questionnaire
+
+Анкета `questionnaire.html` переработана из обычной формы в premium diagnostic intake. Изменён ТОЛЬКО
+`questionnaire.html` (стили — в его inline `<style>`; `main.js`, `assistant.js`, `style.css` не
+тронуты). Сайт остаётся RU-only; GA4, assistant.js, FINMENTOR Bot, privacy consent — без изменений.
+
+Что сделано:
+- **Убраны все нативные `<select>`** (плохо читались на тёмном фоне — белый системный список). 7
+  селектов (язык, формат встречи, формат работы, годовой оборот, достоверность данных, главное
+  ограничение) заменены на premium choice-элементы.
+- **Choice cards / segmented buttons** на нативных `radio` (доступны с клавиатуры, без JS-состояния):
+  тёмный фон, тонкая граница, gold-border и подсветка при выборе, hover, focus-ring, mobile-friendly.
+  Карточки (`.q__cards`) для «Примерный годовой оборот» (до 500k / 500k–1M / 1–5M / 5–10M / 10M+ /
+  Предпочитаю обсудить лично), «Срочность» и «Основной запрос»; segmented-пилюли (`.q__choices`) для
+  остальных коротких выборов.
+- **Текстовое поле «финансовый директор/команда»** переведено в choice (Нет / Бухгалтер совмещает /
+  Есть финансист / Внешний CFO).
+- **Добавлены AI-важные вопросы:** «Срочность запроса» (Обычная / Повышенная / Высокая — кассовый
+  разрыв / Кризис) и «Что хотите от FINMENTOR в первую очередь?» (диагностика / система контроля /
+  ежемесячное сопровождение / Power BI / казначейство / оборотный капитал / финансирование / нужна
+  консультация).
+- Значение каждого выбора хранится в нативном `radio` (submit и `collectAnswers()` читают его без
+  изменений). Данные собираются в структурированный размеченный список «Поле: значение», пригодный
+  для будущей передачи в Make → AI-агенты (Client Card, Risk Map, Package Recommendation, Document
+  Checklist, Work Plan, Proposal Draft) и Google Sheets.
+- Persональные данные в GA4 не отправляются; backend и внешние библиотеки/CDN не используются;
+  телефон/WhatsApp не возвращены; ссылок на `/ro/`/`/en/` нет.
+
+AI-маппинг полей анкеты (для будущей интеграции): industry←q_industry; scale←q_turnover;
+entities/group←q_companies; main_pain←q_pain/q_pain_text; urgency←q_urgency; request/package←q_request;
+P&L/CF/treasury status←q_f1/q_f2/q_f3…; data_quality←q_reliability; financial director←q_finteam;
+data sources←q_systems; documents←q_doc; contact←q_email/q_telegram.
