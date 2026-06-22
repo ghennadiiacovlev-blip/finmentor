@@ -2067,3 +2067,6 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
    ========================================================================== */
 .form-consent { margin-top: var(--sp-4); font-size: 0.8rem; line-height: 1.55; color: var(--text-muted); overflow-wrap: anywhere; }
 .form-consent a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+
+/* v8.4 — FINMENTOR Bot intake note */
+.contact-bot-note { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.55; margin-bottom: var(--sp-3); max-width: 56ch; }

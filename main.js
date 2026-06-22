@@ -759,7 +759,7 @@
       var text = lines.join('\n');
       root.__shareText = text;
       var tg = document.getElementById('scanTg');
-      if (tg) tg.href = 'https://t.me/share/url?url=' + encodeURIComponent('https://www.finmentor.md/working-capital-scan.html') + '&text=' + encodeURIComponent(text);
+      if (tg) tg.href = 'https://t.me/finmentor_md_bot';
     }
     function show() {
       if (Object.keys(answers).length < questions.length) {

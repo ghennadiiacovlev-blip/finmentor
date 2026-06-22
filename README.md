@@ -369,3 +369,32 @@ GA4-тег, `assistant.js`, favicon и OG-теги сохранены. В кон
 конфиденциальности и согласен на обработку данных для связи со мной и рассмотрения моего запроса.»
 Добавлен класс `.form-consent` в `style.css`. Sitemap/robots/CNAME/manifest и остальные страницы не
 менялись.
+
+## v8.4 — Contact Privacy & Bot Intake
+
+Личный телефон и WhatsApp убраны из всех публичных блоков сайта. Основной канал приёма входящих
+сообщений — **FINMENTOR Bot** в Telegram. Бот собирает базовую информацию о запросе и передаёт её
+для ответа. Сайт остаётся только на русском (без RO/EN).
+
+Что сделано:
+- Убран личный номер `+373 69 307 087` (включая `tel:`-ссылку) из футера, контактных блоков и
+  карточек контактов.
+- Убрана публичная WhatsApp-ссылка `https://wa.me/37369307087` из футеров, contact strip,
+  CTA-блоков, анкеты и mini-scan; убрана из контактной логики privacy.
+- Личные Telegram-ссылки (`t.me/Yakovlev_Ghennadi`) в публичных блоках заменены на **FINMENTOR Bot**
+  (`https://t.me/finmentor_md_bot`): футеры, contact strip, CTA-кнопки, mini-scan, анкета, assistant.
+- Email `cfo@finmentor.md` и LinkedIn сохранены.
+- В `assistant.js` CTA «Написать в Telegram» заменён на «Оставить сообщение в FINMENTOR Bot»
+  (ссылка на бота), добавлено GA4-событие `assistant_click_bot`; остальные события не изменены.
+- В mini-scan кнопка результата ведёт в FINMENTOR Bot («Отправить результат в FINMENTOR Bot»);
+  логика расчёта и GA4-события (start/complete/copy_working_capital_scan, result_level) не изменены.
+- В анкете убраны телефон/WhatsApp из контактного блока и из клиентских опций; добавлен FINMENTOR
+  Bot; согласие по-прежнему ведёт на `privacy.html`.
+- В privacy добавлен FINMENTOR Bot как основной канал и формулировка: «При обращении через FINMENTOR
+  Bot или Telegram ваши данные также могут обрабатываться платформой Telegram в соответствии с её
+  правилами.»
+
+**Реальный Telegram-бот:** username `finmentor_md_bot`, ссылка `https://t.me/finmentor_md_bot`.
+Прежняя placeholder-ссылка на бота заменена на реальную (`https://t.me/finmentor_md_bot`) во всех
+местах проекта; placeholder-токен нигде не используется. После любых изменений username проверить
+все ссылки `t.me/finmentor_md_bot` на сайте.

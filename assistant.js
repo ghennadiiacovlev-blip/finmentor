@@ -16,7 +16,7 @@
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
-  var TG = 'https://t.me/Yakovlev_Ghennadi';
+  var TG = 'https://t.me/finmentor_md_bot';
   // Discovery Call target: same-page section on the homepage, otherwise the homepage section.
   function disco() { return document.getElementById('consult') ? '#consult' : 'index.html#consult'; }
 
@@ -62,7 +62,7 @@
         ctas: [
           { l: 'Записаться на Discovery Call', h: disco(), e: 'assistant_click_discovery_call', p: true },
           { l: 'Смотреть анонимные сценарии', h: 'cases.html' },
-          { l: 'Написать в Telegram', h: TG, e: 'assistant_click_telegram', tg: true }
+          { l: 'Оставить сообщение в FINMENTOR Bot', h: TG, e: 'assistant_click_bot', tg: true }
         ] }
     ];
 
