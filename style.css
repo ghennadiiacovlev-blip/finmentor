@@ -2067,3 +2067,14 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
    ========================================================================== */
 .form-consent { margin-top: var(--sp-4); font-size: 0.8rem; line-height: 1.55; color: var(--text-muted); overflow-wrap: anywhere; }
 .form-consent a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ============================================================================
+   v9 — language switcher (RU | RO | EN), active = gold
+   ========================================================================== */
+.lang-switch { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--glass-border); border-radius: var(--r-pill); background: rgba(255,255,255,0.03); }
+.lang-switch__item { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 600; color: var(--text-muted); padding: 5px 9px; border-radius: var(--r-pill); text-decoration: none; line-height: 1; transition: color var(--dur-base) ease, background var(--dur-base) ease; }
+.lang-switch__item:hover { color: var(--text-secondary); }
+.lang-switch__item.is-active { color: var(--navy-900); background: var(--gold-500); }
+.lang-switch--mobile { display: flex; width: 100%; justify-content: center; margin-bottom: var(--sp-3); }
+.doc-bar__nav .lang-switch { margin-right: 4px; }
+@media (max-width: 1024px) { .header__actions .lang-switch { display: none; } }

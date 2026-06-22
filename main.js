@@ -746,20 +746,32 @@
       medium: { band: 'Средний риск · деньги могут застревать', title: 'Есть признаки, что деньги застревают', text: 'Похоже, деньги могут застревать в дебиторке, запасах, авансах или платёжной дисциплине. Стоит провести диагностику оборотного капитала и Cash Flow.' },
       high: { band: 'Высокий риск · нужна диагностика', title: 'Деньгами, вероятно, управляют реактивно', text: 'Высокая вероятность, что платежи решаются вручную, cash gap виден поздно, а прибыль не превращается в свободный cash flow. Рекомендуется Financial Health Check или Discovery Call.' }
     };
+    var ds = root.dataset || {};
+    if (ds.lowBand) LEVELS.low = { band: ds.lowBand, title: ds.lowTitle, text: ds.lowText };
+    if (ds.medBand) LEVELS.medium = { band: ds.medBand, title: ds.medTitle, text: ds.medText };
+    if (ds.highBand) LEVELS.high = { band: ds.highBand, title: ds.highTitle, text: ds.highText };
+    var SHARE_TITLE = ds.shareTitle || 'Мини-скан оборотного капитала — FINMENTOR';
+    var SHARE_URL = ds.shareUrl || (location.origin + location.pathname);
+    var SHARE_LABELS = {
+      ru: { result: 'Результат: ', name: 'Имя: ', company: 'Компания: ', contact: 'Контакт: ', comment: 'Комментарий: ' },
+      ro: { result: 'Rezultat: ', name: 'Nume: ', company: 'Companie: ', contact: 'Contact: ', comment: 'Comentariu: ' },
+      en: { result: 'Result: ', name: 'Name: ', company: 'Company: ', contact: 'Contact: ', comment: 'Comment: ' }
+    };
+    var SL = SHARE_LABELS[(document.documentElement.lang || 'ru').slice(0, 2)] || SHARE_LABELS.ru;
     function levelFor(total) { var pct = total / (questions.length * 3); return pct < 0.34 ? 'low' : (pct < 0.67 ? 'medium' : 'high'); }
     function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
     function buildShare(L) {
-      var lines = ['Мини-скан оборотного капитала — FINMENTOR', 'Результат: ' + L.band];
+      var lines = [SHARE_TITLE, SL.result + L.band];
       var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
-      if (nm) lines.push('Имя: ' + nm);
-      if (co) lines.push('Компания: ' + co);
-      if (ct) lines.push('Контакт: ' + ct);
-      if (cm) lines.push('Комментарий: ' + cm);
-      lines.push('https://www.finmentor.md/working-capital-scan.html');
+      if (nm) lines.push(SL.name + nm);
+      if (co) lines.push(SL.company + co);
+      if (ct) lines.push(SL.contact + ct);
+      if (cm) lines.push(SL.comment + cm);
+      lines.push(SHARE_URL);
       var text = lines.join('\n');
       root.__shareText = text;
       var tg = document.getElementById('scanTg');
-      if (tg) tg.href = 'https://t.me/share/url?url=' + encodeURIComponent('https://www.finmentor.md/working-capital-scan.html') + '&text=' + encodeURIComponent(text);
+      if (tg) tg.href = 'https://t.me/share/url?url=' + encodeURIComponent(SHARE_URL) + '&text=' + encodeURIComponent(text);
     }
     function show() {
       if (Object.keys(answers).length < questions.length) {

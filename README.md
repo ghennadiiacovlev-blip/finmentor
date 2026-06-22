@@ -369,3 +369,49 @@ GA4-тег, `assistant.js`, favicon и OG-теги сохранены. В кон
 конфиденциальности и согласен на обработку данных для связи со мной и рассмотрения моего запроса.»
 Добавлен класс `.form-consent` в `style.css`. Sitemap/robots/CNAME/manifest и остальные страницы не
 менялись.
+
+## v9 — Multilingual Foundation (RU / RO / EN)
+
+Сайт переведён в SEO-правильную мультиязычную структуру через языковые директории:
+RU — `/` (корень, без изменений в стратегии и дизайне), RO — `/ro/`, EN — `/en/`.
+Это допустимое исключение из flat-правила: мультиязычное SEO лучше строить на языковых папках.
+
+**Созданные страницы (по 10 на язык).** RO: index.html, privacy.html, working-capital-scan.html,
+cases.html, methodology.html, cash-flow.html, trezorerie.html, power-bi-pentru-proprietar.html,
+capital-circulant.html, questionnaire.html. EN: index.html, privacy.html, working-capital-scan.html,
+cases.html, methodology.html, cash-flow.html, treasury.html, power-bi-for-owner.html,
+working-capital.html, questionnaire.html. Перевод профессиональный, не калька (CFO-язык). RO/EN
+страницы статичные (без `.reveal`), на единой premium-оболочке (doc-bar/doc-foot), активы
+подключаются как `../style.css`, `../favicon.svg`, `../main.js`, `../assistant.js` — один источник.
+
+**Языковой переключатель RU | RO | EN** добавлен в header (и в мобильное меню на главной). Активный
+язык подсвечен gold. Ссылки ведут на точный аналог страницы (например, RU `working-capital.html` →
+RO `ro/capital-circulant.html` → EN `en/working-capital.html`); если аналога нет (8 RU-only страниц),
+RO/EN ведут на главную соответствующего языка.
+
+**hreflang** — на 10 страницах с тремя версиями добавлены взаимные `ru`/`ro`/`en` + `x-default`
+(на RU-версию). **canonical** на каждой странице указывает на саму себя. **html lang** = ru/ro/en.
+**og:locale** = ru_RU / ro_MD / en_US, общий premium `og-image.png`, title/description — на языке
+страницы.
+
+**Assistant на 3 языках** — тот же rule-based навигатор, тексты и слаги ссылок выбираются по
+`document.documentElement.lang`. Те же сценарии и те же GA4-события (open_finmentor_assistant,
+assistant_choose_*). **Mini-scan на 3 языках** — одинаковая логика расчёта; тексты вопросов,
+результата и share берутся из data-атрибутов страницы; те же события (start/complete/copy_
+working_capital_scan) и `result_level` (low/medium/high_risk). **Questionnaire** RO/EN — переведённая
+анкета с ключевыми вопросами (отправка письмом через mailto). **Privacy** RO/EN — переведённая
+политика с юридическим уточнением о согласовании с юристом.
+
+**sitemap.xml** — добавлены 20 RO/EN URL (всего 38), XML валиден. **robots.txt** не менялся (открыт,
+`/ro/` и `/en/` не заблокированы).
+
+### Деплой v9
+1. Загрузить папки `/ro/` и `/en/` целиком + изменённые RU-файлы (18 HTML, `style.css`, `main.js`,
+   `assistant.js`, `sitemap.xml`) в корень репозитория.
+2. Дождаться сборки GitHub Pages.
+3. Cloudflare → Caching → Purge Everything, hard refresh.
+4. Проверить: открываются `/ro/` и `/en/`; переключатель работает на desktop и mobile; в Google
+   Search Console — корректность hreflang; на RO/EN ассистент и mini-scan на нужном языке.
+
+Примечание: GitHub Pages и Cloudflare отдают вложенные папки `/ro/` и `/en/` как есть; относительные
+пути `../` к общим ассетам выбраны специально, чтобы подпапки резолвились без дублирования файлов.
