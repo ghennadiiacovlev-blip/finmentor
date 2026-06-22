@@ -2061,3 +2061,9 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   .fa-launch__sm { display: inline; }
   .fa-panel { right: 12px; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: auto; max-width: none; max-height: 80vh; }
 }
+
+/* ============================================================================
+   v8.3 — form consent line (near forms / mini-scan / questionnaire)
+   ========================================================================== */
+.form-consent { margin-top: var(--sp-4); font-size: 0.8rem; line-height: 1.55; color: var(--text-muted); overflow-wrap: anywhere; }
+.form-consent a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
