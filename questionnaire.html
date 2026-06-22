@@ -127,6 +127,19 @@
       .q-actions .btn, .q-success__row .btn { width: 100%; }
       .q-block__count { display: none; }
     }
+
+    /* v8.6 — validation + JSON automation bridge */
+    .q-validate { margin-bottom: var(--sp-6); padding: var(--sp-5); border-radius: var(--r-lg); border: 1px solid var(--gold-500); background: linear-gradient(135deg, rgba(201,162,39,0.10), rgba(229,72,77,0.06)); }
+    .q-validate__head { font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-3); line-height: 1.5; }
+    .q-validate__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+    .q-validate__item { cursor: pointer; font-size: 0.84rem; color: var(--text-secondary); background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border-gold); border-radius: var(--r-pill); padding: 6px 12px; font-family: inherit; transition: border-color var(--dur-base) ease, color var(--dur-base) ease; }
+    .q-validate__item:hover { border-color: var(--accent); color: var(--text-primary); }
+    .q-err { margin-top: 8px; font-size: 0.8rem; color: var(--critical); }
+    .q.is-error .q__label, .q.is-error legend { color: var(--critical); }
+    .q.is-error .q__choices label, .q.is-error .q__cards label { border-color: rgba(229,72,77,0.55); }
+    .q-ai-notice { margin: var(--sp-4) 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; padding: var(--sp-3) var(--sp-4); border-left: 2px solid var(--gold-500); background: rgba(201,162,39,0.06); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .q__cards, .q__choices { min-width: 0; }
+    .q__cards label, .q__choices label { overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
@@ -197,24 +210,25 @@
     </section>
 
     <div class="container">
-      <form class="q-form" id="qForm" novalidate>
+      <form class="q-form" id="qFormV86" novalidate>
+        <div class="q-validate" id="qValidate" hidden role="alert" aria-live="assertive"><p class="q-validate__head">Чтобы подготовить качественную предварительную диагностику, заполните ещё несколько обязательных пунктов.</p><ul class="q-validate__list" id="qValidateList"></ul></div>
 
         <!-- Блок 1 — Контакт, страна и формат коммуникации -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Контакт и формат коммуникации</h2><span class="q-block__count">1 / 11</span></div>
           <div class="q-grid">
-            <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" autocomplete="name" /></div>
-            <div class="q"><span class="q__label">Компания</span><input type="text" name="q_company" /></div>
+            <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
+            <div class="q"><span class="q__label">Компания</span><input type="text" name="q_company" data-key="company" /></div>
             <div class="q"><span class="q__label">Должность</span><input type="text" name="q_role" /></div>
-            <div class="q"><span class="q__label">Email</span><input type="email" name="q_email" autocomplete="email" /></div>
+            <div class="q"><span class="q__label">Email</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></div>
             <div class="q"><span class="q__label">Телефон / мессенджер</span><input type="tel" name="q_phone" /></div>
-            <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" /></div>
+            <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></div>
             <div class="q"><span class="q__label">Страна</span><input type="text" name="q_country" /></div>
             <div class="q"><span class="q__label">Город</span><input type="text" name="q_city" /></div>
             <div class="q"><span class="q__label">Часовой пояс</span><input type="text" name="q_timezone" placeholder="напр. GMT+2" /></div>
-            <fieldset class="q"><legend class="q__label">Язык общения</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Русский" /> Русский</label><label><input type="radio" name="q_lang" value="Румынский" /> Румынский</label><label><input type="radio" name="q_lang" value="Английский" /> Английский</label><label><input type="radio" name="q_lang" value="Другое" /> Другое</label></div></fieldset>
+            <fieldset class="q" data-key="language"><legend class="q__label">Язык общения</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Русский" /> Русский</label><label><input type="radio" name="q_lang" value="Румынский" /> Румынский</label><label><input type="radio" name="q_lang" value="Английский" /> Английский</label><label><input type="radio" name="q_lang" value="Другое" /> Другое</label></div></fieldset>
             <fieldset class="q"><legend class="q__label">Формат встречи</legend><div class="q__choices"><label><input type="radio" name="q_meetfmt" value="Zoom" /> Zoom</label><label><input type="radio" name="q_meetfmt" value="Google Meet" /> Google Meet</label><label><input type="radio" name="q_meetfmt" value="Microsoft Teams" /> Microsoft Teams</label><label><input type="radio" name="q_meetfmt" value="Telegram call" /> Telegram call</label></div></fieldset>
-            <fieldset class="q"><legend class="q__label">Формат работы</legend><div class="q__choices"><label><input type="radio" name="q_workfmt" value="Удалённо" /> Удалённо</label><label><input type="radio" name="q_workfmt" value="Гибрид" /> Гибрид</label><label><input type="radio" name="q_workfmt" value="Очно" /> Очно</label><label><input type="radio" name="q_workfmt" value="Пока не знаю" /> Пока не знаю</label></div></fieldset>
+            <fieldset class="q"><legend class="q__label">Формат работы</legend><div class="q__choices"><label><input type="radio" name="q_workfmt" value="Удалённо" /> Удалённо</label><label><input type="radio" name="q_workfmt" value="Гибрид" /> Гибрид</label><label><input type="radio" name="q_workfmt" value="Очно" /> Очно</label><label><input type="radio" name="q_workfmt" value="Пока не знаю" /> Пока не знаю</label></div></fieldset><fieldset class="q" data-key="preferred_contact"><legend class="q__label">Удобный способ связи</legend><div class="q__choices"><label><input type="radio" name="q_pref_contact" value="Telegram" /> Telegram</label><label><input type="radio" name="q_pref_contact" value="Email" /> Email</label><label><input type="radio" name="q_pref_contact" value="Любой" /> Любой</label></div></fieldset>
           </div>
         </section>
 
@@ -222,23 +236,23 @@
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Бизнес-профиль</h2><span class="q-block__count">2 / 11</span></div>
           <div class="q-grid">
-            <div class="q"><span class="q__label">Сфера деятельности</span><input type="text" name="q_industry" /></div>
-            <div class="q"><span class="q__label">Компаний в группе</span><input type="number" name="q_companies" min="1" /></div>
-            <div class="q"><span class="q__label">Сотрудников</span><input type="number" name="q_employees" min="1" /></div>
-            <div class="q"><span class="q__label">Филиалов / объектов / направлений</span><input type="text" name="q_branches" /></div>
+            <div class="q"><span class="q__label">Сфера деятельности</span><input type="text" name="q_industry" data-key="industry" /></div>
+            <div class="q"><span class="q__label">Компаний в группе</span><input type="number" name="q_companies" data-key="companies_in_group" min="1" /></div>
+            <div class="q"><span class="q__label">Сотрудников</span><input type="number" name="q_employees" data-key="employees" min="1" /></div>
+            <div class="q"><span class="q__label">Филиалов / объектов / направлений</span><input type="text" name="q_branches" data-key="branches_objects_directions" /></div>
           </div>
-          <fieldset class="q"><legend class="q__label">Примерный годовой оборот</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> до 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Предпочитаю обсудить лично</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть ли сезонность бизнеса?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Да</label><label><input type="radio" name="q_seasonality" value="Нет" /> Нет</label></div></fieldset>
+          <fieldset class="q" data-key="annual_turnover"><legend class="q__label">Примерный годовой оборот</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> до 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Предпочитаю обсудить лично</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Есть ли сезонность бизнеса?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Да</label><label><input type="radio" name="q_seasonality" value="Нет" /> Нет</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Есть ли кредиты / лизинг / инвесторы?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Нет</label><label><input type="radio" name="q_loans" value="Кредиты" /> Кредиты</label><label><input type="radio" name="q_loans" value="Лизинг" /> Лизинг</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Инвесторы</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Несколько источников</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Есть ли проекты / CAPEX / стройка?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Нет</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Да, отдельные проекты</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Да, активная стройка</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
           <div class="q"><span class="q__label">Основные источники дохода</span><input type="text" name="q_income" /></div>
           <div class="q"><span class="q__label">Основные статьи расходов</span><input type="text" name="q_expenses" /></div>
           <div class="q"><span class="q__label">Кто принимает финансовые решения?</span><input type="text" name="q_decision" /></div>
-          <fieldset class="q"><legend class="q__label">Есть ли финансовый директор / финансовая команда?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет" /> Нет</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает" /> Бухгалтер совмещает</label><label><input type="radio" name="q_finteam" value="Есть финансист" /> Есть финансист</label><label><input type="radio" name="q_finteam" value="Внешний CFO / аутсорс" /> Внешний CFO / аутсорс</label></div></fieldset>
+          <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Есть ли финансовый директор / финансовая команда?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет" /> Нет</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает" /> Бухгалтер совмещает</label><label><input type="radio" name="q_finteam" value="Есть финансист" /> Есть финансист</label><label><input type="radio" name="q_finteam" value="Внешний CFO / аутсорс" /> Внешний CFO / аутсорс</label><label><input type="radio" name="q_finteam" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
         </section>
 
         <!-- Блок 3 — Главные боли -->
         <fieldset class="q-block q">
           <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Главные боли</legend><span class="q-block__count">3 / 11</span></div>
-          <div class="q__choices q__choices--multi">
+          <div class="q__choices q__choices--multi" data-key="primary_problem">
             <label><input type="checkbox" name="q_pain" value="Прибыль есть, но денег нет" /> Прибыль есть, но денег нет</label>
             <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Не хватает cash flow</label>
             <label><input type="checkbox" name="q_pain" value="Кассовые разрывы" /> Кассовые разрывы</label>
@@ -260,17 +274,17 @@
             <label><input type="checkbox" name="q_pain" value="Нужно внедрить AI / автоматизацию" /> Нужны AI / автоматизация</label>
             <label><input type="checkbox" name="q_pain" value="Другое" /> Другое</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text"></textarea></div>
-          <fieldset class="q"><legend class="q__label">Срочность запроса</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Обычная</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Повышенная</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Высокая — есть кассовый разрыв</label><label><input type="radio" name="q_urgency" value="Кризис" /> Кризис</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Что вы хотите от FINMENTOR в первую очередь?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовая диагностика" /> Финансовая диагностика</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Построить систему контроля</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Регулярное CFO-сопровождение</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / dashboard</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Контроль платежей / казначейство</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Оборотный капитал</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Финансирование (банк / инвестор)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Пока не знаю — нужна консультация</label></div></fieldset>
+          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
+          <fieldset class="q" data-key="urgency"><legend class="q__label">Срочность запроса</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Обычная</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Повышенная</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Высокая — есть кассовый разрыв</label><label><input type="radio" name="q_urgency" value="Кризис" /> Кризис</label></div></fieldset>
+          <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Что вы хотите от FINMENTOR в первую очередь?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовая диагностика" /> Финансовая диагностика</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Построить систему контроля</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Регулярное CFO-сопровождение</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / dashboard</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Контроль платежей / казначейство</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Оборотный капитал</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Финансирование (банк / инвестор)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Пока не знаю — нужна консультация</label></div></fieldset>
         </fieldset>
 
         <!-- Блок 4 — Финансовый контроль -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Финансовый контроль</h2><span class="q-block__count">4 / 11</span></div>
-          <fieldset class="q"><legend class="q__label">Есть управленческий P&amp;L?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Да</label><label><input type="radio" name="q_f2" value="Нет" /> Нет</label><label><input type="radio" name="q_f2" value="Частично" /> Частично</label><label><input type="radio" name="q_f2" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть платёжный календарь?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Да</label><label><input type="radio" name="q_f3" value="Нет" /> Нет</label><label><input type="radio" name="q_f3" value="Частично" /> Частично</label><label><input type="radio" name="q_f3" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Есть управленческий P&amp;L?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Есть Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Да</label><label><input type="radio" name="q_f2" value="Нет" /> Нет</label><label><input type="radio" name="q_f2" value="Частично" /> Частично</label><label><input type="radio" name="q_f2" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q" data-key="has_payment_calendar"><legend class="q__label">Есть платёжный календарь?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Да</label><label><input type="radio" name="q_f3" value="Нет" /> Нет</label><label><input type="radio" name="q_f3" value="Частично" /> Частично</label><label><input type="radio" name="q_f3" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть бюджет?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Да" /> Да</label><label><input type="radio" name="q_f4" value="Нет" /> Нет</label><label><input type="radio" name="q_f4" value="Частично" /> Частично</label><label><input type="radio" name="q_f4" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть план-факт анализ?</legend><div class="q__choices"><label><input type="radio" name="q_f5" value="Да" /> Да</label><label><input type="radio" name="q_f5" value="Нет" /> Нет</label><label><input type="radio" name="q_f5" value="Частично" /> Частично</label><label><input type="radio" name="q_f5" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть контроль дебиторки?</legend><div class="q__choices"><label><input type="radio" name="q_f6" value="Да" /> Да</label><label><input type="radio" name="q_f6" value="Нет" /> Нет</label><label><input type="radio" name="q_f6" value="Частично" /> Частично</label><label><input type="radio" name="q_f6" value="Не знаю" /> Не знаю</label></div></fieldset>
@@ -303,9 +317,9 @@
           <div class="q"><span class="q__label">Кто готовит отчёты?</span><input type="text" name="q_reporter" /></div>
           <div class="q"><span class="q__label">Как часто собственник получает цифры?</span><input type="text" name="q_frequency" /></div>
           <div class="q"><span class="q__label">Сколько времени занимает подготовка отчётов?</span><input type="text" name="q_prep_time" /></div>
-          <fieldset class="q"><legend class="q__label">Насколько данные достоверны?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="Низко" /> Низко</label><label><input type="radio" name="q_reliability" value="Средне" /> Средне</label><label><input type="radio" name="q_reliability" value="Хорошо" /> Хорошо</label><label><input type="radio" name="q_reliability" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q" data-key="data_reliability"><legend class="q__label">Насколько данные достоверны?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="Низко" /> Низко</label><label><input type="radio" name="q_reliability" value="Средне" /> Средне</label><label><input type="radio" name="q_reliability" value="Хорошо" /> Хорошо</label><label><input type="radio" name="q_reliability" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть единый источник правды по цифрам?</legend><div class="q__choices"><label><input type="radio" name="q_sot" value="Да" /> Да</label><label><input type="radio" name="q_sot" value="Нет" /> Нет</label><label><input type="radio" name="q_sot" value="Частично" /> Частично</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Готовы предоставить примеры отчётов для диагностики?</legend><div class="q__choices"><label><input type="radio" name="q_provide" value="Да" /> Да</label><label><input type="radio" name="q_provide" value="Нет" /> Нет</label><label><input type="radio" name="q_provide" value="Позже" /> Позже</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Готовы предоставить примеры отчётов для диагностики?</legend><div class="q__choices"><label><input type="radio" name="q_provide" value="Да" /> Да</label><label><input type="radio" name="q_provide" value="Нет" /> Нет</label><label><input type="radio" name="q_provide" value="Позже" /> Позже</label></div></fieldset><fieldset class="q" data-key="documents_status"><legend class="q__label">Есть ли у вас финансовые документы / текущие отчёты?</legend><div class="q__cards"><label><input type="radio" name="q_documents_status" value="Да, есть" /> Да, есть</label><label><input type="radio" name="q_documents_status" value="Частично" /> Частично</label><label><input type="radio" name="q_documents_status" value="Нет" /> Нет</label><label><input type="radio" name="q_documents_status" value="Нет данных" /> Нет данных</label><label><input type="radio" name="q_documents_status" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
         </section>
 
         <!-- Блок 6 — Документы для диагностики -->
@@ -435,9 +449,10 @@
         <!-- Блок 11 — Согласие и конфиденциальность -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">11</span><h2 class="q-block__title">Согласие и конфиденциальность</h2><span class="q-block__count">11 / 11</span></div>
-          <label class="q-consent" id="qConsentRow"><input type="checkbox" name="q_consent" id="qConsent" /> <span>Я согласен на обработку данных для подготовки консультации.</span></label>
+          <label class="q-consent" id="qConsentRow"><input type="checkbox" name="q_consent" id="qConsent" /> <span>Я согласен с <a href="privacy.html">Политикой конфиденциальности</a> и обработкой данных для подготовки консультации.</span></label>
           <label class="q-consent"><input type="checkbox" name="q_consent_docs" /> <span>Я понимаю, что на данном этапе не нужно отправлять конфиденциальные документы без отдельного согласования.</span></label>
           <label class="q-consent"><input type="checkbox" name="q_consent_plan" /> <span>Я хочу получить предварительный план встречи на основе ответов анкеты.</span></label>
+          <p class="q-ai-notice">Ответы анкеты могут использоваться FINMENTOR для подготовки предварительной финансовой диагностики, списка документов, карты рисков и предложения по формату работы. Финальные выводы подтверждаются человеком.</p>
           <p class="q-note">На первом этапе достаточно общих данных и описания проблем. Конфиденциальные документы запрашиваются отдельно и только при необходимости.</p>
         </section>
 
@@ -456,12 +471,11 @@
         </p>
 
         <div class="q-success" id="qSuccess" hidden>
-          <strong>Спасибо.</strong> Анкета сохранена на этой странице только как предварительная форма.
-          Автоматическая отправка будет подключена позже. Сейчас напишите напрямую в FINMENTOR Bot или на Email
-          или нажмите «Скопировать ответы» и отправьте их.
+          <strong>Готово.</strong> <span id="qSuccessText">Анкета подготовлена. Чтобы передать её FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на email.</span>
           <span class="q-success__row">
-            <a class="btn btn--ghost" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
-            <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">Email</a>
+            <a class="btn btn--primary" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">Открыть FINMENTOR Bot</a>
+            <button type="button" class="btn btn--ghost" id="qCopySuccess">Скопировать ответы</button>
+            <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
           </span>
         </div>
 
@@ -469,6 +483,332 @@
     </div>
   </main>
 
+  <script>
+// FINMENTOR v8.6 — Questionnaire validation + JSON automation bridge.
+// Self-contained: owns #qFormV86 (main.js initQuestionnaire early-returns, no #qForm).
+// No external libs, no native select, no PII to GA4, no PII logged. Webhook empty by default.
+(function () {
+  // Production: keep EMPTY until the Make scenario is approved & live.
+  var FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL = "";
+
+  var form = document.getElementById('qFormV86');
+  if (!form) return;
+  var SITE_VERSION = 'v8.6';
+  var validateBox = document.getElementById('qValidate');
+  var validateList = document.getElementById('qValidateList');
+  var success = document.getElementById('qSuccess');
+  var successText = document.getElementById('qSuccessText');
+  var bar = document.getElementById('qProgress');
+
+  var UNCERTAIN = /не знаю|обсудить лично|нет данных/i;
+
+  var REQUIRED = [
+    { key: 'name', type: 'text', name: 'q_name', label: 'Имя' },
+    { key: 'company', type: 'text', name: 'q_company', label: 'Компания' },
+    { key: 'contact', type: 'contact', label: 'Контакт (email или Telegram)' },
+    { key: 'industry', type: 'text', name: 'q_industry', label: 'Сфера деятельности' },
+    { key: 'annual_turnover', type: 'radio', name: 'q_turnover', label: 'Примерный годовой оборот' },
+    { key: 'primary_problem', type: 'checkbox', name: 'q_pain', label: 'Главная финансовая боль' },
+    { key: 'urgency', type: 'radio', name: 'q_urgency', label: 'Срочность запроса' },
+    { key: 'desired_first_step', type: 'radio', name: 'q_request', label: 'Что хотите от FINMENTOR в первую очередь' },
+    { key: 'has_management_pl', type: 'radio', name: 'q_f1', label: 'Управленческий P&L' },
+    { key: 'has_cash_flow', type: 'radio', name: 'q_f2', label: 'Cash Flow' },
+    { key: 'has_payment_calendar', type: 'radio', name: 'q_f3', label: 'Платёжный календарь' },
+    { key: 'data_reliability', type: 'radio', name: 'q_reliability', label: 'Достоверность данных' },
+    { key: 'documents_status', type: 'radio', name: 'q_documents_status', label: 'Документы / текущие отчёты' },
+    { key: 'consent', type: 'consent', name: 'q_consent', label: 'Согласие с Политикой конфиденциальности' }
+  ];
+
+  function byName(n) { return form.querySelectorAll('[name="' + n + '"]'); }
+  function one(n) { return form.querySelector('[name="' + n + '"]'); }
+  function textVal(n) { var el = one(n); return el ? String(el.value || '').trim() : ''; }
+  function radioVal(n) { var v = ''; Array.prototype.forEach.call(byName(n), function (r) { if (r.checked) v = r.value; }); return v; }
+  function checkVals(n) { var a = []; Array.prototype.forEach.call(byName(n), function (c) { if (c.checked) a.push(c.value); }); return a; }
+  function container(n) { var el = one(n); return el && el.closest ? el.closest('.q') : null; }
+
+  function normalizeTelegram(raw) {
+    var t = String(raw || '').trim();
+    if (!t) return '';
+    t = t.replace(/^https?:\/\//i, '').replace(/^t\.me\//i, '').replace(/^@/, '').trim();
+    return t ? ('@' + t) : '';
+  }
+  function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+  function validTelegram(t) { return /^@[A-Za-z0-9_]{4,32}$/.test(t); }
+
+  function setErr(el, msg) {
+    if (!el) return;
+    el.classList.add('is-error');
+    var e = el.querySelector(':scope > .q-err') || el.querySelector('.q-err');
+    if (!e) { e = document.createElement('div'); e.className = 'q-err'; el.appendChild(e); }
+    e.textContent = msg;
+  }
+  function clearErr(el) {
+    if (!el) return;
+    el.classList.remove('is-error');
+    var e = el.querySelector('.q-err'); if (e && e.parentNode) e.parentNode.removeChild(e);
+  }
+
+  function isFilled(spec) {
+    if (spec.type === 'text') return textVal(spec.name) !== '';
+    if (spec.type === 'radio') return radioVal(spec.name) !== '';
+    if (spec.type === 'checkbox') return checkVals(spec.name).length > 0;
+    if (spec.type === 'consent') { var c = one(spec.name); return !!(c && c.checked); }
+    if (spec.type === 'contact') {
+      var em = textVal('q_email'), tg = normalizeTelegram(textVal('q_telegram'));
+      return (!!em && validEmail(em)) || (!!tg && validTelegram(tg));
+    }
+    return true;
+  }
+
+  function validateContact(setErrors) {
+    var emEl = container('q_email'), tgEl = container('q_telegram');
+    var em = textVal('q_email'), tgRaw = textVal('q_telegram'), tg = normalizeTelegram(tgRaw);
+    var emValid = !!em && validEmail(em), tgValid = !!tg && validTelegram(tg);
+    var ok = emValid || tgValid;
+    if (setErrors) {
+      if (ok) { clearErr(emEl); clearErr(tgEl); }
+      else {
+        setErr(emEl, em ? 'Проверьте формат email' : 'Укажите email или Telegram, чтобы FINMENTOR мог ответить.');
+        setErr(tgEl, tgRaw ? 'Проверьте формат Telegram' : 'Укажите email или Telegram, чтобы FINMENTOR мог ответить.');
+      }
+    }
+    return ok;
+  }
+
+  // full validation with visible errors -> returns array of missing specs
+  function validate() {
+    var missing = [];
+    REQUIRED.forEach(function (spec) {
+      if (spec.type === 'contact') { if (!validateContact(true)) missing.push(spec); return; }
+      if (spec.type === 'consent') {
+        var row = document.getElementById('qConsentRow');
+        if (!isFilled(spec)) { missing.push(spec); if (row) { row.classList.add('is-error'); ensureConsentMsg(row); } }
+        else if (row) { row.classList.remove('is-error'); clearErr(row); }
+        return;
+      }
+      var cont = container(spec.name);
+      if (!isFilled(spec)) {
+        missing.push(spec);
+        setErr(cont, spec.type === 'text' ? 'Заполните поле' : (spec.type === 'checkbox' ? 'Выберите хотя бы один вариант' : 'Выберите один вариант'));
+      } else { clearErr(cont); }
+    });
+    return missing;
+  }
+
+  function ensureConsentMsg(row) {
+    var e = row.parentNode ? row.parentNode.querySelector('.q-err.q-err--consent') : null;
+    if (!e) {
+      e = document.createElement('div'); e.className = 'q-err q-err--consent';
+      e.textContent = 'Для отправки анкеты необходимо подтвердить согласие с Политикой конфиденциальности.';
+      if (row.parentNode) row.parentNode.insertBefore(e, row.nextSibling);
+    }
+  }
+  function clearConsentMsg(row) {
+    if (!row || !row.parentNode) return;
+    var e = row.parentNode.querySelector('.q-err.q-err--consent'); if (e) e.parentNode.removeChild(e);
+  }
+
+  // quiet check (no DOM mutation) -> missing specs
+  function quietMissing() { var m = []; REQUIRED.forEach(function (s) { if (!isFilled(s)) m.push(s); }); return m; }
+
+  function scrollToSpec(spec) {
+    var target = null;
+    if (spec.type === 'contact') target = container('q_email') || container('q_telegram');
+    else if (spec.type === 'consent') target = document.getElementById('qConsentRow');
+    else target = container(spec.name);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var fld = target.querySelector('input, textarea, select');
+      if (fld && fld.focus) { try { fld.focus({ preventScroll: true }); } catch (e) { fld.focus(); } }
+    }
+  }
+
+  function showSummary(missing) {
+    if (!validateBox || !validateList) return;
+    validateList.innerHTML = '';
+    missing.forEach(function (spec) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'q-validate__item'; b.textContent = spec.label;
+      b.addEventListener('click', function () { scrollToSpec(spec); });
+      li.appendChild(b); validateList.appendChild(li);
+    });
+    validateBox.hidden = false;
+  }
+  function hideSummary() { if (validateBox) validateBox.hidden = true; }
+
+  function updateProgress() {
+    if (!bar) return;
+    var done = 0; REQUIRED.forEach(function (s) { if (isFilled(s)) done++; });
+    bar.style.width = Math.max(2, Math.round(done / REQUIRED.length * 100)) + '%';
+  }
+
+  // live clearing
+  form.addEventListener('input', onInteract, true);
+  form.addEventListener('change', onInteract, true);
+  function onInteract(e) {
+    var t = e.target; if (!t) return;
+    var cont = t.closest ? t.closest('.q') : null;
+    if (cont) clearErr(cont);
+    if (t.name === 'q_email' || t.name === 'q_telegram') { clearErr(container('q_email')); clearErr(container('q_telegram')); }
+    if (t.name === 'q_consent') { var row = document.getElementById('qConsentRow'); if (row) { row.classList.remove('is-error'); clearConsentMsg(row); } }
+    updateProgress();
+    if (validateBox && !validateBox.hidden) {
+      var miss = quietMissing();
+      if (miss.length === 0) hideSummary(); else showSummary(miss);
+    }
+  }
+
+  // ---------- preliminary AI hints (no AI, frontend only) ----------
+  function plScore(v) { if (/да/i.test(v) && !/частич/i.test(v)) return 2; if (/частич|excel/i.test(v)) return 1; return 0; }
+  function maturityHint() {
+    var s = plScore(radioVal('q_f1')) + plScore(radioVal('q_f2'));
+    if (s >= 3) return 'Level 3-4'; if (s === 2) return 'Level 1-2'; return 'Level 0-1';
+  }
+  function riskHint() {
+    var u = radioVal('q_urgency'); var pains = checkVals('q_pain').join(' ');
+    if (/кризис|высокая/i.test(u)) return 'High';
+    if (/денег нет|кассов|хаотич/i.test(pains)) return 'Medium-High';
+    return 'Medium/Unknown';
+  }
+  function packageHint() {
+    var req = radioVal('q_request'), f1 = radioVal('q_f1'), f2 = radioVal('q_f2');
+    var hasPL = /да/i.test(f1) && !/частич/i.test(f1), hasCF = /да/i.test(f2) && !/частич/i.test(f2);
+    if (/power bi/i.test(req) && !(hasPL && hasCF)) return 'Business Control System (Power BI later)';
+    if (/^нет/i.test(f1) && /^нет/i.test(f2)) return 'Business Control System';
+    if (/диагностик/i.test(req)) return 'Financial Health Check';
+    if (hasPL && hasCF) return 'Monthly CFO Support';
+    return 'Financial Health Check';
+  }
+  function complexityHint() {
+    var score = 0;
+    var rev = radioVal('q_turnover');
+    if (/10M/.test(rev)) score += 3; else if (/5–10M|1–5M/.test(rev)) score += 2; else if (/500k–1M/.test(rev)) score += 1;
+    var n = parseInt(textVal('q_companies'), 10); if (!isNaN(n)) { if (n >= 7) score += 3; else if (n >= 4) score += 2; else if (n >= 2) score += 1; }
+    var dq = radioVal('q_reliability'); if (/низко|нет данных/i.test(dq)) score += 2; else if (/средне|не знаю/i.test(dq)) score += 1;
+    var u = radioVal('q_urgency'); if (/кризис/i.test(u)) score += 3; else if (/высокая/i.test(u)) score += 2; else if (/повышен/i.test(u)) score += 1;
+    if (/да/i.test(radioVal('q_capex'))) score += 2;
+    if (/кредит|лизинг|инвестор|несколько/i.test(radioVal('q_loans'))) score += 1;
+    var docs = radioVal('q_documents_status'); if (/^нет$|нет данных/i.test(docs)) score += 2; else if (/частично|не знаю/i.test(docs)) score += 1;
+    if ((!isNaN(n) && n >= 4) && /нет данных/i.test(dq)) return 'custom';
+    if (score >= 10) return 'high'; if (score >= 5) return 'medium'; return 'low';
+  }
+
+  // ---------- completion ----------
+  function completion() {
+    var missingKeys = []; REQUIRED.forEach(function (s) { if (!isFilled(s)) missingKeys.push(s.key); });
+    var pairs = [['annual_turnover', 'q_turnover'], ['data_reliability', 'q_reliability'], ['has_management_pl', 'q_f1'],
+      ['has_cash_flow', 'q_f2'], ['has_payment_calendar', 'q_f3'], ['documents_status', 'q_documents_status'],
+      ['financial_director_or_team', 'q_finteam'], ['has_loans_or_investors', 'q_loans'], ['has_projects_or_capex', 'q_capex']];
+    var uncertainty = [];
+    pairs.forEach(function (p) { var v = radioVal(p[1]); if (v && UNCERTAIN.test(v)) uncertainty.push(p[0]); });
+    var done = missingKeys.length === 0;
+    var score = Math.round((REQUIRED.length - missingKeys.length) / REQUIRED.length * 100);
+    var hint = uncertainty.length >= 3 ? 'low' : (uncertainty.length >= 1 ? 'medium' : 'high');
+    return { required_completed: done, completion_score: score, missing_required_fields: missingKeys, uncertainty_fields: uncertainty, data_quality_hint: hint };
+  }
+
+  // ---------- human-readable text ----------
+  function collectAnswersText() {
+    var em = textVal('q_email'), tg = normalizeTelegram(textVal('q_telegram'));
+    function L(label, val) { return label + ': ' + (val || '—'); }
+    var out = ['FINMENTOR — анкета клиента', '', 'Контакт:',
+      L('Имя', textVal('q_name')), L('Компания', textVal('q_company')), L('Email', em), L('Telegram', tg),
+      L('Удобный способ связи', radioVal('q_pref_contact')), L('Язык общения', radioVal('q_lang')), '',
+      'Профиль бизнеса:',
+      L('Сфера', textVal('q_industry')), L('Оборот', radioVal('q_turnover')), L('Компаний в группе', textVal('q_companies')),
+      L('Сотрудников', textVal('q_employees')), L('Филиалов / объектов / направлений', textVal('q_branches')),
+      L('Кредиты / лизинг / инвесторы', radioVal('q_loans')), L('Проекты / CAPEX', radioVal('q_capex')), '',
+      'Главная боль и запрос:',
+      L('Основные проблемы', checkVals('q_pain').join(', ')), L('Срочность', radioVal('q_urgency')),
+      L('Что хочет в первую очередь', radioVal('q_request')), L('Комментарий', textVal('q_pain_text')), '',
+      'Финансовая система:',
+      L('Управленческий P&L', radioVal('q_f1')), L('Cash Flow', radioVal('q_f2')), L('Платёжный календарь', radioVal('q_f3')),
+      L('Бюджет / план', radioVal('q_f4')), L('Достоверность данных', radioVal('q_reliability')),
+      L('Финансовый директор / команда', radioVal('q_finteam')), '',
+      'Документы:',
+      L('Статус документов', radioVal('q_documents_status')), L('Что есть', checkVals('q_doc').join(', '))];
+    return out.join('\n');
+  }
+
+  function docHas(part) { return checkVals('q_doc').some(function (x) { return x.indexOf(part) >= 0; }) ? 'да' : 'нет'; }
+  function collectAnswersJson() {
+    var em = textVal('q_email'), tg = normalizeTelegram(textVal('q_telegram'));
+    var c = one('q_consent');
+    return {
+      source: 'questionnaire', site_version: SITE_VERSION, submitted_at: new Date().toISOString(),
+      lead: { name: textVal('q_name'), company: textVal('q_company'), email: em, telegram: tg, preferred_contact: radioVal('q_pref_contact'), language: radioVal('q_lang') },
+      business_profile: { industry: textVal('q_industry'), business_model: '', companies_in_group: textVal('q_companies'), employees: textVal('q_employees'), branches_objects_directions: textVal('q_branches'), annual_turnover: radioVal('q_turnover'), has_loans_or_investors: radioVal('q_loans'), has_projects_or_capex: radioVal('q_capex') },
+      main_pain: { primary_problem: checkVals('q_pain').join(', '), urgency: radioVal('q_urgency'), desired_first_step: radioVal('q_request'), comment: textVal('q_pain_text') },
+      financial_system: { has_management_pl: radioVal('q_f1'), has_cash_flow: radioVal('q_f2'), has_payment_calendar: radioVal('q_f3'), has_budget_or_plan: radioVal('q_f4'), data_reliability: radioVal('q_reliability'), financial_director_or_team: radioVal('q_finteam') },
+      documents: { has_trial_balance: docHas('Оборотно-сальдов'), has_bank_statements: '', has_ar_register: docHas('Дебиторская'), has_ap_register: docHas('Кредиторская'), has_loan_register: docHas('Кредиты'), has_current_excel_reports: (checkVals('q_systems').indexOf('Excel') >= 0 ? 'да' : 'нет'), document_comment: '' },
+      ai_ready_fields: { maturity_level_hint: maturityHint(), risk_level_hint: riskHint(), recommended_package_hint: packageHint(), required_documents_hint: '', pricing_complexity_hint: complexityHint() },
+      completion: completion(),
+      consent: { privacy_accepted: !!(c && c.checked), ai_processing_notice_shown: true }
+    };
+  }
+
+  // wrappers / expose (no PII logged)
+  function collectAnswers() { return collectAnswersText(); }
+  window.finmentorQuestionnaire = { collectAnswers: collectAnswers, collectAnswersText: collectAnswersText, collectAnswersJson: collectAnswersJson };
+
+  // copy buttons
+  function fallbackCopy(txt, cb) {
+    var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); if (cb) cb();
+  }
+  function doCopy(btn) {
+    var txt = collectAnswersText();
+    var done = function () { var o = btn.getAttribute('data-label') || btn.textContent; if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', o); btn.textContent = 'Скопировано ✓'; setTimeout(function () { btn.textContent = btn.getAttribute('data-label'); }, 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
+    else fallbackCopy(txt, done);
+  }
+  var cb1 = document.getElementById('qCopy'); if (cb1) cb1.addEventListener('click', function () { doCopy(cb1); });
+  var cb2 = document.getElementById('qCopySuccess'); if (cb2) cb2.addEventListener('click', function () { doCopy(cb2); });
+
+  function showSuccess(sent) {
+    if (!success) return;
+    if (successText) successText.textContent = sent
+      ? 'Спасибо. Анкета передана FINMENTOR. Я свяжусь с вами после первичного просмотра.'
+      : 'Анкета подготовлена. Чтобы передать её FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на email.';
+    success.hidden = false;
+    success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (window.gtag) { try { window.gtag('event', 'questionnaire_submit', { delivered: sent ? 1 : 0 }); } catch (e) {} }
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var missing = validate();
+    if (missing.length) {
+      showSummary(missing);
+      if (validateBox) validateBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollToSpec(missing[0]);
+      return;
+    }
+    hideSummary();
+    var payload = collectAnswersJson();
+    if (!payload.completion.required_completed) return; // safety guard
+
+    if (FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL) {
+      fetch(FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      }).then(function (r) {
+        if (!r.ok) throw new Error('bad status');
+        showSuccess(true);
+      }).catch(function () {
+        if (successText) successText.textContent = 'Заявка подготовлена. Если отправка не прошла, отправьте её через FINMENTOR Bot или email.';
+        if (success) { success.hidden = false; success.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      });
+    } else {
+      showSuccess(false);
+    }
+  });
+
+  updateProgress();
+})();
+  </script>
   <script src="main.js"></script>
   <script src="assistant.js"></script>
 </body>
