@@ -7,29 +7,29 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-94L98WZ12');
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Фондовое планирование и водопад платежей для бизнеса | FINMENTOR</title>
-  <meta name="description" content="Фондовое планирование, метафонды и водопад платежей: как расставить приоритеты, контролировать покрытие 7/14/30 дней и связать это с Power BI и AI." />
+  <title>Фондовое планирование и водопад платежей | FINMENTOR</title>
+  <meta name="description" content="Фондовое планирование и водопад платежей: фонды и метафонды, приоритеты P0–P5, три фильтра оплаты, покрытие 7/14/30, funding gap и dashboard платёжной способности." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/treasury-waterfall.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Фондовое планирование и водопад платежей для бизнеса | FINMENTOR" />
-  <meta property="og:description" content="Фондовое планирование, метафонды и водопад платежей: как расставить приоритеты, контролировать покрытие 7/14/30 дней и связать это с Power BI и AI." />
+  <meta property="og:title" content="Фондовое планирование и водопад платежей | FINMENTOR" />
+  <meta property="og:description" content="Как расставить приоритеты платежей, когда денег на всё не хватает: фонды, метафонды, водопад P0–P5, покрытие 7/14/30, funding gap." />
   <meta property="og:url" content="https://www.finmentor.md/treasury-waterfall.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
-  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
-  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="article:author" content="Геннадий Яковлев" />
+  <meta property="article:section" content="Treasury / Cash Flow" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Фондовое планирование и водопад платежей для бизнеса | FINMENTOR" />
-  <meta name="twitter:description" content="Фондовое планирование, метафонды и водопад платежей: как расставить приоритеты, контролировать покрытие 7/14/30 дней и связать это с Power BI и AI." />
+  <meta name="twitter:title" content="Фондовое планирование и водопад платежей | FINMENTOR" />
+  <meta name="twitter:description" content="Фонды, приоритеты P0–P5, три фильтра оплаты, покрытие 7/14/30 и funding gap — система платёжной способности бизнеса." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -38,89 +38,49 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Article",
-      "@id": "https://www.finmentor.md/treasury-waterfall.html#article",
-      "headline": "Фондовое планирование: как расставить приоритеты платежей",
-      "description": "Фондовое планирование, метафонды и водопад платежей: как расставить приоритеты, контролировать покрытие 7/14/30 дней и связать это с Power BI и AI.",
-      "inLanguage": "ru",
-      "datePublished": "2026-06-21",
-      "dateModified": "2026-06-21",
-      "mainEntityOfPage": "https://www.finmentor.md/treasury-waterfall.html",
-      "image": "https://www.finmentor.md/og-image.png?v=81",
-      "author": {
-        "@type": "Organization",
-        "name": "FINMENTOR",
-        "url": "https://www.finmentor.md/"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "FINMENTOR",
-        "url": "https://www.finmentor.md/",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://www.finmentor.md/icon-512.png"
-        }
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Главная",
-          "item": "https://www.finmentor.md/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Материалы",
-          "item": "https://www.finmentor.md/index.html#knowledge"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Фондовое планирование и водопад",
-          "item": "https://www.finmentor.md/treasury-waterfall.html"
-        }
-      ]
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "Чем водопад платежей отличается от платёжного календаря?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Календарь показывает, когда какие платежи и поступления ожидаются. Водопад задаёт порядок приоритета: что оплачивается в первую очередь, когда денег на всё не хватает."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Что такое метафонды?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Это группы приоритета, по которым распределяются деньги: обязательные платежи, операционная устойчивость, защита бизнеса, развитие и капитал собственника."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Когда можно платить дивиденды и развитие?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Когда закрыты обязательные и критические фонды, нет cash gap и просроченных обязательств. Водопад показывает это явно."
-          }
-        }
-      ]
-    }
-  ]
-}
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Article", "headline": "Фондовое планирование и водопад платежей: как расставить приоритеты, когда денег на всё не хватает", "description": "Фонды и метафонды, приоритеты P0–P5, три фильтра оплаты, покрытие 7/14/30, funding gap и dashboard платёжной способности.", "inLanguage": "ru-RU", "articleSection": "Treasury / Cash Flow", "author": { "@type": "Person", "name": "Геннадий Яковлев" }, "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/", "logo": { "@type": "ImageObject", "url": "https://www.finmentor.md/icon-512.png" } }, "mainEntityOfPage": "https://www.finmentor.md/treasury-waterfall.html", "image": "https://www.finmentor.md/og-image.png?v=81" },
+      { "@type": "BreadcrumbList", "itemListElement": [ { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/" }, { "@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/index.html#knowledge" }, { "@type": "ListItem", "position": 3, "name": "Фондовое планирование и водопад платежей", "item": "https://www.finmentor.md/treasury-waterfall.html" } ] },
+      { "@type": "FAQPage", "mainEntity": [
+        { "@type": "Question", "name": "Чем фондовое планирование отличается от платёжного календаря?", "acceptedAnswer": { "@type": "Answer", "text": "Платёжный календарь показывает, когда и сколько нужно платить. Фондовое планирование показывает, из каких денег это можно платить и можно ли вообще — деньги получают назначение, приоритет и покрытие." } },
+        { "@type": "Question", "name": "Что такое водопад платежей?", "acceptedAnswer": { "@type": "Answer", "text": "Это алгоритм распределения денег по приоритетам: сначала обязательные платежи, затем те, без которых бизнес не работает, затем защита выручки, плановые операционные, развитие и в конце — выплаты собственнику, если нет дефицита ликвидности." } },
+        { "@type": "Question", "name": "Как считать свободные деньги?", "acceptedAnswer": { "@type": "Answer", "text": "Available Cash = остаток на счетах + подтверждённые поступления − закреплённые деньги − минимальный резерв − обязательное покрытие. Свободный Cash Flow остаётся после покрытия P0/P1 и резерва." } },
+        { "@type": "Question", "name": "Когда можно выплачивать дивиденды?", "acceptedAnswer": { "@type": "Answer", "text": "Только после покрытия обязательных фондов и резерва и при отсутствии дефицита по 7/14/30 дням. Если есть funding gap, выплаты собственнику блокируются." } }
+      ] }
+    ]
+  }
   </script>
+
+  <style>
+    /* v9.1 — page-scoped article components (FINMENTOR brand) */
+    .art-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .art-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
+    .art-table-wrap--wide table { min-width:880px; }
+    .art-table-wrap th,.art-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .art-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; white-space:nowrap; }
+    .art-table-wrap .num { text-align:right; font-family:var(--font-mono); white-space:nowrap; }
+    .art-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .art-table-wrap strong { color:var(--text-primary); }
+    .art-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .art-kpi__card { padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); min-width:0; }
+    .art-kpi__card--accent { border-color:var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); }
+    .art-kpi__lvl { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .art-kpi__metric { color:var(--text-secondary); font-size:0.84rem; margin:6px 0 10px; line-height:1.45; }
+    .art-kpi__val { font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--text-primary); }
+    .art-formula { font-family:var(--font-mono); font-size:0.9rem; line-height:1.7; color:var(--text-primary); background:rgba(255,255,255,0.03); border-left:3px solid var(--gold-500); border-radius:0 var(--r-md) var(--r-md) 0; padding:var(--sp-4) var(--sp-5); margin:var(--sp-4) 0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .art-formula b { color:var(--accent); }
+    .art-formula em { color:var(--text-muted); font-style:normal; display:block; margin-top:8px; font-family:var(--font-sans); font-size:0.82rem; line-height:1.55; white-space:normal; }
+    .art-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+    .art-dot--green{background:#3FB950;} .art-dot--yellow{background:#E3B341;} .art-dot--orange{background:#DB6D28;} .art-dot--red{background:#E5484D;}
+    .art-flag { font-weight:600; color:var(--text-primary); white-space:nowrap; }
+    .doc-hero__cta { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
+    .art-author { font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); margin-top:var(--sp-3); }
+    .faq__item { border-top:1px solid var(--border-hairline); padding:var(--sp-4) 0; }
+    .faq__q { font-weight:600; color:var(--text-primary); margin-bottom:6px; }
+    .faq__a { color:var(--text-secondary); line-height:1.6; }
+  </style>
 </head>
 <body>
   <header class="doc-bar">
@@ -138,65 +98,380 @@
   <main>
     <div class="container">
       <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a> / <a href="index.html#knowledge">Материалы</a> / <span>Фондовое планирование и водопад</span>
+        <a href="index.html">Главная</a> / <a href="index.html#knowledge">Материалы</a> / <span>Фондовое планирование и водопад платежей</span>
       </nav>
     </div>
 
     <section class="doc-hero">
       <div class="container">
-        <p class="doc-hero__eyebrow">База знаний · Казначейство</p>
-        <h1>Фондовое планирование: как расставить приоритеты платежей</h1>
-        <p class="doc-hero__lead">Когда денег на всё не хватает, бизнесу нужен не хаос в оплатах, а понятная система приоритетов: какие платежи обязательны, какие можно отложить, а какие блокируются до появления свободного cash flow.</p>
-        <p class="doc-hero__context">Фондовое планирование и водопад платежей — ядро казначейства в CFO-системе.</p>
+        <p class="doc-hero__eyebrow">FINMENTOR · Казначейство и платёжная дисциплина</p>
+        <h1>Фондовое планирование и водопад платежей: как расставить приоритеты, когда денег на всё не хватает</h1>
+        <p class="doc-hero__lead">Когда денег на всё не хватает, бизнесу нужен не хаос в оплатах, а система: какие платежи обязательны, какие можно отложить, какие блокируются до появления свободного Cash Flow — и почему собственник должен видеть не остаток на счёте, а реальную платёжную способность компании.</p>
+        <p class="art-author">Геннадий Яковлев · FINMENTOR — внешний CFO</p>
+        <div class="doc-hero__cta">
+          <a href="index.html#consult" class="btn btn--primary btn--lg" onclick="gtag('event','click_treasury_waterfall_discovery')">Записаться на Discovery Call</a>
+          <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_treasury_waterfall_scan')">Проверить платёжную дисциплину</a>
+        </div>
       </div>
     </section>
 
     <div class="container">
       <article class="doc">
         <section>
+          <h2>Executive Summary</h2>
+          <p>В большинстве компаний платежи идут хаотично. Кто громче попросил — тому оплатили. Кто ближе к руководителю — тот попал в платёжку. Кто сильнее давит — тот получает деньги первым. А потом внезапно оказывается, что на налоги, зарплату, банк, аренду или критического поставщика денег не хватает. Это не проблема «мало денег» — это проблема отсутствия системы приоритетов.</p>
+          <p>Когда денег достаточно, ошибки казначейства почти не видны. Но при дефиците ликвидности бизнес сразу показывает свою настоящую финансовую дисциплину. Главный принцип фондового планирования: <strong>не все деньги на счёте являются свободными деньгами</strong>. Часть уже принадлежит налогам, зарплате, банку, обязательным поставщикам, проектам, которые нельзя остановить, и резерву.</p>
+          <div class="callout"><span class="callout__label">Главная мысль</span><p>Если компания смотрит только на остаток на счёте, она видит иллюзию денег. Если смотрит через фонды и водопад платежей — видит реальную платёжную способность. Казначейство должно управлять не платежами, а платёжной способностью бизнеса.</p></div>
+          <p>Все суммы в статье — демонстрационные и обезличенные, нужны только для иллюстрации логики.</p>
+
+          <h3>Что видит собственник в системе казначейства</h3>
+          <div class="art-kpi">
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Available Cash</p><p class="art-kpi__metric">Деньги после резерва и закреплённых обязательств</p><p class="art-kpi__val">Сколько реально доступно</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Coverage 7/14/30</p><p class="art-kpi__metric">Покрытие обязательств на горизонтах</p><p class="art-kpi__val">Выдержит ли месяц</p></div>
+            <div class="art-kpi__card art-kpi__card--accent"><p class="art-kpi__lvl">Free Treasury Cash</p><p class="art-kpi__metric">Свободно после обязательных фондов</p><p class="art-kpi__val">Что можно платить</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Funding Gap</p><p class="art-kpi__metric">Чего не хватает под обязательства</p><p class="art-kpi__val">Сигнал тревоги</p></div>
+          </div>
+
           <h2>Почему платежи идут хаотично</h2>
-          <ul><li>Нет единого списка обязательств — платежи держат в голове и в разных таблицах.</li><li>Решения об оплате принимаются по факту обращения, без приоритетов.</li><li>Поступления не спрогнозированы — непонятно, чем платить.</li><li>Нет правил согласования — платит тот, у кого доступ к счёту.</li></ul>
-          <h2>Что такое фонды и метафонды</h2>
-          <p>Фондовое планирование делит деньги по управленческим назначениям. Метафонды — это группы приоритета:</p>
-          <ul><li>Обязательные платежи — налоги, зарплата, кредиты.</li><li>Операционная устойчивость — аренда, поставщики, логистика.</li><li>Защита бизнеса — резервы, страхование, критические ремонты.</li><li>Развитие — CAPEX, маркетинг, автоматизация, BI/AI.</li><li>Собственник / капитал — дивиденды, возврат инвестиций.</li></ul>
-          <h2>Что такое payment waterfall</h2>
-          <p>Водопад платежей определяет порядок использования денег — от обязательного к необязательному:</p>
-          <ol><li>Закон и обязательства</li><li>Зарплата и люди</li><li>Кредиты и банки</li><li>Критичные поставщики</li><li>Операционные расходы</li><li>Налоги и резервы</li><li>CAPEX и развитие</li><li>Дивиденды / собственник</li></ol>
-          <p>Водопад не запрещает развитие и дивиденды — он показывает, когда бизнес может себе их позволить без риска кассового разрыва.</p>
-          <h2>Как определить приоритеты</h2>
-          <p>Приоритеты фиксируются регламентом и не пересматриваются при каждой оплате. Дивиденды, новые инвестиции и второстепенные расходы не должны проходить, если есть cash gap, просроченные обязательства или незакрытый критический фонд.</p>
-          <div class="cta-band"><p class="cta-band__title">Наведите порядок в оплатах</p><p class="cta-band__text">Запросите шаблон платёжного календаря или заполните анкету — выстроим фонды, приоритеты и водопад под ваш бизнес.</p><div class="cta-band__row"><a href="templates.html" class="btn btn--primary btn--lg">Запросить шаблон</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
-          <h2>Как контролировать 7 / 14 / 30 дней</h2>
-          <p>Смотрите не только остаток сегодня, а покрытие обязательств на 7 (операционная безопасность), 14 (краткосрочная устойчивость) и 30 дней (управленческий горизонт). Это показывает риск кассового разрыва заранее.</p>
-          <h2>Как связать это с Power BI и AI</h2>
-          <p>Power BI показывает профинансированные фонды, cash gap, заблокированные платежи и покрытие 7/14/30 дней. AI-агент готовит ежедневный treasury-бриф: что можно платить сегодня, где риск разрыва и какие расходы нарушают приоритеты. Решения при этом остаются управленческими.</p>
-          <div class="callout"><span class="callout__label">Мини-пример</span><p>Группе компаний не хватало денег в конце месяца. После сведения платежей в один календарь, ввода фондов и водохада приоритетов кассовые разрывы стали видны за 3–4 недели заранее и закрывались без авралов.</p></div>
+          <p>Хаос в платежах редко возникает из-за плохих людей — обычно из-за отсутствия правил. В компании нет единого списка обязательств: часть платежей живёт в Excel, часть в бухгалтерии, часть в мессенджерах, часть «в голове» у руководителя, часть у закупок, у юриста, у управляющего объектом. Решения принимаются по факту обращения: поставщик позвонил — оплатили; подрядчик написал собственнику — оплатили; бухгалтер напомнил про налог — срочно ищем деньги. В такой системе нет казначейства — есть реакция на давление. Платежи конкурируют между собой, но правила этой конкуренции не установлены, и побеждает не самый важный платёж, а самый громкий.</p>
+
+          <h2>Чем опасен хаос в оплатах</h2>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Риск</th><th>Что происходит</th><th>Последствие</th></tr></thead>
+            <tbody>
+              <tr><td>Потеря ликвидности</td><td>Платежи без понимания будущих обязательств</td><td>Возникает кассовый разрыв</td></tr>
+              <tr><td>Срыв обязательных платежей</td><td>Деньги ушли на менее важные расходы</td><td>Не хватает на налоги, зарплату, банк</td></tr>
+              <tr><td>Потеря доверия поставщиков</td><td>Одним платят, другим задерживают без логики</td><td>Ухудшаются условия, исчезает отсрочка</td></tr>
+              <tr><td>Остановка операционной деятельности</td><td>Не оплачены критические ресурсы</td><td>Бизнес теряет возможность работать</td></tr>
+              <tr><td>Ручное управление</td><td>Все решения идут через собственника</td><td>Собственник становится «кассиром»</td></tr>
+              <tr><td>Ошибки и дубли</td><td>Нет единой очереди обязательств</td><td>Платежи теряются, дублируются, оплачиваются поздно</td></tr>
+              <tr><td>Внутренние конфликты</td><td>Каждый отдел считает свой платёж главным</td><td>Финансы — арбитр без правил</td></tr>
+            </tbody>
+          </table></div>
+          <p>Главная опасность в том, что хаос в платежах незаметно превращается в хаос в управлении. Продажи есть, обязательства есть, а каждый месяц звучит один и тот же вопрос: «почему денег опять не хватает?» Ответ обычно прост: деньги не были распределены по назначению до момента оплаты.</p>
+
+          <h2>Что такое фондовое планирование</h2>
+          <p>Фондовое планирование — метод управления деньгами, при котором компания делит доступные средства не просто по банковским счетам, а по экономическому назначению. Деньги получают «роль». Не «у нас на счёте 1 000 000», а: из этого 1 000 000 — 300 000 обязательные платежи 7 дней, 200 000 зарплата, 150 000 налоги, 100 000 банк, 150 000 критические поставщики, 100 000 резерв; свободных денег почти нет. Остаток на счёте перестаёт быть главным показателем. Главным становится вопрос: <strong>какая часть денег действительно свободна после покрытия обязательных фондов?</strong></p>
+
+          <h3>Что такое фонд</h3>
+          <p>Фонд — управленческий «кошелёк» внутри казначейства, у которого есть назначение, источник финансирования, лимит, правила пополнения и расходования, ответственный, приоритет, горизонт контроля и статус покрытия.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Фонд</th><th>Назначение</th></tr></thead>
+            <tbody>
+              <tr><td>Payroll Fund</td><td>Зарплата и связанные обязательства</td></tr>
+              <tr><td>Tax Fund</td><td>Налоги, взносы, обязательные платежи государству</td></tr>
+              <tr><td>Debt Service Fund</td><td>Кредиты, проценты, лизинг, банковские обязательства</td></tr>
+              <tr><td>Critical Suppliers Fund</td><td>Поставщики, без которых бизнес не может работать</td></tr>
+              <tr><td>Rent / Utilities Fund</td><td>Аренда, коммунальные, эксплуатационные платежи</td></tr>
+              <tr><td>Construction / CAPEX Fund</td><td>Строительство, ремонты, инвестиционные проекты</td></tr>
+              <tr><td>Legal / Compliance Fund</td><td>Юридические и обязательные платежи</td></tr>
+              <tr><td>Reserve Fund</td><td>Резерв ликвидности</td></tr>
+              <tr><td>Owner Distribution Fund</td><td>Выплаты собственнику, если разрешено системой</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Что такое метафонд</h3>
+          <p>Метафонд — более высокий уровень группировки фондов, стратегическая категория денег. Если фонд отвечает на вопрос «для чего предназначены деньги», то метафонд — «какую стратегическую функцию выполняет эта группа денег».</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Метафонд</th><th>Какие фонды включает</th><th>Управленческий смысл</th></tr></thead>
+            <tbody>
+              <tr><td>Survival / Mandatory</td><td>Налоги, зарплата, банк, аренда, юридические обязательства</td><td>Платежи, которые нельзя игнорировать</td></tr>
+              <tr><td>Operating Continuity</td><td>Критические поставщики, коммунальные, логистика, IT</td><td>Обеспечивают работу бизнеса</td></tr>
+              <tr><td>Revenue Protection</td><td>Платежи, без которых остановятся продажи или поступления</td><td>Защита будущего Cash Flow</td></tr>
+              <tr><td>Development / CAPEX</td><td>Строительство, ремонты, инвестиции</td><td>Рост и развитие</td></tr>
+              <tr><td>Reserve / Liquidity</td><td>Резерв, страховой остаток</td><td>Защита от кассового разрыва</td></tr>
+              <tr><td>Owner / Discretionary</td><td>Дивиденды, необязательные выплаты, бонусы</td><td>Только после прохождения финансовых условий</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Почему фондовое планирование сильнее обычного платёжного календаря</h2>
+          <p>Платёжный календарь показывает, когда нужно платить. Фондовое планирование показывает, из каких денег это можно платить и можно ли вообще. Это разные уровни управления.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Инструмент</th><th>Что показывает</th><th>Ограничение</th></tr></thead>
+            <tbody>
+              <tr><td>Платёжный календарь</td><td>Даты и суммы платежей</td><td>Не всегда показывает приоритет и источник денег</td></tr>
+              <tr><td>Cash Flow Forecast</td><td>Будущие поступления и выплаты</td><td>Может не разделять деньги по назначению</td></tr>
+              <tr><td>Очередь платежей</td><td>Кто ждёт оплату</td><td>Без фондов превращается в список просьб</td></tr>
+              <tr><td>Фондовое планирование</td><td>Назначение денег, приоритеты, покрытие фондов</td><td>Даёт управленческое решение</td></tr>
+              <tr><td>Водопад платежей</td><td>Алгоритм распределения денег</td><td>Показывает, кто получает оплату первым, а кто ждёт</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Что такое водопад платежей</h2>
+          <p>Водопад платежей — алгоритм распределения денег по приоритетам. Когда деньги поступают, они не должны автоматически становиться «доступными для любых платежей» — сначала они проходят через систему приоритетов: сначала обязательные платежи, потом те, без которых бизнес не сможет работать, потом защита будущих поступлений, потом плановые операционные платежи, потом развитие и CAPEX, потом необязательные, и в самом конце — выплаты собственнику, если нет дефицита ликвидности. Водопад отвечает на вопрос: <strong>что оплачивать первым, если денег на всё не хватает?</strong></p>
+          <div class="callout"><span class="callout__label">Почему это нужно собственнику</span><p>Собственнику не нужен список из 200 платежей. Ему нужен ответ на один вопрос: «если сегодня оплатить это, что мы не сможем оплатить завтра?» Водопад платежей даёт ответ именно на него.</p></div>
+
+          <h2>Базовая логика платёжного водопада: P0–P5</h2>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Приоритет</th><th>Категория</th><th>Смысл</th><th>Примеры</th></tr></thead>
+            <tbody>
+              <tr><td><strong>P0</strong></td><td>Critical / Legal / Blocking</td><td>Нельзя не платить</td><td>Налоги с жёстким сроком, банк, зарплата, юридические обязательства</td></tr>
+              <tr><td><strong>P1</strong></td><td>Business Continuity</td><td>Без этого бизнес остановится</td><td>Критические поставщики, коммунальные, охрана, IT, операционные сервисы</td></tr>
+              <tr><td><strong>P2</strong></td><td>Revenue Protection</td><td>Защищает будущие поступления</td><td>Товар под подтверждённые продажи, запуск арендатора, ключевой подрядчик</td></tr>
+              <tr><td><strong>P3</strong></td><td>Planned Operating</td><td>Плановые операционные платежи</td><td>Регулярные поставщики, административные расходы, стандартные услуги</td></tr>
+              <tr><td><strong>P4</strong></td><td>Development / CAPEX</td><td>Развитие, улучшения, проекты</td><td>Ремонт, строительство, оборудование, инвестиционные задачи</td></tr>
+              <tr><td><strong>P5</strong></td><td>Discretionary / Owner</td><td>Необязательные выплаты</td><td>Дивиденды, бонусы, расходы, которые можно отложить</td></tr>
+            </tbody>
+          </table></div>
+          <p>Важно: высокий приоритет не означает автоматическую оплату. Он означает, что платёж имеет право пройти дальше по системе согласования.</p>
+
+          <h2>Три фильтра перед оплатой</h2>
+          <p>Платёж не должен попадать в банк сразу после заявки — он проходит три фильтра.</p>
+          <h3>1. Purchase Gate — фильтр до возникновения обязательства</h3>
+          <p>Нужно ли вообще покупать; есть ли бюджет, фонд, лимит, ответственный, альтернатива; можно ли перенести закупку; не создаёт ли она будущий кассовый разрыв. Purchase Gate защищает компанию от создания обязательств, на которые потом не будет денег.</p>
+          <h3>2. AP Gate — фильтр обязательств к оплате</h3>
+          <p>Есть ли договор, счёт, акт/накладная; подтверждена ли сумма; правильный ли поставщик; наступил ли срок; есть ли спор; можно ли договориться об отсрочке; какой приоритет. AP Gate превращает хаотичные просьбы об оплате в проверенную очередь обязательств.</p>
+          <h3>3. Payment Gate — финальный фильтр перед оплатой</h3>
+          <p>Есть ли деньги в нужном фонде; не нарушит ли платёж покрытие 7/14/30 дней; не уйдёт ли резерв ниже минимума; не заблокирован ли фонд; не нарушит ли ковенанты или внутренние правила; прошёл ли согласование; есть ли альтернатива частичной оплате. Payment Gate отвечает на главный вопрос: <strong>можно ли платить сейчас?</strong></p>
+
+          <h2>Правило 7 / 14 / 30 дней</h2>
+          <p>Казначейство должно смотреть не только на сегодняшний день.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Горизонт</th><th>Что проверяем</th><th>Управленческий смысл</th></tr></thead>
+            <tbody>
+              <tr><td>7 дней</td><td>Самые ближайшие обязательства</td><td>Риск немедленного кассового разрыва</td></tr>
+              <tr><td>14 дней</td><td>Краткосрочное покрытие</td><td>Что будет после ближайших оплат</td></tr>
+              <tr><td>30 дней</td><td>Полный месячный цикл</td><td>Выдержит ли компания месяц</td></tr>
+            </tbody>
+          </table></div>
+          <p>Если платёж проходит сегодня, но создаёт дефицит через 7 дней, он не должен проходить автоматически.</p>
+          <div class="art-formula"><b>Cash Coverage</b> = Доступные деньги ÷ Обязательные платежи периода</div>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th class="num">Coverage</th><th>Статус</th><th>Решение</th></tr></thead>
+            <tbody>
+              <tr><td class="num">≥ 1,20x</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Платежи можно проводить по плану</td></tr>
+              <tr><td class="num">1,00–1,20x</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Платить осторожно, контролировать резерв</td></tr>
+              <tr><td class="num">0,80–1,00x</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Нужна приоритизация и перенос части платежей</td></tr>
+              <tr><td class="num">&lt; 0,80x</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Платежи только P0/P1, остальные блокируются</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Как считать доступные деньги</h2>
+          <p>Главная ошибка — считать доступными все деньги на банковском счёте.</p>
+          <div class="art-formula"><b>Available Cash</b> = Bank Balance + Confirmed Inflows − Restricted Funds − Minimum Reserve − Mandatory Coverage<em>Bank Balance — остаток на счетах. Confirmed Inflows — подтверждённые поступления, а не ожидаемые продажи. Restricted Funds — деньги, закреплённые за обязательствами. Minimum Reserve — страховой остаток. Mandatory Coverage — обязательные платежи ближайшего горизонта.</em></div>
+
+          <h2>Что такое свободный Cash Flow в казначействе</h2>
+          <p>Свободный Cash Flow для платежей — не бухгалтерская прибыль и не общий остаток денег, а сумма, которая остаётся после покрытия обязательных фондов и резерва.</p>
+          <div class="art-formula"><b>Free Treasury Cash</b> = Available Cash − P0 Coverage − P1 Coverage − Minimum Liquidity Reserve<em>Если Free Treasury Cash отрицательный, компания не имеет права платить P3–P5 без отдельного решения. Это защищает бизнес от ситуации, когда сегодня оплатили «удобный» счёт, а через неделю не хватает на обязательный платёж.</em></div>
+
+          <h2>Как назначать приоритет платежа</h2>
+          <p>Приоритет должен определяться не эмоцией, а правилами.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Фактор</th><th>Вопрос</th><th>Влияние на приоритет</th></tr></thead>
+            <tbody>
+              <tr><td>Юридическая обязательность</td><td>Есть ли штраф, пеня, риск суда?</td><td>Повышает</td></tr>
+              <tr><td>Операционная критичность</td><td>Остановится ли бизнес без оплаты?</td><td>Повышает</td></tr>
+              <tr><td>Влияние на выручку</td><td>Заблокирует ли платёж будущие поступления?</td><td>Повышает</td></tr>
+              <tr><td>Риск поставщика</td><td>Потеряем ли отсрочку или поставку?</td><td>Повышает</td></tr>
+              <tr><td>Срочность</td><td>Наступил ли срок оплаты?</td><td>Повышает</td></tr>
+              <tr><td>Возможность отсрочки</td><td>Можно ли перенести без ущерба?</td><td>Снижает</td></tr>
+              <tr><td>Наличие документов</td><td>Есть ли договор, счёт, акт?</td><td>Без документов платёж блокируется</td></tr>
+              <tr><td>Наличие фонда</td><td>Есть ли покрытие в фонде?</td><td>Без покрытия платёж не проходит</td></tr>
+              <tr><td>Стратегическая важность</td><td>Влияет ли на ключевой проект?</td><td>Может повысить</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Пример scoring-модели платежа</h2>
+          <p>Чтобы убрать субъективность, можно использовать балльную модель.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Критерий</th><th class="num">Балл</th></tr></thead>
+            <tbody>
+              <tr><td>Закон / банк / зарплата</td><td class="num">+30</td></tr>
+              <tr><td>Останавливает бизнес</td><td class="num">+25</td></tr>
+              <tr><td>Защищает будущую выручку</td><td class="num">+20</td></tr>
+              <tr><td>Критический поставщик</td><td class="num">+15</td></tr>
+              <tr><td>Просрочка более 7 дней</td><td class="num">+10</td></tr>
+              <tr><td>Есть подтверждённый фонд</td><td class="num">+10</td></tr>
+              <tr><td>Можно отложить без ущерба</td><td class="num">−20</td></tr>
+              <tr><td>Нет полного пакета документов</td><td class="num">−50</td></tr>
+              <tr><td>Нет утверждённого бюджета</td><td class="num">−20</td></tr>
+              <tr><td>Нарушает резерв ликвидности</td><td class="num">−100</td></tr>
+            </tbody>
+          </table></div>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th class="num">Итоговый балл</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td class="num">70+</td><td>Оплатить в первую очередь</td></tr>
+              <tr><td class="num">50–69</td><td>Оплатить при наличии покрытия</td></tr>
+              <tr><td class="num">30–49</td><td>Отложить / частично оплатить</td></tr>
+              <tr><td class="num">&lt; 30</td><td>Не оплачивать без отдельного решения</td></tr>
+              <tr><td class="num">Отрицательный</td><td>Блокировка</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Статусы платёжной очереди</h2>
+          <p>Важно видеть не только «оплачен / не оплачен», а полный жизненный цикл платежа: К оплате, На согласовании, Одобрено, Отложено, Заблокировано, Частично оплачено, Оплачено, Отклонено.</p>
+          <div class="callout"><span class="callout__label">Самый важный статус</span><p>«Одобрено, но не оплачено» — это уже обязательство, которое создаёт будущую нагрузку на Cash Flow, даже если деньги ещё не ушли. Утверждённый платёж — уже принятое решение.</p></div>
+
+          <h2>Что значит «заблокировано»</h2>
+          <p>Блокировка — не отказ навсегда, а управленческий сигнал.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Причина блокировки</th><th>Что означает</th></tr></thead>
+            <tbody>
+              <tr><td>Нет фонда</td><td>Не определён источник оплаты</td></tr>
+              <tr><td>Нет бюджета</td><td>Расход не был запланирован</td></tr>
+              <tr><td>Нет документов</td><td>Нельзя платить без основания</td></tr>
+              <tr><td>Нарушает резерв</td><td>После оплаты компания упадёт ниже минимального остатка</td></tr>
+              <tr><td>Нарушает 7/14/30 coverage</td><td>Платёж создаёт кассовый разрыв</td></tr>
+              <tr><td>Низкий приоритет</td><td>Есть более важные обязательства</td></tr>
+              <tr><td>Ожидается поступление</td><td>Разблокируется после прихода денег</td></tr>
+              <tr><td>Требуется решение собственника</td><td>Риск выше стандартного лимита</td></tr>
+            </tbody>
+          </table></div>
+          <p>Такой подход меняет культуру. Финансы больше не говорят «мы не хотим платить» — они говорят «платёж не проходит по правилам покрытия и приоритета».</p>
+
+          <h2>Как работает водопад на практике</h2>
+          <p>Допустим, у компании есть 1 000 000 на счетах. Это не значит, что можно оплатить любые счета на 1 000 000 — сначала система распределяет деньги (суммы демонстрационные).</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Уровень</th><th>Назначение</th><th class="num">Сумма</th></tr></thead>
+            <tbody>
+              <tr><td>Остаток на счетах</td><td>Bank Balance</td><td class="num">1 000 000</td></tr>
+              <tr><td>Подтверждённые поступления 7 дней</td><td>Confirmed Inflows</td><td class="num">+300 000</td></tr>
+              <tr><td>Минимальный резерв</td><td>Reserve</td><td class="num">−200 000</td></tr>
+              <tr><td>Зарплата</td><td>P0</td><td class="num">−250 000</td></tr>
+              <tr><td>Налоги</td><td>P0</td><td class="num">−150 000</td></tr>
+              <tr><td>Банк</td><td>P0</td><td class="num">−120 000</td></tr>
+              <tr><td>Критические поставщики</td><td>P1</td><td class="num">−300 000</td></tr>
+              <tr><td><strong>Свободный ресурс</strong></td><td><strong>Free Treasury Cash</strong></td><td class="num"><strong>280 000</strong></td></tr>
+            </tbody>
+          </table></div>
+          <p>Теперь у компании не 1 300 000 свободных денег, а только 280 000 после обязательного покрытия. Если в очереди есть CAPEX на 500 000, он не проходит автоматически — переносится, делится на части или ждёт дополнительных поступлений.</p>
+
+          <h2>Как читать платёжный dashboard</h2>
+          <p>Хороший dashboard отвечает не на вопрос «сколько денег на счёте», а «на что этих денег хватит».</p>
+          <h3>Блок 1. Cash Position</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Показатель</th><th class="num">Значение</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td>Остаток на счетах</td><td class="num">1 000 000</td><td>Информация</td></tr>
+              <tr><td>Подтверждённые поступления 7 дней</td><td class="num">300 000</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>Обязательные платежи 7 дней</td><td class="num">820 000</td><td><span class="art-dot art-dot--yellow"></span></td></tr>
+              <tr><td>Минимальный резерв</td><td class="num">200 000</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>Free Treasury Cash</td><td class="num">280 000</td><td><span class="art-dot art-dot--yellow"></span></td></tr>
+            </tbody>
+          </table></div>
+          <h3>Блок 2. Coverage</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Горизонт</th><th class="num">Обязательства</th><th class="num">Покрытие</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td>7 дней</td><td class="num">820 000</td><td class="num">1,22x</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>14 дней</td><td class="num">1 450 000</td><td class="num">0,96x</td><td><span class="art-dot art-dot--orange"></span></td></tr>
+              <tr><td>30 дней</td><td class="num">2 700 000</td><td class="num">0,74x</td><td><span class="art-dot art-dot--red"></span></td></tr>
+            </tbody>
+          </table></div>
+          <h3>Блок 3. Payment Queue</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Категория</th><th class="num">Сумма</th><th>Приоритет</th><th>Решение</th></tr></thead>
+            <tbody>
+              <tr><td>Налоги</td><td class="num">150 000</td><td>P0</td><td>Оплатить</td></tr>
+              <tr><td>Зарплата</td><td class="num">250 000</td><td>P0</td><td>Оплатить</td></tr>
+              <tr><td>Банк</td><td class="num">120 000</td><td>P0</td><td>Оплатить</td></tr>
+              <tr><td>Критический поставщик</td><td class="num">300 000</td><td>P1</td><td>Оплатить частично / согласовать</td></tr>
+              <tr><td>CAPEX</td><td class="num">500 000</td><td>P4</td><td>Отложить</td></tr>
+              <tr><td>Дивиденды</td><td class="num">200 000</td><td>P5</td><td>Блокировать до Green coverage</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Правило дивидендов и выплат собственнику</h2>
+          <div class="art-formula"><b>Owner Distribution Allowed</b> = TRUE только если 7/14/30 Coverage ≥ target и Funding Gap = 0<em>Выплаты собственнику возможны только после покрытия обязательных фондов, резерва и отсутствия дефицита по 7/14/30 дням. Если есть funding gap, дивиденды не являются свободным решением.</em></div>
+          <p>Это не ограничение собственника, а защита бизнеса: деньги, выведенные сегодня, завтра могут превратиться в кассовый разрыв, просрочку перед банком, налоговый риск или потерю поставщика.</p>
+
+          <h2>Funding Gap: главный сигнал тревоги</h2>
+          <div class="art-formula"><b>Funding Gap</b> = Required Payments − Available Cash<em>Если Funding Gap &gt; 0, компания должна принять решение: ускорить поступления, перенести платежи, договориться об отсрочке, оплатить частично, привлечь финансирование, остановить CAPEX, заблокировать P5 или пересмотреть приоритеты.</em></div>
+          <p>Funding Gap нельзя скрывать — его нужно показывать собственнику прямо.</p>
+
+          <h2>Какие решения даёт фондовое планирование</h2>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Решение</th><th>Что меняется</th></tr></thead>
+            <tbody>
+              <tr><td>Определить обязательные фонды</td><td>Деньги перестают быть «общей кучей»</td></tr>
+              <tr><td>Ввести приоритеты платежей</td><td>Оплата идёт по правилам, а не по давлению</td></tr>
+              <tr><td>Видеть дефицит заранее</td><td>Кассовый разрыв появляется в dashboard, а не в день оплаты</td></tr>
+              <tr><td>Блокировать необязательные платежи</td><td>Компания защищает зарплату, налоги, банк и операционное ядро</td></tr>
+              <tr><td>Управлять отсрочками</td><td>Поставщики становятся частью казначейской стратегии</td></tr>
+              <tr><td>Контролировать CAPEX</td><td>Развитие не разрушает ликвидность</td></tr>
+              <tr><td>Дать собственнику картину</td><td>Видно, что можно оплатить, что нельзя и почему</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Что должен видеть собственник каждый день</h2>
+          <p>Собственнику не нужно смотреть каждую строку платёжки, но он должен видеть 10 показателей: остаток денег на счетах; подтверждённые поступления 7/14/30; обязательные платежи 7/14/30; покрытие обязательств; Funding Gap; свободный Cash Flow после обязательных фондов; заблокированные платежи; отложенные платежи; платежи, требующие решения; возможность или запрет выплат собственнику. Этот dashboard отвечает на главный вопрос: <strong>«что произойдёт с бизнесом, если мы сегодня оплатим эту сумму?»</strong></p>
+
+          <h2>Чем фондовое планирование отличается от ручного контроля</h2>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Ручной режим</th><th>Фондовая система</th></tr></thead>
+            <tbody>
+              <tr><td>Решения принимаются по звонкам</td><td>Решения принимаются по приоритетам</td></tr>
+              <tr><td>Нет единой картины обязательств</td><td>Есть единая очередь платежей</td></tr>
+              <tr><td>Деньги считаются по остатку на счёте</td><td>Деньги разделены по фондам</td></tr>
+              <tr><td>Собственник решает каждую оплату</td><td>Собственник утверждает правила</td></tr>
+              <tr><td>CAPEX может съесть операционные деньги</td><td>CAPEX проходит только после покрытия обязательств</td></tr>
+              <tr><td>Дивиденды могут создать кассовый разрыв</td><td>Выплаты блокируются при funding gap</td></tr>
+              <tr><td>Финансы тушат пожары</td><td>Финансы управляют ликвидностью заранее</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Ошибки при внедрении</h2>
+          <ul>
+            <li><strong>Считать все деньги свободными.</strong> Часть денег уже зарезервирована будущими обязательствами.</li>
+            <li><strong>Не отделять подтверждённые поступления от ожидаемых.</strong> Ожидаемая продажа и обещанный платёж клиента — это ещё не деньги. Деньги — поступление с высокой вероятностью и конкретной датой.</li>
+            <li><strong>Давать CAPEX тот же приоритет, что обязательным платежам.</strong> Если CAPEX забирает деньги у зарплаты, налогов или банка, система работает неправильно.</li>
+            <li><strong>Не учитывать «одобрено, но не оплачено».</strong> Утверждённый платёж — уже будущая нагрузка на Cash Flow.</li>
+            <li><strong>Не иметь правил блокировки.</strong> Если любой платёж можно «продавить», казначейства фактически нет.</li>
+          </ul>
+
+          <h2>Как внедрить фондовое планирование</h2>
+          <p><strong>Шаг 1. Собрать единую очередь обязательств.</strong> Все платежи в одном реестре: поставщик, сумма, дата, основание, договор, счёт, объект/проект, компания, фонд, приоритет, статус, ответственный.</p>
+          <p><strong>Шаг 2. Создать справочник фондов.</strong> Каждый платёж попадает в фонд.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Фонд</th><th>Приоритет</th><th>Ответственный</th><th>Можно ли блокировать</th></tr></thead>
+            <tbody>
+              <tr><td>Зарплата</td><td>P0</td><td>Finance / HR</td><td>Нет</td></tr>
+              <tr><td>Налоги</td><td>P0</td><td>Accounting</td><td>Нет</td></tr>
+              <tr><td>Банк</td><td>P0</td><td>CFO</td><td>Нет</td></tr>
+              <tr><td>Критические поставщики</td><td>P1</td><td>Operations</td><td>Частично</td></tr>
+              <tr><td>Операционные платежи</td><td>P3</td><td>Department Head</td><td>Да</td></tr>
+              <tr><td>CAPEX</td><td>P4</td><td>Project Manager</td><td>Да</td></tr>
+              <tr><td>Дивиденды</td><td>P5</td><td>Owner / CFO</td><td>Да</td></tr>
+            </tbody>
+          </table></div>
+          <p><strong>Шаг 3. Ввести правила покрытия.</strong> Для каждого фонда — минимальный резерв, горизонт покрытия, лимит, источник пополнения, условия блокировки и разблокировки.</p>
+          <p><strong>Шаг 4. Настроить водопад платежей.</strong> Алгоритм автоматически показывает: что оплачивать сегодня, что переносить, что блокировать, что требует решения, где funding gap, какие поступления нужны для разблокировки.</p>
+          <p><strong>Шаг 5. Ввести ежедневный Treasury Dashboard:</strong> Cash today, Confirmed inflows, Mandatory payments, Free Treasury Cash, Funding Gap, Payment Queue, Blocked payments, 7/14/30 coverage.</p>
+
+          <h2>Финальный вывод</h2>
+          <p>Фондовое планирование и водопад платежей — это не просто Excel и не просто платёжный календарь. Это финансовая архитектура бизнеса. Она отвечает на вопросы: какие деньги действительно свободны; какие платежи обязательны; какие можно отложить; какие нельзя проводить; какие фонды недофинансированы; когда возникает funding gap; можно ли платить собственнику; как не допустить кассового разрыва.</p>
+          <p>Когда компания внедряет фондовое планирование, она перестаёт жить в режиме «кого сегодня оплатим» и начинает управлять ликвидностью заранее. Главный принцип: <strong>казначейство должно управлять не платежами, а платёжной способностью бизнеса</strong> — а платёжная способность начинается не с остатка на счёте, а с правильного распределения денег по фондам, приоритетам и водопаду.</p>
+          <p>Эта система — часть единой методологии FINMENTOR: <a href="platezhnyy-kalendar.html">платёжный календарь</a> и <a href="kaznacheystvo.html">казначейство</a> дают горизонт и очередь, <a href="fcf-postavshiki.html">FCF по SKU</a> показывает, какие товары создают деньги, а <a href="cash-flow.html">управленческий Cash Flow</a> сводит всё в одну картину.</p>
+
+          <h2>Частые вопросы</h2>
+          <div class="faq">
+            <div class="faq__item"><p class="faq__q">Чем фондовое планирование отличается от платёжного календаря?</p><p class="faq__a">Календарь показывает, когда и сколько нужно платить. Фондовое планирование — из каких денег это можно платить и можно ли вообще: деньги получают назначение, приоритет и покрытие.</p></div>
+            <div class="faq__item"><p class="faq__q">Что такое водопад платежей?</p><p class="faq__a">Алгоритм распределения денег по приоритетам: сначала обязательные платежи, затем те, без которых бизнес не работает, затем защита выручки, плановые операционные, развитие и в конце — выплаты собственнику, если нет дефицита ликвидности.</p></div>
+            <div class="faq__item"><p class="faq__q">Как считать свободные деньги?</p><p class="faq__a">Available Cash = остаток на счетах + подтверждённые поступления − закреплённые деньги − минимальный резерв − обязательное покрытие. Свободный Cash Flow остаётся после покрытия P0/P1 и резерва.</p></div>
+            <div class="faq__item"><p class="faq__q">Когда можно выплачивать дивиденды?</p><p class="faq__a">Только после покрытия обязательных фондов и резерва и при отсутствии дефицита по 7/14/30 дням. Если есть funding gap, выплаты собственнику блокируются.</p></div>
+          </div>
         </section>
       </article>
     </div>
 
     <div class="container">
-      <section class="faq">
-        <h2>Частые вопросы</h2>
-        <details class="faq__item"><summary>Чем водопад платежей отличается от платёжного календаря?</summary><div class="faq__item__body">Календарь показывает, когда какие платежи и поступления ожидаются. Водопад задаёт порядок приоритета: что оплачивается в первую очередь, когда денег на всё не хватает.</div></details>
-        <details class="faq__item"><summary>Что такое метафонды?</summary><div class="faq__item__body">Это группы приоритета, по которым распределяются деньги: обязательные платежи, операционная устойчивость, защита бизнеса, развитие и капитал собственника.</div></details>
-        <details class="faq__item"><summary>Когда можно платить дивиденды и развитие?</summary><div class="faq__item__body">Когда закрыты обязательные и критические фонды, нет cash gap и просроченных обязательств. Водопад показывает это явно.</div></details>
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Хотите перестать управлять платежами вручную и видеть реальную платёжную способность бизнеса?</p>
+        <p class="cta-band__text">FINMENTOR помогает собственникам построить систему казначейства: платёжный календарь, фондовое планирование, водопад платежей, приоритеты, статусы, funding gap и dashboard 7/14/30 дней — чтобы бизнес понимал не только «сколько денег на счету», а что можно платить, что отложить и где появляется риск кассового разрыва.</p>
+        <div class="cta-band__row">
+          <a href="index.html#consult" class="btn btn--primary btn--lg" onclick="gtag('event','click_treasury_waterfall_discovery')">Записаться на Discovery Call</a>
+          <a href="kaznacheystvo.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_treasury_waterfall_treasury')">Построить систему казначейства</a>
+          <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer" onclick="gtag('event','click_treasury_waterfall_bot')">Открыть FINMENTOR Bot</a>
+        </div>
       </section>
     </div>
 
     <div class="container">
       <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="kaznacheystvo.html">Казначейство</a><a href="platezhnyy-kalendar.html">Платёжный календарь</a><a href="working-capital.html">Оборотный капитал</a><a href="templates.html">Шаблоны</a></div>
+        <p class="related__label">Серия FINMENTOR: казначейство, деньги, ассортимент</p>
+        <div class="related__grid"><a href="platezhnyy-kalendar.html">Платёжный календарь</a><a href="kaznacheystvo.html">Казначейство и водопад платежей</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="fcf-postavshiki.html">FCF по SKU: какие товары создают Cash Flow</a><a href="working-capital-scan.html">Мини-скан оборотного капитала</a></div>
       </nav>
-    </div>
-
-    <div class="container">
-      <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Постройте фонды и водопад платежей</p>
-        <p class="cta-band__text">Заполните анкету или запросите шаблон платёжного календаря — выстроим приоритеты и контроль ликвидности.</p>
-        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a><a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в FINMENTOR Bot</a></div>
-      </section>
     </div>
   </main>
 

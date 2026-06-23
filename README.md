@@ -606,3 +606,31 @@ style.css, assistant.js, GA4). У каждой — компактный page-sco
 - **GA4 `G-94L98WZ12`** сохранён; на CTA — безопасные inline-события (`click_supplier_rating_*`,
   `click_margin_factor_*`), без персональных данных. CTA ведут на Discovery (`index.html#consult`),
   `working-capital-scan.html`, FINMENTOR Bot. Телефон/WhatsApp не возвращались, RU-only сохранён.
+
+## v9.1 — Treasury Waterfall / Fund Planning (страница обновлена)
+
+`treasury-waterfall.html` обновлена «на месте» из компактного объяснителя в полноценную
+институциональную статью «Фондовое планирование и водопад платежей: как расставить приоритеты, когда
+денег на всё не хватает» — в общем брендовом шаблоне серии (doc-bar / doc-hero / article.doc /
+cta-band / related / doc-foot, page-scoped `.art-` CSS, GA4, assistant.js). URL и canonical
+(`/treasury-waterfall.html`) сохранены, поэтому новых записей в `sitemap.xml` не добавлялось (остаётся
+21 URL), а вся существующая перелинковка на страницу осталась рабочей. Это сознательно сделано на
+месте, чтобы не плодить второй URL на ту же тему (SEO-каннибализация).
+
+- **Содержание:** Executive Summary + KPI; почему платежи идут хаотично и чем это опасно (risk-табл.);
+  фонды и метафонды (табл.); чем фондовое планирование сильнее платёжного календаря; водопад P0–P5;
+  три фильтра (Purchase / AP / Payment Gate); правило 7/14/30 + формула Cash Coverage с цветными
+  флагами (green/yellow/orange/red); формулы Available Cash, Free Treasury Cash, Owner Distribution
+  Allowed, Funding Gap; scoring-модель платежа; статусы очереди; причины блокировки; практический
+  водопад (демо-распределение 1 000 000 → Free 280 000); dashboard из 3 блоков (Cash Position /
+  Coverage / Payment Queue); 5 ошибок внедрения; 5 шагов внедрения со справочниками фондов; финальный
+  вывод; FAQ + JSON-LD FAQPage.
+- **Конфиденциальность.** Загруженный внутренний файл-модель (`MEGA_PARK_Казначейство_*.xlsx`) НЕ
+  парсился и НЕ раскрывался: статья построена только на методологии, структуре фондов, приоритетах и
+  dashboard; реальные суммы, названия компаний, поставщиков, банков, сотрудников и объектов не
+  использованы. Все числовые примеры демонстрационные и обезличенные.
+- **SEO/GA:** title/description/canonical, OG (article, ru_RU, og-image.png?v=81), Twitter, JSON-LD
+  Article + BreadcrumbList + FAQPage; GA4 `G-94L98WZ12` сохранён, на CTA — безопасные inline-события
+  `click_treasury_waterfall_*` без персональных данных. CTA: Discovery (`index.html#consult`),
+  «Построить систему казначейства» (`kaznacheystvo.html`), FINMENTOR Bot. Related: платёжный календарь,
+  казначейство, Cash Flow, FCF по SKU, мини-скан. Телефон/WhatsApp не возвращались, RU-only сохранён.
