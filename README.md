@@ -756,3 +756,14 @@ platform-neutral and compatible with n8n, so FINMENTOR_OS is not dependent on a 
 vendor. In strategic texts the automation layer is referred to as **Make / n8n**; in concrete
 technical instructions for the already-built scenario, Make may be named as the current MVP
 implementation (миграция/расширение в n8n архитектурно допускается).
+
+
+## Monthly CFO Support pricing clarified
+
+€750/month is a limited light-support entry point, not unlimited CFO outsourcing. Standard and Premium
+formats depend on meeting frequency, monthly hours, number of entities, reporting complexity and scope
+of deliverables. On the homepage the Monthly card now describes the light base (1 CFO meeting/month,
+60–90 min, review of key figures, short action list) and states that extended support, extra meetings,
+Cash Flow / P&L / payment control and dashboard-review are priced separately after diagnostics. The
+dedicated page lists three formats (Light / Standard / Premium) with explicit meetings, monthly hours
+and an explicit scope boundary ("not an unlimited finance department"). No acquiring / "Pay" button.
