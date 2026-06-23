@@ -693,3 +693,58 @@ premium-структуры. Изменены только `index.html` (секц
   auto-fit 280px, лёгкие карточки с hover-подъёмом и gold-границей, маркеры-точки, CTA со стрелкой и
   «раздвижением» по hover, responsive-таблица гайда. GA4 `G-94L98WZ12` сохранён; на карточках —
   `data-ga="click_module_<topic>"`. Телефон/WhatsApp/RO-EN не возвращались.
+
+## v9.4 — Working Capital Quality section
+
+В статью `working-capital.html` добавлен сильный аналитический раздел «Качество оборотного капитала:
+почему не все активы являются свободными деньгами» (после Cash Conversion Cycle, перед связкой с Cash
+Flow). Развивает мысль, что свободные средства нельзя считать по общей сумме оборотных активов —
+нужна корректировка на качество активов и срок обязательств. Изменён только `working-capital.html`
+(+ README); остальное не тронуто (sitemap без изменений, 21 URL).
+
+- **Четыре блока качества:** товарные остатки (свежие / slow-moving / залежавшиеся / dead stock,
+  уценка/возврат/списание), дебиторка (текущая и просрочка 1–30/31–60/61–90/90+, собираемость,
+  stop-credit, резерв по сомнительным), кредиторка (в сроке = supplier financing; Due AP и просрочка —
+  не свободные деньги), НДС (Recoverable VAT с учётом сроков заморозки).
+- **Формула** `Quality-Adjusted Working Capital = Available Cash + Collectible AR + Liquid Inventory +
+  Recoverable VAT − Due AP − Mandatory Liabilities − Minimum Reserve` с пояснением против балансовой
+  `Net Working Capital = Current Assets − Current Liabilities`.
+- **Таблицы:** Inventory Aging, AR Aging, AP Pressure, пример корректировки балансового WC до реального
+  свободного ресурса (демо: ~1,2 млн на балансе → ~400 000 свободно), dashboard «что должен видеть
+  собственник». Все суммы демонстрационные.
+- **Оформление:** в страницу (ранее без inline-стиля) добавлен page-scoped `<style>` с
+  `.art-table-wrap` / `.art-formula` / `.art-dot` (green/amber/orange/red) в общем брендовом стиле;
+  глобальный `style.css` не тронут. Таблицы responsive (скролл внутри блока), mobile-safe. GA4
+  сохранён; телефон/WhatsApp/RO-EN не возвращались.
+
+## v10 — Lean Premium Website (homepage rebuild)
+
+Главная пересобрана из ~22 секций (1135 строк) в **10 сильных секций** (730 строк) по логике Lean
+Premium. Ценный контент не удалён — перенесён в статьи/материалы/методологию или сжат. Изменён только
+`index.html` (+ README); рабочие системы не тронуты (questionnaire, working-capital-scan, bot, GA4,
+privacy, assistant.js, main.js, style.css, sitemap — без изменений; sitemap 21 URL).
+
+**Новая структура главной:** 1) Hero (оффер + разграничитель «не бухгалтерия / не BI / не AI» + 1
+primary CTA = mini-scan, secondary = Bot) · 2) Для кого · 3) Как работает FINMENTOR — 3 шага
+(диагностика → система → сопровождение/автоматизация) · 4) Пакеты (3) + экспертные модули вторично
+(«после диагностики») · 5) Доказательства: 3 анонимных кейса + «что вы получаете» (8 deliverables) +
+«пример результата» (4 обезличенных sample-output) · 6) Кто стоит за FINMENTOR + trust-links
+(Bot/email/LinkedIn/личная встреча) · 7) Mini-scan как лёгкий вход (9 вопросов, «первый CFO-triage»,
+честно «не полноценная диагностика») · 8) Избранные материалы (4 карточки) · 9) Что происходит после
+заявки (5 шагов + «финальные выводы подтверждает человек») · 10) Discovery-форма + footer.
+
+**Убрано с главной (контент жив на отдельных страницах/в материалах):** chaos, compare, system,
+proof, deliverables, process, discovery, monthly, remote, methodology-teaser, strategic, pre-meeting,
+интерактивный блок кейсов (заменён статичными кейсами; cases.html сохранён; main.js initCases
+guarded).
+
+**Главный путь клиента:** Главная → mini-scan / Bot → короткая квалификация → Discovery → документы →
+диагностика → план/пакет/стоимость. Главный CTA — mini-scan; вторичный — FINMENTOR Bot.
+
+**Доверие:** trust-links, sample-outputs (обезличенные образцы, без реальных данных), 3 анонимных
+кейса без выдуманных цифр, «что после заявки». **AI-логика без перегруза:** AI/автоматизация — только
+в «как мы работаем» и «после заявки» как внутренний инструмент с human-review; не основной оффер.
+
+**CSS:** новые секции стилизованы в inline `<style>` index (глобальный `style.css` не тронут).
+Premium dark/gold сохранён, mobile-first (auto-fit сетки, ≤600px паддинги). Телефон/WhatsApp/RO-EN/CDN
+не добавлялись; GA4 `G-94L98WZ12` сохранён, data-ga события без персональных данных.

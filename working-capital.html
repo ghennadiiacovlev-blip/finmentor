@@ -129,6 +129,22 @@
   ]
 }
   </script>
+  <style>
+    /* v9.4 — working-capital quality section components (FINMENTOR brand) */
+    .art-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .art-table-wrap table { width:100%; border-collapse:collapse; min-width:580px; font-size:0.9rem; }
+    .art-table-wrap--wide table { min-width:760px; }
+    .art-table-wrap th,.art-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .art-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; white-space:nowrap; }
+    .art-table-wrap .num { text-align:right; font-family:var(--font-mono); white-space:nowrap; }
+    .art-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .art-table-wrap strong { color:var(--text-primary); }
+    .art-formula { font-family:var(--font-mono); font-size:0.88rem; line-height:1.7; color:var(--text-primary); background:rgba(255,255,255,0.03); border-left:3px solid var(--gold-500); border-radius:0 var(--r-md) var(--r-md) 0; padding:var(--sp-4) var(--sp-5); margin:var(--sp-4) 0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .art-formula b { color:var(--accent); }
+    .art-formula em { color:var(--text-muted); font-style:normal; display:block; margin-top:8px; font-family:var(--font-sans); font-size:0.82rem; line-height:1.55; white-space:normal; }
+    .art-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+    .art-dot--green{background:#3FB950;} .art-dot--amber{background:#D8B450;} .art-dot--orange{background:#DB6D28;} .art-dot--red{background:#E5484D;}
+  </style>
 </head>
 <body>
   <header class="doc-bar">
@@ -173,6 +189,83 @@
           <h2>Cash Conversion Cycle</h2>
           <p>Cash conversion cycle — сколько дней деньги проходят путь от закупки до поступления от клиента (примерно DIO + DSO − DPO). Чем он короче, тем меньше денег «заморожено» в операционном цикле.</p>
           <div class="cta-band"><p class="cta-band__title">Проверьте, где застряли деньги</p><p class="cta-band__text">Заполните анкету или начните с диагностики Cash Flow — покажем дебиторку, запасы и cash conversion cycle и где возникает funding gap.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Получить диагностику Cash Flow</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
+          <h2>Качество оборотного капитала: почему не все активы являются свободными деньгами</h2>
+          <p>Самая частая ошибка — считать свободные средства по общей сумме оборотных активов. На балансе запасы, дебиторка, НДС и деньги складываются в красивую цифру, но это «бумажный» оборотный капитал. Реальный свободный ресурс зависит не от суммы активов, а от их <strong>качества</strong>: насколько быстро и без больших потерь они превращаются в деньги — и сколько из этой суммы уже принадлежит кредиторам, налогам и резерву.</p>
+          <div class="callout"><span class="callout__label">Главная мысль</span><p>Оборотный капитал — это не сумма активов. Это способность активов быстро и без больших потерь превратиться в деньги после учёта кредиторки, обязательных платежей и минимального резерва.</p></div>
+
+          <h3>1. Товарные остатки: не весь склад — это деньги</h3>
+          <p>Старые остатки нельзя считать по полной себестоимости как свободный ресурс. Свежий ходовой товар почти равен деньгам; slow-moving и dead stock требуют уценки, распродажи, возврата поставщику или списания — и в свободный ресурс попадают со скидкой или не попадают вовсе.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Категория запасов</th><th>Срок на складе</th><th>Что с ним делать</th><th class="num">Доля в свободный ресурс</th></tr></thead>
+            <tbody>
+              <tr><td><span class="art-dot art-dot--green"></span>Свежие / ходовые</td><td>до 60 дней</td><td>Норма — считаем близко к себестоимости</td><td class="num">90–100%</td></tr>
+              <tr><td><span class="art-dot art-dot--amber"></span>Slow-moving</td><td>60–180 дней</td><td>Контроль, возможна уценка</td><td class="num">50–80%</td></tr>
+              <tr><td><span class="art-dot art-dot--orange"></span>Залежавшиеся</td><td>180–365 дней</td><td>Распродажа или возврат поставщику</td><td class="num">20–50%</td></tr>
+              <tr><td><span class="art-dot art-dot--red"></span>Dead stock</td><td>365+ дней</td><td>Глубокая уценка или списание</td><td class="num">0–20%</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>2. Дебиторская задолженность: не вся вернётся деньгами</h3>
+          <p>Дебиторку нужно делить по срокам и собираемости. Текущая (в сроке) почти полностью превратится в деньги; чем глубже просрочка, тем ниже коэффициент собираемости и тем нужнее stop-credit и резерв по сомнительным долгам. В свободный ресурс идёт не вся дебиторка, а <strong>Collectible AR</strong> — ожидаемо собираемая часть.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Группа дебиторки</th><th>Срок</th><th class="num">Собираемость (пример)</th><th>Действие</th></tr></thead>
+            <tbody>
+              <tr><td><span class="art-dot art-dot--green"></span>Текущая (в сроке)</td><td>не просрочена</td><td class="num">~98%</td><td>Норма</td></tr>
+              <tr><td><span class="art-dot art-dot--green"></span>Просрочка 1–30</td><td>1–30 дней</td><td class="num">~90%</td><td>Напоминания</td></tr>
+              <tr><td><span class="art-dot art-dot--amber"></span>Просрочка 31–60</td><td>31–60 дней</td><td class="num">~75%</td><td>Усиленный контроль</td></tr>
+              <tr><td><span class="art-dot art-dot--orange"></span>Просрочка 61–90</td><td>61–90 дней</td><td class="num">~50%</td><td>Stop-credit, переговоры</td></tr>
+              <tr><td><span class="art-dot art-dot--red"></span>Просрочка 90+</td><td>90+ дней</td><td class="num">~20%</td><td>Резерв по сомнительным долгам</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>3. Кредиторская задолженность: источник финансирования или риск</h3>
+          <p>Кредиторку нельзя считать «чужими деньгами, которыми можно пользоваться». Нормальная кредиторка в сроке — это supplier financing, который финансирует цикл. Но та часть, у которой подходит срок (Due AP), уже зарезервирована под оплату, а просроченная кредиторка — это не свободные деньги, а риск штрафов и потери отсрочки. Свободный оборотный капитал нужно корректировать на Due AP и обязательные платежи.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Тип кредиторки</th><th>Характер</th><th>Влияние на свободные деньги</th></tr></thead>
+            <tbody>
+              <tr><td><span class="art-dot art-dot--green"></span>В сроке (согласованная отсрочка)</td><td>Supplier financing</td><td>Финансирует цикл — поддерживает ликвидность</td></tr>
+              <tr><td><span class="art-dot art-dot--amber"></span>Подходит срок (Due AP, 0–7 дней)</td><td>Обязательный платёж</td><td>Уже зарезервированы — вычитаются из свободного ресурса</td></tr>
+              <tr><td><span class="art-dot art-dot--red"></span>Просроченная</td><td>Риск (штрафы, потеря отсрочки)</td><td>Не свободные деньги, а проблема к закрытию</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>4. НДС и прочие зависшие суммы</h3>
+          <p>НДС к зачёту или возврату — это деньги, но замороженные: они станут ликвидностью только в свои сроки. Чем дольше срок заморозки, тем меньше эта сумма похожа на свободный ресурс сегодня. В свободный ресурс корректно включать только <strong>Recoverable VAT</strong> — реально возвращаемую часть в обозримом горизонте, а не весь висящий НДС.</p>
+
+          <h3>Формула качественно скорректированного оборотного капитала</h3>
+          <p>Обычная формула <strong>Net Working Capital = Current Assets − Current Liabilities</strong> полезна для бухгалтерии, но для управления деньгами нужна корректировка на качество активов и срок обязательств.</p>
+          <div class="art-formula"><b>Quality-Adjusted Working Capital</b> = Available Cash + Collectible AR + Liquid Inventory + Recoverable VAT − Due AP − Mandatory Liabilities − Minimum Reserve<em>Каждый актив входит не балансовой суммой, а той частью, которая реально превратится в деньги: собираемая дебиторка, ликвидные запасы, возвращаемый НДС. Из результата вычитаются срочная кредиторка, обязательные платежи и минимальный резерв.</em></div>
+
+          <h3>Пример: от балансового оборотного капитала к реальному свободному ресурсу</h3>
+          <p>Демонстрационный пример (суммы условные). На балансе картина выглядит благополучно, но после корректировки на качество активов и срок обязательств свободного ресурса в разы меньше.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Компонент</th><th class="num">Балансово</th><th>Корректировка качества</th><th class="num">В свободный ресурс</th></tr></thead>
+            <tbody>
+              <tr><td>Деньги (Available Cash)</td><td class="num">200 000</td><td>—</td><td class="num">200 000</td></tr>
+              <tr><td>Дебиторка → Collectible AR</td><td class="num">600 000</td><td>−150 000 (просрочка / сомнительные)</td><td class="num">450 000</td></tr>
+              <tr><td>Запасы → Liquid Inventory</td><td class="num">800 000</td><td>−300 000 (slow / dead, уценка)</td><td class="num">500 000</td></tr>
+              <tr><td>НДС → Recoverable VAT</td><td class="num">120 000</td><td>−70 000 (заморожен &gt; 90 дней)</td><td class="num">50 000</td></tr>
+              <tr><td>Кредиторка к оплате (Due AP)</td><td class="num">—</td><td>Срок наступает</td><td class="num">−400 000</td></tr>
+              <tr><td>Обязательные платежи (налоги, зарплата)</td><td class="num">—</td><td>Ближайший горизонт</td><td class="num">−250 000</td></tr>
+              <tr><td>Минимальный резерв</td><td class="num">—</td><td>Страховой остаток</td><td class="num">−150 000</td></tr>
+              <tr><td><strong>Quality-Adjusted Working Capital</strong></td><td class="num">—</td><td>—</td><td class="num"><strong>400 000</strong></td></tr>
+            </tbody>
+          </table></div>
+          <p>Балансовый Net Working Capital в этом примере выглядел бы как ~1,2 млн, но реально свободный ресурс после учёта качества активов, срочной кредиторки, обязательных платежей и резерва — около <strong>400 000</strong>. Это и есть та сумма, которой можно безопасно распоряжаться.</p>
+
+          <h3>Что должен видеть собственник</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Показатель</th><th>Что показывает</th></tr></thead>
+            <tbody>
+              <tr><td>Inventory Aging</td><td>Сколько денег в свежих остатках против slow-moving и dead stock</td></tr>
+              <tr><td>AR Aging + собираемость</td><td>Какая часть дебиторки реально превратится в деньги</td></tr>
+              <tr><td>AP Pressure (Due AP + просрочка)</td><td>Что нужно оплатить в ближайшее время и где риск</td></tr>
+              <tr><td>Recoverable VAT</td><td>Сколько НДС вернётся и в какие сроки</td></tr>
+              <tr><td>Quality-Adjusted Working Capital</td><td>Реальный свободный оборотный ресурс, а не балансовая сумма</td></tr>
+              <tr><td>Cash Conversion Cycle</td><td>За сколько дней деньги возвращаются в бизнес</td></tr>
+            </tbody>
+          </table></div>
+
           <h2>Связь с Cash Flow и платёжным календарём</h2>
           <p>Оборотный капитал связан с фондовым планированием, платёжным календарём и водопадом платежей: если деньги застряли в дебиторке или запасах, система показывает, какие платежи можно проводить, какие отложить и где возникает funding gap.</p>
           <h2>Как Power BI и AI помогают видеть оборотный капитал</h2>
