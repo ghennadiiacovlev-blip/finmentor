@@ -127,6 +127,23 @@
 
     .doc-hero__cta { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: var(--sp-5); }
     .fcf-author { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); margin-top: var(--sp-3); }
+    .article-cta-actions { display:flex; flex-wrap:wrap; gap:14px; margin-top:28px; }
+    .cta-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 24px; border-radius:14px; font-weight:700; font-size:0.95rem; line-height:1.2; text-decoration:none; transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease; }
+    .cta-btn span { font-size:1.05em; line-height:1; }
+    .cta-btn-primary { background:var(--gold-500); color:#07101d; border:1px solid var(--gold-500); }
+    .cta-btn-primary:hover { background:var(--gold-400); box-shadow:0 10px 30px rgba(201,162,39,0.25); }
+    .cta-btn-secondary { color:var(--text-primary); border:1px solid var(--glass-border-gold); background:rgba(255,255,255,0.03); }
+    .cta-btn-secondary:hover { border-color:var(--accent); background:rgba(201,162,39,0.08); }
+    .cta-btn:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+    .cta-btn:hover { transform:translateY(-2px); }
+    @media (max-width:640px){ .article-cta-actions{flex-direction:column;} .cta-btn{width:100%;} }
+    .art-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .art-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
+    .art-table-wrap--wide table { min-width:760px; }
+    .art-table-wrap th,.art-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .art-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; white-space:nowrap; }
+    .art-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .art-table-wrap strong { color:var(--text-primary); }
   </style>
 </head>
 <body>
@@ -155,9 +172,9 @@
         <h1>Финансирование бизнеса за счёт поставщиков: какие товары реально создают Cash Flow</h1>
         <p class="doc-hero__lead">Продажи и маржа не равны деньгам. Разбираем на уровне SKU, какие товары создают свободный денежный поток, а какие замораживают оборотный капитал — и где границу финансирует поставщик, а где ваша компания.</p>
         <p class="fcf-author">Геннадий Яковлев · FINMENTOR — внешний CFO</p>
-        <div class="doc-hero__cta">
-          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" onclick="gtag('event','click_fcf_article_working_capital_scan')">Проверить оборотный капитал</a>
-          <a href="questionnaire.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_fcf_article_questionnaire')">Заполнить анкету</a>
+        <div class="article-cta-actions">
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=fcf-sku" onclick="gtag('event','click_fcf_article_questionnaire')">Проверить FCF по товарам <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_fcf_article_discovery')">Обсудить модель Cash Flow по SKU <span>&rarr;</span></a>
         </div>
       </div>
     </section>
@@ -337,18 +354,25 @@
           <h2>Финальный вывод</h2>
           <p>Продаваемость и маржа — необходимые, но недостаточные условия. Товар должен быть ещё и денежным. А денежным он становится только тогда, когда сходятся четыре вещи: положительный FCF, покрытие прямых и фиксированных затрат, быстрая оборачиваемость и отсрочка поставщика, закрывающая операционный цикл.</p>
           <p>Поставщик в этой логике — не строка расходов, а источник оборотного капитала. Он превращает товар из потребителя ваших денег в источник ликвидности — но только для тех SKU, которые прошли все три уровня анализа. Остальные нужно лечить или убирать. Считайте товар по деньгам, а не только по марже. Тогда вопрос «где деньги, если мы прибыльны?» перестанет возникать.</p>
-        </section>
+
+          <h2>Как автоматизировать FCF по SKU</h2>
+          <p>FCF по SKU невозможно качественно считать вручную, если ассортимент большой. Нужна автоматическая связка продаж, себестоимости, склада, маркетинга, DPO, DSO и fixed cost allocation.</p>
+          <h3>Что можно автоматизировать через n8n / Make</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Процесс</th><th>Что делает автоматизация</th></tr></thead><tbody><tr><td>Продажи по SKU</td><td>Загружает выручку, количество, возвраты</td></tr><tr><td>Себестоимость</td><td>Подтягивает COGS и закупочную цену</td></tr><tr><td>Маркетинг</td><td>Привязывает marketing spend к SKU или категории</td></tr><tr><td>Склад</td><td>Подтягивает inventory days и stock balance</td></tr><tr><td>Поставщики</td><td>Загружает DPO и условия отсрочки</td></tr><tr><td>Клиенты</td><td>Загружает DSO и дебиторку</td></tr><tr><td>Fixed Costs</td><td>Распределяет fixed costs по базе</td></tr><tr><td>Alerts</td><td>Уведомляет, если SKU стал Cash Destroyer</td></tr></tbody></table></div>
+          <h3>Что показывает Power BI</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Dashboard</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>FCF by SKU</td><td>Какие товары создают деньги</td></tr><tr><td>Cash Destroyers</td><td>Какие товары замораживают деньги</td></tr><tr><td>Supplier-Funded SKU</td><td>Какие товары финансирует поставщик</td></tr><tr><td>Own-Funded Gap</td><td>Где компания финансирует цикл своими деньгами</td></tr><tr><td>Marketing Impact</td><td>Где реклама съедает денежный вклад</td></tr><tr><td>Fixed Cost Allocation</td><td>Покрывает ли SKU инфраструктуру бизнеса</td></tr></tbody></table></div>
+          <div class="callout"><span class="callout__label">Главный вывод</span><p>n8n / Make собирают данные, Excel или модель считает методологию, Power BI показывает собственнику, какие товары создают деньги.</p></div>
+          </section>
       </article>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Узнать, какие товары создают деньги, а какие их замораживают</p>
-        <p class="cta-band__text">Я выстраиваю модель FCF по SKU вместе с управленческим P&amp;L, Cash Flow и казначейством — чтобы вы видели прибыль, деньги и риски в одной системе. Начнём с разбора вашего оборотного капитала и ассортимента.</p>
-        <div class="cta-band__row">
-          <a href="questionnaire.html" class="btn btn--primary btn--lg" onclick="gtag('event','click_fcf_article_questionnaire')">Заполнить анкету</a>
-          <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer" onclick="gtag('event','click_fcf_article_bot')">Открыть FINMENTOR Bot</a>
-          <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_fcf_article_working_capital_scan')">Проверить оборотный капитал</a>
+        <p class="cta-band__title">Хотите узнать, какие товары создают деньги, а какие их замораживают?</p>
+        <p class="cta-band__text">FINMENTOR помогает построить FCF-анализ по SKU: прямой денежный вклад товара, fixed costs, маркетинг, оборотный капитал, DPO, DSO, склад, Funding Gap и Supplier Financing Benefit.</p>
+        <div class="article-cta-actions">
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=fcf-sku" onclick="gtag('event','click_fcf_article_questionnaire')">Проверить FCF по товарам <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_fcf_article_discovery')">Обсудить модель Cash Flow по SKU <span>&rarr;</span></a>
         </div>
       </section>
     </div>

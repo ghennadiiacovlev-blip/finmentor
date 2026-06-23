@@ -634,3 +634,62 @@ cta-band / related / doc-foot, page-scoped `.art-` CSS, GA4, assistant.js). URL 
   `click_treasury_waterfall_*` без персональных данных. CTA: Discovery (`index.html#consult`),
   «Построить систему казначейства» (`kaznacheystvo.html`), FINMENTOR Bot. Related: платёжный календарь,
   казначейство, Cash Flow, FCF по SKU, мини-скан. Телефон/WhatsApp не возвращались, RU-only сохранён.
+
+## v9.2 — Topic-aware CTA + Premium FAQ + Automation blocks
+
+Точечная доработка экспертных статей и анкеты: релевантные CTA, premium-кнопки, premium-FAQ и блок
+автоматизации n8n / Make / Power BI. Глобальный `style.css`, `main.js`, `assistant.js`, `sitemap.xml`
+и формы/меню/футер не менялись; правки локальны в страницах статей и инлайн-логике анкеты.
+
+- **`?topic=` в анкете (`questionnaire.html`).** Инлайн-логика читает query-параметр `topic`
+  (`treasury` / `margin` / `supplier-rating` / `fcf-sku` / `working-capital`); при валидном значении
+  показывает premium-баннер темы вверху формы и кладёт тему в JSON как `lead.source_topic` +
+  `lead.source_topic_label`, а также строкой «Тема обращения: …» в human-readable text. Если параметра
+  нет или он неизвестен — анкета работает строго как раньше (без баннера, без `null`). Валидация,
+  `collectAnswersText()`, `collectAnswersJson()`, `completion_score`, `uncertainty_fields`,
+  `data_quality_hint` и data-key не затронуты (проверено Node-тестом).
+- **Тематические CTA в 4 статьях.** Каждая статья ведёт на релевантное действие, а не на общий тест
+  оборотного капитала: казначейство → `questionnaire.html?topic=treasury`; маржа → `?topic=margin`;
+  поставщики → `?topic=supplier-rating`; FCF по SKU → `?topic=fcf-sku`; вторая кнопка — `index.html#consult`.
+  Кнопки в hero и в финальном CTA-блоке заменены; ни одна CTA-кнопка статьи про казначейство больше не
+  ведёт на working-capital-scan.
+- **Premium-кнопки.** Новый компонент `.cta-btn` (page-scoped): компактнее (min-height 52px, радиус
+  14px), primary — gold fill, secondary — outline, стрелка справа, hover-подъём и свечение,
+  focus-visible; на мобильном (≤640px) — full-width, не «огромные овалы». Глобальный `.btn` не тронут.
+- **Premium-FAQ (казначейство).** Тяжёлые тёмные карточки заменены на аккуратный accordion
+  (`<details>/<summary>`): номер (01–04), вопрос, иконка «+» с поворотом в «×», тонкая gold-граница,
+  hover, плавная анимация раскрытия, mobile-вид. JSON-LD FAQPage сохранён.
+- **Блок автоматизации в каждой статье** — управленческий, не для программистов: «Как автоматизировать
+  …» с двумя таблицами (что делает n8n / Make и что показывает Power BI dashboard) и «Главным выводом».
+  Темы: казначейство (заявки, статусы, approval, funding gap, 7/14/30, treasury dashboard); маржа
+  (продажи, COGS, stock-out, маркетинг, флаги, margin bridge); поставщики (цены, DPO, НДС, возвраты,
+  supplier score, alerts, supplier dashboard); FCF по SKU (продажи, себестоимость, маркетинг, склад,
+  DPO/DSO, fixed costs, cash destroyers, FCF dashboard). GA4 `G-94L98WZ12` сохранён; на CTA — события
+  `click_<topic>_questionnaire` / `click_<topic>_discovery`. Телефон/WhatsApp/RO-EN не возвращались.
+
+## v9.3 — Packages ↔ Expert Modules (commercial alignment)
+
+Экспертные направления из статей встроены в коммерческое предложение, без перегруза и с сохранением
+premium-структуры. Изменены только `index.html` (секция услуг) и `questionnaire.html` (темы); статьи,
+`style.css`, `main.js`, `assistant.js`, `sitemap.xml` и формы/меню/футер не тронуты.
+
+- **Темы анкеты расширены до 9** (`questionnaire.html`): добавлены `financial-diagnostic`,
+  `cfo-system`, `power-bi`, `automation` к существующим `treasury` / `margin` / `supplier-rating` /
+  `fcf-sku` / `working-capital`. Каждая валидная тема показывает баннер и попадает в JSON
+  (`lead.source_topic` + `lead.source_topic_label`) и в текст; без темы — анкета как раньше.
+- **Секция «Экспертные модули FINMENTOR»** (бывшие 6 простых карточек без CTA → 8 premium-карточек с
+  переходами): Treasury &amp; Payment Discipline, Fund Planning &amp; Payment Waterfall, SKU Cash Flow
+  Analysis, Supplier Rating &amp; Procurement Control, Margin Factor Analysis, Working Capital Control,
+  Power BI Owner Dashboard, n8n / Make CFO Automation. У каждой — номер, заголовок, outcome-описание,
+  3–4 ключевых пункта и тематический CTA на `questionnaire.html?topic=…`. Формулировки — про результат
+  для собственника, не «таблички Excel».
+- **Пакеты (product ladder) связаны с темами:** Financial Health Check → `?topic=financial-diagnostic`
+  («Пройти финансовую диагностику»); Business Control System → `?topic=cfo-system` («Построить
+  CFO-систему»); нижний CTA блока — тоже на диагностику. Monthly CFO Support и тарифы Monthly не
+  тронуты.
+- **Гайд «Как выбрать, с чего начать»** — таблица «задача → модуль» (7 строк) со ссылками на нужную
+  тему (диагностика, казначейство, FCF по SKU, поставщики, маржа, Power BI, автоматизация).
+- **Premium-дизайн** (отдельный `<style>` в index, глобальный `style.css` не тронут): сетка
+  auto-fit 280px, лёгкие карточки с hover-подъёмом и gold-границей, маркеры-точки, CTA со стрелкой и
+  «раздвижением» по hover, responsive-таблица гайда. GA4 `G-94L98WZ12` сохранён; на карточках —
+  `data-ga="click_module_<topic>"`. Телефон/WhatsApp/RO-EN не возвращались.

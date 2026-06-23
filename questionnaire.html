@@ -137,6 +137,10 @@
     .q-err { margin-top: 8px; font-size: 0.8rem; color: var(--critical); }
     .q.is-error .q__label, .q.is-error legend { color: var(--critical); }
     .q.is-error .q__choices label, .q.is-error .q__cards label { border-color: rgba(229,72,77,0.55); }
+    .q-topic { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 10px; margin:0 0 var(--sp-5); padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); }
+    .q-topic__label { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); }
+    .q-topic__value { font-weight:700; color:var(--text-primary); }
+    .q-topic__hint { flex-basis:100%; color:var(--text-secondary); font-size:0.85rem; line-height:1.5; }
     .q-meet-note { margin: 6px 0 var(--sp-2); font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
     .q-ai-notice { margin: var(--sp-4) 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; padding: var(--sp-3) var(--sp-4); border-left: 2px solid var(--gold-500); background: rgba(201,162,39,0.06); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
     .q__cards, .q__choices { min-width: 0; }
@@ -499,6 +503,16 @@
 
   var form = document.getElementById('qFormV86');
   if (!form) return;
+
+  // v9.2 — optional ?topic= deep-link from articles (additive; no-op if absent/unknown)
+  var TOPIC_MAP = { 'financial-diagnostic': 'Финансовая диагностика', 'cfo-system': 'CFO-система управления', treasury: 'Казначейство и платёжная дисциплина', margin: 'Факторный анализ маржи', 'supplier-rating': 'Рейтинг поставщиков и закупки', 'fcf-sku': 'FCF по SKU', 'working-capital': 'Оборотный капитал', 'power-bi': 'Power BI dashboard собственника', automation: 'Автоматизация финансов (n8n / Make)' };
+  var sourceTopic = '', sourceTopicLabel = '';
+  try { var _tp = (new URLSearchParams(window.location.search)).get('topic') || ''; if (_tp && TOPIC_MAP[_tp]) { sourceTopic = _tp; sourceTopicLabel = TOPIC_MAP[_tp]; } } catch (e) {}
+  if (sourceTopicLabel) {
+    var _tb = document.createElement('div'); _tb.className = 'q-topic';
+    _tb.innerHTML = '<span class="q-topic__label">Тема обращения</span><span class="q-topic__value">' + sourceTopicLabel + '</span><span class="q-topic__hint">Вы пришли из материала FINMENTOR. Расскажите о вашей ситуации — подготовим предварительную диагностику по этой теме.</span>';
+    var _tv = document.getElementById('qValidate'); if (_tv && _tv.parentNode) { _tv.parentNode.insertBefore(_tb, _tv); } else { form.insertBefore(_tb, form.firstChild); }
+  }
   var SITE_VERSION = 'v8.6';
   var validateBox = document.getElementById('qValidate');
   var validateList = document.getElementById('qValidateList');
@@ -745,7 +759,7 @@
       L('Основные статьи расходов', checkVals('q_expenses').join(', ')), L('Комментарий по расходам', textVal('q_expenses_comment')), '',
       'Документы:',
       L('Статус документов', radioVal('q_documents_status')), L('Что есть', checkVals('q_doc').join(', '))];
-    return out.join('\n');
+    return (sourceTopicLabel ? 'Тема обращения: ' + sourceTopicLabel + '\n\n' : '') + out.join('\n');
   }
 
   function docHas(part) { return checkVals('q_doc').some(function (x) { return x.indexOf(part) >= 0; }) ? 'да' : 'нет'; }
@@ -754,7 +768,7 @@
     var c = one('q_consent');
     return {
       source: 'questionnaire', site_version: SITE_VERSION, submitted_at: new Date().toISOString(),
-      lead: { name: textVal('q_name'), company: textVal('q_company'), email: em, telegram: tg, preferred_contact: radioVal('q_pref_contact'), language: radioVal('q_lang'), preferred_meeting_format: radioVal('q_meetfmt') },
+      lead: { name: textVal('q_name'), company: textVal('q_company'), email: em, telegram: tg, preferred_contact: radioVal('q_pref_contact'), language: radioVal('q_lang'), preferred_meeting_format: radioVal('q_meetfmt'), source_topic: sourceTopic, source_topic_label: sourceTopicLabel },
       business_profile: { industry: radioVal('q_industry'), industry_category: radioVal('q_industry'), industry_comment: textVal('q_industry_comment'), business_model: '', companies_in_group: radioVal('q_companies'), employees: radioVal('q_employees'), employees_range: radioVal('q_employees'), branches_objects_directions: radioVal('q_branches'), branches_objects_directions_range: radioVal('q_branches'), branches_objects_directions_comment: textVal('q_branches_comment'), annual_turnover: radioVal('q_turnover'), has_loans_or_investors: radioVal('q_loans'), has_projects_or_capex: radioVal('q_capex') },
       main_pain: { primary_problem: checkVals('q_pain').join(', '), urgency: radioVal('q_urgency'), desired_first_step: radioVal('q_request'), comment: textVal('q_pain_text') },
       financial_system: { has_management_pl: radioVal('q_f1'), has_cash_flow: radioVal('q_f2'), has_payment_calendar: radioVal('q_f3'), has_budget_or_plan: radioVal('q_f4'), data_reliability: radioVal('q_reliability'), financial_director_or_team: radioVal('q_finteam'), reporting_prepared_by: radioVal('q_reporter'), reporting_prepared_by_comment: textVal('q_reporter_comment'), owner_reporting_frequency: radioVal('q_frequency'), report_preparation_time: radioVal('q_prep_time') },

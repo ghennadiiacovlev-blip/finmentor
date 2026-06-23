@@ -104,6 +104,29 @@
     })();
   </script>
   <noscript><style>.intro{display:none!important}</style></noscript>
+  <style>
+    /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
+    .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .module-card { display:flex; flex-direction:column; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, box-shadow var(--dur-base) ease; }
+    .module-card:hover { border-color:var(--border-gold); transform:translateY(-3px); box-shadow:0 14px 40px rgba(0,0,0,0.25); }
+    .module-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
+    .module-card__title { font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:8px 0 6px; line-height:1.3; }
+    .module-card__desc { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; margin-bottom:12px; }
+    .module-card__list { list-style:none; padding:0; margin:0 0 16px; display:flex; flex-direction:column; gap:6px; }
+    .module-card__list li { position:relative; padding-left:18px; color:var(--text-secondary); font-size:0.84rem; line-height:1.45; }
+    .module-card__list li::before { content:""; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+    .module-card__cta { margin-top:auto; display:inline-flex; align-items:center; gap:8px; color:var(--accent); font-weight:600; font-size:0.88rem; text-decoration:none; transition:gap var(--dur-base) ease; }
+    .module-card__cta:hover { gap:12px; }
+    .choose { margin-top:var(--sp-8); }
+    .choose__title { font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:var(--sp-4); }
+    .choose-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .choose-table { width:100%; border-collapse:collapse; min-width:480px; font-size:0.9rem; }
+    .choose-table th, .choose-table td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; }
+    .choose-table thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .choose-table tbody tr:last-child td { border-bottom:0; }
+    .choose-table a { color:var(--accent); text-decoration:none; font-weight:600; white-space:nowrap; }
+    @media (max-width:600px){ .module-card{padding:var(--sp-4);} }
+  </style>
 </head>
 
 <body>
@@ -624,7 +647,7 @@
             </div>
             <div class="package__term"><span>Срок</span><strong>1–2 недели</strong></div>
             <p class="package__next"><span class="package__next-label">Дальше</span> Внедрение системы или ежемесячное сопровождение Control Light.</p>
-            <a href="questionnaire.html" class="btn btn--ghost package__cta">Получить диагностику</a>
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Пройти финансовую диагностику</a>
           </article>
 
           <!-- 2 · Внедрение системы — FLAGSHIP -->
@@ -654,7 +677,7 @@
             </div>
             <div class="package__term"><span>Срок</span><strong>1–3 месяца</strong></div>
             <p class="package__next"><span class="package__next-label">Дальше</span> Регулярный CFO-контроль (Monthly) или BI / AI-автоматизация.</p>
-            <a href="#consult" class="btn btn--primary package__cta">Построить систему</a>
+            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Построить CFO-систему</a>
           </article>
 
           <!-- 3 · BI / AI-автоматизация (после построения системы) -->
@@ -687,7 +710,7 @@
         <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных.</p>
         <div class="packages__cta reveal">
           <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
         </div>
       </div>
     </section>
@@ -760,22 +783,76 @@
 
     <!-- ===================================================== Удалённая работа -->
     <!-- ===================================================== Дополнительные модули -->
-    <section class="sec" id="modules">
+        <section class="sec" id="modules">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">После фундамента</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Дополнительные модули</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Подключаются после того, как построена финансовая логика и работает система контроля.</p>
+          <p class="overline reveal">Экспертные модули</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Экспертные модули FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Можно начать с диагностики, а затем подключить к любому пакету конкретный модуль под вашу задачу: платежи, товары, поставщиков, маржу, dashboard или автоматизацию.</p>
         </div>
-        <div class="grid-3 grid-mt">
-          <article class="remote-card reveal"><h3 class="remote-card__title">Power BI dashboard</h3><p>Управленческий dashboard собственника на основе корректных данных.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><h3 class="remote-card__title">BI / AI Automation Module</h3><p>AI-брифинг и автоматизация отчётности — после финансового фундамента.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><h3 class="remote-card__title">Treasury System</h3><p>Фонды, приоритеты платежей и контроль ликвидности.</p></article>
-          <article class="remote-card reveal"><h3 class="remote-card__title">Working Capital Sprint</h3><p>Поиск замороженных денег в дебиторке, запасах и авансах.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><h3 class="remote-card__title">1С → Power BI integration</h3><p>Корректная выгрузка и связка данных из 1С с управленческой моделью.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><h3 class="remote-card__title">Investment / CAPEX models</h3><p>Инвестиционные модели, CAPEX и сценарии финансирования.</p></article>
+        <div class="module-grid">
+          <article class="module-card reveal">
+            <span class="module-card__num">01</span>
+            <h3 class="module-card__title">Treasury &amp; Payment Discipline</h3>
+            <p class="module-card__desc">Система управления платежами: деньги получают назначение, приоритет и правила — платёж проходит, только если есть покрытие.</p>
+            <ul class="module-card__list"><li>Фонды и метафонды</li><li>Приоритеты P0–P5 и Payment Waterfall</li><li>Покрытие 7/14/30 и Funding Gap</li><li>Статусы и блокировки платежей</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Проверить платёжную дисциплину <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">02</span>
+            <h3 class="module-card__title">Fund Planning &amp; Payment Waterfall</h3>
+            <p class="module-card__desc">Собственник видит не остаток на счёте, а реальную платёжную способность: какие деньги свободны, а какие уже зарезервированы.</p>
+            <ul class="module-card__list"><li>Какие деньги действительно свободны</li><li>Что уже закреплено за обязательствами</li><li>Что оплатить, отложить или заблокировать</li><li>Правила покрытия и разблокировки</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Внедрить водопад платежей <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">03</span>
+            <h3 class="module-card__title">SKU Cash Flow Analysis</h3>
+            <p class="module-card__desc">Закупки и ассортимент перестают оцениваться по выручке: видно, какие товары создают деньги, а какие замораживают оборотный капитал.</p>
+            <ul class="module-card__list"><li>FCF по каждому SKU</li><li>Товары — cash destroyers</li><li>DPO / DSO и склад</li><li>Где маркетинг и fixed costs съедают вклад</li></ul>
+            <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">Проверить FCF по товарам <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">04</span>
+            <h3 class="module-card__title">Supplier Rating &amp; Procurement Control</h3>
+            <p class="module-card__desc">Закупки выбирают поставщика не по цене, а по полной финансовой логике: цена, DPO, Cash Flow, НДС, возвраты и риск.</p>
+            <ul class="module-card__list"><li>Рейтинг поставщика по коэффициентам</li><li>Цена, DPO, НДС, возвраты, сроки</li><li>Выбор под приоритет компании</li><li>Влияние на маржу и Cash Flow</li></ul>
+            <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">Проверить закупки и поставщиков <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">05</span>
+            <h3 class="module-card__title">Margin Factor Analysis</h3>
+            <p class="module-card__desc">Понятно не только что маржа выросла или упала, но и почему — и что с этим делать дальше.</p>
+            <ul class="module-card__list"><li>Факторы: цена, количество, mix, себестоимость</li><li>Флаги риска по каждому фактору</li><li>Промо, скидки и stock-out</li><li>Сезонность и качество данных</li></ul>
+            <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">Проверить маржу бизнеса <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">06</span>
+            <h3 class="module-card__title">Working Capital Control</h3>
+            <p class="module-card__desc">Поиск замороженных денег: где застряла ликвидность в дебиторке, запасах и авансах — и как сократить денежный цикл.</p>
+            <ul class="module-card__list"><li>Дебиторка, кредиторка, запасы</li><li>DSO, DPO, Inventory Days</li><li>Денежный цикл (CCC)</li><li>Источники замороженных денег</li></ul>
+            <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">Проверить оборотный капитал <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">07</span>
+            <h3 class="module-card__title">Power BI Owner Dashboard</h3>
+            <p class="module-card__desc">Собственник получает ежедневную панель: где деньги, где маржа, какие платежи заблокированы и где возникнет Funding Gap.</p>
+            <ul class="module-card__list"><li>Деньги, маржа, Cash Flow</li><li>Платежи и Funding Gap</li><li>FCF по SKU, закупки, поставщики</li><li>Ключевые флаги риска в одной панели</li></ul>
+            <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">Собрать dashboard собственника <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">08</span>
+            <h3 class="module-card__title">n8n / Make CFO Automation</h3>
+            <p class="module-card__desc">Меньше ручной работы: заявки, согласования, уведомления, обновление данных и ежедневные отчёты работают автоматически.</p>
+            <ul class="module-card__list"><li>Заявки и approval flow</li><li>Уведомления в Telegram / email</li><li>Интеграции Sheets / ERP / CRM / Power BI</li><li>Daily reports и alerts по рискам</li></ul>
+            <a href="questionnaire.html?topic=automation" class="module-card__cta" data-ga="click_module_automation">Автоматизировать CFO-процессы <span>&rarr;</span></a>
+          </article>
         </div>
         <p class="module-note">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
+        <div class="choose">
+          <h3 class="choose__title">Как выбрать, с чего начать</h3>
+          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
+        </div>
       </div>
     </section>
 
