@@ -176,6 +176,43 @@
     .hero__scroll-line { height:30px; }
     @media (max-height: 780px){ .hero__scroll { display:none; } }
     @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } }
+
+    /* v10.3 — premium visual polish (index-only overrides; no markup/JS/style.css changes) */
+    /* chaos: premium divider + soft top depth */
+    .chaos { position:relative; }
+    .chaos::before { content:""; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); opacity:0.35; pointer-events:none; }
+    .chaos::after { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:120px; background:radial-gradient(ellipse at top, rgba(201,162,39,0.10), transparent 70%); pointer-events:none; }
+    /* clean, even, premium card grid (drop chaotic tilt/scatter; equal heights) */
+    .chaos__grid { counter-reset:cx; align-items:stretch; gap:var(--sp-4); position:relative; z-index:1; }
+    .chaos-card { transform:none; height:100%; display:flex; flex-direction:column; justify-content:center; counter-increment:cx;
+      padding:calc(var(--sp-5) + 4px) var(--sp-5); border-radius:var(--r-lg);
+      background:linear-gradient(155deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+      border:1px solid var(--glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+      -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+      transition:transform var(--dur-base) var(--ease-out-expo), border-color var(--dur-base) ease, box-shadow var(--dur-base) ease, background-color var(--dur-base) ease; }
+    .chaos-card::before { content:""; position:absolute; top:18px; left:0; width:3px; height:26px; border-radius:0 3px 3px 0; background:var(--grad-gold); opacity:0.9; }
+    .chaos-card::after { content:counter(cx, decimal-leading-zero); position:absolute; top:14px; right:16px; font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.04em; color:var(--accent); opacity:0.42; }
+    /* subtle visual grouping: 1-4 cash/payments (gold) · 5-8 data/control (muted blue) */
+    .chaos-card:nth-child(n+5)::before { background:linear-gradient(180deg, #6f9bd8, #3f6aa6); }
+    .chaos-card:nth-child(n+5)::after { color:#8fb3e6; }
+    .chaos-card__text { color:var(--text-secondary); font-size:0.95rem; line-height:1.55; padding-left:12px; padding-right:6px; }
+    .chaos-card:hover { transform:translateY(-3px); border-color:var(--border-gold);
+      box-shadow:0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+      background:linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)); }
+    /* final phrase: bigger, more air, understated gold underline-glow */
+    .chaos__verdict { margin-top:calc(var(--sp-10) + var(--sp-2)); font-size:clamp(1.6rem, 3.6vw, 2.7rem); letter-spacing:-0.01em; }
+    .chaos__verdict .text-gold { position:relative; white-space:nowrap; }
+    .chaos__verdict .text-gold::after { content:""; position:absolute; left:6%; right:6%; bottom:-10px; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); box-shadow:0 0 14px 1px rgba(201,162,39,0.45); }
+    /* premium keyboard focus (a11y) */
+    a:focus-visible, button:focus-visible, .btn:focus-visible { outline:2px solid var(--gold-500); outline-offset:3px; border-radius:var(--r-sm); }
+    .hero__scroll-label { opacity:0.8; }
+    @media (max-width:640px){
+      .chaos__grid { gap:var(--sp-3); }
+      .chaos-card { padding:var(--sp-5) var(--sp-4); }
+      .chaos-card__text { padding-left:10px; }
+      .chaos__verdict { margin-top:var(--sp-8); }
+      .chaos__verdict .text-gold { white-space:normal; }
+    }
   </style>
 </head>
 
