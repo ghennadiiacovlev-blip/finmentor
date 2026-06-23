@@ -498,7 +498,7 @@
 // Self-contained: owns #qFormV86 (main.js initQuestionnaire early-returns, no #qForm).
 // No external libs, no native select, no PII to GA4, no PII logged. Webhook empty by default.
 (function () {
-  // Production: keep EMPTY until the Make scenario is approved & live.
+  // Production: keep EMPTY until the automation scenario in Make / n8n is approved & live (current MVP may be built in Make; architecture stays n8n-compatible).
   var FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL = "";
 
   var form = document.getElementById('qFormV86');
