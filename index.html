@@ -166,6 +166,19 @@
     .material-card__arrow { margin-top:auto; color:var(--accent); font-size:0.84rem; font-weight:600; }
     .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
     @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
+
+    /* v10.2 — "хаос → система" compact pain block */
+    .pain-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .pain-card { position:relative; padding:var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 16px); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease; }
+    .pain-card:hover { border-color:var(--border-gold); transform:translateY(-2px); }
+    .pain-card::before { content:""; position:absolute; left:0; top:18px; bottom:18px; width:3px; border-radius:0 3px 3px 0; background:var(--grad-gold); }
+    .pain-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
+    .pain-card__title { font-weight:700; color:var(--text-primary); font-size:1rem; line-height:1.35; margin:6px 0 6px; }
+    .pain-card__text { color:var(--text-secondary); font-size:0.9rem; line-height:1.55; }
+    .pain-bridge { margin-top:var(--sp-6); padding:var(--sp-5) var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); color:var(--text-primary); font-size:1.02rem; line-height:1.6; }
+    .pain-bridge strong { color:var(--accent); }
+    .pain-cta { display:flex; flex-wrap:wrap; gap:14px; margin-top:var(--sp-5); }
+    @media (max-width:640px){ .pain-card{padding:var(--sp-4) var(--sp-4) var(--sp-4) calc(var(--sp-4) + 14px);} .pain-cta{flex-direction:column;} .pain-cta .btn{width:100%;} }
   </style>
 </head>
 
@@ -232,10 +245,47 @@
         </div>
       </div>
 
-      <a href="#audience" class="hero__scroll" aria-label="Листать вниз">
+      <a href="#chaos-control" class="hero__scroll" aria-label="Листать вниз">
         <span class="hero__scroll-label">SCROLL</span>
         <span class="hero__scroll-line"></span>
       </a>
+    </section>
+
+        <section class="sec chaos-control" id="chaos-control">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">От хаоса — к системе</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">От хаоса в цифрах — к системе контроля</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">При открытии бизнеса всё держится в голове. При росте — деньги, отчёты, платежи и Cash Flow перестают быть связаны, и собственник теряет управленческую картину.</p>
+        </div>
+        <div class="pain-grid">
+          <article class="pain-card reveal">
+            <span class="pain-card__num">01</span>
+            <p class="pain-card__title">Деньги есть в отчётах, но их не хватает на платежи</p>
+            <p class="pain-card__text">Cash Flow не связан с обязательствами, дебиторкой, запасами и планом оплат.</p>
+          </article>
+          <article class="pain-card reveal" data-reveal-delay="1">
+            <span class="pain-card__num">02</span>
+            <p class="pain-card__title">Бухгалтерия закрыта, но управленческой картины нет</p>
+            <p class="pain-card__text">Есть налоговый учёт, но нет P&amp;L, Cash Flow и отчёта для решений собственника.</p>
+          </article>
+          <article class="pain-card reveal" data-reveal-delay="2">
+            <span class="pain-card__num">03</span>
+            <p class="pain-card__title">Платежи согласуются вручную</p>
+            <p class="pain-card__text">Нет правил приоритета: что платить сегодня, что можно отложить, где риск остановки бизнеса.</p>
+          </article>
+          <article class="pain-card reveal" data-reveal-delay="3">
+            <span class="pain-card__num">04</span>
+            <p class="pain-card__title">Рост бизнеса усиливает кассовый разрыв</p>
+            <p class="pain-card__text">Продажи растут, но запасы, дебиторка, аренда, зарплаты и поставщики требуют денег раньше поступлений.</p>
+          </article>
+        </div>
+        <p class="pain-bridge reveal"><strong>FINMENTOR превращает этот хаос в систему контроля:</strong> P&amp;L, Cash Flow, платёжный календарь, риск-карта и понятные действия для собственника.</p>
+        <div class="pain-cta reveal">
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot">Обсудить ситуацию в FINMENTOR Bot</a>
+        </div>
+      </div>
     </section>
 
     <section class="audience" id="audience">
