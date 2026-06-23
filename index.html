@@ -167,18 +167,26 @@
     .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
     @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
 
-    /* v10.2 — "хаос → система" compact pain block */
-    .pain-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
-    .pain-card { position:relative; padding:var(--sp-5) var(--sp-5) var(--sp-5) calc(var(--sp-5) + 16px); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease; }
-    .pain-card:hover { border-color:var(--border-gold); transform:translateY(-2px); }
-    .pain-card::before { content:""; position:absolute; left:0; top:18px; bottom:18px; width:3px; border-radius:0 3px 3px 0; background:var(--grad-gold); }
-    .pain-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
-    .pain-card__title { font-weight:700; color:var(--text-primary); font-size:1rem; line-height:1.35; margin:6px 0 6px; }
-    .pain-card__text { color:var(--text-secondary); font-size:0.9rem; line-height:1.55; }
-    .pain-bridge { margin-top:var(--sp-6); padding:var(--sp-5) var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); color:var(--text-primary); font-size:1.02rem; line-height:1.6; }
-    .pain-bridge strong { color:var(--accent); }
-    .pain-cta { display:flex; flex-wrap:wrap; gap:14px; margin-top:var(--sp-5); }
-    @media (max-width:640px){ .pain-card{padding:var(--sp-4) var(--sp-4) var(--sp-4) calc(var(--sp-4) + 14px);} .pain-cta{flex-direction:column;} .pain-cta .btn{width:100%;} }
+
+    /* v10.2 — Hero ticker (хаос -> система) + scroll-cue overlap fix */
+    .hero__ticker { position:relative; max-width:660px; margin:var(--sp-4) 0 var(--sp-2); padding:9px 0; overflow:hidden;
+      border-top:1px solid var(--glass-border); border-bottom:1px solid var(--glass-border);
+      -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+              mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); }
+    .hero__ticker-track { display:inline-flex; align-items:center; white-space:nowrap; width:max-content; animation:heroTicker 40s linear infinite; }
+    .hero__ticker:hover .hero__ticker-track { animation-play-state:paused; }
+    .tick { font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.01em; color:var(--text-secondary); padding:0 14px; }
+    .tick i { font-style:normal; color:var(--accent); margin:0 5px; }
+    .tick--gold { color:var(--text-primary); font-weight:600; }
+    .tick-sep { color:var(--gold-500); opacity:0.45; }
+    @keyframes heroTicker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+    /* scroll cue: never overlap the hero stats card */
+    .hero__content { padding-bottom:64px; }
+    .hero__scroll { bottom:18px; gap:8px; z-index:1; }
+    .hero__scroll-line { height:30px; }
+    @media (prefers-reduced-motion: reduce){ .hero__ticker-track { animation:none; } .hero__ticker { -webkit-mask-image:none; mask-image:none; overflow-x:auto; } }
+    @media (max-height: 780px){ .hero__scroll { display:none; } }
+    @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } .hero__ticker { max-width:100%; } .tick { font-size:0.72rem; padding:0 10px; } }
   </style>
 </head>
 
@@ -230,6 +238,9 @@
         <p class="hero__divider reveal" data-reveal-delay="2">
           <b>Не бухгалтерия. Не BI-разработка. Не AI-инструмент.</b> FINMENTOR — финансовая система контроля и решений для собственника.
         </p>
+        <div class="hero__ticker reveal" data-reveal-delay="2" aria-hidden="true">
+          <div class="hero__ticker-track"><span class="tick">Деньги есть в отчётах <i>&rarr;</i> но не хватает на платежи</span><span class="tick-sep">·</span><span class="tick">Продажи растут <i>&rarr;</i> Cash Flow напряжён</span><span class="tick-sep">·</span><span class="tick">Бухгалтерия закрыта <i>&rarr;</i> управленческой картины нет</span><span class="tick-sep">·</span><span class="tick">Платежи вручную <i>&rarr;</i> нет приоритетов</span><span class="tick-sep">·</span><span class="tick">Дебиторка + запасы + обязательства <i>&rarr;</i> связать в одну систему</span><span class="tick-sep">·</span><span class="tick tick--gold">FINMENTOR <i>&rarr;</i> P&amp;L · Cash Flow · платёжный календарь · риск-карта · действия</span><span class="tick-sep">·</span><span class="tick">Деньги есть в отчётах <i>&rarr;</i> но не хватает на платежи</span><span class="tick-sep">·</span><span class="tick">Продажи растут <i>&rarr;</i> Cash Flow напряжён</span><span class="tick-sep">·</span><span class="tick">Бухгалтерия закрыта <i>&rarr;</i> управленческой картины нет</span><span class="tick-sep">·</span><span class="tick">Платежи вручную <i>&rarr;</i> нет приоритетов</span><span class="tick-sep">·</span><span class="tick">Дебиторка + запасы + обязательства <i>&rarr;</i> связать в одну систему</span><span class="tick-sep">·</span><span class="tick tick--gold">FINMENTOR <i>&rarr;</i> P&amp;L · Cash Flow · платёжный календарь · риск-карта · действия</span><span class="tick-sep">·</span></div>
+        </div>
 
         <div class="hero__actions reveal" data-reveal-delay="3">
           <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
@@ -245,50 +256,13 @@
         </div>
       </div>
 
-      <a href="#chaos-control" class="hero__scroll" aria-label="Листать вниз">
+      <a href="#audience" class="hero__scroll" aria-label="Листать вниз">
         <span class="hero__scroll-label">SCROLL</span>
         <span class="hero__scroll-line"></span>
       </a>
     </section>
 
-        <section class="sec chaos-control" id="chaos-control">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">От хаоса — к системе</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">От хаоса в цифрах — к системе контроля</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">При открытии бизнеса всё держится в голове. При росте — деньги, отчёты, платежи и Cash Flow перестают быть связаны, и собственник теряет управленческую картину.</p>
-        </div>
-        <div class="pain-grid">
-          <article class="pain-card reveal">
-            <span class="pain-card__num">01</span>
-            <p class="pain-card__title">Деньги есть в отчётах, но их не хватает на платежи</p>
-            <p class="pain-card__text">Cash Flow не связан с обязательствами, дебиторкой, запасами и планом оплат.</p>
-          </article>
-          <article class="pain-card reveal" data-reveal-delay="1">
-            <span class="pain-card__num">02</span>
-            <p class="pain-card__title">Бухгалтерия закрыта, но управленческой картины нет</p>
-            <p class="pain-card__text">Есть налоговый учёт, но нет P&amp;L, Cash Flow и отчёта для решений собственника.</p>
-          </article>
-          <article class="pain-card reveal" data-reveal-delay="2">
-            <span class="pain-card__num">03</span>
-            <p class="pain-card__title">Платежи согласуются вручную</p>
-            <p class="pain-card__text">Нет правил приоритета: что платить сегодня, что можно отложить, где риск остановки бизнеса.</p>
-          </article>
-          <article class="pain-card reveal" data-reveal-delay="3">
-            <span class="pain-card__num">04</span>
-            <p class="pain-card__title">Рост бизнеса усиливает кассовый разрыв</p>
-            <p class="pain-card__text">Продажи растут, но запасы, дебиторка, аренда, зарплаты и поставщики требуют денег раньше поступлений.</p>
-          </article>
-        </div>
-        <p class="pain-bridge reveal"><strong>FINMENTOR превращает этот хаос в систему контроля:</strong> P&amp;L, Cash Flow, платёжный календарь, риск-карта и понятные действия для собственника.</p>
-        <div class="pain-cta reveal">
-          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
-          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot">Обсудить ситуацию в FINMENTOR Bot</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="audience" id="audience">
+        <section class="audience" id="audience">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Для кого</p>
