@@ -579,3 +579,30 @@ Checklist, Pricing, Work Plan, Proposal Draft), часть свободных т
 - **«Личная встреча в Кишинёве»** добавлена в блок «Формат встречи» (premium choice), под блоком —
   note о согласовании после квалификации. Значение попадает в UI, в human-readable text и в JSON как
   `lead.preferred_meeting_format`. Телефон/WhatsApp не возвращались, RU-only сохранён.
+
+## v9.0 — Supplier Rating + Margin Factor Analysis (series)
+
+Добавлены две связанные экспертные статьи-страницы FINMENTOR (продолжение серии после FCF по SKU),
+в общем брендовом шаблоне (doc-bar / doc-hero / article.doc / cta-band / related / doc-foot, общий
+style.css, assistant.js, GA4). У каждой — компактный page-scoped `<style>` с префиксом `.art-`
+(таблицы с responsive-обёрткой, KPI-карточки, блоки формул, цветные флаги-точки). Глобальные стили и
+другие страницы не менялись.
+
+- **`supplier-rating-purchasing-priorities.html`** — «Справочник коэффициентов рейтинга поставщиков:
+  как выбрать, у кого купить одинаковый товар». Формула рейтинга, справочник коэффициентов
+  (финансирование, рентабельность, возврат, НДС), 5 приоритетов компании (Cash Flow, маржа, наличие,
+  складской риск, импорт/НДС) с таблицами и формулами (Effective Purchase Cost, Cash Impact of VAT),
+  Decision Matrix, Supplier Decision Score, уровни решения, dashboard.
+- **`margin-factor-analysis-flags.html`** — «Факторный анализ маржи с флагами». Факторный мост (Δ
+  Margin = Volume + Mix + Cost + Price), 6 флагов, диагностические признаки (маркетинг, наличие
+  товара, сезонность, доп. факторы), расширенный dashboard, 4 комбинации флагов, связка с FCF и
+  рейтингом поставщиков.
+- **Серийная перелинковка:** обе статьи ссылаются друг на друга и на FCF по SKU; добавлены в блок
+  материалов `index.html` и в related-сетки `fcf-postavshiki.html`, `working-capital.html`,
+  `cash-flow.html`, `methodology.html`, `templates.html`. Обе добавлены в `sitemap.xml` (priority
+  0.8); XML валиден (21 URL).
+- **SEO:** title/description/canonical, OG (article, ru_RU, og-image.png?v=81), Twitter
+  summary_large_image, article:author/section, JSON-LD (Article + BreadcrumbList).
+- **GA4 `G-94L98WZ12`** сохранён; на CTA — безопасные inline-события (`click_supplier_rating_*`,
+  `click_margin_factor_*`), без персональных данных. CTA ведут на Discovery (`index.html#consult`),
+  `working-capital-scan.html`, FINMENTOR Bot. Телефон/WhatsApp не возвращались, RU-only сохранён.
