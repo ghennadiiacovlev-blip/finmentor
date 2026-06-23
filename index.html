@@ -104,47 +104,112 @@
     })();
   </script>
   <noscript><style>.intro{display:none!important}</style></noscript>
+  <style>
+    /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
+    .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .module-card { display:flex; flex-direction:column; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, box-shadow var(--dur-base) ease; }
+    .module-card:hover { border-color:var(--border-gold); transform:translateY(-3px); box-shadow:0 14px 40px rgba(0,0,0,0.25); }
+    .module-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
+    .module-card__title { font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:8px 0 6px; line-height:1.3; }
+    .module-card__desc { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; margin-bottom:12px; }
+    .module-card__list { list-style:none; padding:0; margin:0 0 16px; display:flex; flex-direction:column; gap:6px; }
+    .module-card__list li { position:relative; padding-left:18px; color:var(--text-secondary); font-size:0.84rem; line-height:1.45; }
+    .module-card__list li::before { content:""; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+    .module-card__cta { margin-top:auto; display:inline-flex; align-items:center; gap:8px; color:var(--accent); font-weight:600; font-size:0.88rem; text-decoration:none; transition:gap var(--dur-base) ease; }
+    .module-card__cta:hover { gap:12px; }
+    .choose { margin-top:var(--sp-8); }
+    .choose__title { font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:var(--sp-4); }
+    .choose-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .choose-table { width:100%; border-collapse:collapse; min-width:480px; font-size:0.9rem; }
+    .choose-table th, .choose-table td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; }
+    .choose-table thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .choose-table tbody tr:last-child td { border-bottom:0; }
+    .choose-table a { color:var(--accent); text-decoration:none; font-weight:600; white-space:nowrap; }
+    @media (max-width:600px){ .module-card{padding:var(--sp-4);} }
+
+    /* v10 — Lean Premium homepage sections */
+    .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .step-card { position:relative; padding:var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .step-card__num { font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.14em; color:var(--accent); }
+    .step-card__title { font-family:var(--font-display); font-size:1.25rem; font-weight:700; color:var(--text-primary); margin:10px 0 8px; }
+    .step-card__desc { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; }
+    .hero__divider { margin:var(--sp-4) auto 0; padding:12px 16px; border-left:2px solid var(--gold-500); color:var(--text-secondary); font-size:0.9rem; line-height:1.5; background:rgba(201,162,39,0.06); border-radius:0 var(--r-sm) var(--r-sm) 0; max-width:640px; }
+    .hero__divider b { color:var(--text-primary); }
+    .deliv-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:var(--sp-5); }
+    .deliv-item { display:flex; align-items:flex-start; gap:10px; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); color:var(--text-secondary); font-size:0.9rem; line-height:1.45; }
+    .deliv-item::before { content:""; flex-shrink:0; width:7px; height:7px; margin-top:6px; border-radius:50%; background:var(--accent); }
+    .deliv-item strong { color:var(--text-primary); font-weight:600; }
+    .sample-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .sample-card { border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)); overflow:hidden; }
+    .sample-card__bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-bottom:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .sample-card__name { font-weight:700; color:var(--text-primary); font-size:0.88rem; }
+    .sample-card__tag { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); white-space:nowrap; }
+    .sample-card__body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+    .sample-line { height:9px; border-radius:5px; background:linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.03)); }
+    .sample-line--short { width:55%; } .sample-line--mid { width:78%; }
+    .sample-chip { display:inline-block; align-self:flex-start; margin-top:4px; padding:4px 10px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-secondary); font-size:0.74rem; }
+    .sample-note { margin-top:var(--sp-4); color:var(--text-muted); font-size:0.8rem; }
+    .after-grid { display:flex; flex-direction:column; gap:12px; margin-top:var(--sp-5); max-width:760px; }
+    .after-step { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .after-step__num { flex-shrink:0; width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--border-gold); color:var(--accent); font-family:var(--font-mono); font-size:0.82rem; }
+    .after-step__text { color:var(--text-secondary); font-size:0.92rem; line-height:1.55; }
+    .after-step__text strong { color:var(--text-primary); }
+    .trust-links { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:var(--sp-4) 0 var(--sp-2); }
+    .trust-links a { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-primary); text-decoration:none; font-size:0.84rem; font-weight:600; transition:border-color var(--dur-base) ease, background var(--dur-base) ease; }
+    .trust-links a:hover { border-color:var(--accent); background:rgba(201,162,39,0.08); }
+    .trust-links__meet { color:var(--text-muted); font-size:0.82rem; }
+    .materials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .material-card { display:flex; flex-direction:column; gap:6px; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); text-decoration:none; transition:border-color var(--dur-base) ease, transform var(--dur-base) ease; }
+    .material-card:hover { border-color:var(--border-gold); transform:translateY(-3px); }
+    .material-card__tag { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .material-card__title { color:var(--text-primary); font-weight:700; font-size:1rem; line-height:1.35; }
+    .material-card__arrow { margin-top:auto; color:var(--accent); font-size:0.84rem; font-weight:600; }
+    .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
+    @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
+
+
+
+    /* v10.2 — Intro splash + scroll circle + hero scroll-cue fix */
+    .intro { position:relative; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:var(--navy-900); overflow:hidden; border-bottom:1px solid var(--glass-border); }
+    .intro__dots { position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(circle, rgba(201,162,39,0.18) 1px, transparent 1.5px); background-size:34px 34px; opacity:0.5; -webkit-mask-image:radial-gradient(ellipse 72% 62% at 50% 44%, #000 32%, transparent 80%); mask-image:radial-gradient(ellipse 72% 62% at 50% 44%, #000 32%, transparent 80%); }
+    .intro__glow { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; opacity:0.55; }
+    .intro__glow--gold { width:520px; height:520px; background:rgba(201,162,39,0.20); top:6%; left:50%; transform:translateX(-50%); }
+    .intro__glow--blue { width:420px; height:420px; background:rgba(40,90,160,0.18); bottom:4%; left:30%; }
+    .intro__content { position:relative; z-index:1; padding:0 var(--sp-5); }
+    .intro__logo { font-family:var(--font-display); font-weight:700; font-size:clamp(2.6rem, 8vw, 5rem); letter-spacing:-0.01em; line-height:1; }
+    .intro__logo .l-fin { color:var(--text-primary); }
+    .intro__logo .l-mentor { color:var(--accent); }
+    .intro__tagline { margin-top:var(--sp-5); font-family:var(--font-mono); font-size:clamp(0.68rem, 2vw, 0.86rem); letter-spacing:0.24em; text-transform:uppercase; color:var(--text-secondary); line-height:1.6; }
+    .intro__scroll { position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:2; display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--text-muted); text-decoration:none; }
+    .intro__scroll-ring { width:44px; height:44px; border:1.5px solid var(--glass-border-gold); border-radius:50%; display:grid; place-items:center; transition:border-color var(--dur-base) ease; }
+    .intro__scroll:hover .intro__scroll-ring { border-color:var(--accent); }
+    .intro__scroll-ring svg { width:16px; height:16px; color:var(--accent); animation:introChev 1.8s ease infinite; }
+    .intro__scroll-label { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; }
+    @keyframes introChev { 0%,100% { transform:translateY(-2px); opacity:0.5; } 50% { transform:translateY(3px); opacity:1; } }
+    .hero__content { padding-bottom:64px; }
+    .hero__scroll { bottom:18px; gap:8px; z-index:1; }
+    .hero__scroll-line { height:30px; }
+    @media (prefers-reduced-motion: reduce){ .intro__scroll-ring svg { animation:none; } }
+    @media (max-height: 780px){ .hero__scroll { display:none; } }
+    @media (max-height: 640px){ .intro__scroll { display:none; } }
+    @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } .intro__glow--gold { width:340px; height:340px; } .intro__glow--blue { width:280px; height:280px; } .intro__scroll { bottom:20px; } }
+  </style>
 </head>
 
-<body>
-  <!-- ============================================================= INTRO -->
-  <div class="intro" id="intro">
-    <canvas class="intro__canvas" aria-hidden="true"></canvas>
-    <button class="intro__skip" type="button" id="introSkip">Пропустить →</button>
-
-    <div class="intro__center">
-      <div class="intro__wordmark" aria-label="finmentor">
-        <span class="intro__word intro__word--fin">
-          <span style="--i:0">f</span><span style="--i:1">i</span><span style="--i:2">n</span>
-        </span><span class="intro__word intro__word--mentor">
-          <span style="--i:3">m</span><span style="--i:4">e</span><span style="--i:5">n</span><span style="--i:6">t</span><span style="--i:7">o</span><span style="--i:8">r</span>
-        </span>
-      </div>
-      <div class="intro__tagline">От финансового хаоса — к системе управления бизнесом</div>
-    </div>
-  </div>
-
-  <!-- ============================================================= CURSOR -->
-  <div class="cursor" id="cursor" aria-hidden="true">
-    <div class="cursor__ring"></div>
-    <div class="cursor__dot"></div>
-  </div>
-
-  <!-- ============================================================= HEADER -->
-  <header class="header" id="header">
+<body><header class="header" id="header">
     <div class="container header__inner">
-      <a class="logo" href="#top" aria-label="finmentor — на главную">
+      <a class="logo" href="#intro" aria-label="finmentor — на главную">
         <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
       </a>
 
       <nav class="nav" aria-label="Основная навигация">
         <a href="#about" class="nav__link">О проекте</a>
         <a href="#audience" class="nav__link">Для кого</a>
-        <a href="#system" class="nav__link">Экспертиза</a>
+        <a href="#steps" class="nav__link">Как работаем</a>
         <a href="#solutions" class="nav__link">Решения</a>
         <a href="#knowledge" class="nav__link">Материалы</a>
         <a href="questionnaire.html" class="nav__link">Анкета</a>
-        <a href="#contacts" class="nav__link">Контакты</a>
+        <a href="#consult" class="nav__link">Контакты</a>
       </nav>
 
       <div class="header__actions">
@@ -157,25 +222,21 @@
     </div>
   </header>
 
-  <!-- ============================================================= MOBILE MENU -->
-  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
-      <a href="#about" class="mobile-menu__link" style="--mi:0">О проекте</a>
-      <a href="#audience" class="mobile-menu__link" style="--mi:1">Для кого</a>
-      <a href="#system" class="mobile-menu__link" style="--mi:2">Экспертиза</a>
-      <a href="#solutions" class="mobile-menu__link" style="--mi:3">Решения</a>
-      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Материалы</a>
-      <a href="questionnaire.html" class="mobile-menu__link" style="--mi:5">Анкета</a>
-      <a href="#contacts" class="mobile-menu__link" style="--mi:6">Контакты</a>
-    </nav>
-    <div class="mobile-menu__footer">
-      <!-- Языковой переключатель убран до готовности переводов RO/EN. -->
-      <a href="#consult" class="btn btn--primary mobile-menu__cta">Разобрать мой бизнес</a>
-    </div>
-  </div>
-
   <main>
-    <!-- ============================================================= HERO -->
+    <section class="intro" id="intro">
+      <div class="intro__dots" aria-hidden="true"></div>
+      <span class="intro__glow intro__glow--gold" aria-hidden="true"></span>
+      <span class="intro__glow intro__glow--blue" aria-hidden="true"></span>
+      <div class="intro__content">
+        <div class="intro__logo"><span class="l-fin">fin</span><span class="l-mentor">mentor</span></div>
+        <p class="intro__tagline">от финансового хаоса — к системе управления бизнесом</p>
+      </div>
+      <a href="#top" class="intro__scroll" aria-label="Листать вниз">
+        <span class="intro__scroll-ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="intro__scroll-label">Scroll</span>
+      </a>
+    </section>
+
     <section class="hero" id="top">
       <canvas class="hero__canvas" aria-hidden="true"></canvas>
       <div class="hero__mesh" aria-hidden="true">
@@ -186,39 +247,29 @@
       <div class="hero__grain" aria-hidden="true"></div>
 
       <div class="container hero__content">
-        <p class="hero__kicker reveal">ВНЕШНИЙ CFO · СИСТЕМА ФИНАНСОВОГО КОНТРОЛЯ</p>
+        <p class="hero__kicker reveal">ВНЕШНИЙ CFO · СИСТЕМА ФИНАНСОВЫХ РЕШЕНИЙ</p>
         <h1 class="hero__title reveal" data-reveal-delay="1">
           Внешний <span class="text-gold">CFO</span> для растущего&nbsp;бизнеса
         </h1>
         <p class="hero__subtitle reveal" data-reveal-delay="2">
-          Для собственника, который перерос ручное управление финансами. Управленческий учёт,
-          контроль денег, казначейство и отчётность — прибыль, cash flow и&nbsp;риски в одной системе,
-          без хаоса в Excel и ручного согласования каждого платежа.
+          Помогаю собственнику видеть деньги, прибыль, обязательства и&nbsp;риски в&nbsp;одной системе —
+          до того, как подключать Power&nbsp;BI и&nbsp;AI.
         </p>
-        <p class="hero__note reveal" data-reveal-delay="2">
-          Power&nbsp;BI и AI подключаются после того, как финансовая логика уже построена.
+        <p class="hero__divider reveal" data-reveal-delay="2">
+          <b>Не бухгалтерия. Не BI-разработка. Не AI-инструмент.</b> FINMENTOR — финансовая система контроля и решений для собственника.
         </p>
 
         <div class="hero__actions reveal" data-reveal-delay="3">
-          <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Проверить оборотный капитал за 3 минуты</a>
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot">Оставить заявку в FINMENTOR Bot</a>
         </div>
 
         <div class="hero__stats glass reveal" data-reveal-delay="4">
-          <div class="stat">
-            <div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div>
-            <div class="stat__label">лет в финансах</div>
-          </div>
+          <div class="stat"><div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div><div class="stat__label">лет в финансах</div></div>
           <div class="stat__divider"></div>
-          <div class="stat">
-            <div class="stat__num"><span data-count="5">0</span></div>
-            <div class="stat__label">опор в едином контуре</div>
-          </div>
+          <div class="stat"><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">опор в едином контуре</div></div>
           <div class="stat__divider"></div>
-          <div class="stat">
-            <div class="stat__num"><span data-count="10">0</span></div>
-            <div class="stat__label">кейсов по направлениям</div>
-          </div>
+          <div class="stat"><div class="stat__num"><span data-count="10">0</span></div><div class="stat__label">кейсов по направлениям</div></div>
         </div>
       </div>
 
@@ -228,7 +279,6 @@
       </a>
     </section>
 
-    <!-- ============================================================= S3 · CHAOS -->
     <section class="chaos" id="chaos">
       <div class="chaos__haze" aria-hidden="true"></div>
       <div class="container">
@@ -270,108 +320,7 @@
       </div>
     </section>
 
-    <!-- ===================================================== CFO vs остальные -->
-    <section class="sec" id="compare">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Кто есть кто</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Чем внешний CFO отличается от бухгалтера, консультанта и BI-разработчика</h2>
-        </div>
-        <div class="grid-4 grid-mt">
-          <article class="remote-card compare-card reveal">
-            <h3 class="remote-card__title">Бухгалтер</h3>
-            <p class="compare-card__role"><b>Фокус:</b> налоговый и бухгалтерский учёт.</p>
-            <p class="compare-card__limit">Показывает прошлое и соблюдение требований, но не отвечает на вопрос «что делать с деньгами дальше».</p>
-          </article>
-          <article class="remote-card compare-card reveal" data-reveal-delay="1">
-            <h3 class="remote-card__title">Финансовый консультант</h3>
-            <p class="compare-card__role"><b>Фокус:</b> рекомендации и разовые выводы.</p>
-            <p class="compare-card__limit">Часто не ведёт систему регулярно и не отвечает за внедрение контроля.</p>
-          </article>
-          <article class="remote-card compare-card reveal" data-reveal-delay="2">
-            <h3 class="remote-card__title">BI-разработчик</h3>
-            <p class="compare-card__role"><b>Фокус:</b> dashboard и визуализация.</p>
-            <p class="compare-card__limit">Без финансовой логики Power BI показывает красивые графики, но не управленческие решения.</p>
-          </article>
-          <article class="remote-card compare-card compare-card--accent reveal" data-reveal-delay="3">
-            <span class="remote-card__tag">FINMENTOR</span>
-            <h3 class="remote-card__title">Внешний CFO</h3>
-            <p class="compare-card__role"><b>Фокус:</b> управленческая система денег, прибыли, рисков и решений.</p>
-            <p class="compare-card__limit">Определяет финансовую логику, выстраивает контроль, связывает отчётность, казначейство и KPI — и затем автоматизирует.</p>
-          </article>
-        </div>
-        <p class="compare__verdict reveal">FINMENTOR не заменяет бухгалтера и не продаёт просто dashboard. <b>FINMENTOR выстраивает управленческую финансовую функцию для собственника.</b></p>
-      </div>
-    </section>
-
-    <!-- ============================================================= SYSTEM / 5 PILLARS (first card states) -->
-    <section class="pillars" id="system">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Система FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Единый контур управления бизнесом</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">
-            Не пять услуг — один контур, где каждое решение опирается на цифры.
-          </p>
-        </div>
-
-        <div class="pillars__grid">
-          <!-- External CFO -->
-          <article class="card pillar reveal" data-reveal-delay="1" tabindex="0">
-            <span class="pillar__line" aria-hidden="true"></span>
-            <div class="pillar__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/></svg>
-            </div>
-            <h3 class="pillar__title">External CFO</h3>
-            <p class="pillar__desc">Функция финансового директора без найма в штат. Управленческая логика и контроль.</p>
-          </article>
-
-          <!-- Management Reporting -->
-          <article class="card pillar reveal" data-reveal-delay="2" tabindex="0">
-            <span class="pillar__line" aria-hidden="true"></span>
-            <div class="pillar__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg>
-            </div>
-            <h3 class="pillar__title">Management Reporting</h3>
-            <p class="pillar__desc">Управленческий P&amp;L и отчётность: где бизнес зарабатывает и где теряет деньги.</p>
-          </article>
-
-          <!-- Cash Flow & Treasury -->
-          <article class="card pillar reveal" data-reveal-delay="3" tabindex="0">
-            <span class="pillar__line" aria-hidden="true"></span>
-            <div class="pillar__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9.5v-1M12 15.5v-1"/></svg>
-            </div>
-            <h3 class="pillar__title">Cash Flow &amp; Treasury</h3>
-            <p class="pillar__desc">Контроль денег, платёжный календарь, фонды и приоритеты. Без кассовых разрывов.</p>
-          </article>
-
-          <!-- Business Control System -->
-          <article class="card pillar reveal" data-reveal-delay="4" tabindex="0">
-            <span class="pillar__line" aria-hidden="true"></span>
-            <div class="pillar__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            </div>
-            <h3 class="pillar__title">Business Control System</h3>
-            <p class="pillar__desc">P&amp;L, Cash Flow, KPI и платежи — в одной системе управленческого контроля.</p>
-          </article>
-
-          <!-- BI / AI Automation (technology layer) -->
-          <article class="card pillar reveal" data-reveal-delay="5" tabindex="0">
-            <span class="pillar__line" aria-hidden="true"></span>
-            <div class="pillar__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-            </div>
-            <h3 class="pillar__title">BI / AI Automation</h3>
-            <p class="pillar__desc">Технологический слой: Power BI и AI автоматизируют уже выстроенную систему.</p>
-          </article>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ===================================================== Для кого FINMENTOR -->
-    <section class="audience" id="audience">
+        <section class="audience" id="audience">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Для кого</p>
@@ -389,209 +338,39 @@
           <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&amp;L, KPI и платежи живут в разных таблицах</li>
         </ul>
         <div class="audience__cta reveal" data-reveal-delay="2">
-          <a href="questionnaire.html" class="btn btn--primary btn--lg">Узнать, подходит ли мне FINMENTOR</a>
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
         </div>
       </div>
     </section>
 
-    <!-- ============================================================= S5 · CASES -->
-    <section class="cases" id="cases">
+    <section class="sec steps" id="steps">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Кейсы и решения</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Кейсы и решения по направлениям</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Реальные задачи собственников — и как FINMENTOR их решает.</p>
+          <p class="overline reveal">Как мы работаем</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Как работает FINMENTOR — три шага</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">От диагностики к системе контроля и сопровождению. Power&nbsp;BI, AI и автоматизация подключаются только после того, как финансовая логика уже выстроена.</p>
         </div>
-
-        <div class="cases__filters reveal" id="casesFilters" role="tablist" aria-label="Направления кейсов"></div>
-
-        <div class="case-card glass reveal" id="caseCard" role="tabpanel" aria-live="polite" data-reveal-delay="1">
-          <noscript><p style="padding:1rem">Включите JavaScript, чтобы листать кейсы по направлениям.</p></noscript>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================= S5.5 · RESULTS -->
-    <section class="results" id="results">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Результаты</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Что меняется на практике</h2>
-        </div>
-        <div class="results__grid">
-          <article class="result-card reveal" data-reveal-delay="1">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Решения принимались на ощущениях.</p></div>
-            <div class="result-row"><span class="result-row__label">Решение</span><p>Единый контур управления на цифрах.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Решения на данных, а не на интуиции.</p></div>
+        <div class="steps-grid">
+          <article class="step-card reveal">
+            <span class="step-card__num">01</span>
+            <h3 class="step-card__title">Диагностика</h3>
+            <p class="step-card__desc">Понимаем, где деньги, прибыль, обязательства и риски: смотрим Cash Flow, P&amp;L, платежи, дебиторку, кредиторку и качество данных.</p>
           </article>
-          <article class="result-card reveal" data-reveal-delay="2">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Деньги расходовались хаотично.</p></div>
-            <div class="result-row"><span class="result-row__label">Решение</span><p>Казначейство и фондовое планирование.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Контроль денег и кассовых разрывов.</p></div>
+          <article class="step-card reveal" data-reveal-delay="1">
+            <span class="step-card__num">02</span>
+            <h3 class="step-card__title">Система контроля</h3>
+            <p class="step-card__desc">Строим управленческий P&amp;L, Cash Flow, платёжный календарь, KPI, правила платежей и отчётность собственника — единый контур на цифрах.</p>
           </article>
-          <article class="result-card reveal" data-reveal-delay="3">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Бизнес не виден в реальном времени.</p></div>
-            <div class="result-row"><span class="result-row__label">Решение</span><p>Power BI и AI-автоматизация.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Прозрачность и контроль без ручной работы.</p></div>
+          <article class="step-card reveal" data-reveal-delay="2">
+            <span class="step-card__num">03</span>
+            <h3 class="step-card__title">Сопровождение и автоматизация</h3>
+            <p class="step-card__desc">Регулярный CFO-review и контроль решений. Power&nbsp;BI, AI, Make / n8n и Google Sheets подключаются только после того, как финансовая логика построена.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- ============================================================= S6 · ABOUT -->
-    <section class="about" id="about">
-      <div class="container about__grid">
-        <div class="about__portrait reveal">
-          <figure class="portrait">
-            <img class="portrait__img" src="portrait.jpg" width="649" height="812" alt="Геннадий Яковлев — внешний CFO, FINMENTOR" loading="lazy" decoding="async" />
-          </figure>
-        </div>
-
-        <div class="about__body">
-          <p class="overline reveal">Кто стоит за FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Кто стоит за FINMENTOR</h2>
-          <p class="about__lead reveal" data-reveal-delay="2">
-            FINMENTOR — авторская CFO-практика Геннадия Яковлева. В основе подхода — опыт
-            финансового управления, управленческой отчётности, казначейства, инвестиционных
-            моделей, контроля cash flow и построения систем контроля для собственника.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="3">
-            Это не презентация ради презентации, а управленческая финансовая функция: определить
-            логику, выстроить контроль, связать отчётность, казначейство и KPI — и затем
-            автоматизировать. Профессиональный фундамент — подход к качеству отчётности и контролю
-            на уровне Big4&nbsp;/ IFRS.
-          </p>
-
-          <div class="anchor-list reveal" data-reveal-delay="4">
-            <span><b>CFO-подход</b> — функция финансового директора</span>
-            <span>Big4&nbsp;/ IFRS-фундамент</span>
-            <span>Управленческая отчётность</span>
-            <span>Cash flow &amp; treasury control</span>
-            <span>Инвестиционные и операционные модели</span>
-            <span>Несколько юрлиц, проектов и объектов</span>
-          </div>
-
-          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="6" data-ga="click_discovery_call">Обсудить ваш бизнес</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================================================== Что вы получите -->
-    <!-- ===================================================== Доказательства подхода -->
-    <section class="sec" id="proof">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Доказательства подхода</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Доказательства подхода</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR не продаёт абстрактные консультации. Работа строится вокруг конкретных управленческих изменений: где застряли деньги, какие платежи создают риск, какая отчётность нужна собственнику и какие решения принимать регулярно. Без раскрытия клиентов и коммерческих данных.</p>
-        </div>
-        <div class="grid-3 grid-mt">
-          <article class="case-v7 reveal">
-            <span class="case-v7__tag">Анонимный сценарий</span>
-            <h3 class="case-v7__title">Прибыль есть, но денег не хватает</h3>
-            <p class="case-v7__type">Торговая / дистрибуционная компания, несколько направлений продаж</p>
-            <div class="case-v7__row"><span class="case-v7__label">Было</span><p>Прибыль в отчётах, но регулярная нехватка денег; cash flow заморожен в дебиторке и запасах; платежи поставщикам — вручную; нет прогноза на 7/14/30 дней.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Сделали</span><p>Собрали дебиторку, кредиторку, запасы и авансы в одну модель; выделили просрочку и медленные запасы; связали оборотный капитал с Cash Flow и платёжным календарём.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Изменилось</span><p>Стало видно, где застряли деньги; платежи — через приоритеты; собственник видит картину не только по прибыли, но и по cash flow; появилась база для регулярного контроля.</p></div>
-          </article>
-          <article class="case-v7 reveal">
-            <span class="case-v7__tag">Типовая ситуация</span>
-            <h3 class="case-v7__title">Платежи есть каждый день, но приоритетов нет</h3>
-            <p class="case-v7__type">Группа компаний / несколько юрлиц с регулярными обязательствами</p>
-            <div class="case-v7__row"><span class="case-v7__label">Было</span><p>Платежи из разных чатов, файлов и писем; собственник ежедневно решает, кому платить; нет единой очереди и разделения критично / отложить / согласовать; cash gap виден поздно.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Сделали</span><p>Построили платёжный календарь; ввели статусы платежей; разделили по приоритетам; добавили контроль покрытия 7/14/30 дней; задали формат treasury review.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Изменилось</span><p>Платежи перестали быть хаотичным списком; появилась логика «платить / согласовать / отложить»; кассовые риски видны заранее; у команды — понятный процесс.</p></div>
-          </article>
-          <article class="case-v7 reveal">
-            <span class="case-v7__tag">Пример управленческого эффекта</span>
-            <h3 class="case-v7__title">Много файлов, но нет единой картины бизнеса</h3>
-            <p class="case-v7__type">Компания с Excel / 1С / Google Sheets и несколькими источниками данных</p>
-            <div class="case-v7__row"><span class="case-v7__label">Было</span><p>Отчёты собирались вручную; данные расходились между файлами; Power BI — как «красивая визуализация» без управленческой логики; нет единого вида P&amp;L, Cash Flow, дебиторки, платежей и KPI.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Сделали</span><p>Определили нужные собственнику показатели; описали модель данных; выделили источники (1С, Excel, Sheets, CRM, платёжный календарь); подготовили структуру dashboard; при необходимости — выгрузка из 1С с программистом-интегратором.</p></div>
-            <div class="case-v7__row"><span class="case-v7__label">Изменилось</span><p>Dashboard стал управленческим инструментом, а не набором графиков; собственник видит деньги, прибыль, риски и отклонения в одной логике; Power BI — продолжение системы, а не игрушка.</p></div>
-          </article>
-        </div>
-        <p class="case-disclaimer reveal">Все примеры описывают типовые управленческие ситуации без раскрытия клиента и коммерческих данных. В похожих проектах эффект обычно проявляется не как один разовый отчёт, а как регулярный контроль дебиторки, запасов и платёжной дисциплины. Конкретный результат зависит от качества данных, дисциплины внедрения, структуры бизнеса и участия команды клиента.</p>
-        <div style="margin-top:var(--sp-6)" class="reveal">
-          <a href="cases.html" class="btn btn--ghost btn--lg" data-ga="click_cases">Все анонимные сценарии</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="deliverables" id="deliverables">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Результат работы</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Что вы получите</h2>
-        </div>
-        <div class="deliverables__grid">
-          <span class="deliverable reveal">Управленческий P&amp;L</span>
-          <span class="deliverable reveal">Cash Flow</span>
-          <span class="deliverable reveal">Платёжный календарь</span>
-          <span class="deliverable reveal">Казначейство</span>
-          <span class="deliverable reveal">Power BI dashboard</span>
-          <span class="deliverable reveal">KPI</span>
-          <span class="deliverable reveal">Контроль отклонений</span>
-          <span class="deliverable reveal">AI-автоматизация отчётности</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================================================== Как проходит работа -->
-    <section class="process" id="process">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Как проходит работа</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Не консультация — а вход в управленческий процесс</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Понятный путь от первой анкеты до автоматизированного контроля бизнеса.</p>
-        </div>
-        <ol class="process__steps">
-          <li class="process__step reveal"><span class="process__num">1</span><div class="process__body"><h3>Анкета</h3><p>Короткая диагностика перед встречей — 10–15 минут.</p></div></li>
-          <li class="process__step reveal" data-reveal-delay="1"><span class="process__num">2</span><div class="process__body"><h3>Диагностика</h3><p>Интервью и экспресс-анализ P&amp;L, Cash Flow и платежей.</p></div></li>
-          <li class="process__step reveal" data-reveal-delay="2"><span class="process__num">3</span><div class="process__body"><h3>Roadmap</h3><p>План действий на 30 / 60 / 90 дней и приоритеты.</p></div></li>
-          <li class="process__step reveal" data-reveal-delay="1"><span class="process__num">4</span><div class="process__body"><h3>Внедрение системы</h3><p>P&amp;L, Cash Flow, казначейство, Power BI, KPI.</p></div></li>
-          <li class="process__step reveal" data-reveal-delay="2"><span class="process__num">5</span><div class="process__body"><h3>Ежемесячный контроль</h3><p>Сопровождение, отклонения и решения на цифрах.</p></div></li>
-          <li class="process__step reveal" data-reveal-delay="3"><span class="process__num">6</span><div class="process__body"><h3>AI / BI автоматизация</h3><p>Отчётность и управленческие сигналы на автопилоте.</p></div></li>
-        </ol>
-        <div class="process__cta reveal">
-          <a href="#consult" class="btn btn--primary btn--lg">Разобрать мой бизнес</a>
-          <a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a>
-          <div class="process__contacts">
-            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
-            <a href="mailto:cfo@finmentor.md">Email</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================= S7 · PACKAGES -->
-    <!-- ===================================================== Discovery Call (entry) -->
-    <section class="sec" id="discovery">
-      <div class="container">
-        <div class="discovery-band reveal">
-          <div class="discovery-band__grid">
-            <div>
-              <span class="discovery-band__badge">Первый шаг · 20–30 минут</span>
-              <h2 class="discovery-band__title">Discovery Call</h2>
-              <p class="discovery-band__text">Короткая вводная встреча, чтобы понять, есть ли смысл в диагностике и какой финансовый контур требует внимания: Cash&nbsp;Flow, P&amp;L, платежи, оборотный капитал, управленческая отчётность или автоматизация. Это квалификационный разговор, а не «бесплатная консультация обо всём».</p>
-              <div class="cta-band__row">
-                <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-                <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Мини-скан за 3 минуты</a>
-                <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Полная диагностика</a>
-              </div>
-            </div>
-            <ul class="discovery-band__list">
-              <li>Понимание, есть ли проблема в системе финансового контроля</li>
-              <li>Первичный взгляд на зону риска</li>
-              <li>Рекомендация следующего шага</li>
-              <li>Без обязательства покупать проект</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="packages" id="solutions">
+<section class="packages" id="solutions">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Решения</p>
@@ -624,7 +403,7 @@
             </div>
             <div class="package__term"><span>Срок</span><strong>1–2 недели</strong></div>
             <p class="package__next"><span class="package__next-label">Дальше</span> Внедрение системы или ежемесячное сопровождение Control Light.</p>
-            <a href="questionnaire.html" class="btn btn--ghost package__cta">Получить диагностику</a>
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Пройти финансовую диагностику</a>
           </article>
 
           <!-- 2 · Внедрение системы — FLAGSHIP -->
@@ -654,299 +433,275 @@
             </div>
             <div class="package__term"><span>Срок</span><strong>1–3 месяца</strong></div>
             <p class="package__next"><span class="package__next-label">Дальше</span> Регулярный CFO-контроль (Monthly) или BI / AI-автоматизация.</p>
-            <a href="#consult" class="btn btn--primary package__cta">Построить систему</a>
+            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Построить CFO-систему</a>
           </article>
 
           <!-- 3 · BI / AI-автоматизация (после построения системы) -->
           <article class="package reveal" data-reveal-delay="3">
             <span class="package__tier">Шаг 3 · Регулярный контроль</span>
             <h3 class="package__name">Monthly CFO Support</h3>
-            <p class="package__goal">Вести систему: контроль денег, прибыли, рисков, платежей и&nbsp;решений.</p>
+            <p class="package__goal">Базовый <strong>light-формат</strong> регулярной CFO-дисциплины: обзор ключевых цифр и короткий список действий.</p>
             <p class="package__price">от 750 € / мес</p>
             <div class="package__section">
               <span class="package__label">Что входит</span>
               <ul class="package__list">
-                <li>Ежемесячный управленческий отчёт</li>
-                <li>Контроль cash flow и платежей</li>
-                <li>KPI и план-факт анализ</li>
-                <li>Контроль дебиторки и кредиторки</li>
-                <li>Решения по рискам и отклонениям</li>
-                <li>Сопровождение как внешний CFO</li>
+                <li>1 CFO-встреча в месяц (60–90 минут)</li>
+                <li>Обзор ключевых финансовых показателей</li>
+                <li>Короткий список управленческих действий (action&nbsp;list)</li>
+                <li>Базовый контроль отклонений</li>
               </ul>
             </div>
             <div class="package__section">
               <span class="package__label">Результат</span>
-              <p class="package__result">Бизнес под регулярным финансовым контролем: собственник видит деньги, прибыль и риски каждый месяц.</p>
+              <p class="package__result">Регулярная управленческая дисциплина в лёгком формате — объём встреч и часов фиксируется заранее.</p>
             </div>
             <div class="package__term"><span>Формат</span><strong>Ежемесячно</strong></div>
-            <p class="package__next"><span class="package__next-label">Дополнительно</span> модули: BI/AI-автоматизация, Treasury, Working Capital.</p>
+            <p class="package__next"><span class="package__next-label">Отдельно</span> Расширенное сопровождение, дополнительные встречи, контроль Cash&nbsp;Flow / P&amp;L / платежей и dashboard-review — форматы Standard и Premium рассчитываются после диагностики.</p>
             <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Обсудить сопровождение</a>
           </article>
         </div>
 
-        <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных.</p>
+        <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
         <div class="packages__cta reveal">
           <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
         </div>
       </div>
     </section>
-
-    <!-- ===================================================== Ежемесячное сопровождение -->
-    <section class="monthly" id="monthly">
+<section class="sec" id="modules">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Ежемесячное сопровождение</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Ежемесячное сопровождение FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">После диагностики или внедрения системы FINMENTOR сопровождает бизнес ежемесячно: анализирует цифры, контролирует отклонения и помогает собственнику принимать решения и развивать систему управления.</p>
+          <p class="overline reveal">Дополнительно · после диагностики</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Экспертные модули FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Можно начать с диагностики, а затем подключить к любому пакету конкретный модуль под вашу задачу: платежи, товары, поставщиков, маржу, dashboard или автоматизацию.</p>
         </div>
-        <div class="monthly__grid">
-          <article class="monthly-card reveal" data-reveal-delay="1">
-            <h3 class="monthly-card__name">Control Light</h3>
-            <p class="monthly-card__price"><span class="package__price-from">от</span> 750 € <span class="monthly-card__per">/ месяц</span></p>
-            <p class="monthly-card__for"><span class="package__for-label">Для кого</span> Малому бизнесу или после диагностики — когда нужна регулярная управленческая дисциплина.</p>
-            <span class="package__label">Что входит</span>
-            <ul class="package__list">
-              <li>1 управленческая встреча в месяц</li>
-              <li>Анализ P&amp;L / Cash Flow</li>
-              <li>Контроль 5–7 ключевых KPI</li>
-              <li>Список отклонений</li>
-              <li>Рекомендации на следующий месяц</li>
-            </ul>
-            <a href="#consult" class="btn btn--ghost monthly-card__cta">Обсудить сопровождение</a>
+        <div class="module-grid">
+          <article class="module-card reveal">
+            <span class="module-card__num">01</span>
+            <h3 class="module-card__title">Treasury &amp; Payment Discipline</h3>
+            <p class="module-card__desc">Система управления платежами: деньги получают назначение, приоритет и правила — платёж проходит, только если есть покрытие.</p>
+            <ul class="module-card__list"><li>Фонды и метафонды</li><li>Приоритеты P0–P5 и Payment Waterfall</li><li>Покрытие 7/14/30 и Funding Gap</li><li>Статусы и блокировки платежей</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Проверить платёжную дисциплину <span>&rarr;</span></a>
           </article>
-
-          <article class="monthly-card monthly-card--featured reveal" data-reveal-delay="2">
-            <h3 class="monthly-card__name">CFO Control Partner</h3>
-            <p class="monthly-card__price"><span class="package__price-from">от</span> 1 500 € <span class="monthly-card__per">/ месяц</span></p>
-            <p class="monthly-card__for"><span class="package__for-label">Для кого</span> Собственнику, которому нужен внешний CFO-партнёр без найма в штат.</p>
-            <span class="package__label">Что входит</span>
-            <ul class="package__list">
-              <li>2–4 встречи в месяц</li>
-              <li>Ежемесячный управленческий отчёт</li>
-              <li>Контроль платежей и cash flow</li>
-              <li>Анализ прибыли</li>
-              <li>Контроль дебиторки / кредиторки</li>
-              <li>KPI dashboard</li>
-              <li>План-факт анализ</li>
-              <li>Решения по рискам</li>
-              <li>Сопровождение как внешний CFO</li>
-            </ul>
-            <p class="monthly-card__note">Для сложных групп компаний — индивидуально.</p>
-            <a href="#consult" class="btn btn--primary monthly-card__cta">Обсудить сопровождение</a>
+          <article class="module-card reveal">
+            <span class="module-card__num">02</span>
+            <h3 class="module-card__title">Fund Planning &amp; Payment Waterfall</h3>
+            <p class="module-card__desc">Собственник видит не остаток на счёте, а реальную платёжную способность: какие деньги свободны, а какие уже зарезервированы.</p>
+            <ul class="module-card__list"><li>Какие деньги действительно свободны</li><li>Что уже закреплено за обязательствами</li><li>Что оплатить, отложить или заблокировать</li><li>Правила покрытия и разблокировки</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Внедрить водопад платежей <span>&rarr;</span></a>
           </article>
-
-          <article class="monthly-card reveal" data-reveal-delay="3">
-            <h3 class="monthly-card__name">CFO AI Control</h3>
-            <p class="monthly-card__price"><span class="package__price-from">от</span> 3 500 € <span class="monthly-card__per">/ месяц</span></p>
-            <p class="monthly-card__for"><span class="package__for-label">Для кого</span> Бизнесу, которому нужен регулярный контроль, автоматизация и AI / BI.</p>
-            <span class="package__label">Что входит</span>
-            <ul class="package__list">
-              <li>Всё из CFO Control Partner</li>
-              <li>AI-автоматизация отчётности</li>
-              <li>Автоматические уведомления</li>
-              <li>Telegram / email alerts</li>
-              <li>Power BI monitoring</li>
-              <li>Make / n8n сценарии</li>
-              <li>Еженедельный бизнес-бриф</li>
-              <li>Контроль финансовой дисциплины</li>
-              <li>Стратегическая сессия с собственником</li>
-            </ul>
-            <a href="#consult" class="btn btn--ghost monthly-card__cta">Обсудить сопровождение</a>
+          <article class="module-card reveal">
+            <span class="module-card__num">03</span>
+            <h3 class="module-card__title">SKU Cash Flow Analysis</h3>
+            <p class="module-card__desc">Закупки и ассортимент перестают оцениваться по выручке: видно, какие товары создают деньги, а какие замораживают оборотный капитал.</p>
+            <ul class="module-card__list"><li>FCF по каждому SKU</li><li>Товары — cash destroyers</li><li>DPO / DSO и склад</li><li>Где маркетинг и fixed costs съедают вклад</li></ul>
+            <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">Проверить FCF по товарам <span>&rarr;</span></a>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===================================================== Удалённая работа -->
-    <!-- ===================================================== Дополнительные модули -->
-    <section class="sec" id="modules">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">После фундамента</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Дополнительные модули</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Подключаются после того, как построена финансовая логика и работает система контроля.</p>
-        </div>
-        <div class="grid-3 grid-mt">
-          <article class="remote-card reveal"><h3 class="remote-card__title">Power BI dashboard</h3><p>Управленческий dashboard собственника на основе корректных данных.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><h3 class="remote-card__title">BI / AI Automation Module</h3><p>AI-брифинг и автоматизация отчётности — после финансового фундамента.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><h3 class="remote-card__title">Treasury System</h3><p>Фонды, приоритеты платежей и контроль ликвидности.</p></article>
-          <article class="remote-card reveal"><h3 class="remote-card__title">Working Capital Sprint</h3><p>Поиск замороженных денег в дебиторке, запасах и авансах.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><h3 class="remote-card__title">1С → Power BI integration</h3><p>Корректная выгрузка и связка данных из 1С с управленческой моделью.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><h3 class="remote-card__title">Investment / CAPEX models</h3><p>Инвестиционные модели, CAPEX и сценарии финансирования.</p></article>
+          <article class="module-card reveal">
+            <span class="module-card__num">04</span>
+            <h3 class="module-card__title">Supplier Rating &amp; Procurement Control</h3>
+            <p class="module-card__desc">Закупки выбирают поставщика не по цене, а по полной финансовой логике: цена, DPO, Cash Flow, НДС, возвраты и риск.</p>
+            <ul class="module-card__list"><li>Рейтинг поставщика по коэффициентам</li><li>Цена, DPO, НДС, возвраты, сроки</li><li>Выбор под приоритет компании</li><li>Влияние на маржу и Cash Flow</li></ul>
+            <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">Проверить закупки и поставщиков <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">05</span>
+            <h3 class="module-card__title">Margin Factor Analysis</h3>
+            <p class="module-card__desc">Понятно не только что маржа выросла или упала, но и почему — и что с этим делать дальше.</p>
+            <ul class="module-card__list"><li>Факторы: цена, количество, mix, себестоимость</li><li>Флаги риска по каждому фактору</li><li>Промо, скидки и stock-out</li><li>Сезонность и качество данных</li></ul>
+            <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">Проверить маржу бизнеса <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">06</span>
+            <h3 class="module-card__title">Working Capital Control</h3>
+            <p class="module-card__desc">Поиск замороженных денег: где застряла ликвидность в дебиторке, запасах и авансах — и как сократить денежный цикл.</p>
+            <ul class="module-card__list"><li>Дебиторка, кредиторка, запасы</li><li>DSO, DPO, Inventory Days</li><li>Денежный цикл (CCC)</li><li>Источники замороженных денег</li></ul>
+            <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">Проверить оборотный капитал <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">07</span>
+            <h3 class="module-card__title">Power BI Owner Dashboard</h3>
+            <p class="module-card__desc">Собственник получает ежедневную панель: где деньги, где маржа, какие платежи заблокированы и где возникнет Funding Gap.</p>
+            <ul class="module-card__list"><li>Деньги, маржа, Cash Flow</li><li>Платежи и Funding Gap</li><li>FCF по SKU, закупки, поставщики</li><li>Ключевые флаги риска в одной панели</li></ul>
+            <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">Собрать dashboard собственника <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">08</span>
+            <h3 class="module-card__title">n8n / Make CFO Automation</h3>
+            <p class="module-card__desc">Меньше ручной работы: заявки, согласования, уведомления, обновление данных и ежедневные отчёты работают автоматически.</p>
+            <ul class="module-card__list"><li>Заявки и approval flow</li><li>Уведомления в Telegram / email</li><li>Интеграции Sheets / ERP / CRM / Power BI</li><li>Daily reports и alerts по рискам</li></ul>
+            <a href="questionnaire.html?topic=automation" class="module-card__cta" data-ga="click_module_automation">Автоматизировать CFO-процессы <span>&rarr;</span></a>
+          </article>
         </div>
         <p class="module-note">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
-      </div>
-    </section>
-
-    <!-- ===================================================== Удалёнка / безопасность -->
-    <section class="sec sec--alt" id="remote">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Доверие</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Удалённая работа, конфиденциальность и безопасность данных</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR может работать удалённо, но процесс строится так, чтобы собственник сохранял контроль над данными, доступами и решениями.</p>
-        </div>
-        <div class="grid-3 grid-mt">
-          <article class="remote-card reveal"><span class="remote-card__tag">01</span><h3 class="remote-card__title">NDA и конфиденциальность</h3><p>По запросу подписывается NDA. Финансовые данные используются только для согласованных задач.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><span class="remote-card__tag">02</span><h3 class="remote-card__title">Минимально необходимый доступ</h3><p>Доступы предоставляются только к тем данным, которые нужны для диагностики или проекта.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><span class="remote-card__tag">03</span><h3 class="remote-card__title">Без управления деньгами без согласования</h3><p>FINMENTOR не проводит платежи и не принимает решения вместо собственника без утверждённого регламента.</p></article>
-          <article class="remote-card reveal"><span class="remote-card__tag">04</span><h3 class="remote-card__title">Прозрачный процесс</h3><p>Встречи, статусы, список задач, контрольные точки и понятные deliverables.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><span class="remote-card__tag">05</span><h3 class="remote-card__title">Данные остаются у клиента</h3><p>Собственник сохраняет контроль над файлами, системами и итоговыми моделями.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2" style="display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:var(--sp-3)"><p style="color:var(--text-secondary);line-height:1.55">Спокойный, контролируемый формат удалённой работы.</p><a href="#consult" class="btn btn--primary" data-ga="click_discovery_call">Обсудить безопасный формат</a></article>
+        <div class="choose">
+          <h3 class="choose__title">Как выбрать, с чего начать</h3>
+          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
         </div>
       </div>
     </section>
-
-
-    <!-- ===================================================== Методология (тизер) -->
-    <section class="sec" id="methodology-teaser">
+    <section class="proof-cases" id="cases">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Методология</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Методология FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Система строится по четырём опорам — от контроля денег к автоматизации. Сначала финансовая логика, потом инструменты.</p>
+          <p class="overline reveal">Доказательства</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Как это выглядит на практике</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Анонимные сценарии собственников и что меняет FINMENTOR. Без выдуманных цифр и гарантий — только логика работы.</p>
         </div>
-        <div class="grid-4 grid-mt">
-          <article class="remote-card reveal"><span class="remote-card__tag">01</span><h3 class="remote-card__title">Деньги и Cash Flow</h3><p>Контроль реальных денег, ликвидности и кассовых разрывов.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="1"><span class="remote-card__tag">02</span><h3 class="remote-card__title">Прибыль и управленческий P&amp;L</h3><p>Где бизнес зарабатывает и где теряет деньги — по направлениям.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="2"><span class="remote-card__tag">03</span><h3 class="remote-card__title">Казначейство и платёжная дисциплина</h3><p>Приоритеты платежей, фонды и контроль исполнения.</p></article>
-          <article class="remote-card reveal" data-reveal-delay="3"><span class="remote-card__tag">04</span><h3 class="remote-card__title">Автоматизация после фундамента</h3><p>Power BI и AI подключаются, когда финансовая логика уже построена.</p></article>
+        <div class="results__grid">
+          <article class="result-card reveal" data-reveal-delay="1">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Прибыль есть, но денег не хватает — деньги застревали в дебиторке, запасах и хаотичных платежах.</p></div>
+            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Cash Flow, реестр ДЗ/КЗ, платёжный календарь и приоритеты платежей.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит кассовый разрыв на 30 дней вперёд и получает план действий.</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="2">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Платежи каждый день, но без приоритетов — решения принимались вручную.</p></div>
+            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Логика покрытия 7/14/30 дней, критичные платежи и порядок согласования.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Платёжная дисциплина вместо ручного режима «кто громче попросил».</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="3">
+            <div class="result-row"><span class="result-row__label">Проблема</span><p>Много Excel, но нет единой картины — прибыль, деньги и обязательства порознь.</p></div>
+            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Структура управленческого P&amp;L, Cash Flow и dashboard собственника.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит прибыль, деньги и обязательства в одной картине.</p></div>
+          </article>
         </div>
-        <div style="margin-top:var(--sp-6)"><a href="methodology.html" class="btn btn--ghost btn--lg" data-ga="click_methodology">Подробнее о методологии</a></div>
+
+        <h3 class="subhead reveal">Что вы получаете</h3>
+        <div class="deliv-grid">
+          <div class="deliv-item reveal"><span><strong>Diagnostic memo</strong> — карта финансовых болей и рисков</span></div>
+          <div class="deliv-item reveal"><span><strong>Risk map</strong> — приоритизация рисков и quick wins</span></div>
+          <div class="deliv-item reveal"><span><strong>Document checklist</strong> — что нужно для диагностики</span></div>
+          <div class="deliv-item reveal"><span><strong>Cash Flow / P&amp;L structure</strong> — управленческая логика</span></div>
+          <div class="deliv-item reveal"><span><strong>Payment calendar logic</strong> — приоритеты и покрытие</span></div>
+          <div class="deliv-item reveal"><span><strong>Action plan</strong> — план на 30 / 60 / 90 дней</span></div>
+          <div class="deliv-item reveal"><span><strong>Owner dashboard concept</strong> — что видит собственник</span></div>
+          <div class="deliv-item reveal"><span><strong>Recommendation</strong> — рекомендуемый формат и пакет</span></div>
+        </div>
+
+        <h3 class="subhead reveal">Пример результата</h3>
+        <div class="sample-grid">
+          <article class="sample-card reveal">
+            <div class="sample-card__bar"><span class="sample-card__name">Diagnostic memo</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--mid"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Боли · риски · первый шаг</span></div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="1">
+            <div class="sample-card__bar"><span class="sample-card__name">Risk map</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--short"></span><span class="sample-line sample-line--mid"></span><span class="sample-chip">Приоритет рисков</span></div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="2">
+            <div class="sample-card__bar"><span class="sample-card__name">Document checklist</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body"><span class="sample-line sample-line--mid"></span><span class="sample-line"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Что подготовить</span></div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="3">
+            <div class="sample-card__bar"><span class="sample-card__name">Owner dashboard</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--mid"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Деньги · маржа · платежи</span></div>
+          </article>
+        </div>
+        <p class="sample-note">Это обезличенные образцы оформления, без реальных данных клиентов. Финальные выводы по вашему бизнесу формируются после диагностики.</p>
       </div>
     </section>
 
-    <!-- ===================================================== Оборотный капитал (ROI-тизер) -->
-    <section class="sec sec--alt" id="working-capital">
+<section class="about" id="about">
+      <div class="container about__grid">
+        <div class="about__portrait reveal">
+          <figure class="portrait">
+            <img class="portrait__img" src="portrait.jpg" width="649" height="812" alt="Геннадий Яковлев — внешний CFO, FINMENTOR" loading="lazy" decoding="async" />
+          </figure>
+        </div>
+
+        <div class="about__body">
+          <p class="overline reveal">Кто стоит за FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Кто стоит за FINMENTOR</h2>
+          <p class="about__lead reveal" data-reveal-delay="2">
+            FINMENTOR — авторская CFO-практика Геннадия Яковлева. В основе подхода — опыт
+            финансового управления, управленческой отчётности, казначейства, инвестиционных
+            моделей, контроля cash flow и построения систем контроля для собственника.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="3">
+            Это не презентация ради презентации, а управленческая финансовая функция: определить
+            логику, выстроить контроль, связать отчётность, казначейство и KPI — и затем
+            автоматизировать. Профессиональный фундамент — подход к качеству отчётности и контролю
+            на уровне Big4&nbsp;/ IFRS.
+          </p>
+
+          <div class="anchor-list reveal" data-reveal-delay="4">
+            <span><b>CFO-подход</b> — функция финансового директора</span>
+            <span>Big4&nbsp;/ IFRS-фундамент</span>
+            <span>Управленческая отчётность</span>
+            <span>Cash flow &amp; treasury control</span>
+            <span>Инвестиционные и операционные модели</span>
+            <span>Несколько юрлиц, проектов и объектов</span>
+          </div>
+
+
+          <div class="trust-links reveal" data-reveal-delay="5">
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot">FINMENTOR Bot</a>
+            <a href="mailto:cfo@finmentor.md" data-ga="click_email">Email</a>
+            <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin">LinkedIn</a>
+            <span class="trust-links__meet">Личная встреча в Кишинёве — по согласованию</span>
+          </div>
+
+          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="6" data-ga="click_discovery_call">Обсудить ваш бизнес</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec sec--alt" id="mini-scan">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">ROI-фокус</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Оборотный капитал: где застряли деньги бизнеса</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Бизнес может показывать прибыль, но не иметь свободных денег, если cash flow застрял в дебиторке, запасах, авансах или неуправляемых условиях оплаты. FINMENTOR помогает увидеть, где деньги заморожены, и связать оборотный капитал с платёжным календарём и Cash Flow.</p>
+          <p class="overline reveal">Лёгкий вход</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Начните с 3-минутного mini-scan</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Ответьте на 9 вопросов и получите предварительный профиль: где могут застревать деньги — в дебиторке, запасах, условиях поставщиков, платёжной дисциплине или отчётности. Это не полноценная диагностика, а первый CFO-triage.</p>
         </div>
         <div class="cta-band" style="margin-top:var(--sp-6)">
           <p class="cta-band__title">Проверьте, где заморожены деньги</p>
-          <p class="cta-band__text">Короткий разбор оборотного капитала: дебиторка, запасы, авансы и денежный цикл — без перегруза формулами.</p>
+          <p class="cta-band__text">Быстрый разбор оборотного капитала: дебиторка, запасы, авансы и денежный цикл — без перегруза формулами. После результата подскажем релевантный материал и следующий шаг.</p>
           <div class="cta-band__row">
-            <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Пройти мини-скан оборотного капитала</a>
-            <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">Подробнее</a>
-            <a href="#consult" class="btn btn--ghost btn--lg" data-ga="click_discovery_call">Discovery Call</a>
+            <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Пройти mini-scan</a>
+            <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">Подробнее об оборотном капитале</a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ===================================================== Стратегические задачи -->
-    <section class="strategic" id="strategic">
+    <section class="sec materials" id="knowledge">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Дополнительно</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Стратегические финансовые задачи собственника</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">После построения базового финансового контроля FINMENTOR может помогать с отдельными стратегическими задачами: инвестиционные модели, CAPEX, недвижимость, оценка проектов, сценарии финансирования и контроль эффективности капитала.</p>
+          <p class="overline reveal">Материалы</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Избранные материалы FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Короткие экспертные разборы для собственника. Полная база раскрывается внутри статей через связанные материалы.</p>
         </div>
-        <div class="strategic__grid">
-          <article class="remote-card reveal" data-reveal-delay="1">
-            <span class="remote-card__tag">01</span>
-            <h3 class="remote-card__title">Investment Models</h3>
-            <p>Инвестиционные модели проектов: денежные потоки, окупаемость и ключевые метрики.</p>
-          </article>
-          <article class="remote-card reveal" data-reveal-delay="2">
-            <span class="remote-card__tag">02</span>
-            <h3 class="remote-card__title">CAPEX Control</h3>
-            <p>Контроль капитальных затрат: бюджет, факт, отклонения и эффективность вложений.</p>
-          </article>
-          <article class="remote-card reveal" data-reveal-delay="3">
-            <span class="remote-card__tag">03</span>
-            <h3 class="remote-card__title">Real Estate / Asset Analysis</h3>
-            <p>Анализ недвижимости и активов: доходность, сценарии и решения по портфелю.</p>
-          </article>
-          <article class="remote-card reveal" data-reveal-delay="4">
-            <span class="remote-card__tag">04</span>
-            <h3 class="remote-card__title">Financing Scenarios</h3>
-            <p>Сценарии финансирования: банк, инвестор, структура и стоимость капитала.</p>
-          </article>
+        <div class="materials-grid">
+          <a class="material-card reveal" href="cash-flow.html"><span class="material-card__tag">Cash Flow &amp; оборотный капитал</span><span class="material-card__title">Почему прибыль не равна деньгам</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="upravlencheskiy-pl.html" data-reveal-delay="1"><span class="material-card__tag">Управленческая отчётность</span><span class="material-card__title">Как собственнику читать P&amp;L</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Фондовое планирование и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="3"><span class="material-card__tag">Закупки и оборотный капитал</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
+        </div>
+        <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
+          <a href="cash-flow.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>
+          <a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a>
         </div>
       </div>
     </section>
 
-    <!-- ============================================================= S7.5 · KNOWLEDGE BASE -->
-    <section class="knowledge" id="knowledge">
-      <div class="knowledge__glow" aria-hidden="true"></div>
+    <section class="sec after" id="after">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">База знаний</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">База знаний FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Практические материалы, шаблоны и аналитика для собственников, которые хотят управлять бизнесом через цифры.</p>
+          <p class="overline reveal">После заявки</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Что происходит после заявки</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Прозрачный процесс без неизвестности — вы понимаете каждый следующий шаг.</p>
         </div>
-
-        <div class="kb-hub__grid">
-          <article class="kb-hub-card reveal" data-reveal-delay="1">
-            <h3 class="kb-hub-card__title">Практические статьи</h3>
-            <div class="kb-hub-card__list">
-              <a href="cases.html">Анонимные сценарии финансового контроля</a>
-              <a href="working-capital-scan.html">Мини-скан оборотного капитала</a>
-              <a href="cash-flow.html">Почему прибыль не равна деньгам</a>
-              <a href="working-capital.html">Оборотный капитал: где застревают деньги</a>
-              <a href="treasury-waterfall.html">Фондовое планирование и водопад платежей</a>
-              <a href="upravlencheskiy-pl.html">Как собственнику читать P&amp;L</a>
-              <a href="platezhnyy-kalendar.html">Платёжный календарь и казначейство</a>
-              <a href="power-bi-dlya-sobstvennika.html">Power BI для собственника</a>
-              <a href="ai-dlya-cfo.html">AI для CFO</a>
-            </div>
-            <div class="kb-hub-card__cta"><a href="cash-flow.html" class="btn btn--ghost">Читать статьи</a></div>
-          </article>
-
-          <article class="kb-hub-card reveal" data-reveal-delay="2">
-            <h3 class="kb-hub-card__title">Шаблоны и инструменты</h3>
-            <div class="kb-hub-card__list">
-              <a href="templates.html">P&amp;L template</a>
-              <a href="templates.html">Cash Flow template</a>
-              <a href="templates.html">Payment Calendar</a>
-              <a href="templates.html">KPI Dashboard</a>
-              <a href="templates.html">Treasury Fund Planning</a>
-            </div>
-            <div class="kb-hub-card__cta"><a href="templates.html" class="btn btn--ghost">Запросить шаблон</a></div>
-          </article>
-
-          <article class="kb-hub-card reveal" data-reveal-delay="3">
-            <h3 class="kb-hub-card__title">Диагностика и план действий</h3>
-            <p class="kb-hub-card__text">Если вы не знаете, с чего начать, заполните анкету. Ответы помогут определить боли, риски и первый план работы.</p>
-            <div class="kb-hub-card__cta"><a href="questionnaire.html" class="btn btn--primary">Заполнить анкету</a></div>
-          </article>
+        <div class="after-grid">
+          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Вы оставляете <strong>короткий запрос</strong> через mini-scan или FINMENTOR&nbsp;Bot.</p></div>
+          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR смотрит контекст и определяет, <strong>что нужно уточнить</strong>.</p></div>
+          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">На <strong>Discovery Call</strong> обсуждаем бизнес, данные и главную боль.</p></div>
+          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Формируется <strong>список документов</strong> и рекомендуемый формат работы.</p></div>
+          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Финальные выводы и стоимость согласуются <strong>после понимания объёма</strong>.</p></div>
         </div>
-
-        <div class="lead-magnet reveal">
-          <p class="lead-magnet__title">Получите первый шаблон для финансового контроля</p>
-          <p class="lead-magnet__text">Запросите базовый шаблон P&amp;L, Cash Flow или Payment Calendar и получите первый ориентир для наведения порядка в финансах.</p>
-          <div class="lead-magnet__row">
-            <a href="templates.html" class="btn btn--primary btn--lg">Запросить шаблон</a>
-            <a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a>
-            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">FINMENTOR Bot</a>
-          </div>
-        </div>
+        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Важно</span><p>AI может подготовить черновик анализа и ускорить подготовку, но финальные выводы по вашему бизнесу подтверждает человек.</p></div>
       </div>
     </section>
 
-    <!-- ===================================================== Анкета перед встречей -->
-    <section class="pre-meeting" id="pre-meeting">
-      <div class="container">
-        <div class="pre-meeting__card reveal">
-          <div class="pre-meeting__text">
-            <p class="overline">Перед консультацией</p>
-            <h2 class="pre-meeting__title">Короткая диагностика перед встречей</h2>
-            <p class="pre-meeting__lead">Перед первой встречей вы заполняете короткую анкету. Это помогает не тратить время на общие разговоры, а сразу перейти к сути: где теряются деньги, контроль и управляемость.</p>
-            <p class="pre-meeting__meta">Анкета занимает 10–15 минут.</p>
-          </div>
-          <div class="pre-meeting__action">
-            <a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================= S8 · CONSULT -->
-    <section class="consult" id="consult">
+<section class="consult" id="consult">
       <div class="consult__glow" aria-hidden="true"></div>
       <div class="container consult__grid">
         <div class="consult__intro">
@@ -964,7 +719,7 @@
           <div class="contact-strip">
           <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
           <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
-          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
         </div>
         </div>
 
@@ -1006,19 +761,18 @@
     </section>
   </main>
 
-  <!-- ============================================================= S9 · FOOTER -->
   <footer class="footer" id="contacts">
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <a class="logo" href="#top" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <a class="logo" href="#intro" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
           <p class="footer__tagline">От финансового хаоса — к&nbsp;системе управления бизнесом.</p>
           <div class="contact-strip contact-strip--footer">
           <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
           <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
-          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
         </div>
-          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn Геннадия Яковлева" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H20.6v-5.3c0-1.27-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg>
           </a>
         </div>
@@ -1026,7 +780,7 @@
         <nav class="footer__col" aria-label="Подвал — навигация">
           <span class="footer__col-label">Разделы</span>
           <a href="#about">О проекте</a>
-          <a href="#system">Экспертиза</a>
+          <a href="#steps">Как работаем</a>
           <a href="#solutions">Решения</a>
           <a href="#cases">Кейсы</a>
         </nav>
