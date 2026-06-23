@@ -520,3 +520,62 @@ dashboard.
   `working-capital-scan.html`, Discovery (`index.html#consult`).
 - **Contact privacy:** телефон и WhatsApp не возвращались; в footer — email `cfo@finmentor.md` и
   FINMENTOR Bot, как на остальных страницах. RU-only сохранён, ссылок на `/ro/` и `/en/` нет.
+
+## v8.9 — Deep Working Capital Scan (CFO triage)
+
+Мини-скан `working-capital-scan.html` переработан из общего теста в персонализированный CFO-triage.
+Чтобы не трогать общий `main.js`, контейнер переименован в `#wcScanV88` — старый `initWcScan` делает
+ранний выход (ждёт `#wcScan`), а вся новая логика живёт в инлайн-скрипте страницы. Без регистрации,
+без персональных данных, без автоматической отправки наружу; 9 вопросов, результат сразу на странице.
+
+- **Scoring по категориям:** каждый ответ через `data-cat` начисляет баллы в несколько категорий —
+  `ar_score`, `inventory_score`, `ap_score`, `treasury_score`, `reporting_score`, `growth_score`,
+  `urgency_score`, плюс `total_risk_score` и owner-dependency. Общего «одного балла» больше нет.
+- **7 result profiles:** AR Risk / Debtor Trap, Inventory Trap, Supplier Pressure / AP Risk, Treasury
+  Discipline Risk, Reporting Blind Zone, Growth Cash Gap, Mixed Risk / CFO Review. `primary_profile` —
+  это доминирующая категория; если несколько категорий набирают высокий риск и идут вплотную → Mixed.
+- **Персонализированный результат** из блоков: Risk Level (Низкий/Средний/Высокий/Критический),
+  Primary Diagnosis, Why this matters, Where money may be stuck, What to check first, First CFO
+  actions, Recommended FINMENTOR route, CTA. Тексты разные для каждого профиля; тон спокойный
+  («предварительно видно», «вероятная зона риска», «стоит проверить»), без гарантий и драматизации.
+- **Внутренний объект результата** (`scan_type`, `risk_level`, `primary_profile`, `scores{}`,
+  `diagnosis`, `documents_to_check[]`, `first_actions[]`, `recommended_route`, `related_article`,
+  `human_review_required:true`) формируется на странице и используется для copy/share. Наружу не
+  отправляется.
+- **Copy result** копирует персонализированный текст: уровень риска, профиль, диагноз, что проверить,
+  рекомендуемый маршрут, следующий шаг — чтобы отправить в FINMENTOR Bot.
+- **Контекстные статьи «Разобраться глубже»:** после результата показывается 1–3 материала,
+  релевантных профилю (Inventory/AP/Mixed → статья про FCF по SKU `fcf-postavshiki.html`; Reporting →
+  Cash Flow + P&L; Treasury → платёжный календарь + казначейство; AR/Growth → анкета + Cash Flow).
+  Ссылки только на существующие страницы; битых ссылок нет.
+- **GA4 safe events** (без персональных данных): `start_working_capital_scan`,
+  `complete_working_capital_scan`, `copy_working_capital_scan_result`, `click_questionnaire_from_scan`,
+  `click_bot_from_scan`, `click_related_article_from_scan` с параметрами `risk_level`,
+  `primary_profile`, `recommended_route` / `article_slug`. Ответы пользователя как текст не уходят.
+
+## v8.9 — Structured Questionnaire Fields for AI Agents
+
+Чтобы анкета лучше ложилась в FINMENTOR_OS (Client Card, Risk Map, Package Recommendation, Document
+Checklist, Pricing, Work Plan, Proposal Draft), часть свободных текстовых полей заменена на
+структурированные premium choice-варианты с «Другое / свой ответ» и опциональным уточнением.
+Изменён только `questionnaire.html`; v8.6-валидация, `collectAnswersText()`, `collectAnswersJson()`,
+`completion_score`, `uncertainty_fields`, `data_quality_hint`, `data-key` и premium-карточки сохранены.
+
+- **Заменены на выбор:** сфера деятельности (cards + уточнение), компаний в группе, сотрудников,
+  филиалов/объектов/направлений (+ уточнение), кто готовит отчёты (+ уточнение), частота отчётности,
+  время подготовки отчётов; основные статьи расходов — multi-choice (несколько вариантов) +
+  комментарий; финансовый директор/команда — уточнённые варианты. Native select не используется.
+- **Свободным текстом осознанно оставлены** второстепенные поля: имя, компания, контакт, описание
+  главной проблемы своими словами, комментарии и уточнения — где формулировка клиента важнее
+  структуры.
+- **Помощь AI-классификации:** «кто готовит отчёты» и «финансовый директор/команда» → maturity level и
+  accounting/owner-dependency risk; «частота отчётности» и «время подготовки отчётов» → reactive
+  management / process risk; «сфера», «компаний в группе», «сотрудников», «направления», «оборот» →
+  pricing complexity; статьи расходов → структура затрат для риск-карты. Стабильные `data-key`
+  позволяют Make/AI читать ключи, а не русские подписи.
+- **«Другое / свой ответ»** не блокирует отправку (если основной выбор сделан) и сохраняется в
+  соответствующем `*_comment`. **«Не знаю / нужно обсудить»** считается заполненным, но попадает в
+  `uncertainty_fields` и снижает `data_quality_hint`.
+- **«Личная встреча в Кишинёве»** добавлена в блок «Формат встречи» (premium choice), под блоком —
+  note о согласовании после квалификации. Значение попадает в UI, в human-readable text и в JSON как
+  `lead.preferred_meeting_format`. Телефон/WhatsApp не возвращались, RU-only сохранён.
