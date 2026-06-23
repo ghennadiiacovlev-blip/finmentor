@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-94L98WZ12');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Финансирование за счёт поставщиков и FCF по SKU | FINMENTOR</title>
+  <meta name="description" content="CFO-методология анализа FCF по SKU: какие товары создают свободный денежный поток, какие замораживают оборотный капитал, и где операционный цикл финансирует поставщик." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/fcf-postavshiki.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Финансирование за счёт поставщиков и FCF по SKU | FINMENTOR" />
+  <meta property="og:description" content="CFO-методология анализа FCF по SKU: какие товары создают свободный денежный поток, какие замораживают оборотный капитал, и где операционный цикл финансирует поставщик." />
+  <meta property="og:url" content="https://www.finmentor.md/fcf-postavshiki.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="article:author" content="Геннадий Яковлев" />
+  <meta property="article:section" content="Cash Flow / Working Capital" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Финансирование за счёт поставщиков и FCF по SKU | FINMENTOR" />
+  <meta name="twitter:description" content="CFO-методология анализа FCF по SKU: какие товары создают свободный денежный поток, какие замораживают оборотный капитал, и где цикл финансирует поставщик." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Финансирование бизнеса за счёт поставщиков: какие товары реально создают Cash Flow",
+        "description": "CFO-методология анализа FCF по SKU: какие товары создают свободный денежный поток, какие замораживают оборотный капитал, и где операционный цикл финансирует поставщик.",
+        "inLanguage": "ru-RU",
+        "articleSection": "Cash Flow / Working Capital",
+        "author": { "@type": "Person", "name": "Геннадий Яковлев" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "FINMENTOR",
+          "url": "https://www.finmentor.md/",
+          "logo": { "@type": "ImageObject", "url": "https://www.finmentor.md/icon-512.png" }
+        },
+        "mainEntityOfPage": "https://www.finmentor.md/fcf-postavshiki.html",
+        "image": "https://www.finmentor.md/og-image.png?v=81"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/" },
+          { "@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/index.html#knowledge" },
+          { "@type": "ListItem", "position": 3, "name": "Финансирование за счёт поставщиков", "item": "https://www.finmentor.md/fcf-postavshiki.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    /* v8.7 — page-scoped FCF article components (FINMENTOR brand: gold/navy/silver) */
+    .fcf-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 0 var(--sp-5); border: 1px solid var(--glass-border); border-radius: var(--r-md); }
+    .fcf-table-wrap table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 0.9rem; }
+    .fcf-table-wrap--wide table { min-width: 820px; }
+    .fcf-table-wrap th, .fcf-table-wrap td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--glass-border); color: var(--text-secondary); line-height: 1.45; vertical-align: top; }
+    .fcf-table-wrap thead th { background: rgba(255,255,255,0.035); color: var(--text-primary); font-weight: 600; font-size: 0.8rem; white-space: nowrap; }
+    .fcf-table-wrap .num { text-align: right; font-family: var(--font-mono); white-space: nowrap; }
+    .fcf-table-wrap tbody tr:last-child td { border-bottom: 0; }
+    .fcf-table-wrap strong { color: var(--text-primary); }
+
+    .fcf-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: var(--sp-4); margin: var(--sp-5) 0; }
+    .fcf-kpi__card { padding: var(--sp-5); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); min-width: 0; }
+    .fcf-kpi__card--accent { border-color: var(--border-gold); background: linear-gradient(135deg, rgba(201,162,39,0.10), var(--glass-fill)); }
+    .fcf-kpi__lvl { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+    .fcf-kpi__metric { color: var(--text-secondary); font-size: 0.84rem; margin: 6px 0 10px; line-height: 1.45; }
+    .fcf-kpi__val { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+
+    .fcf-formula { font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.7; color: var(--text-primary); background: rgba(255,255,255,0.03); border-left: 3px solid var(--gold-500); border-radius: 0 var(--r-md) var(--r-md) 0; padding: var(--sp-4) var(--sp-5); margin: var(--sp-4) 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .fcf-formula b { color: var(--accent); }
+    .fcf-formula em { color: var(--text-muted); font-style: normal; display: block; margin-top: 8px; font-family: var(--font-sans); font-size: 0.82rem; line-height: 1.55; white-space: normal; }
+
+    .fcf-audit { padding: var(--sp-6); border-radius: var(--r-lg); border: 1px solid var(--border-gold); background: linear-gradient(135deg, rgba(201,162,39,0.07), var(--glass-fill)); margin: var(--sp-5) 0; }
+    .fcf-audit__label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--sp-4); display: block; }
+    .fcf-audit ol { margin: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+    .fcf-audit li { color: var(--text-secondary); line-height: 1.65; padding-left: var(--sp-6); }
+    .fcf-audit li strong { color: var(--text-primary); }
+    .fcf-audit .ok { color: var(--gold-300); }
+
+    .fcf-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: var(--sp-4); margin: var(--sp-5) 0; }
+    .fcf-status__card { padding: var(--sp-5); border-radius: var(--r-lg); border: 1px solid var(--glass-border); background: var(--glass-fill); border-top: 3px solid var(--glass-border); min-width: 0; }
+    .fcf-status__card--green { border-top-color: #3FB950; }
+    .fcf-status__card--blue  { border-top-color: #58A6FF; }
+    .fcf-status__card--amber { border-top-color: #D8B450; }
+    .fcf-status__card--red   { border-top-color: #E5484D; }
+    .fcf-status__dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+    .fcf-status__card--green .fcf-status__dot { background: #3FB950; }
+    .fcf-status__card--blue .fcf-status__dot { background: #58A6FF; }
+    .fcf-status__card--amber .fcf-status__dot { background: #D8B450; }
+    .fcf-status__card--red .fcf-status__dot { background: #E5484D; }
+    .fcf-status__name { font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .fcf-status__desc { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; margin-bottom: 10px; }
+    .fcf-status__action { font-size: 0.84rem; color: var(--text-muted); border-top: 1px solid var(--glass-border); padding-top: 10px; line-height: 1.5; }
+    .fcf-status__action b { color: var(--accent); font-weight: 600; }
+
+    .fcf-bar { margin: var(--sp-4) 0; }
+    .fcf-bar__title { font-size: 0.9rem; color: var(--text-primary); margin-bottom: 8px; }
+    .fcf-bar__title b { color: var(--accent); }
+    .fcf-bar__track { display: flex; height: 28px; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--glass-border); font-size: 0.7rem; font-family: var(--font-mono); }
+    .fcf-bar__supplier { background: rgba(88,166,255,0.32); color: #cfe3ff; display: flex; align-items: center; justify-content: center; min-width: 0; }
+    .fcf-bar__company { background: rgba(229,72,77,0.30); color: #ffd9da; display: flex; align-items: center; justify-content: center; min-width: 0; }
+    .fcf-bar__legend { font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+
+    .doc-hero__cta { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: var(--sp-5); }
+    .fcf-author { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); margin-top: var(--sp-3); }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Навигация">
+        <a href="index.html" class="doc-bar__hide">На главную</a>
+        <a href="index.html#knowledge">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a> / <a href="index.html#knowledge">Материалы</a> / <span>Финансирование за счёт поставщиков</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">FINMENTOR · Cash Flow &amp; Working Capital</p>
+        <h1>Финансирование бизнеса за счёт поставщиков: какие товары реально создают Cash Flow</h1>
+        <p class="doc-hero__lead">Продажи и маржа не равны деньгам. Разбираем на уровне SKU, какие товары создают свободный денежный поток, а какие замораживают оборотный капитал — и где границу финансирует поставщик, а где ваша компания.</p>
+        <p class="fcf-author">Геннадий Яковлев · FINMENTOR — внешний CFO</p>
+        <div class="doc-hero__cta">
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" onclick="gtag('event','click_fcf_article_working_capital_scan')">Проверить оборотный капитал</a>
+          <a href="questionnaire.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_fcf_article_questionnaire')">Заполнить анкету</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section>
+          <h2>Executive Summary</h2>
+          <p>Собственник смотрит на отчёт о продажах и видит выручку, наценку, валовую прибыль. Всё выглядит прибыльным — а денег на счёте всё равно не хватает. Причина почти всегда одна: <strong>товар анализируют по марже, а не по деньгам</strong>. Прибыль на бумаге и свободный денежный поток (FCF) — это разные вещи.</p>
+          <p>Поставщик в этой логике перестаёт быть просто источником товара. С хорошей отсрочкой платежа он становится <strong>источником оборотного капитала</strong>: финансирует часть операционного цикла своими деньгами, пока товар лежит на складе и пока вы ждёте оплату от клиента.</p>
+          <div class="callout"><span class="callout__label">Главная мысль</span><p>Товар превращается из «потребителя» оборотного капитала в источник ликвидности только тогда, когда у него положительный FCF, он покрывает прямые и фиксированные затраты, быстро оборачивается, а отсрочка поставщика (DPO) покрывает операционный цикл.</p></div>
+
+          <h3>KPI-лестница на примере «SKU A»</h3>
+          <div class="fcf-kpi">
+            <div class="fcf-kpi__card"><p class="fcf-kpi__lvl">Уровень 1 · Direct CFSKU</p><p class="fcf-kpi__metric">Деньги после прямых расходов</p><p class="fcf-kpi__val">25 000</p></div>
+            <div class="fcf-kpi__card"><p class="fcf-kpi__lvl">Уровень 2 · after Fixed Costs</p><p class="fcf-kpi__metric">После распределённых фиксированных затрат</p><p class="fcf-kpi__val">21 000</p></div>
+            <div class="fcf-kpi__card"><p class="fcf-kpi__lvl">Уровень 3 · Final FCF SKU</p><p class="fcf-kpi__metric">С учётом цены денежного разрыва</p><p class="fcf-kpi__val">19 000</p></div>
+            <div class="fcf-kpi__card fcf-kpi__card--accent"><p class="fcf-kpi__lvl">Эффект отсрочки</p><p class="fcf-kpi__metric">Supplier Financing Benefit — экономия на финансировании</p><p class="fcf-kpi__val">3 500</p></div>
+          </div>
+          <p>Статус «SKU A» после всех трёх уровней: <strong><span class="fcf-status__dot" style="background:#3FB950"></span>Cash Flow Generator</strong> — денежный донор.</p>
+
+          <h2>Почему продажи и маржа не равны деньгам</h2>
+          <p>За годы работы финансовым директором я видел одну и ту же картину десятки раз. Бизнес растёт, продажи идут, отчёт о прибыли — в плюсе. А кассовый разрыв появляется внезапно, зарплату нечем платить, и собственник в недоумении: «Где деньги, если мы прибыльны?»</p>
+          <p>Ответ почти всегда лежит между двумя строками, которые путают: <strong>прибыль</strong> и <strong>денежный поток</strong>. Прибыль признаётся в момент продажи. Деньги приходят позже — когда клиент оплатит. А уходят раньше — когда вы оплатите поставщику, аренду, зарплату, маркетинг. Между этими событиями деньги заморожены в товаре и в дебиторке. И финансирует эту заморозку либо ваша компания, либо поставщик.</p>
+          <p>Поэтому анализ товара только по марже или наценке опасен. Маржинальный товар может быть «денежным вампиром»: продаётся, приносит наценку в отчёте, но требует рекламы, даёт возвраты, медленно оборачивается и замораживает деньги дольше, чем поставщик готов ждать оплату. Формально — прибыль. Фактически — минус по Cash Flow.</p>
+          <div class="callout"><span class="callout__label">Что собственник должен усвоить первым</span><p>Товар обязан проходить три проверки, а не одну: он должен быть <strong>продаваемым</strong> (видно по обороту), <strong>маржинальным</strong> (видно в P&amp;L) — и <strong>денежным</strong> (видно только в модели FCF по SKU). Третью проверку чаще всего не делают вообще.</p></div>
+
+          <h2>Что такое финансирование за счёт поставщиков</h2>
+          <p>Финансирование за счёт поставщика — это отсрочка платежа (в финансах её называют <strong>DPO</strong>, Days Payable Outstanding — срок, в течение которого вы имеете право не платить поставщику). Пока действует отсрочка, товар уже у вас, вы можете его продавать, но деньги поставщику ещё не ушли. Фактически поставщик кредитует вашу закупку бесплатно — он держит товар на ваших полках за свой счёт.</p>
+          <p>Это и есть бесплатный оборотный капитал. Каждый день отсрочки — это день, когда деньги остаются на вашем счёте, а не в товаре. Чем длиннее отсрочка относительно того, как долго товар лежит на складе и как долго клиент тянет с оплатой, тем большую часть денежного цикла финансирует поставщик, а не вы.</p>
+          <p>Обратная сторона тоже важна. Если поставщик требует предоплату или короткую отсрочку, а товар при этом оборачивается медленно и продаётся в кредит, — финансировать всю эту заморозку придётся вашими деньгами. И это прямая нагрузка на ликвидность, которую в P&amp;L вы не увидите.</p>
+
+          <h2>Почему поставщик — источник оборотного капитала, а не только товара</h2>
+          <p>Большинство закупщиков выбирают поставщика по двум критериям: цена и условия поставки. Это взгляд из P&amp;L. CFO смотрит шире — на <strong>ликвидность</strong>. Поставщик влияет на бизнес не только закупочной ценой (это маржа), но и сроком оплаты (это деньги).</p>
+          <p>Представьте два сценария при одинаковой цене и марже. Поставщик А даёт 45 дней отсрочки. Поставщик Б требует оплату по факту. Маржа одинаковая, P&amp;L одинаковый. Но поставщик А держит ваши деньги на счёте полтора месяца, а поставщик Б вынуждает вас замораживать капитал с первого дня. На масштабе закупок это разница в миллионы лей оборотного капитала — и именно она определяет, будет ли у вас кассовый разрыв.</p>
+          <div class="callout"><span class="callout__label">Ключевой принцип</span><p>Поставщик влияет не на маржу напрямую, а на <strong>ликвидность</strong>. Он может закрыть часть операционного цикла своими деньгами через отсрочку. Хороший DPO — это не скидка, это бесплатное финансирование, и его нужно считать и защищать так же серьёзно, как закупочную цену.</p></div>
+
+          <h2>Почему анализ нужно делать на уровне SKU</h2>
+          <p>SKU (stock keeping unit) — это конкретная товарная позиция. И вот в чём суть: <strong>денежный поток создаётся или уничтожается именно на уровне SKU, а не на уровне компании.</strong> Когда вы смотрите на бизнес целиком, денежные доноры и денежные вампиры усредняются и взаимно маскируются. Компания «в среднем» прибыльна — а внутри половина ассортимента тихо съедает оборотный капитал, который зарабатывает другая половина.</p>
+          <p>Только на уровне SKU видно правду: этот товар финансирует поставщик, а этот — ваши деньги. Этот оборачивается за 20 дней, а этот лежит 90. Этот не требует рекламы, а тот не продаётся без скидки. Управленческие решения — по закупкам, складу, ассортименту, маркетингу — нужно принимать на уровне SKU, потому что именно там лежат деньги.</p>
+
+          <h2>Логика вкладки FCF: что считает модель</h2>
+          <p>В основе подхода — рабочая модель, где по каждому SKU собраны все денежные параметры: выручка, возвраты, себестоимость (COGS), хранение, доставка, маркетинг, расходы на МФО и банк, налоги, средняя кредиторка и дебиторка, сроки оплаты поставщику и от клиента, оборачиваемость запаса. Данных хватает, чтобы посчитать настоящий денежный поток. Но между «есть данные» и «есть корректный результат» лежит методология. Разбирая модель, я нашёл три типичные ошибки, которые превращают «денежный» отчёт в обманчивый.</p>
+          <div class="fcf-audit">
+            <span class="fcf-audit__label">🔎 CFO-аудит: три ошибки, искажающие денежный поток</span>
+            <ol>
+              <li><strong>Маркетинг не вычитается из CFSKU.</strong> В формуле денежного потока пропущена статья «Затраты на маркетинг». Товар, которому для продажи нужна реклама и скидки, показывается как денежный, хотя реклама съедает его вклад. <span class="ok">Правильно:</span> маркетинг, привязанный к SKU, товарной группе, маркетплейсу или кампании, обязан вычитаться из CFSKU.</li>
+              <li><strong>DPO и DSO считаются от перепутанных баз.</strong> В модели DPO посчитан от выручки, а DSO — от себестоимости. Базы нужно поменять местами. <span class="ok">Правильно:</span> DPO = Кредиторка ÷ COGS × 365 (кредиторка относится к закупкам), DSO = Дебиторка ÷ Выручка × 365 (дебиторка относится к продажам). На тех же цифрах это меняет DPO с 18 до 24 дней, а DSO — с 49 до 37.</li>
+              <li><strong>Денежный разрыв сравнивает отсрочку только с оборачиваемостью, игнорируя дебиторку.</strong> Операционный цикл взят как один лишь срок хранения запаса, а период ожидания оплаты (DSO) выпадает. Доля «за счёт поставщика» завышена. <span class="ok">Правильно:</span> отсрочку нужно сравнивать с полным циклом — Inventory Days + DSO.</li>
+            </ol>
+          </div>
+
+          <h2>Уровень 1. Direct CFSKU — и почему маркетинг обязан быть в формуле</h2>
+          <p>Первый уровень — прямой денежный вклад товара: деньги, которые остаются после всех расходов, напрямую относящихся к этому SKU.</p>
+          <div class="fcf-formula"><b>Direct CFSKU</b> = Выручка − Возвраты − COGS − Хранение − Доставка − <b>Маркетинг</b> − Расходы МФО − Банковские комиссии − Налоги − Прочие прямые расходы</div>
+          <p>Если для регулярной продажи товара нужна реклама, скидки или промо — это постоянная стоимость владения этим SKU. Уберите маркетинг из формулы — и товар выглядит прибыльным. Верните — и часто оказывается, что свободного денежного потока он почти не создаёт.</p>
+          <div class="fcf-table-wrap">
+            <table>
+              <thead><tr><th>Показатель</th><th class="num">Без маркетинга</th><th class="num">С маркетингом</th></tr></thead>
+              <tbody>
+                <tr><td>Выручка</td><td class="num">100 000</td><td class="num">100 000</td></tr>
+                <tr><td>Возвраты</td><td class="num">5 000</td><td class="num">5 000</td></tr>
+                <tr><td>COGS</td><td class="num">70 000</td><td class="num">70 000</td></tr>
+                <tr><td>Доставка и хранение</td><td class="num">5 000</td><td class="num">5 000</td></tr>
+                <tr><td>Маркетинг</td><td class="num">0</td><td class="num">12 000</td></tr>
+                <tr><td><strong>Direct CFSKU</strong></td><td class="num"><strong>20 000</strong></td><td class="num"><strong>8 000</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Денежный вклад упал с 20 000 до 8 000 — в 2,5 раза — только потому, что мы честно учли стоимость продвижения. Тот же товар, тот же оборот, но совсем другое управленческое решение. Вот почему маркетинг — обязательная, а не опциональная часть формулы.</p>
+
+          <h2>Уровень 2. Фиксированные затраты и база распределения</h2>
+          <p>Прямые расходы — только первый слой. Бизнес несёт ещё постоянные затраты, не привязанные к конкретному товару, но без которых он не существует: аренда и зарплата склада, отдел продаж, бухгалтерия и финансы, IT и ERP, офис, постоянная команда маркетинга, управленческий overhead. Если SKU создаёт денежный вклад на первом уровне, но не покрывает свою долю инфраструктуры — он живёт за счёт других товаров.</p>
+          <div class="fcf-formula"><b>Allocated Fixed Cost SKU</b> = Total Fixed Cost Pool × (SKU Allocation Base ÷ Total Allocation Base)<br><b>CFSKU after Fixed Costs</b> = Direct CFSKU − Allocated Fixed Costs</div>
+          <div class="fcf-table-wrap">
+            <table>
+              <thead><tr><th>Группа затрат</th><th>База распределения</th><th>Логика</th></tr></thead>
+              <tbody>
+                <tr><td>Склад / аренда склада</td><td>Средний остаток, м³, паллето-дни, стоимость запасов</td><td>Кто занимает склад, тот потребляет складскую инфраструктуру</td></tr>
+                <tr><td>Складской персонал</td><td>Кол-во операций, заказов, SKU-lines, отгрузок</td><td>Больше операций — больше затрат</td></tr>
+                <tr><td>Администрация</td><td>Выручка, валовая прибыль или contribution margin</td><td>Общая поддержка распределяется по масштабу SKU</td></tr>
+                <tr><td>Финансы / бухгалтерия</td><td>Кол-во документов, заказов или выручка</td><td>Больше операций — выше нагрузка на finance</td></tr>
+                <tr><td>IT / CRM / ERP</td><td>Кол-во заказов, SKU-lines или активных SKU</td><td>Расход связан с операционной активностью</td></tr>
+                <tr><td>Постоянный маркетинг</td><td>Доля бюджета, товарная группа, выручка категории</td><td>Команда работает на конкретные категории и каналы</td></tr>
+                <tr><td>Постоянная логистика</td><td>Кол-во отгрузок, вес, объём или заказы</td><td>Расход зависит от операционной нагрузки</td></tr>
+                <tr><td>Management overhead</td><td>Выручка, валовая прибыль или cash contribution</td><td>Overhead распределяется по экономическому вкладу</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout"><span class="callout__label">Главный принцип распределения</span><p>База должна отражать <strong>реальное потребление ресурса</strong>. Для склада берите средний остаток, объём или паллето-дни — не выручку. Иначе компактный дорогой товар получит слишком мало складских затрат, а объёмный дешёвый — слишком много, и весь анализ исказится.</p></div>
+
+          <h2>Уровень 3. Связь FCF с операционным циклом и отсрочкой поставщика</h2>
+          <p>Третий уровень соединяет денежный поток с оборотным капиталом. Здесь появляется поставщик — не как строка в марже, а как тот, кто финансирует часть денежного цикла. Сначала измеряем операционный цикл SKU в днях.</p>
+          <div class="fcf-formula"><b>Operating Cycle Days</b> = Inventory Days + DSO<em>Inventory Days — сколько дней товар лежит на складе до продажи. DSO — сколько дней клиент тянет с оплатой. DPO — сколько дней у вас есть до оплаты поставщику.</em></div>
+          <p>Денежный разрыв — это часть цикла, которую отсрочка поставщика не покрывает:</p>
+          <div class="fcf-formula"><b>Funding Gap Days</b> = Inventory Days + DSO − DPO<em>Funding Gap &gt; 0 → компания финансирует товар своими деньгами. Funding Gap ≤ 0 → поставщик полностью покрывает операционный цикл.</em></div>
+          <div class="callout"><span class="callout__label">Где ошибаются чаще всего</span><p>Нельзя ограничиваться сравнением DPO с DSO — это половина цикла. И нельзя сравнивать DPO только с оборачиваемостью — это другая половина. Сравнивать отсрочку нужно <strong>с полным циклом: Inventory Days + DSO против DPO</strong>.</p></div>
+
+          <h2>Кто финансирует товар: поставщик или ваша компания</h2>
+          <p>Разложим цикл на две части — финансируемую поставщиком и финансируемую вами.</p>
+          <div class="fcf-formula"><b>Own-Funded Gap Days</b> = MAX(0; Inventory Days + DSO − DPO)<br><b>Supplier-Funded Days</b> = MIN(DPO; Inventory Days + DSO)</div>
+          <p>Дальше считаем цену собственного денежного разрыва (по ставке финансирования; в этой модели заложено 8% годовых):</p>
+          <div class="fcf-formula"><b>Financing Cost</b> = Daily COGS × Own-Funded Gap Days × Annual Rate ÷ 365<br><b>Final FCF SKU</b> = CFSKU after Fixed Costs − Financing Cost</div>
+          <div class="fcf-table-wrap">
+            <table>
+              <thead><tr><th>Показатель</th><th class="num">SKU A</th><th class="num">SKU B</th></tr></thead>
+              <tbody>
+                <tr><td>Inventory Days</td><td class="num">30</td><td class="num">60</td></tr>
+                <tr><td>DSO</td><td class="num">10</td><td class="num">20</td></tr>
+                <tr><td>DPO</td><td class="num">45</td><td class="num">15</td></tr>
+                <tr><td>Operating Cycle Days</td><td class="num">40</td><td class="num">80</td></tr>
+                <tr><td>Funding Gap Days</td><td class="num">−5</td><td class="num">65</td></tr>
+                <tr><td>Кто финансирует цикл</td><td>Поставщик</td><td>Компания</td></tr>
+                <tr><td>Управленческий вывод</td><td>Увеличивать закупку</td><td>Пересмотреть условия / снизить запас</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="fcf-bar">
+            <p class="fcf-bar__title"><b>SKU A</b> — цикл 40 дней, DPO 45</p>
+            <div class="fcf-bar__track"><span class="fcf-bar__supplier" style="width:100%">поставщик 100%</span></div>
+            <p class="fcf-bar__legend">Поставщик покрывает весь операционный цикл и оставляет +5 дней запаса ликвидности.</p>
+          </div>
+          <div class="fcf-bar">
+            <p class="fcf-bar__title"><b>SKU B</b> — цикл 80 дней, DPO 15</p>
+            <div class="fcf-bar__track"><span class="fcf-bar__supplier" style="width:18.75%">15 дн</span><span class="fcf-bar__company" style="width:81.25%">компания финансирует 65 из 80 дней</span></div>
+            <p class="fcf-bar__legend">Поставщик закрывает 15 дней, остальные 65 дней цикла компания тянет своими деньгами.</p>
+          </div>
+          <p>SKU A с одинаковой маржой может быть в разы выгоднее SKU B по деньгам — потому что поставщик финансирует весь его цикл, а SKU B компания тянет на себе 65 дней. В P&amp;L эта разница не видна вообще. В FCF по SKU — видна сразу.</p>
+
+          <h2>Supplier Financing Benefit: сколько вы экономите благодаря поставщику</h2>
+          <p>Отсрочку поставщика можно выразить в деньгах — как экономию на финансировании, которое вам иначе пришлось бы привлекать.</p>
+          <div class="fcf-formula"><b>Supplier-Funded Amount</b> = Daily COGS × Supplier-Funded Days<br><b>Supplier Financing Benefit</b> = Supplier-Funded Amount × Annual Rate ÷ 365</div>
+          <div class="callout"><span class="callout__label">Важно не смешать с выручкой</span><p>Supplier Financing Benefit — это <strong>не доход от продажи</strong>. Это экономический эффект отсрочки: сколько компания сэкономила на банковском или собственном финансировании благодаря тому, что поставщик подождал. Эту величину нельзя класть в выручку или в маржу.</p></div>
+          <p>Именно поэтому условия с ключевыми поставщиками — это вопрос казначейства, а не только закупок. Потеря 15 дней отсрочки по крупному поставщику может стоить дороже, чем скидка, ради которой её иногда отдают.</p>
+
+          <h2>Классификация SKU: четыре типа товаров по деньгам</h2>
+          <p>Когда посчитаны все три уровня, каждый SKU попадает в один из четырёх статусов. Это и есть язык, на котором собственник, CFO и закупки принимают решения.</p>
+          <div class="fcf-status">
+            <div class="fcf-status__card fcf-status__card--green"><p class="fcf-status__name"><span class="fcf-status__dot"></span>Cash Flow Generator</p><p class="fcf-status__desc">Денежный донор. Положительный FCF, быстро продаётся, маркетинг не съедает маржу, фиксированные затраты покрыты, поставщик финансирует цикл.</p><p class="fcf-status__action"><b>Решение:</b> увеличивать закупку, держать наличие, защищать условия с поставщиком.</p></div>
+            <div class="fcf-status__card fcf-status__card--blue"><p class="fcf-status__name"><span class="fcf-status__dot"></span>Supplier-Financed SKU</p><p class="fcf-status__desc">Товар на деньгах поставщика. Маржа средняя, но за счёт быстрой оборачиваемости и хорошего DPO товар поддерживает ликвидность.</p><p class="fcf-status__action"><b>Решение:</b> использовать как инструмент оборота, но контролировать маржу и возвраты.</p></div>
+            <div class="fcf-status__card fcf-status__card--amber"><p class="fcf-status__name"><span class="fcf-status__dot"></span>Profit, but Own-Funded</p><p class="fcf-status__desc">Прибыльный, но на ваши деньги. После прямых и фиксированных затрат товар прибыльный, но цикл длиннее отсрочки — компания финансирует его сама.</p><p class="fcf-status__action"><b>Решение:</b> увеличить DPO, снизить остаток, ускорить продажи, пересмотреть закупочный объём.</p></div>
+            <div class="fcf-status__card fcf-status__card--red"><p class="fcf-status__name"><span class="fcf-status__dot"></span>Cash Destroyer</p><p class="fcf-status__desc">Денежный вампир. Отрицательный по Direct CFSKU или Final FCF. Требует маркетинга, даёт возвраты, медленно продаётся, замораживает деньги.</p><p class="fcf-status__action"><b>Решение:</b> остановить закупку, вернуть поставщику, распродать, поднять цену или исключить SKU.</p></div>
+          </div>
+
+          <h2>Как это выглядит в управленческой таблице (FCF by SKU · Dashboard)</h2>
+          <div class="fcf-table-wrap fcf-table-wrap--wide">
+            <table>
+              <thead><tr><th>SKU</th><th class="num">Direct CFSKU</th><th class="num">Fixed Costs</th><th class="num">CFSKU after Fixed</th><th class="num">Financing Cost</th><th class="num">Final FCF</th><th class="num">Supplier Benefit</th><th>Статус</th><th>Решение</th></tr></thead>
+              <tbody>
+                <tr><td>SKU A</td><td class="num">25 000</td><td class="num">4 000</td><td class="num">21 000</td><td class="num">2 000</td><td class="num"><strong>19 000</strong></td><td class="num">3 500</td><td><span class="fcf-status__dot" style="background:#3FB950"></span>Cash Flow Generator</td><td>Увеличить закупку</td></tr>
+                <tr><td>SKU B</td><td class="num">8 000</td><td class="num">6 000</td><td class="num">2 000</td><td class="num">3 000</td><td class="num"><strong>−1 000</strong></td><td class="num">1 200</td><td><span class="fcf-status__dot" style="background:#D8B450"></span>Profit, but Own-Funded</td><td>Пересмотреть DPO / снизить запас</td></tr>
+                <tr><td>SKU C</td><td class="num">−5 397</td><td class="num">3 500</td><td class="num">−8 897</td><td class="num">1 200</td><td class="num"><strong>−10 097</strong></td><td class="num">0</td><td><span class="fcf-status__dot" style="background:#E5484D"></span>Cash Destroyer</td><td>Остановить закупку</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>SKU C здесь — показательный случай из модели: при выручке 20 000 он даёт 50% возвратов, и денежный поток уходит в минус ещё на первом уровне (−5 397), а после фиксированных затрат и стоимости разрыва превращается в −10 097. Маржа в P&amp;L могла выглядеть приемлемо. По деньгам — это прямой убыток ликвидности, который нужно останавливать.</p>
+
+          <h2>Что должен видеть собственник</h2>
+          <ul>
+            <li><strong>Не выручку, а Final FCF по каждому SKU</strong> — сколько живых денег товар оставляет после прямых, фиксированных затрат и цены денежного разрыва.</li>
+            <li><strong>Кто финансирует цикл</strong> — по каждому ключевому SKU это деньги поставщика или ваши, и какова доля «за счёт поставщика».</li>
+            <li><strong>Денежный разрыв в днях</strong> — Funding Gap Days по товару и по группе.</li>
+            <li><strong>Статус каждого товара</strong> — Generator / Supplier-Financed / Own-Funded / Destroyer и решение под каждым.</li>
+            <li><strong>Эффект отсрочки в деньгах</strong> — Supplier Financing Benefit и риск потери условий.</li>
+            <li><strong>Где маркетинг съедает деньги</strong> — SKU, которые без рекламы и скидок не продаются.</li>
+          </ul>
+
+          <h2>Какие решения даёт модель собственнику, CFO и закупкам</h2>
+          <ul>
+            <li><strong>Закупки.</strong> Наращивать объём по Cash Flow Generators, останавливать Cash Destroyers, пересматривать объёмы по Own-Funded товарам.</li>
+            <li><strong>Поставщики.</strong> Защищать и удлинять DPO у ключевых поставщиков; считать стоимость потери отсрочки против скидки; переводить Own-Funded SKU в Supplier-Financed переговорами.</li>
+            <li><strong>Склад.</strong> Снижать остатки и Inventory Days по медленным товарам; распределять складские затраты по объёму и дням хранения.</li>
+            <li><strong>Маркетинг.</strong> Видеть, какие SKU требуют постоянного промо, и считать рекламу как часть денежной стоимости товара.</li>
+            <li><strong>Ассортимент.</strong> Чистить матрицу от денежных вампиров, усиливать доноров, балансировать портфель между маржой и ликвидностью.</li>
+          </ul>
+
+          <h2>Финальный вывод</h2>
+          <p>Продаваемость и маржа — необходимые, но недостаточные условия. Товар должен быть ещё и денежным. А денежным он становится только тогда, когда сходятся четыре вещи: положительный FCF, покрытие прямых и фиксированных затрат, быстрая оборачиваемость и отсрочка поставщика, закрывающая операционный цикл.</p>
+          <p>Поставщик в этой логике — не строка расходов, а источник оборотного капитала. Он превращает товар из потребителя ваших денег в источник ликвидности — но только для тех SKU, которые прошли все три уровня анализа. Остальные нужно лечить или убирать. Считайте товар по деньгам, а не только по марже. Тогда вопрос «где деньги, если мы прибыльны?» перестанет возникать.</p>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Узнать, какие товары создают деньги, а какие их замораживают</p>
+        <p class="cta-band__text">Я выстраиваю модель FCF по SKU вместе с управленческим P&amp;L, Cash Flow и казначейством — чтобы вы видели прибыль, деньги и риски в одной системе. Начнём с разбора вашего оборотного капитала и ассортимента.</p>
+        <div class="cta-band__row">
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" onclick="gtag('event','click_fcf_article_questionnaire')">Заполнить анкету</a>
+          <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer" onclick="gtag('event','click_fcf_article_bot')">Открыть FINMENTOR Bot</a>
+          <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" onclick="gtag('event','click_fcf_article_working_capital_scan')">Проверить оборотный капитал</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Связанные материалы">
+        <p class="related__label">Связанные материалы</p>
+        <div class="related__grid"><a href="working-capital.html">Оборотный капитал</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="working-capital-scan.html">Мини-скан оборотного капитала</a><a href="platezhnyy-kalendar.html">Платёжный календарь</a><a href="methodology.html">Методология FINMENTOR</a></div>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Главная</a>
+        <a href="index.html#knowledge">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR · Moldova / International</span>
+    </div>
+  </footer>
+  <script src="assistant.js"></script>
+</body>
+</html>
