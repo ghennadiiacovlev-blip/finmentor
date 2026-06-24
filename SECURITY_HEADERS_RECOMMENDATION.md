@@ -1,6 +1,6 @@
 # SECURITY_HEADERS_RECOMMENDATION.md
 
-В архиве не найден deploy-конфиг (`_headers`, `netlify.toml`, `vercel.json`, `.htaccess` или Cloudflare Pages config), поэтому заголовки безопасности нужно добавить на уровне хостинга.
+В архив добавлен `_headers` с `Content-Type: text/html; charset=utf-8` для `/`, `/index.html` и `/*.html`, чтобы русские страницы отдавались как UTF-8. Остальные заголовки безопасности рекомендуется добавить или подтвердить на уровне хостинга.
 
 Рекомендуемые безопасные заголовки:
 
