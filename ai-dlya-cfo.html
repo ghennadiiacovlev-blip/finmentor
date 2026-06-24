@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 --><html lang="ru">
@@ -12,23 +12,26 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>AI для CFO — автоматизация отчётности, контроля и аналитики | FINMENTOR</title>
-  <meta name="description" content="Где AI реально помогает финансам: автоматизация отчётов, AI-агенты, Make и n8n, Telegram alerts, а также риски и ограничения." />
+  <title>AI РґР»СЏ CFO вЂ” Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё, РєРѕРЅС‚СЂРѕР»СЏ Рё Р°РЅР°Р»РёС‚РёРєРё | FINMENTOR</title>
+  <meta name="description" content="Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј: Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РѕРІ, AI-Р°РіРµРЅС‚С‹, Make Рё n8n, Telegram alerts, Р° С‚Р°РєР¶Рµ СЂРёСЃРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/ai-dlya-cfo.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="AI для CFO — автоматизация отчётности, контроля и аналитики | FINMENTOR" />
-  <meta property="og:description" content="Где AI реально помогает финансам: автоматизация отчётов, AI-агенты, Make и n8n, Telegram alerts, а также риски и ограничения." />
+  <meta property="og:title" content="AI РґР»СЏ CFO вЂ” Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё, РєРѕРЅС‚СЂРѕР»СЏ Рё Р°РЅР°Р»РёС‚РёРєРё | FINMENTOR" />
+  <meta property="og:description" content="Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј: Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РѕРІ, AI-Р°РіРµРЅС‚С‹, Make Рё n8n, Telegram alerts, Р° С‚Р°РєР¶Рµ СЂРёСЃРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ." />
   <meta property="og:url" content="https://www.finmentor.md/ai-dlya-cfo.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
@@ -36,8 +39,8 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AI для CFO — автоматизация отчётности, контроля и аналитики | FINMENTOR" />
-  <meta name="twitter:description" content="Где AI реально помогает финансам: автоматизация отчётов, AI-агенты, Make и n8n, Telegram alerts, а также риски и ограничения." />
+  <meta name="twitter:title" content="AI РґР»СЏ CFO вЂ” Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё, РєРѕРЅС‚СЂРѕР»СЏ Рё Р°РЅР°Р»РёС‚РёРєРё | FINMENTOR" />
+  <meta name="twitter:description" content="Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј: Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РѕРІ, AI-Р°РіРµРЅС‚С‹, Make Рё n8n, Telegram alerts, Р° С‚Р°РєР¶Рµ СЂРёСЃРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -52,8 +55,8 @@
     {
       "@type": "Article",
       "@id": "https://www.finmentor.md/ai-dlya-cfo.html#article",
-      "headline": "AI для CFO: как автоматизировать финансовое управление",
-      "description": "Где AI реально помогает финансам: автоматизация отчётов, AI-агенты, Make и n8n, Telegram alerts, а также риски и ограничения.",
+      "headline": "AI РґР»СЏ CFO: РєР°Рє Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ С„РёРЅР°РЅСЃРѕРІРѕРµ СѓРїСЂР°РІР»РµРЅРёРµ",
+      "description": "Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј: Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РѕРІ, AI-Р°РіРµРЅС‚С‹, Make Рё n8n, Telegram alerts, Р° С‚Р°РєР¶Рµ СЂРёСЃРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ.",
       "inLanguage": "ru",
       "datePublished": "2026-06-21",
       "dateModified": "2026-06-21",
@@ -80,19 +83,19 @@
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Главная",
+          "name": "Р“Р»Р°РІРЅР°СЏ",
           "item": "https://www.finmentor.md/"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Материалы",
+          "name": "РњР°С‚РµСЂРёР°Р»С‹",
           "item": "https://www.finmentor.md/materials.html"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "AI для CFO",
+          "name": "AI РґР»СЏ CFO",
           "item": "https://www.finmentor.md/ai-dlya-cfo.html"
         }
       ]
@@ -102,26 +105,26 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Где AI реально помогает финансам?",
+          "name": "Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "В автоматизации рутины: сбор и обновление отчётов, уведомления, контроль отклонений, подготовка черновиков и сводок. Это ускоряет работу и освобождает время команды."
+            "text": "Р’ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СЂСѓС‚РёРЅС‹: СЃР±РѕСЂ Рё РѕР±РЅРѕРІР»РµРЅРёРµ РѕС‚С‡С‘С‚РѕРІ, СѓРІРµРґРѕРјР»РµРЅРёСЏ, РєРѕРЅС‚СЂРѕР»СЊ РѕС‚РєР»РѕРЅРµРЅРёР№, РїРѕРґРіРѕС‚РѕРІРєР° С‡РµСЂРЅРѕРІРёРєРѕРІ Рё СЃРІРѕРґРѕРє. Р­С‚Рѕ СѓСЃРєРѕСЂСЏРµС‚ СЂР°Р±РѕС‚Сѓ Рё РѕСЃРІРѕР±РѕР¶РґР°РµС‚ РІСЂРµРјСЏ РєРѕРјР°РЅРґС‹."
           }
         },
         {
           "@type": "Question",
-          "name": "Можно ли доверять AI финансовые решения?",
+          "name": "РњРѕР¶РЅРѕ Р»Рё РґРѕРІРµСЂСЏС‚СЊ AI С„РёРЅР°РЅСЃРѕРІС‹Рµ СЂРµС€РµРЅРёСЏ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "AI помогает готовить данные и выводы, но финальные управленческие решения остаются за человеком. Доверять автоматике стоит там, где данные и процессы проверяемы и под контролем."
+            "text": "AI РїРѕРјРѕРіР°РµС‚ РіРѕС‚РѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ Рё РІС‹РІРѕРґС‹, РЅРѕ С„РёРЅР°Р»СЊРЅС‹Рµ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ СЂРµС€РµРЅРёСЏ РѕСЃС‚Р°СЋС‚СЃСЏ Р·Р° С‡РµР»РѕРІРµРєРѕРј. Р”РѕРІРµСЂСЏС‚СЊ Р°РІС‚РѕРјР°С‚РёРєРµ СЃС‚РѕРёС‚ С‚Р°Рј, РіРґРµ РґР°РЅРЅС‹Рµ Рё РїСЂРѕС†РµСЃСЃС‹ РїСЂРѕРІРµСЂСЏРµРјС‹ Рё РїРѕРґ РєРѕРЅС‚СЂРѕР»РµРј."
           }
         },
         {
           "@type": "Question",
-          "name": "Какие процессы можно автоматизировать первыми?",
+          "name": "РљР°РєРёРµ РїСЂРѕС†РµСЃСЃС‹ РјРѕР¶РЅРѕ Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ РїРµСЂРІС‹РјРё?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Сбор отчётов, обновление дашбордов, уведомления о платежах и отклонениях, интеграции между 1С, Sheets, CRM и BI. Это даёт быстрый эффект при низком риске."
+            "text": "РЎР±РѕСЂ РѕС‚С‡С‘С‚РѕРІ, РѕР±РЅРѕРІР»РµРЅРёРµ РґР°С€Р±РѕСЂРґРѕРІ, СѓРІРµРґРѕРјР»РµРЅРёСЏ Рѕ РїР»Р°С‚РµР¶Р°С… Рё РѕС‚РєР»РѕРЅРµРЅРёСЏС…, РёРЅС‚РµРіСЂР°С†РёРё РјРµР¶РґСѓ 1РЎ, Sheets, CRM Рё BI. Р­С‚Рѕ РґР°С‘С‚ Р±С‹СЃС‚СЂС‹Р№ СЌС„С„РµРєС‚ РїСЂРё РЅРёР·РєРѕРј СЂРёСЃРєРµ."
           }
         }
       ]
@@ -133,11 +136,11 @@
 <body>
   <header class="doc-bar">
     <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Навигация">
-        <a href="index.html" class="doc-bar__hide">На главную</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+      <a class="logo" href="index.html" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="РќР°РІРёРіР°С†РёСЏ">
+        <a href="index.html" class="doc-bar__hide">РќР° РіР»Р°РІРЅСѓСЋ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
         <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
       </nav>
     </div>
@@ -145,61 +148,61 @@
 
   <main>
     <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>AI для CFO</span>
+      <nav class="crumbs" aria-label="РҐР»РµР±РЅС‹Рµ РєСЂРѕС€РєРё">
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a> / <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a> / <span>AI РґР»СЏ CFO</span>
       </nav>
     </div>
 
     <section class="doc-hero">
       <div class="container">
-        <p class="doc-hero__eyebrow">База знаний · AI Automation</p>
-        <h1>AI для CFO: как автоматизировать финансовое управление</h1>
-        <p class="doc-hero__lead">AI и автоматизация снимают с команды рутину: сбор отчётов, уведомления, контроль отклонений. Но доверять системе решения можно только там, где данные и процессы под контролем.</p>
-        <p class="doc-hero__context">AI — инструмент автоматизации после построения финансового фундамента.</p>
+        <p class="doc-hero__eyebrow">Р‘Р°Р·Р° Р·РЅР°РЅРёР№ В· AI Automation</p>
+        <h1>AI РґР»СЏ CFO: РєР°Рє Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ С„РёРЅР°РЅСЃРѕРІРѕРµ СѓРїСЂР°РІР»РµРЅРёРµ</h1>
+        <p class="doc-hero__lead">AI Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ СЃРЅРёРјР°СЋС‚ СЃ РєРѕРјР°РЅРґС‹ СЂСѓС‚РёРЅСѓ: СЃР±РѕСЂ РѕС‚С‡С‘С‚РѕРІ, СѓРІРµРґРѕРјР»РµРЅРёСЏ, РєРѕРЅС‚СЂРѕР»СЊ РѕС‚РєР»РѕРЅРµРЅРёР№. РќРѕ РґРѕРІРµСЂСЏС‚СЊ СЃРёСЃС‚РµРјРµ СЂРµС€РµРЅРёСЏ РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ С‚Р°Рј, РіРґРµ РґР°РЅРЅС‹Рµ Рё РїСЂРѕС†РµСЃСЃС‹ РїРѕРґ РєРѕРЅС‚СЂРѕР»РµРј.</p>
+        <p class="doc-hero__context">AI вЂ” РёРЅСЃС‚СЂСѓРјРµРЅС‚ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё РїРѕСЃР»Рµ РїРѕСЃС‚СЂРѕРµРЅРёСЏ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ С„СѓРЅРґР°РјРµРЅС‚Р°.</p>
       </div>
     </section>
 
     <div class="container">
       <article class="doc">
         <section>
-          <h2>Где AI реально помогает финансам</h2>
-          <p>AI и автоматизация дают наибольший эффект не в «принятии решений за собственника», а в устранении рутины и ускорении контроля. Это освобождает время команды для управленческой работы.</p>
-          <h2>Автоматизация отчётов</h2>
-          <p>Сбор данных из разных источников, обновление дашбордов, формирование регулярных отчётов и брифов — всё это можно автоматизировать. Отчётность перестаёт зависеть от того, успел ли кто-то собрать цифры вручную.</p>
-          <h2>AI-агенты, Make и n8n</h2>
-          <ul><li><strong>Make / n8n</strong> — сценарии, которые соединяют системы: 1С, Google Sheets, CRM, BI и мессенджеры.</li><li><strong>AI-агенты</strong> — помощники, которые готовят черновики отчётов, выводы и сводки по данным.</li><li><strong>Интеграции</strong> — автоматический обмен данными вместо ручного переноса.</li><li><strong>Контроль отклонений</strong> — система сама замечает аномалии и сообщает о них.</li></ul>
-          <h2>Telegram и email alerts</h2>
-          <p>Управленческие сигналы приходят туда, где собственник их увидит: уведомление о кассовом разрыве, превышении лимита, просрочке или отклонении от плана. Контроль становится проактивным, а не «по факту в конце месяца».</p>
-          <div class="cta-band"><p class="cta-band__title">Автоматизируйте финансовый контроль</p><p class="cta-band__text">Обсудите CFO AI Transformation или заполните анкету — на её основе готовится план автоматизации.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить CFO AI Transformation</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
-          <h2>Риски и ограничения</h2>
-          <p>Автоматизация усиливает то, что уже есть. Если процессы и данные в порядке — она даёт скорость и контроль. Если нет — автоматизируется хаос. Поэтому важно соблюдать порядок:</p>
-          <ul><li>Сначала управленческий учёт и единый источник данных, потом автоматизация.</li><li>AI готовит данные и черновики — финальные решения остаются за человеком.</li><li>Доступы и конфиденциальность данных контролируются на каждом шаге.</li><li>Каждый автоматический сценарий должен быть понятен и проверяем.</li></ul>
-          <div class="callout"><span class="callout__label">Мини-пример</span><p>Команда тратила много времени на ручной сбор еженедельных отчётов. После настройки сценариев автоматизации и Telegram-уведомлений отчёты стали приходить сами, а время освободилось на анализ и решения.</p></div>
+          <h2>Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј</h2>
+          <p>AI Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РґР°СЋС‚ РЅР°РёР±РѕР»СЊС€РёР№ СЌС„С„РµРєС‚ РЅРµ РІ В«РїСЂРёРЅСЏС‚РёРё СЂРµС€РµРЅРёР№ Р·Р° СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°В», Р° РІ СѓСЃС‚СЂР°РЅРµРЅРёРё СЂСѓС‚РёРЅС‹ Рё СѓСЃРєРѕСЂРµРЅРёРё РєРѕРЅС‚СЂРѕР»СЏ. Р­С‚Рѕ РѕСЃРІРѕР±РѕР¶РґР°РµС‚ РІСЂРµРјСЏ РєРѕРјР°РЅРґС‹ РґР»СЏ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕР№ СЂР°Р±РѕС‚С‹.</p>
+          <h2>РђРІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РѕС‚С‡С‘С‚РѕРІ</h2>
+          <p>РЎР±РѕСЂ РґР°РЅРЅС‹С… РёР· СЂР°Р·РЅС‹С… РёСЃС‚РѕС‡РЅРёРєРѕРІ, РѕР±РЅРѕРІР»РµРЅРёРµ РґР°С€Р±РѕСЂРґРѕРІ, С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ СЂРµРіСѓР»СЏСЂРЅС‹С… РѕС‚С‡С‘С‚РѕРІ Рё Р±СЂРёС„РѕРІ вЂ” РІСЃС‘ СЌС‚Рѕ РјРѕР¶РЅРѕ Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ. РћС‚С‡С‘С‚РЅРѕСЃС‚СЊ РїРµСЂРµСЃС‚Р°С‘С‚ Р·Р°РІРёСЃРµС‚СЊ РѕС‚ С‚РѕРіРѕ, СѓСЃРїРµР» Р»Рё РєС‚Рѕ-С‚Рѕ СЃРѕР±СЂР°С‚СЊ С†РёС„СЂС‹ РІСЂСѓС‡РЅСѓСЋ.</p>
+          <h2>AI-Р°РіРµРЅС‚С‹, Make Рё n8n</h2>
+          <ul><li><strong>Make / n8n</strong> вЂ” СЃС†РµРЅР°СЂРёРё, РєРѕС‚РѕСЂС‹Рµ СЃРѕРµРґРёРЅСЏСЋС‚ СЃРёСЃС‚РµРјС‹: 1РЎ, Google Sheets, CRM, BI Рё РјРµСЃСЃРµРЅРґР¶РµСЂС‹.</li><li><strong>AI-Р°РіРµРЅС‚С‹</strong> вЂ” РїРѕРјРѕС‰РЅРёРєРё, РєРѕС‚РѕСЂС‹Рµ РіРѕС‚РѕРІСЏС‚ С‡РµСЂРЅРѕРІРёРєРё РѕС‚С‡С‘С‚РѕРІ, РІС‹РІРѕРґС‹ Рё СЃРІРѕРґРєРё РїРѕ РґР°РЅРЅС‹Рј.</li><li><strong>РРЅС‚РµРіСЂР°С†РёРё</strong> вЂ” Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ РѕР±РјРµРЅ РґР°РЅРЅС‹РјРё РІРјРµСЃС‚Рѕ СЂСѓС‡РЅРѕРіРѕ РїРµСЂРµРЅРѕСЃР°.</li><li><strong>РљРѕРЅС‚СЂРѕР»СЊ РѕС‚РєР»РѕРЅРµРЅРёР№</strong> вЂ” СЃРёСЃС‚РµРјР° СЃР°РјР° Р·Р°РјРµС‡Р°РµС‚ Р°РЅРѕРјР°Р»РёРё Рё СЃРѕРѕР±С‰Р°РµС‚ Рѕ РЅРёС….</li></ul>
+          <h2>Telegram Рё email alerts</h2>
+          <p>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ СЃРёРіРЅР°Р»С‹ РїСЂРёС…РѕРґСЏС‚ С‚СѓРґР°, РіРґРµ СЃРѕР±СЃС‚РІРµРЅРЅРёРє РёС… СѓРІРёРґРёС‚: СѓРІРµРґРѕРјР»РµРЅРёРµ Рѕ РєР°СЃСЃРѕРІРѕРј СЂР°Р·СЂС‹РІРµ, РїСЂРµРІС‹С€РµРЅРёРё Р»РёРјРёС‚Р°, РїСЂРѕСЃСЂРѕС‡РєРµ РёР»Рё РѕС‚РєР»РѕРЅРµРЅРёРё РѕС‚ РїР»Р°РЅР°. РљРѕРЅС‚СЂРѕР»СЊ СЃС‚Р°РЅРѕРІРёС‚СЃСЏ РїСЂРѕР°РєС‚РёРІРЅС‹Рј, Р° РЅРµ В«РїРѕ С„Р°РєС‚Сѓ РІ РєРѕРЅС†Рµ РјРµСЃСЏС†Р°В».</p>
+          <div class="cta-band"><p class="cta-band__title">РђРІС‚РѕРјР°С‚РёР·РёСЂСѓР№С‚Рµ С„РёРЅР°РЅСЃРѕРІС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ</p><p class="cta-band__text">РћР±СЃСѓРґРёС‚Рµ CFO AI Transformation РёР»Рё Р·Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ вЂ” РЅР° РµС‘ РѕСЃРЅРѕРІРµ РіРѕС‚РѕРІРёС‚СЃСЏ РїР»Р°РЅ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">РћР±СЃСѓРґРёС‚СЊ CFO AI Transformation</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
+          <h2>Р РёСЃРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ</h2>
+          <p>РђРІС‚РѕРјР°С‚РёР·Р°С†РёСЏ СѓСЃРёР»РёРІР°РµС‚ С‚Рѕ, С‡С‚Рѕ СѓР¶Рµ РµСЃС‚СЊ. Р•СЃР»Рё РїСЂРѕС†РµСЃСЃС‹ Рё РґР°РЅРЅС‹Рµ РІ РїРѕСЂСЏРґРєРµ вЂ” РѕРЅР° РґР°С‘С‚ СЃРєРѕСЂРѕСЃС‚СЊ Рё РєРѕРЅС‚СЂРѕР»СЊ. Р•СЃР»Рё РЅРµС‚ вЂ” Р°РІС‚РѕРјР°С‚РёР·РёСЂСѓРµС‚СЃСЏ С…Р°РѕСЃ. РџРѕСЌС‚РѕРјСѓ РІР°Р¶РЅРѕ СЃРѕР±Р»СЋРґР°С‚СЊ РїРѕСЂСЏРґРѕРє:</p>
+          <ul><li>РЎРЅР°С‡Р°Р»Р° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СѓС‡С‘С‚ Рё РµРґРёРЅС‹Р№ РёСЃС‚РѕС‡РЅРёРє РґР°РЅРЅС‹С…, РїРѕС‚РѕРј Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ.</li><li>AI РіРѕС‚РѕРІРёС‚ РґР°РЅРЅС‹Рµ Рё С‡РµСЂРЅРѕРІРёРєРё вЂ” С„РёРЅР°Р»СЊРЅС‹Рµ СЂРµС€РµРЅРёСЏ РѕСЃС‚Р°СЋС‚СЃСЏ Р·Р° С‡РµР»РѕРІРµРєРѕРј.</li><li>Р”РѕСЃС‚СѓРїС‹ Рё РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ РґР°РЅРЅС‹С… РєРѕРЅС‚СЂРѕР»РёСЂСѓСЋС‚СЃСЏ РЅР° РєР°Р¶РґРѕРј С€Р°РіРµ.</li><li>РљР°Р¶РґС‹Р№ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ СЃС†РµРЅР°СЂРёР№ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РїРѕРЅСЏС‚РµРЅ Рё РїСЂРѕРІРµСЂСЏРµРј.</li></ul>
+          <div class="callout"><span class="callout__label">РњРёРЅРё-РїСЂРёРјРµСЂ</span><p>РљРѕРјР°РЅРґР° С‚СЂР°С‚РёР»Р° РјРЅРѕРіРѕ РІСЂРµРјРµРЅРё РЅР° СЂСѓС‡РЅРѕР№ СЃР±РѕСЂ РµР¶РµРЅРµРґРµР»СЊРЅС‹С… РѕС‚С‡С‘С‚РѕРІ. РџРѕСЃР»Рµ РЅР°СЃС‚СЂРѕР№РєРё СЃС†РµРЅР°СЂРёРµРІ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё Рё Telegram-СѓРІРµРґРѕРјР»РµРЅРёР№ РѕС‚С‡С‘С‚С‹ СЃС‚Р°Р»Рё РїСЂРёС…РѕРґРёС‚СЊ СЃР°РјРё, Р° РІСЂРµРјСЏ РѕСЃРІРѕР±РѕРґРёР»РѕСЃСЊ РЅР° Р°РЅР°Р»РёР· Рё СЂРµС€РµРЅРёСЏ.</p></div>
         </section>
       </article>
     </div>
 
     <div class="container">
       <section class="faq">
-        <h2>Частые вопросы</h2>
-        <details class="faq__item"><summary>Где AI реально помогает финансам?</summary><div class="faq__item__body">В автоматизации рутины: сбор и обновление отчётов, уведомления, контроль отклонений, подготовка черновиков и сводок. Это ускоряет работу и освобождает время команды.</div></details>
-        <details class="faq__item"><summary>Можно ли доверять AI финансовые решения?</summary><div class="faq__item__body">AI помогает готовить данные и выводы, но финальные управленческие решения остаются за человеком. Доверять автоматике стоит там, где данные и процессы проверяемы и под контролем.</div></details>
-        <details class="faq__item"><summary>Какие процессы можно автоматизировать первыми?</summary><div class="faq__item__body">Сбор отчётов, обновление дашбордов, уведомления о платежах и отклонениях, интеграции между 1С, Sheets, CRM и BI. Это даёт быстрый эффект при низком риске.</div></details>
+        <h2>Р§Р°СЃС‚С‹Рµ РІРѕРїСЂРѕСЃС‹</h2>
+        <details class="faq__item"><summary>Р“РґРµ AI СЂРµР°Р»СЊРЅРѕ РїРѕРјРѕРіР°РµС‚ С„РёРЅР°РЅСЃР°Рј?</summary><div class="faq__item__body">Р’ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СЂСѓС‚РёРЅС‹: СЃР±РѕСЂ Рё РѕР±РЅРѕРІР»РµРЅРёРµ РѕС‚С‡С‘С‚РѕРІ, СѓРІРµРґРѕРјР»РµРЅРёСЏ, РєРѕРЅС‚СЂРѕР»СЊ РѕС‚РєР»РѕРЅРµРЅРёР№, РїРѕРґРіРѕС‚РѕРІРєР° С‡РµСЂРЅРѕРІРёРєРѕРІ Рё СЃРІРѕРґРѕРє. Р­С‚Рѕ СѓСЃРєРѕСЂСЏРµС‚ СЂР°Р±РѕС‚Сѓ Рё РѕСЃРІРѕР±РѕР¶РґР°РµС‚ РІСЂРµРјСЏ РєРѕРјР°РЅРґС‹.</div></details>
+        <details class="faq__item"><summary>РњРѕР¶РЅРѕ Р»Рё РґРѕРІРµСЂСЏС‚СЊ AI С„РёРЅР°РЅСЃРѕРІС‹Рµ СЂРµС€РµРЅРёСЏ?</summary><div class="faq__item__body">AI РїРѕРјРѕРіР°РµС‚ РіРѕС‚РѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ Рё РІС‹РІРѕРґС‹, РЅРѕ С„РёРЅР°Р»СЊРЅС‹Рµ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ СЂРµС€РµРЅРёСЏ РѕСЃС‚Р°СЋС‚СЃСЏ Р·Р° С‡РµР»РѕРІРµРєРѕРј. Р”РѕРІРµСЂСЏС‚СЊ Р°РІС‚РѕРјР°С‚РёРєРµ СЃС‚РѕРёС‚ С‚Р°Рј, РіРґРµ РґР°РЅРЅС‹Рµ Рё РїСЂРѕС†РµСЃСЃС‹ РїСЂРѕРІРµСЂСЏРµРјС‹ Рё РїРѕРґ РєРѕРЅС‚СЂРѕР»РµРј.</div></details>
+        <details class="faq__item"><summary>РљР°РєРёРµ РїСЂРѕС†РµСЃСЃС‹ РјРѕР¶РЅРѕ Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ РїРµСЂРІС‹РјРё?</summary><div class="faq__item__body">РЎР±РѕСЂ РѕС‚С‡С‘С‚РѕРІ, РѕР±РЅРѕРІР»РµРЅРёРµ РґР°С€Р±РѕСЂРґРѕРІ, СѓРІРµРґРѕРјР»РµРЅРёСЏ Рѕ РїР»Р°С‚РµР¶Р°С… Рё РѕС‚РєР»РѕРЅРµРЅРёСЏС…, РёРЅС‚РµРіСЂР°С†РёРё РјРµР¶РґСѓ 1РЎ, Sheets, CRM Рё BI. Р­С‚Рѕ РґР°С‘С‚ Р±С‹СЃС‚СЂС‹Р№ СЌС„С„РµРєС‚ РїСЂРё РЅРёР·РєРѕРј СЂРёСЃРєРµ.</div></details>
       </section>
     </div>
 
     <div class="container">
-      <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="power-bi-dlya-sobstvennika.html">Power BI для собственника</a><a href="business-control-system.html">Business Control System</a><a href="monthly-cfo-support.html">Ежемесячное сопровождение CFO</a><a href="templates.html">Шаблоны</a></div>
+      <nav class="related" aria-label="РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹">
+        <p class="related__label">РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹</p>
+        <div class="related__grid"><a href="power-bi-dlya-sobstvennika.html">Power BI РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°</a><a href="business-control-system.html">Business Control System</a><a href="monthly-cfo-support.html">Р•Р¶РµРјРµСЃСЏС‡РЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ CFO</a><a href="templates.html">РЁР°Р±Р»РѕРЅС‹</a></div>
       </nav>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Автоматизируйте управление финансами</p>
-        <p class="cta-band__text">Обсудите CFO AI Transformation или заполните анкету — и получите план автоматизации под ваш бизнес.</p>
-        <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить внедрение</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в FINMENTOR Bot</a></div>
+        <p class="cta-band__title">РђРІС‚РѕРјР°С‚РёР·РёСЂСѓР№С‚Рµ СѓРїСЂР°РІР»РµРЅРёРµ С„РёРЅР°РЅСЃР°РјРё</p>
+        <p class="cta-band__text">РћР±СЃСѓРґРёС‚Рµ CFO AI Transformation РёР»Рё Р·Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ вЂ” Рё РїРѕР»СѓС‡РёС‚Рµ РїР»Р°РЅ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё РїРѕРґ РІР°С€ Р±РёР·РЅРµСЃ.</p>
+        <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">РћР±СЃСѓРґРёС‚СЊ РІРЅРµРґСЂРµРЅРёРµ</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">РќР°РїРёСЃР°С‚СЊ РІ FINMENTOR Bot</a></div>
       </section>
     </div>
   </main>
@@ -207,15 +210,15 @@
   <footer class="doc-foot">
     <div class="container doc-foot__row">
       <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
+        <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
         <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+      <span class="doc-foot__muted">В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹. В· Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ. <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a></span>
     </div>
   </footer>
   <script src="assistant.js"></script>

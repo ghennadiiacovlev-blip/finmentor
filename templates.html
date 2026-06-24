@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 --><html lang="ru">
@@ -12,23 +12,26 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>Финансовые шаблоны для бизнеса — P&amp;L, Cash Flow, Payment Calendar | FINMENTOR</title>
-  <meta name="description" content="Финансовые шаблоны FINMENTOR: P&amp;L, Cash Flow, платёжный календарь, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
+  <title>Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ РґР»СЏ Р±РёР·РЅРµСЃР° вЂ” P&amp;L, Cash Flow, Payment Calendar | FINMENTOR</title>
+  <meta name="description" content="Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR: P&amp;L, Cash Flow, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/templates.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Финансовые шаблоны для бизнеса — P&amp;L, Cash Flow, Payment Calendar | FINMENTOR" />
-  <meta property="og:description" content="Финансовые шаблоны FINMENTOR: P&amp;L, Cash Flow, платёжный календарь, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
+  <meta property="og:title" content="Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ РґР»СЏ Р±РёР·РЅРµСЃР° вЂ” P&amp;L, Cash Flow, Payment Calendar | FINMENTOR" />
+  <meta property="og:description" content="Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR: P&amp;L, Cash Flow, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
   <meta property="og:url" content="https://www.finmentor.md/templates.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
@@ -36,8 +39,8 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Финансовые шаблоны для бизнеса — P&amp;L, Cash Flow, Payment Calendar | FINMENTOR" />
-  <meta name="twitter:description" content="Финансовые шаблоны FINMENTOR: P&amp;L, Cash Flow, платёжный календарь, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
+  <meta name="twitter:title" content="Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ РґР»СЏ Р±РёР·РЅРµСЃР° вЂ” P&amp;L, Cash Flow, Payment Calendar | FINMENTOR" />
+  <meta name="twitter:description" content="Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR: P&amp;L, Cash Flow, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -52,8 +55,8 @@
     {
       "@type": "Article",
       "@id": "https://www.finmentor.md/templates.html#article",
-      "headline": "Финансовые шаблоны FINMENTOR",
-      "description": "Финансовые шаблоны FINMENTOR: P&L, Cash Flow, платёжный календарь, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model.",
+      "headline": "Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR",
+      "description": "Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR: P&L, Cash Flow, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ, KPI Dashboard, Monthly Owner Report, Treasury Fund Planning, Investment Model.",
       "inLanguage": "ru",
       "datePublished": "2026-06-21",
       "dateModified": "2026-06-21",
@@ -80,19 +83,19 @@
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Главная",
+          "name": "Р“Р»Р°РІРЅР°СЏ",
           "item": "https://www.finmentor.md/"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Материалы",
+          "name": "РњР°С‚РµСЂРёР°Р»С‹",
           "item": "https://www.finmentor.md/materials.html"
         },
         {
           "@type": "ListItem",
           "position": 3,
-          "name": "Шаблоны",
+          "name": "РЁР°Р±Р»РѕРЅС‹",
           "item": "https://www.finmentor.md/templates.html"
         }
       ]
@@ -102,26 +105,26 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Это платные шаблоны?",
+          "name": "Р­С‚Рѕ РїР»Р°С‚РЅС‹Рµ С€Р°Р±Р»РѕРЅС‹?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Базовые шаблоны выдаются как ориентир для старта. Глубокая настройка под конкретный бизнес выполняется в рамках диагностики или внедрения системы."
+            "text": "Р‘Р°Р·РѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ РІС‹РґР°СЋС‚СЃСЏ РєР°Рє РѕСЂРёРµРЅС‚РёСЂ РґР»СЏ СЃС‚Р°СЂС‚Р°. Р“Р»СѓР±РѕРєР°СЏ РЅР°СЃС‚СЂРѕР№РєР° РїРѕРґ РєРѕРЅРєСЂРµС‚РЅС‹Р№ Р±РёР·РЅРµСЃ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РІ СЂР°РјРєР°С… РґРёР°РіРЅРѕСЃС‚РёРєРё РёР»Рё РІРЅРµРґСЂРµРЅРёСЏ СЃРёСЃС‚РµРјС‹."
           }
         },
         {
           "@type": "Question",
-          "name": "Под какие системы подходят шаблоны?",
+          "name": "РџРѕРґ РєР°РєРёРµ СЃРёСЃС‚РµРјС‹ РїРѕРґС…РѕРґСЏС‚ С€Р°Р±Р»РѕРЅС‹?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Шаблоны универсальны и работают в Excel или Google Sheets. При внедрении они адаптируются под ваши данные — 1С, CRM, Power BI."
+            "text": "РЁР°Р±Р»РѕРЅС‹ СѓРЅРёРІРµСЂСЃР°Р»СЊРЅС‹ Рё СЂР°Р±РѕС‚Р°СЋС‚ РІ Excel РёР»Рё Google Sheets. РџСЂРё РІРЅРµРґСЂРµРЅРёРё РѕРЅРё Р°РґР°РїС‚РёСЂСѓСЋС‚СЃСЏ РїРѕРґ РІР°С€Рё РґР°РЅРЅС‹Рµ вЂ” 1РЎ, CRM, Power BI."
           }
         },
         {
           "@type": "Question",
-          "name": "Как запросить шаблон сейчас?",
+          "name": "РљР°Рє Р·Р°РїСЂРѕСЃРёС‚СЊ С€Р°Р±Р»РѕРЅ СЃРµР№С‡Р°СЃ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Заполните анкету и отметьте нужный шаблон в блоке документов, либо напишите напрямую в FINMENTOR Bot или на email."
+            "text": "Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ Рё РѕС‚РјРµС‚СЊС‚Рµ РЅСѓР¶РЅС‹Р№ С€Р°Р±Р»РѕРЅ РІ Р±Р»РѕРєРµ РґРѕРєСѓРјРµРЅС‚РѕРІ, Р»РёР±Рѕ РЅР°РїРёС€РёС‚Рµ РЅР°РїСЂСЏРјСѓСЋ РІ FINMENTOR Bot РёР»Рё РЅР° email."
           }
         }
       ]
@@ -133,11 +136,11 @@
 <body>
   <header class="doc-bar">
     <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Навигация">
-        <a href="index.html" class="doc-bar__hide">На главную</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+      <a class="logo" href="index.html" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="РќР°РІРёРіР°С†РёСЏ">
+        <a href="index.html" class="doc-bar__hide">РќР° РіР»Р°РІРЅСѓСЋ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
         <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
       </nav>
     </div>
@@ -145,83 +148,83 @@
 
   <main>
     <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Шаблоны</span>
+      <nav class="crumbs" aria-label="РҐР»РµР±РЅС‹Рµ РєСЂРѕС€РєРё">
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a> / <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a> / <span>РЁР°Р±Р»РѕРЅС‹</span>
       </nav>
     </div>
 
     <section class="doc-hero">
       <div class="container">
-        <p class="doc-hero__eyebrow">База знаний · Шаблоны</p>
-        <h1>Финансовые шаблоны FINMENTOR</h1>
-        <p class="doc-hero__lead">Готовые ориентиры для наведения порядка в финансах. Отметьте нужный шаблон — и получите базовую структуру, с которой можно начать контроль денег и прибыли.</p>
-        <p class="doc-hero__context">Шаблоны — точка входа в CFO-систему контроля.</p>
+        <p class="doc-hero__eyebrow">Р‘Р°Р·Р° Р·РЅР°РЅРёР№ В· РЁР°Р±Р»РѕРЅС‹</p>
+        <h1>Р¤РёРЅР°РЅСЃРѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ FINMENTOR</h1>
+        <p class="doc-hero__lead">Р“РѕС‚РѕРІС‹Рµ РѕСЂРёРµРЅС‚РёСЂС‹ РґР»СЏ РЅР°РІРµРґРµРЅРёСЏ РїРѕСЂСЏРґРєР° РІ С„РёРЅР°РЅСЃР°С…. РћС‚РјРµС‚СЊС‚Рµ РЅСѓР¶РЅС‹Р№ С€Р°Р±Р»РѕРЅ вЂ” Рё РїРѕР»СѓС‡РёС‚Рµ Р±Р°Р·РѕРІСѓСЋ СЃС‚СЂСѓРєС‚СѓСЂСѓ, СЃ РєРѕС‚РѕСЂРѕР№ РјРѕР¶РЅРѕ РЅР°С‡Р°С‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РґРµРЅРµРі Рё РїСЂРёР±С‹Р»Рё.</p>
+        <p class="doc-hero__context">РЁР°Р±Р»РѕРЅС‹ вЂ” С‚РѕС‡РєР° РІС…РѕРґР° РІ CFO-СЃРёСЃС‚РµРјСѓ РєРѕРЅС‚СЂРѕР»СЏ.</p>
       </div>
     </section>
 
     <div class="container">
       <article class="doc">
         <section>
-          <h2>Какие шаблоны доступны</h2>
+          <h2>РљР°РєРёРµ С€Р°Р±Р»РѕРЅС‹ РґРѕСЃС‚СѓРїРЅС‹</h2>
           <h3>P&amp;L template</h3>
-          <p>Структура управленческого отчёта о прибыли: выручка и маржа по направлениям, расходы по смыслу, EBITDA и чистая прибыль.</p>
+          <p>РЎС‚СЂСѓРєС‚СѓСЂР° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ РѕС‚С‡С‘С‚Р° Рѕ РїСЂРёР±С‹Р»Рё: РІС‹СЂСѓС‡РєР° Рё РјР°СЂР¶Р° РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј, СЂР°СЃС…РѕРґС‹ РїРѕ СЃРјС‹СЃР»Сѓ, EBITDA Рё С‡РёСЃС‚Р°СЏ РїСЂРёР±С‹Р»СЊ.</p>
           <h3>Cash Flow template</h3>
-          <p>Отчёт о движении денег по операционной, инвестиционной и финансовой деятельности — чтобы видеть реальные деньги, а не только прибыль.</p>
+          <p>РћС‚С‡С‘С‚ Рѕ РґРІРёР¶РµРЅРёРё РґРµРЅРµРі РїРѕ РѕРїРµСЂР°С†РёРѕРЅРЅРѕР№, РёРЅРІРµСЃС‚РёС†РёРѕРЅРЅРѕР№ Рё С„РёРЅР°РЅСЃРѕРІРѕР№ РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё вЂ” С‡С‚РѕР±С‹ РІРёРґРµС‚СЊ СЂРµР°Р»СЊРЅС‹Рµ РґРµРЅСЊРіРё, Р° РЅРµ С‚РѕР»СЊРєРѕ РїСЂРёР±С‹Р»СЊ.</p>
           <h3>Payment Calendar</h3>
-          <p>Платёжный календарь на 4–8 недель с приоритетами платежей и прогнозом поступлений.</p>
+          <p>РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ РЅР° 4вЂ“8 РЅРµРґРµР»СЊ СЃ РїСЂРёРѕСЂРёС‚РµС‚Р°РјРё РїР»Р°С‚РµР¶РµР№ Рё РїСЂРѕРіРЅРѕР·РѕРј РїРѕСЃС‚СѓРїР»РµРЅРёР№.</p>
           <h3>KPI Dashboard</h3>
-          <p>Набор ключевых показателей бизнеса в одном виде — основа для управленческого контроля и Power BI.</p>
+          <p>РќР°Р±РѕСЂ РєР»СЋС‡РµРІС‹С… РїРѕРєР°Р·Р°С‚РµР»РµР№ Р±РёР·РЅРµСЃР° РІ РѕРґРЅРѕРј РІРёРґРµ вЂ” РѕСЃРЅРѕРІР° РґР»СЏ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ Рё Power BI.</p>
           <h3>Monthly Owner Report</h3>
-          <p>Ежемесячный отчёт собственнику: деньги, прибыль, отклонения и решения в одном документе.</p>
+          <p>Р•Р¶РµРјРµСЃСЏС‡РЅС‹Р№ РѕС‚С‡С‘С‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРєСѓ: РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, РѕС‚РєР»РѕРЅРµРЅРёСЏ Рё СЂРµС€РµРЅРёСЏ РІ РѕРґРЅРѕРј РґРѕРєСѓРјРµРЅС‚Рµ.</p>
           <h3>Treasury Fund Planning</h3>
-          <p>Шаблон фондового планирования и приоритетов платежей для казначейства.</p>
+          <p>РЁР°Р±Р»РѕРЅ С„РѕРЅРґРѕРІРѕРіРѕ РїР»Р°РЅРёСЂРѕРІР°РЅРёСЏ Рё РїСЂРёРѕСЂРёС‚РµС‚РѕРІ РїР»Р°С‚РµР¶РµР№ РґР»СЏ РєР°Р·РЅР°С‡РµР№СЃС‚РІР°.</p>
           <h3>Investment Model</h3>
-          <p>Базовая структура инвестиционной модели: денежные потоки, окупаемость и ключевые метрики проекта.</p>
-          <div class="cta-band"><p class="cta-band__title">Запросите шаблон</p><p class="cta-band__text">Отметьте нужный шаблон в анкете или напишите напрямую — и получите базовую структуру для старта.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в FINMENTOR Bot</a><a href="mailto:cfo@finmentor.md" class="btn btn--ghost btn--lg">Email</a></div></div>
-          <h2>Как получить</h2>
-          <p>Автоматическая выдача шаблонов будет подключена позже. <strong>Если автоматическая отправка не подключена, напишите в Telegram или заполните анкету</strong> — и укажите, какой шаблон нужен. Шаблон высылается под вашу ситуацию после короткого уточнения.</p>
-          <h2>Шаблоны казначейства и оборотного капитала</h2>
+          <p>Р‘Р°Р·РѕРІР°СЏ СЃС‚СЂСѓРєС‚СѓСЂР° РёРЅРІРµСЃС‚РёС†РёРѕРЅРЅРѕР№ РјРѕРґРµР»Рё: РґРµРЅРµР¶РЅС‹Рµ РїРѕС‚РѕРєРё, РѕРєСѓРїР°РµРјРѕСЃС‚СЊ Рё РєР»СЋС‡РµРІС‹Рµ РјРµС‚СЂРёРєРё РїСЂРѕРµРєС‚Р°.</p>
+          <div class="cta-band"><p class="cta-band__title">Р—Р°РїСЂРѕСЃРёС‚Рµ С€Р°Р±Р»РѕРЅ</p><p class="cta-band__text">РћС‚РјРµС‚СЊС‚Рµ РЅСѓР¶РЅС‹Р№ С€Р°Р±Р»РѕРЅ РІ Р°РЅРєРµС‚Рµ РёР»Рё РЅР°РїРёС€РёС‚Рµ РЅР°РїСЂСЏРјСѓСЋ вЂ” Рё РїРѕР»СѓС‡РёС‚Рµ Р±Р°Р·РѕРІСѓСЋ СЃС‚СЂСѓРєС‚СѓСЂСѓ РґР»СЏ СЃС‚Р°СЂС‚Р°.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">РќР°РїРёСЃР°С‚СЊ РІ FINMENTOR Bot</a><a href="mailto:cfo@finmentor.md" class="btn btn--ghost btn--lg">Email</a></div></div>
+          <h2>РљР°Рє РїРѕР»СѓС‡РёС‚СЊ</h2>
+          <p>РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РІС‹РґР°С‡Р° С€Р°Р±Р»РѕРЅРѕРІ Р±СѓРґРµС‚ РїРѕРґРєР»СЋС‡РµРЅР° РїРѕР·Р¶Рµ. <strong>Р•СЃР»Рё Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° РЅРµ РїРѕРґРєР»СЋС‡РµРЅР°, РЅР°РїРёС€РёС‚Рµ РІ Telegram РёР»Рё Р·Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ</strong> вЂ” Рё СѓРєР°Р¶РёС‚Рµ, РєР°РєРѕР№ С€Р°Р±Р»РѕРЅ РЅСѓР¶РµРЅ. РЁР°Р±Р»РѕРЅ РІС‹СЃС‹Р»Р°РµС‚СЃСЏ РїРѕРґ РІР°С€Сѓ СЃРёС‚СѓР°С†РёСЋ РїРѕСЃР»Рµ РєРѕСЂРѕС‚РєРѕРіРѕ СѓС‚РѕС‡РЅРµРЅРёСЏ.</p>
+          <h2>РЁР°Р±Р»РѕРЅС‹ РєР°Р·РЅР°С‡РµР№СЃС‚РІР° Рё РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р°</h2>
           <h3>Payment Calendar Pro</h3>
-          <p>Платёжный календарь с приоритетами, фондами и покрытием 7 / 14 / 30 дней.</p>
+          <p>РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ СЃ РїСЂРёРѕСЂРёС‚РµС‚Р°РјРё, С„РѕРЅРґР°РјРё Рё РїРѕРєСЂС‹С‚РёРµРј 7 / 14 / 30 РґРЅРµР№.</p>
           <h3>Working Capital Dashboard</h3>
-          <p>Дебиторка, кредиторка, запасы и cash conversion cycle в одном виде.</p>
+          <p>Р”РµР±РёС‚РѕСЂРєР°, РєСЂРµРґРёС‚РѕСЂРєР°, Р·Р°РїР°СЃС‹ Рё cash conversion cycle РІ РѕРґРЅРѕРј РІРёРґРµ.</p>
           <h3>AR Aging Template</h3>
-          <p>Дебиторка по срокам: кто и сколько должен, где просрочка.</p>
+          <p>Р”РµР±РёС‚РѕСЂРєР° РїРѕ СЃСЂРѕРєР°Рј: РєС‚Рѕ Рё СЃРєРѕР»СЊРєРѕ РґРѕР»Р¶РµРЅ, РіРґРµ РїСЂРѕСЃСЂРѕС‡РєР°.</p>
           <h3>AP Aging Template</h3>
-          <p>Кредиторка по срокам: какие платежи критичны и что можно перенести.</p>
+          <p>РљСЂРµРґРёС‚РѕСЂРєР° РїРѕ СЃСЂРѕРєР°Рј: РєР°РєРёРµ РїР»Р°С‚РµР¶Рё РєСЂРёС‚РёС‡РЅС‹ Рё С‡С‚Рѕ РјРѕР¶РЅРѕ РїРµСЂРµРЅРµСЃС‚Рё.</p>
           <h3>Cash Conversion Cycle Tracker</h3>
-          <p>Сколько дней деньги проходят путь от закупки до поступления от клиента.</p>
-          <h2>Самодиагностика и контроль</h2>
+          <p>РЎРєРѕР»СЊРєРѕ РґРЅРµР№ РґРµРЅСЊРіРё РїСЂРѕС…РѕРґСЏС‚ РїСѓС‚СЊ РѕС‚ Р·Р°РєСѓРїРєРё РґРѕ РїРѕСЃС‚СѓРїР»РµРЅРёСЏ РѕС‚ РєР»РёРµРЅС‚Р°.</p>
+          <h2>РЎР°РјРѕРґРёР°РіРЅРѕСЃС‚РёРєР° Рё РєРѕРЅС‚СЂРѕР»СЊ</h2>
           <h3>Working Capital Quick Scan</h3>
-          <p>Короткая самодиагностика: где деньги могут застревать — дебиторка, запасы, авансы, условия оплаты, платежи и cash gap.</p>
-          <div class="cta-band"><p class="cta-band__title">Пройти мини-скан</p><p class="cta-band__text">Лёгкий вход без длинной анкеты — результат сразу на странице.</p><div class="cta-band__row"><a href="working-capital-scan.html" class="btn btn--primary btn--lg">Пройти мини-скан</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить полную анкету</a></div></div>
+          <p>РљРѕСЂРѕС‚РєР°СЏ СЃР°РјРѕРґРёР°РіРЅРѕСЃС‚РёРєР°: РіРґРµ РґРµРЅСЊРіРё РјРѕРіСѓС‚ Р·Р°СЃС‚СЂРµРІР°С‚СЊ вЂ” РґРµР±РёС‚РѕСЂРєР°, Р·Р°РїР°СЃС‹, Р°РІР°РЅСЃС‹, СѓСЃР»РѕРІРёСЏ РѕРїР»Р°С‚С‹, РїР»Р°С‚РµР¶Рё Рё cash gap.</p>
+          <div class="cta-band"><p class="cta-band__title">РџСЂРѕР№С‚Рё РјРёРЅРё-СЃРєР°РЅ</p><p class="cta-band__text">Р›С‘РіРєРёР№ РІС…РѕРґ Р±РµР· РґР»РёРЅРЅРѕР№ Р°РЅРєРµС‚С‹ вЂ” СЂРµР·СѓР»СЊС‚Р°С‚ СЃСЂР°Р·Сѓ РЅР° СЃС‚СЂР°РЅРёС†Рµ.</p><div class="cta-band__row"><a href="working-capital-scan.html" class="btn btn--primary btn--lg">РџСЂРѕР№С‚Рё РјРёРЅРё-СЃРєР°РЅ</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ РїРѕР»РЅСѓСЋ Р°РЅРєРµС‚Сѓ</a></div></div>
           <h3>CFO Control Checklist</h3>
-          <p>Чек-лист регулярного финансового контроля: деньги, прибыль, платежи, дебиторка и отклонения.</p>
+          <p>Р§РµРє-Р»РёСЃС‚ СЂРµРіСѓР»СЏСЂРЅРѕРіРѕ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ: РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, РїР»Р°С‚РµР¶Рё, РґРµР±РёС‚РѕСЂРєР° Рё РѕС‚РєР»РѕРЅРµРЅРёСЏ.</p>
         </section>
       </article>
     </div>
 
     <div class="container">
       <section class="faq">
-        <h2>Частые вопросы</h2>
-        <details class="faq__item"><summary>Это платные шаблоны?</summary><div class="faq__item__body">Базовые шаблоны выдаются как ориентир для старта. Глубокая настройка под конкретный бизнес выполняется в рамках диагностики или внедрения системы.</div></details>
-        <details class="faq__item"><summary>Под какие системы подходят шаблоны?</summary><div class="faq__item__body">Шаблоны универсальны и работают в Excel или Google Sheets. При внедрении они адаптируются под ваши данные — 1С, CRM, Power BI.</div></details>
-        <details class="faq__item"><summary>Как запросить шаблон сейчас?</summary><div class="faq__item__body">Заполните анкету и отметьте нужный шаблон в блоке документов, либо напишите напрямую в FINMENTOR Bot или на email.</div></details>
+        <h2>Р§Р°СЃС‚С‹Рµ РІРѕРїСЂРѕСЃС‹</h2>
+        <details class="faq__item"><summary>Р­С‚Рѕ РїР»Р°С‚РЅС‹Рµ С€Р°Р±Р»РѕРЅС‹?</summary><div class="faq__item__body">Р‘Р°Р·РѕРІС‹Рµ С€Р°Р±Р»РѕРЅС‹ РІС‹РґР°СЋС‚СЃСЏ РєР°Рє РѕСЂРёРµРЅС‚РёСЂ РґР»СЏ СЃС‚Р°СЂС‚Р°. Р“Р»СѓР±РѕРєР°СЏ РЅР°СЃС‚СЂРѕР№РєР° РїРѕРґ РєРѕРЅРєСЂРµС‚РЅС‹Р№ Р±РёР·РЅРµСЃ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РІ СЂР°РјРєР°С… РґРёР°РіРЅРѕСЃС‚РёРєРё РёР»Рё РІРЅРµРґСЂРµРЅРёСЏ СЃРёСЃС‚РµРјС‹.</div></details>
+        <details class="faq__item"><summary>РџРѕРґ РєР°РєРёРµ СЃРёСЃС‚РµРјС‹ РїРѕРґС…РѕРґСЏС‚ С€Р°Р±Р»РѕРЅС‹?</summary><div class="faq__item__body">РЁР°Р±Р»РѕРЅС‹ СѓРЅРёРІРµСЂСЃР°Р»СЊРЅС‹ Рё СЂР°Р±РѕС‚Р°СЋС‚ РІ Excel РёР»Рё Google Sheets. РџСЂРё РІРЅРµРґСЂРµРЅРёРё РѕРЅРё Р°РґР°РїС‚РёСЂСѓСЋС‚СЃСЏ РїРѕРґ РІР°С€Рё РґР°РЅРЅС‹Рµ вЂ” 1РЎ, CRM, Power BI.</div></details>
+        <details class="faq__item"><summary>РљР°Рє Р·Р°РїСЂРѕСЃРёС‚СЊ С€Р°Р±Р»РѕРЅ СЃРµР№С‡Р°СЃ?</summary><div class="faq__item__body">Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ Рё РѕС‚РјРµС‚СЊС‚Рµ РЅСѓР¶РЅС‹Р№ С€Р°Р±Р»РѕРЅ РІ Р±Р»РѕРєРµ РґРѕРєСѓРјРµРЅС‚РѕРІ, Р»РёР±Рѕ РЅР°РїРёС€РёС‚Рµ РЅР°РїСЂСЏРјСѓСЋ РІ FINMENTOR Bot РёР»Рё РЅР° email.</div></details>
       </section>
     </div>
 
     <div class="container">
-      <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="margin-factor-analysis-flags.html">Факторный анализ маржи с флагами</a><a href="fcf-postavshiki.html">Финансирование за счёт поставщиков</a><a href="working-capital-scan.html">Мини-скан оборотного капитала</a><a href="working-capital.html">Оборотный капитал</a><a href="treasury-waterfall.html">Фондовое планирование и водопад</a><a href="cash-flow.html">Cash Flow</a></div>
+      <nav class="related" aria-label="РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹">
+        <p class="related__label">РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹</p>
+        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєРѕРІ: Сѓ РєРѕРіРѕ РєСѓРїРёС‚СЊ С‚РѕРІР°СЂ</a><a href="margin-factor-analysis-flags.html">Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё</a><a href="fcf-postavshiki.html">Р¤РёРЅР°РЅСЃРёСЂРѕРІР°РЅРёРµ Р·Р° СЃС‡С‘С‚ РїРѕСЃС‚Р°РІС‰РёРєРѕРІ</a><a href="working-capital-scan.html">РњРёРЅРё-СЃРєР°РЅ РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р°</a><a href="working-capital.html">РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</a><a href="treasury-waterfall.html">Р¤РѕРЅРґРѕРІРѕРµ РїР»Р°РЅРёСЂРѕРІР°РЅРёРµ Рё РІРѕРґРѕРїР°Рґ</a><a href="cash-flow.html">Cash Flow</a></div>
       </nav>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Получите первый шаблон</p>
-        <p class="cta-band__text">Заполните анкету или напишите в Telegram — и получите базовый шаблон для финансового контроля.</p>
-        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в FINMENTOR Bot</a><a href="mailto:cfo@finmentor.md" class="btn btn--ghost btn--lg">Email</a></div>
+        <p class="cta-band__title">РџРѕР»СѓС‡РёС‚Рµ РїРµСЂРІС‹Р№ С€Р°Р±Р»РѕРЅ</p>
+        <p class="cta-band__text">Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ РёР»Рё РЅР°РїРёС€РёС‚Рµ РІ Telegram вЂ” Рё РїРѕР»СѓС‡РёС‚Рµ Р±Р°Р·РѕРІС‹Р№ С€Р°Р±Р»РѕРЅ РґР»СЏ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">РќР°РїРёСЃР°С‚СЊ РІ FINMENTOR Bot</a><a href="mailto:cfo@finmentor.md" class="btn btn--ghost btn--lg">Email</a></div>
       </section>
     </div>
   </main>
@@ -229,15 +232,15 @@
   <footer class="doc-foot">
     <div class="container doc-foot__row">
       <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
+        <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
         <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+      <span class="doc-foot__muted">В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹. В· Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ. <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a></span>
     </div>
   </footer>
   <script src="assistant.js"></script>

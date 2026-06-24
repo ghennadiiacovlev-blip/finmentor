@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 --><html lang="ru">
@@ -12,23 +12,26 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>Диагностика перед встречей — FINMENTOR</title>
-  <meta name="description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
+  <title>Р”РёР°РіРЅРѕСЃС‚РёРєР° РїРµСЂРµРґ РІСЃС‚СЂРµС‡РµР№ вЂ” FINMENTOR</title>
+  <meta name="description" content="Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєР°СЏ Р°РЅРєРµС‚Р° FINMENTOR РїРµСЂРµРґ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРµР№: РіР»СѓР±РѕРєРёР№ intake РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РїР»Р°РЅР° СЂР°Р±РѕС‚С‹ СЃ РєР»РёРµРЅС‚РѕРј." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/questionnaire.html" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Диагностика перед встречей — FINMENTOR" />
-  <meta property="og:description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
+  <meta property="og:title" content="Р”РёР°РіРЅРѕСЃС‚РёРєР° РїРµСЂРµРґ РІСЃС‚СЂРµС‡РµР№ вЂ” FINMENTOR" />
+  <meta property="og:description" content="Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєР°СЏ Р°РЅРєРµС‚Р° FINMENTOR РїРµСЂРµРґ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРµР№: РіР»СѓР±РѕРєРёР№ intake РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РїР»Р°РЅР° СЂР°Р±РѕС‚С‹ СЃ РєР»РёРµРЅС‚РѕРј." />
   <meta property="og:url" content="https://www.finmentor.md/questionnaire.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
@@ -36,8 +39,8 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Диагностика перед встречей — FINMENTOR" />
-  <meta name="twitter:description" content="Диагностическая анкета FINMENTOR перед консультацией: глубокий intake для подготовки плана работы с клиентом." />
+  <meta name="twitter:title" content="Р”РёР°РіРЅРѕСЃС‚РёРєР° РїРµСЂРµРґ РІСЃС‚СЂРµС‡РµР№ вЂ” FINMENTOR" />
+  <meta name="twitter:description" content="Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєР°СЏ Р°РЅРєРµС‚Р° FINMENTOR РїРµСЂРµРґ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРµР№: РіР»СѓР±РѕРєРёР№ intake РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РїР»Р°РЅР° СЂР°Р±РѕС‚С‹ СЃ РєР»РёРµРЅС‚РѕРј." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -91,7 +94,7 @@
     .q__choices input { accent-color: var(--gold-500); margin: 0; flex-shrink: 0; }
     .q__choices label:has(input:checked) { border-color: var(--accent); background: rgba(201,162,39,0.12); color: var(--text-primary); }
     .q__choices label:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,162,39,0.25); }
-    /* v8.5 — premium choice cards (replace native selects on dark premium UI) */
+    /* v8.5 вЂ” premium choice cards (replace native selects on dark premium UI) */
     .q__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
     .q__cards label {
       position: relative; display: flex; align-items: center; gap: 11px; cursor: pointer;
@@ -136,7 +139,7 @@
       .q-block__count { display: none; }
     }
 
-    /* v8.6 — validation + JSON automation bridge */
+    /* v8.6 вЂ” validation + JSON automation bridge */
     .q-validate { margin-bottom: var(--sp-6); padding: var(--sp-5); border-radius: var(--r-lg); border: 1px solid var(--gold-500); background: linear-gradient(135deg, rgba(201,162,39,0.10), rgba(229,72,77,0.06)); }
     .q-validate__head { font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-3); line-height: 1.5; }
     .q-validate__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
@@ -159,14 +162,14 @@
 
 <!--
 ================================================================================
-  AI-AGENT OUTPUT SCHEMA  (для будущего AI-агента, обрабатывающего ответы анкеты)
+  AI-AGENT OUTPUT SCHEMA  (РґР»СЏ Р±СѓРґСѓС‰РµРіРѕ AI-Р°РіРµРЅС‚Р°, РѕР±СЂР°Р±Р°С‚С‹РІР°СЋС‰РµРіРѕ РѕС‚РІРµС‚С‹ Р°РЅРєРµС‚С‹)
 ================================================================================
-  Источник: ответы этой формы (кнопка «Скопировать ответы» / будущий webhook).
-  Имена инпутов начинаются с q_ (q_name, q_country, q_pain, q_f1..q_f16,
-  q_systems, q_doc, q_goal, q_remote_*, q_consent, ...). Полный текст ответов
-  собирается функцией collectAnswers() в main.js -> initQuestionnaire().
+  РСЃС‚РѕС‡РЅРёРє: РѕС‚РІРµС‚С‹ СЌС‚РѕР№ С„РѕСЂРјС‹ (РєРЅРѕРїРєР° В«РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚С‹В» / Р±СѓРґСѓС‰РёР№ webhook).
+  РРјРµРЅР° РёРЅРїСѓС‚РѕРІ РЅР°С‡РёРЅР°СЋС‚СЃСЏ СЃ q_ (q_name, q_country, q_pain, q_f1..q_f16,
+  q_systems, q_doc, q_goal, q_remote_*, q_consent, ...). РџРѕР»РЅС‹Р№ С‚РµРєСЃС‚ РѕС‚РІРµС‚РѕРІ
+  СЃРѕР±РёСЂР°РµС‚СЃСЏ С„СѓРЅРєС†РёРµР№ collectAnswers() РІ main.js -> initQuestionnaire().
 
-  Агент должен сформировать структурированный план работы с клиентом:
+  РђРіРµРЅС‚ РґРѕР»Р¶РµРЅ СЃС„РѕСЂРјРёСЂРѕРІР°С‚СЊ СЃС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Р№ РїР»Р°РЅ СЂР°Р±РѕС‚С‹ СЃ РєР»РёРµРЅС‚РѕРј:
 
   1. CLIENT SUMMARY
      country, industry, business_size, group_structure, key_contact,
@@ -175,11 +178,11 @@
      main_pains, finance_pains, operational_pains, system_pains,
      data_reporting_problems, remote_concerns.
   3. FINANCE MATURITY SCORE (1-5)
-     1 = хаос, нет управленческого учёта;
-     2 = базовые отчёты есть, но нет регулярного контроля;
-     3 = есть P&L / CF / бюджет частично;
-     4 = есть управленческий контур и KPI;
-     5 = есть BI / automation / регулярный контроль.
+     1 = С…Р°РѕСЃ, РЅРµС‚ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ СѓС‡С‘С‚Р°;
+     2 = Р±Р°Р·РѕРІС‹Рµ РѕС‚С‡С‘С‚С‹ РµСЃС‚СЊ, РЅРѕ РЅРµС‚ СЂРµРіСѓР»СЏСЂРЅРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ;
+     3 = РµСЃС‚СЊ P&L / CF / Р±СЋРґР¶РµС‚ С‡Р°СЃС‚РёС‡РЅРѕ;
+     4 = РµСЃС‚СЊ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ РєРѕРЅС‚СѓСЂ Рё KPI;
+     5 = РµСЃС‚СЊ BI / automation / СЂРµРіСѓР»СЏСЂРЅС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ.
   4. RISK MAP
      cash_flow_risk, profitability_risk, reporting_risk, debt_risk,
      tax_compliance_risk, data_quality_risk, governance_risk, remote_work_risk.
@@ -189,9 +192,9 @@
      Health Check | Business Control System | Monthly Support |
      CFO AI Transformation | request documents first | discovery call first.
   7. MEETING AGENDA
-     5-7 пунктов для первой встречи.
+     5-7 РїСѓРЅРєС‚РѕРІ РґР»СЏ РїРµСЂРІРѕР№ РІСЃС‚СЂРµС‡Рё.
   8. DOCUMENT REQUEST LIST
-     какие документы запросить до / после встречи.
+     РєР°РєРёРµ РґРѕРєСѓРјРµРЅС‚С‹ Р·Р°РїСЂРѕСЃРёС‚СЊ РґРѕ / РїРѕСЃР»Рµ РІСЃС‚СЂРµС‡Рё.
   9. 30/60/90-DAY ROADMAP
      first_30_days, 60_days, 90_days.
   10. COMMERCIAL FIT
@@ -206,8 +209,8 @@
 
   <header class="q-bar">
     <div class="container q-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <a class="q-back" href="index.html">← На главную</a>
+      <a class="logo" href="index.html" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <a class="q-back" href="index.html">в†ђ РќР° РіР»Р°РІРЅСѓСЋ</a>
     </div>
     <div class="q-progress" aria-hidden="true"><div class="q-progress__fill" id="qProgress"></div></div>
   </header>
@@ -215,219 +218,219 @@
   <main>
     <section class="q-hero">
       <div class="container">
-        <p class="q-hero__eyebrow">Перед консультацией</p>
-        <h1>Диагностика перед встречей</h1>
-        <p>Заполните анкету — это помогает не тратить время на общие разговоры, а сразу перейти к сути: где теряются деньги, контроль и управляемость. На основе ответов готовится предварительный план встречи. Чем точнее ответы, тем полезнее первая консультация.</p>
-        <span class="q-hero__meta">Занимает 10–15 минут · 11 коротких блоков</span>
+        <p class="q-hero__eyebrow">РџРµСЂРµРґ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРµР№</p>
+        <h1>Р”РёР°РіРЅРѕСЃС‚РёРєР° РїРµСЂРµРґ РІСЃС‚СЂРµС‡РµР№</h1>
+        <p>Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ вЂ” СЌС‚Рѕ РїРѕРјРѕРіР°РµС‚ РЅРµ С‚СЂР°С‚РёС‚СЊ РІСЂРµРјСЏ РЅР° РѕР±С‰РёРµ СЂР°Р·РіРѕРІРѕСЂС‹, Р° СЃСЂР°Р·Сѓ РїРµСЂРµР№С‚Рё Рє СЃСѓС‚Рё: РіРґРµ С‚РµСЂСЏСЋС‚СЃСЏ РґРµРЅСЊРіРё, РєРѕРЅС‚СЂРѕР»СЊ Рё СѓРїСЂР°РІР»СЏРµРјРѕСЃС‚СЊ. РќР° РѕСЃРЅРѕРІРµ РѕС‚РІРµС‚РѕРІ РіРѕС‚РѕРІРёС‚СЃСЏ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅС‹Р№ РїР»Р°РЅ РІСЃС‚СЂРµС‡Рё. Р§РµРј С‚РѕС‡РЅРµРµ РѕС‚РІРµС‚С‹, С‚РµРј РїРѕР»РµР·РЅРµРµ РїРµСЂРІР°СЏ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёСЏ.</p>
+        <span class="q-hero__meta">Р—Р°РЅРёРјР°РµС‚ 10вЂ“15 РјРёРЅСѓС‚ В· 11 РєРѕСЂРѕС‚РєРёС… Р±Р»РѕРєРѕРІ</span>
       </div>
     </section>
 
     <div class="container">
       <form class="q-form" id="qFormV86" novalidate>
-        <div class="q-validate" id="qValidate" hidden role="alert" aria-live="assertive"><p class="q-validate__head">Чтобы подготовить качественную предварительную диагностику, заполните ещё несколько обязательных пунктов.</p><ul class="q-validate__list" id="qValidateList"></ul></div>
+        <div class="q-validate" id="qValidate" hidden role="alert" aria-live="assertive"><p class="q-validate__head">Р§С‚РѕР±С‹ РїРѕРґРіРѕС‚РѕРІРёС‚СЊ РєР°С‡РµСЃС‚РІРµРЅРЅСѓСЋ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅСѓСЋ РґРёР°РіРЅРѕСЃС‚РёРєСѓ, Р·Р°РїРѕР»РЅРёС‚Рµ РµС‰С‘ РЅРµСЃРєРѕР»СЊРєРѕ РѕР±СЏР·Р°С‚РµР»СЊРЅС‹С… РїСѓРЅРєС‚РѕРІ.</p><ul class="q-validate__list" id="qValidateList"></ul></div>
 
-        <!-- Блок 1 — Контакт, страна и формат коммуникации -->
+        <!-- Р‘Р»РѕРє 1 вЂ” РљРѕРЅС‚Р°РєС‚, СЃС‚СЂР°РЅР° Рё С„РѕСЂРјР°С‚ РєРѕРјРјСѓРЅРёРєР°С†РёРё -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Контакт и формат коммуникации</h2><span class="q-block__count">1 / 11</span></div>
+          <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">РљРѕРЅС‚Р°РєС‚ Рё С„РѕСЂРјР°С‚ РєРѕРјРјСѓРЅРёРєР°С†РёРё</h2><span class="q-block__count">1 / 11</span></div>
           <div class="q-grid">
-            <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
-            <div class="q"><span class="q__label">Компания</span><input type="text" name="q_company" data-key="company" /></div>
-            <div class="q"><span class="q__label">Должность</span><input type="text" name="q_role" /></div>
+            <div class="q"><span class="q__label">РРјСЏ</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
+            <div class="q"><span class="q__label">РљРѕРјРїР°РЅРёСЏ</span><input type="text" name="q_company" data-key="company" /></div>
+            <div class="q"><span class="q__label">Р”РѕР»Р¶РЅРѕСЃС‚СЊ</span><input type="text" name="q_role" /></div>
             <div class="q"><span class="q__label">Email</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></div>
-            <div class="q"><span class="q__label">Телефон / мессенджер</span><input type="tel" name="q_phone" /></div>
+            <div class="q"><span class="q__label">РўРµР»РµС„РѕРЅ / РјРµСЃСЃРµРЅРґР¶РµСЂ</span><input type="tel" name="q_phone" /></div>
             <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></div>
-            <div class="q"><span class="q__label">Страна</span><input type="text" name="q_country" /></div>
-            <div class="q"><span class="q__label">Город</span><input type="text" name="q_city" /></div>
-            <div class="q"><span class="q__label">Часовой пояс</span><input type="text" name="q_timezone" placeholder="напр. GMT+2" /></div>
-            <fieldset class="q" data-key="language"><legend class="q__label">Язык общения</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Русский" /> Русский</label><label><input type="radio" name="q_lang" value="Румынский" /> Румынский</label><label><input type="radio" name="q_lang" value="Английский" /> Английский</label><label><input type="radio" name="q_lang" value="Другое" /> Другое</label></div></fieldset>
-            <fieldset class="q" data-key="preferred_meeting_format"><legend class="q__label">Формат встречи</legend><div class="q__choices"><label><input type="radio" name="q_meetfmt" value="Zoom" /> Zoom</label><label><input type="radio" name="q_meetfmt" value="Google Meet" /> Google Meet</label><label><input type="radio" name="q_meetfmt" value="Microsoft Teams" /> Microsoft Teams</label><label><input type="radio" name="q_meetfmt" value="Telegram call" /> Telegram call</label><label><input type="radio" name="q_meetfmt" value="Личная встреча в Кишинёве" /> Личная встреча в Кишинёве</label></div></fieldset>
-          <p class="q-meet-note">Личная встреча возможна по предварительному согласованию после первичной квалификации запроса.</p>
-            <fieldset class="q"><legend class="q__label">Формат работы</legend><div class="q__choices"><label><input type="radio" name="q_workfmt" value="Удалённо" /> Удалённо</label><label><input type="radio" name="q_workfmt" value="Гибрид" /> Гибрид</label><label><input type="radio" name="q_workfmt" value="Очно" /> Очно</label><label><input type="radio" name="q_workfmt" value="Пока не знаю" /> Пока не знаю</label></div></fieldset><fieldset class="q" data-key="preferred_contact"><legend class="q__label">Удобный способ связи</legend><div class="q__choices"><label><input type="radio" name="q_pref_contact" value="Telegram" /> Telegram</label><label><input type="radio" name="q_pref_contact" value="Email" /> Email</label><label><input type="radio" name="q_pref_contact" value="Любой" /> Любой</label></div></fieldset>
+            <div class="q"><span class="q__label">РЎС‚СЂР°РЅР°</span><input type="text" name="q_country" /></div>
+            <div class="q"><span class="q__label">Р“РѕСЂРѕРґ</span><input type="text" name="q_city" /></div>
+            <div class="q"><span class="q__label">Р§Р°СЃРѕРІРѕР№ РїРѕСЏСЃ</span><input type="text" name="q_timezone" placeholder="РЅР°РїСЂ. GMT+2" /></div>
+            <fieldset class="q" data-key="language"><legend class="q__label">РЇР·С‹Рє РѕР±С‰РµРЅРёСЏ</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Р СѓСЃСЃРєРёР№" /> Р СѓСЃСЃРєРёР№</label><label><input type="radio" name="q_lang" value="Р СѓРјС‹РЅСЃРєРёР№" /> Р СѓРјС‹РЅСЃРєРёР№</label><label><input type="radio" name="q_lang" value="РђРЅРіР»РёР№СЃРєРёР№" /> РђРЅРіР»РёР№СЃРєРёР№</label><label><input type="radio" name="q_lang" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label></div></fieldset>
+            <fieldset class="q" data-key="preferred_meeting_format"><legend class="q__label">Р¤РѕСЂРјР°С‚ РІСЃС‚СЂРµС‡Рё</legend><div class="q__choices"><label><input type="radio" name="q_meetfmt" value="Zoom" /> Zoom</label><label><input type="radio" name="q_meetfmt" value="Google Meet" /> Google Meet</label><label><input type="radio" name="q_meetfmt" value="Microsoft Teams" /> Microsoft Teams</label><label><input type="radio" name="q_meetfmt" value="Telegram call" /> Telegram call</label><label><input type="radio" name="q_meetfmt" value="Р›РёС‡РЅР°СЏ РІСЃС‚СЂРµС‡Р° РІ РљРёС€РёРЅС‘РІРµ" /> Р›РёС‡РЅР°СЏ РІСЃС‚СЂРµС‡Р° РІ РљРёС€РёРЅС‘РІРµ</label></div></fieldset>
+          <p class="q-meet-note">Р›РёС‡РЅР°СЏ РІСЃС‚СЂРµС‡Р° РІРѕР·РјРѕР¶РЅР° РїРѕ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕРјСѓ СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЋ РїРѕСЃР»Рµ РїРµСЂРІРёС‡РЅРѕР№ РєРІР°Р»РёС„РёРєР°С†РёРё Р·Р°РїСЂРѕСЃР°.</p>
+            <fieldset class="q"><legend class="q__label">Р¤РѕСЂРјР°С‚ СЂР°Р±РѕС‚С‹</legend><div class="q__choices"><label><input type="radio" name="q_workfmt" value="РЈРґР°Р»С‘РЅРЅРѕ" /> РЈРґР°Р»С‘РЅРЅРѕ</label><label><input type="radio" name="q_workfmt" value="Р“РёР±СЂРёРґ" /> Р“РёР±СЂРёРґ</label><label><input type="radio" name="q_workfmt" value="РћС‡РЅРѕ" /> РћС‡РЅРѕ</label><label><input type="radio" name="q_workfmt" value="РџРѕРєР° РЅРµ Р·РЅР°СЋ" /> РџРѕРєР° РЅРµ Р·РЅР°СЋ</label></div></fieldset><fieldset class="q" data-key="preferred_contact"><legend class="q__label">РЈРґРѕР±РЅС‹Р№ СЃРїРѕСЃРѕР± СЃРІСЏР·Рё</legend><div class="q__choices"><label><input type="radio" name="q_pref_contact" value="Telegram" /> Telegram</label><label><input type="radio" name="q_pref_contact" value="Email" /> Email</label><label><input type="radio" name="q_pref_contact" value="Р›СЋР±РѕР№" /> Р›СЋР±РѕР№</label></div></fieldset>
           </div>
         </section>
 
-        <!-- Блок 2 — Бизнес-профиль -->
+        <!-- Р‘Р»РѕРє 2 вЂ” Р‘РёР·РЅРµСЃ-РїСЂРѕС„РёР»СЊ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Бизнес-профиль</h2><span class="q-block__count">2 / 11</span></div>
+          <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Р‘РёР·РЅРµСЃ-РїСЂРѕС„РёР»СЊ</h2><span class="q-block__count">2 / 11</span></div>
           <div class="q-grid">
-            <fieldset class="q" data-key="industry_category"><legend class="q__label">Сфера деятельности</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="Торговля / Retail" /> Торговля / Retail</label><label><input type="radio" name="q_industry" value="HoReCa / рестораны / кафе" /> HoReCa / рестораны / кафе</label><label><input type="radio" name="q_industry" value="Недвижимость / аренда" /> Недвижимость / аренда</label><label><input type="radio" name="q_industry" value="Строительство / проекты / CAPEX" /> Строительство / проекты / CAPEX</label><label><input type="radio" name="q_industry" value="Импорт / дистрибуция" /> Импорт / дистрибуция</label><label><input type="radio" name="q_industry" value="Производство" /> Производство</label><label><input type="radio" name="q_industry" value="Услуги / консалтинг" /> Услуги / консалтинг</label><label><input type="radio" name="q_industry" value="E-commerce" /> E-commerce</label><label><input type="radio" name="q_industry" value="Группа компаний" /> Группа компаний</label><label><input type="radio" name="q_industry" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
-          <div class="q"><span class="q__label">Кратко уточните сферу деятельности, если нужно</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></div>
-            <fieldset class="q" data-key="companies_in_group"><legend class="q__label">Компаний в группе</legend><div class="q__choices"><label><input type="radio" name="q_companies" value="1 компания" /> 1 компания</label><label><input type="radio" name="q_companies" value="2–3 компании" /> 2–3 компании</label><label><input type="radio" name="q_companies" value="4–5 компаний" /> 4–5 компаний</label><label><input type="radio" name="q_companies" value="6+ компаний" /> 6+ компаний</label><label><input type="radio" name="q_companies" value="Есть связанные компании, но структура не формализована" /> Есть связанные компании, но структура не формализована</label><label><input type="radio" name="q_companies" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
-            <fieldset class="q" data-key="employees_range"><legend class="q__label">Сотрудников</legend><div class="q__choices"><label><input type="radio" name="q_employees" value="до 10" /> до 10</label><label><input type="radio" name="q_employees" value="10–25" /> 10–25</label><label><input type="radio" name="q_employees" value="25–50" /> 25–50</label><label><input type="radio" name="q_employees" value="50–100" /> 50–100</label><label><input type="radio" name="q_employees" value="100+" /> 100+</label><label><input type="radio" name="q_employees" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
-            <fieldset class="q" data-key="branches_objects_directions_range"><legend class="q__label">Филиалов / объектов / направлений</legend><div class="q__choices"><label><input type="radio" name="q_branches" value="1 направление / объект" /> 1 направление / объект</label><label><input type="radio" name="q_branches" value="2–3 направления / объекта" /> 2–3 направления / объекта</label><label><input type="radio" name="q_branches" value="4–5 направлений / объектов" /> 4–5 направлений / объектов</label><label><input type="radio" name="q_branches" value="6+ направлений / объектов" /> 6+ направлений / объектов</label><label><input type="radio" name="q_branches" value="Есть несколько направлений, но учёт не разделён" /> Есть несколько направлений, но учёт не разделён</label><label><input type="radio" name="q_branches" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
-          <div class="q"><span class="q__label">Какие направления / объекты нужно учитывать отдельно?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></div>
+            <fieldset class="q" data-key="industry_category"><legend class="q__label">РЎС„РµСЂР° РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="РўРѕСЂРіРѕРІР»СЏ / Retail" /> РўРѕСЂРіРѕРІР»СЏ / Retail</label><label><input type="radio" name="q_industry" value="HoReCa / СЂРµСЃС‚РѕСЂР°РЅС‹ / РєР°С„Рµ" /> HoReCa / СЂРµСЃС‚РѕСЂР°РЅС‹ / РєР°С„Рµ</label><label><input type="radio" name="q_industry" value="РќРµРґРІРёР¶РёРјРѕСЃС‚СЊ / Р°СЂРµРЅРґР°" /> РќРµРґРІРёР¶РёРјРѕСЃС‚СЊ / Р°СЂРµРЅРґР°</label><label><input type="radio" name="q_industry" value="РЎС‚СЂРѕРёС‚РµР»СЊСЃС‚РІРѕ / РїСЂРѕРµРєС‚С‹ / CAPEX" /> РЎС‚СЂРѕРёС‚РµР»СЊСЃС‚РІРѕ / РїСЂРѕРµРєС‚С‹ / CAPEX</label><label><input type="radio" name="q_industry" value="РРјРїРѕСЂС‚ / РґРёСЃС‚СЂРёР±СѓС†РёСЏ" /> РРјРїРѕСЂС‚ / РґРёСЃС‚СЂРёР±СѓС†РёСЏ</label><label><input type="radio" name="q_industry" value="РџСЂРѕРёР·РІРѕРґСЃС‚РІРѕ" /> РџСЂРѕРёР·РІРѕРґСЃС‚РІРѕ</label><label><input type="radio" name="q_industry" value="РЈСЃР»СѓРіРё / РєРѕРЅСЃР°Р»С‚РёРЅРі" /> РЈСЃР»СѓРіРё / РєРѕРЅСЃР°Р»С‚РёРЅРі</label><label><input type="radio" name="q_industry" value="E-commerce" /> E-commerce</label><label><input type="radio" name="q_industry" value="Р“СЂСѓРїРїР° РєРѕРјРїР°РЅРёР№" /> Р“СЂСѓРїРїР° РєРѕРјРїР°РЅРёР№</label><label><input type="radio" name="q_industry" value="Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚" /> Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚</label></div></fieldset>
+          <div class="q"><span class="q__label">РљСЂР°С‚РєРѕ СѓС‚РѕС‡РЅРёС‚Рµ СЃС„РµСЂСѓ РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё, РµСЃР»Рё РЅСѓР¶РЅРѕ</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></div>
+            <fieldset class="q" data-key="companies_in_group"><legend class="q__label">РљРѕРјРїР°РЅРёР№ РІ РіСЂСѓРїРїРµ</legend><div class="q__choices"><label><input type="radio" name="q_companies" value="1 РєРѕРјРїР°РЅРёСЏ" /> 1 РєРѕРјРїР°РЅРёСЏ</label><label><input type="radio" name="q_companies" value="2вЂ“3 РєРѕРјРїР°РЅРёРё" /> 2вЂ“3 РєРѕРјРїР°РЅРёРё</label><label><input type="radio" name="q_companies" value="4вЂ“5 РєРѕРјРїР°РЅРёР№" /> 4вЂ“5 РєРѕРјРїР°РЅРёР№</label><label><input type="radio" name="q_companies" value="6+ РєРѕРјРїР°РЅРёР№" /> 6+ РєРѕРјРїР°РЅРёР№</label><label><input type="radio" name="q_companies" value="Р•СЃС‚СЊ СЃРІСЏР·Р°РЅРЅС‹Рµ РєРѕРјРїР°РЅРёРё, РЅРѕ СЃС‚СЂСѓРєС‚СѓСЂР° РЅРµ С„РѕСЂРјР°Р»РёР·РѕРІР°РЅР°" /> Р•СЃС‚СЊ СЃРІСЏР·Р°РЅРЅС‹Рµ РєРѕРјРїР°РЅРёРё, РЅРѕ СЃС‚СЂСѓРєС‚СѓСЂР° РЅРµ С„РѕСЂРјР°Р»РёР·РѕРІР°РЅР°</label><label><input type="radio" name="q_companies" value="РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ" /> РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
+            <fieldset class="q" data-key="employees_range"><legend class="q__label">РЎРѕС‚СЂСѓРґРЅРёРєРѕРІ</legend><div class="q__choices"><label><input type="radio" name="q_employees" value="РґРѕ 10" /> РґРѕ 10</label><label><input type="radio" name="q_employees" value="10вЂ“25" /> 10вЂ“25</label><label><input type="radio" name="q_employees" value="25вЂ“50" /> 25вЂ“50</label><label><input type="radio" name="q_employees" value="50вЂ“100" /> 50вЂ“100</label><label><input type="radio" name="q_employees" value="100+" /> 100+</label><label><input type="radio" name="q_employees" value="РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ" /> РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
+            <fieldset class="q" data-key="branches_objects_directions_range"><legend class="q__label">Р¤РёР»РёР°Р»РѕРІ / РѕР±СЉРµРєС‚РѕРІ / РЅР°РїСЂР°РІР»РµРЅРёР№</legend><div class="q__choices"><label><input type="radio" name="q_branches" value="1 РЅР°РїСЂР°РІР»РµРЅРёРµ / РѕР±СЉРµРєС‚" /> 1 РЅР°РїСЂР°РІР»РµРЅРёРµ / РѕР±СЉРµРєС‚</label><label><input type="radio" name="q_branches" value="2вЂ“3 РЅР°РїСЂР°РІР»РµРЅРёСЏ / РѕР±СЉРµРєС‚Р°" /> 2вЂ“3 РЅР°РїСЂР°РІР»РµРЅРёСЏ / РѕР±СЉРµРєС‚Р°</label><label><input type="radio" name="q_branches" value="4вЂ“5 РЅР°РїСЂР°РІР»РµРЅРёР№ / РѕР±СЉРµРєС‚РѕРІ" /> 4вЂ“5 РЅР°РїСЂР°РІР»РµРЅРёР№ / РѕР±СЉРµРєС‚РѕРІ</label><label><input type="radio" name="q_branches" value="6+ РЅР°РїСЂР°РІР»РµРЅРёР№ / РѕР±СЉРµРєС‚РѕРІ" /> 6+ РЅР°РїСЂР°РІР»РµРЅРёР№ / РѕР±СЉРµРєС‚РѕРІ</label><label><input type="radio" name="q_branches" value="Р•СЃС‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ РЅР°РїСЂР°РІР»РµРЅРёР№, РЅРѕ СѓС‡С‘С‚ РЅРµ СЂР°Р·РґРµР»С‘РЅ" /> Р•СЃС‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ РЅР°РїСЂР°РІР»РµРЅРёР№, РЅРѕ СѓС‡С‘С‚ РЅРµ СЂР°Р·РґРµР»С‘РЅ</label><label><input type="radio" name="q_branches" value="РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ" /> РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
+          <div class="q"><span class="q__label">РљР°РєРёРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ / РѕР±СЉРµРєС‚С‹ РЅСѓР¶РЅРѕ СѓС‡РёС‚С‹РІР°С‚СЊ РѕС‚РґРµР»СЊРЅРѕ?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></div>
           </div>
-          <fieldset class="q" data-key="annual_turnover"><legend class="q__label">Примерный годовой оборот</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> до 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Предпочитаю обсудить лично</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть ли сезонность бизнеса?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Да</label><label><input type="radio" name="q_seasonality" value="Нет" /> Нет</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Есть ли кредиты / лизинг / инвесторы?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Нет</label><label><input type="radio" name="q_loans" value="Кредиты" /> Кредиты</label><label><input type="radio" name="q_loans" value="Лизинг" /> Лизинг</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Инвесторы</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Несколько источников</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Есть ли проекты / CAPEX / стройка?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Нет</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Да, отдельные проекты</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Да, активная стройка</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
-          <div class="q"><span class="q__label">Основные источники дохода</span><input type="text" name="q_income" /></div>
-          <fieldset class="q"><legend class="q__label">Основные статьи расходов</legend><div class="q__choices q__choices--multi" data-key="main_expense_categories"><label><input type="checkbox" name="q_expenses" value="Зарплата / ФОТ" /> Зарплата / ФОТ</label><label><input type="checkbox" name="q_expenses" value="Аренда" /> Аренда</label><label><input type="checkbox" name="q_expenses" value="Закупка товара / материалов" /> Закупка товара / материалов</label><label><input type="checkbox" name="q_expenses" value="Логистика" /> Логистика</label><label><input type="checkbox" name="q_expenses" value="Маркетинг" /> Маркетинг</label><label><input type="checkbox" name="q_expenses" value="Кредиты / проценты" /> Кредиты / проценты</label><label><input type="checkbox" name="q_expenses" value="Налоги" /> Налоги</label><label><input type="checkbox" name="q_expenses" value="Подрядчики" /> Подрядчики</label><label><input type="checkbox" name="q_expenses" value="Коммунальные / эксплуатационные расходы" /> Коммунальные / эксплуатационные расходы</label><label><input type="checkbox" name="q_expenses" value="IT / CRM / ERP" /> IT / CRM / ERP</label><label><input type="checkbox" name="q_expenses" value="Другое" /> Другое</label></div></fieldset>
-          <div class="q"><span class="q__label">Уточните крупные расходы, если нужно</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></div>
-          <div class="q"><span class="q__label">Кто принимает финансовые решения?</span><input type="text" name="q_decision" /></div>
-          <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Есть ли финансовый директор / финансовая команда?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет финансового директора" /> Нет финансового директора</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает финансовую функцию" /> Бухгалтер совмещает финансовую функцию</label><label><input type="radio" name="q_finteam" value="Есть финансист / экономист" /> Есть финансист / экономист</label><label><input type="radio" name="q_finteam" value="Есть финансовый директор" /> Есть финансовый директор</label><label><input type="radio" name="q_finteam" value="Есть внешнее CFO-сопровождение" /> Есть внешнее CFO-сопровождение</label><label><input type="radio" name="q_finteam" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
+          <fieldset class="q" data-key="annual_turnover"><legend class="q__label">РџСЂРёРјРµСЂРЅС‹Р№ РіРѕРґРѕРІРѕР№ РѕР±РѕСЂРѕС‚</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="РґРѕ 500k в‚¬" /> РґРѕ 500k в‚¬</label><label><input type="radio" name="q_turnover" value="500kвЂ“1M в‚¬" /> 500kвЂ“1M в‚¬</label><label><input type="radio" name="q_turnover" value="1вЂ“5M в‚¬" /> 1вЂ“5M в‚¬</label><label><input type="radio" name="q_turnover" value="5вЂ“10M в‚¬" /> 5вЂ“10M в‚¬</label><label><input type="radio" name="q_turnover" value="10M+ в‚¬" /> 10M+ в‚¬</label><label><input type="radio" name="q_turnover" value="РџСЂРµРґРїРѕС‡РёС‚Р°СЋ РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ" /> РџСЂРµРґРїРѕС‡РёС‚Р°СЋ РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ Р»Рё СЃРµР·РѕРЅРЅРѕСЃС‚СЊ Р±РёР·РЅРµСЃР°?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_seasonality" value="РќРµС‚" /> РќРµС‚</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Р•СЃС‚СЊ Р»Рё РєСЂРµРґРёС‚С‹ / Р»РёР·РёРЅРі / РёРЅРІРµСЃС‚РѕСЂС‹?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_loans" value="РљСЂРµРґРёС‚С‹" /> РљСЂРµРґРёС‚С‹</label><label><input type="radio" name="q_loans" value="Р›РёР·РёРЅРі" /> Р›РёР·РёРЅРі</label><label><input type="radio" name="q_loans" value="РРЅРІРµСЃС‚РѕСЂС‹" /> РРЅРІРµСЃС‚РѕСЂС‹</label><label><input type="radio" name="q_loans" value="РќРµСЃРєРѕР»СЊРєРѕ РёСЃС‚РѕС‡РЅРёРєРѕРІ" /> РќРµСЃРєРѕР»СЊРєРѕ РёСЃС‚РѕС‡РЅРёРєРѕРІ</label><label><input type="radio" name="q_loans" value="РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ" /> РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Р•СЃС‚СЊ Р»Рё РїСЂРѕРµРєС‚С‹ / CAPEX / СЃС‚СЂРѕР№РєР°?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_capex" value="Р”Р°, РѕС‚РґРµР»СЊРЅС‹Рµ РїСЂРѕРµРєС‚С‹" /> Р”Р°, РѕС‚РґРµР»СЊРЅС‹Рµ РїСЂРѕРµРєС‚С‹</label><label><input type="radio" name="q_capex" value="Р”Р°, Р°РєС‚РёРІРЅР°СЏ СЃС‚СЂРѕР№РєР°" /> Р”Р°, Р°РєС‚РёРІРЅР°СЏ СЃС‚СЂРѕР№РєР°</label><label><input type="radio" name="q_capex" value="РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ" /> РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ</label></div></fieldset>
+          <div class="q"><span class="q__label">РћСЃРЅРѕРІРЅС‹Рµ РёСЃС‚РѕС‡РЅРёРєРё РґРѕС…РѕРґР°</span><input type="text" name="q_income" /></div>
+          <fieldset class="q"><legend class="q__label">РћСЃРЅРѕРІРЅС‹Рµ СЃС‚Р°С‚СЊРё СЂР°СЃС…РѕРґРѕРІ</legend><div class="q__choices q__choices--multi" data-key="main_expense_categories"><label><input type="checkbox" name="q_expenses" value="Р—Р°СЂРїР»Р°С‚Р° / Р¤РћРў" /> Р—Р°СЂРїР»Р°С‚Р° / Р¤РћРў</label><label><input type="checkbox" name="q_expenses" value="РђСЂРµРЅРґР°" /> РђСЂРµРЅРґР°</label><label><input type="checkbox" name="q_expenses" value="Р—Р°РєСѓРїРєР° С‚РѕРІР°СЂР° / РјР°С‚РµСЂРёР°Р»РѕРІ" /> Р—Р°РєСѓРїРєР° С‚РѕРІР°СЂР° / РјР°С‚РµСЂРёР°Р»РѕРІ</label><label><input type="checkbox" name="q_expenses" value="Р›РѕРіРёСЃС‚РёРєР°" /> Р›РѕРіРёСЃС‚РёРєР°</label><label><input type="checkbox" name="q_expenses" value="РњР°СЂРєРµС‚РёРЅРі" /> РњР°СЂРєРµС‚РёРЅРі</label><label><input type="checkbox" name="q_expenses" value="РљСЂРµРґРёС‚С‹ / РїСЂРѕС†РµРЅС‚С‹" /> РљСЂРµРґРёС‚С‹ / РїСЂРѕС†РµРЅС‚С‹</label><label><input type="checkbox" name="q_expenses" value="РќР°Р»РѕРіРё" /> РќР°Р»РѕРіРё</label><label><input type="checkbox" name="q_expenses" value="РџРѕРґСЂСЏРґС‡РёРєРё" /> РџРѕРґСЂСЏРґС‡РёРєРё</label><label><input type="checkbox" name="q_expenses" value="РљРѕРјРјСѓРЅР°Р»СЊРЅС‹Рµ / СЌРєСЃРїР»СѓР°С‚Р°С†РёРѕРЅРЅС‹Рµ СЂР°СЃС…РѕРґС‹" /> РљРѕРјРјСѓРЅР°Р»СЊРЅС‹Рµ / СЌРєСЃРїР»СѓР°С‚Р°С†РёРѕРЅРЅС‹Рµ СЂР°СЃС…РѕРґС‹</label><label><input type="checkbox" name="q_expenses" value="IT / CRM / ERP" /> IT / CRM / ERP</label><label><input type="checkbox" name="q_expenses" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label></div></fieldset>
+          <div class="q"><span class="q__label">РЈС‚РѕС‡РЅРёС‚Рµ РєСЂСѓРїРЅС‹Рµ СЂР°СЃС…РѕРґС‹, РµСЃР»Рё РЅСѓР¶РЅРѕ</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></div>
+          <div class="q"><span class="q__label">РљС‚Рѕ РїСЂРёРЅРёРјР°РµС‚ С„РёРЅР°РЅСЃРѕРІС‹Рµ СЂРµС€РµРЅРёСЏ?</span><input type="text" name="q_decision" /></div>
+          <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Р•СЃС‚СЊ Р»Рё С„РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ / С„РёРЅР°РЅСЃРѕРІР°СЏ РєРѕРјР°РЅРґР°?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="РќРµС‚ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РґРёСЂРµРєС‚РѕСЂР°" /> РќРµС‚ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РґРёСЂРµРєС‚РѕСЂР°</label><label><input type="radio" name="q_finteam" value="Р‘СѓС…РіР°Р»С‚РµСЂ СЃРѕРІРјРµС‰Р°РµС‚ С„РёРЅР°РЅСЃРѕРІСѓСЋ С„СѓРЅРєС†РёСЋ" /> Р‘СѓС…РіР°Р»С‚РµСЂ СЃРѕРІРјРµС‰Р°РµС‚ С„РёРЅР°РЅСЃРѕРІСѓСЋ С„СѓРЅРєС†РёСЋ</label><label><input type="radio" name="q_finteam" value="Р•СЃС‚СЊ С„РёРЅР°РЅСЃРёСЃС‚ / СЌРєРѕРЅРѕРјРёСЃС‚" /> Р•СЃС‚СЊ С„РёРЅР°РЅСЃРёСЃС‚ / СЌРєРѕРЅРѕРјРёСЃС‚</label><label><input type="radio" name="q_finteam" value="Р•СЃС‚СЊ С„РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ" /> Р•СЃС‚СЊ С„РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ</label><label><input type="radio" name="q_finteam" value="Р•СЃС‚СЊ РІРЅРµС€РЅРµРµ CFO-СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ" /> Р•СЃС‚СЊ РІРЅРµС€РЅРµРµ CFO-СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ</label><label><input type="radio" name="q_finteam" value="РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ" /> РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
         </section>
 
-        <!-- Блок 3 — Главные боли -->
+        <!-- Р‘Р»РѕРє 3 вЂ” Р“Р»Р°РІРЅС‹Рµ Р±РѕР»Рё -->
         <fieldset class="q-block q">
-          <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Главные боли</legend><span class="q-block__count">3 / 11</span></div>
+          <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Р“Р»Р°РІРЅС‹Рµ Р±РѕР»Рё</legend><span class="q-block__count">3 / 11</span></div>
           <div class="q__choices q__choices--multi" data-key="primary_problem">
-            <label><input type="checkbox" name="q_pain" value="Прибыль есть, но денег нет" /> Прибыль есть, но денег нет</label>
-            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Не хватает cash flow</label>
-            <label><input type="checkbox" name="q_pain" value="Кассовые разрывы" /> Кассовые разрывы</label>
-            <label><input type="checkbox" name="q_pain" value="Нет понятного P&L" /> Нет понятного P&amp;L</label>
-            <label><input type="checkbox" name="q_pain" value="Нет управленческого учёта" /> Нет управленческого учёта</label>
-            <label><input type="checkbox" name="q_pain" value="Платежи идут хаотично" /> Платежи идут хаотично</label>
-            <label><input type="checkbox" name="q_pain" value="Отчёты приходят поздно" /> Отчёты приходят поздно</label>
-            <label><input type="checkbox" name="q_pain" value="Собственник не видит реальную картину" /> Не вижу реальную картину</label>
-            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Нет KPI</label>
-            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Нет Power BI / dashboard</label>
-            <label><input type="checkbox" name="q_pain" value="Много ручной работы" /> Много ручной работы</label>
-            <label><input type="checkbox" name="q_pain" value="Excel-файлы не связаны между собой" /> Excel-файлы не связаны</label>
-            <label><input type="checkbox" name="q_pain" value="Сложно контролировать группу компаний" /> Сложно контролировать группу</label>
-            <label><input type="checkbox" name="q_pain" value="Нет контроля дебиторки" /> Нет контроля дебиторки</label>
-            <label><input type="checkbox" name="q_pain" value="Нет контроля кредиторки" /> Нет контроля кредиторки</label>
-            <label><input type="checkbox" name="q_pain" value="Есть долги / кредиты / просрочки" /> Долги / кредиты / просрочки</label>
-            <label><input type="checkbox" name="q_pain" value="Нужны инвестиции / банк / финансирование" /> Нужны инвестиции / банк</label>
-            <label><input type="checkbox" name="q_pain" value="Нужен контроль строительства / CAPEX" /> Контроль строительства / CAPEX</label>
-            <label><input type="checkbox" name="q_pain" value="Нужно внедрить AI / автоматизацию" /> Нужны AI / автоматизация</label>
-            <label><input type="checkbox" name="q_pain" value="Другое" /> Другое</label>
+            <label><input type="checkbox" name="q_pain" value="РџСЂРёР±С‹Р»СЊ РµСЃС‚СЊ, РЅРѕ РґРµРЅРµРі РЅРµС‚" /> РџСЂРёР±С‹Р»СЊ РµСЃС‚СЊ, РЅРѕ РґРµРЅРµРі РЅРµС‚</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµ С…РІР°С‚Р°РµС‚ cash flow" /> РќРµ С…РІР°С‚Р°РµС‚ cash flow</label>
+            <label><input type="checkbox" name="q_pain" value="РљР°СЃСЃРѕРІС‹Рµ СЂР°Р·СЂС‹РІС‹" /> РљР°СЃСЃРѕРІС‹Рµ СЂР°Р·СЂС‹РІС‹</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ РїРѕРЅСЏС‚РЅРѕРіРѕ P&L" /> РќРµС‚ РїРѕРЅСЏС‚РЅРѕРіРѕ P&amp;L</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ СѓС‡С‘С‚Р°" /> РќРµС‚ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ СѓС‡С‘С‚Р°</label>
+            <label><input type="checkbox" name="q_pain" value="РџР»Р°С‚РµР¶Рё РёРґСѓС‚ С…Р°РѕС‚РёС‡РЅРѕ" /> РџР»Р°С‚РµР¶Рё РёРґСѓС‚ С…Р°РѕС‚РёС‡РЅРѕ</label>
+            <label><input type="checkbox" name="q_pain" value="РћС‚С‡С‘С‚С‹ РїСЂРёС…РѕРґСЏС‚ РїРѕР·РґРЅРѕ" /> РћС‚С‡С‘С‚С‹ РїСЂРёС…РѕРґСЏС‚ РїРѕР·РґРЅРѕ</label>
+            <label><input type="checkbox" name="q_pain" value="РЎРѕР±СЃС‚РІРµРЅРЅРёРє РЅРµ РІРёРґРёС‚ СЂРµР°Р»СЊРЅСѓСЋ РєР°СЂС‚РёРЅСѓ" /> РќРµ РІРёР¶Сѓ СЂРµР°Р»СЊРЅСѓСЋ РєР°СЂС‚РёРЅСѓ</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ KPI" /> РќРµС‚ KPI</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ Power BI / dashboard" /> РќРµС‚ Power BI / dashboard</label>
+            <label><input type="checkbox" name="q_pain" value="РњРЅРѕРіРѕ СЂСѓС‡РЅРѕР№ СЂР°Р±РѕС‚С‹" /> РњРЅРѕРіРѕ СЂСѓС‡РЅРѕР№ СЂР°Р±РѕС‚С‹</label>
+            <label><input type="checkbox" name="q_pain" value="Excel-С„Р°Р№Р»С‹ РЅРµ СЃРІСЏР·Р°РЅС‹ РјРµР¶РґСѓ СЃРѕР±РѕР№" /> Excel-С„Р°Р№Р»С‹ РЅРµ СЃРІСЏР·Р°РЅС‹</label>
+            <label><input type="checkbox" name="q_pain" value="РЎР»РѕР¶РЅРѕ РєРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїСѓ РєРѕРјРїР°РЅРёР№" /> РЎР»РѕР¶РЅРѕ РєРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїСѓ</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ РєРѕРЅС‚СЂРѕР»СЏ РґРµР±РёС‚РѕСЂРєРё" /> РќРµС‚ РєРѕРЅС‚СЂРѕР»СЏ РґРµР±РёС‚РѕСЂРєРё</label>
+            <label><input type="checkbox" name="q_pain" value="РќРµС‚ РєРѕРЅС‚СЂРѕР»СЏ РєСЂРµРґРёС‚РѕСЂРєРё" /> РќРµС‚ РєРѕРЅС‚СЂРѕР»СЏ РєСЂРµРґРёС‚РѕСЂРєРё</label>
+            <label><input type="checkbox" name="q_pain" value="Р•СЃС‚СЊ РґРѕР»РіРё / РєСЂРµРґРёС‚С‹ / РїСЂРѕСЃСЂРѕС‡РєРё" /> Р”РѕР»РіРё / РєСЂРµРґРёС‚С‹ / РїСЂРѕСЃСЂРѕС‡РєРё</label>
+            <label><input type="checkbox" name="q_pain" value="РќСѓР¶РЅС‹ РёРЅРІРµСЃС‚РёС†РёРё / Р±Р°РЅРє / С„РёРЅР°РЅСЃРёСЂРѕРІР°РЅРёРµ" /> РќСѓР¶РЅС‹ РёРЅРІРµСЃС‚РёС†РёРё / Р±Р°РЅРє</label>
+            <label><input type="checkbox" name="q_pain" value="РќСѓР¶РµРЅ РєРѕРЅС‚СЂРѕР»СЊ СЃС‚СЂРѕРёС‚РµР»СЊСЃС‚РІР° / CAPEX" /> РљРѕРЅС‚СЂРѕР»СЊ СЃС‚СЂРѕРёС‚РµР»СЊСЃС‚РІР° / CAPEX</label>
+            <label><input type="checkbox" name="q_pain" value="РќСѓР¶РЅРѕ РІРЅРµРґСЂРёС‚СЊ AI / Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЋ" /> РќСѓР¶РЅС‹ AI / Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ</label>
+            <label><input type="checkbox" name="q_pain" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
-          <fieldset class="q" data-key="urgency"><legend class="q__label">Срочность запроса</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Обычная</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Повышенная</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Высокая — есть кассовый разрыв</label><label><input type="radio" name="q_urgency" value="Кризис" /> Кризис</label></div></fieldset>
-          <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Что вы хотите от FINMENTOR в первую очередь?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовая диагностика" /> Финансовая диагностика</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Построить систему контроля</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Регулярное CFO-сопровождение</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / dashboard</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Контроль платежей / казначейство</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Оборотный капитал</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Финансирование (банк / инвестор)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Пока не знаю — нужна консультация</label></div></fieldset>
+          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">РћРїРёС€РёС‚Рµ РіР»Р°РІРЅСѓСЋ РїСЂРѕР±Р»РµРјСѓ СЃРІРѕРёРјРё СЃР»РѕРІР°РјРё</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
+          <fieldset class="q" data-key="urgency"><legend class="q__label">РЎСЂРѕС‡РЅРѕСЃС‚СЊ Р·Р°РїСЂРѕСЃР°</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="РћР±С‹С‡РЅР°СЏ" /> РћР±С‹С‡РЅР°СЏ</label><label><input type="radio" name="q_urgency" value="РџРѕРІС‹С€РµРЅРЅР°СЏ" /> РџРѕРІС‹С€РµРЅРЅР°СЏ</label><label><input type="radio" name="q_urgency" value="Р’С‹СЃРѕРєР°СЏ вЂ” РµСЃС‚СЊ РєР°СЃСЃРѕРІС‹Р№ СЂР°Р·СЂС‹РІ" /> Р’С‹СЃРѕРєР°СЏ вЂ” РµСЃС‚СЊ РєР°СЃСЃРѕРІС‹Р№ СЂР°Р·СЂС‹РІ</label><label><input type="radio" name="q_urgency" value="РљСЂРёР·РёСЃ" /> РљСЂРёР·РёСЃ</label></div></fieldset>
+          <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Р§С‚Рѕ РІС‹ С…РѕС‚РёС‚Рµ РѕС‚ FINMENTOR РІ РїРµСЂРІСѓСЋ РѕС‡РµСЂРµРґСЊ?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Р¤РёРЅР°РЅСЃРѕРІР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°" /> Р¤РёРЅР°РЅСЃРѕРІР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°</label><label><input type="radio" name="q_request" value="РџРѕСЃС‚СЂРѕРёС‚СЊ СЃРёСЃС‚РµРјСѓ РєРѕРЅС‚СЂРѕР»СЏ" /> РџРѕСЃС‚СЂРѕРёС‚СЊ СЃРёСЃС‚РµРјСѓ РєРѕРЅС‚СЂРѕР»СЏ</label><label><input type="radio" name="q_request" value="Р РµРіСѓР»СЏСЂРЅРѕРµ CFO-СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ" /> Р РµРіСѓР»СЏСЂРЅРѕРµ CFO-СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / dashboard</label><label><input type="radio" name="q_request" value="РљРѕРЅС‚СЂРѕР»СЊ РїР»Р°С‚РµР¶РµР№ / РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ" /> РљРѕРЅС‚СЂРѕР»СЊ РїР»Р°С‚РµР¶РµР№ / РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ</label><label><input type="radio" name="q_request" value="РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»" /> РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</label><label><input type="radio" name="q_request" value="Р¤РёРЅР°РЅСЃРёСЂРѕРІР°РЅРёРµ (Р±Р°РЅРє / РёРЅРІРµСЃС‚РѕСЂ)" /> Р¤РёРЅР°РЅСЃРёСЂРѕРІР°РЅРёРµ (Р±Р°РЅРє / РёРЅРІРµСЃС‚РѕСЂ)</label><label><input type="radio" name="q_request" value="РџРѕРєР° РЅРµ Р·РЅР°СЋ вЂ” РЅСѓР¶РЅР° РєРѕРЅСЃСѓР»СЊС‚Р°С†РёСЏ" /> РџРѕРєР° РЅРµ Р·РЅР°СЋ вЂ” РЅСѓР¶РЅР° РєРѕРЅСЃСѓР»СЊС‚Р°С†РёСЏ</label></div></fieldset>
         </fieldset>
 
-        <!-- Блок 4 — Финансовый контроль -->
+        <!-- Р‘Р»РѕРє 4 вЂ” Р¤РёРЅР°РЅСЃРѕРІС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Финансовый контроль</h2><span class="q-block__count">4 / 11</span></div>
-          <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Есть управленческий P&amp;L?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Есть Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Да</label><label><input type="radio" name="q_f2" value="Нет" /> Нет</label><label><input type="radio" name="q_f2" value="Частично" /> Частично</label><label><input type="radio" name="q_f2" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q" data-key="has_payment_calendar"><legend class="q__label">Есть платёжный календарь?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Да</label><label><input type="radio" name="q_f3" value="Нет" /> Нет</label><label><input type="radio" name="q_f3" value="Частично" /> Частично</label><label><input type="radio" name="q_f3" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть бюджет?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Да" /> Да</label><label><input type="radio" name="q_f4" value="Нет" /> Нет</label><label><input type="radio" name="q_f4" value="Частично" /> Частично</label><label><input type="radio" name="q_f4" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть план-факт анализ?</legend><div class="q__choices"><label><input type="radio" name="q_f5" value="Да" /> Да</label><label><input type="radio" name="q_f5" value="Нет" /> Нет</label><label><input type="radio" name="q_f5" value="Частично" /> Частично</label><label><input type="radio" name="q_f5" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль дебиторки?</legend><div class="q__choices"><label><input type="radio" name="q_f6" value="Да" /> Да</label><label><input type="radio" name="q_f6" value="Нет" /> Нет</label><label><input type="radio" name="q_f6" value="Частично" /> Частично</label><label><input type="radio" name="q_f6" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль кредиторки?</legend><div class="q__choices"><label><input type="radio" name="q_f7" value="Да" /> Да</label><label><input type="radio" name="q_f7" value="Нет" /> Нет</label><label><input type="radio" name="q_f7" value="Частично" /> Частично</label><label><input type="radio" name="q_f7" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть финансовая модель?</legend><div class="q__choices"><label><input type="radio" name="q_f8" value="Да" /> Да</label><label><input type="radio" name="q_f8" value="Нет" /> Нет</label><label><input type="radio" name="q_f8" value="Частично" /> Частично</label><label><input type="radio" name="q_f8" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть KPI?</legend><div class="q__choices"><label><input type="radio" name="q_f9" value="Да" /> Да</label><label><input type="radio" name="q_f9" value="Нет" /> Нет</label><label><input type="radio" name="q_f9" value="Частично" /> Частично</label><label><input type="radio" name="q_f9" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть регулярный отчёт для собственника?</legend><div class="q__choices"><label><input type="radio" name="q_f10" value="Да" /> Да</label><label><input type="radio" name="q_f10" value="Нет" /> Нет</label><label><input type="radio" name="q_f10" value="Частично" /> Частично</label><label><input type="radio" name="q_f10" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль маржинальности?</legend><div class="q__choices"><label><input type="radio" name="q_f11" value="Да" /> Да</label><label><input type="radio" name="q_f11" value="Нет" /> Нет</label><label><input type="radio" name="q_f11" value="Частично" /> Частично</label><label><input type="radio" name="q_f11" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль расходов по центрам ответственности?</legend><div class="q__choices"><label><input type="radio" name="q_f12" value="Да" /> Да</label><label><input type="radio" name="q_f12" value="Нет" /> Нет</label><label><input type="radio" name="q_f12" value="Частично" /> Частично</label><label><input type="radio" name="q_f12" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть правила согласования платежей?</legend><div class="q__choices"><label><input type="radio" name="q_f13" value="Да" /> Да</label><label><input type="radio" name="q_f13" value="Нет" /> Нет</label><label><input type="radio" name="q_f13" value="Частично" /> Частично</label><label><input type="radio" name="q_f13" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть лимиты / фонды / приоритеты платежей?</legend><div class="q__choices"><label><input type="radio" name="q_f14" value="Да" /> Да</label><label><input type="radio" name="q_f14" value="Нет" /> Нет</label><label><input type="radio" name="q_f14" value="Частично" /> Частично</label><label><input type="radio" name="q_f14" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль валютных рисков?</legend><div class="q__choices"><label><input type="radio" name="q_f15" value="Да" /> Да</label><label><input type="radio" name="q_f15" value="Нет" /> Нет</label><label><input type="radio" name="q_f15" value="Частично" /> Частично</label><label><input type="radio" name="q_f15" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть контроль налоговых рисков?</legend><div class="q__choices"><label><input type="radio" name="q_f16" value="Да" /> Да</label><label><input type="radio" name="q_f16" value="Нет" /> Нет</label><label><input type="radio" name="q_f16" value="Частично" /> Частично</label><label><input type="radio" name="q_f16" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Р¤РёРЅР°РЅСЃРѕРІС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ</h2><span class="q-block__count">4 / 11</span></div>
+          <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Р•СЃС‚СЊ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&amp;L?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f1" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f1" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f1" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Р•СЃС‚СЊ Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f2" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f2" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f2" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q" data-key="has_payment_calendar"><legend class="q__label">Р•СЃС‚СЊ РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f3" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f3" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f3" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ Р±СЋРґР¶РµС‚?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f4" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f4" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f4" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РїР»Р°РЅ-С„Р°РєС‚ Р°РЅР°Р»РёР·?</legend><div class="q__choices"><label><input type="radio" name="q_f5" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f5" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f5" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f5" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РґРµР±РёС‚РѕСЂРєРё?</legend><div class="q__choices"><label><input type="radio" name="q_f6" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f6" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f6" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f6" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РєСЂРµРґРёС‚РѕСЂРєРё?</legend><div class="q__choices"><label><input type="radio" name="q_f7" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f7" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f7" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f7" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ С„РёРЅР°РЅСЃРѕРІР°СЏ РјРѕРґРµР»СЊ?</legend><div class="q__choices"><label><input type="radio" name="q_f8" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f8" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f8" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f8" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ KPI?</legend><div class="q__choices"><label><input type="radio" name="q_f9" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f9" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f9" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f9" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ СЂРµРіСѓР»СЏСЂРЅС‹Р№ РѕС‚С‡С‘С‚ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°?</legend><div class="q__choices"><label><input type="radio" name="q_f10" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f10" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f10" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f10" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РјР°СЂР¶РёРЅР°Р»СЊРЅРѕСЃС‚Рё?</legend><div class="q__choices"><label><input type="radio" name="q_f11" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f11" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f11" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f11" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ СЂР°СЃС…РѕРґРѕРІ РїРѕ С†РµРЅС‚СЂР°Рј РѕС‚РІРµС‚СЃС‚РІРµРЅРЅРѕСЃС‚Рё?</legend><div class="q__choices"><label><input type="radio" name="q_f12" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f12" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f12" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f12" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РїСЂР°РІРёР»Р° СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЏ РїР»Р°С‚РµР¶РµР№?</legend><div class="q__choices"><label><input type="radio" name="q_f13" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f13" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f13" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f13" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ Р»РёРјРёС‚С‹ / С„РѕРЅРґС‹ / РїСЂРёРѕСЂРёС‚РµС‚С‹ РїР»Р°С‚РµР¶РµР№?</legend><div class="q__choices"><label><input type="radio" name="q_f14" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f14" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f14" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f14" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РІР°Р»СЋС‚РЅС‹С… СЂРёСЃРєРѕРІ?</legend><div class="q__choices"><label><input type="radio" name="q_f15" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f15" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f15" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f15" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ РЅР°Р»РѕРіРѕРІС‹С… СЂРёСЃРєРѕРІ?</legend><div class="q__choices"><label><input type="radio" name="q_f16" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_f16" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_f16" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_f16" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
         </section>
 
-        <!-- Блок 5 — Данные и системы -->
+        <!-- Р‘Р»РѕРє 5 вЂ” Р”Р°РЅРЅС‹Рµ Рё СЃРёСЃС‚РµРјС‹ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">5</span><h2 class="q-block__title">Данные и системы</h2><span class="q-block__count">5 / 11</span></div>
-          <div class="q"><span class="q__label">Где ведётся бухгалтерский учёт?</span><input type="text" name="q_accounting" /></div>
-          <fieldset class="q"><legend class="q__label">Что используется (отметьте, что есть):</legend><div class="q__choices q__choices--multi">
+          <div class="q-block__head"><span class="q-block__num">5</span><h2 class="q-block__title">Р”Р°РЅРЅС‹Рµ Рё СЃРёСЃС‚РµРјС‹</h2><span class="q-block__count">5 / 11</span></div>
+          <div class="q"><span class="q__label">Р“РґРµ РІРµРґС‘С‚СЃСЏ Р±СѓС…РіР°Р»С‚РµСЂСЃРєРёР№ СѓС‡С‘С‚?</span><input type="text" name="q_accounting" /></div>
+          <fieldset class="q"><legend class="q__label">Р§С‚Рѕ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ (РѕС‚РјРµС‚СЊС‚Рµ, С‡С‚Рѕ РµСЃС‚СЊ):</legend><div class="q__choices q__choices--multi">
             <label><input type="checkbox" name="q_systems" value="1C" /> 1C</label>
             <label><input type="checkbox" name="q_systems" value="Excel" /> Excel</label>
             <label><input type="checkbox" name="q_systems" value="Google Sheets" /> Google Sheets</label>
             <label><input type="checkbox" name="q_systems" value="CRM" /> CRM</label>
             <label><input type="checkbox" name="q_systems" value="ERP" /> ERP</label>
             <label><input type="checkbox" name="q_systems" value="Power BI" /> Power BI</label>
-            <label><input type="checkbox" name="q_systems" value="Looker / Tableau / другой BI" /> Looker / Tableau / другой BI</label>
+            <label><input type="checkbox" name="q_systems" value="Looker / Tableau / РґСЂСѓРіРѕР№ BI" /> Looker / Tableau / РґСЂСѓРіРѕР№ BI</label>
             <label><input type="checkbox" name="q_systems" value="Make / n8n / Zapier / automation" /> Make / n8n / Zapier</label>
           </div></fieldset>
-          <fieldset class="q" data-key="reporting_prepared_by"><legend class="q__label">Кто готовит отчёты?</legend><div class="q__choices"><label><input type="radio" name="q_reporter" value="Бухгалтер" /> Бухгалтер</label><label><input type="radio" name="q_reporter" value="Финансист" /> Финансист</label><label><input type="radio" name="q_reporter" value="Финансовый директор" /> Финансовый директор</label><label><input type="radio" name="q_reporter" value="Собственник сам" /> Собственник сам</label><label><input type="radio" name="q_reporter" value="Внешний консультант" /> Внешний консультант</label><label><input type="radio" name="q_reporter" value="Команда готовит в Excel / Google Sheets" /> Команда готовит в Excel / Google Sheets</label><label><input type="radio" name="q_reporter" value="Отчёты не готовятся" /> Отчёты не готовятся</label><label><input type="radio" name="q_reporter" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
-          <div class="q"><span class="q__label">Кто реально собирает цифры и как?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></div>
-          <fieldset class="q" data-key="owner_reporting_frequency"><legend class="q__label">Как часто собственник получает цифры?</legend><div class="q__choices"><label><input type="radio" name="q_frequency" value="Ежедневно" /> Ежедневно</label><label><input type="radio" name="q_frequency" value="Еженедельно" /> Еженедельно</label><label><input type="radio" name="q_frequency" value="Раз в месяц" /> Раз в месяц</label><label><input type="radio" name="q_frequency" value="Раз в квартал" /> Раз в квартал</label><label><input type="radio" name="q_frequency" value="Только по запросу" /> Только по запросу</label><label><input type="radio" name="q_frequency" value="Только когда возникает проблема" /> Только когда возникает проблема</label><label><input type="radio" name="q_frequency" value="Не получает регулярные цифры" /> Не получает регулярные цифры</label><label><input type="radio" name="q_frequency" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
-          <fieldset class="q" data-key="report_preparation_time"><legend class="q__label">Сколько времени занимает подготовка отчётов?</legend><div class="q__choices"><label><input type="radio" name="q_prep_time" value="До 1 дня" /> До 1 дня</label><label><input type="radio" name="q_prep_time" value="2–3 дня" /> 2–3 дня</label><label><input type="radio" name="q_prep_time" value="4–7 дней" /> 4–7 дней</label><label><input type="radio" name="q_prep_time" value="Более недели" /> Более недели</label><label><input type="radio" name="q_prep_time" value="Каждый раз вручную и по-разному" /> Каждый раз вручную и по-разному</label><label><input type="radio" name="q_prep_time" value="Отчёты не готовятся" /> Отчёты не готовятся</label><label><input type="radio" name="q_prep_time" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
-          <fieldset class="q" data-key="data_reliability"><legend class="q__label">Насколько данные достоверны?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="Низко" /> Низко</label><label><input type="radio" name="q_reliability" value="Средне" /> Средне</label><label><input type="radio" name="q_reliability" value="Хорошо" /> Хорошо</label><label><input type="radio" name="q_reliability" value="Не знаю" /> Не знаю</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть единый источник правды по цифрам?</legend><div class="q__choices"><label><input type="radio" name="q_sot" value="Да" /> Да</label><label><input type="radio" name="q_sot" value="Нет" /> Нет</label><label><input type="radio" name="q_sot" value="Частично" /> Частично</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Готовы предоставить примеры отчётов для диагностики?</legend><div class="q__choices"><label><input type="radio" name="q_provide" value="Да" /> Да</label><label><input type="radio" name="q_provide" value="Нет" /> Нет</label><label><input type="radio" name="q_provide" value="Позже" /> Позже</label></div></fieldset><fieldset class="q" data-key="documents_status"><legend class="q__label">Есть ли у вас финансовые документы / текущие отчёты?</legend><div class="q__cards"><label><input type="radio" name="q_documents_status" value="Да, есть" /> Да, есть</label><label><input type="radio" name="q_documents_status" value="Частично" /> Частично</label><label><input type="radio" name="q_documents_status" value="Нет" /> Нет</label><label><input type="radio" name="q_documents_status" value="Нет данных" /> Нет данных</label><label><input type="radio" name="q_documents_status" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
+          <fieldset class="q" data-key="reporting_prepared_by"><legend class="q__label">РљС‚Рѕ РіРѕС‚РѕРІРёС‚ РѕС‚С‡С‘С‚С‹?</legend><div class="q__choices"><label><input type="radio" name="q_reporter" value="Р‘СѓС…РіР°Р»С‚РµСЂ" /> Р‘СѓС…РіР°Р»С‚РµСЂ</label><label><input type="radio" name="q_reporter" value="Р¤РёРЅР°РЅСЃРёСЃС‚" /> Р¤РёРЅР°РЅСЃРёСЃС‚</label><label><input type="radio" name="q_reporter" value="Р¤РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ" /> Р¤РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ</label><label><input type="radio" name="q_reporter" value="РЎРѕР±СЃС‚РІРµРЅРЅРёРє СЃР°Рј" /> РЎРѕР±СЃС‚РІРµРЅРЅРёРє СЃР°Рј</label><label><input type="radio" name="q_reporter" value="Р’РЅРµС€РЅРёР№ РєРѕРЅСЃСѓР»СЊС‚Р°РЅС‚" /> Р’РЅРµС€РЅРёР№ РєРѕРЅСЃСѓР»СЊС‚Р°РЅС‚</label><label><input type="radio" name="q_reporter" value="РљРѕРјР°РЅРґР° РіРѕС‚РѕРІРёС‚ РІ Excel / Google Sheets" /> РљРѕРјР°РЅРґР° РіРѕС‚РѕРІРёС‚ РІ Excel / Google Sheets</label><label><input type="radio" name="q_reporter" value="РћС‚С‡С‘С‚С‹ РЅРµ РіРѕС‚РѕРІСЏС‚СЃСЏ" /> РћС‚С‡С‘С‚С‹ РЅРµ РіРѕС‚РѕРІСЏС‚СЃСЏ</label><label><input type="radio" name="q_reporter" value="Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚" /> Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚</label></div></fieldset>
+          <div class="q"><span class="q__label">РљС‚Рѕ СЂРµР°Р»СЊРЅРѕ СЃРѕР±РёСЂР°РµС‚ С†РёС„СЂС‹ Рё РєР°Рє?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></div>
+          <fieldset class="q" data-key="owner_reporting_frequency"><legend class="q__label">РљР°Рє С‡Р°СЃС‚Рѕ СЃРѕР±СЃС‚РІРµРЅРЅРёРє РїРѕР»СѓС‡Р°РµС‚ С†РёС„СЂС‹?</legend><div class="q__choices"><label><input type="radio" name="q_frequency" value="Р•Р¶РµРґРЅРµРІРЅРѕ" /> Р•Р¶РµРґРЅРµРІРЅРѕ</label><label><input type="radio" name="q_frequency" value="Р•Р¶РµРЅРµРґРµР»СЊРЅРѕ" /> Р•Р¶РµРЅРµРґРµР»СЊРЅРѕ</label><label><input type="radio" name="q_frequency" value="Р Р°Р· РІ РјРµСЃСЏС†" /> Р Р°Р· РІ РјРµСЃСЏС†</label><label><input type="radio" name="q_frequency" value="Р Р°Р· РІ РєРІР°СЂС‚Р°Р»" /> Р Р°Р· РІ РєРІР°СЂС‚Р°Р»</label><label><input type="radio" name="q_frequency" value="РўРѕР»СЊРєРѕ РїРѕ Р·Р°РїСЂРѕСЃСѓ" /> РўРѕР»СЊРєРѕ РїРѕ Р·Р°РїСЂРѕСЃСѓ</label><label><input type="radio" name="q_frequency" value="РўРѕР»СЊРєРѕ РєРѕРіРґР° РІРѕР·РЅРёРєР°РµС‚ РїСЂРѕР±Р»РµРјР°" /> РўРѕР»СЊРєРѕ РєРѕРіРґР° РІРѕР·РЅРёРєР°РµС‚ РїСЂРѕР±Р»РµРјР°</label><label><input type="radio" name="q_frequency" value="РќРµ РїРѕР»СѓС‡Р°РµС‚ СЂРµРіСѓР»СЏСЂРЅС‹Рµ С†РёС„СЂС‹" /> РќРµ РїРѕР»СѓС‡Р°РµС‚ СЂРµРіСѓР»СЏСЂРЅС‹Рµ С†РёС„СЂС‹</label><label><input type="radio" name="q_frequency" value="Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚" /> Р”СЂСѓРіРѕРµ / СЃРІРѕР№ РѕС‚РІРµС‚</label></div></fieldset>
+          <fieldset class="q" data-key="report_preparation_time"><legend class="q__label">РЎРєРѕР»СЊРєРѕ РІСЂРµРјРµРЅРё Р·Р°РЅРёРјР°РµС‚ РїРѕРґРіРѕС‚РѕРІРєР° РѕС‚С‡С‘С‚РѕРІ?</legend><div class="q__choices"><label><input type="radio" name="q_prep_time" value="Р”Рѕ 1 РґРЅСЏ" /> Р”Рѕ 1 РґРЅСЏ</label><label><input type="radio" name="q_prep_time" value="2вЂ“3 РґРЅСЏ" /> 2вЂ“3 РґРЅСЏ</label><label><input type="radio" name="q_prep_time" value="4вЂ“7 РґРЅРµР№" /> 4вЂ“7 РґРЅРµР№</label><label><input type="radio" name="q_prep_time" value="Р‘РѕР»РµРµ РЅРµРґРµР»Рё" /> Р‘РѕР»РµРµ РЅРµРґРµР»Рё</label><label><input type="radio" name="q_prep_time" value="РљР°Р¶РґС‹Р№ СЂР°Р· РІСЂСѓС‡РЅСѓСЋ Рё РїРѕ-СЂР°Р·РЅРѕРјСѓ" /> РљР°Р¶РґС‹Р№ СЂР°Р· РІСЂСѓС‡РЅСѓСЋ Рё РїРѕ-СЂР°Р·РЅРѕРјСѓ</label><label><input type="radio" name="q_prep_time" value="РћС‚С‡С‘С‚С‹ РЅРµ РіРѕС‚РѕРІСЏС‚СЃСЏ" /> РћС‚С‡С‘С‚С‹ РЅРµ РіРѕС‚РѕРІСЏС‚СЃСЏ</label><label><input type="radio" name="q_prep_time" value="РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ" /> РќРµ Р·РЅР°СЋ / РЅСѓР¶РЅРѕ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
+          <fieldset class="q" data-key="data_reliability"><legend class="q__label">РќР°СЃРєРѕР»СЊРєРѕ РґР°РЅРЅС‹Рµ РґРѕСЃС‚РѕРІРµСЂРЅС‹?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="РќРёР·РєРѕ" /> РќРёР·РєРѕ</label><label><input type="radio" name="q_reliability" value="РЎСЂРµРґРЅРµ" /> РЎСЂРµРґРЅРµ</label><label><input type="radio" name="q_reliability" value="РҐРѕСЂРѕС€Рѕ" /> РҐРѕСЂРѕС€Рѕ</label><label><input type="radio" name="q_reliability" value="РќРµ Р·РЅР°СЋ" /> РќРµ Р·РЅР°СЋ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РµРґРёРЅС‹Р№ РёСЃС‚РѕС‡РЅРёРє РїСЂР°РІРґС‹ РїРѕ С†РёС„СЂР°Рј?</legend><div class="q__choices"><label><input type="radio" name="q_sot" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_sot" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_sot" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р“РѕС‚РѕРІС‹ РїСЂРµРґРѕСЃС‚Р°РІРёС‚СЊ РїСЂРёРјРµСЂС‹ РѕС‚С‡С‘С‚РѕРІ РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё?</legend><div class="q__choices"><label><input type="radio" name="q_provide" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_provide" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_provide" value="РџРѕР·Р¶Рµ" /> РџРѕР·Р¶Рµ</label></div></fieldset><fieldset class="q" data-key="documents_status"><legend class="q__label">Р•СЃС‚СЊ Р»Рё Сѓ РІР°СЃ С„РёРЅР°РЅСЃРѕРІС‹Рµ РґРѕРєСѓРјРµРЅС‚С‹ / С‚РµРєСѓС‰РёРµ РѕС‚С‡С‘С‚С‹?</legend><div class="q__cards"><label><input type="radio" name="q_documents_status" value="Р”Р°, РµСЃС‚СЊ" /> Р”Р°, РµСЃС‚СЊ</label><label><input type="radio" name="q_documents_status" value="Р§Р°СЃС‚РёС‡РЅРѕ" /> Р§Р°СЃС‚РёС‡РЅРѕ</label><label><input type="radio" name="q_documents_status" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_documents_status" value="РќРµС‚ РґР°РЅРЅС‹С…" /> РќРµС‚ РґР°РЅРЅС‹С…</label><label><input type="radio" name="q_documents_status" value="РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ" /> РќРµ Р·РЅР°СЋ / РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ</label></div></fieldset>
         </section>
 
-        <!-- Блок 6 — Документы для диагностики -->
+        <!-- Р‘Р»РѕРє 6 вЂ” Р”РѕРєСѓРјРµРЅС‚С‹ РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё -->
         <fieldset class="q-block q">
-          <div class="q-block__head"><span class="q-block__num">6</span><legend class="q-block__title">Документы для диагностики</legend><span class="q-block__count">6 / 11</span></div>
+          <div class="q-block__head"><span class="q-block__num">6</span><legend class="q-block__title">Р”РѕРєСѓРјРµРЅС‚С‹ РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё</legend><span class="q-block__count">6 / 11</span></div>
           <div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_doc" value="P&L за 6–12 месяцев" /> P&amp;L за 6–12 месяцев</label>
-            <label><input type="checkbox" name="q_doc" value="Cash Flow / движение денег" /> Cash Flow / движение денег</label>
-            <label><input type="checkbox" name="q_doc" value="Баланс" /> Баланс</label>
-            <label><input type="checkbox" name="q_doc" value="Оборотно-сальдовая ведомость" /> Оборотно-сальдовая ведомость</label>
-            <label><input type="checkbox" name="q_doc" value="Реестр платежей" /> Реестр платежей</label>
-            <label><input type="checkbox" name="q_doc" value="Дебиторская задолженность" /> Дебиторская задолженность</label>
-            <label><input type="checkbox" name="q_doc" value="Кредиторская задолженность" /> Кредиторская задолженность</label>
-            <label><input type="checkbox" name="q_doc" value="Кредиты / займы / графики погашения" /> Кредиты / займы / графики</label>
-            <label><input type="checkbox" name="q_doc" value="Продажи по направлениям / товарам / клиентам" /> Продажи по направлениям</label>
-            <label><input type="checkbox" name="q_doc" value="Расходы по категориям" /> Расходы по категориям</label>
-            <label><input type="checkbox" name="q_doc" value="Зарплатный фонд" /> Зарплатный фонд</label>
-            <label><input type="checkbox" name="q_doc" value="Договоры с ключевыми клиентами / арендаторами / поставщиками" /> Ключевые договоры</label>
-            <label><input type="checkbox" name="q_doc" value="Инвестиционные проекты / CAPEX" /> Инвестпроекты / CAPEX</label>
-            <label><input type="checkbox" name="q_doc" value="Power BI / Excel / Google Sheets отчёты" /> Power BI / Excel / Sheets отчёты</label>
-            <label><input type="checkbox" name="q_doc" value="Другое" /> Другое</label>
+            <label><input type="checkbox" name="q_doc" value="P&L Р·Р° 6вЂ“12 РјРµСЃСЏС†РµРІ" /> P&amp;L Р·Р° 6вЂ“12 РјРµСЃСЏС†РµРІ</label>
+            <label><input type="checkbox" name="q_doc" value="Cash Flow / РґРІРёР¶РµРЅРёРµ РґРµРЅРµРі" /> Cash Flow / РґРІРёР¶РµРЅРёРµ РґРµРЅРµРі</label>
+            <label><input type="checkbox" name="q_doc" value="Р‘Р°Р»Р°РЅСЃ" /> Р‘Р°Р»Р°РЅСЃ</label>
+            <label><input type="checkbox" name="q_doc" value="РћР±РѕСЂРѕС‚РЅРѕ-СЃР°Р»СЊРґРѕРІР°СЏ РІРµРґРѕРјРѕСЃС‚СЊ" /> РћР±РѕСЂРѕС‚РЅРѕ-СЃР°Р»СЊРґРѕРІР°СЏ РІРµРґРѕРјРѕСЃС‚СЊ</label>
+            <label><input type="checkbox" name="q_doc" value="Р РµРµСЃС‚СЂ РїР»Р°С‚РµР¶РµР№" /> Р РµРµСЃС‚СЂ РїР»Р°С‚РµР¶РµР№</label>
+            <label><input type="checkbox" name="q_doc" value="Р”РµР±РёС‚РѕСЂСЃРєР°СЏ Р·Р°РґРѕР»Р¶РµРЅРЅРѕСЃС‚СЊ" /> Р”РµР±РёС‚РѕСЂСЃРєР°СЏ Р·Р°РґРѕР»Р¶РµРЅРЅРѕСЃС‚СЊ</label>
+            <label><input type="checkbox" name="q_doc" value="РљСЂРµРґРёС‚РѕСЂСЃРєР°СЏ Р·Р°РґРѕР»Р¶РµРЅРЅРѕСЃС‚СЊ" /> РљСЂРµРґРёС‚РѕСЂСЃРєР°СЏ Р·Р°РґРѕР»Р¶РµРЅРЅРѕСЃС‚СЊ</label>
+            <label><input type="checkbox" name="q_doc" value="РљСЂРµРґРёС‚С‹ / Р·Р°Р№РјС‹ / РіСЂР°С„РёРєРё РїРѕРіР°С€РµРЅРёСЏ" /> РљСЂРµРґРёС‚С‹ / Р·Р°Р№РјС‹ / РіСЂР°С„РёРєРё</label>
+            <label><input type="checkbox" name="q_doc" value="РџСЂРѕРґР°Р¶Рё РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј / С‚РѕРІР°СЂР°Рј / РєР»РёРµРЅС‚Р°Рј" /> РџСЂРѕРґР°Р¶Рё РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј</label>
+            <label><input type="checkbox" name="q_doc" value="Р Р°СЃС…РѕРґС‹ РїРѕ РєР°С‚РµРіРѕСЂРёСЏРј" /> Р Р°СЃС…РѕРґС‹ РїРѕ РєР°С‚РµРіРѕСЂРёСЏРј</label>
+            <label><input type="checkbox" name="q_doc" value="Р—Р°СЂРїР»Р°С‚РЅС‹Р№ С„РѕРЅРґ" /> Р—Р°СЂРїР»Р°С‚РЅС‹Р№ С„РѕРЅРґ</label>
+            <label><input type="checkbox" name="q_doc" value="Р”РѕРіРѕРІРѕСЂС‹ СЃ РєР»СЋС‡РµРІС‹РјРё РєР»РёРµРЅС‚Р°РјРё / Р°СЂРµРЅРґР°С‚РѕСЂР°РјРё / РїРѕСЃС‚Р°РІС‰РёРєР°РјРё" /> РљР»СЋС‡РµРІС‹Рµ РґРѕРіРѕРІРѕСЂС‹</label>
+            <label><input type="checkbox" name="q_doc" value="РРЅРІРµСЃС‚РёС†РёРѕРЅРЅС‹Рµ РїСЂРѕРµРєС‚С‹ / CAPEX" /> РРЅРІРµСЃС‚РїСЂРѕРµРєС‚С‹ / CAPEX</label>
+            <label><input type="checkbox" name="q_doc" value="Power BI / Excel / Google Sheets РѕС‚С‡С‘С‚С‹" /> Power BI / Excel / Sheets РѕС‚С‡С‘С‚С‹</label>
+            <label><input type="checkbox" name="q_doc" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div>
-          <p class="q-note">На первом этапе не нужно отправлять всё сразу. Достаточно отметить, что есть в наличии. Список документов уточняется после первичной консультации.</p>
+          <p class="q-note">РќР° РїРµСЂРІРѕРј СЌС‚Р°РїРµ РЅРµ РЅСѓР¶РЅРѕ РѕС‚РїСЂР°РІР»СЏС‚СЊ РІСЃС‘ СЃСЂР°Р·Сѓ. Р”РѕСЃС‚Р°С‚РѕС‡РЅРѕ РѕС‚РјРµС‚РёС‚СЊ, С‡С‚Рѕ РµСЃС‚СЊ РІ РЅР°Р»РёС‡РёРё. РЎРїРёСЃРѕРє РґРѕРєСѓРјРµРЅС‚РѕРІ СѓС‚РѕС‡РЅСЏРµС‚СЃСЏ РїРѕСЃР»Рµ РїРµСЂРІРёС‡РЅРѕР№ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРё.</p>
         </fieldset>
 
-        <!-- Блок 7 — Цель клиента -->
+        <!-- Р‘Р»РѕРє 7 вЂ” Р¦РµР»СЊ РєР»РёРµРЅС‚Р° -->
         <fieldset class="q-block q">
-          <div class="q-block__head"><span class="q-block__num">7</span><legend class="q-block__title">Цель</legend><span class="q-block__count">7 / 11</span></div>
+          <div class="q-block__head"><span class="q-block__num">7</span><legend class="q-block__title">Р¦РµР»СЊ</legend><span class="q-block__count">7 / 11</span></div>
           <div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_goal" value="Видеть прибыль по направлениям" /> Видеть прибыль по направлениям</label>
-            <label><input type="checkbox" name="q_goal" value="Контролировать деньги" /> Контролировать деньги</label>
-            <label><input type="checkbox" name="q_goal" value="Убрать кассовые разрывы" /> Убрать кассовые разрывы</label>
-            <label><input type="checkbox" name="q_goal" value="Построить казначейство" /> Построить казначейство</label>
-            <label><input type="checkbox" name="q_goal" value="Внедрить платёжный календарь" /> Внедрить платёжный календарь</label>
-            <label><input type="checkbox" name="q_goal" value="Внедрить Power BI" /> Внедрить Power BI</label>
-            <label><input type="checkbox" name="q_goal" value="Автоматизировать отчётность" /> Автоматизировать отчётность</label>
-            <label><input type="checkbox" name="q_goal" value="Получить KPI" /> Получить KPI</label>
-            <label><input type="checkbox" name="q_goal" value="Подготовить бизнес к росту" /> Подготовить к росту</label>
-            <label><input type="checkbox" name="q_goal" value="Подготовить к инвестору / банку" /> Подготовить к инвестору / банку</label>
-            <label><input type="checkbox" name="q_goal" value="Контролировать группу компаний" /> Контролировать группу</label>
-            <label><input type="checkbox" name="q_goal" value="Повысить маржинальность" /> Повысить маржинальность</label>
-            <label><input type="checkbox" name="q_goal" value="Снизить расходы" /> Снизить расходы</label>
-            <label><input type="checkbox" name="q_goal" value="Навести порядок в финансах" /> Навести порядок в финансах</label>
-            <label><input type="checkbox" name="q_goal" value="Заменить хаос системой" /> Заменить хаос системой</label>
+            <label><input type="checkbox" name="q_goal" value="Р’РёРґРµС‚СЊ РїСЂРёР±С‹Р»СЊ РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј" /> Р’РёРґРµС‚СЊ РїСЂРёР±С‹Р»СЊ РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј</label>
+            <label><input type="checkbox" name="q_goal" value="РљРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РґРµРЅСЊРіРё" /> РљРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РґРµРЅСЊРіРё</label>
+            <label><input type="checkbox" name="q_goal" value="РЈР±СЂР°С‚СЊ РєР°СЃСЃРѕРІС‹Рµ СЂР°Р·СЂС‹РІС‹" /> РЈР±СЂР°С‚СЊ РєР°СЃСЃРѕРІС‹Рµ СЂР°Р·СЂС‹РІС‹</label>
+            <label><input type="checkbox" name="q_goal" value="РџРѕСЃС‚СЂРѕРёС‚СЊ РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ" /> РџРѕСЃС‚СЂРѕРёС‚СЊ РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ</label>
+            <label><input type="checkbox" name="q_goal" value="Р’РЅРµРґСЂРёС‚СЊ РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ" /> Р’РЅРµРґСЂРёС‚СЊ РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ</label>
+            <label><input type="checkbox" name="q_goal" value="Р’РЅРµРґСЂРёС‚СЊ Power BI" /> Р’РЅРµРґСЂРёС‚СЊ Power BI</label>
+            <label><input type="checkbox" name="q_goal" value="РђРІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ" /> РђРІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ</label>
+            <label><input type="checkbox" name="q_goal" value="РџРѕР»СѓС‡РёС‚СЊ KPI" /> РџРѕР»СѓС‡РёС‚СЊ KPI</label>
+            <label><input type="checkbox" name="q_goal" value="РџРѕРґРіРѕС‚РѕРІРёС‚СЊ Р±РёР·РЅРµСЃ Рє СЂРѕСЃС‚Сѓ" /> РџРѕРґРіРѕС‚РѕРІРёС‚СЊ Рє СЂРѕСЃС‚Сѓ</label>
+            <label><input type="checkbox" name="q_goal" value="РџРѕРґРіРѕС‚РѕРІРёС‚СЊ Рє РёРЅРІРµСЃС‚РѕСЂСѓ / Р±Р°РЅРєСѓ" /> РџРѕРґРіРѕС‚РѕРІРёС‚СЊ Рє РёРЅРІРµСЃС‚РѕСЂСѓ / Р±Р°РЅРєСѓ</label>
+            <label><input type="checkbox" name="q_goal" value="РљРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїСѓ РєРѕРјРїР°РЅРёР№" /> РљРѕРЅС‚СЂРѕР»РёСЂРѕРІР°С‚СЊ РіСЂСѓРїРїСѓ</label>
+            <label><input type="checkbox" name="q_goal" value="РџРѕРІС‹СЃРёС‚СЊ РјР°СЂР¶РёРЅР°Р»СЊРЅРѕСЃС‚СЊ" /> РџРѕРІС‹СЃРёС‚СЊ РјР°СЂР¶РёРЅР°Р»СЊРЅРѕСЃС‚СЊ</label>
+            <label><input type="checkbox" name="q_goal" value="РЎРЅРёР·РёС‚СЊ СЂР°СЃС…РѕРґС‹" /> РЎРЅРёР·РёС‚СЊ СЂР°СЃС…РѕРґС‹</label>
+            <label><input type="checkbox" name="q_goal" value="РќР°РІРµСЃС‚Рё РїРѕСЂСЏРґРѕРє РІ С„РёРЅР°РЅСЃР°С…" /> РќР°РІРµСЃС‚Рё РїРѕСЂСЏРґРѕРє РІ С„РёРЅР°РЅСЃР°С…</label>
+            <label><input type="checkbox" name="q_goal" value="Р—Р°РјРµРЅРёС‚СЊ С…Р°РѕСЃ СЃРёСЃС‚РµРјРѕР№" /> Р—Р°РјРµРЅРёС‚СЊ С…Р°РѕСЃ СЃРёСЃС‚РµРјРѕР№</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Какой результат вы хотите получить через 3–6 месяцев?</span><textarea name="q_goal_text"></textarea></div>
+          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">РљР°РєРѕР№ СЂРµР·СѓР»СЊС‚Р°С‚ РІС‹ С…РѕС‚РёС‚Рµ РїРѕР»СѓС‡РёС‚СЊ С‡РµСЂРµР· 3вЂ“6 РјРµСЃСЏС†РµРІ?</span><textarea name="q_goal_text"></textarea></div>
         </fieldset>
 
-        <!-- Блок 8 — Срочность и последствия -->
+        <!-- Р‘Р»РѕРє 8 вЂ” РЎСЂРѕС‡РЅРѕСЃС‚СЊ Рё РїРѕСЃР»РµРґСЃС‚РІРёСЏ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">8</span><h2 class="q-block__title">Срочность и последствия</h2><span class="q-block__count">8 / 11</span></div>
-          <fieldset class="q"><legend class="q__label">Насколько срочно нужно решение?</legend><div class="q__choices"><label><input type="radio" name="q_urgency" value="Сейчас" /> Сейчас</label><label><input type="radio" name="q_urgency" value="1 месяц" /> 1 месяц</label><label><input type="radio" name="q_urgency" value="3 месяца" /> 3 месяца</label><label><input type="radio" name="q_urgency" value="Пока изучаю" /> Пока изучаю</label></div></fieldset>
-          <div class="q"><span class="q__label">Что будет, если ничего не менять 3 месяца?</span><textarea name="q_ifnothing"></textarea></div>
-          <fieldset class="q"><legend class="q__label">Есть сейчас критическая проблема с деньгами?</legend><div class="q__choices"><label><input type="radio" name="q_critical" value="Да" /> Да</label><label><input type="radio" name="q_critical" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть просрочки по платежам?</legend><div class="q__choices"><label><input type="radio" name="q_overdue" value="Да" /> Да</label><label><input type="radio" name="q_overdue" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть давление со стороны банков / поставщиков / инвесторов?</legend><div class="q__choices"><label><input type="radio" name="q_pressure" value="Да" /> Да</label><label><input type="radio" name="q_pressure" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть конфликт между собственником и финансовой командой?</legend><div class="q__choices"><label><input type="radio" name="q_conflict" value="Да" /> Да</label><label><input type="radio" name="q_conflict" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Есть риск остановки бизнеса / проекта?</legend><div class="q__choices"><label><input type="radio" name="q_stoprisk" value="Да" /> Да</label><label><input type="radio" name="q_stoprisk" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Главное ограничение сейчас</legend><div class="q__choices"><label><input type="radio" name="q_constraint" value="Деньги" /> Деньги</label><label><input type="radio" name="q_constraint" value="Данные" /> Данные</label><label><input type="radio" name="q_constraint" value="Команда" /> Команда</label><label><input type="radio" name="q_constraint" value="Время" /> Время</label><label><input type="radio" name="q_constraint" value="Система" /> Система</label><label><input type="radio" name="q_constraint" value="Другое" /> Другое</label></div></fieldset>
+          <div class="q-block__head"><span class="q-block__num">8</span><h2 class="q-block__title">РЎСЂРѕС‡РЅРѕСЃС‚СЊ Рё РїРѕСЃР»РµРґСЃС‚РІРёСЏ</h2><span class="q-block__count">8 / 11</span></div>
+          <fieldset class="q"><legend class="q__label">РќР°СЃРєРѕР»СЊРєРѕ СЃСЂРѕС‡РЅРѕ РЅСѓР¶РЅРѕ СЂРµС€РµРЅРёРµ?</legend><div class="q__choices"><label><input type="radio" name="q_urgency" value="РЎРµР№С‡Р°СЃ" /> РЎРµР№С‡Р°СЃ</label><label><input type="radio" name="q_urgency" value="1 РјРµСЃСЏС†" /> 1 РјРµСЃСЏС†</label><label><input type="radio" name="q_urgency" value="3 РјРµСЃСЏС†Р°" /> 3 РјРµСЃСЏС†Р°</label><label><input type="radio" name="q_urgency" value="РџРѕРєР° РёР·СѓС‡Р°СЋ" /> РџРѕРєР° РёР·СѓС‡Р°СЋ</label></div></fieldset>
+          <div class="q"><span class="q__label">Р§С‚Рѕ Р±СѓРґРµС‚, РµСЃР»Рё РЅРёС‡РµРіРѕ РЅРµ РјРµРЅСЏС‚СЊ 3 РјРµСЃСЏС†Р°?</span><textarea name="q_ifnothing"></textarea></div>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ СЃРµР№С‡Р°СЃ РєСЂРёС‚РёС‡РµСЃРєР°СЏ РїСЂРѕР±Р»РµРјР° СЃ РґРµРЅСЊРіР°РјРё?</legend><div class="q__choices"><label><input type="radio" name="q_critical" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_critical" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РїСЂРѕСЃСЂРѕС‡РєРё РїРѕ РїР»Р°С‚РµР¶Р°Рј?</legend><div class="q__choices"><label><input type="radio" name="q_overdue" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_overdue" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РґР°РІР»РµРЅРёРµ СЃРѕ СЃС‚РѕСЂРѕРЅС‹ Р±Р°РЅРєРѕРІ / РїРѕСЃС‚Р°РІС‰РёРєРѕРІ / РёРЅРІРµСЃС‚РѕСЂРѕРІ?</legend><div class="q__choices"><label><input type="radio" name="q_pressure" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_pressure" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ РєРѕРЅС„Р»РёРєС‚ РјРµР¶РґСѓ СЃРѕР±СЃС‚РІРµРЅРЅРёРєРѕРј Рё С„РёРЅР°РЅСЃРѕРІРѕР№ РєРѕРјР°РЅРґРѕР№?</legend><div class="q__choices"><label><input type="radio" name="q_conflict" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_conflict" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р•СЃС‚СЊ СЂРёСЃРє РѕСЃС‚Р°РЅРѕРІРєРё Р±РёР·РЅРµСЃР° / РїСЂРѕРµРєС‚Р°?</legend><div class="q__choices"><label><input type="radio" name="q_stoprisk" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_stoprisk" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р“Р»Р°РІРЅРѕРµ РѕРіСЂР°РЅРёС‡РµРЅРёРµ СЃРµР№С‡Р°СЃ</legend><div class="q__choices"><label><input type="radio" name="q_constraint" value="Р”РµРЅСЊРіРё" /> Р”РµРЅСЊРіРё</label><label><input type="radio" name="q_constraint" value="Р”Р°РЅРЅС‹Рµ" /> Р”Р°РЅРЅС‹Рµ</label><label><input type="radio" name="q_constraint" value="РљРѕРјР°РЅРґР°" /> РљРѕРјР°РЅРґР°</label><label><input type="radio" name="q_constraint" value="Р’СЂРµРјСЏ" /> Р’СЂРµРјСЏ</label><label><input type="radio" name="q_constraint" value="РЎРёСЃС‚РµРјР°" /> РЎРёСЃС‚РµРјР°</label><label><input type="radio" name="q_constraint" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label></div></fieldset>
         </section>
 
-        <!-- Блок 9 — Удалённая работа и доверие -->
+        <!-- Р‘Р»РѕРє 9 вЂ” РЈРґР°Р»С‘РЅРЅР°СЏ СЂР°Р±РѕС‚Р° Рё РґРѕРІРµСЂРёРµ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">9</span><h2 class="q-block__title">Удалённая работа и доверие</h2><span class="q-block__count">9 / 11</span></div>
-          <p class="q-reassure">Удалённая работа не означает потерю контроля. Работа строится через понятный процесс: календарь встреч, список задач, отчёты по статусу, защищённый обмен файлами и регулярные управленческие выводы. Клиент видит не только результат, но и ход работы.</p>
-          <fieldset class="q"><legend class="q__label">Готовы ли вы работать удалённо?</legend><div class="q__choices"><label><input type="radio" name="q_remote_ready" value="Да" /> Да</label><label><input type="radio" name="q_remote_ready" value="Нет" /> Нет</label><label><input type="radio" name="q_remote_ready" value="Возможно" /> Возможно</label><label><input type="radio" name="q_remote_ready" value="Хочу обсудить" /> Хочу обсудить</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Работали раньше с внешними консультантами удалённо?</legend><div class="q__choices"><label><input type="radio" name="q_remote_prev" value="Да" /> Да</label><label><input type="radio" name="q_remote_prev" value="Нет" /> Нет</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Что вызывает сомнения в удалённой работе?</legend><div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_remote_doubts" value="Качество работы" /> Качество работы</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Контроль процесса" /> Контроль процесса</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Конфиденциальность данных" /> Конфиденциальность данных</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Безопасность документов" /> Безопасность документов</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Разные часовые пояса" /> Разные часовые пояса</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Сложность коммуникации" /> Сложность коммуникации</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Непонимание локального бизнеса" /> Непонимание локального бизнеса</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Отсутствие личного контакта" /> Отсутствие личного контакта</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Скорость реакции" /> Скорость реакции</label>
-            <label><input type="checkbox" name="q_remote_doubts" value="Другое" /> Другое</label>
+          <div class="q-block__head"><span class="q-block__num">9</span><h2 class="q-block__title">РЈРґР°Р»С‘РЅРЅР°СЏ СЂР°Р±РѕС‚Р° Рё РґРѕРІРµСЂРёРµ</h2><span class="q-block__count">9 / 11</span></div>
+          <p class="q-reassure">РЈРґР°Р»С‘РЅРЅР°СЏ СЂР°Р±РѕС‚Р° РЅРµ РѕР·РЅР°С‡Р°РµС‚ РїРѕС‚РµСЂСЋ РєРѕРЅС‚СЂРѕР»СЏ. Р Р°Р±РѕС‚Р° СЃС‚СЂРѕРёС‚СЃСЏ С‡РµСЂРµР· РїРѕРЅСЏС‚РЅС‹Р№ РїСЂРѕС†РµСЃСЃ: РєР°Р»РµРЅРґР°СЂСЊ РІСЃС‚СЂРµС‡, СЃРїРёСЃРѕРє Р·Р°РґР°С‡, РѕС‚С‡С‘С‚С‹ РїРѕ СЃС‚Р°С‚СѓСЃСѓ, Р·Р°С‰РёС‰С‘РЅРЅС‹Р№ РѕР±РјРµРЅ С„Р°Р№Р»Р°РјРё Рё СЂРµРіСѓР»СЏСЂРЅС‹Рµ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ РІС‹РІРѕРґС‹. РљР»РёРµРЅС‚ РІРёРґРёС‚ РЅРµ С‚РѕР»СЊРєРѕ СЂРµР·СѓР»СЊС‚Р°С‚, РЅРѕ Рё С…РѕРґ СЂР°Р±РѕС‚С‹.</p>
+          <fieldset class="q"><legend class="q__label">Р“РѕС‚РѕРІС‹ Р»Рё РІС‹ СЂР°Р±РѕС‚Р°С‚СЊ СѓРґР°Р»С‘РЅРЅРѕ?</legend><div class="q__choices"><label><input type="radio" name="q_remote_ready" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_remote_ready" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_remote_ready" value="Р’РѕР·РјРѕР¶РЅРѕ" /> Р’РѕР·РјРѕР¶РЅРѕ</label><label><input type="radio" name="q_remote_ready" value="РҐРѕС‡Сѓ РѕР±СЃСѓРґРёС‚СЊ" /> РҐРѕС‡Сѓ РѕР±СЃСѓРґРёС‚СЊ</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р Р°Р±РѕС‚Р°Р»Рё СЂР°РЅСЊС€Рµ СЃ РІРЅРµС€РЅРёРјРё РєРѕРЅСЃСѓР»СЊС‚Р°РЅС‚Р°РјРё СѓРґР°Р»С‘РЅРЅРѕ?</legend><div class="q__choices"><label><input type="radio" name="q_remote_prev" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_remote_prev" value="РќРµС‚" /> РќРµС‚</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Р§С‚Рѕ РІС‹Р·С‹РІР°РµС‚ СЃРѕРјРЅРµРЅРёСЏ РІ СѓРґР°Р»С‘РЅРЅРѕР№ СЂР°Р±РѕС‚Рµ?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_remote_doubts" value="РљР°С‡РµСЃС‚РІРѕ СЂР°Р±РѕС‚С‹" /> РљР°С‡РµСЃС‚РІРѕ СЂР°Р±РѕС‚С‹</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РљРѕРЅС‚СЂРѕР»СЊ РїСЂРѕС†РµСЃСЃР°" /> РљРѕРЅС‚СЂРѕР»СЊ РїСЂРѕС†РµСЃСЃР°</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ РґР°РЅРЅС‹С…" /> РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ РґР°РЅРЅС‹С…</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Р‘РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ РґРѕРєСѓРјРµРЅС‚РѕРІ" /> Р‘РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ РґРѕРєСѓРјРµРЅС‚РѕРІ</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Р Р°Р·РЅС‹Рµ С‡Р°СЃРѕРІС‹Рµ РїРѕСЏСЃР°" /> Р Р°Р·РЅС‹Рµ С‡Р°СЃРѕРІС‹Рµ РїРѕСЏСЃР°</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РЎР»РѕР¶РЅРѕСЃС‚СЊ РєРѕРјРјСѓРЅРёРєР°С†РёРё" /> РЎР»РѕР¶РЅРѕСЃС‚СЊ РєРѕРјРјСѓРЅРёРєР°С†РёРё</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РќРµРїРѕРЅРёРјР°РЅРёРµ Р»РѕРєР°Р»СЊРЅРѕРіРѕ Р±РёР·РЅРµСЃР°" /> РќРµРїРѕРЅРёРјР°РЅРёРµ Р»РѕРєР°Р»СЊРЅРѕРіРѕ Р±РёР·РЅРµСЃР°</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РћС‚СЃСѓС‚СЃС‚РІРёРµ Р»РёС‡РЅРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р°" /> РћС‚СЃСѓС‚СЃС‚РІРёРµ Р»РёС‡РЅРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р°</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="РЎРєРѕСЂРѕСЃС‚СЊ СЂРµР°РєС†РёРё" /> РЎРєРѕСЂРѕСЃС‚СЊ СЂРµР°РєС†РёРё</label>
+            <label><input type="checkbox" name="q_remote_doubts" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div></fieldset>
-          <fieldset class="q"><legend class="q__label">Какой формат вам комфортнее?</legend><div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_remote_format" value="Еженедельные Zoom/Meet встречи" /> Еженедельные Zoom/Meet встречи</label>
-            <label><input type="checkbox" name="q_remote_format" value="Общая рабочая папка" /> Общая рабочая папка</label>
-            <label><input type="checkbox" name="q_remote_format" value="Регулярный отчёт по задачам" /> Регулярный отчёт по задачам</label>
-            <label><input type="checkbox" name="q_remote_format" value="Telegram-связь" /> Telegram-связь</label>
-            <label><input type="checkbox" name="q_remote_format" value="Email summary после встречи" /> Email summary после встречи</label>
-            <label><input type="checkbox" name="q_remote_format" value="Dashboard со статусом задач" /> Dashboard со статусом задач</label>
-            <label><input type="checkbox" name="q_remote_format" value="Гибридный формат" /> Гибридный формат</label>
-            <label><input type="checkbox" name="q_remote_format" value="Другое" /> Другое</label>
+          <fieldset class="q"><legend class="q__label">РљР°РєРѕР№ С„РѕСЂРјР°С‚ РІР°Рј РєРѕРјС„РѕСЂС‚РЅРµРµ?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_remote_format" value="Р•Р¶РµРЅРµРґРµР»СЊРЅС‹Рµ Zoom/Meet РІСЃС‚СЂРµС‡Рё" /> Р•Р¶РµРЅРµРґРµР»СЊРЅС‹Рµ Zoom/Meet РІСЃС‚СЂРµС‡Рё</label>
+            <label><input type="checkbox" name="q_remote_format" value="РћР±С‰Р°СЏ СЂР°Р±РѕС‡Р°СЏ РїР°РїРєР°" /> РћР±С‰Р°СЏ СЂР°Р±РѕС‡Р°СЏ РїР°РїРєР°</label>
+            <label><input type="checkbox" name="q_remote_format" value="Р РµРіСѓР»СЏСЂРЅС‹Р№ РѕС‚С‡С‘С‚ РїРѕ Р·Р°РґР°С‡Р°Рј" /> Р РµРіСѓР»СЏСЂРЅС‹Р№ РѕС‚С‡С‘С‚ РїРѕ Р·Р°РґР°С‡Р°Рј</label>
+            <label><input type="checkbox" name="q_remote_format" value="Telegram-СЃРІСЏР·СЊ" /> Telegram-СЃРІСЏР·СЊ</label>
+            <label><input type="checkbox" name="q_remote_format" value="Email summary РїРѕСЃР»Рµ РІСЃС‚СЂРµС‡Рё" /> Email summary РїРѕСЃР»Рµ РІСЃС‚СЂРµС‡Рё</label>
+            <label><input type="checkbox" name="q_remote_format" value="Dashboard СЃРѕ СЃС‚Р°С‚СѓСЃРѕРј Р·Р°РґР°С‡" /> Dashboard СЃРѕ СЃС‚Р°С‚СѓСЃРѕРј Р·Р°РґР°С‡</label>
+            <label><input type="checkbox" name="q_remote_format" value="Р“РёР±СЂРёРґРЅС‹Р№ С„РѕСЂРјР°С‚" /> Р“РёР±СЂРёРґРЅС‹Р№ С„РѕСЂРјР°С‚</label>
+            <label><input type="checkbox" name="q_remote_format" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div></fieldset>
-          <fieldset class="q"><legend class="q__label">Какие инструменты вы готовы использовать?</legend><div class="q__choices q__choices--multi">
+          <fieldset class="q"><legend class="q__label">РљР°РєРёРµ РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹ РІС‹ РіРѕС‚РѕРІС‹ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ?</legend><div class="q__choices q__choices--multi">
             <label><input type="checkbox" name="q_remote_tools" value="Google Drive" /> Google Drive</label>
             <label><input type="checkbox" name="q_remote_tools" value="Microsoft OneDrive" /> Microsoft OneDrive</label>
             <label><input type="checkbox" name="q_remote_tools" value="Dropbox" /> Dropbox</label>
@@ -435,64 +438,64 @@
             <label><input type="checkbox" name="q_remote_tools" value="Zoom" /> Zoom</label>
             <label><input type="checkbox" name="q_remote_tools" value="Google Meet" /> Google Meet</label>
             <label><input type="checkbox" name="q_remote_tools" value="Microsoft Teams" /> Microsoft Teams</label>
-            <label><input type="checkbox" name="q_remote_tools" value="Другое" /> Другое</label>
+            <label><input type="checkbox" name="q_remote_tools" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div></fieldset>
-          <fieldset class="q"><legend class="q__label">Нужен ли NDA / соглашение о конфиденциальности?</legend><div class="q__choices"><label><input type="radio" name="q_nda" value="Да" /> Да</label><label><input type="radio" name="q_nda" value="Нет" /> Нет</label><label><input type="radio" name="q_nda" value="Возможно" /> Возможно</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">РќСѓР¶РµРЅ Р»Рё NDA / СЃРѕРіР»Р°С€РµРЅРёРµ Рѕ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё?</legend><div class="q__choices"><label><input type="radio" name="q_nda" value="Р”Р°" /> Р”Р°</label><label><input type="radio" name="q_nda" value="РќРµС‚" /> РќРµС‚</label><label><input type="radio" name="q_nda" value="Р’РѕР·РјРѕР¶РЅРѕ" /> Р’РѕР·РјРѕР¶РЅРѕ</label></div></fieldset>
         </section>
 
-        <!-- Блок 10 — Ожидания от первой встречи -->
+        <!-- Р‘Р»РѕРє 10 вЂ” РћР¶РёРґР°РЅРёСЏ РѕС‚ РїРµСЂРІРѕР№ РІСЃС‚СЂРµС‡Рё -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">10</span><h2 class="q-block__title">Ожидания от первой встречи</h2><span class="q-block__count">10 / 11</span></div>
-          <fieldset class="q"><legend class="q__label">Что вы хотите получить от первой встречи?</legend><div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_expect" value="Понять главные финансовые проблемы" /> Понять главные проблемы</label>
-            <label><input type="checkbox" name="q_expect" value="Получить независимый взгляд" /> Независимый взгляд</label>
-            <label><input type="checkbox" name="q_expect" value="Понять, какие отчёты нужны" /> Какие отчёты нужны</label>
-            <label><input type="checkbox" name="q_expect" value="Оценить текущую финансовую систему" /> Оценить текущую систему</label>
-            <label><input type="checkbox" name="q_expect" value="Понять стоимость внедрения" /> Стоимость внедрения</label>
-            <label><input type="checkbox" name="q_expect" value="Понять, можно ли работать удалённо" /> Можно ли работать удалённо</label>
-            <label><input type="checkbox" name="q_expect" value="Подобрать формат сопровождения" /> Подобрать формат сопровождения</label>
-            <label><input type="checkbox" name="q_expect" value="Другое" /> Другое</label>
+          <div class="q-block__head"><span class="q-block__num">10</span><h2 class="q-block__title">РћР¶РёРґР°РЅРёСЏ РѕС‚ РїРµСЂРІРѕР№ РІСЃС‚СЂРµС‡Рё</h2><span class="q-block__count">10 / 11</span></div>
+          <fieldset class="q"><legend class="q__label">Р§С‚Рѕ РІС‹ С…РѕС‚РёС‚Рµ РїРѕР»СѓС‡РёС‚СЊ РѕС‚ РїРµСЂРІРѕР№ РІСЃС‚СЂРµС‡Рё?</legend><div class="q__choices q__choices--multi">
+            <label><input type="checkbox" name="q_expect" value="РџРѕРЅСЏС‚СЊ РіР»Р°РІРЅС‹Рµ С„РёРЅР°РЅСЃРѕРІС‹Рµ РїСЂРѕР±Р»РµРјС‹" /> РџРѕРЅСЏС‚СЊ РіР»Р°РІРЅС‹Рµ РїСЂРѕР±Р»РµРјС‹</label>
+            <label><input type="checkbox" name="q_expect" value="РџРѕР»СѓС‡РёС‚СЊ РЅРµР·Р°РІРёСЃРёРјС‹Р№ РІР·РіР»СЏРґ" /> РќРµР·Р°РІРёСЃРёРјС‹Р№ РІР·РіР»СЏРґ</label>
+            <label><input type="checkbox" name="q_expect" value="РџРѕРЅСЏС‚СЊ, РєР°РєРёРµ РѕС‚С‡С‘С‚С‹ РЅСѓР¶РЅС‹" /> РљР°РєРёРµ РѕС‚С‡С‘С‚С‹ РЅСѓР¶РЅС‹</label>
+            <label><input type="checkbox" name="q_expect" value="РћС†РµРЅРёС‚СЊ С‚РµРєСѓС‰СѓСЋ С„РёРЅР°РЅСЃРѕРІСѓСЋ СЃРёСЃС‚РµРјСѓ" /> РћС†РµРЅРёС‚СЊ С‚РµРєСѓС‰СѓСЋ СЃРёСЃС‚РµРјСѓ</label>
+            <label><input type="checkbox" name="q_expect" value="РџРѕРЅСЏС‚СЊ СЃС‚РѕРёРјРѕСЃС‚СЊ РІРЅРµРґСЂРµРЅРёСЏ" /> РЎС‚РѕРёРјРѕСЃС‚СЊ РІРЅРµРґСЂРµРЅРёСЏ</label>
+            <label><input type="checkbox" name="q_expect" value="РџРѕРЅСЏС‚СЊ, РјРѕР¶РЅРѕ Р»Рё СЂР°Р±РѕС‚Р°С‚СЊ СѓРґР°Р»С‘РЅРЅРѕ" /> РњРѕР¶РЅРѕ Р»Рё СЂР°Р±РѕС‚Р°С‚СЊ СѓРґР°Р»С‘РЅРЅРѕ</label>
+            <label><input type="checkbox" name="q_expect" value="РџРѕРґРѕР±СЂР°С‚СЊ С„РѕСЂРјР°С‚ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёСЏ" /> РџРѕРґРѕР±СЂР°С‚СЊ С„РѕСЂРјР°С‚ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёСЏ</label>
+            <label><input type="checkbox" name="q_expect" value="Р”СЂСѓРіРѕРµ" /> Р”СЂСѓРіРѕРµ</label>
           </div></fieldset>
-          <fieldset class="q"><legend class="q__label">Какой формат работы вам интересен?</legend><div class="q__choices">
-            <label><input type="checkbox" name="q_workinterest" value="Разовая диагностика" /> Разовая диагностика</label>
-            <label><input type="checkbox" name="q_workinterest" value="Внедрение системы" /> Внедрение системы</label>
-            <label><input type="checkbox" name="q_workinterest" value="Ежемесячное сопровождение" /> Ежемесячное сопровождение</label>
-            <label><input type="checkbox" name="q_workinterest" value="AI / BI автоматизация" /> AI / BI автоматизация</label>
-            <label><input type="checkbox" name="q_workinterest" value="Пока не знаю" /> Пока не знаю</label>
+          <fieldset class="q"><legend class="q__label">РљР°РєРѕР№ С„РѕСЂРјР°С‚ СЂР°Р±РѕС‚С‹ РІР°Рј РёРЅС‚РµСЂРµСЃРµРЅ?</legend><div class="q__choices">
+            <label><input type="checkbox" name="q_workinterest" value="Р Р°Р·РѕРІР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°" /> Р Р°Р·РѕРІР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°</label>
+            <label><input type="checkbox" name="q_workinterest" value="Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹" /> Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹</label>
+            <label><input type="checkbox" name="q_workinterest" value="Р•Р¶РµРјРµСЃСЏС‡РЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ" /> Р•Р¶РµРјРµСЃСЏС‡РЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ</label>
+            <label><input type="checkbox" name="q_workinterest" value="AI / BI Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ" /> AI / BI Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ</label>
+            <label><input type="checkbox" name="q_workinterest" value="РџРѕРєР° РЅРµ Р·РЅР°СЋ" /> РџРѕРєР° РЅРµ Р·РЅР°СЋ</label>
           </div></fieldset>
-          <div class="q"><span class="q__label">Когда удобно провести встречу?</span><input type="text" name="q_meettime" placeholder="дни / время / часовой пояс" /></div>
-          <div class="q"><span class="q__label">Комментарий</span><textarea name="q_comment"></textarea></div>
+          <div class="q"><span class="q__label">РљРѕРіРґР° СѓРґРѕР±РЅРѕ РїСЂРѕРІРµСЃС‚Рё РІСЃС‚СЂРµС‡Сѓ?</span><input type="text" name="q_meettime" placeholder="РґРЅРё / РІСЂРµРјСЏ / С‡Р°СЃРѕРІРѕР№ РїРѕСЏСЃ" /></div>
+          <div class="q"><span class="q__label">РљРѕРјРјРµРЅС‚Р°СЂРёР№</span><textarea name="q_comment"></textarea></div>
         </section>
 
-        <!-- Блок 11 — Согласие и конфиденциальность -->
+        <!-- Р‘Р»РѕРє 11 вЂ” РЎРѕРіР»Р°СЃРёРµ Рё РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ -->
         <section class="q-block">
-          <div class="q-block__head"><span class="q-block__num">11</span><h2 class="q-block__title">Согласие и конфиденциальность</h2><span class="q-block__count">11 / 11</span></div>
-          <label class="q-consent" id="qConsentRow"><input type="checkbox" name="q_consent" id="qConsent" /> <span>Я согласен с <a href="privacy.html">Политикой конфиденциальности</a> и обработкой данных для подготовки консультации.</span></label>
-          <label class="q-consent"><input type="checkbox" name="q_consent_docs" /> <span>Я понимаю, что на данном этапе не нужно отправлять конфиденциальные документы без отдельного согласования.</span></label>
-          <label class="q-consent"><input type="checkbox" name="q_consent_plan" /> <span>Я хочу получить предварительный план встречи на основе ответов анкеты.</span></label>
-          <p class="q-ai-notice">Ответы анкеты могут использоваться FINMENTOR для подготовки предварительной финансовой диагностики, списка документов, карты рисков и предложения по формату работы. Финальные выводы подтверждаются человеком.</p>
-          <p class="q-note">На первом этапе достаточно общих данных и описания проблем. Конфиденциальные документы запрашиваются отдельно и только при необходимости.</p>
+          <div class="q-block__head"><span class="q-block__num">11</span><h2 class="q-block__title">РЎРѕРіР»Р°СЃРёРµ Рё РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ</h2><span class="q-block__count">11 / 11</span></div>
+          <label class="q-consent" id="qConsentRow"><input type="checkbox" name="q_consent" id="qConsent" /> <span>РЇ СЃРѕРіР»Р°СЃРµРЅ СЃ <a href="privacy.html">РџРѕР»РёС‚РёРєРѕР№ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a> Рё РѕР±СЂР°Р±РѕС‚РєРѕР№ РґР°РЅРЅС‹С… РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РєРѕРЅСЃСѓР»СЊС‚Р°С†РёРё.</span></label>
+          <label class="q-consent"><input type="checkbox" name="q_consent_docs" /> <span>РЇ РїРѕРЅРёРјР°СЋ, С‡С‚Рѕ РЅР° РґР°РЅРЅРѕРј СЌС‚Р°РїРµ РЅРµ РЅСѓР¶РЅРѕ РѕС‚РїСЂР°РІР»СЏС‚СЊ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅС‹Рµ РґРѕРєСѓРјРµРЅС‚С‹ Р±РµР· РѕС‚РґРµР»СЊРЅРѕРіРѕ СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЏ.</span></label>
+          <label class="q-consent"><input type="checkbox" name="q_consent_plan" /> <span>РЇ С…РѕС‡Сѓ РїРѕР»СѓС‡РёС‚СЊ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅС‹Р№ РїР»Р°РЅ РІСЃС‚СЂРµС‡Рё РЅР° РѕСЃРЅРѕРІРµ РѕС‚РІРµС‚РѕРІ Р°РЅРєРµС‚С‹.</span></label>
+          <p class="q-ai-notice">РћС‚РІРµС‚С‹ Р°РЅРєРµС‚С‹ РјРѕРіСѓС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ FINMENTOR РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅРѕР№ С„РёРЅР°РЅСЃРѕРІРѕР№ РґРёР°РіРЅРѕСЃС‚РёРєРё, СЃРїРёСЃРєР° РґРѕРєСѓРјРµРЅС‚РѕРІ, РєР°СЂС‚С‹ СЂРёСЃРєРѕРІ Рё РїСЂРµРґР»РѕР¶РµРЅРёСЏ РїРѕ С„РѕСЂРјР°С‚Сѓ СЂР°Р±РѕС‚С‹. Р¤РёРЅР°Р»СЊРЅС‹Рµ РІС‹РІРѕРґС‹ РїРѕРґС‚РІРµСЂР¶РґР°СЋС‚СЃСЏ С‡РµР»РѕРІРµРєРѕРј.</p>
+          <p class="q-note">РќР° РїРµСЂРІРѕРј СЌС‚Р°РїРµ РґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РѕР±С‰РёС… РґР°РЅРЅС‹С… Рё РѕРїРёСЃР°РЅРёСЏ РїСЂРѕР±Р»РµРј. РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅС‹Рµ РґРѕРєСѓРјРµРЅС‚С‹ Р·Р°РїСЂР°С€РёРІР°СЋС‚СЃСЏ РѕС‚РґРµР»СЊРЅРѕ Рё С‚РѕР»СЊРєРѕ РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё.</p>
         </section>
 
         <div class="q-actions">
-          <p class="form-consent">Отправляя форму, я подтверждаю, что ознакомился с <a href="privacy.html">Политикой конфиденциальности</a> и согласен на обработку данных для связи со мной и рассмотрения моего запроса.</p>
-          <button type="submit" class="btn btn--primary btn--lg">Отправить анкету</button>
-          <button type="button" class="btn btn--ghost btn--lg" id="qCopy">Скопировать ответы</button>
+          <p class="form-consent">РћС‚РїСЂР°РІР»СЏСЏ С„РѕСЂРјСѓ, СЏ РїРѕРґС‚РІРµСЂР¶РґР°СЋ, С‡С‚Рѕ РѕР·РЅР°РєРѕРјРёР»СЃСЏ СЃ <a href="privacy.html">РџРѕР»РёС‚РёРєРѕР№ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a> Рё СЃРѕРіР»Р°СЃРµРЅ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РґР°РЅРЅС‹С… РґР»СЏ СЃРІСЏР·Рё СЃРѕ РјРЅРѕР№ Рё СЂР°СЃСЃРјРѕС‚СЂРµРЅРёСЏ РјРѕРµРіРѕ Р·Р°РїСЂРѕСЃР°.</p>
+          <button type="submit" class="btn btn--primary btn--lg">РћС‚РїСЂР°РІРёС‚СЊ Р°РЅРєРµС‚Сѓ</button>
+          <button type="button" class="btn btn--ghost btn--lg" id="qCopy">РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚С‹</button>
         </div>
 
         <p class="q-fallback">
-          Автоматическая отправка будет подключена позже. Сейчас вы можете скопировать ответы
-          и отправить их напрямую:
-          <!-- TODO: при необходимости заменить контакты ниже -->
-          <a href="mailto:cfo@finmentor.md">Email</a> ·
+          РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ РѕС‚РїСЂР°РІРєР° Р±СѓРґРµС‚ РїРѕРґРєР»СЋС‡РµРЅР° РїРѕР·Р¶Рµ. РЎРµР№С‡Р°СЃ РІС‹ РјРѕР¶РµС‚Рµ СЃРєРѕРїРёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚С‹
+          Рё РѕС‚РїСЂР°РІРёС‚СЊ РёС… РЅР°РїСЂСЏРјСѓСЋ:
+          <!-- TODO: РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё Р·Р°РјРµРЅРёС‚СЊ РєРѕРЅС‚Р°РєС‚С‹ РЅРёР¶Рµ -->
+          <a href="mailto:cfo@finmentor.md">Email</a> В·
           <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         </p>
 
         <div class="q-success" id="qSuccess" hidden>
-          <strong>Готово.</strong> <span id="qSuccessText">Анкета подготовлена. Чтобы передать её FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на email.</span>
+          <strong>Р“РѕС‚РѕРІРѕ.</strong> <span id="qSuccessText">РђРЅРєРµС‚Р° РїРѕРґРіРѕС‚РѕРІР»РµРЅР°. Р§С‚РѕР±С‹ РїРµСЂРµРґР°С‚СЊ РµС‘ FINMENTOR, РѕС‚РєСЂРѕР№С‚Рµ FINMENTOR Bot РёР»Рё РѕС‚РїСЂР°РІСЊС‚Рµ РѕС‚РІРµС‚С‹ РЅР° email.</span>
           <span class="q-success__row">
-            <a class="btn btn--primary" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">Открыть FINMENTOR Bot</a>
-            <button type="button" class="btn btn--ghost" id="qCopySuccess">Скопировать ответы</button>
+            <a class="btn btn--primary" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">РћС‚РєСЂС‹С‚СЊ FINMENTOR Bot</a>
+            <button type="button" class="btn btn--ghost" id="qCopySuccess">РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РѕС‚РІРµС‚С‹</button>
             <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
           </span>
         </div>
@@ -502,7 +505,7 @@
   </main>
 
   <script>
-// FINMENTOR v8.6 — Questionnaire validation + JSON automation bridge.
+// FINMENTOR v8.6 вЂ” Questionnaire validation + JSON automation bridge.
 // Self-contained: owns #qFormV86 (main.js initQuestionnaire early-returns, no #qForm).
 // No external libs, no native select, no PII to GA4, no PII logged. Webhook empty by default.
 (function () {
@@ -512,13 +515,13 @@
   var form = document.getElementById('qFormV86');
   if (!form) return;
 
-  // v9.2 — optional ?topic= deep-link from articles (additive; no-op if absent/unknown)
-  var TOPIC_MAP = { 'financial-diagnostic': 'Финансовая диагностика', 'cfo-system': 'CFO-система управления', treasury: 'Казначейство и платёжная дисциплина', margin: 'Факторный анализ маржи', 'supplier-rating': 'Рейтинг поставщиков и закупки', 'fcf-sku': 'FCF по SKU', 'working-capital': 'Оборотный капитал', 'power-bi': 'Power BI dashboard собственника', automation: 'Автоматизация финансов (n8n / Make)' };
+  // v9.2 вЂ” optional ?topic= deep-link from articles (additive; no-op if absent/unknown)
+  var TOPIC_MAP = { 'financial-diagnostic': 'Р¤РёРЅР°РЅСЃРѕРІР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°', 'cfo-system': 'CFO-СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ', treasury: 'РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ Рё РїР»Р°С‚С‘Р¶РЅР°СЏ РґРёСЃС†РёРїР»РёРЅР°', margin: 'Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё', 'supplier-rating': 'Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєРѕРІ Рё Р·Р°РєСѓРїРєРё', 'fcf-sku': 'FCF РїРѕ SKU', 'working-capital': 'РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»', 'power-bi': 'Power BI dashboard СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°', automation: 'РђРІС‚РѕРјР°С‚РёР·Р°С†РёСЏ С„РёРЅР°РЅСЃРѕРІ (n8n / Make)' };
   var sourceTopic = '', sourceTopicLabel = '';
   try { var _tp = (new URLSearchParams(window.location.search)).get('topic') || ''; if (_tp && TOPIC_MAP[_tp]) { sourceTopic = _tp; sourceTopicLabel = TOPIC_MAP[_tp]; } } catch (e) {}
   if (sourceTopicLabel) {
     var _tb = document.createElement('div'); _tb.className = 'q-topic';
-    _tb.innerHTML = '<span class="q-topic__label">Тема обращения</span><span class="q-topic__value">' + sourceTopicLabel + '</span><span class="q-topic__hint">Вы пришли из материала FINMENTOR. Расскажите о вашей ситуации — подготовим предварительную диагностику по этой теме.</span>';
+    _tb.innerHTML = '<span class="q-topic__label">РўРµРјР° РѕР±СЂР°С‰РµРЅРёСЏ</span><span class="q-topic__value">' + sourceTopicLabel + '</span><span class="q-topic__hint">Р’С‹ РїСЂРёС€Р»Рё РёР· РјР°С‚РµСЂРёР°Р»Р° FINMENTOR. Р Р°СЃСЃРєР°Р¶РёС‚Рµ Рѕ РІР°С€РµР№ СЃРёС‚СѓР°С†РёРё вЂ” РїРѕРґРіРѕС‚РѕРІРёРј РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅСѓСЋ РґРёР°РіРЅРѕСЃС‚РёРєСѓ РїРѕ СЌС‚РѕР№ С‚РµРјРµ.</span>';
     var _tv = document.getElementById('qValidate'); if (_tv && _tv.parentNode) { _tv.parentNode.insertBefore(_tb, _tv); } else { form.insertBefore(_tb, form.firstChild); }
   }
   var SITE_VERSION = 'v8.6';
@@ -528,27 +531,27 @@
   var successText = document.getElementById('qSuccessText');
   var bar = document.getElementById('qProgress');
 
-  var UNCERTAIN = /не знаю|обсудить лично|нет данных/i;
+  var UNCERTAIN = /РЅРµ Р·РЅР°СЋ|РѕР±СЃСѓРґРёС‚СЊ Р»РёС‡РЅРѕ|РЅРµС‚ РґР°РЅРЅС‹С…/i;
 
   var REQUIRED = [
-    { key: 'name', type: 'text', name: 'q_name', label: 'Имя' },
-    { key: 'company', type: 'text', name: 'q_company', label: 'Компания' },
-    { key: 'contact', type: 'contact', label: 'Контакт (email или Telegram)' },
-    { key: 'industry', type: 'radio', name: 'q_industry', label: 'Сфера деятельности' },
-    { key: 'companies_in_group', type: 'radio', name: 'q_companies', label: 'Компаний в группе' },
-    { key: 'employees_range', type: 'radio', name: 'q_employees', label: 'Сотрудников' },
-    { key: 'reporting_prepared_by', type: 'radio', name: 'q_reporter', label: 'Кто готовит отчёты' },
-    { key: 'owner_reporting_frequency', type: 'radio', name: 'q_frequency', label: 'Как часто собственник получает цифры' },
-    { key: 'annual_turnover', type: 'radio', name: 'q_turnover', label: 'Примерный годовой оборот' },
-    { key: 'primary_problem', type: 'checkbox', name: 'q_pain', label: 'Главная финансовая боль' },
-    { key: 'urgency', type: 'radio', name: 'q_urgency', label: 'Срочность запроса' },
-    { key: 'desired_first_step', type: 'radio', name: 'q_request', label: 'Что хотите от FINMENTOR в первую очередь' },
-    { key: 'has_management_pl', type: 'radio', name: 'q_f1', label: 'Управленческий P&L' },
+    { key: 'name', type: 'text', name: 'q_name', label: 'РРјСЏ' },
+    { key: 'company', type: 'text', name: 'q_company', label: 'РљРѕРјРїР°РЅРёСЏ' },
+    { key: 'contact', type: 'contact', label: 'РљРѕРЅС‚Р°РєС‚ (email РёР»Рё Telegram)' },
+    { key: 'industry', type: 'radio', name: 'q_industry', label: 'РЎС„РµСЂР° РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё' },
+    { key: 'companies_in_group', type: 'radio', name: 'q_companies', label: 'РљРѕРјРїР°РЅРёР№ РІ РіСЂСѓРїРїРµ' },
+    { key: 'employees_range', type: 'radio', name: 'q_employees', label: 'РЎРѕС‚СЂСѓРґРЅРёРєРѕРІ' },
+    { key: 'reporting_prepared_by', type: 'radio', name: 'q_reporter', label: 'РљС‚Рѕ РіРѕС‚РѕРІРёС‚ РѕС‚С‡С‘С‚С‹' },
+    { key: 'owner_reporting_frequency', type: 'radio', name: 'q_frequency', label: 'РљР°Рє С‡Р°СЃС‚Рѕ СЃРѕР±СЃС‚РІРµРЅРЅРёРє РїРѕР»СѓС‡Р°РµС‚ С†РёС„СЂС‹' },
+    { key: 'annual_turnover', type: 'radio', name: 'q_turnover', label: 'РџСЂРёРјРµСЂРЅС‹Р№ РіРѕРґРѕРІРѕР№ РѕР±РѕСЂРѕС‚' },
+    { key: 'primary_problem', type: 'checkbox', name: 'q_pain', label: 'Р“Р»Р°РІРЅР°СЏ С„РёРЅР°РЅСЃРѕРІР°СЏ Р±РѕР»СЊ' },
+    { key: 'urgency', type: 'radio', name: 'q_urgency', label: 'РЎСЂРѕС‡РЅРѕСЃС‚СЊ Р·Р°РїСЂРѕСЃР°' },
+    { key: 'desired_first_step', type: 'radio', name: 'q_request', label: 'Р§С‚Рѕ С…РѕС‚РёС‚Рµ РѕС‚ FINMENTOR РІ РїРµСЂРІСѓСЋ РѕС‡РµСЂРµРґСЊ' },
+    { key: 'has_management_pl', type: 'radio', name: 'q_f1', label: 'РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&L' },
     { key: 'has_cash_flow', type: 'radio', name: 'q_f2', label: 'Cash Flow' },
-    { key: 'has_payment_calendar', type: 'radio', name: 'q_f3', label: 'Платёжный календарь' },
-    { key: 'data_reliability', type: 'radio', name: 'q_reliability', label: 'Достоверность данных' },
-    { key: 'documents_status', type: 'radio', name: 'q_documents_status', label: 'Документы / текущие отчёты' },
-    { key: 'consent', type: 'consent', name: 'q_consent', label: 'Согласие с Политикой конфиденциальности' }
+    { key: 'has_payment_calendar', type: 'radio', name: 'q_f3', label: 'РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ' },
+    { key: 'data_reliability', type: 'radio', name: 'q_reliability', label: 'Р”РѕСЃС‚РѕРІРµСЂРЅРѕСЃС‚СЊ РґР°РЅРЅС‹С…' },
+    { key: 'documents_status', type: 'radio', name: 'q_documents_status', label: 'Р”РѕРєСѓРјРµРЅС‚С‹ / С‚РµРєСѓС‰РёРµ РѕС‚С‡С‘С‚С‹' },
+    { key: 'consent', type: 'consent', name: 'q_consent', label: 'РЎРѕРіР»Р°СЃРёРµ СЃ РџРѕР»РёС‚РёРєРѕР№ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё' }
   ];
 
   function byName(n) { return form.querySelectorAll('[name="' + n + '"]'); }
@@ -600,8 +603,8 @@
     if (setErrors) {
       if (ok) { clearErr(emEl); clearErr(tgEl); }
       else {
-        setErr(emEl, em ? 'Проверьте формат email' : 'Укажите email или Telegram, чтобы FINMENTOR мог ответить.');
-        setErr(tgEl, tgRaw ? 'Проверьте формат Telegram' : 'Укажите email или Telegram, чтобы FINMENTOR мог ответить.');
+        setErr(emEl, em ? 'РџСЂРѕРІРµСЂСЊС‚Рµ С„РѕСЂРјР°С‚ email' : 'РЈРєР°Р¶РёС‚Рµ email РёР»Рё Telegram, С‡С‚РѕР±С‹ FINMENTOR РјРѕРі РѕС‚РІРµС‚РёС‚СЊ.');
+        setErr(tgEl, tgRaw ? 'РџСЂРѕРІРµСЂСЊС‚Рµ С„РѕСЂРјР°С‚ Telegram' : 'РЈРєР°Р¶РёС‚Рµ email РёР»Рё Telegram, С‡С‚РѕР±С‹ FINMENTOR РјРѕРі РѕС‚РІРµС‚РёС‚СЊ.');
       }
     }
     return ok;
@@ -621,7 +624,7 @@
       var cont = container(spec.name);
       if (!isFilled(spec)) {
         missing.push(spec);
-        setErr(cont, spec.type === 'text' ? 'Заполните поле' : (spec.type === 'checkbox' ? 'Выберите хотя бы один вариант' : 'Выберите один вариант'));
+        setErr(cont, spec.type === 'text' ? 'Р—Р°РїРѕР»РЅРёС‚Рµ РїРѕР»Рµ' : (spec.type === 'checkbox' ? 'Р’С‹Р±РµСЂРёС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ РІР°СЂРёР°РЅС‚' : 'Р’С‹Р±РµСЂРёС‚Рµ РѕРґРёРЅ РІР°СЂРёР°РЅС‚'));
       } else { clearErr(cont); }
     });
     return missing;
@@ -631,7 +634,7 @@
     var e = row.parentNode ? row.parentNode.querySelector('.q-err.q-err--consent') : null;
     if (!e) {
       e = document.createElement('div'); e.className = 'q-err q-err--consent';
-      e.textContent = 'Для отправки анкеты необходимо подтвердить согласие с Политикой конфиденциальности.';
+      e.textContent = 'Р”Р»СЏ РѕС‚РїСЂР°РІРєРё Р°РЅРєРµС‚С‹ РЅРµРѕР±С…РѕРґРёРјРѕ РїРѕРґС‚РІРµСЂРґРёС‚СЊ СЃРѕРіР»Р°СЃРёРµ СЃ РџРѕР»РёС‚РёРєРѕР№ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё.';
       if (row.parentNode) row.parentNode.insertBefore(e, row.nextSibling);
     }
   }
@@ -692,37 +695,37 @@
   }
 
   // ---------- preliminary AI hints (no AI, frontend only) ----------
-  function plScore(v) { if (/да/i.test(v) && !/частич/i.test(v)) return 2; if (/частич|excel/i.test(v)) return 1; return 0; }
+  function plScore(v) { if (/РґР°/i.test(v) && !/С‡Р°СЃС‚РёС‡/i.test(v)) return 2; if (/С‡Р°СЃС‚РёС‡|excel/i.test(v)) return 1; return 0; }
   function maturityHint() {
     var s = plScore(radioVal('q_f1')) + plScore(radioVal('q_f2'));
     if (s >= 3) return 'Level 3-4'; if (s === 2) return 'Level 1-2'; return 'Level 0-1';
   }
   function riskHint() {
     var u = radioVal('q_urgency'); var pains = checkVals('q_pain').join(' ');
-    if (/кризис|высокая/i.test(u)) return 'High';
-    if (/денег нет|кассов|хаотич/i.test(pains)) return 'Medium-High';
+    if (/РєСЂРёР·РёСЃ|РІС‹СЃРѕРєР°СЏ/i.test(u)) return 'High';
+    if (/РґРµРЅРµРі РЅРµС‚|РєР°СЃСЃРѕРІ|С…Р°РѕС‚РёС‡/i.test(pains)) return 'Medium-High';
     return 'Medium/Unknown';
   }
   function packageHint() {
     var req = radioVal('q_request'), f1 = radioVal('q_f1'), f2 = radioVal('q_f2');
-    var hasPL = /да/i.test(f1) && !/частич/i.test(f1), hasCF = /да/i.test(f2) && !/частич/i.test(f2);
+    var hasPL = /РґР°/i.test(f1) && !/С‡Р°СЃС‚РёС‡/i.test(f1), hasCF = /РґР°/i.test(f2) && !/С‡Р°СЃС‚РёС‡/i.test(f2);
     if (/power bi/i.test(req) && !(hasPL && hasCF)) return 'Business Control System (Power BI later)';
-    if (/^нет/i.test(f1) && /^нет/i.test(f2)) return 'Business Control System';
-    if (/диагностик/i.test(req)) return 'Financial Health Check';
+    if (/^РЅРµС‚/i.test(f1) && /^РЅРµС‚/i.test(f2)) return 'Business Control System';
+    if (/РґРёР°РіРЅРѕСЃС‚РёРє/i.test(req)) return 'Financial Health Check';
     if (hasPL && hasCF) return 'Monthly CFO Support';
     return 'Financial Health Check';
   }
   function complexityHint() {
     var score = 0;
     var rev = radioVal('q_turnover');
-    if (/10M/.test(rev)) score += 3; else if (/5–10M|1–5M/.test(rev)) score += 2; else if (/500k–1M/.test(rev)) score += 1;
+    if (/10M/.test(rev)) score += 3; else if (/5вЂ“10M|1вЂ“5M/.test(rev)) score += 2; else if (/500kвЂ“1M/.test(rev)) score += 1;
     var n = parseInt(textVal('q_companies'), 10); if (!isNaN(n)) { if (n >= 7) score += 3; else if (n >= 4) score += 2; else if (n >= 2) score += 1; }
-    var dq = radioVal('q_reliability'); if (/низко|нет данных/i.test(dq)) score += 2; else if (/средне|не знаю/i.test(dq)) score += 1;
-    var u = radioVal('q_urgency'); if (/кризис/i.test(u)) score += 3; else if (/высокая/i.test(u)) score += 2; else if (/повышен/i.test(u)) score += 1;
-    if (/да/i.test(radioVal('q_capex'))) score += 2;
-    if (/кредит|лизинг|инвестор|несколько/i.test(radioVal('q_loans'))) score += 1;
-    var docs = radioVal('q_documents_status'); if (/^нет$|нет данных/i.test(docs)) score += 2; else if (/частично|не знаю/i.test(docs)) score += 1;
-    if ((!isNaN(n) && n >= 4) && /нет данных/i.test(dq)) return 'custom';
+    var dq = radioVal('q_reliability'); if (/РЅРёР·РєРѕ|РЅРµС‚ РґР°РЅРЅС‹С…/i.test(dq)) score += 2; else if (/СЃСЂРµРґРЅРµ|РЅРµ Р·РЅР°СЋ/i.test(dq)) score += 1;
+    var u = radioVal('q_urgency'); if (/РєСЂРёР·РёСЃ/i.test(u)) score += 3; else if (/РІС‹СЃРѕРєР°СЏ/i.test(u)) score += 2; else if (/РїРѕРІС‹С€РµРЅ/i.test(u)) score += 1;
+    if (/РґР°/i.test(radioVal('q_capex'))) score += 2;
+    if (/РєСЂРµРґРёС‚|Р»РёР·РёРЅРі|РёРЅРІРµСЃС‚РѕСЂ|РЅРµСЃРєРѕР»СЊРєРѕ/i.test(radioVal('q_loans'))) score += 1;
+    var docs = radioVal('q_documents_status'); if (/^РЅРµС‚$|РЅРµС‚ РґР°РЅРЅС‹С…/i.test(docs)) score += 2; else if (/С‡Р°СЃС‚РёС‡РЅРѕ|РЅРµ Р·РЅР°СЋ/i.test(docs)) score += 1;
+    if ((!isNaN(n) && n >= 4) && /РЅРµС‚ РґР°РЅРЅС‹С…/i.test(dq)) return 'custom';
     if (score >= 10) return 'high'; if (score >= 5) return 'medium'; return 'low';
   }
 
@@ -743,34 +746,34 @@
   // ---------- human-readable text ----------
   function collectAnswersText() {
     var em = textVal('q_email'), tg = normalizeTelegram(textVal('q_telegram'));
-    function L(label, val) { return label + ': ' + (val || '—'); }
-    var out = ['FINMENTOR — анкета клиента', '', 'Контакт:',
-      L('Имя', textVal('q_name')), L('Компания', textVal('q_company')), L('Email', em), L('Telegram', tg),
-      L('Удобный способ связи', radioVal('q_pref_contact')), L('Язык общения', radioVal('q_lang')), '',
-      'Профиль бизнеса:',
-      L('Сфера деятельности', radioVal('q_industry')), L('Уточнение сферы', textVal('q_industry_comment')),
-      L('Оборот', radioVal('q_turnover')), L('Компаний в группе', radioVal('q_companies')),
-      L('Сотрудников', radioVal('q_employees')), L('Филиалов / объектов / направлений', radioVal('q_branches')),
-      L('Уточнение по направлениям', textVal('q_branches_comment')),
-      L('Кредиты / лизинг / инвесторы', radioVal('q_loans')), L('Проекты / CAPEX', radioVal('q_capex')),
-      L('Формат встречи', radioVal('q_meetfmt')), '',
-      'Главная боль и запрос:',
-      L('Основные проблемы', checkVals('q_pain').join(', ')), L('Срочность', radioVal('q_urgency')),
-      L('Что хочет в первую очередь', radioVal('q_request')), L('Комментарий', textVal('q_pain_text')), '',
-      'Финансовая система:',
-      L('Кто готовит отчёты', radioVal('q_reporter')), L('Уточнение по отчётам', textVal('q_reporter_comment')),
-      L('Как часто собственник получает цифры', radioVal('q_frequency')), L('Время подготовки отчётов', radioVal('q_prep_time')),
-      L('Управленческий P&L', radioVal('q_f1')), L('Cash Flow', radioVal('q_f2')), L('Платёжный календарь', radioVal('q_f3')),
-      L('Бюджет / план', radioVal('q_f4')), L('Достоверность данных', radioVal('q_reliability')),
-      L('Финансовый директор / команда', radioVal('q_finteam')), '',
-      'Расходы:',
-      L('Основные статьи расходов', checkVals('q_expenses').join(', ')), L('Комментарий по расходам', textVal('q_expenses_comment')), '',
-      'Документы:',
-      L('Статус документов', radioVal('q_documents_status')), L('Что есть', checkVals('q_doc').join(', '))];
-    return (sourceTopicLabel ? 'Тема обращения: ' + sourceTopicLabel + '\n\n' : '') + out.join('\n');
+    function L(label, val) { return label + ': ' + (val || 'вЂ”'); }
+    var out = ['FINMENTOR вЂ” Р°РЅРєРµС‚Р° РєР»РёРµРЅС‚Р°', '', 'РљРѕРЅС‚Р°РєС‚:',
+      L('РРјСЏ', textVal('q_name')), L('РљРѕРјРїР°РЅРёСЏ', textVal('q_company')), L('Email', em), L('Telegram', tg),
+      L('РЈРґРѕР±РЅС‹Р№ СЃРїРѕСЃРѕР± СЃРІСЏР·Рё', radioVal('q_pref_contact')), L('РЇР·С‹Рє РѕР±С‰РµРЅРёСЏ', radioVal('q_lang')), '',
+      'РџСЂРѕС„РёР»СЊ Р±РёР·РЅРµСЃР°:',
+      L('РЎС„РµСЂР° РґРµСЏС‚РµР»СЊРЅРѕСЃС‚Рё', radioVal('q_industry')), L('РЈС‚РѕС‡РЅРµРЅРёРµ СЃС„РµСЂС‹', textVal('q_industry_comment')),
+      L('РћР±РѕСЂРѕС‚', radioVal('q_turnover')), L('РљРѕРјРїР°РЅРёР№ РІ РіСЂСѓРїРїРµ', radioVal('q_companies')),
+      L('РЎРѕС‚СЂСѓРґРЅРёРєРѕРІ', radioVal('q_employees')), L('Р¤РёР»РёР°Р»РѕРІ / РѕР±СЉРµРєС‚РѕРІ / РЅР°РїСЂР°РІР»РµРЅРёР№', radioVal('q_branches')),
+      L('РЈС‚РѕС‡РЅРµРЅРёРµ РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј', textVal('q_branches_comment')),
+      L('РљСЂРµРґРёС‚С‹ / Р»РёР·РёРЅРі / РёРЅРІРµСЃС‚РѕСЂС‹', radioVal('q_loans')), L('РџСЂРѕРµРєС‚С‹ / CAPEX', radioVal('q_capex')),
+      L('Р¤РѕСЂРјР°С‚ РІСЃС‚СЂРµС‡Рё', radioVal('q_meetfmt')), '',
+      'Р“Р»Р°РІРЅР°СЏ Р±РѕР»СЊ Рё Р·Р°РїСЂРѕСЃ:',
+      L('РћСЃРЅРѕРІРЅС‹Рµ РїСЂРѕР±Р»РµРјС‹', checkVals('q_pain').join(', ')), L('РЎСЂРѕС‡РЅРѕСЃС‚СЊ', radioVal('q_urgency')),
+      L('Р§С‚Рѕ С…РѕС‡РµС‚ РІ РїРµСЂРІСѓСЋ РѕС‡РµСЂРµРґСЊ', radioVal('q_request')), L('РљРѕРјРјРµРЅС‚Р°СЂРёР№', textVal('q_pain_text')), '',
+      'Р¤РёРЅР°РЅСЃРѕРІР°СЏ СЃРёСЃС‚РµРјР°:',
+      L('РљС‚Рѕ РіРѕС‚РѕРІРёС‚ РѕС‚С‡С‘С‚С‹', radioVal('q_reporter')), L('РЈС‚РѕС‡РЅРµРЅРёРµ РїРѕ РѕС‚С‡С‘С‚Р°Рј', textVal('q_reporter_comment')),
+      L('РљР°Рє С‡Р°СЃС‚Рѕ СЃРѕР±СЃС‚РІРµРЅРЅРёРє РїРѕР»СѓС‡Р°РµС‚ С†РёС„СЂС‹', radioVal('q_frequency')), L('Р’СЂРµРјСЏ РїРѕРґРіРѕС‚РѕРІРєРё РѕС‚С‡С‘С‚РѕРІ', radioVal('q_prep_time')),
+      L('РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&L', radioVal('q_f1')), L('Cash Flow', radioVal('q_f2')), L('РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ', radioVal('q_f3')),
+      L('Р‘СЋРґР¶РµС‚ / РїР»Р°РЅ', radioVal('q_f4')), L('Р”РѕСЃС‚РѕРІРµСЂРЅРѕСЃС‚СЊ РґР°РЅРЅС‹С…', radioVal('q_reliability')),
+      L('Р¤РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ / РєРѕРјР°РЅРґР°', radioVal('q_finteam')), '',
+      'Р Р°СЃС…РѕРґС‹:',
+      L('РћСЃРЅРѕРІРЅС‹Рµ СЃС‚Р°С‚СЊРё СЂР°СЃС…РѕРґРѕРІ', checkVals('q_expenses').join(', ')), L('РљРѕРјРјРµРЅС‚Р°СЂРёР№ РїРѕ СЂР°СЃС…РѕРґР°Рј', textVal('q_expenses_comment')), '',
+      'Р”РѕРєСѓРјРµРЅС‚С‹:',
+      L('РЎС‚Р°С‚СѓСЃ РґРѕРєСѓРјРµРЅС‚РѕРІ', radioVal('q_documents_status')), L('Р§С‚Рѕ РµСЃС‚СЊ', checkVals('q_doc').join(', '))];
+    return (sourceTopicLabel ? 'РўРµРјР° РѕР±СЂР°С‰РµРЅРёСЏ: ' + sourceTopicLabel + '\n\n' : '') + out.join('\n');
   }
 
-  function docHas(part) { return checkVals('q_doc').some(function (x) { return x.indexOf(part) >= 0; }) ? 'да' : 'нет'; }
+  function docHas(part) { return checkVals('q_doc').some(function (x) { return x.indexOf(part) >= 0; }) ? 'РґР°' : 'РЅРµС‚'; }
   function collectAnswersJson() {
     var em = textVal('q_email'), tg = normalizeTelegram(textVal('q_telegram'));
     var c = one('q_consent');
@@ -781,7 +784,7 @@
       main_pain: { primary_problem: checkVals('q_pain').join(', '), urgency: radioVal('q_urgency'), desired_first_step: radioVal('q_request'), comment: textVal('q_pain_text') },
       financial_system: { has_management_pl: radioVal('q_f1'), has_cash_flow: radioVal('q_f2'), has_payment_calendar: radioVal('q_f3'), has_budget_or_plan: radioVal('q_f4'), data_reliability: radioVal('q_reliability'), financial_director_or_team: radioVal('q_finteam'), reporting_prepared_by: radioVal('q_reporter'), reporting_prepared_by_comment: textVal('q_reporter_comment'), owner_reporting_frequency: radioVal('q_frequency'), report_preparation_time: radioVal('q_prep_time') },
       cost_structure: { main_expense_categories: checkVals('q_expenses'), main_expense_comment: textVal('q_expenses_comment') },
-      documents: { has_trial_balance: docHas('Оборотно-сальдов'), has_bank_statements: '', has_ar_register: docHas('Дебиторская'), has_ap_register: docHas('Кредиторская'), has_loan_register: docHas('Кредиты'), has_current_excel_reports: (checkVals('q_systems').indexOf('Excel') >= 0 ? 'да' : 'нет'), document_comment: '' },
+      documents: { has_trial_balance: docHas('РћР±РѕСЂРѕС‚РЅРѕ-СЃР°Р»СЊРґРѕРІ'), has_bank_statements: '', has_ar_register: docHas('Р”РµР±РёС‚РѕСЂСЃРєР°СЏ'), has_ap_register: docHas('РљСЂРµРґРёС‚РѕСЂСЃРєР°СЏ'), has_loan_register: docHas('РљСЂРµРґРёС‚С‹'), has_current_excel_reports: (checkVals('q_systems').indexOf('Excel') >= 0 ? 'РґР°' : 'РЅРµС‚'), document_comment: '' },
       ai_ready_fields: { maturity_level_hint: maturityHint(), risk_level_hint: riskHint(), recommended_package_hint: packageHint(), required_documents_hint: '', pricing_complexity_hint: complexityHint() },
       completion: completion(),
       consent: { privacy_accepted: !!(c && c.checked), ai_processing_notice_shown: true }
@@ -801,7 +804,7 @@
   }
   function doCopy(btn) {
     var txt = collectAnswersText();
-    var done = function () { var o = btn.getAttribute('data-label') || btn.textContent; if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', o); btn.textContent = 'Скопировано ✓'; setTimeout(function () { btn.textContent = btn.getAttribute('data-label'); }, 2500); };
+    var done = function () { var o = btn.getAttribute('data-label') || btn.textContent; if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', o); btn.textContent = 'РЎРєРѕРїРёСЂРѕРІР°РЅРѕ вњ“'; setTimeout(function () { btn.textContent = btn.getAttribute('data-label'); }, 2500); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
     else fallbackCopy(txt, done);
   }
@@ -811,8 +814,8 @@
   function showSuccess(sent) {
     if (!success) return;
     if (successText) successText.textContent = sent
-      ? 'Спасибо. Анкета передана FINMENTOR. Я свяжусь с вами после первичного просмотра.'
-      : 'Анкета подготовлена. Чтобы передать её FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на email.';
+      ? 'РЎРїР°СЃРёР±Рѕ. РђРЅРєРµС‚Р° РїРµСЂРµРґР°РЅР° FINMENTOR. РЇ СЃРІСЏР¶СѓСЃСЊ СЃ РІР°РјРё РїРѕСЃР»Рµ РїРµСЂРІРёС‡РЅРѕРіРѕ РїСЂРѕСЃРјРѕС‚СЂР°.'
+      : 'РђРЅРєРµС‚Р° РїРѕРґРіРѕС‚РѕРІР»РµРЅР°. Р§С‚РѕР±С‹ РїРµСЂРµРґР°С‚СЊ РµС‘ FINMENTOR, РѕС‚РєСЂРѕР№С‚Рµ FINMENTOR Bot РёР»Рё РѕС‚РїСЂР°РІСЊС‚Рµ РѕС‚РІРµС‚С‹ РЅР° email.';
     success.hidden = false;
     success.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (window.gtag) { try { window.gtag('event', 'questionnaire_submit', { delivered: sent ? 1 : 0 }); } catch (e) {} }
@@ -838,7 +841,7 @@
         if (!r.ok) throw new Error('bad status');
         showSuccess(true);
       }).catch(function () {
-        if (successText) successText.textContent = 'Заявка подготовлена. Если отправка не прошла, отправьте её через FINMENTOR Bot или email.';
+        if (successText) successText.textContent = 'Р—Р°СЏРІРєР° РїРѕРґРіРѕС‚РѕРІР»РµРЅР°. Р•СЃР»Рё РѕС‚РїСЂР°РІРєР° РЅРµ РїСЂРѕС€Р»Р°, РѕС‚РїСЂР°РІСЊС‚Рµ РµС‘ С‡РµСЂРµР· FINMENTOR Bot РёР»Рё email.';
         if (success) { success.hidden = false; success.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
       });
     } else {
@@ -854,13 +857,13 @@
   <footer class="doc-foot">
     <div class="container doc-foot__row">
       <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
-        <a href="terms.html">Условия использования материалов</a>
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
+        <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+      <span class="doc-foot__muted">В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹. В· Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ. <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a></span>
     </div>
   </footer>
 </body>

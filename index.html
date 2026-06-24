@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 -->
@@ -13,17 +13,20 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>FINMENTOR — внешний CFO и система финансового управления для бизнеса</title>
-  <meta name="description" content="FINMENTOR помогает собственникам растущего бизнеса выстроить управленческий P&amp;L, Cash Flow, казначейство, KPI, отчётность и регулярный CFO-контроль. Power BI и AI используются для автоматизации уже построенной системы." />
-  <meta name="keywords" content="внешний CFO, финансовый директор, управленческий учёт, управленческая отчётность, P&amp;L, Cash Flow, казначейство, KPI, бизнес-контроль, Power BI, AI автоматизация, Finmentor, Кишинёв, Молдова" />
+  <title>FINMENTOR вЂ” РІРЅРµС€РЅРёР№ CFO Рё СЃРёСЃС‚РµРјР° С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґР»СЏ Р±РёР·РЅРµСЃР°</title>
+  <meta name="description" content="FINMENTOR РїРѕРјРѕРіР°РµС‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°Рј СЂР°СЃС‚СѓС‰РµРіРѕ Р±РёР·РЅРµСЃР° РІС‹СЃС‚СЂРѕРёС‚СЊ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ Рё СЂРµРіСѓР»СЏСЂРЅС‹Р№ CFO-РєРѕРЅС‚СЂРѕР»СЊ. Power BI Рё AI РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ РґР»СЏ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СѓР¶Рµ РїРѕСЃС‚СЂРѕРµРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹." />
+  <meta name="keywords" content="РІРЅРµС€РЅРёР№ CFO, С„РёРЅР°РЅСЃРѕРІС‹Р№ РґРёСЂРµРєС‚РѕСЂ, СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СѓС‡С‘С‚, СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ, P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, Р±РёР·РЅРµСЃ-РєРѕРЅС‚СЂРѕР»СЊ, Power BI, AI Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ, Finmentor, РљРёС€РёРЅС‘РІ, РњРѕР»РґРѕРІР°" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
@@ -32,8 +35,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Finmentor" />
-  <meta property="og:title" content="FINMENTOR — внешний CFO и система финансового управления для бизнеса" />
-  <meta property="og:description" content="Внешний CFO для растущего бизнеса: управленческий P&amp;L, Cash Flow, казначейство, KPI и регулярный контроль. Power BI и AI — для автоматизации уже построенной системы." />
+  <meta property="og:title" content="FINMENTOR вЂ” РІРЅРµС€РЅРёР№ CFO Рё СЃРёСЃС‚РµРјР° С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґР»СЏ Р±РёР·РЅРµСЃР°" />
+  <meta property="og:description" content="Р’РЅРµС€РЅРёР№ CFO РґР»СЏ СЂР°СЃС‚СѓС‰РµРіРѕ Р±РёР·РЅРµСЃР°: СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI Рё СЂРµРіСѓР»СЏСЂРЅС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ. Power BI Рё AI вЂ” РґР»СЏ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СѓР¶Рµ РїРѕСЃС‚СЂРѕРµРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹." />
   <meta property="og:url" content="https://www.finmentor.md/" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
@@ -44,8 +47,8 @@
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="FINMENTOR — внешний CFO и система финансового управления для бизнеса" />
-  <meta name="twitter:description" content="Внешний CFO, который строит систему финансового контроля бизнеса и затем автоматизирует её." />
+  <meta name="twitter:title" content="FINMENTOR вЂ” РІРЅРµС€РЅРёР№ CFO Рё СЃРёСЃС‚РµРјР° С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґР»СЏ Р±РёР·РЅРµСЃР°" />
+  <meta name="twitter:description" content="Р’РЅРµС€РЅРёР№ CFO, РєРѕС‚РѕСЂС‹Р№ СЃС‚СЂРѕРёС‚ СЃРёСЃС‚РµРјСѓ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ Р±РёР·РЅРµСЃР° Рё Р·Р°С‚РµРј Р°РІС‚РѕРјР°С‚РёР·РёСЂСѓРµС‚ РµС‘." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
 
   <!-- Icons & manifest -->
@@ -63,14 +66,14 @@
         "@type": "Person",
         "@id": "https://www.finmentor.md/#person",
         "name": "Ghennadi Iacovlev",
-        "alternateName": "Геннадий Яковлев",
-        "jobTitle": "Внешний CFO, эксперт по финансовому управлению",
+        "alternateName": "Р“РµРЅРЅР°РґРёР№ РЇРєРѕРІР»РµРІ",
+        "jobTitle": "Р’РЅРµС€РЅРёР№ CFO, СЌРєСЃРїРµСЂС‚ РїРѕ С„РёРЅР°РЅСЃРѕРІРѕРјСѓ СѓРїСЂР°РІР»РµРЅРёСЋ",
         "url": "https://www.finmentor.md/",
         "image": "https://www.finmentor.md/og-image.png?v=81",
         "email": "cfo@finmentor.md",
-        "description": "Внешний CFO и эксперт по построению систем финансового управления для собственников бизнеса: управленческий учёт, казначейство, контроль денег, прибыли и рисков. Power BI и AI — инструменты автоматизации уже построенной системы.",
-        "knowsAbout": ["Внешний CFO", "Финансовое управление", "Управленческий учёт", "Управленческая отчётность", "Казначейство", "Cash Flow", "KPI", "Финансовое моделирование", "Power BI", "AI Automation", "Инвестиционный анализ"],
-        "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
+        "description": "Р’РЅРµС€РЅРёР№ CFO Рё СЌРєСЃРїРµСЂС‚ РїРѕ РїРѕСЃС‚СЂРѕРµРЅРёСЋ СЃРёСЃС‚РµРј С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєРѕРІ Р±РёР·РЅРµСЃР°: СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СѓС‡С‘С‚, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, РєРѕРЅС‚СЂРѕР»СЊ РґРµРЅРµРі, РїСЂРёР±С‹Р»Рё Рё СЂРёСЃРєРѕРІ. Power BI Рё AI вЂ” РёРЅСЃС‚СЂСѓРјРµРЅС‚С‹ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СѓР¶Рµ РїРѕСЃС‚СЂРѕРµРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹.",
+        "knowsAbout": ["Р’РЅРµС€РЅРёР№ CFO", "Р¤РёРЅР°РЅСЃРѕРІРѕРµ СѓРїСЂР°РІР»РµРЅРёРµ", "РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СѓС‡С‘С‚", "РЈРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ", "РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ", "Cash Flow", "KPI", "Р¤РёРЅР°РЅСЃРѕРІРѕРµ РјРѕРґРµР»РёСЂРѕРІР°РЅРёРµ", "Power BI", "AI Automation", "РРЅРІРµСЃС‚РёС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·"],
+        "address": { "@type": "PostalAddress", "addressLocality": "ChiИ™inДѓu", "addressCountry": "MD" },
         "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
       },
       {
@@ -89,19 +92,19 @@
         "url": "https://www.finmentor.md/",
         "image": "https://www.finmentor.md/og-image.png?v=81",
         "email": "cfo@finmentor.md",
-        "description": "Внешний CFO и система финансового управления для собственников растущего бизнеса: управленческий P&L, Cash Flow, казначейство, KPI, отчётность и регулярный контроль. Power BI и AI — для автоматизации уже построенной системы.",
-        "slogan": "Внешний CFO, который строит систему контроля бизнеса и затем автоматизирует её.",
+        "description": "Р’РЅРµС€РЅРёР№ CFO Рё СЃРёСЃС‚РµРјР° С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєРѕРІ СЂР°СЃС‚СѓС‰РµРіРѕ Р±РёР·РЅРµСЃР°: СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ Рё СЂРµРіСѓР»СЏСЂРЅС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ. Power BI Рё AI вЂ” РґР»СЏ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё СѓР¶Рµ РїРѕСЃС‚СЂРѕРµРЅРЅРѕР№ СЃРёСЃС‚РµРјС‹.",
+        "slogan": "Р’РЅРµС€РЅРёР№ CFO, РєРѕС‚РѕСЂС‹Р№ СЃС‚СЂРѕРёС‚ СЃРёСЃС‚РµРјСѓ РєРѕРЅС‚СЂРѕР»СЏ Р±РёР·РЅРµСЃР° Рё Р·Р°С‚РµРј Р°РІС‚РѕРјР°С‚РёР·РёСЂСѓРµС‚ РµС‘.",
         "founder": { "@id": "https://www.finmentor.md/#person" },
         "areaServed": ["MD", "RO"],
         "serviceType": ["External CFO", "Financial management", "Management reporting", "Treasury", "Cash flow control", "KPI", "Business control system", "BI / AI automation"],
-        "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
+        "address": { "@type": "PostalAddress", "addressLocality": "ChiИ™inДѓu", "addressCountry": "MD" },
         "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
       }
     ]
   }
   </script>
 
-  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <!-- Fonts: Playfair Display (display) В· Manrope (UI/body) В· JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
@@ -120,7 +123,7 @@
   </script>
   <noscript><style>.intro{display:none!important}</style></noscript>
   <style>
-    /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
+    /* v9.3 вЂ” Expert modules + choose-guide (premium, light B2B) */
     .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
     .module-card { display:flex; flex-direction:column; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, box-shadow var(--dur-base) ease; }
     .module-card:hover { border-color:var(--border-gold); transform:translateY(-3px); box-shadow:0 14px 40px rgba(0,0,0,0.25); }
@@ -142,7 +145,7 @@
     .choose-table a { color:var(--accent); text-decoration:none; font-weight:600; white-space:nowrap; }
     @media (max-width:600px){ .module-card{padding:var(--sp-4);} }
 
-    /* v10 — Lean Premium homepage sections */
+    /* v10 вЂ” Lean Premium homepage sections */
     .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
     .step-card { position:relative; padding:var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
     .step-card__num { font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.14em; color:var(--accent); }
@@ -185,14 +188,14 @@
 
 
 
-    /* v10.2 — hero scroll-cue: never overlap the stats card */
+    /* v10.2 вЂ” hero scroll-cue: never overlap the stats card */
     .hero__content { padding-bottom:64px; }
     .hero__scroll { bottom:18px; gap:8px; z-index:1; }
     .hero__scroll-line { height:30px; }
     @media (max-height: 780px){ .hero__scroll { display:none; } }
     @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } }
 
-    /* v10.3 — premium visual polish (index-only overrides; no markup/JS/style.css changes) */
+    /* v10.3 вЂ” premium visual polish (index-only overrides; no markup/JS/style.css changes) */
     /* chaos: premium divider + soft top depth */
     .chaos { position:relative; }
     .chaos::before { content:""; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); opacity:0.35; pointer-events:none; }
@@ -207,7 +210,7 @@
       transition:transform var(--dur-base) var(--ease-out-expo), border-color var(--dur-base) ease, box-shadow var(--dur-base) ease, background-color var(--dur-base) ease; }
     .chaos-card::before { content:""; position:absolute; top:18px; left:0; width:3px; height:26px; border-radius:0 3px 3px 0; background:var(--grad-gold); opacity:0.9; }
     .chaos-card::after { content:counter(cx, decimal-leading-zero); position:absolute; top:14px; right:16px; font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.04em; color:var(--accent); opacity:0.42; }
-    /* subtle visual grouping: 1-4 cash/payments (gold) · 5-8 data/control (muted blue) */
+    /* subtle visual grouping: 1-4 cash/payments (gold) В· 5-8 data/control (muted blue) */
     .chaos-card:nth-child(n+5)::before { background:linear-gradient(180deg, #6f9bd8, #3f6aa6); }
     .chaos-card:nth-child(n+5)::after { color:#8fb3e6; }
     .chaos-card__text { color:var(--text-secondary); font-size:0.95rem; line-height:1.55; padding-left:12px; padding-right:6px; }
@@ -229,7 +232,7 @@
       .chaos__verdict .text-gold { white-space:normal; }
     }
 
-    /* v-rights — sample outputs: real CFO-document feel (anonymized) */
+    /* v-rights вЂ” sample outputs: real CFO-document feel (anonymized) */
     .sample-card { display:flex; flex-direction:column; }
     .sample-card__body { padding:13px 15px 14px; display:flex; flex-direction:column; flex:1; }
     .so-line { padding:7px 0; border-bottom:1px solid var(--glass-border); }
@@ -257,7 +260,7 @@
   <!-- ============================================================= INTRO (restored from v8.6) -->
   <div class="intro" id="intro">
     <canvas class="intro__canvas" aria-hidden="true"></canvas>
-    <button class="intro__skip" type="button" id="introSkip">Пропустить →</button>
+    <button class="intro__skip" type="button" id="introSkip">РџСЂРѕРїСѓСЃС‚РёС‚СЊ в†’</button>
 
     <div class="intro__center">
       <div class="intro__wordmark" aria-label="finmentor">
@@ -267,29 +270,29 @@
           <span style="--i:3">m</span><span style="--i:4">e</span><span style="--i:5">n</span><span style="--i:6">t</span><span style="--i:7">o</span><span style="--i:8">r</span>
         </span>
       </div>
-      <div class="intro__tagline">От финансового хаоса — к системе управления бизнесом</div>
+      <div class="intro__tagline">РћС‚ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ С…Р°РѕСЃР° вЂ” Рє СЃРёСЃС‚РµРјРµ СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј</div>
     </div>
   </div>
 <header class="header" id="header">
     <div class="container header__inner">
-      <a class="logo" href="#top" aria-label="finmentor — на главную">
+      <a class="logo" href="#top" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ">
         <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
       </a>
 
-      <nav class="nav" aria-label="Основная навигация">
-        <a href="#about" class="nav__link">О проекте</a>
-        <a href="#audience" class="nav__link">Для кого</a>
-        <a href="#steps" class="nav__link">Как работаем</a>
-        <a href="#solutions" class="nav__link">Решения</a>
-        <a href="#knowledge" class="nav__link">Материалы</a>
-        <a href="questionnaire.html" class="nav__link">Анкета</a>
-        <a href="#consult" class="nav__link">Контакты</a>
+      <nav class="nav" aria-label="РћСЃРЅРѕРІРЅР°СЏ РЅР°РІРёРіР°С†РёСЏ">
+        <a href="#about" class="nav__link">Рћ РїСЂРѕРµРєС‚Рµ</a>
+        <a href="#audience" class="nav__link">Р”Р»СЏ РєРѕРіРѕ</a>
+        <a href="#steps" class="nav__link">РљР°Рє СЂР°Р±РѕС‚Р°РµРј</a>
+        <a href="#solutions" class="nav__link">Р РµС€РµРЅРёСЏ</a>
+        <a href="#knowledge" class="nav__link">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html" class="nav__link">РђРЅРєРµС‚Р°</a>
+        <a href="#consult" class="nav__link">РљРѕРЅС‚Р°РєС‚С‹</a>
       </nav>
 
       <div class="header__actions">
-        <!-- Языковой переключатель убран до готовности переводов RO/EN. Вернуть, когда переводы будут готовы. -->
-        <a href="#consult" class="btn btn--primary btn--sm header__cta">Разобрать мой бизнес</a>
-        <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
+        <!-- РЇР·С‹РєРѕРІРѕР№ РїРµСЂРµРєР»СЋС‡Р°С‚РµР»СЊ СѓР±СЂР°РЅ РґРѕ РіРѕС‚РѕРІРЅРѕСЃС‚Рё РїРµСЂРµРІРѕРґРѕРІ RO/EN. Р’РµСЂРЅСѓС‚СЊ, РєРѕРіРґР° РїРµСЂРµРІРѕРґС‹ Р±СѓРґСѓС‚ РіРѕС‚РѕРІС‹. -->
+        <a href="#consult" class="btn btn--primary btn--sm header__cta">Р Р°Р·РѕР±СЂР°С‚СЊ РјРѕР№ Р±РёР·РЅРµСЃ</a>
+        <button class="burger" id="burger" type="button" aria-label="РћС‚РєСЂС‹С‚СЊ РјРµРЅСЋ" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
       </div>
@@ -307,33 +310,33 @@
       <div class="hero__grain" aria-hidden="true"></div>
 
       <div class="container hero__content">
-        <p class="hero__kicker reveal">ВНЕШНИЙ CFO · СИСТЕМА ФИНАНСОВЫХ РЕШЕНИЙ</p>
+        <p class="hero__kicker reveal">Р’РќР•РЁРќРР™ CFO В· РЎРРЎРўР•РњРђ Р¤РРќРђРќРЎРћР’Р«РҐ Р Р•РЁР•РќРР™</p>
         <h1 class="hero__title reveal" data-reveal-delay="1">
-          Внешний <span class="text-gold">CFO</span> для растущего&nbsp;бизнеса
+          Р’РЅРµС€РЅРёР№ <span class="text-gold">CFO</span> РґР»СЏ СЂР°СЃС‚СѓС‰РµРіРѕ&nbsp;Р±РёР·РЅРµСЃР°
         </h1>
         <p class="hero__subtitle reveal" data-reveal-delay="2">
-          Помогаю собственнику видеть деньги, прибыль, обязательства и&nbsp;риски в&nbsp;одной системе —
-          до того, как подключать Power&nbsp;BI и&nbsp;AI.
+          РџРѕРјРѕРіР°СЋ СЃРѕР±СЃС‚РІРµРЅРЅРёРєСѓ РІРёРґРµС‚СЊ РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІР° Рё&nbsp;СЂРёСЃРєРё РІ&nbsp;РѕРґРЅРѕР№ СЃРёСЃС‚РµРјРµ вЂ”
+          РґРѕ С‚РѕРіРѕ, РєР°Рє РїРѕРґРєР»СЋС‡Р°С‚СЊ Power&nbsp;BI Рё&nbsp;AI.
         </p>
         <p class="hero__divider reveal" data-reveal-delay="2">
-          <b>Не бухгалтерия. Не BI-разработка. Не AI-инструмент.</b> FINMENTOR — финансовая система контроля и решений для собственника.
+          <b>РќРµ Р±СѓС…РіР°Р»С‚РµСЂРёСЏ. РќРµ BI-СЂР°Р·СЂР°Р±РѕС‚РєР°. РќРµ AI-РёРЅСЃС‚СЂСѓРјРµРЅС‚.</b> FINMENTOR вЂ” С„РёРЅР°РЅСЃРѕРІР°СЏ СЃРёСЃС‚РµРјР° РєРѕРЅС‚СЂРѕР»СЏ Рё СЂРµС€РµРЅРёР№ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°.
         </p>
 
         <div class="hero__actions reveal" data-reveal-delay="3">
-          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
-          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot">Оставить заявку в FINMENTOR Bot</a>
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">РџСЂРѕРІРµСЂРёС‚СЊ, РіРґРµ Р·Р°СЃС‚СЂРµРІР°СЋС‚ РґРµРЅСЊРіРё</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot">РћСЃС‚Р°РІРёС‚СЊ Р·Р°СЏРІРєСѓ РІ FINMENTOR Bot</a>
         </div>
 
         <div class="hero__stats glass reveal" data-reveal-delay="4">
-          <div class="stat"><div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div><div class="stat__label">лет в финансах</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div><div class="stat__label">Р»РµС‚ РІ С„РёРЅР°РЅСЃР°С…</div></div>
           <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">опор в едином контуре</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">РѕРїРѕСЂ РІ РµРґРёРЅРѕРј РєРѕРЅС‚СѓСЂРµ</div></div>
           <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="10">0</span></div><div class="stat__label">кейсов по направлениям</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="10">0</span></div><div class="stat__label">РєРµР№СЃРѕРІ РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј</div></div>
         </div>
       </div>
 
-      <a href="#chaos" class="hero__scroll" aria-label="Листать вниз">
+      <a href="#chaos" class="hero__scroll" aria-label="Р›РёСЃС‚Р°С‚СЊ РІРЅРёР·">
         <span class="hero__scroll-label">SCROLL</span>
         <span class="hero__scroll-line"></span>
       </a>
@@ -343,39 +346,39 @@
       <div class="chaos__haze" aria-hidden="true"></div>
       <div class="container">
         <div class="section-head">
-          <p class="overline overline--risk reveal">Симптомы</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Финансовый хаос выглядит так</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Когда нет единой системы, собственник видит отчёты, но не видит реальный бизнес.</p>
+          <p class="overline overline--risk reveal">РЎРёРјРїС‚РѕРјС‹</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Р¤РёРЅР°РЅСЃРѕРІС‹Р№ С…Р°РѕСЃ РІС‹РіР»СЏРґРёС‚ С‚Р°Рє</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РљРѕРіРґР° РЅРµС‚ РµРґРёРЅРѕР№ СЃРёСЃС‚РµРјС‹, СЃРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РѕС‚С‡С‘С‚С‹, РЅРѕ РЅРµ РІРёРґРёС‚ СЂРµР°Р»СЊРЅС‹Р№ Р±РёР·РЅРµСЃ.</p>
         </div>
 
         <div class="chaos__grid">
           <article class="chaos-card reveal" data-reveal-delay="1" style="--rot:-1.4deg; --dy:0px">
-            <p class="chaos-card__text">Прибыль есть на бумаге, но денег на счёте не хватает.</p>
+            <p class="chaos-card__text">РџСЂРёР±С‹Р»СЊ РµСЃС‚СЊ РЅР° Р±СѓРјР°РіРµ, РЅРѕ РґРµРЅРµРі РЅР° СЃС‡С‘С‚Рµ РЅРµ С…РІР°С‚Р°РµС‚.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.2deg; --dy:22px">
-            <p class="chaos-card__text">Отчёты приходят поздно и не помогают принимать решения.</p>
+            <p class="chaos-card__text">РћС‚С‡С‘С‚С‹ РїСЂРёС…РѕРґСЏС‚ РїРѕР·РґРЅРѕ Рё РЅРµ РїРѕРјРѕРіР°СЋС‚ РїСЂРёРЅРёРјР°С‚СЊ СЂРµС€РµРЅРёСЏ.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
-            <p class="chaos-card__text">Платежи согласуются хаотично, без приоритетов и фондов.</p>
+            <p class="chaos-card__text">РџР»Р°С‚РµР¶Рё СЃРѕРіР»Р°СЃСѓСЋС‚СЃСЏ С…Р°РѕС‚РёС‡РЅРѕ, Р±РµР· РїСЂРёРѕСЂРёС‚РµС‚РѕРІ Рё С„РѕРЅРґРѕРІ.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
-            <p class="chaos-card__text">Кассовые разрывы появляются внезапно.</p>
+            <p class="chaos-card__text">РљР°СЃСЃРѕРІС‹Рµ СЂР°Р·СЂС‹РІС‹ РїРѕСЏРІР»СЏСЋС‚СЃСЏ РІРЅРµР·Р°РїРЅРѕ.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
-            <p class="chaos-card__text">Продажи растут, но маржа и прибыль не растут.</p>
+            <p class="chaos-card__text">РџСЂРѕРґР°Р¶Рё СЂР°СЃС‚СѓС‚, РЅРѕ РјР°СЂР¶Р° Рё РїСЂРёР±С‹Р»СЊ РЅРµ СЂР°СЃС‚СѓС‚.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
-            <p class="chaos-card__text">Данные разбросаны между 1С, Excel, Google Sheets, CRM и мессенджерами.</p>
+            <p class="chaos-card__text">Р”Р°РЅРЅС‹Рµ СЂР°Р·Р±СЂРѕСЃР°РЅС‹ РјРµР¶РґСѓ 1РЎ, Excel, Google Sheets, CRM Рё РјРµСЃСЃРµРЅРґР¶РµСЂР°РјРё.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
-            <p class="chaos-card__text">Собственник не видит KPI, риски и отклонения в одном месте.</p>
+            <p class="chaos-card__text">РЎРѕР±СЃС‚РІРµРЅРЅРёРє РЅРµ РІРёРґРёС‚ KPI, СЂРёСЃРєРё Рё РѕС‚РєР»РѕРЅРµРЅРёСЏ РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
-            <p class="chaos-card__text">AI и автоматизация не используются, хотя ручной работы слишком много.</p>
+            <p class="chaos-card__text">AI Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РЅРµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ, С…РѕС‚СЏ СЂСѓС‡РЅРѕР№ СЂР°Р±РѕС‚С‹ СЃР»РёС€РєРѕРј РјРЅРѕРіРѕ.</p>
           </article>
         </div>
 
-        <p class="chaos__verdict reveal">Это не проблема людей. <span class="text-gold">Это отсутствие системы.</span></p>
+        <p class="chaos__verdict reveal">Р­С‚Рѕ РЅРµ РїСЂРѕР±Р»РµРјР° Р»СЋРґРµР№. <span class="text-gold">Р­С‚Рѕ РѕС‚СЃСѓС‚СЃС‚РІРёРµ СЃРёСЃС‚РµРјС‹.</span></p>
         <span class="chaos__bridge" aria-hidden="true"></span>
       </div>
     </section>
@@ -383,22 +386,22 @@
         <section class="audience" id="audience">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Для кого</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Для кого FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR работает с собственниками растущего малого и среднего бизнеса, у которых уже есть бухгалтерия, Excel, 1C и команда, но нет полноценной CFO-функции, единой управленческой отчётности и регулярного контроля денег, прибыли и рисков.</p>
+          <p class="overline reveal">Р”Р»СЏ РєРѕРіРѕ</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Р”Р»СЏ РєРѕРіРѕ FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR СЂР°Р±РѕС‚Р°РµС‚ СЃ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°РјРё СЂР°СЃС‚СѓС‰РµРіРѕ РјР°Р»РѕРіРѕ Рё СЃСЂРµРґРЅРµРіРѕ Р±РёР·РЅРµСЃР°, Сѓ РєРѕС‚РѕСЂС‹С… СѓР¶Рµ РµСЃС‚СЊ Р±СѓС…РіР°Р»С‚РµСЂРёСЏ, Excel, 1C Рё РєРѕРјР°РЅРґР°, РЅРѕ РЅРµС‚ РїРѕР»РЅРѕС†РµРЅРЅРѕР№ CFO-С„СѓРЅРєС†РёРё, РµРґРёРЅРѕР№ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕР№ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё Рё СЂРµРіСѓР»СЏСЂРЅРѕРіРѕ РєРѕРЅС‚СЂРѕР»СЏ РґРµРЅРµРі, РїСЂРёР±С‹Р»Рё Рё СЂРёСЃРєРѕРІ.</p>
         </div>
         <ul class="audience__grid">
-          <li class="audience__item reveal">Несколько направлений, проектов или юридических лиц</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Оборот уже достаточно велик, чтобы ошибки стоили дорого</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Бухгалтерский учёт есть, но не отвечает на управленческие вопросы</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Собственник лично согласовывает значительную часть платежей</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Отчётность приходит поздно</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Бизнес вырос быстрее, чем финансовая система</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Нет единого источника правды по цифрам</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&amp;L, KPI и платежи живут в разных таблицах</li>
+          <li class="audience__item reveal">РќРµСЃРєРѕР»СЊРєРѕ РЅР°РїСЂР°РІР»РµРЅРёР№, РїСЂРѕРµРєС‚РѕРІ РёР»Рё СЋСЂРёРґРёС‡РµСЃРєРёС… Р»РёС†</li>
+          <li class="audience__item reveal" data-reveal-delay="1">РћР±РѕСЂРѕС‚ СѓР¶Рµ РґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РІРµР»РёРє, С‡С‚РѕР±С‹ РѕС€РёР±РєРё СЃС‚РѕРёР»Рё РґРѕСЂРѕРіРѕ</li>
+          <li class="audience__item reveal" data-reveal-delay="2">Р‘СѓС…РіР°Р»С‚РµСЂСЃРєРёР№ СѓС‡С‘С‚ РµСЃС‚СЊ, РЅРѕ РЅРµ РѕС‚РІРµС‡Р°РµС‚ РЅР° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёРµ РІРѕРїСЂРѕСЃС‹</li>
+          <li class="audience__item reveal" data-reveal-delay="1">РЎРѕР±СЃС‚РІРµРЅРЅРёРє Р»РёС‡РЅРѕ СЃРѕРіР»Р°СЃРѕРІС‹РІР°РµС‚ Р·РЅР°С‡РёС‚РµР»СЊРЅСѓСЋ С‡Р°СЃС‚СЊ РїР»Р°С‚РµР¶РµР№</li>
+          <li class="audience__item reveal" data-reveal-delay="2">РћС‚С‡С‘С‚РЅРѕСЃС‚СЊ РїСЂРёС…РѕРґРёС‚ РїРѕР·РґРЅРѕ</li>
+          <li class="audience__item reveal" data-reveal-delay="3">Р‘РёР·РЅРµСЃ РІС‹СЂРѕСЃ Р±С‹СЃС‚СЂРµРµ, С‡РµРј С„РёРЅР°РЅСЃРѕРІР°СЏ СЃРёСЃС‚РµРјР°</li>
+          <li class="audience__item reveal" data-reveal-delay="2">РќРµС‚ РµРґРёРЅРѕРіРѕ РёСЃС‚РѕС‡РЅРёРєР° РїСЂР°РІРґС‹ РїРѕ С†РёС„СЂР°Рј</li>
+          <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&amp;L, KPI Рё РїР»Р°С‚РµР¶Рё Р¶РёРІСѓС‚ РІ СЂР°Р·РЅС‹С… С‚Р°Р±Р»РёС†Р°С…</li>
         </ul>
         <div class="audience__cta reveal" data-reveal-delay="2">
-          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
+          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">РџСЂРѕРІРµСЂРёС‚СЊ, РіРґРµ Р·Р°СЃС‚СЂРµРІР°СЋС‚ РґРµРЅСЊРіРё</a>
         </div>
       </div>
     </section>
@@ -406,25 +409,25 @@
     <section class="sec steps" id="steps">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Как мы работаем</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Как работает FINMENTOR — три шага</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">От диагностики к системе контроля и сопровождению. Power&nbsp;BI, AI и автоматизация подключаются только после того, как финансовая логика уже выстроена.</p>
+          <p class="overline reveal">РљР°Рє РјС‹ СЂР°Р±РѕС‚Р°РµРј</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РљР°Рє СЂР°Р±РѕС‚Р°РµС‚ FINMENTOR вЂ” С‚СЂРё С€Р°РіР°</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РћС‚ РґРёР°РіРЅРѕСЃС‚РёРєРё Рє СЃРёСЃС‚РµРјРµ РєРѕРЅС‚СЂРѕР»СЏ Рё СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёСЋ. Power&nbsp;BI, AI Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ РїРѕРґРєР»СЋС‡Р°СЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ С‚РѕРіРѕ, РєР°Рє С„РёРЅР°РЅСЃРѕРІР°СЏ Р»РѕРіРёРєР° СѓР¶Рµ РІС‹СЃС‚СЂРѕРµРЅР°.</p>
         </div>
         <div class="steps-grid">
           <article class="step-card reveal">
             <span class="step-card__num">01</span>
-            <h3 class="step-card__title">Диагностика</h3>
-            <p class="step-card__desc">Понимаем, где деньги, прибыль, обязательства и риски: смотрим Cash Flow, P&amp;L, платежи, дебиторку, кредиторку и качество данных.</p>
+            <h3 class="step-card__title">Р”РёР°РіРЅРѕСЃС‚РёРєР°</h3>
+            <p class="step-card__desc">РџРѕРЅРёРјР°РµРј, РіРґРµ РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІР° Рё СЂРёСЃРєРё: СЃРјРѕС‚СЂРёРј Cash Flow, P&amp;L, РїР»Р°С‚РµР¶Рё, РґРµР±РёС‚РѕСЂРєСѓ, РєСЂРµРґРёС‚РѕСЂРєСѓ Рё РєР°С‡РµСЃС‚РІРѕ РґР°РЅРЅС‹С….</p>
           </article>
           <article class="step-card reveal" data-reveal-delay="1">
             <span class="step-card__num">02</span>
-            <h3 class="step-card__title">Система контроля</h3>
-            <p class="step-card__desc">Строим управленческий P&amp;L, Cash Flow, платёжный календарь, KPI, правила платежей и отчётность собственника — единый контур на цифрах.</p>
+            <h3 class="step-card__title">РЎРёСЃС‚РµРјР° РєРѕРЅС‚СЂРѕР»СЏ</h3>
+            <p class="step-card__desc">РЎС‚СЂРѕРёРј СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&amp;L, Cash Flow, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ, KPI, РїСЂР°РІРёР»Р° РїР»Р°С‚РµР¶РµР№ Рё РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР° вЂ” РµРґРёРЅС‹Р№ РєРѕРЅС‚СѓСЂ РЅР° С†РёС„СЂР°С….</p>
           </article>
           <article class="step-card reveal" data-reveal-delay="2">
             <span class="step-card__num">03</span>
-            <h3 class="step-card__title">Сопровождение и автоматизация</h3>
-            <p class="step-card__desc">Регулярный CFO-review и контроль решений. Power&nbsp;BI, AI, Make / n8n и Google Sheets подключаются только после того, как финансовая логика построена.</p>
+            <h3 class="step-card__title">РЎРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ</h3>
+            <p class="step-card__desc">Р РµРіСѓР»СЏСЂРЅС‹Р№ CFO-review Рё РєРѕРЅС‚СЂРѕР»СЊ СЂРµС€РµРЅРёР№. Power&nbsp;BI, AI, Make / n8n Рё Google Sheets РїРѕРґРєР»СЋС‡Р°СЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ С‚РѕРіРѕ, РєР°Рє С„РёРЅР°РЅСЃРѕРІР°СЏ Р»РѕРіРёРєР° РїРѕСЃС‚СЂРѕРµРЅР°.</p>
           </article>
         </div>
       </div>
@@ -433,252 +436,252 @@
 <section class="packages" id="solutions">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Решения</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Продуктовая лестница внешнего&nbsp;CFO</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Начните с Discovery Call. Дальше — диагностика, внедрение системы и регулярный CFO-контроль. BI/AI — дополнительный модуль после фундамента.</p>
+          <p class="overline reveal">Р РµС€РµРЅРёСЏ</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РџСЂРѕРґСѓРєС‚РѕРІР°СЏ Р»РµСЃС‚РЅРёС†Р° РІРЅРµС€РЅРµРіРѕ&nbsp;CFO</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РќР°С‡РЅРёС‚Рµ СЃ Discovery Call. Р”Р°Р»СЊС€Рµ вЂ” РґРёР°РіРЅРѕСЃС‚РёРєР°, РІРЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹ Рё СЂРµРіСѓР»СЏСЂРЅС‹Р№ CFO-РєРѕРЅС‚СЂРѕР»СЊ. BI/AI вЂ” РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Р№ РјРѕРґСѓР»СЊ РїРѕСЃР»Рµ С„СѓРЅРґР°РјРµРЅС‚Р°.</p>
         </div>
 
         <div class="packages__grid">
-          <!-- 1 · Диагностика -->
+          <!-- 1 В· Р”РёР°РіРЅРѕСЃС‚РёРєР° -->
           <article class="package reveal" data-reveal-delay="1">
-            <span class="package__tier">Шаг 1 · Диагностика</span>
+            <span class="package__tier">РЁР°Рі 1 В· Р”РёР°РіРЅРѕСЃС‚РёРєР°</span>
             <h3 class="package__name">Financial Health Check</h3>
-            <p class="package__goal">Быстро понять, где теряются деньги, прибыль и&nbsp;контроль.</p>
-            <p class="package__price"><span class="package__price-from">от</span> 1 500 €</p>
+            <p class="package__goal">Р‘С‹СЃС‚СЂРѕ РїРѕРЅСЏС‚СЊ, РіРґРµ С‚РµСЂСЏСЋС‚СЃСЏ РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ Рё&nbsp;РєРѕРЅС‚СЂРѕР»СЊ.</p>
+            <p class="package__price"><span class="package__price-from">РѕС‚</span> 1 500 в‚¬</p>
             <div class="package__section">
-              <span class="package__label">Что входит</span>
+              <span class="package__label">Р§С‚Рѕ РІС…РѕРґРёС‚</span>
               <ul class="package__list">
-                <li>Предварительная анкета собственника</li>
-                <li>Интервью 60–90 минут</li>
-                <li>Экспресс-анализ P&amp;L / Cash Flow / долгов / платежей</li>
-                <li>Карта финансовых болей</li>
-                <li>Оценка уровня управленческого учёта</li>
-                <li>Список критических рисков</li>
-                <li>Roadmap на 30 / 60 / 90 дней</li>
+                <li>РџСЂРµРґРІР°СЂРёС‚РµР»СЊРЅР°СЏ Р°РЅРєРµС‚Р° СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°</li>
+                <li>РРЅС‚РµСЂРІСЊСЋ 60вЂ“90 РјРёРЅСѓС‚</li>
+                <li>Р­РєСЃРїСЂРµСЃСЃ-Р°РЅР°Р»РёР· P&amp;L / Cash Flow / РґРѕР»РіРѕРІ / РїР»Р°С‚РµР¶РµР№</li>
+                <li>РљР°СЂС‚Р° С„РёРЅР°РЅСЃРѕРІС‹С… Р±РѕР»РµР№</li>
+                <li>РћС†РµРЅРєР° СѓСЂРѕРІРЅСЏ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ СѓС‡С‘С‚Р°</li>
+                <li>РЎРїРёСЃРѕРє РєСЂРёС‚РёС‡РµСЃРєРёС… СЂРёСЃРєРѕРІ</li>
+                <li>Roadmap РЅР° 30 / 60 / 90 РґРЅРµР№</li>
               </ul>
             </div>
             <div class="package__section">
-              <span class="package__label">Результат</span>
-              <p class="package__result">Собственник понимает, где проблема, что чинить первым и какой формат работы нужен дальше.</p>
+              <span class="package__label">Р РµР·СѓР»СЊС‚Р°С‚</span>
+              <p class="package__result">РЎРѕР±СЃС‚РІРµРЅРЅРёРє РїРѕРЅРёРјР°РµС‚, РіРґРµ РїСЂРѕР±Р»РµРјР°, С‡С‚Рѕ С‡РёРЅРёС‚СЊ РїРµСЂРІС‹Рј Рё РєР°РєРѕР№ С„РѕСЂРјР°С‚ СЂР°Р±РѕС‚С‹ РЅСѓР¶РµРЅ РґР°Р»СЊС€Рµ.</p>
             </div>
-            <div class="package__term"><span>Срок</span><strong>1–2 недели</strong></div>
-            <p class="package__next"><span class="package__next-label">Дальше</span> Внедрение системы или ежемесячное сопровождение Control Light.</p>
-            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Пройти финансовую диагностику</a>
+            <div class="package__term"><span>РЎСЂРѕРє</span><strong>1вЂ“2 РЅРµРґРµР»Рё</strong></div>
+            <p class="package__next"><span class="package__next-label">Р”Р°Р»СЊС€Рµ</span> Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹ РёР»Рё РµР¶РµРјРµСЃСЏС‡РЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ Control Light.</p>
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">РџСЂРѕР№С‚Рё С„РёРЅР°РЅСЃРѕРІСѓСЋ РґРёР°РіРЅРѕСЃС‚РёРєСѓ</a>
           </article>
 
-          <!-- 2 · Внедрение системы — FLAGSHIP -->
+          <!-- 2 В· Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹ вЂ” FLAGSHIP -->
           <article class="package package--flagship reveal" data-reveal-delay="2">
-            <span class="package__tier package__tier--badge">★ Шаг 2 · Внедрение системы</span>
+            <span class="package__tier package__tier--badge">в… РЁР°Рі 2 В· Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹</span>
             <h3 class="package__name">Business Control System</h3>
-            <p class="package__goal">Построить систему управления бизнесом на&nbsp;цифрах.</p>
-            <p class="package__price"><span class="package__price-from">от</span> 5 000 €</p>
+            <p class="package__goal">РџРѕСЃС‚СЂРѕРёС‚СЊ СЃРёСЃС‚РµРјСѓ СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј РЅР°&nbsp;С†РёС„СЂР°С….</p>
+            <p class="package__price"><span class="package__price-from">РѕС‚</span> 5 000 в‚¬</p>
             <div class="package__section">
-              <span class="package__label">Что входит</span>
+              <span class="package__label">Р§С‚Рѕ РІС…РѕРґРёС‚</span>
               <ul class="package__list">
-                <li>Управленческий P&amp;L</li>
+                <li>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&amp;L</li>
                 <li>Cash Flow</li>
-                <li>Платёжный календарь</li>
-                <li>Казначейство</li>
-                <li>Фонды и приоритеты платежей</li>
+                <li>РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ</li>
+                <li>РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ</li>
+                <li>Р¤РѕРЅРґС‹ Рё РїСЂРёРѕСЂРёС‚РµС‚С‹ РїР»Р°С‚РµР¶РµР№</li>
                 <li>KPI</li>
                 <li>Power BI dashboard</li>
-                <li>План-факт контроль</li>
-                <li>Регламенты финансового управления</li>
+                <li>РџР»Р°РЅ-С„Р°РєС‚ РєРѕРЅС‚СЂРѕР»СЊ</li>
+                <li>Р РµРіР»Р°РјРµРЅС‚С‹ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ</li>
                 <li>Monthly owner report</li>
               </ul>
             </div>
             <div class="package__section">
-              <span class="package__label">Результат</span>
-              <p class="package__result">Бизнес становится управляемым: деньги, прибыль, риски, отклонения и решения в одном контуре.</p>
+              <span class="package__label">Р РµР·СѓР»СЊС‚Р°С‚</span>
+              <p class="package__result">Р‘РёР·РЅРµСЃ СЃС‚Р°РЅРѕРІРёС‚СЃСЏ СѓРїСЂР°РІР»СЏРµРјС‹Рј: РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, СЂРёСЃРєРё, РѕС‚РєР»РѕРЅРµРЅРёСЏ Рё СЂРµС€РµРЅРёСЏ РІ РѕРґРЅРѕРј РєРѕРЅС‚СѓСЂРµ.</p>
             </div>
-            <div class="package__term"><span>Срок</span><strong>1–3 месяца</strong></div>
-            <p class="package__next"><span class="package__next-label">Дальше</span> Регулярный CFO-контроль (Monthly) или BI / AI-автоматизация.</p>
-            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Построить CFO-систему</a>
+            <div class="package__term"><span>РЎСЂРѕРє</span><strong>1вЂ“3 РјРµСЃСЏС†Р°</strong></div>
+            <p class="package__next"><span class="package__next-label">Р”Р°Р»СЊС€Рµ</span> Р РµРіСѓР»СЏСЂРЅС‹Р№ CFO-РєРѕРЅС‚СЂРѕР»СЊ (Monthly) РёР»Рё BI / AI-Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ.</p>
+            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">РџРѕСЃС‚СЂРѕРёС‚СЊ CFO-СЃРёСЃС‚РµРјСѓ</a>
           </article>
 
-          <!-- 3 · BI / AI-автоматизация (после построения системы) -->
+          <!-- 3 В· BI / AI-Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ (РїРѕСЃР»Рµ РїРѕСЃС‚СЂРѕРµРЅРёСЏ СЃРёСЃС‚РµРјС‹) -->
           <article class="package reveal" data-reveal-delay="3">
-            <span class="package__tier">Шаг 3 · Регулярный контроль</span>
+            <span class="package__tier">РЁР°Рі 3 В· Р РµРіСѓР»СЏСЂРЅС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ</span>
             <h3 class="package__name">Monthly CFO Support</h3>
-            <p class="package__goal">Базовый <strong>light-формат</strong> регулярной CFO-дисциплины: обзор ключевых цифр и короткий список действий.</p>
-            <p class="package__price">от 750 € / мес</p>
+            <p class="package__goal">Р‘Р°Р·РѕРІС‹Р№ <strong>light-С„РѕСЂРјР°С‚</strong> СЂРµРіСѓР»СЏСЂРЅРѕР№ CFO-РґРёСЃС†РёРїР»РёРЅС‹: РѕР±Р·РѕСЂ РєР»СЋС‡РµРІС‹С… С†РёС„СЂ Рё РєРѕСЂРѕС‚РєРёР№ СЃРїРёСЃРѕРє РґРµР№СЃС‚РІРёР№.</p>
+            <p class="package__price">РѕС‚ 750 в‚¬ / РјРµСЃ</p>
             <div class="package__section">
-              <span class="package__label">Что входит</span>
+              <span class="package__label">Р§С‚Рѕ РІС…РѕРґРёС‚</span>
               <ul class="package__list">
-                <li>1 CFO-встреча в месяц (60–90 минут)</li>
-                <li>Обзор ключевых финансовых показателей</li>
-                <li>Короткий список управленческих действий (action&nbsp;list)</li>
-                <li>Базовый контроль отклонений</li>
+                <li>1 CFO-РІСЃС‚СЂРµС‡Р° РІ РјРµСЃСЏС† (60вЂ“90 РјРёРЅСѓС‚)</li>
+                <li>РћР±Р·РѕСЂ РєР»СЋС‡РµРІС‹С… С„РёРЅР°РЅСЃРѕРІС‹С… РїРѕРєР°Р·Р°С‚РµР»РµР№</li>
+                <li>РљРѕСЂРѕС‚РєРёР№ СЃРїРёСЃРѕРє СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёС… РґРµР№СЃС‚РІРёР№ (action&nbsp;list)</li>
+                <li>Р‘Р°Р·РѕРІС‹Р№ РєРѕРЅС‚СЂРѕР»СЊ РѕС‚РєР»РѕРЅРµРЅРёР№</li>
               </ul>
             </div>
             <div class="package__section">
-              <span class="package__label">Результат</span>
-              <p class="package__result">Регулярная управленческая дисциплина в лёгком формате — объём встреч и часов фиксируется заранее.</p>
+              <span class="package__label">Р РµР·СѓР»СЊС‚Р°С‚</span>
+              <p class="package__result">Р РµРіСѓР»СЏСЂРЅР°СЏ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ РґРёСЃС†РёРїР»РёРЅР° РІ Р»С‘РіРєРѕРј С„РѕСЂРјР°С‚Рµ вЂ” РѕР±СЉС‘Рј РІСЃС‚СЂРµС‡ Рё С‡Р°СЃРѕРІ С„РёРєСЃРёСЂСѓРµС‚СЃСЏ Р·Р°СЂР°РЅРµРµ.</p>
             </div>
-            <div class="package__term"><span>Формат</span><strong>Ежемесячно</strong></div>
-            <p class="package__next"><span class="package__next-label">Отдельно</span> Расширенное сопровождение, дополнительные встречи, контроль Cash&nbsp;Flow / P&amp;L / платежей и dashboard-review — форматы Standard и Premium рассчитываются после диагностики.</p>
-            <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Обсудить сопровождение</a>
+            <div class="package__term"><span>Р¤РѕСЂРјР°С‚</span><strong>Р•Р¶РµРјРµСЃСЏС‡РЅРѕ</strong></div>
+            <p class="package__next"><span class="package__next-label">РћС‚РґРµР»СЊРЅРѕ</span> Р Р°СЃС€РёСЂРµРЅРЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ, РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РІСЃС‚СЂРµС‡Рё, РєРѕРЅС‚СЂРѕР»СЊ Cash&nbsp;Flow / P&amp;L / РїР»Р°С‚РµР¶РµР№ Рё dashboard-review вЂ” С„РѕСЂРјР°С‚С‹ Standard Рё Premium СЂР°СЃСЃС‡РёС‚С‹РІР°СЋС‚СЃСЏ РїРѕСЃР»Рµ РґРёР°РіРЅРѕСЃС‚РёРєРё.</p>
+            <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">РћР±СЃСѓРґРёС‚СЊ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ</a>
           </article>
         </div>
 
-        <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
+        <p class="roi-note reveal"><strong>РЎС‚РѕРёРјРѕСЃС‚СЊ Р·Р°РІРёСЃРёС‚</strong> РѕС‚ РєРѕР»РёС‡РµСЃС‚РІР° СЋСЂР»РёС†, СЃРѕСЃС‚РѕСЏРЅРёСЏ СѓС‡С‘С‚Р°, С‡РёСЃР»Р° РёСЃС‚РѕС‡РЅРёРєРѕРІ РґР°РЅРЅС‹С…, РіР»СѓР±РёРЅС‹ РІРЅРµРґСЂРµРЅРёСЏ Рё СЂРµРіСѓР»СЏСЂРЅРѕСЃС‚Рё СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёСЏ. Р•С‘ СЃС‚РѕРёС‚ СЃСЂР°РІРЅРёРІР°С‚СЊ РЅРµ СЃ С†РµРЅРѕР№ Excel-С„Р°Р№Р»Р°, Р° СЃ С†РµРЅРѕР№ РєР°СЃСЃРѕРІС‹С… СЂР°Р·СЂС‹РІРѕРІ, Р·Р°РјРѕСЂРѕР¶РµРЅРЅРѕР№ РґРµР±РёС‚РѕСЂРєРё, РѕС€РёР±РѕРє РІ РїР»Р°С‚РµР¶Р°С… Рё СЂРµС€РµРЅРёР№ Р±РµР· РґР°РЅРЅС‹С…. Р¤РѕСЂРјР°С‚ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёСЏ (РІСЃС‚СЂРµС‡Рё, С‡Р°СЃС‹, РѕС‚С‡С‘С‚С‹ Рё Р·РѕРЅС‹ РѕС‚РІРµС‚СЃС‚РІРµРЅРЅРѕСЃС‚Рё) С„РёРєСЃРёСЂСѓРµС‚СЃСЏ Р·Р°СЂР°РЅРµРµ: РїРѕРґРґРµСЂР¶РєР° РЅРµ СЏРІР»СЏРµС‚СЃСЏ Р±РµР·Р»РёРјРёС‚РЅС‹Рј С„РёРЅР°РЅСЃРѕРІС‹Рј РѕС‚РґРµР»РѕРј.</p>
         <div class="packages__cta reveal">
-          <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
+          <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Р—Р°РїРёСЃР°С‚СЊСЃСЏ РЅР° Discovery Call</a>
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">РџСЂРѕР№С‚Рё С„РёРЅР°РЅСЃРѕРІСѓСЋ РґРёР°РіРЅРѕСЃС‚РёРєСѓ</a>
         </div>
       </div>
     </section>
 <section class="sec" id="modules">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Дополнительно · после диагностики</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Экспертные модули FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Можно начать с диагностики, а затем подключить к любому пакету конкретный модуль под вашу задачу: платежи, товары, поставщиков, маржу, dashboard или автоматизацию.</p>
+          <p class="overline reveal">Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕ В· РїРѕСЃР»Рµ РґРёР°РіРЅРѕСЃС‚РёРєРё</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Р­РєСЃРїРµСЂС‚РЅС‹Рµ РјРѕРґСѓР»Рё FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РњРѕР¶РЅРѕ РЅР°С‡Р°С‚СЊ СЃ РґРёР°РіРЅРѕСЃС‚РёРєРё, Р° Р·Р°С‚РµРј РїРѕРґРєР»СЋС‡РёС‚СЊ Рє Р»СЋР±РѕРјСѓ РїР°РєРµС‚Сѓ РєРѕРЅРєСЂРµС‚РЅС‹Р№ РјРѕРґСѓР»СЊ РїРѕРґ РІР°С€Сѓ Р·Р°РґР°С‡Сѓ: РїР»Р°С‚РµР¶Рё, С‚РѕРІР°СЂС‹, РїРѕСЃС‚Р°РІС‰РёРєРѕРІ, РјР°СЂР¶Сѓ, dashboard РёР»Рё Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЋ.</p>
         </div>
         <div class="module-grid">
           <article class="module-card reveal">
             <span class="module-card__num">01</span>
             <h3 class="module-card__title">Treasury &amp; Payment Discipline</h3>
-            <p class="module-card__desc">Система управления платежами: деньги получают назначение, приоритет и правила — платёж проходит, только если есть покрытие.</p>
-            <ul class="module-card__list"><li>Фонды и метафонды</li><li>Приоритеты P0–P5 и Payment Waterfall</li><li>Покрытие 7/14/30 и Funding Gap</li><li>Статусы и блокировки платежей</li></ul>
-            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Проверить платёжную дисциплину <span>&rarr;</span></a>
+            <p class="module-card__desc">РЎРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ РїР»Р°С‚РµР¶Р°РјРё: РґРµРЅСЊРіРё РїРѕР»СѓС‡Р°СЋС‚ РЅР°Р·РЅР°С‡РµРЅРёРµ, РїСЂРёРѕСЂРёС‚РµС‚ Рё РїСЂР°РІРёР»Р° вЂ” РїР»Р°С‚С‘Р¶ РїСЂРѕС…РѕРґРёС‚, С‚РѕР»СЊРєРѕ РµСЃР»Рё РµСЃС‚СЊ РїРѕРєСЂС‹С‚РёРµ.</p>
+            <ul class="module-card__list"><li>Р¤РѕРЅРґС‹ Рё РјРµС‚Р°С„РѕРЅРґС‹</li><li>РџСЂРёРѕСЂРёС‚РµС‚С‹ P0вЂ“P5 Рё Payment Waterfall</li><li>РџРѕРєСЂС‹С‚РёРµ 7/14/30 Рё Funding Gap</li><li>РЎС‚Р°С‚СѓСЃС‹ Рё Р±Р»РѕРєРёСЂРѕРІРєРё РїР»Р°С‚РµР¶РµР№</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">РџСЂРѕРІРµСЂРёС‚СЊ РїР»Р°С‚С‘Р¶РЅСѓСЋ РґРёСЃС†РёРїР»РёРЅСѓ <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">02</span>
             <h3 class="module-card__title">Fund Planning &amp; Payment Waterfall</h3>
-            <p class="module-card__desc">Собственник видит не остаток на счёте, а реальную платёжную способность: какие деньги свободны, а какие уже зарезервированы.</p>
-            <ul class="module-card__list"><li>Какие деньги действительно свободны</li><li>Что уже закреплено за обязательствами</li><li>Что оплатить, отложить или заблокировать</li><li>Правила покрытия и разблокировки</li></ul>
-            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Внедрить водопад платежей <span>&rarr;</span></a>
+            <p class="module-card__desc">РЎРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РЅРµ РѕСЃС‚Р°С‚РѕРє РЅР° СЃС‡С‘С‚Рµ, Р° СЂРµР°Р»СЊРЅСѓСЋ РїР»Р°С‚С‘Р¶РЅСѓСЋ СЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ: РєР°РєРёРµ РґРµРЅСЊРіРё СЃРІРѕР±РѕРґРЅС‹, Р° РєР°РєРёРµ СѓР¶Рµ Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅС‹.</p>
+            <ul class="module-card__list"><li>РљР°РєРёРµ РґРµРЅСЊРіРё РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ СЃРІРѕР±РѕРґРЅС‹</li><li>Р§С‚Рѕ СѓР¶Рµ Р·Р°РєСЂРµРїР»РµРЅРѕ Р·Р° РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІР°РјРё</li><li>Р§С‚Рѕ РѕРїР»Р°С‚РёС‚СЊ, РѕС‚Р»РѕР¶РёС‚СЊ РёР»Рё Р·Р°Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ</li><li>РџСЂР°РІРёР»Р° РїРѕРєСЂС‹С‚РёСЏ Рё СЂР°Р·Р±Р»РѕРєРёСЂРѕРІРєРё</li></ul>
+            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Р’РЅРµРґСЂРёС‚СЊ РІРѕРґРѕРїР°Рґ РїР»Р°С‚РµР¶РµР№ <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">03</span>
             <h3 class="module-card__title">SKU Cash Flow Analysis</h3>
-            <p class="module-card__desc">Закупки и ассортимент перестают оцениваться по выручке: видно, какие товары создают деньги, а какие замораживают оборотный капитал.</p>
-            <ul class="module-card__list"><li>FCF по каждому SKU</li><li>Товары — cash destroyers</li><li>DPO / DSO и склад</li><li>Где маркетинг и fixed costs съедают вклад</li></ul>
-            <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">Проверить FCF по товарам <span>&rarr;</span></a>
+            <p class="module-card__desc">Р—Р°РєСѓРїРєРё Рё Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ РїРµСЂРµСЃС‚Р°СЋС‚ РѕС†РµРЅРёРІР°С‚СЊСЃСЏ РїРѕ РІС‹СЂСѓС‡РєРµ: РІРёРґРЅРѕ, РєР°РєРёРµ С‚РѕРІР°СЂС‹ СЃРѕР·РґР°СЋС‚ РґРµРЅСЊРіРё, Р° РєР°РєРёРµ Р·Р°РјРѕСЂР°Р¶РёРІР°СЋС‚ РѕР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р».</p>
+            <ul class="module-card__list"><li>FCF РїРѕ РєР°Р¶РґРѕРјСѓ SKU</li><li>РўРѕРІР°СЂС‹ вЂ” cash destroyers</li><li>DPO / DSO Рё СЃРєР»Р°Рґ</li><li>Р“РґРµ РјР°СЂРєРµС‚РёРЅРі Рё fixed costs СЃСЉРµРґР°СЋС‚ РІРєР»Р°Рґ</li></ul>
+            <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">РџСЂРѕРІРµСЂРёС‚СЊ FCF РїРѕ С‚РѕРІР°СЂР°Рј <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">04</span>
             <h3 class="module-card__title">Supplier Rating &amp; Procurement Control</h3>
-            <p class="module-card__desc">Закупки выбирают поставщика не по цене, а по полной финансовой логике: цена, DPO, Cash Flow, НДС, возвраты и риск.</p>
-            <ul class="module-card__list"><li>Рейтинг поставщика по коэффициентам</li><li>Цена, DPO, НДС, возвраты, сроки</li><li>Выбор под приоритет компании</li><li>Влияние на маржу и Cash Flow</li></ul>
-            <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">Проверить закупки и поставщиков <span>&rarr;</span></a>
+            <p class="module-card__desc">Р—Р°РєСѓРїРєРё РІС‹Р±РёСЂР°СЋС‚ РїРѕСЃС‚Р°РІС‰РёРєР° РЅРµ РїРѕ С†РµРЅРµ, Р° РїРѕ РїРѕР»РЅРѕР№ С„РёРЅР°РЅСЃРѕРІРѕР№ Р»РѕРіРёРєРµ: С†РµРЅР°, DPO, Cash Flow, РќР”РЎ, РІРѕР·РІСЂР°С‚С‹ Рё СЂРёСЃРє.</p>
+            <ul class="module-card__list"><li>Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєР° РїРѕ РєРѕСЌС„С„РёС†РёРµРЅС‚Р°Рј</li><li>Р¦РµРЅР°, DPO, РќР”РЎ, РІРѕР·РІСЂР°С‚С‹, СЃСЂРѕРєРё</li><li>Р’С‹Р±РѕСЂ РїРѕРґ РїСЂРёРѕСЂРёС‚РµС‚ РєРѕРјРїР°РЅРёРё</li><li>Р’Р»РёСЏРЅРёРµ РЅР° РјР°СЂР¶Сѓ Рё Cash Flow</li></ul>
+            <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">РџСЂРѕРІРµСЂРёС‚СЊ Р·Р°РєСѓРїРєРё Рё РїРѕСЃС‚Р°РІС‰РёРєРѕРІ <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">05</span>
             <h3 class="module-card__title">Margin Factor Analysis</h3>
-            <p class="module-card__desc">Понятно не только что маржа выросла или упала, но и почему — и что с этим делать дальше.</p>
-            <ul class="module-card__list"><li>Факторы: цена, количество, mix, себестоимость</li><li>Флаги риска по каждому фактору</li><li>Промо, скидки и stock-out</li><li>Сезонность и качество данных</li></ul>
-            <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">Проверить маржу бизнеса <span>&rarr;</span></a>
+            <p class="module-card__desc">РџРѕРЅСЏС‚РЅРѕ РЅРµ С‚РѕР»СЊРєРѕ С‡С‚Рѕ РјР°СЂР¶Р° РІС‹СЂРѕСЃР»Р° РёР»Рё СѓРїР°Р»Р°, РЅРѕ Рё РїРѕС‡РµРјСѓ вЂ” Рё С‡С‚Рѕ СЃ СЌС‚РёРј РґРµР»Р°С‚СЊ РґР°Р»СЊС€Рµ.</p>
+            <ul class="module-card__list"><li>Р¤Р°РєС‚РѕСЂС‹: С†РµРЅР°, РєРѕР»РёС‡РµСЃС‚РІРѕ, mix, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</li><li>Р¤Р»Р°РіРё СЂРёСЃРєР° РїРѕ РєР°Р¶РґРѕРјСѓ С„Р°РєС‚РѕСЂСѓ</li><li>РџСЂРѕРјРѕ, СЃРєРёРґРєРё Рё stock-out</li><li>РЎРµР·РѕРЅРЅРѕСЃС‚СЊ Рё РєР°С‡РµСЃС‚РІРѕ РґР°РЅРЅС‹С…</li></ul>
+            <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">РџСЂРѕРІРµСЂРёС‚СЊ РјР°СЂР¶Сѓ Р±РёР·РЅРµСЃР° <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">06</span>
             <h3 class="module-card__title">Working Capital Control</h3>
-            <p class="module-card__desc">Поиск замороженных денег: где застряла ликвидность в дебиторке, запасах и авансах — и как сократить денежный цикл.</p>
-            <ul class="module-card__list"><li>Дебиторка, кредиторка, запасы</li><li>DSO, DPO, Inventory Days</li><li>Денежный цикл (CCC)</li><li>Источники замороженных денег</li></ul>
-            <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">Проверить оборотный капитал <span>&rarr;</span></a>
+            <p class="module-card__desc">РџРѕРёСЃРє Р·Р°РјРѕСЂРѕР¶РµРЅРЅС‹С… РґРµРЅРµРі: РіРґРµ Р·Р°СЃС‚СЂСЏР»Р° Р»РёРєРІРёРґРЅРѕСЃС‚СЊ РІ РґРµР±РёС‚РѕСЂРєРµ, Р·Р°РїР°СЃР°С… Рё Р°РІР°РЅСЃР°С… вЂ” Рё РєР°Рє СЃРѕРєСЂР°С‚РёС‚СЊ РґРµРЅРµР¶РЅС‹Р№ С†РёРєР».</p>
+            <ul class="module-card__list"><li>Р”РµР±РёС‚РѕСЂРєР°, РєСЂРµРґРёС‚РѕСЂРєР°, Р·Р°РїР°СЃС‹</li><li>DSO, DPO, Inventory Days</li><li>Р”РµРЅРµР¶РЅС‹Р№ С†РёРєР» (CCC)</li><li>РСЃС‚РѕС‡РЅРёРєРё Р·Р°РјРѕСЂРѕР¶РµРЅРЅС‹С… РґРµРЅРµРі</li></ul>
+            <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">РџСЂРѕРІРµСЂРёС‚СЊ РѕР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р» <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">07</span>
             <h3 class="module-card__title">Power BI Owner Dashboard</h3>
-            <p class="module-card__desc">Собственник получает ежедневную панель: где деньги, где маржа, какие платежи заблокированы и где возникнет Funding Gap.</p>
-            <ul class="module-card__list"><li>Деньги, маржа, Cash Flow</li><li>Платежи и Funding Gap</li><li>FCF по SKU, закупки, поставщики</li><li>Ключевые флаги риска в одной панели</li></ul>
-            <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">Собрать dashboard собственника <span>&rarr;</span></a>
+            <p class="module-card__desc">РЎРѕР±СЃС‚РІРµРЅРЅРёРє РїРѕР»СѓС‡Р°РµС‚ РµР¶РµРґРЅРµРІРЅСѓСЋ РїР°РЅРµР»СЊ: РіРґРµ РґРµРЅСЊРіРё, РіРґРµ РјР°СЂР¶Р°, РєР°РєРёРµ РїР»Р°С‚РµР¶Рё Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅС‹ Рё РіРґРµ РІРѕР·РЅРёРєРЅРµС‚ Funding Gap.</p>
+            <ul class="module-card__list"><li>Р”РµРЅСЊРіРё, РјР°СЂР¶Р°, Cash Flow</li><li>РџР»Р°С‚РµР¶Рё Рё Funding Gap</li><li>FCF РїРѕ SKU, Р·Р°РєСѓРїРєРё, РїРѕСЃС‚Р°РІС‰РёРєРё</li><li>РљР»СЋС‡РµРІС‹Рµ С„Р»Р°РіРё СЂРёСЃРєР° РІ РѕРґРЅРѕР№ РїР°РЅРµР»Рё</li></ul>
+            <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">РЎРѕР±СЂР°С‚СЊ dashboard СЃРѕР±СЃС‚РІРµРЅРЅРёРєР° <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
             <span class="module-card__num">08</span>
             <h3 class="module-card__title">n8n / Make CFO Automation</h3>
-            <p class="module-card__desc">Меньше ручной работы: заявки, согласования, уведомления, обновление данных и ежедневные отчёты работают автоматически.</p>
-            <ul class="module-card__list"><li>Заявки и approval flow</li><li>Уведомления в Telegram / email</li><li>Интеграции Sheets / ERP / CRM / Power BI</li><li>Daily reports и alerts по рискам</li></ul>
-            <a href="questionnaire.html?topic=automation" class="module-card__cta" data-ga="click_module_automation">Автоматизировать CFO-процессы <span>&rarr;</span></a>
+            <p class="module-card__desc">РњРµРЅСЊС€Рµ СЂСѓС‡РЅРѕР№ СЂР°Р±РѕС‚С‹: Р·Р°СЏРІРєРё, СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЏ, СѓРІРµРґРѕРјР»РµРЅРёСЏ, РѕР±РЅРѕРІР»РµРЅРёРµ РґР°РЅРЅС‹С… Рё РµР¶РµРґРЅРµРІРЅС‹Рµ РѕС‚С‡С‘С‚С‹ СЂР°Р±РѕС‚Р°СЋС‚ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё.</p>
+            <ul class="module-card__list"><li>Р—Р°СЏРІРєРё Рё approval flow</li><li>РЈРІРµРґРѕРјР»РµРЅРёСЏ РІ Telegram / email</li><li>РРЅС‚РµРіСЂР°С†РёРё Sheets / ERP / CRM / Power BI</li><li>Daily reports Рё alerts РїРѕ СЂРёСЃРєР°Рј</li></ul>
+            <a href="questionnaire.html?topic=automation" class="module-card__cta" data-ga="click_module_automation">РђРІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ CFO-РїСЂРѕС†РµСЃСЃС‹ <span>&rarr;</span></a>
           </article>
         </div>
-        <p class="module-note">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
+        <p class="module-note">РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№ СЃС‚РµРє РїРѕРґР±РёСЂР°РµС‚СЃСЏ РїРѕСЃР»Рµ РґРёР°РіРЅРѕСЃС‚РёРєРё Рё СЃРѕРіР»Р°СЃРѕРІС‹РІР°РµС‚СЃСЏ Р·Р°СЂР°РЅРµРµ. РџР»Р°С‚РЅС‹Рµ СЃРµСЂРІРёСЃС‹, Р»РёС†РµРЅР·РёРё Power&nbsp;BI, Make/n8n, AI/API РёР»Рё С‚РµС…РЅРёС‡РµСЃРєР°СЏ РёРЅС‚РµРіСЂР°С†РёСЏ СЃ 1РЎ РЅРµ РїРѕРґРєР»СЋС‡Р°СЋС‚СЃСЏ Р±РµР· РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ РєР»РёРµРЅС‚Р°.</p>
         <div class="choose">
-          <h3 class="choose__title">Как выбрать, с чего начать</h3>
-          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
+          <h3 class="choose__title">РљР°Рє РІС‹Р±СЂР°С‚СЊ, СЃ С‡РµРіРѕ РЅР°С‡Р°С‚СЊ</h3>
+          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Р•СЃР»Рё Сѓ РІР°СЃ Р·Р°РґР°С‡Р°</th><th>РЎ С‡РµРіРѕ РЅР°С‡Р°С‚СЊ</th></tr></thead><tbody><tr><td>РќРµС‚ РїРѕРЅРёРјР°РЅРёСЏ, РіРґРµ РїСЂРёР±С‹Р»СЊ Рё РґРµРЅСЊРіРё</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>РҐР°РѕСЃ РІ РїР»Р°С‚РµР¶Р°С…</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Р”РµРЅСЊРіРё Р·Р°РјРѕСЂРѕР¶РµРЅС‹ РІ С‚РѕРІР°СЂР°С…</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Р—Р°РєСѓРїРєРё РІС‹Р±РёСЂР°СЋС‚ С‚РѕР»СЊРєРѕ РїРѕ С†РµРЅРµ</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>РњР°СЂР¶Р° СЂР°СЃС‚С‘С‚ РёР»Рё РїР°РґР°РµС‚, РЅРѕ РЅРµРїРѕРЅСЏС‚РЅРѕ РїРѕС‡РµРјСѓ</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>РЎРѕР±СЃС‚РІРµРЅРЅРёРє С…РѕС‡РµС‚ РІРёРґРµС‚СЊ РІСЃС‘ РІ РѕРґРЅРѕР№ РїР°РЅРµР»Рё</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>РњРЅРѕРіРѕ СЂСѓС‡РЅРѕР№ СЂР°Р±РѕС‚С‹ РІ С„РёРЅР°РЅСЃР°С…</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
         </div>
       </div>
     </section>
     <section class="proof-cases" id="cases">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Доказательства</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Как это выглядит на практике</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Анонимные сценарии собственников и что меняет FINMENTOR. Без выдуманных цифр и гарантий — только логика работы.</p>
+          <p class="overline reveal">Р”РѕРєР°Р·Р°С‚РµР»СЊСЃС‚РІР°</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РљР°Рє СЌС‚Рѕ РІС‹РіР»СЏРґРёС‚ РЅР° РїСЂР°РєС‚РёРєРµ</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РђРЅРѕРЅРёРјРЅС‹Рµ СЃС†РµРЅР°СЂРёРё СЃРѕР±СЃС‚РІРµРЅРЅРёРєРѕРІ Рё С‡С‚Рѕ РјРµРЅСЏРµС‚ FINMENTOR. Р‘РµР· РІС‹РґСѓРјР°РЅРЅС‹С… С†РёС„СЂ Рё РіР°СЂР°РЅС‚РёР№ вЂ” С‚РѕР»СЊРєРѕ Р»РѕРіРёРєР° СЂР°Р±РѕС‚С‹.</p>
         </div>
         <div class="results__grid">
           <article class="result-card reveal" data-reveal-delay="1">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Прибыль есть, но денег не хватает — деньги застревали в дебиторке, запасах и хаотичных платежах.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Cash Flow, реестр ДЗ/КЗ, платёжный календарь и приоритеты платежей.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит кассовый разрыв на 30 дней вперёд и получает план действий.</p></div>
+            <div class="result-row"><span class="result-row__label">РџСЂРѕР±Р»РµРјР°</span><p>РџСЂРёР±С‹Р»СЊ РµСЃС‚СЊ, РЅРѕ РґРµРЅРµРі РЅРµ С…РІР°С‚Р°РµС‚ вЂ” РґРµРЅСЊРіРё Р·Р°СЃС‚СЂРµРІР°Р»Рё РІ РґРµР±РёС‚РѕСЂРєРµ, Р·Р°РїР°СЃР°С… Рё С…Р°РѕС‚РёС‡РЅС‹С… РїР»Р°С‚РµР¶Р°С….</p></div>
+            <div class="result-row"><span class="result-row__label">Р§С‚Рѕ СЃРґРµР»Р°Р»Рё</span><p>Cash Flow, СЂРµРµСЃС‚СЂ Р”Р—/РљР—, РїР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ Рё РїСЂРёРѕСЂРёС‚РµС‚С‹ РїР»Р°С‚РµР¶РµР№.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Р РµР·СѓР»СЊС‚Р°С‚</span><p>РЎРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РєР°СЃСЃРѕРІС‹Р№ СЂР°Р·СЂС‹РІ РЅР° 30 РґРЅРµР№ РІРїРµСЂС‘Рґ Рё РїРѕР»СѓС‡Р°РµС‚ РїР»Р°РЅ РґРµР№СЃС‚РІРёР№.</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="2">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Платежи каждый день, но без приоритетов — решения принимались вручную.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Логика покрытия 7/14/30 дней, критичные платежи и порядок согласования.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Платёжная дисциплина вместо ручного режима «кто громче попросил».</p></div>
+            <div class="result-row"><span class="result-row__label">РџСЂРѕР±Р»РµРјР°</span><p>РџР»Р°С‚РµР¶Рё РєР°Р¶РґС‹Р№ РґРµРЅСЊ, РЅРѕ Р±РµР· РїСЂРёРѕСЂРёС‚РµС‚РѕРІ вЂ” СЂРµС€РµРЅРёСЏ РїСЂРёРЅРёРјР°Р»РёСЃСЊ РІСЂСѓС‡РЅСѓСЋ.</p></div>
+            <div class="result-row"><span class="result-row__label">Р§С‚Рѕ СЃРґРµР»Р°Р»Рё</span><p>Р›РѕРіРёРєР° РїРѕРєСЂС‹С‚РёСЏ 7/14/30 РґРЅРµР№, РєСЂРёС‚РёС‡РЅС‹Рµ РїР»Р°С‚РµР¶Рё Рё РїРѕСЂСЏРґРѕРє СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЏ.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Р РµР·СѓР»СЊС‚Р°С‚</span><p>РџР»Р°С‚С‘Р¶РЅР°СЏ РґРёСЃС†РёРїР»РёРЅР° РІРјРµСЃС‚Рѕ СЂСѓС‡РЅРѕРіРѕ СЂРµР¶РёРјР° В«РєС‚Рѕ РіСЂРѕРјС‡Рµ РїРѕРїСЂРѕСЃРёР»В».</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="3">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Много Excel, но нет единой картины — прибыль, деньги и обязательства порознь.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Структура управленческого P&amp;L, Cash Flow и dashboard собственника.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит прибыль, деньги и обязательства в одной картине.</p></div>
+            <div class="result-row"><span class="result-row__label">РџСЂРѕР±Р»РµРјР°</span><p>РњРЅРѕРіРѕ Excel, РЅРѕ РЅРµС‚ РµРґРёРЅРѕР№ РєР°СЂС‚РёРЅС‹ вЂ” РїСЂРёР±С‹Р»СЊ, РґРµРЅСЊРіРё Рё РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІР° РїРѕСЂРѕР·РЅСЊ.</p></div>
+            <div class="result-row"><span class="result-row__label">Р§С‚Рѕ СЃРґРµР»Р°Р»Рё</span><p>РЎС‚СЂСѓРєС‚СѓСЂР° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ P&amp;L, Cash Flow Рё dashboard СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Р РµР·СѓР»СЊС‚Р°С‚</span><p>РЎРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РїСЂРёР±С‹Р»СЊ, РґРµРЅСЊРіРё Рё РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІР° РІ РѕРґРЅРѕР№ РєР°СЂС‚РёРЅРµ.</p></div>
           </article>
         </div>
 
-        <h3 class="subhead reveal">Что вы получаете</h3>
+        <h3 class="subhead reveal">Р§С‚Рѕ РІС‹ РїРѕР»СѓС‡Р°РµС‚Рµ</h3>
         <div class="deliv-grid">
-          <div class="deliv-item reveal"><span><strong>Diagnostic memo</strong> — карта финансовых болей и рисков</span></div>
-          <div class="deliv-item reveal"><span><strong>Risk map</strong> — приоритизация рисков и quick wins</span></div>
-          <div class="deliv-item reveal"><span><strong>Document checklist</strong> — что нужно для диагностики</span></div>
-          <div class="deliv-item reveal"><span><strong>Cash Flow / P&amp;L structure</strong> — управленческая логика</span></div>
-          <div class="deliv-item reveal"><span><strong>Payment calendar logic</strong> — приоритеты и покрытие</span></div>
-          <div class="deliv-item reveal"><span><strong>Action plan</strong> — план на 30 / 60 / 90 дней</span></div>
-          <div class="deliv-item reveal"><span><strong>Owner dashboard concept</strong> — что видит собственник</span></div>
-          <div class="deliv-item reveal"><span><strong>Recommendation</strong> — рекомендуемый формат и пакет</span></div>
+          <div class="deliv-item reveal"><span><strong>Diagnostic memo</strong> вЂ” РєР°СЂС‚Р° С„РёРЅР°РЅСЃРѕРІС‹С… Р±РѕР»РµР№ Рё СЂРёСЃРєРѕРІ</span></div>
+          <div class="deliv-item reveal"><span><strong>Risk map</strong> вЂ” РїСЂРёРѕСЂРёС‚РёР·Р°С†РёСЏ СЂРёСЃРєРѕРІ Рё quick wins</span></div>
+          <div class="deliv-item reveal"><span><strong>Document checklist</strong> вЂ” С‡С‚Рѕ РЅСѓР¶РЅРѕ РґР»СЏ РґРёР°РіРЅРѕСЃС‚РёРєРё</span></div>
+          <div class="deliv-item reveal"><span><strong>Cash Flow / P&amp;L structure</strong> вЂ” СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ Р»РѕРіРёРєР°</span></div>
+          <div class="deliv-item reveal"><span><strong>Payment calendar logic</strong> вЂ” РїСЂРёРѕСЂРёС‚РµС‚С‹ Рё РїРѕРєСЂС‹С‚РёРµ</span></div>
+          <div class="deliv-item reveal"><span><strong>Action plan</strong> вЂ” РїР»Р°РЅ РЅР° 30 / 60 / 90 РґРЅРµР№</span></div>
+          <div class="deliv-item reveal"><span><strong>Owner dashboard concept</strong> вЂ” С‡С‚Рѕ РІРёРґРёС‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРє</span></div>
+          <div class="deliv-item reveal"><span><strong>Recommendation</strong> вЂ” СЂРµРєРѕРјРµРЅРґСѓРµРјС‹Р№ С„РѕСЂРјР°С‚ Рё РїР°РєРµС‚</span></div>
         </div>
 
-        <h3 class="subhead reveal">Пример результата</h3>
+        <h3 class="subhead reveal">РџСЂРёРјРµСЂ СЂРµР·СѓР»СЊС‚Р°С‚Р°</h3>
         <div class="sample-grid">
           <article class="sample-card reveal">
-            <div class="sample-card__bar"><span class="sample-card__name">Диагностическая записка</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєР°СЏ Р·Р°РїРёСЃРєР°</span><span class="sample-card__tag">РћР±СЂР°Р·РµС†</span></div>
             <div class="sample-card__body">
-              <div class="so-line"><span class="so-line__k">Ключевая проблема</span><span class="so-line__v">Деньги есть в обороте, но не видны в управлении</span></div>
-              <div class="so-line"><span class="so-line__k">Первый вывод</span><span class="so-line__v">Нужен Cash Flow и контроль обязательств</span></div>
-              <div class="so-line"><span class="so-line__k">Фокус</span><span class="so-line__v">Прибыль · платежи · риски</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Понятный вывод и первый шаг</div>
+              <div class="so-line"><span class="so-line__k">РљР»СЋС‡РµРІР°СЏ РїСЂРѕР±Р»РµРјР°</span><span class="so-line__v">Р”РµРЅСЊРіРё РµСЃС‚СЊ РІ РѕР±РѕСЂРѕС‚Рµ, РЅРѕ РЅРµ РІРёРґРЅС‹ РІ СѓРїСЂР°РІР»РµРЅРёРё</span></div>
+              <div class="so-line"><span class="so-line__k">РџРµСЂРІС‹Р№ РІС‹РІРѕРґ</span><span class="so-line__v">РќСѓР¶РµРЅ Cash Flow Рё РєРѕРЅС‚СЂРѕР»СЊ РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІ</span></div>
+              <div class="so-line"><span class="so-line__k">Р¤РѕРєСѓСЃ</span><span class="so-line__v">РџСЂРёР±С‹Р»СЊ В· РїР»Р°С‚РµР¶Рё В· СЂРёСЃРєРё</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>РџРѕРЅСЏС‚РЅС‹Р№ РІС‹РІРѕРґ Рё РїРµСЂРІС‹Р№ С€Р°Рі</div>
             </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="1">
-            <div class="sample-card__bar"><span class="sample-card__name">Карта рисков</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">РљР°СЂС‚Р° СЂРёСЃРєРѕРІ</span><span class="sample-card__tag">РћР±СЂР°Р·РµС†</span></div>
             <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Дебиторка</b></span><span class="so-row__v">высокий</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>Склад</b></span><span class="so-row__v">средний</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>Платёжный календарь</b></span><span class="so-row__v">контроль</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Приоритет — первые 30 дней</div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Р”РµР±РёС‚РѕСЂРєР°</b></span><span class="so-row__v">РІС‹СЃРѕРєРёР№</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>РЎРєР»Р°Рґ</b></span><span class="so-row__v">СЃСЂРµРґРЅРёР№</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ</b></span><span class="so-row__v">РєРѕРЅС‚СЂРѕР»СЊ</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>РџСЂРёРѕСЂРёС‚РµС‚ вЂ” РїРµСЂРІС‹Рµ 30 РґРЅРµР№</div>
             </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="2">
-            <div class="sample-card__bar"><span class="sample-card__name">Список документов</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">РЎРїРёСЃРѕРє РґРѕРєСѓРјРµРЅС‚РѕРІ</span><span class="sample-card__tag">РћР±СЂР°Р·РµС†</span></div>
             <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Bank statements</span><span class="so-pill so-pill--done">готово</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>P&amp;L · Cash Flow</span><span class="so-pill so-pill--done">готово</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>AR / AP aging</span><span class="so-pill so-pill--req">запросить</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Договоры · условия оплат</span><span class="so-pill so-pill--req">запросить</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Что готово / что запросить</div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">вњ“</span>Bank statements</span><span class="so-pill so-pill--done">РіРѕС‚РѕРІРѕ</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">вњ“</span>P&amp;L В· Cash Flow</span><span class="so-pill so-pill--done">РіРѕС‚РѕРІРѕ</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">в—‹</span>AR / AP aging</span><span class="so-pill so-pill--req">Р·Р°РїСЂРѕСЃРёС‚СЊ</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">в—‹</span>Р”РѕРіРѕРІРѕСЂС‹ В· СѓСЃР»РѕРІРёСЏ РѕРїР»Р°С‚</span><span class="so-pill so-pill--req">Р·Р°РїСЂРѕСЃРёС‚СЊ</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Р§С‚Рѕ РіРѕС‚РѕРІРѕ / С‡С‚Рѕ Р·Р°РїСЂРѕСЃРёС‚СЊ</div>
             </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="3">
-            <div class="sample-card__bar"><span class="sample-card__name">Панель собственника</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">РџР°РЅРµР»СЊ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°</span><span class="sample-card__tag">РћР±СЂР°Р·РµС†</span></div>
             <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Денежная позиция</span><span class="so-row__v">в норме</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Маржа</span><span class="so-row__v">под контролем</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Платежи к оплате</span><span class="so-row__v">внимание</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Оборотный капитал</span><span class="so-row__v">внимание</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Owner view: что требует решения</div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Р”РµРЅРµР¶РЅР°СЏ РїРѕР·РёС†РёСЏ</span><span class="so-row__v">РІ РЅРѕСЂРјРµ</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>РњР°СЂР¶Р°</span><span class="so-row__v">РїРѕРґ РєРѕРЅС‚СЂРѕР»РµРј</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>РџР»Р°С‚РµР¶Рё Рє РѕРїР»Р°С‚Рµ</span><span class="so-row__v">РІРЅРёРјР°РЅРёРµ</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</span><span class="so-row__v">РІРЅРёРјР°РЅРёРµ</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Owner view: С‡С‚Рѕ С‚СЂРµР±СѓРµС‚ СЂРµС€РµРЅРёСЏ</div>
             </div>
           </article>
         </div>
-        <p class="sample-note">Это обезличенные образцы оформления, без реальных данных клиентов. Финальные выводы по вашему бизнесу формируются после диагностики.</p>
+        <p class="sample-note">Р­С‚Рѕ РѕР±РµР·Р»РёС‡РµРЅРЅС‹Рµ РѕР±СЂР°Р·С†С‹ РѕС„РѕСЂРјР»РµРЅРёСЏ, Р±РµР· СЂРµР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С… РєР»РёРµРЅС‚РѕРІ. Р¤РёРЅР°Р»СЊРЅС‹Рµ РІС‹РІРѕРґС‹ РїРѕ РІР°С€РµРјСѓ Р±РёР·РЅРµСЃСѓ С„РѕСЂРјРёСЂСѓСЋС‚СЃСЏ РїРѕСЃР»Рµ РґРёР°РіРЅРѕСЃС‚РёРєРё.</p>
       </div>
     </section>
 
@@ -689,33 +692,33 @@
             <picture class="portrait__picture">
               <source type="image/webp" media="(max-width: 640px)" srcset="portrait-mobile.webp 430w" sizes="min(86vw, 340px)" />
               <source type="image/webp" srcset="portrait-medium.webp 520w, portrait-large.webp 780w" sizes="(max-width: 860px) 340px, 420px" />
-              <img class="portrait__img" src="portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Геннадий Яковлев — внешний CFO, FINMENTOR" loading="lazy" decoding="async" />
+              <img class="portrait__img" src="portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Р“РµРЅРЅР°РґРёР№ РЇРєРѕРІР»РµРІ вЂ” РІРЅРµС€РЅРёР№ CFO, FINMENTOR" loading="lazy" decoding="async" />
             </picture>
           </figure>
         </div>
 
         <div class="about__body">
-          <p class="overline reveal">Кто стоит за FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Кто стоит за FINMENTOR</h2>
+          <p class="overline reveal">РљС‚Рѕ СЃС‚РѕРёС‚ Р·Р° FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РљС‚Рѕ СЃС‚РѕРёС‚ Р·Р° FINMENTOR</h2>
           <p class="about__lead reveal" data-reveal-delay="2">
-            FINMENTOR™ — авторская CFO-практика Геннадия Яковлева. В основе подхода — опыт
-            финансового управления, управленческой отчётности, казначейства, инвестиционных
-            моделей, контроля cash flow и построения систем контроля для собственника.
+            FINMENTORв„ў вЂ” Р°РІС‚РѕСЂСЃРєР°СЏ CFO-РїСЂР°РєС‚РёРєР° Р“РµРЅРЅР°РґРёСЏ РЇРєРѕРІР»РµРІР°. Р’ РѕСЃРЅРѕРІРµ РїРѕРґС…РѕРґР° вЂ” РѕРїС‹С‚
+            С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ, СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕР№ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё, РєР°Р·РЅР°С‡РµР№СЃС‚РІР°, РёРЅРІРµСЃС‚РёС†РёРѕРЅРЅС‹С…
+            РјРѕРґРµР»РµР№, РєРѕРЅС‚СЂРѕР»СЏ cash flow Рё РїРѕСЃС‚СЂРѕРµРЅРёСЏ СЃРёСЃС‚РµРј РєРѕРЅС‚СЂРѕР»СЏ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°.
           </p>
           <p class="about__text reveal" data-reveal-delay="3">
-            Это не презентация ради презентации, а управленческая финансовая функция: определить
-            логику, выстроить контроль, связать отчётность, казначейство и KPI — и затем
-            автоматизировать. Профессиональный фундамент — подход к качеству отчётности и контролю
-            на уровне Big4&nbsp;/ IFRS.
+            Р­С‚Рѕ РЅРµ РїСЂРµР·РµРЅС‚Р°С†РёСЏ СЂР°РґРё РїСЂРµР·РµРЅС‚Р°С†РёРё, Р° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ С„РёРЅР°РЅСЃРѕРІР°СЏ С„СѓРЅРєС†РёСЏ: РѕРїСЂРµРґРµР»РёС‚СЊ
+            Р»РѕРіРёРєСѓ, РІС‹СЃС‚СЂРѕРёС‚СЊ РєРѕРЅС‚СЂРѕР»СЊ, СЃРІСЏР·Р°С‚СЊ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ Рё KPI вЂ” Рё Р·Р°С‚РµРј
+            Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ. РџСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅС‹Р№ С„СѓРЅРґР°РјРµРЅС‚ вЂ” РїРѕРґС…РѕРґ Рє РєР°С‡РµСЃС‚РІСѓ РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё Рё РєРѕРЅС‚СЂРѕР»СЋ
+            РЅР° СѓСЂРѕРІРЅРµ Big4&nbsp;/ IFRS.
           </p>
 
           <div class="anchor-list reveal" data-reveal-delay="4">
-            <span><b>CFO-подход</b> — функция финансового директора</span>
-            <span>Big4&nbsp;/ IFRS-фундамент</span>
-            <span>Управленческая отчётность</span>
+            <span><b>CFO-РїРѕРґС…РѕРґ</b> вЂ” С„СѓРЅРєС†РёСЏ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ РґРёСЂРµРєС‚РѕСЂР°</span>
+            <span>Big4&nbsp;/ IFRS-С„СѓРЅРґР°РјРµРЅС‚</span>
+            <span>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ</span>
             <span>Cash flow &amp; treasury control</span>
-            <span>Инвестиционные и операционные модели</span>
-            <span>Несколько юрлиц, проектов и объектов</span>
+            <span>РРЅРІРµСЃС‚РёС†РёРѕРЅРЅС‹Рµ Рё РѕРїРµСЂР°С†РёРѕРЅРЅС‹Рµ РјРѕРґРµР»Рё</span>
+            <span>РќРµСЃРєРѕР»СЊРєРѕ СЋСЂР»РёС†, РїСЂРѕРµРєС‚РѕРІ Рё РѕР±СЉРµРєС‚РѕРІ</span>
           </div>
 
 
@@ -723,10 +726,10 @@
             <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot">FINMENTOR Bot</a>
             <a href="mailto:cfo@finmentor.md" data-ga="click_email">Email</a>
             <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin">LinkedIn</a>
-            <span class="trust-links__meet">Личная встреча в Кишинёве — по согласованию</span>
+            <span class="trust-links__meet">Р›РёС‡РЅР°СЏ РІСЃС‚СЂРµС‡Р° РІ РљРёС€РёРЅС‘РІРµ вЂ” РїРѕ СЃРѕРіР»Р°СЃРѕРІР°РЅРёСЋ</span>
           </div>
 
-          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="6" data-ga="click_discovery_call">Обсудить ваш бизнес</a>
+          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="6" data-ga="click_discovery_call">РћР±СЃСѓРґРёС‚СЊ РІР°С€ Р±РёР·РЅРµСЃ</a>
         </div>
       </div>
     </section>
@@ -734,16 +737,16 @@
     <section class="sec sec--alt" id="mini-scan">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Лёгкий вход</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Начните с 3-минутного mini-scan</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Ответьте на 9 вопросов и получите предварительный профиль: где могут застревать деньги — в дебиторке, запасах, условиях поставщиков, платёжной дисциплине или отчётности. Это не полноценная диагностика, а первый CFO-triage.</p>
+          <p class="overline reveal">Р›С‘РіРєРёР№ РІС…РѕРґ</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РќР°С‡РЅРёС‚Рµ СЃ 3-РјРёРЅСѓС‚РЅРѕРіРѕ mini-scan</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РћС‚РІРµС‚СЊС‚Рµ РЅР° 9 РІРѕРїСЂРѕСЃРѕРІ Рё РїРѕР»СѓС‡РёС‚Рµ РїСЂРµРґРІР°СЂРёС‚РµР»СЊРЅС‹Р№ РїСЂРѕС„РёР»СЊ: РіРґРµ РјРѕРіСѓС‚ Р·Р°СЃС‚СЂРµРІР°С‚СЊ РґРµРЅСЊРіРё вЂ” РІ РґРµР±РёС‚РѕСЂРєРµ, Р·Р°РїР°СЃР°С…, СѓСЃР»РѕРІРёСЏС… РїРѕСЃС‚Р°РІС‰РёРєРѕРІ, РїР»Р°С‚С‘Р¶РЅРѕР№ РґРёСЃС†РёРїР»РёРЅРµ РёР»Рё РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё. Р­С‚Рѕ РЅРµ РїРѕР»РЅРѕС†РµРЅРЅР°СЏ РґРёР°РіРЅРѕСЃС‚РёРєР°, Р° РїРµСЂРІС‹Р№ CFO-triage.</p>
         </div>
         <div class="cta-band" style="margin-top:var(--sp-6)">
-          <p class="cta-band__title">Проверьте, где заморожены деньги</p>
-          <p class="cta-band__text">Быстрый разбор оборотного капитала: дебиторка, запасы, авансы и денежный цикл — без перегруза формулами. После результата подскажем релевантный материал и следующий шаг.</p>
+          <p class="cta-band__title">РџСЂРѕРІРµСЂСЊС‚Рµ, РіРґРµ Р·Р°РјРѕСЂРѕР¶РµРЅС‹ РґРµРЅСЊРіРё</p>
+          <p class="cta-band__text">Р‘С‹СЃС‚СЂС‹Р№ СЂР°Р·Р±РѕСЂ РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р°: РґРµР±РёС‚РѕСЂРєР°, Р·Р°РїР°СЃС‹, Р°РІР°РЅСЃС‹ Рё РґРµРЅРµР¶РЅС‹Р№ С†РёРєР» вЂ” Р±РµР· РїРµСЂРµРіСЂСѓР·Р° С„РѕСЂРјСѓР»Р°РјРё. РџРѕСЃР»Рµ СЂРµР·СѓР»СЊС‚Р°С‚Р° РїРѕРґСЃРєР°Р¶РµРј СЂРµР»РµРІР°РЅС‚РЅС‹Р№ РјР°С‚РµСЂРёР°Р» Рё СЃР»РµРґСѓСЋС‰РёР№ С€Р°Рі.</p>
           <div class="cta-band__row">
-            <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Пройти mini-scan</a>
-            <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">Подробнее об оборотном капитале</a>
+            <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">РџСЂРѕР№С‚Рё mini-scan</a>
+            <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">РџРѕРґСЂРѕР±РЅРµРµ РѕР± РѕР±РѕСЂРѕС‚РЅРѕРј РєР°РїРёС‚Р°Р»Рµ</a>
           </div>
         </div>
       </div>
@@ -752,21 +755,21 @@
     <section class="sec materials" id="knowledge">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Материалы</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Избранные материалы FINMENTOR</h2>
-        <p class="section-lead reveal" data-reveal-delay="2">Короткие экспертные разборы для собственника. Полная база знаний собрана на отдельной странице материалов.</p>
+          <p class="overline reveal">РњР°С‚РµСЂРёР°Р»С‹</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">РР·Р±СЂР°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ FINMENTOR</h2>
+        <p class="section-lead reveal" data-reveal-delay="2">РљРѕСЂРѕС‚РєРёРµ СЌРєСЃРїРµСЂС‚РЅС‹Рµ СЂР°Р·Р±РѕСЂС‹ РґР»СЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°. РџРѕР»РЅР°СЏ Р±Р°Р·Р° Р·РЅР°РЅРёР№ СЃРѕР±СЂР°РЅР° РЅР° РѕС‚РґРµР»СЊРЅРѕР№ СЃС‚СЂР°РЅРёС†Рµ РјР°С‚РµСЂРёР°Р»РѕРІ.</p>
         </div>
         <div class="materials-grid">
-          <a class="material-card reveal" href="cash-flow.html"><span class="material-card__tag">Cash Flow &amp; оборотный капитал</span><span class="material-card__title">Почему прибыль не равна деньгам</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="upravlencheskiy-pl.html" data-reveal-delay="1"><span class="material-card__tag">Управленческая отчётность</span><span class="material-card__title">Как собственнику читать P&amp;L</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Платёжный календарь и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Закупки и SKU</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="5"><span class="material-card__tag">CFO-система</span><span class="material-card__title">Финансовая система собственника</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="cash-flow.html"><span class="material-card__tag">Cash Flow &amp; РѕР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</span><span class="material-card__title">РџРѕС‡РµРјСѓ РїСЂРёР±С‹Р»СЊ РЅРµ СЂР°РІРЅР° РґРµРЅСЊРіР°Рј</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
+          <a class="material-card reveal" href="upravlencheskiy-pl.html" data-reveal-delay="1"><span class="material-card__tag">РЈРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ РѕС‚С‡С‘С‚РЅРѕСЃС‚СЊ</span><span class="material-card__title">РљР°Рє СЃРѕР±СЃС‚РІРµРЅРЅРёРєСѓ С‡РёС‚Р°С‚СЊ P&amp;L</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
+          <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ Рё РїР»Р°С‚РµР¶Рё</span><span class="material-card__title">РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ Рё РІРѕРґРѕРїР°Рґ РїР»Р°С‚РµР¶РµР№</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
+          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</span><span class="material-card__title">РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»: РіРґРµ Р·Р°СЃС‚СЂСЏР»Рё РґРµРЅСЊРіРё</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
+          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Р—Р°РєСѓРїРєРё Рё SKU</span><span class="material-card__title">FCF РїРѕ SKU: РєР°РєРёРµ С‚РѕРІР°СЂС‹ СЃРѕР·РґР°СЋС‚ Cash Flow</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
+          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="5"><span class="material-card__tag">CFO-СЃРёСЃС‚РµРјР°</span><span class="material-card__title">Р¤РёРЅР°РЅСЃРѕРІР°СЏ СЃРёСЃС‚РµРјР° СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°</span><span class="material-card__arrow">Р§РёС‚Р°С‚СЊ &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
-          <a href="materials.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>
-          <a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a>
+          <a href="materials.html" class="btn btn--ghost btn--lg">РЎРјРѕС‚СЂРµС‚СЊ СЃС‚Р°С‚СЊРё</a>
+          <a href="templates.html" class="btn btn--ghost btn--lg">Р—Р°РїСЂРѕСЃРёС‚СЊ С€Р°Р±Р»РѕРЅ</a>
         </div>
       </div>
     </section>
@@ -774,18 +777,18 @@
     <section class="sec after" id="after">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">После заявки</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Что происходит после заявки</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Прозрачный процесс без неизвестности — вы понимаете каждый следующий шаг.</p>
+          <p class="overline reveal">РџРѕСЃР»Рµ Р·Р°СЏРІРєРё</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Р§С‚Рѕ РїСЂРѕРёСЃС…РѕРґРёС‚ РїРѕСЃР»Рµ Р·Р°СЏРІРєРё</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">РџСЂРѕР·СЂР°С‡РЅС‹Р№ РїСЂРѕС†РµСЃСЃ Р±РµР· РЅРµРёР·РІРµСЃС‚РЅРѕСЃС‚Рё вЂ” РІС‹ РїРѕРЅРёРјР°РµС‚Рµ РєР°Р¶РґС‹Р№ СЃР»РµРґСѓСЋС‰РёР№ С€Р°Рі.</p>
         </div>
         <div class="after-grid">
-          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Вы оставляете <strong>короткий запрос</strong> через mini-scan или FINMENTOR&nbsp;Bot.</p></div>
-          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR смотрит контекст и определяет, <strong>что нужно уточнить</strong>.</p></div>
-          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">На <strong>Discovery Call</strong> обсуждаем бизнес, данные и главную боль.</p></div>
-          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Формируется <strong>список документов</strong> и рекомендуемый формат работы.</p></div>
-          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Финальные выводы и стоимость согласуются <strong>после понимания объёма</strong>.</p></div>
+          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Р’С‹ РѕСЃС‚Р°РІР»СЏРµС‚Рµ <strong>РєРѕСЂРѕС‚РєРёР№ Р·Р°РїСЂРѕСЃ</strong> С‡РµСЂРµР· mini-scan РёР»Рё FINMENTOR&nbsp;Bot.</p></div>
+          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR СЃРјРѕС‚СЂРёС‚ РєРѕРЅС‚РµРєСЃС‚ Рё РѕРїСЂРµРґРµР»СЏРµС‚, <strong>С‡С‚Рѕ РЅСѓР¶РЅРѕ СѓС‚РѕС‡РЅРёС‚СЊ</strong>.</p></div>
+          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">РќР° <strong>Discovery Call</strong> РѕР±СЃСѓР¶РґР°РµРј Р±РёР·РЅРµСЃ, РґР°РЅРЅС‹Рµ Рё РіР»Р°РІРЅСѓСЋ Р±РѕР»СЊ.</p></div>
+          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Р¤РѕСЂРјРёСЂСѓРµС‚СЃСЏ <strong>СЃРїРёСЃРѕРє РґРѕРєСѓРјРµРЅС‚РѕРІ</strong> Рё СЂРµРєРѕРјРµРЅРґСѓРµРјС‹Р№ С„РѕСЂРјР°С‚ СЂР°Р±РѕС‚С‹.</p></div>
+          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Р¤РёРЅР°Р»СЊРЅС‹Рµ РІС‹РІРѕРґС‹ Рё СЃС‚РѕРёРјРѕСЃС‚СЊ СЃРѕРіР»Р°СЃСѓСЋС‚СЃСЏ <strong>РїРѕСЃР»Рµ РїРѕРЅРёРјР°РЅРёСЏ РѕР±СЉС‘РјР°</strong>.</p></div>
         </div>
-        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Важно</span><p>AI может подготовить черновик анализа и ускорить подготовку, но финальные выводы по вашему бизнесу подтверждает человек.</p></div>
+        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Р’Р°Р¶РЅРѕ</span><p>AI РјРѕР¶РµС‚ РїРѕРґРіРѕС‚РѕРІРёС‚СЊ С‡РµСЂРЅРѕРІРёРє Р°РЅР°Р»РёР·Р° Рё СѓСЃРєРѕСЂРёС‚СЊ РїРѕРґРіРѕС‚РѕРІРєСѓ, РЅРѕ С„РёРЅР°Р»СЊРЅС‹Рµ РІС‹РІРѕРґС‹ РїРѕ РІР°С€РµРјСѓ Р±РёР·РЅРµСЃСѓ РїРѕРґС‚РІРµСЂР¶РґР°РµС‚ С‡РµР»РѕРІРµРє.</p></div>
       </div>
     </section>
 
@@ -793,55 +796,55 @@
       <div class="consult__glow" aria-hidden="true"></div>
       <div class="container consult__grid">
         <div class="consult__intro">
-          <p class="overline reveal">Консультация</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Разберём ваш бизнес за одну консультацию</h2>
+          <p class="overline reveal">РљРѕРЅСЃСѓР»СЊС‚Р°С†РёСЏ</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Р Р°Р·Р±РµСЂС‘Рј РІР°С€ Р±РёР·РЅРµСЃ Р·Р° РѕРґРЅСѓ РєРѕРЅСЃСѓР»СЊС‚Р°С†РёСЋ</h2>
           <p class="consult__lead reveal" data-reveal-delay="2">
-            Покажу, где теряются деньги и контроль — и как выстроить систему управления бизнесом.
+            РџРѕРєР°Р¶Сѓ, РіРґРµ С‚РµСЂСЏСЋС‚СЃСЏ РґРµРЅСЊРіРё Рё РєРѕРЅС‚СЂРѕР»СЊ вЂ” Рё РєР°Рє РІС‹СЃС‚СЂРѕРёС‚СЊ СЃРёСЃС‚РµРјСѓ СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј.
           </p>
           <ul class="consult__points reveal" data-reveal-delay="3">
-            <li>Чёткий разбор: где теряются деньги и прибыль</li>
-            <li>Приоритетные решения под ваш бизнес</li>
-            <li>Понимание следующего шага — без обязательств</li>
+            <li>Р§С‘С‚РєРёР№ СЂР°Р·Р±РѕСЂ: РіРґРµ С‚РµСЂСЏСЋС‚СЃСЏ РґРµРЅСЊРіРё Рё РїСЂРёР±С‹Р»СЊ</li>
+            <li>РџСЂРёРѕСЂРёС‚РµС‚РЅС‹Рµ СЂРµС€РµРЅРёСЏ РїРѕРґ РІР°С€ Р±РёР·РЅРµСЃ</li>
+            <li>РџРѕРЅРёРјР°РЅРёРµ СЃР»РµРґСѓСЋС‰РµРіРѕ С€Р°РіР° вЂ” Р±РµР· РѕР±СЏР·Р°С‚РµР»СЊСЃС‚РІ</li>
           </ul>
-          <p class="contact-bot-note">Оставьте сообщение через FINMENTOR Bot — бот соберёт базовую информацию о запросе и передаст её для ответа.</p>
+          <p class="contact-bot-note">РћСЃС‚Р°РІСЊС‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ С‡РµСЂРµР· FINMENTOR Bot вЂ” Р±РѕС‚ СЃРѕР±РµСЂС‘С‚ Р±Р°Р·РѕРІСѓСЋ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ Р·Р°РїСЂРѕСЃРµ Рё РїРµСЂРµРґР°СЃС‚ РµС‘ РґР»СЏ РѕС‚РІРµС‚Р°.</p>
           <div class="contact-strip">
           <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
           <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
-          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Р“РµРЅРЅР°РґРёСЏ РЇРєРѕРІР»РµРІР°"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
         </div>
         </div>
 
         <form class="form glass reveal" id="consultForm" data-reveal-delay="2" novalidate>
           <div class="field">
-            <label for="f-name">Имя</label>
-            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Как к вам обращаться" required />
+            <label for="f-name">РРјСЏ</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="РљР°Рє Рє РІР°Рј РѕР±СЂР°С‰Р°С‚СЊСЃСЏ" required />
           </div>
           <div class="field">
-            <label for="f-contact">Email или мессенджер</label>
-            <input id="f-contact" name="contact" type="text" placeholder="Email, Telegram или телефон" required />
+            <label for="f-contact">Email РёР»Рё РјРµСЃСЃРµРЅРґР¶РµСЂ</label>
+            <input id="f-contact" name="contact" type="text" placeholder="Email, Telegram РёР»Рё С‚РµР»РµС„РѕРЅ" required />
           </div>
           <div class="field">
-            <label for="f-biz">Тип бизнеса / отрасль</label>
-            <input id="f-biz" name="business" type="text" placeholder="Напр. недвижимость, торговля, производство" />
+            <label for="f-biz">РўРёРї Р±РёР·РЅРµСЃР° / РѕС‚СЂР°СЃР»СЊ</label>
+            <input id="f-biz" name="business" type="text" placeholder="РќР°РїСЂ. РЅРµРґРІРёР¶РёРјРѕСЃС‚СЊ, С‚РѕСЂРіРѕРІР»СЏ, РїСЂРѕРёР·РІРѕРґСЃС‚РІРѕ" />
           </div>
           <div class="field">
-            <label for="f-msg">Коротко о задаче <span class="field__opt">(необязательно)</span></label>
-            <textarea id="f-msg" name="message" rows="3" placeholder="Что хотите разобрать?"></textarea>
+            <label for="f-msg">РљРѕСЂРѕС‚РєРѕ Рѕ Р·Р°РґР°С‡Рµ <span class="field__opt">(РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</span></label>
+            <textarea id="f-msg" name="message" rows="3" placeholder="Р§С‚Рѕ С…РѕС‚РёС‚Рµ СЂР°Р·РѕР±СЂР°С‚СЊ?"></textarea>
           </div>
           <label class="consent" for="f-consent">
             <input type="checkbox" id="f-consent" name="consent" class="consent__box" required />
-            <span class="consent__text">Я согласен на обработку персональных данных согласно <a href="privacy.html" target="_blank" rel="noopener">политике конфиденциальности</a>.</span>
+            <span class="consent__text">РЇ СЃРѕРіР»Р°СЃРµРЅ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РїРµСЂСЃРѕРЅР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С… СЃРѕРіР»Р°СЃРЅРѕ <a href="privacy.html" target="_blank" rel="noopener">РїРѕР»РёС‚РёРєРµ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>.</span>
           </label>
-          <button type="submit" class="btn btn--primary btn--lg form__submit">Разобрать мой бизнес</button>
-          <p class="form__note">Отвечаю в течение рабочего дня. Конфиденциальность гарантирована.</p>
-          <p class="form-consent">Отправляя форму, я подтверждаю, что ознакомился с <a href="privacy.html">Политикой конфиденциальности</a> и согласен на обработку данных для связи со мной и рассмотрения моего запроса.</p>
-          <p class="form__fallback">Если форма не сработала, напишите напрямую:
-            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> ·
+          <button type="submit" class="btn btn--primary btn--lg form__submit">Р Р°Р·РѕР±СЂР°С‚СЊ РјРѕР№ Р±РёР·РЅРµСЃ</button>
+          <p class="form__note">РћС‚РІРµС‡Р°СЋ РІ С‚РµС‡РµРЅРёРµ СЂР°Р±РѕС‡РµРіРѕ РґРЅСЏ. РљРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚СЊ РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅР°.</p>
+          <p class="form-consent">РћС‚РїСЂР°РІР»СЏСЏ С„РѕСЂРјСѓ, СЏ РїРѕРґС‚РІРµСЂР¶РґР°СЋ, С‡С‚Рѕ РѕР·РЅР°РєРѕРјРёР»СЃСЏ СЃ <a href="privacy.html">РџРѕР»РёС‚РёРєРѕР№ РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a> Рё СЃРѕРіР»Р°СЃРµРЅ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ РґР°РЅРЅС‹С… РґР»СЏ СЃРІСЏР·Рё СЃРѕ РјРЅРѕР№ Рё СЂР°СЃСЃРјРѕС‚СЂРµРЅРёСЏ РјРѕРµРіРѕ Р·Р°РїСЂРѕСЃР°.</p>
+          <p class="form__fallback">Р•СЃР»Рё С„РѕСЂРјР° РЅРµ СЃСЂР°Р±РѕС‚Р°Р»Р°, РЅР°РїРёС€РёС‚Рµ РЅР°РїСЂСЏРјСѓСЋ:
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> В·
             <a href="mailto:cfo@finmentor.md">Email</a>
           </p>
           <div class="form__success" id="formSuccess" hidden>
-            <strong>Спасибо! Запрос принят.</strong> Я свяжусь с вами. Для быстрого ответа напишите напрямую:
-            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> ·
+            <strong>РЎРїР°СЃРёР±Рѕ! Р—Р°РїСЂРѕСЃ РїСЂРёРЅСЏС‚.</strong> РЇ СЃРІСЏР¶СѓСЃСЊ СЃ РІР°РјРё. Р”Р»СЏ Р±С‹СЃС‚СЂРѕРіРѕ РѕС‚РІРµС‚Р° РЅР°РїРёС€РёС‚Рµ РЅР°РїСЂСЏРјСѓСЋ:
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> В·
             <a href="mailto:cfo@finmentor.md">Email</a>.
           </div>
         </form>
@@ -853,43 +856,43 @@
     <div class="container">
       <div class="footer__top">
         <div class="footer__brand">
-          <a class="logo" href="#top" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-          <p class="footer__tagline">От финансового хаоса — к&nbsp;системе управления бизнесом.</p>
+          <a class="logo" href="#top" aria-label="finmentor вЂ” РЅР°РІРµСЂС…"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">РћС‚ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ С…Р°РѕСЃР° вЂ” Рє&nbsp;СЃРёСЃС‚РµРјРµ СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј.</p>
           <div class="contact-strip contact-strip--footer">
           <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
           <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
-          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Р“РµРЅРЅР°РґРёСЏ РЇРєРѕРІР»РµРІР°"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
         </div>
-          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn Геннадия Яковлева" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn Р“РµРЅРЅР°РґРёСЏ РЇРєРѕРІР»РµРІР°" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H20.6v-5.3c0-1.27-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg>
           </a>
         </div>
 
-        <nav class="footer__col" aria-label="Подвал — навигация">
-          <span class="footer__col-label">Разделы</span>
-          <a href="#about">О проекте</a>
-          <a href="#steps">Как работаем</a>
-          <a href="#solutions">Решения</a>
-          <a href="#cases">Кейсы</a>
+        <nav class="footer__col" aria-label="РџРѕРґРІР°Р» вЂ” РЅР°РІРёРіР°С†РёСЏ">
+          <span class="footer__col-label">Р Р°Р·РґРµР»С‹</span>
+          <a href="#about">Рћ РїСЂРѕРµРєС‚Рµ</a>
+          <a href="#steps">РљР°Рє СЂР°Р±РѕС‚Р°РµРј</a>
+          <a href="#solutions">Р РµС€РµРЅРёСЏ</a>
+          <a href="#cases">РљРµР№СЃС‹</a>
         </nav>
 
         <div class="footer__col">
-          <span class="footer__col-label">Контакты</span>
+          <span class="footer__col-label">РљРѕРЅС‚Р°РєС‚С‹</span>
           <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
           <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
-          <span class="footer__muted">Кишинёв, Молдова</span>
+          <span class="footer__muted">РљРёС€РёРЅС‘РІ, РњРѕР»РґРѕРІР°</span>
         </div>
       </div>
 
       <div class="footer__bottom">
-        <span>© 2026 FINMENTOR™. Все права защищены.</span>
+        <span>В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹.</span>
         <span class="footer__legal">
-          <a href="privacy.html">Политика конфиденциальности</a>
-          <a href="terms.html">Условия использования материалов</a>
-          <span class="footer__muted">FINMENTOR · Moldova / International</span>
+          <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
+          <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a>
+          <span class="footer__muted">FINMENTOR В· Moldova / International</span>
         </span>
       </div>
-      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия.</p>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ.</p>
     </div>
   </footer>
 

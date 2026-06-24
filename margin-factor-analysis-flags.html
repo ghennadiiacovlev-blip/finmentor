@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 --><html lang="ru">
@@ -12,22 +12,26 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>Факторный анализ маржи с флагами | FINMENTOR</title>
-  <meta name="description" content="Как понять, почему изменилась маржа: влияние цены, себестоимости, ассортимента, количества, маркетинга, склада и сезонности." />
+  <title>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё | FINMENTOR</title>
+  <meta name="description" content="РљР°Рє РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ РёР·РјРµРЅРёР»Р°СЃСЊ РјР°СЂР¶Р°: РІР»РёСЏРЅРёРµ С†РµРЅС‹, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚Р°, РєРѕР»РёС‡РµСЃС‚РІР°, РјР°СЂРєРµС‚РёРЅРіР°, СЃРєР»Р°РґР° Рё СЃРµР·РѕРЅРЅРѕСЃС‚Рё." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/margin-factor-analysis-flags.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Факторный анализ маржи с флагами | FINMENTOR" />
-  <meta property="og:description" content="Как понять, почему изменилась маржа: влияние цены, себестоимости, ассортимента, количества, маркетинга, склада и сезонности." />
+  <meta property="og:title" content="Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё | FINMENTOR" />
+  <meta property="og:description" content="РљР°Рє РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ РёР·РјРµРЅРёР»Р°СЃСЊ РјР°СЂР¶Р°: РІР»РёСЏРЅРёРµ С†РµРЅС‹, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚Р°, РєРѕР»РёС‡РµСЃС‚РІР°, РјР°СЂРєРµС‚РёРЅРіР°, СЃРєР»Р°РґР° Рё СЃРµР·РѕРЅРЅРѕСЃС‚Рё." />
   <meta property="og:url" content="https://www.finmentor.md/margin-factor-analysis-flags.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:width" content="1200" />
@@ -36,8 +40,8 @@
   <meta property="article:author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta property="article:section" content="Margin Analysis / CFO Dashboard" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Факторный анализ маржи с флагами | FINMENTOR" />
-  <meta name="twitter:description" content="Что изменило маржу — цена, себестоимость, ассортимент или количество — и почему: маркетинг, склад, сезонность." />
+  <meta name="twitter:title" content="Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё | FINMENTOR" />
+  <meta name="twitter:description" content="Р§С‚Рѕ РёР·РјРµРЅРёР»Рѕ РјР°СЂР¶Сѓ вЂ” С†РµРЅР°, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ РёР»Рё РєРѕР»РёС‡РµСЃС‚РІРѕ вЂ” Рё РїРѕС‡РµРјСѓ: РјР°СЂРєРµС‚РёРЅРі, СЃРєР»Р°Рґ, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -49,14 +53,14 @@
   {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "Article", "headline": "Факторный анализ маржи с флагами: как понять, почему бизнес заработал больше или меньше", "description": "Как понять, почему изменилась маржа: влияние цены, себестоимости, ассортимента, количества, маркетинга, склада и сезонности.", "inLanguage": "ru-RU", "articleSection": "Margin Analysis / CFO Dashboard", "author": { "@type": "Person", "name": "FINMENTOR / Ghennadi Iacovlev" }, "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/", "logo": { "@type": "ImageObject", "url": "https://www.finmentor.md/icon-512.png" } }, "mainEntityOfPage": "https://www.finmentor.md/margin-factor-analysis-flags.html", "image": "https://www.finmentor.md/og-image.png?v=81" },
-      { "@type": "BreadcrumbList", "itemListElement": [ { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/" }, { "@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/materials.html" }, { "@type": "ListItem", "position": 3, "name": "Факторный анализ маржи", "item": "https://www.finmentor.md/margin-factor-analysis-flags.html" } ] }
+      { "@type": "Article", "headline": "Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё: РєР°Рє РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ Р±РёР·РЅРµСЃ Р·Р°СЂР°Р±РѕС‚Р°Р» Р±РѕР»СЊС€Рµ РёР»Рё РјРµРЅСЊС€Рµ", "description": "РљР°Рє РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ РёР·РјРµРЅРёР»Р°СЃСЊ РјР°СЂР¶Р°: РІР»РёСЏРЅРёРµ С†РµРЅС‹, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚Р°, РєРѕР»РёС‡РµСЃС‚РІР°, РјР°СЂРєРµС‚РёРЅРіР°, СЃРєР»Р°РґР° Рё СЃРµР·РѕРЅРЅРѕСЃС‚Рё.", "inLanguage": "ru-RU", "articleSection": "Margin Analysis / CFO Dashboard", "author": { "@type": "Person", "name": "FINMENTOR / Ghennadi Iacovlev" }, "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/", "logo": { "@type": "ImageObject", "url": "https://www.finmentor.md/icon-512.png" } }, "mainEntityOfPage": "https://www.finmentor.md/margin-factor-analysis-flags.html", "image": "https://www.finmentor.md/og-image.png?v=81" },
+      { "@type": "BreadcrumbList", "itemListElement": [ { "@type": "ListItem", "position": 1, "name": "Р“Р»Р°РІРЅР°СЏ", "item": "https://www.finmentor.md/" }, { "@type": "ListItem", "position": 2, "name": "РњР°С‚РµСЂРёР°Р»С‹", "item": "https://www.finmentor.md/materials.html" }, { "@type": "ListItem", "position": 3, "name": "Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё", "item": "https://www.finmentor.md/margin-factor-analysis-flags.html" } ] }
     ]
   }
   </script>
 
   <style>
-    /* v9.0 — page-scoped article components (FINMENTOR brand) */
+    /* v9.0 вЂ” page-scoped article components (FINMENTOR brand) */
     .art-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-md); }
     .art-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
     .art-table-wrap--wide table { min-width:880px; }
@@ -94,11 +98,11 @@
 <body>
   <header class="doc-bar">
     <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Навигация">
-        <a href="index.html" class="doc-bar__hide">На главную</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+      <a class="logo" href="index.html" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="РќР°РІРёРіР°С†РёСЏ">
+        <a href="index.html" class="doc-bar__hide">РќР° РіР»Р°РІРЅСѓСЋ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
         <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
       </nav>
     </div>
@@ -106,20 +110,20 @@
 
   <main>
     <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Факторный анализ маржи</span>
+      <nav class="crumbs" aria-label="РҐР»РµР±РЅС‹Рµ РєСЂРѕС€РєРё">
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a> / <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a> / <span>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё</span>
       </nav>
     </div>
 
     <section class="doc-hero">
       <div class="container">
-        <p class="doc-hero__eyebrow">FINMENTOR · Маржа и управленческий анализ</p>
-        <h1>Факторный анализ маржи с флагами: как понять, почему бизнес заработал больше или меньше</h1>
-        <p class="doc-hero__lead">«Маржа выросла» или «маржа упала» — это факт, а не причина. Разбираем факторный мост (количество, ассортимент, себестоимость, цена) и систему флагов, которая объясняет, почему маржа изменилась на самом деле: маркетинг, наличие товара, сезонность, канал, скидки.</p>
-        <p class="art-author">Геннадий Яковлев · FINMENTOR — внешний CFO</p>
+        <p class="doc-hero__eyebrow">FINMENTOR В· РњР°СЂР¶Р° Рё СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ Р°РЅР°Р»РёР·</p>
+        <h1>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё: РєР°Рє РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ Р±РёР·РЅРµСЃ Р·Р°СЂР°Р±РѕС‚Р°Р» Р±РѕР»СЊС€Рµ РёР»Рё РјРµРЅСЊС€Рµ</h1>
+        <p class="doc-hero__lead">В«РњР°СЂР¶Р° РІС‹СЂРѕСЃР»Р°В» РёР»Рё В«РјР°СЂР¶Р° СѓРїР°Р»Р°В» вЂ” СЌС‚Рѕ С„Р°РєС‚, Р° РЅРµ РїСЂРёС‡РёРЅР°. Р Р°Р·Р±РёСЂР°РµРј С„Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚ (РєРѕР»РёС‡РµСЃС‚РІРѕ, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, С†РµРЅР°) Рё СЃРёСЃС‚РµРјСѓ С„Р»Р°РіРѕРІ, РєРѕС‚РѕСЂР°СЏ РѕР±СЉСЏСЃРЅСЏРµС‚, РїРѕС‡РµРјСѓ РјР°СЂР¶Р° РёР·РјРµРЅРёР»Р°СЃСЊ РЅР° СЃР°РјРѕРј РґРµР»Рµ: РјР°СЂРєРµС‚РёРЅРі, РЅР°Р»РёС‡РёРµ С‚РѕРІР°СЂР°, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ, РєР°РЅР°Р», СЃРєРёРґРєРё.</p>
+        <p class="art-author">Р“РµРЅРЅР°РґРёР№ РЇРєРѕРІР»РµРІ В· FINMENTOR вЂ” РІРЅРµС€РЅРёР№ CFO</p>
         <div class="article-cta-actions">
-          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">Проверить маржу бизнеса <span>&rarr;</span></a>
-          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать CFO-диагностику <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">РџСЂРѕРІРµСЂРёС‚СЊ РјР°СЂР¶Сѓ Р±РёР·РЅРµСЃР° <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Р—Р°РєР°Р·Р°С‚СЊ CFO-РґРёР°РіРЅРѕСЃС‚РёРєСѓ <span>&rarr;</span></a>
         </div>
       </div>
     </section>
@@ -128,280 +132,280 @@
       <article class="doc">
         <section>
           <h2>Executive Summary</h2>
-          <p>Собственник обычно видит только итог: маржа выросла или упала. Этого недостаточно для решений. Маржа может вырасти по здоровой причине — продали больше высокомаржинальных товаров, снизили себестоимость, улучшили ассортимент. А может вырасти по опасной — цена и объём падают, но период временно спасает разовая закупочная выгода или смещение продаж в пару позиций.</p>
-          <p>Факторный анализ маржи должен отвечать на три вопроса: <strong>что произошло с маржей, почему это произошло и что делать дальше</strong>. Факторный мост показывает «что», а система флагов и диагностических признаков — «почему».</p>
-          <div class="callout"><span class="callout__label">Главная мысль</span><p>Нельзя принимать решение только по итоговому факторному мосту. Один и тот же минус по цене означает разное, если в периоде была промо-акция; одно и то же падение количества — разное, если был stock-out. Контекст решает.</p></div>
+          <p>РЎРѕР±СЃС‚РІРµРЅРЅРёРє РѕР±С‹С‡РЅРѕ РІРёРґРёС‚ С‚РѕР»СЊРєРѕ РёС‚РѕРі: РјР°СЂР¶Р° РІС‹СЂРѕСЃР»Р° РёР»Рё СѓРїР°Р»Р°. Р­С‚РѕРіРѕ РЅРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РґР»СЏ СЂРµС€РµРЅРёР№. РњР°СЂР¶Р° РјРѕР¶РµС‚ РІС‹СЂР°СЃС‚Рё РїРѕ Р·РґРѕСЂРѕРІРѕР№ РїСЂРёС‡РёРЅРµ вЂ” РїСЂРѕРґР°Р»Рё Р±РѕР»СЊС€Рµ РІС‹СЃРѕРєРѕРјР°СЂР¶РёРЅР°Р»СЊРЅС‹С… С‚РѕРІР°СЂРѕРІ, СЃРЅРёР·РёР»Рё СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, СѓР»СѓС‡С€РёР»Рё Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚. Рђ РјРѕР¶РµС‚ РІС‹СЂР°СЃС‚Рё РїРѕ РѕРїР°СЃРЅРѕР№ вЂ” С†РµРЅР° Рё РѕР±СЉС‘Рј РїР°РґР°СЋС‚, РЅРѕ РїРµСЂРёРѕРґ РІСЂРµРјРµРЅРЅРѕ СЃРїР°СЃР°РµС‚ СЂР°Р·РѕРІР°СЏ Р·Р°РєСѓРїРѕС‡РЅР°СЏ РІС‹РіРѕРґР° РёР»Рё СЃРјРµС‰РµРЅРёРµ РїСЂРѕРґР°Р¶ РІ РїР°СЂСѓ РїРѕР·РёС†РёР№.</p>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё РґРѕР»Р¶РµРЅ РѕС‚РІРµС‡Р°С‚СЊ РЅР° С‚СЂРё РІРѕРїСЂРѕСЃР°: <strong>С‡С‚Рѕ РїСЂРѕРёР·РѕС€Р»Рѕ СЃ РјР°СЂР¶РµР№, РїРѕС‡РµРјСѓ СЌС‚Рѕ РїСЂРѕРёР·РѕС€Р»Рѕ Рё С‡С‚Рѕ РґРµР»Р°С‚СЊ РґР°Р»СЊС€Рµ</strong>. Р¤Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚ РїРѕРєР°Р·С‹РІР°РµС‚ В«С‡С‚РѕВ», Р° СЃРёСЃС‚РµРјР° С„Р»Р°РіРѕРІ Рё РґРёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёС… РїСЂРёР·РЅР°РєРѕРІ вЂ” В«РїРѕС‡РµРјСѓВ».</p>
+          <div class="callout"><span class="callout__label">Р“Р»Р°РІРЅР°СЏ РјС‹СЃР»СЊ</span><p>РќРµР»СЊР·СЏ РїСЂРёРЅРёРјР°С‚СЊ СЂРµС€РµРЅРёРµ С‚РѕР»СЊРєРѕ РїРѕ РёС‚РѕРіРѕРІРѕРјСѓ С„Р°РєС‚РѕСЂРЅРѕРјСѓ РјРѕСЃС‚Сѓ. РћРґРёРЅ Рё С‚РѕС‚ Р¶Рµ РјРёРЅСѓСЃ РїРѕ С†РµРЅРµ РѕР·РЅР°С‡Р°РµС‚ СЂР°Р·РЅРѕРµ, РµСЃР»Рё РІ РїРµСЂРёРѕРґРµ Р±С‹Р»Р° РїСЂРѕРјРѕ-Р°РєС†РёСЏ; РѕРґРЅРѕ Рё С‚Рѕ Р¶Рµ РїР°РґРµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° вЂ” СЂР°Р·РЅРѕРµ, РµСЃР»Рё Р±С‹Р» stock-out. РљРѕРЅС‚РµРєСЃС‚ СЂРµС€Р°РµС‚.</p></div>
 
-          <h3>Факторный мост на примере периода</h3>
+          <h3>Р¤Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚ РЅР° РїСЂРёРјРµСЂРµ РїРµСЂРёРѕРґР°</h3>
           <div class="art-kpi">
-            <div class="art-kpi__card"><p class="art-kpi__lvl">Количество</p><p class="art-kpi__metric">Эффект объёма</p><p class="art-kpi__val">−79 641</p></div>
-            <div class="art-kpi__card"><p class="art-kpi__lvl">Ассортимент / Mix</p><p class="art-kpi__metric">Эффект структуры продаж</p><p class="art-kpi__val">+280 294</p></div>
-            <div class="art-kpi__card"><p class="art-kpi__lvl">Себестоимость</p><p class="art-kpi__metric">Эффект закупочной цены</p><p class="art-kpi__val">+284 691</p></div>
-            <div class="art-kpi__card art-kpi__card--accent"><p class="art-kpi__lvl">Итого Δ маржи</p><p class="art-kpi__metric">Цена дала −157 742</p><p class="art-kpi__val">+327 602</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">РљРѕР»РёС‡РµСЃС‚РІРѕ</p><p class="art-kpi__metric">Р­С„С„РµРєС‚ РѕР±СЉС‘РјР°</p><p class="art-kpi__val">в€’79 641</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ / Mix</p><p class="art-kpi__metric">Р­С„С„РµРєС‚ СЃС‚СЂСѓРєС‚СѓСЂС‹ РїСЂРѕРґР°Р¶</p><p class="art-kpi__val">+280 294</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</p><p class="art-kpi__metric">Р­С„С„РµРєС‚ Р·Р°РєСѓРїРѕС‡РЅРѕР№ С†РµРЅС‹</p><p class="art-kpi__val">+284 691</p></div>
+            <div class="art-kpi__card art-kpi__card--accent"><p class="art-kpi__lvl">РС‚РѕРіРѕ О” РјР°СЂР¶Рё</p><p class="art-kpi__metric">Р¦РµРЅР° РґР°Р»Р° в€’157 742</p><p class="art-kpi__val">+327 602</p></div>
           </div>
 
-          <h2>Почему обычный отчёт по марже не отвечает на главный вопрос</h2>
-          <p>Стандартный отчёт показывает маржу за период и сравнение с прошлым: больше или меньше. Но он не говорит, какая часть изменения пришла от объёма, какая — от структуры продаж, какая — от закупочной цены, а какая — от продажной. Без этого разложения собственник управляет вслепую: радуется росту, который на самом деле держится на одной разовой закупке, или пугается падения, которое вызвано отсутствием товара на складе.</p>
+          <h2>РџРѕС‡РµРјСѓ РѕР±С‹С‡РЅС‹Р№ РѕС‚С‡С‘С‚ РїРѕ РјР°СЂР¶Рµ РЅРµ РѕС‚РІРµС‡Р°РµС‚ РЅР° РіР»Р°РІРЅС‹Р№ РІРѕРїСЂРѕСЃ</h2>
+          <p>РЎС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РѕС‚С‡С‘С‚ РїРѕРєР°Р·С‹РІР°РµС‚ РјР°СЂР¶Сѓ Р·Р° РїРµСЂРёРѕРґ Рё СЃСЂР°РІРЅРµРЅРёРµ СЃ РїСЂРѕС€Р»С‹Рј: Р±РѕР»СЊС€Рµ РёР»Рё РјРµРЅСЊС€Рµ. РќРѕ РѕРЅ РЅРµ РіРѕРІРѕСЂРёС‚, РєР°РєР°СЏ С‡Р°СЃС‚СЊ РёР·РјРµРЅРµРЅРёСЏ РїСЂРёС€Р»Р° РѕС‚ РѕР±СЉС‘РјР°, РєР°РєР°СЏ вЂ” РѕС‚ СЃС‚СЂСѓРєС‚СѓСЂС‹ РїСЂРѕРґР°Р¶, РєР°РєР°СЏ вЂ” РѕС‚ Р·Р°РєСѓРїРѕС‡РЅРѕР№ С†РµРЅС‹, Р° РєР°РєР°СЏ вЂ” РѕС‚ РїСЂРѕРґР°Р¶РЅРѕР№. Р‘РµР· СЌС‚РѕРіРѕ СЂР°Р·Р»РѕР¶РµРЅРёСЏ СЃРѕР±СЃС‚РІРµРЅРЅРёРє СѓРїСЂР°РІР»СЏРµС‚ РІСЃР»РµРїСѓСЋ: СЂР°РґСѓРµС‚СЃСЏ СЂРѕСЃС‚Сѓ, РєРѕС‚РѕСЂС‹Р№ РЅР° СЃР°РјРѕРј РґРµР»Рµ РґРµСЂР¶РёС‚СЃСЏ РЅР° РѕРґРЅРѕР№ СЂР°Р·РѕРІРѕР№ Р·Р°РєСѓРїРєРµ, РёР»Рё РїСѓРіР°РµС‚СЃСЏ РїР°РґРµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РІС‹Р·РІР°РЅРѕ РѕС‚СЃСѓС‚СЃС‚РІРёРµРј С‚РѕРІР°СЂР° РЅР° СЃРєР»Р°РґРµ.</p>
 
-          <h2>Что такое факторный анализ маржи</h2>
-          <p>Факторный анализ раскладывает изменение маржи между двумя периодами на составляющие — «факторный мост». Это управленческий инструмент: он переводит итог «маржа +327 602» в понятную причину «ассортимент и себестоимость дали плюс, цена и количество — минус».</p>
-          <div class="art-formula"><b>Δ Margin</b> = Volume Effect + Mix Effect + Cost Effect + Price Effect<em>Сумма четырёх эффектов равна общему изменению маржи. Каждый эффект отвечает на свой управленческий вопрос.</em></div>
+          <h2>Р§С‚Рѕ С‚Р°РєРѕРµ С„Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё</h2>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· СЂР°СЃРєР»Р°РґС‹РІР°РµС‚ РёР·РјРµРЅРµРЅРёРµ РјР°СЂР¶Рё РјРµР¶РґСѓ РґРІСѓРјСЏ РїРµСЂРёРѕРґР°РјРё РЅР° СЃРѕСЃС‚Р°РІР»СЏСЋС‰РёРµ вЂ” В«С„Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚В». Р­С‚Рѕ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ РёРЅСЃС‚СЂСѓРјРµРЅС‚: РѕРЅ РїРµСЂРµРІРѕРґРёС‚ РёС‚РѕРі В«РјР°СЂР¶Р° +327 602В» РІ РїРѕРЅСЏС‚РЅСѓСЋ РїСЂРёС‡РёРЅСѓ В«Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ Рё СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РґР°Р»Рё РїР»СЋСЃ, С†РµРЅР° Рё РєРѕР»РёС‡РµСЃС‚РІРѕ вЂ” РјРёРЅСѓСЃВ».</p>
+          <div class="art-formula"><b>О” Margin</b> = Volume Effect + Mix Effect + Cost Effect + Price Effect<em>РЎСѓРјРјР° С‡РµС‚С‹СЂС‘С… СЌС„С„РµРєС‚РѕРІ СЂР°РІРЅР° РѕР±С‰РµРјСѓ РёР·РјРµРЅРµРЅРёСЋ РјР°СЂР¶Рё. РљР°Р¶РґС‹Р№ СЌС„С„РµРєС‚ РѕС‚РІРµС‡Р°РµС‚ РЅР° СЃРІРѕР№ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ РІРѕРїСЂРѕСЃ.</em></div>
 
-          <h2>Четыре базовых фактора: количество, mix, себестоимость, цена</h2>
+          <h2>Р§РµС‚С‹СЂРµ Р±Р°Р·РѕРІС‹С… С„Р°РєС‚РѕСЂР°: РєРѕР»РёС‡РµСЃС‚РІРѕ, mix, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, С†РµРЅР°</h2>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th>Что показывает</th><th>Управленческий вопрос</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th>Р§С‚Рѕ РїРѕРєР°Р·С‹РІР°РµС‚</th><th>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ РІРѕРїСЂРѕСЃ</th></tr></thead>
             <tbody>
-              <tr><td><strong>Количество</strong></td><td>Как изменение объёма продаж повлияло на маржу</td><td>Мы продали больше или потеряли объём?</td></tr>
-              <tr><td><strong>Ассортимент / Mix</strong></td><td>Как изменение структуры продаж повлияло на маржу</td><td>Мы продаём правильный ассортимент или просто создаём оборот?</td></tr>
-              <tr><td><strong>Себестоимость</strong></td><td>Как изменение закупочной стоимости повлияло на маржу</td><td>Закупки усилили маржу или съели её?</td></tr>
-              <tr><td><strong>Цена</strong></td><td>Как изменение продажной цены повлияло на маржу</td><td>Компания удерживает цену или продаёт через скидки?</td></tr>
+              <tr><td><strong>РљРѕР»РёС‡РµСЃС‚РІРѕ</strong></td><td>РљР°Рє РёР·РјРµРЅРµРЅРёРµ РѕР±СЉС‘РјР° РїСЂРѕРґР°Р¶ РїРѕРІР»РёСЏР»Рѕ РЅР° РјР°СЂР¶Сѓ</td><td>РњС‹ РїСЂРѕРґР°Р»Рё Р±РѕР»СЊС€Рµ РёР»Рё РїРѕС‚РµСЂСЏР»Рё РѕР±СЉС‘Рј?</td></tr>
+              <tr><td><strong>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ / Mix</strong></td><td>РљР°Рє РёР·РјРµРЅРµРЅРёРµ СЃС‚СЂСѓРєС‚СѓСЂС‹ РїСЂРѕРґР°Р¶ РїРѕРІР»РёСЏР»Рѕ РЅР° РјР°СЂР¶Сѓ</td><td>РњС‹ РїСЂРѕРґР°С‘Рј РїСЂР°РІРёР»СЊРЅС‹Р№ Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ РёР»Рё РїСЂРѕСЃС‚Рѕ СЃРѕР·РґР°С‘Рј РѕР±РѕСЂРѕС‚?</td></tr>
+              <tr><td><strong>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</strong></td><td>РљР°Рє РёР·РјРµРЅРµРЅРёРµ Р·Р°РєСѓРїРѕС‡РЅРѕР№ СЃС‚РѕРёРјРѕСЃС‚Рё РїРѕРІР»РёСЏР»Рѕ РЅР° РјР°СЂР¶Сѓ</td><td>Р—Р°РєСѓРїРєРё СѓСЃРёР»РёР»Рё РјР°СЂР¶Сѓ РёР»Рё СЃСЉРµР»Рё РµС‘?</td></tr>
+              <tr><td><strong>Р¦РµРЅР°</strong></td><td>РљР°Рє РёР·РјРµРЅРµРЅРёРµ РїСЂРѕРґР°Р¶РЅРѕР№ С†РµРЅС‹ РїРѕРІР»РёСЏР»Рѕ РЅР° РјР°СЂР¶Сѓ</td><td>РљРѕРјРїР°РЅРёСЏ СѓРґРµСЂР¶РёРІР°РµС‚ С†РµРЅСѓ РёР»Рё РїСЂРѕРґР°С‘С‚ С‡РµСЂРµР· СЃРєРёРґРєРё?</td></tr>
             </tbody>
           </table></div>
-          <h3>Пример факторного анализа</h3>
+          <h3>РџСЂРёРјРµСЂ С„Р°РєС‚РѕСЂРЅРѕРіРѕ Р°РЅР°Р»РёР·Р°</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th class="num">Влияние на маржу</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th class="num">Р’Р»РёСЏРЅРёРµ РЅР° РјР°СЂР¶Сѓ</th></tr></thead>
             <tbody>
-              <tr><td>Количество</td><td class="num">−79 641</td></tr>
-              <tr><td>Ассортимент / Mix</td><td class="num">+280 294</td></tr>
-              <tr><td>Себестоимость</td><td class="num">+284 691</td></tr>
-              <tr><td>Цена</td><td class="num">−157 742</td></tr>
-              <tr><td><strong>Итого изменение маржи</strong></td><td class="num"><strong>+327 602</strong></td></tr>
+              <tr><td>РљРѕР»РёС‡РµСЃС‚РІРѕ</td><td class="num">в€’79 641</td></tr>
+              <tr><td>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ / Mix</td><td class="num">+280 294</td></tr>
+              <tr><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</td><td class="num">+284 691</td></tr>
+              <tr><td>Р¦РµРЅР°</td><td class="num">в€’157 742</td></tr>
+              <tr><td><strong>РС‚РѕРіРѕ РёР·РјРµРЅРµРЅРёРµ РјР°СЂР¶Рё</strong></td><td class="num"><strong>+327 602</strong></td></tr>
             </tbody>
           </table></div>
-          <div class="callout"><span class="callout__label">Вывод</span><p>Маржа выросла, но рост нельзя считать полностью здоровым. Положительный результат обеспечили ассортимент и себестоимость. Одновременно количество и цена ухудшили маржу. Главный риск — ценовое давление и потеря объёма.</p></div>
+          <div class="callout"><span class="callout__label">Р’С‹РІРѕРґ</span><p>РњР°СЂР¶Р° РІС‹СЂРѕСЃР»Р°, РЅРѕ СЂРѕСЃС‚ РЅРµР»СЊР·СЏ СЃС‡РёС‚Р°С‚СЊ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·РґРѕСЂРѕРІС‹Рј. РџРѕР»РѕР¶РёС‚РµР»СЊРЅС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ РѕР±РµСЃРїРµС‡РёР»Рё Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ Рё СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ. РћРґРЅРѕРІСЂРµРјРµРЅРЅРѕ РєРѕР»РёС‡РµСЃС‚РІРѕ Рё С†РµРЅР° СѓС…СѓРґС€РёР»Рё РјР°СЂР¶Сѓ. Р“Р»Р°РІРЅС‹Р№ СЂРёСЃРє вЂ” С†РµРЅРѕРІРѕРµ РґР°РІР»РµРЅРёРµ Рё РїРѕС‚РµСЂСЏ РѕР±СЉС‘РјР°.</p></div>
 
-          <h2>Почему нужен анализ с флагами</h2>
-          <p>Факторный мост показывает направление и величину каждого эффекта, но не его качество. Флаг — это быстрый визуальный сигнал: зелёный (здорово), жёлтый (внимание), оранжевый (требует анализа), красный (критическая зона). Флаги позволяют собственнику за секунды понять, где результат здоровый, а где — тревожный.</p>
+          <h2>РџРѕС‡РµРјСѓ РЅСѓР¶РµРЅ Р°РЅР°Р»РёР· СЃ С„Р»Р°РіР°РјРё</h2>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚ РїРѕРєР°Р·С‹РІР°РµС‚ РЅР°РїСЂР°РІР»РµРЅРёРµ Рё РІРµР»РёС‡РёРЅСѓ РєР°Р¶РґРѕРіРѕ СЌС„С„РµРєС‚Р°, РЅРѕ РЅРµ РµРіРѕ РєР°С‡РµСЃС‚РІРѕ. Р¤Р»Р°Рі вЂ” СЌС‚Рѕ Р±С‹СЃС‚СЂС‹Р№ РІРёР·СѓР°Р»СЊРЅС‹Р№ СЃРёРіРЅР°Р»: Р·РµР»С‘РЅС‹Р№ (Р·РґРѕСЂРѕРІРѕ), Р¶С‘Р»С‚С‹Р№ (РІРЅРёРјР°РЅРёРµ), РѕСЂР°РЅР¶РµРІС‹Р№ (С‚СЂРµР±СѓРµС‚ Р°РЅР°Р»РёР·Р°), РєСЂР°СЃРЅС‹Р№ (РєСЂРёС‚РёС‡РµСЃРєР°СЏ Р·РѕРЅР°). Р¤Р»Р°РіРё РїРѕР·РІРѕР»СЏСЋС‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРєСѓ Р·Р° СЃРµРєСѓРЅРґС‹ РїРѕРЅСЏС‚СЊ, РіРґРµ СЂРµР·СѓР»СЊС‚Р°С‚ Р·РґРѕСЂРѕРІС‹Р№, Р° РіРґРµ вЂ” С‚СЂРµРІРѕР¶РЅС‹Р№.</p>
 
-          <h2>Главные флаги факторного анализа</h2>
+          <h2>Р“Р»Р°РІРЅС‹Рµ С„Р»Р°РіРё С„Р°РєС‚РѕСЂРЅРѕРіРѕ Р°РЅР°Р»РёР·Р°</h2>
           <h3>1. Margin Growth Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Значение</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>Р—РЅР°С‡РµРЅРёРµ</th></tr></thead>
             <tbody>
-              <tr><td>Маржа выросла, основные факторы здоровые</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Рост качественный</td></tr>
-              <tr><td>Маржа выросла, но есть отрицательные факторы</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Рост есть, но есть риски</td></tr>
-              <tr><td>Маржа снизилась</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Требуется анализ причин</td></tr>
-              <tr><td>Маржа снизилась, несколько факторов отрицательные</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Критическая зона</td></tr>
+              <tr><td>РњР°СЂР¶Р° РІС‹СЂРѕСЃР»Р°, РѕСЃРЅРѕРІРЅС‹Рµ С„Р°РєС‚РѕСЂС‹ Р·РґРѕСЂРѕРІС‹Рµ</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Р РѕСЃС‚ РєР°С‡РµСЃС‚РІРµРЅРЅС‹Р№</td></tr>
+              <tr><td>РњР°СЂР¶Р° РІС‹СЂРѕСЃР»Р°, РЅРѕ РµСЃС‚СЊ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Рµ С„Р°РєС‚РѕСЂС‹</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Р РѕСЃС‚ РµСЃС‚СЊ, РЅРѕ РµСЃС‚СЊ СЂРёСЃРєРё</td></tr>
+              <tr><td>РњР°СЂР¶Р° СЃРЅРёР·РёР»Р°СЃСЊ</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>РўСЂРµР±СѓРµС‚СЃСЏ Р°РЅР°Р»РёР· РїСЂРёС‡РёРЅ</td></tr>
+              <tr><td>РњР°СЂР¶Р° СЃРЅРёР·РёР»Р°СЃСЊ, РЅРµСЃРєРѕР»СЊРєРѕ С„Р°РєС‚РѕСЂРѕРІ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Рµ</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>РљСЂРёС‚РёС‡РµСЃРєР°СЏ Р·РѕРЅР°</td></tr>
             </tbody>
           </table></div>
           <h3>2. Volume Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Управленческий смысл</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СЃРјС‹СЃР»</th></tr></thead>
             <tbody>
-              <tr><td>Volume Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Объём помогает марже</td></tr>
-              <tr><td>Volume Effect около 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Объём нейтрален</td></tr>
-              <tr><td>Volume Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Потеря объёма</td></tr>
-              <tr><td>Volume Effect сильно отрицательный</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Риск падения спроса или наличия товара</td></tr>
+              <tr><td>Volume Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>РћР±СЉС‘Рј РїРѕРјРѕРіР°РµС‚ РјР°СЂР¶Рµ</td></tr>
+              <tr><td>Volume Effect РѕРєРѕР»Рѕ 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>РћР±СЉС‘Рј РЅРµР№С‚СЂР°Р»РµРЅ</td></tr>
+              <tr><td>Volume Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>РџРѕС‚РµСЂСЏ РѕР±СЉС‘РјР°</td></tr>
+              <tr><td>Volume Effect СЃРёР»СЊРЅРѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Р РёСЃРє РїР°РґРµРЅРёСЏ СЃРїСЂРѕСЃР° РёР»Рё РЅР°Р»РёС‡РёСЏ С‚РѕРІР°СЂР°</td></tr>
             </tbody>
           </table></div>
           <h3>3. Mix Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Управленческий смысл</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СЃРјС‹СЃР»</th></tr></thead>
             <tbody>
-              <tr><td>Mix Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Ассортимент улучшил маржу</td></tr>
-              <tr><td>Mix Effect около 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Структура продаж не изменилась</td></tr>
-              <tr><td>Mix Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Продажи сместились в слабую маржу</td></tr>
-              <tr><td>Mix Effect сильно отрицательный</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Ассортиментная политика ухудшает бизнес</td></tr>
+              <tr><td>Mix Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ СѓР»СѓС‡С€РёР» РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Mix Effect РѕРєРѕР»Рѕ 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>РЎС‚СЂСѓРєС‚СѓСЂР° РїСЂРѕРґР°Р¶ РЅРµ РёР·РјРµРЅРёР»Р°СЃСЊ</td></tr>
+              <tr><td>Mix Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>РџСЂРѕРґР°Р¶Рё СЃРјРµСЃС‚РёР»РёСЃСЊ РІ СЃР»Р°Р±СѓСЋ РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Mix Effect СЃРёР»СЊРЅРѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚РЅР°СЏ РїРѕР»РёС‚РёРєР° СѓС…СѓРґС€Р°РµС‚ Р±РёР·РЅРµСЃ</td></tr>
             </tbody>
           </table></div>
           <h3>4. Cost Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Управленческий смысл</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СЃРјС‹СЃР»</th></tr></thead>
             <tbody>
-              <tr><td>Cost Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Себестоимость улучшила маржу</td></tr>
-              <tr><td>Cost Effect около 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Себестоимость стабильна</td></tr>
-              <tr><td>Cost Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Себестоимость давит на маржу</td></tr>
-              <tr><td>Cost Effect сильно отрицательный</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Закупочная стоимость разрушает маржу</td></tr>
+              <tr><td>Cost Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ СѓР»СѓС‡С€РёР»Р° РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Cost Effect РѕРєРѕР»Рѕ 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ СЃС‚Р°Р±РёР»СЊРЅР°</td></tr>
+              <tr><td>Cost Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РґР°РІРёС‚ РЅР° РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Cost Effect СЃРёР»СЊРЅРѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Р—Р°РєСѓРїРѕС‡РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ СЂР°Р·СЂСѓС€Р°РµС‚ РјР°СЂР¶Сѓ</td></tr>
             </tbody>
           </table></div>
           <h3>5. Price Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Управленческий смысл</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СЃРјС‹СЃР»</th></tr></thead>
             <tbody>
-              <tr><td>Price Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Цена усилила маржу</td></tr>
-              <tr><td>Price Effect около 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Цена стабильна</td></tr>
-              <tr><td>Price Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Давление скидок</td></tr>
-              <tr><td>Price Effect сильно отрицательный</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Цена разрушает маржу</td></tr>
+              <tr><td>Price Effect &gt; 0</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Р¦РµРЅР° СѓСЃРёР»РёР»Р° РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Price Effect РѕРєРѕР»Рѕ 0</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Р¦РµРЅР° СЃС‚Р°Р±РёР»СЊРЅР°</td></tr>
+              <tr><td>Price Effect &lt; 0</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Р”Р°РІР»РµРЅРёРµ СЃРєРёРґРѕРє</td></tr>
+              <tr><td>Price Effect СЃРёР»СЊРЅРѕ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Р¦РµРЅР° СЂР°Р·СЂСѓС€Р°РµС‚ РјР°СЂР¶Сѓ</td></tr>
             </tbody>
           </table></div>
           <h3>6. Data Quality Flag</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Условие</th><th>Флаг</th><th>Решение</th></tr></thead>
+            <thead><tr><th>РЈСЃР»РѕРІРёРµ</th><th>Р¤Р»Р°Рі</th><th>Р РµС€РµРЅРёРµ</th></tr></thead>
             <tbody>
-              <tr><td>Данные полные, формулы работают</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Можно использовать</td></tr>
-              <tr><td>Есть незначительные пропуски</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Проверить</td></tr>
-              <tr><td>Есть ошибки формул или несостыковки</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Требуется исправление</td></tr>
-              <tr><td>Ошибки влияют на итог</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Нельзя принимать решение</td></tr>
+              <tr><td>Р”Р°РЅРЅС‹Рµ РїРѕР»РЅС‹Рµ, С„РѕСЂРјСѓР»С‹ СЂР°Р±РѕС‚Р°СЋС‚</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>РњРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ</td></tr>
+              <tr><td>Р•СЃС‚СЊ РЅРµР·РЅР°С‡РёС‚РµР»СЊРЅС‹Рµ РїСЂРѕРїСѓСЃРєРё</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>РџСЂРѕРІРµСЂРёС‚СЊ</td></tr>
+              <tr><td>Р•СЃС‚СЊ РѕС€РёР±РєРё С„РѕСЂРјСѓР» РёР»Рё РЅРµСЃРѕСЃС‚С‹РєРѕРІРєРё</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>РўСЂРµР±СѓРµС‚СЃСЏ РёСЃРїСЂР°РІР»РµРЅРёРµ</td></tr>
+              <tr><td>РћС€РёР±РєРё РІР»РёСЏСЋС‚ РЅР° РёС‚РѕРі</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>РќРµР»СЊР·СЏ РїСЂРёРЅРёРјР°С‚СЊ СЂРµС€РµРЅРёРµ</td></tr>
             </tbody>
           </table></div>
 
-          <h2>Дополнительные диагностические признаки</h2>
-          <p>Факторный анализ показывает, <strong>что</strong> изменилось. Диагностические признаки объясняют, <strong>почему</strong>. Без них флаги можно прочитать неверно.</p>
+          <h2>Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РґРёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёРµ РїСЂРёР·РЅР°РєРё</h2>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РїРѕРєР°Р·С‹РІР°РµС‚, <strong>С‡С‚Рѕ</strong> РёР·РјРµРЅРёР»РѕСЃСЊ. Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёРµ РїСЂРёР·РЅР°РєРё РѕР±СЉСЏСЃРЅСЏСЋС‚, <strong>РїРѕС‡РµРјСѓ</strong>. Р‘РµР· РЅРёС… С„Р»Р°РіРё РјРѕР¶РЅРѕ РїСЂРѕС‡РёС‚Р°С‚СЊ РЅРµРІРµСЂРЅРѕ.</p>
 
-          <h3>1. Маркетинговая активность в периоде</h3>
+          <h3>1. РњР°СЂРєРµС‚РёРЅРіРѕРІР°СЏ Р°РєС‚РёРІРЅРѕСЃС‚СЊ РІ РїРµСЂРёРѕРґРµ</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Признак</th><th>Что проверяем</th><th>Почему важно</th></tr></thead>
+            <thead><tr><th>РџСЂРёР·РЅР°Рє</th><th>Р§С‚Рѕ РїСЂРѕРІРµСЂСЏРµРј</th><th>РџРѕС‡РµРјСѓ РІР°Р¶РЅРѕ</th></tr></thead>
             <tbody>
-              <tr><td>Marketing Activity Flag</td><td>Была ли маркетинговая активность по SKU / категории</td><td>Рост продаж мог быть куплен рекламой или скидкой</td></tr>
-              <tr><td>Promo Days</td><td>Сколько дней товар был в акции</td><td>Цена и маржа могут быть временно снижены</td></tr>
-              <tr><td>Marketing Spend</td><td>Сколько потрачено на продвижение</td><td>Рост выручки нужно сравнивать с затратами</td></tr>
-              <tr><td>Discount Depth</td><td>Насколько снижалась цена</td><td>Price Effect может быть отрицательным из-за промо</td></tr>
-              <tr><td>Campaign ROI</td><td>Принесла ли акция дополнительную маржу</td><td>Акция может увеличить оборот, но снизить прибыль</td></tr>
+              <tr><td>Marketing Activity Flag</td><td>Р‘С‹Р»Р° Р»Рё РјР°СЂРєРµС‚РёРЅРіРѕРІР°СЏ Р°РєС‚РёРІРЅРѕСЃС‚СЊ РїРѕ SKU / РєР°С‚РµРіРѕСЂРёРё</td><td>Р РѕСЃС‚ РїСЂРѕРґР°Р¶ РјРѕРі Р±С‹С‚СЊ РєСѓРїР»РµРЅ СЂРµРєР»Р°РјРѕР№ РёР»Рё СЃРєРёРґРєРѕР№</td></tr>
+              <tr><td>Promo Days</td><td>РЎРєРѕР»СЊРєРѕ РґРЅРµР№ С‚РѕРІР°СЂ Р±С‹Р» РІ Р°РєС†РёРё</td><td>Р¦РµРЅР° Рё РјР°СЂР¶Р° РјРѕРіСѓС‚ Р±С‹С‚СЊ РІСЂРµРјРµРЅРЅРѕ СЃРЅРёР¶РµРЅС‹</td></tr>
+              <tr><td>Marketing Spend</td><td>РЎРєРѕР»СЊРєРѕ РїРѕС‚СЂР°С‡РµРЅРѕ РЅР° РїСЂРѕРґРІРёР¶РµРЅРёРµ</td><td>Р РѕСЃС‚ РІС‹СЂСѓС‡РєРё РЅСѓР¶РЅРѕ СЃСЂР°РІРЅРёРІР°С‚СЊ СЃ Р·Р°С‚СЂР°С‚Р°РјРё</td></tr>
+              <tr><td>Discount Depth</td><td>РќР°СЃРєРѕР»СЊРєРѕ СЃРЅРёР¶Р°Р»Р°СЃСЊ С†РµРЅР°</td><td>Price Effect РјРѕР¶РµС‚ Р±С‹С‚СЊ РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Рј РёР·-Р·Р° РїСЂРѕРјРѕ</td></tr>
+              <tr><td>Campaign ROI</td><td>РџСЂРёРЅРµСЃР»Р° Р»Рё Р°РєС†РёСЏ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅСѓСЋ РјР°СЂР¶Сѓ</td><td>РђРєС†РёСЏ РјРѕР¶РµС‚ СѓРІРµР»РёС‡РёС‚СЊ РѕР±РѕСЂРѕС‚, РЅРѕ СЃРЅРёР·РёС‚СЊ РїСЂРёР±С‹Р»СЊ</td></tr>
             </tbody>
           </table></div>
-          <p>Если Price Effect отрицательный, но в периоде была промо-акция, нужно отделить управляемое снижение цены от реальной потери ценовой дисциплины.</p>
+          <p>Р•СЃР»Рё Price Effect РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№, РЅРѕ РІ РїРµСЂРёРѕРґРµ Р±С‹Р»Р° РїСЂРѕРјРѕ-Р°РєС†РёСЏ, РЅСѓР¶РЅРѕ РѕС‚РґРµР»РёС‚СЊ СѓРїСЂР°РІР»СЏРµРјРѕРµ СЃРЅРёР¶РµРЅРёРµ С†РµРЅС‹ РѕС‚ СЂРµР°Р»СЊРЅРѕР№ РїРѕС‚РµСЂРё С†РµРЅРѕРІРѕР№ РґРёСЃС†РёРїР»РёРЅС‹.</p>
 
-          <h3>2. Был ли товар на складе</h3>
+          <h3>2. Р‘С‹Р» Р»Рё С‚РѕРІР°СЂ РЅР° СЃРєР»Р°РґРµ</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Признак</th><th>Что проверяем</th><th>Почему важно</th></tr></thead>
+            <thead><tr><th>РџСЂРёР·РЅР°Рє</th><th>Р§С‚Рѕ РїСЂРѕРІРµСЂСЏРµРј</th><th>РџРѕС‡РµРјСѓ РІР°Р¶РЅРѕ</th></tr></thead>
             <tbody>
-              <tr><td>Stock Availability Flag</td><td>Был ли товар доступен для продажи</td><td>Без наличия нельзя корректно анализировать спрос</td></tr>
-              <tr><td>Stock-out Days</td><td>Сколько дней товара не было на складе</td><td>Потерянные дни продаж и маржи</td></tr>
-              <tr><td>Availability %</td><td>Доля дней, когда товар был доступен</td><td>Показывает качество обеспечения продаж</td></tr>
-              <tr><td>Lost Sales Estimate</td><td>Потенциально потерянные продажи</td><td>Помогает оценить скрытую потерю маржи</td></tr>
+              <tr><td>Stock Availability Flag</td><td>Р‘С‹Р» Р»Рё С‚РѕРІР°СЂ РґРѕСЃС‚СѓРїРµРЅ РґР»СЏ РїСЂРѕРґР°Р¶Рё</td><td>Р‘РµР· РЅР°Р»РёС‡РёСЏ РЅРµР»СЊР·СЏ РєРѕСЂСЂРµРєС‚РЅРѕ Р°РЅР°Р»РёР·РёСЂРѕРІР°С‚СЊ СЃРїСЂРѕСЃ</td></tr>
+              <tr><td>Stock-out Days</td><td>РЎРєРѕР»СЊРєРѕ РґРЅРµР№ С‚РѕРІР°СЂР° РЅРµ Р±С‹Р»Рѕ РЅР° СЃРєР»Р°РґРµ</td><td>РџРѕС‚РµСЂСЏРЅРЅС‹Рµ РґРЅРё РїСЂРѕРґР°Р¶ Рё РјР°СЂР¶Рё</td></tr>
+              <tr><td>Availability %</td><td>Р”РѕР»СЏ РґРЅРµР№, РєРѕРіРґР° С‚РѕРІР°СЂ Р±С‹Р» РґРѕСЃС‚СѓРїРµРЅ</td><td>РџРѕРєР°Р·С‹РІР°РµС‚ РєР°С‡РµСЃС‚РІРѕ РѕР±РµСЃРїРµС‡РµРЅРёСЏ РїСЂРѕРґР°Р¶</td></tr>
+              <tr><td>Lost Sales Estimate</td><td>РџРѕС‚РµРЅС†РёР°Р»СЊРЅРѕ РїРѕС‚РµСЂСЏРЅРЅС‹Рµ РїСЂРѕРґР°Р¶Рё</td><td>РџРѕРјРѕРіР°РµС‚ РѕС†РµРЅРёС‚СЊ СЃРєСЂС‹С‚СѓСЋ РїРѕС‚РµСЂСЋ РјР°СЂР¶Рё</td></tr>
             </tbody>
           </table></div>
-          <div class="art-formula"><b>Availability %</b> = Дни наличия товара ÷ Количество дней в периоде</div>
-          <div class="callout"><span class="callout__label">Ключевое правило</span><p>Volume Effect нельзя читать без Stock Availability Flag. Если количество упало и одновременно был stock-out, флаг должен быть <span class="art-dot art-dot--orange"></span><strong>«Потеря объёма из-за отсутствия товара»</strong>, а не «падение спроса».</p></div>
+          <div class="art-formula"><b>Availability %</b> = Р”РЅРё РЅР°Р»РёС‡РёСЏ С‚РѕРІР°СЂР° Г· РљРѕР»РёС‡РµСЃС‚РІРѕ РґРЅРµР№ РІ РїРµСЂРёРѕРґРµ</div>
+          <div class="callout"><span class="callout__label">РљР»СЋС‡РµРІРѕРµ РїСЂР°РІРёР»Рѕ</span><p>Volume Effect РЅРµР»СЊР·СЏ С‡РёС‚Р°С‚СЊ Р±РµР· Stock Availability Flag. Р•СЃР»Рё РєРѕР»РёС‡РµСЃС‚РІРѕ СѓРїР°Р»Рѕ Рё РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ Р±С‹Р» stock-out, С„Р»Р°Рі РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ <span class="art-dot art-dot--orange"></span><strong>В«РџРѕС‚РµСЂСЏ РѕР±СЉС‘РјР° РёР·-Р·Р° РѕС‚СЃСѓС‚СЃС‚РІРёСЏ С‚РѕРІР°СЂР°В»</strong>, Р° РЅРµ В«РїР°РґРµРЅРёРµ СЃРїСЂРѕСЃР°В».</p></div>
 
-          <h3>3. Сезонность товара и сопоставимость периода</h3>
-          <p>Нельзя одинаково сравнивать зимний товар в январе и июле, школьный ассортимент в августе и феврале, строительные материалы в сезон и вне сезона, праздничные товары до и после праздника.</p>
+          <h3>3. РЎРµР·РѕРЅРЅРѕСЃС‚СЊ С‚РѕРІР°СЂР° Рё СЃРѕРїРѕСЃС‚Р°РІРёРјРѕСЃС‚СЊ РїРµСЂРёРѕРґР°</h3>
+          <p>РќРµР»СЊР·СЏ РѕРґРёРЅР°РєРѕРІРѕ СЃСЂР°РІРЅРёРІР°С‚СЊ Р·РёРјРЅРёР№ С‚РѕРІР°СЂ РІ СЏРЅРІР°СЂРµ Рё РёСЋР»Рµ, С€РєРѕР»СЊРЅС‹Р№ Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ РІ Р°РІРіСѓСЃС‚Рµ Рё С„РµРІСЂР°Р»Рµ, СЃС‚СЂРѕРёС‚РµР»СЊРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹ РІ СЃРµР·РѕРЅ Рё РІРЅРµ СЃРµР·РѕРЅР°, РїСЂР°Р·РґРЅРёС‡РЅС‹Рµ С‚РѕРІР°СЂС‹ РґРѕ Рё РїРѕСЃР»Рµ РїСЂР°Р·РґРЅРёРєР°.</p>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Признак</th><th>Что проверяем</th><th>Почему важно</th></tr></thead>
+            <thead><tr><th>РџСЂРёР·РЅР°Рє</th><th>Р§С‚Рѕ РїСЂРѕРІРµСЂСЏРµРј</th><th>РџРѕС‡РµРјСѓ РІР°Р¶РЅРѕ</th></tr></thead>
             <tbody>
-              <tr><td>Seasonality Flag</td><td>Является ли товар сезонным</td><td>Падение или рост может быть нормальным</td></tr>
-              <tr><td>Comparable Period Flag</td><td>Сравнимы ли периоды между собой</td><td>Месяц к месяцу может искажать вывод</td></tr>
-              <tr><td>YoY Comparison</td><td>Сравнение с тем же периодом прошлого года</td><td>Лучше для сезонных товаров</td></tr>
-              <tr><td>Seasonal Index</td><td>Отклонение от нормального сезонного уровня</td><td>Показывает реальное превышение или недовыполнение</td></tr>
+              <tr><td>Seasonality Flag</td><td>РЇРІР»СЏРµС‚СЃСЏ Р»Рё С‚РѕРІР°СЂ СЃРµР·РѕРЅРЅС‹Рј</td><td>РџР°РґРµРЅРёРµ РёР»Рё СЂРѕСЃС‚ РјРѕР¶РµС‚ Р±С‹С‚СЊ РЅРѕСЂРјР°Р»СЊРЅС‹Рј</td></tr>
+              <tr><td>Comparable Period Flag</td><td>РЎСЂР°РІРЅРёРјС‹ Р»Рё РїРµСЂРёРѕРґС‹ РјРµР¶РґСѓ СЃРѕР±РѕР№</td><td>РњРµСЃСЏС† Рє РјРµСЃСЏС†Сѓ РјРѕР¶РµС‚ РёСЃРєР°Р¶Р°С‚СЊ РІС‹РІРѕРґ</td></tr>
+              <tr><td>YoY Comparison</td><td>РЎСЂР°РІРЅРµРЅРёРµ СЃ С‚РµРј Р¶Рµ РїРµСЂРёРѕРґРѕРј РїСЂРѕС€Р»РѕРіРѕ РіРѕРґР°</td><td>Р›СѓС‡С€Рµ РґР»СЏ СЃРµР·РѕРЅРЅС‹С… С‚РѕРІР°СЂРѕРІ</td></tr>
+              <tr><td>Seasonal Index</td><td>РћС‚РєР»РѕРЅРµРЅРёРµ РѕС‚ РЅРѕСЂРјР°Р»СЊРЅРѕРіРѕ СЃРµР·РѕРЅРЅРѕРіРѕ СѓСЂРѕРІРЅСЏ</td><td>РџРѕРєР°Р·С‹РІР°РµС‚ СЂРµР°Р»СЊРЅРѕРµ РїСЂРµРІС‹С€РµРЅРёРµ РёР»Рё РЅРµРґРѕРІС‹РїРѕР»РЅРµРЅРёРµ</td></tr>
             </tbody>
           </table></div>
-          <p>Для сезонных товаров лучше сравнивать не текущий месяц к прошлому месяцу, а текущий месяц к аналогичному месяцу прошлого года.</p>
+          <p>Р”Р»СЏ СЃРµР·РѕРЅРЅС‹С… С‚РѕРІР°СЂРѕРІ Р»СѓС‡С€Рµ СЃСЂР°РІРЅРёРІР°С‚СЊ РЅРµ С‚РµРєСѓС‰РёР№ РјРµСЃСЏС† Рє РїСЂРѕС€Р»РѕРјСѓ РјРµСЃСЏС†Сѓ, Р° С‚РµРєСѓС‰РёР№ РјРµСЃСЏС† Рє Р°РЅР°Р»РѕРіРёС‡РЅРѕРјСѓ РјРµСЃСЏС†Сѓ РїСЂРѕС€Р»РѕРіРѕ РіРѕРґР°.</p>
 
-          <h3>4. Дополнительные факторы</h3>
+          <h3>4. Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ С„Р°РєС‚РѕСЂС‹</h3>
           <div class="art-table-wrap art-table-wrap--wide"><table>
-            <thead><tr><th>Дополнительный фактор</th><th>Что показывает</th><th>Какой флаг даёт</th></tr></thead>
+            <thead><tr><th>Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Р№ С„Р°РєС‚РѕСЂ</th><th>Р§С‚Рѕ РїРѕРєР°Р·С‹РІР°РµС‚</th><th>РљР°РєРѕР№ С„Р»Р°Рі РґР°С‘С‚</th></tr></thead>
             <tbody>
-              <tr><td>Channel Mix</td><td>Через какой канал продавался товар: розница, B2B, маркетплейс, онлайн</td><td>Маржа могла измениться из-за канала продаж</td></tr>
-              <tr><td>Customer Mix</td><td>Каким клиентам продавался товар</td><td>Крупные клиенты могут получать скидки и снижать маржу</td></tr>
-              <tr><td>Discount Policy</td><td>Были ли ручные скидки или отклонения от прайса</td><td>Контроль ценовой дисциплины</td></tr>
-              <tr><td>Product Lifecycle</td><td>Новый, зрелый, распродажа, вывод из ассортимента</td><td>Для разных стадий нужна разная логика оценки</td></tr>
-              <tr><td>Returns Rate</td><td>Доля возвратов</td><td>Высокие возвраты могут съесть маржу</td></tr>
-              <tr><td>Supplier Change</td><td>Менялся ли поставщик</td><td>Себестоимость могла измениться из-за закупок</td></tr>
-              <tr><td>FX / Currency Impact</td><td>Было ли влияние курса валют</td><td>Особенно важно для импортных товаров</td></tr>
-              <tr><td>Logistics Cost Impact</td><td>Изменилась ли логистика</td><td>Себестоимость могла вырасти из-за доставки, а не товара</td></tr>
-              <tr><td>VAT / Import Cost</td><td>Была ли заморозка НДС или импортные расходы</td><td>Влияет на деньги и эффективную себестоимость</td></tr>
-              <tr><td>One-off Deals</td><td>Были ли разовые крупные сделки</td><td>Могут исказить период</td></tr>
-              <tr><td>Data Quality</td><td>Есть ли ошибки, пропуски, некорректные SKU</td><td>Без качественных данных вывод опасен</td></tr>
+              <tr><td>Channel Mix</td><td>Р§РµСЂРµР· РєР°РєРѕР№ РєР°РЅР°Р» РїСЂРѕРґР°РІР°Р»СЃСЏ С‚РѕРІР°СЂ: СЂРѕР·РЅРёС†Р°, B2B, РјР°СЂРєРµС‚РїР»РµР№СЃ, РѕРЅР»Р°Р№РЅ</td><td>РњР°СЂР¶Р° РјРѕРіР»Р° РёР·РјРµРЅРёС‚СЊСЃСЏ РёР·-Р·Р° РєР°РЅР°Р»Р° РїСЂРѕРґР°Р¶</td></tr>
+              <tr><td>Customer Mix</td><td>РљР°РєРёРј РєР»РёРµРЅС‚Р°Рј РїСЂРѕРґР°РІР°Р»СЃСЏ С‚РѕРІР°СЂ</td><td>РљСЂСѓРїРЅС‹Рµ РєР»РёРµРЅС‚С‹ РјРѕРіСѓС‚ РїРѕР»СѓС‡Р°С‚СЊ СЃРєРёРґРєРё Рё СЃРЅРёР¶Р°С‚СЊ РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Discount Policy</td><td>Р‘С‹Р»Рё Р»Рё СЂСѓС‡РЅС‹Рµ СЃРєРёРґРєРё РёР»Рё РѕС‚РєР»РѕРЅРµРЅРёСЏ РѕС‚ РїСЂР°Р№СЃР°</td><td>РљРѕРЅС‚СЂРѕР»СЊ С†РµРЅРѕРІРѕР№ РґРёСЃС†РёРїР»РёРЅС‹</td></tr>
+              <tr><td>Product Lifecycle</td><td>РќРѕРІС‹Р№, Р·СЂРµР»С‹Р№, СЂР°СЃРїСЂРѕРґР°Р¶Р°, РІС‹РІРѕРґ РёР· Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚Р°</td><td>Р”Р»СЏ СЂР°Р·РЅС‹С… СЃС‚Р°РґРёР№ РЅСѓР¶РЅР° СЂР°Р·РЅР°СЏ Р»РѕРіРёРєР° РѕС†РµРЅРєРё</td></tr>
+              <tr><td>Returns Rate</td><td>Р”РѕР»СЏ РІРѕР·РІСЂР°С‚РѕРІ</td><td>Р’С‹СЃРѕРєРёРµ РІРѕР·РІСЂР°С‚С‹ РјРѕРіСѓС‚ СЃСЉРµСЃС‚СЊ РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Supplier Change</td><td>РњРµРЅСЏР»СЃСЏ Р»Рё РїРѕСЃС‚Р°РІС‰РёРє</td><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РјРѕРіР»Р° РёР·РјРµРЅРёС‚СЊСЃСЏ РёР·-Р·Р° Р·Р°РєСѓРїРѕРє</td></tr>
+              <tr><td>FX / Currency Impact</td><td>Р‘С‹Р»Рѕ Р»Рё РІР»РёСЏРЅРёРµ РєСѓСЂСЃР° РІР°Р»СЋС‚</td><td>РћСЃРѕР±РµРЅРЅРѕ РІР°Р¶РЅРѕ РґР»СЏ РёРјРїРѕСЂС‚РЅС‹С… С‚РѕРІР°СЂРѕРІ</td></tr>
+              <tr><td>Logistics Cost Impact</td><td>РР·РјРµРЅРёР»Р°СЃСЊ Р»Рё Р»РѕРіРёСЃС‚РёРєР°</td><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РјРѕРіР»Р° РІС‹СЂР°СЃС‚Рё РёР·-Р·Р° РґРѕСЃС‚Р°РІРєРё, Р° РЅРµ С‚РѕРІР°СЂР°</td></tr>
+              <tr><td>VAT / Import Cost</td><td>Р‘С‹Р»Р° Р»Рё Р·Р°РјРѕСЂРѕР·РєР° РќР”РЎ РёР»Рё РёРјРїРѕСЂС‚РЅС‹Рµ СЂР°СЃС…РѕРґС‹</td><td>Р’Р»РёСЏРµС‚ РЅР° РґРµРЅСЊРіРё Рё СЌС„С„РµРєС‚РёРІРЅСѓСЋ СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</td></tr>
+              <tr><td>One-off Deals</td><td>Р‘С‹Р»Рё Р»Рё СЂР°Р·РѕРІС‹Рµ РєСЂСѓРїРЅС‹Рµ СЃРґРµР»РєРё</td><td>РњРѕРіСѓС‚ РёСЃРєР°Р·РёС‚СЊ РїРµСЂРёРѕРґ</td></tr>
+              <tr><td>Data Quality</td><td>Р•СЃС‚СЊ Р»Рё РѕС€РёР±РєРё, РїСЂРѕРїСѓСЃРєРё, РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Рµ SKU</td><td>Р‘РµР· РєР°С‡РµСЃС‚РІРµРЅРЅС‹С… РґР°РЅРЅС‹С… РІС‹РІРѕРґ РѕРїР°СЃРµРЅ</td></tr>
             </tbody>
           </table></div>
 
-          <h2>Расширенная dashboard-таблица факторного анализа</h2>
+          <h2>Р Р°СЃС€РёСЂРµРЅРЅР°СЏ dashboard-С‚Р°Р±Р»РёС†Р° С„Р°РєС‚РѕСЂРЅРѕРіРѕ Р°РЅР°Р»РёР·Р°</h2>
           <div class="art-table-wrap art-table-wrap--wide"><table>
-            <thead><tr><th>Фактор</th><th class="num">Влияние на маржу</th><th>Базовый флаг</th><th>Диагностический признак</th><th>Интерпретация</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th class="num">Р’Р»РёСЏРЅРёРµ РЅР° РјР°СЂР¶Сѓ</th><th>Р‘Р°Р·РѕРІС‹Р№ С„Р»Р°Рі</th><th>Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёР№ РїСЂРёР·РЅР°Рє</th><th>РРЅС‚РµСЂРїСЂРµС‚Р°С†РёСЏ</th></tr></thead>
             <tbody>
-              <tr><td>Количество</td><td class="num">−79 641</td><td><span class="art-dot art-dot--orange"></span>Orange</td><td>Stock-out 12 дней</td><td>Потеря объёма может быть связана с отсутствием товара</td></tr>
-              <tr><td>Ассортимент / Mix</td><td class="num">+280 294</td><td><span class="art-dot art-dot--green"></span>Green</td><td>Сезонный товар</td><td>Улучшение mix нужно сравнить с аналогичным периодом прошлого года</td></tr>
-              <tr><td>Себестоимость</td><td class="num">+284 691</td><td><span class="art-dot art-dot--green"></span>Green</td><td>Supplier terms improved</td><td>Закупки улучшили маржу</td></tr>
-              <tr><td>Цена</td><td class="num">−157 742</td><td><span class="art-dot art-dot--red"></span>Red</td><td>Promo active / скидки</td><td>Цена снизила маржу, нужно проверить эффективность акции</td></tr>
-              <tr><td>Данные</td><td class="num">—</td><td><span class="art-dot art-dot--yellow"></span>Yellow</td><td>Есть неполные признаки</td><td>Перед решением проверить справочники и SKU</td></tr>
+              <tr><td>РљРѕР»РёС‡РµСЃС‚РІРѕ</td><td class="num">в€’79 641</td><td><span class="art-dot art-dot--orange"></span>Orange</td><td>Stock-out 12 РґРЅРµР№</td><td>РџРѕС‚РµСЂСЏ РѕР±СЉС‘РјР° РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃРІСЏР·Р°РЅР° СЃ РѕС‚СЃСѓС‚СЃС‚РІРёРµРј С‚РѕРІР°СЂР°</td></tr>
+              <tr><td>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ / Mix</td><td class="num">+280 294</td><td><span class="art-dot art-dot--green"></span>Green</td><td>РЎРµР·РѕРЅРЅС‹Р№ С‚РѕРІР°СЂ</td><td>РЈР»СѓС‡С€РµРЅРёРµ mix РЅСѓР¶РЅРѕ СЃСЂР°РІРЅРёС‚СЊ СЃ Р°РЅР°Р»РѕРіРёС‡РЅС‹Рј РїРµСЂРёРѕРґРѕРј РїСЂРѕС€Р»РѕРіРѕ РіРѕРґР°</td></tr>
+              <tr><td>РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ</td><td class="num">+284 691</td><td><span class="art-dot art-dot--green"></span>Green</td><td>Supplier terms improved</td><td>Р—Р°РєСѓРїРєРё СѓР»СѓС‡С€РёР»Рё РјР°СЂР¶Сѓ</td></tr>
+              <tr><td>Р¦РµРЅР°</td><td class="num">в€’157 742</td><td><span class="art-dot art-dot--red"></span>Red</td><td>Promo active / СЃРєРёРґРєРё</td><td>Р¦РµРЅР° СЃРЅРёР·РёР»Р° РјР°СЂР¶Сѓ, РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ Р°РєС†РёРё</td></tr>
+              <tr><td>Р”Р°РЅРЅС‹Рµ</td><td class="num">вЂ”</td><td><span class="art-dot art-dot--yellow"></span>Yellow</td><td>Р•СЃС‚СЊ РЅРµРїРѕР»РЅС‹Рµ РїСЂРёР·РЅР°РєРё</td><td>РџРµСЂРµРґ СЂРµС€РµРЅРёРµРј РїСЂРѕРІРµСЂРёС‚СЊ СЃРїСЂР°РІРѕС‡РЅРёРєРё Рё SKU</td></tr>
             </tbody>
           </table></div>
-          <div class="callout"><span class="callout__label">Правильный вывод</span><p>Маржа выросла, но качество роста смешанное. Плюс дали ассортимент и себестоимость, минус — цена и количество. При этом падение количества может быть связано с отсутствием товара, а снижение цены — с маркетинговой активностью. Решение нельзя принимать только по факторному мосту: нужно проверить stock-out, сезонность и эффективность промо.</p></div>
+          <div class="callout"><span class="callout__label">РџСЂР°РІРёР»СЊРЅС‹Р№ РІС‹РІРѕРґ</span><p>РњР°СЂР¶Р° РІС‹СЂРѕСЃР»Р°, РЅРѕ РєР°С‡РµСЃС‚РІРѕ СЂРѕСЃС‚Р° СЃРјРµС€Р°РЅРЅРѕРµ. РџР»СЋСЃ РґР°Р»Рё Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚ Рё СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, РјРёРЅСѓСЃ вЂ” С†РµРЅР° Рё РєРѕР»РёС‡РµСЃС‚РІРѕ. РџСЂРё СЌС‚РѕРј РїР°РґРµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃРІСЏР·Р°РЅРѕ СЃ РѕС‚СЃСѓС‚СЃС‚РІРёРµРј С‚РѕРІР°СЂР°, Р° СЃРЅРёР¶РµРЅРёРµ С†РµРЅС‹ вЂ” СЃ РјР°СЂРєРµС‚РёРЅРіРѕРІРѕР№ Р°РєС‚РёРІРЅРѕСЃС‚СЊСЋ. Р РµС€РµРЅРёРµ РЅРµР»СЊР·СЏ РїСЂРёРЅРёРјР°С‚СЊ С‚РѕР»СЊРєРѕ РїРѕ С„Р°РєС‚РѕСЂРЅРѕРјСѓ РјРѕСЃС‚Сѓ: РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ stock-out, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ Рё СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ РїСЂРѕРјРѕ.</p></div>
 
-          <h2>Как читать комбинации флагов</h2>
-          <h3>Ситуация 1. Количество упало, но товара не было на складе</h3>
+          <h2>РљР°Рє С‡РёС‚Р°С‚СЊ РєРѕРјР±РёРЅР°С†РёРё С„Р»Р°РіРѕРІ</h2>
+          <h3>РЎРёС‚СѓР°С†РёСЏ 1. РљРѕР»РёС‡РµСЃС‚РІРѕ СѓРїР°Р»Рѕ, РЅРѕ С‚РѕРІР°СЂР° РЅРµ Р±С‹Р»Рѕ РЅР° СЃРєР»Р°РґРµ</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th>Флаг</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th>Р¤Р»Р°Рі</th></tr></thead>
             <tbody>
-              <tr><td>Volume Effect</td><td><span class="art-dot art-dot--orange"></span>Отрицательный</td></tr>
+              <tr><td>Volume Effect</td><td><span class="art-dot art-dot--orange"></span>РћС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td></tr>
               <tr><td>Stock Availability</td><td><span class="art-dot art-dot--red"></span>Stock-out</td></tr>
-              <tr><td>Seasonality</td><td>Нейтрально</td></tr>
+              <tr><td>Seasonality</td><td>РќРµР№С‚СЂР°Р»СЊРЅРѕ</td></tr>
             </tbody>
           </table></div>
-          <p><strong>Вывод:</strong> нельзя делать вывод о падении спроса. Сначала нужно проверить закупки, логистику и наличие товара.</p>
-          <h3>Ситуация 2. Цена снизилась, но была маркетинговая акция</h3>
+          <p><strong>Р’С‹РІРѕРґ:</strong> РЅРµР»СЊР·СЏ РґРµР»Р°С‚СЊ РІС‹РІРѕРґ Рѕ РїР°РґРµРЅРёРё СЃРїСЂРѕСЃР°. РЎРЅР°С‡Р°Р»Р° РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ Р·Р°РєСѓРїРєРё, Р»РѕРіРёСЃС‚РёРєСѓ Рё РЅР°Р»РёС‡РёРµ С‚РѕРІР°СЂР°.</p>
+          <h3>РЎРёС‚СѓР°С†РёСЏ 2. Р¦РµРЅР° СЃРЅРёР·РёР»Р°СЃСЊ, РЅРѕ Р±С‹Р»Р° РјР°СЂРєРµС‚РёРЅРіРѕРІР°СЏ Р°РєС†РёСЏ</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th>Флаг</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th>Р¤Р»Р°Рі</th></tr></thead>
             <tbody>
-              <tr><td>Price Effect</td><td><span class="art-dot art-dot--red"></span>Отрицательный</td></tr>
-              <tr><td>Marketing Activity</td><td><span class="art-dot art-dot--yellow"></span>Акция / промо</td></tr>
-              <tr><td>Volume Effect</td><td><span class="art-dot art-dot--green"></span>Положительный</td></tr>
+              <tr><td>Price Effect</td><td><span class="art-dot art-dot--red"></span>РћС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td></tr>
+              <tr><td>Marketing Activity</td><td><span class="art-dot art-dot--yellow"></span>РђРєС†РёСЏ / РїСЂРѕРјРѕ</td></tr>
+              <tr><td>Volume Effect</td><td><span class="art-dot art-dot--green"></span>РџРѕР»РѕР¶РёС‚РµР»СЊРЅС‹Р№</td></tr>
             </tbody>
           </table></div>
-          <p><strong>Вывод:</strong> цена снизилась не обязательно из-за плохой дисциплины. Возможно, это управляемая акция. Но нужно проверить, окупился ли маркетинг.</p>
-          <h3>Ситуация 3. Mix улучшился, но товар сезонный</h3>
+          <p><strong>Р’С‹РІРѕРґ:</strong> С†РµРЅР° СЃРЅРёР·РёР»Р°СЃСЊ РЅРµ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ РёР·-Р·Р° РїР»РѕС…РѕР№ РґРёСЃС†РёРїР»РёРЅС‹. Р’РѕР·РјРѕР¶РЅРѕ, СЌС‚Рѕ СѓРїСЂР°РІР»СЏРµРјР°СЏ Р°РєС†РёСЏ. РќРѕ РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ, РѕРєСѓРїРёР»СЃСЏ Р»Рё РјР°СЂРєРµС‚РёРЅРі.</p>
+          <h3>РЎРёС‚СѓР°С†РёСЏ 3. Mix СѓР»СѓС‡С€РёР»СЃСЏ, РЅРѕ С‚РѕРІР°СЂ СЃРµР·РѕРЅРЅС‹Р№</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th>Флаг</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th>Р¤Р»Р°Рі</th></tr></thead>
             <tbody>
-              <tr><td>Mix Effect</td><td><span class="art-dot art-dot--green"></span>Положительный</td></tr>
-              <tr><td>Seasonality</td><td><span class="art-dot art-dot--yellow"></span>Сезонный товар</td></tr>
-              <tr><td>Comparable Period</td><td><span class="art-dot art-dot--orange"></span>Периоды не полностью сопоставимы</td></tr>
+              <tr><td>Mix Effect</td><td><span class="art-dot art-dot--green"></span>РџРѕР»РѕР¶РёС‚РµР»СЊРЅС‹Р№</td></tr>
+              <tr><td>Seasonality</td><td><span class="art-dot art-dot--yellow"></span>РЎРµР·РѕРЅРЅС‹Р№ С‚РѕРІР°СЂ</td></tr>
+              <tr><td>Comparable Period</td><td><span class="art-dot art-dot--orange"></span>РџРµСЂРёРѕРґС‹ РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ СЃРѕРїРѕСЃС‚Р°РІРёРјС‹</td></tr>
             </tbody>
           </table></div>
-          <p><strong>Вывод:</strong> рост mix может быть нормальным сезонным эффектом, а не устойчивым улучшением ассортимента.</p>
-          <h3>Ситуация 4. Себестоимость ухудшилась, но изменился поставщик</h3>
+          <p><strong>Р’С‹РІРѕРґ:</strong> СЂРѕСЃС‚ mix РјРѕР¶РµС‚ Р±С‹С‚СЊ РЅРѕСЂРјР°Р»СЊРЅС‹Рј СЃРµР·РѕРЅРЅС‹Рј СЌС„С„РµРєС‚РѕРј, Р° РЅРµ СѓСЃС‚РѕР№С‡РёРІС‹Рј СѓР»СѓС‡С€РµРЅРёРµРј Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚Р°.</p>
+          <h3>РЎРёС‚СѓР°С†РёСЏ 4. РЎРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ СѓС…СѓРґС€РёР»Р°СЃСЊ, РЅРѕ РёР·РјРµРЅРёР»СЃСЏ РїРѕСЃС‚Р°РІС‰РёРє</h3>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Фактор</th><th>Флаг</th></tr></thead>
+            <thead><tr><th>Р¤Р°РєС‚РѕСЂ</th><th>Р¤Р»Р°Рі</th></tr></thead>
             <tbody>
-              <tr><td>Cost Effect</td><td><span class="art-dot art-dot--red"></span>Отрицательный</td></tr>
-              <tr><td>Supplier Change</td><td><span class="art-dot art-dot--yellow"></span>Да</td></tr>
-              <tr><td>FX / Logistics</td><td><span class="art-dot art-dot--orange"></span>Возможно влияние</td></tr>
+              <tr><td>Cost Effect</td><td><span class="art-dot art-dot--red"></span>РћС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</td></tr>
+              <tr><td>Supplier Change</td><td><span class="art-dot art-dot--yellow"></span>Р”Р°</td></tr>
+              <tr><td>FX / Logistics</td><td><span class="art-dot art-dot--orange"></span>Р’РѕР·РјРѕР¶РЅРѕ РІР»РёСЏРЅРёРµ</td></tr>
             </tbody>
           </table></div>
-          <p><strong>Вывод:</strong> себестоимость могла ухудшиться не из-за товара, а из-за нового поставщика, валюты, логистики или условий поставки.</p>
+          <p><strong>Р’С‹РІРѕРґ:</strong> СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РјРѕРіР»Р° СѓС…СѓРґС€РёС‚СЊСЃСЏ РЅРµ РёР·-Р·Р° С‚РѕРІР°СЂР°, Р° РёР·-Р·Р° РЅРѕРІРѕРіРѕ РїРѕСЃС‚Р°РІС‰РёРєР°, РІР°Р»СЋС‚С‹, Р»РѕРіРёСЃС‚РёРєРё РёР»Рё СѓСЃР»РѕРІРёР№ РїРѕСЃС‚Р°РІРєРё.</p>
 
-          <h2>Что должен видеть собственник</h2>
+          <h2>Р§С‚Рѕ РґРѕР»Р¶РµРЅ РІРёРґРµС‚СЊ СЃРѕР±СЃС‚РІРµРЅРЅРёРє</h2>
           <ul>
-            <li><strong>Факторный мост</strong> — вклад количества, mix, себестоимости и цены в изменение маржи.</li>
-            <li><strong>Флаги по каждому фактору</strong> — где результат здоровый, а где тревожный.</li>
-            <li><strong>Диагностический контекст</strong> — был ли stock-out, промо, сезон, смена канала или поставщика.</li>
-            <li><strong>Флаг качества данных</strong> — можно ли вообще принимать решение по этим цифрам.</li>
+            <li><strong>Р¤Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚</strong> вЂ” РІРєР»Р°Рґ РєРѕР»РёС‡РµСЃС‚РІР°, mix, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё Рё С†РµРЅС‹ РІ РёР·РјРµРЅРµРЅРёРµ РјР°СЂР¶Рё.</li>
+            <li><strong>Р¤Р»Р°РіРё РїРѕ РєР°Р¶РґРѕРјСѓ С„Р°РєС‚РѕСЂСѓ</strong> вЂ” РіРґРµ СЂРµР·СѓР»СЊС‚Р°С‚ Р·РґРѕСЂРѕРІС‹Р№, Р° РіРґРµ С‚СЂРµРІРѕР¶РЅС‹Р№.</li>
+            <li><strong>Р”РёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёР№ РєРѕРЅС‚РµРєСЃС‚</strong> вЂ” Р±С‹Р» Р»Рё stock-out, РїСЂРѕРјРѕ, СЃРµР·РѕРЅ, СЃРјРµРЅР° РєР°РЅР°Р»Р° РёР»Рё РїРѕСЃС‚Р°РІС‰РёРєР°.</li>
+            <li><strong>Р¤Р»Р°Рі РєР°С‡РµСЃС‚РІР° РґР°РЅРЅС‹С…</strong> вЂ” РјРѕР¶РЅРѕ Р»Рё РІРѕРѕР±С‰Рµ РїСЂРёРЅРёРјР°С‚СЊ СЂРµС€РµРЅРёРµ РїРѕ СЌС‚РёРј С†РёС„СЂР°Рј.</li>
           </ul>
-          <h2>Какие решения даёт анализ</h2>
+          <h2>РљР°РєРёРµ СЂРµС€РµРЅРёСЏ РґР°С‘С‚ Р°РЅР°Р»РёР·</h2>
           <ul>
-            <li><strong>Цена.</strong> Отличать управляемые акции от потери ценовой дисциплины; проверять ROI промо.</li>
-            <li><strong>Ассортимент.</strong> Усиливать позиции, реально улучшающие mix; не путать сезонный всплеск с устойчивым ростом.</li>
-            <li><strong>Закупки.</strong> При отрицательном Cost Effect — переходить к рейтингу поставщиков и условиям закупки.</li>
-            <li><strong>Склад.</strong> Закрывать stock-out по ходовым SKU, чтобы не терять объём и маржу.</li>
+            <li><strong>Р¦РµРЅР°.</strong> РћС‚Р»РёС‡Р°С‚СЊ СѓРїСЂР°РІР»СЏРµРјС‹Рµ Р°РєС†РёРё РѕС‚ РїРѕС‚РµСЂРё С†РµРЅРѕРІРѕР№ РґРёСЃС†РёРїР»РёРЅС‹; РїСЂРѕРІРµСЂСЏС‚СЊ ROI РїСЂРѕРјРѕ.</li>
+            <li><strong>РђСЃСЃРѕСЂС‚РёРјРµРЅС‚.</strong> РЈСЃРёР»РёРІР°С‚СЊ РїРѕР·РёС†РёРё, СЂРµР°Р»СЊРЅРѕ СѓР»СѓС‡С€Р°СЋС‰РёРµ mix; РЅРµ РїСѓС‚Р°С‚СЊ СЃРµР·РѕРЅРЅС‹Р№ РІСЃРїР»РµСЃРє СЃ СѓСЃС‚РѕР№С‡РёРІС‹Рј СЂРѕСЃС‚РѕРј.</li>
+            <li><strong>Р—Р°РєСѓРїРєРё.</strong> РџСЂРё РѕС‚СЂРёС†Р°С‚РµР»СЊРЅРѕРј Cost Effect вЂ” РїРµСЂРµС…РѕРґРёС‚СЊ Рє СЂРµР№С‚РёРЅРіСѓ РїРѕСЃС‚Р°РІС‰РёРєРѕРІ Рё СѓСЃР»РѕРІРёСЏРј Р·Р°РєСѓРїРєРё.</li>
+            <li><strong>РЎРєР»Р°Рґ.</strong> Р—Р°РєСЂС‹РІР°С‚СЊ stock-out РїРѕ С…РѕРґРѕРІС‹Рј SKU, С‡С‚РѕР±С‹ РЅРµ С‚РµСЂСЏС‚СЊ РѕР±СЉС‘Рј Рё РјР°СЂР¶Сѓ.</li>
           </ul>
 
-          <h2>Как связать факторный анализ с FCF по SKU и рейтингом поставщиков</h2>
-          <p>Факторный анализ показывает, что себестоимость дала плюс или минус. Но чтобы понять причину, нужно перейти к поставщикам. Если <strong>Cost Effect положительный</strong> — проверьте: поставщик дал лучшую цену, улучшилась отсрочка, снизилась логистика, улучшились условия возврата, снизилась заморозка НДС, была разовая закупочная акция или изменился валютный курс. Если <strong>Cost Effect отрицательный</strong> — проверьте: ухудшилась закупочная цена, поставщик сократил отсрочку, выросла логистика или заморозка НДС, сменился поставщик, ухудшились условия импорта, либо закупки выбрали «дешевле по прайсу», но дороже по полной стоимости.</p>
-          <div class="callout"><span class="callout__label">Связка методологии</span><p>Факторный анализ маржи показывает, <strong>где</strong> появилась проблема, а <a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a> помогает понять, <strong>у кого и на каких условиях</strong> нужно покупать, чтобы её исправить. А <a href="fcf-postavshiki.html">FCF по SKU</a> показывает, какие товары вообще создают деньги.</p></div>
+          <h2>РљР°Рє СЃРІСЏР·Р°С‚СЊ С„Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· СЃ FCF РїРѕ SKU Рё СЂРµР№С‚РёРЅРіРѕРј РїРѕСЃС‚Р°РІС‰РёРєРѕРІ</h2>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РїРѕРєР°Р·С‹РІР°РµС‚, С‡С‚Рѕ СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РґР°Р»Р° РїР»СЋСЃ РёР»Рё РјРёРЅСѓСЃ. РќРѕ С‡С‚РѕР±С‹ РїРѕРЅСЏС‚СЊ РїСЂРёС‡РёРЅСѓ, РЅСѓР¶РЅРѕ РїРµСЂРµР№С‚Рё Рє РїРѕСЃС‚Р°РІС‰РёРєР°Рј. Р•СЃР»Рё <strong>Cost Effect РїРѕР»РѕР¶РёС‚РµР»СЊРЅС‹Р№</strong> вЂ” РїСЂРѕРІРµСЂСЊС‚Рµ: РїРѕСЃС‚Р°РІС‰РёРє РґР°Р» Р»СѓС‡С€СѓСЋ С†РµРЅСѓ, СѓР»СѓС‡С€РёР»Р°СЃСЊ РѕС‚СЃСЂРѕС‡РєР°, СЃРЅРёР·РёР»Р°СЃСЊ Р»РѕРіРёСЃС‚РёРєР°, СѓР»СѓС‡С€РёР»РёСЃСЊ СѓСЃР»РѕРІРёСЏ РІРѕР·РІСЂР°С‚Р°, СЃРЅРёР·РёР»Р°СЃСЊ Р·Р°РјРѕСЂРѕР·РєР° РќР”РЎ, Р±С‹Р»Р° СЂР°Р·РѕРІР°СЏ Р·Р°РєСѓРїРѕС‡РЅР°СЏ Р°РєС†РёСЏ РёР»Рё РёР·РјРµРЅРёР»СЃСЏ РІР°Р»СЋС‚РЅС‹Р№ РєСѓСЂСЃ. Р•СЃР»Рё <strong>Cost Effect РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№</strong> вЂ” РїСЂРѕРІРµСЂСЊС‚Рµ: СѓС…СѓРґС€РёР»Р°СЃСЊ Р·Р°РєСѓРїРѕС‡РЅР°СЏ С†РµРЅР°, РїРѕСЃС‚Р°РІС‰РёРє СЃРѕРєСЂР°С‚РёР» РѕС‚СЃСЂРѕС‡РєСѓ, РІС‹СЂРѕСЃР»Р° Р»РѕРіРёСЃС‚РёРєР° РёР»Рё Р·Р°РјРѕСЂРѕР·РєР° РќР”РЎ, СЃРјРµРЅРёР»СЃСЏ РїРѕСЃС‚Р°РІС‰РёРє, СѓС…СѓРґС€РёР»РёСЃСЊ СѓСЃР»РѕРІРёСЏ РёРјРїРѕСЂС‚Р°, Р»РёР±Рѕ Р·Р°РєСѓРїРєРё РІС‹Р±СЂР°Р»Рё В«РґРµС€РµРІР»Рµ РїРѕ РїСЂР°Р№СЃСѓВ», РЅРѕ РґРѕСЂРѕР¶Рµ РїРѕ РїРѕР»РЅРѕР№ СЃС‚РѕРёРјРѕСЃС‚Рё.</p>
+          <div class="callout"><span class="callout__label">РЎРІСЏР·РєР° РјРµС‚РѕРґРѕР»РѕРіРёРё</span><p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё РїРѕРєР°Р·С‹РІР°РµС‚, <strong>РіРґРµ</strong> РїРѕСЏРІРёР»Р°СЃСЊ РїСЂРѕР±Р»РµРјР°, Р° <a href="supplier-rating-purchasing-priorities.html">СЂРµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєРѕРІ</a> РїРѕРјРѕРіР°РµС‚ РїРѕРЅСЏС‚СЊ, <strong>Сѓ РєРѕРіРѕ Рё РЅР° РєР°РєРёС… СѓСЃР»РѕРІРёСЏС…</strong> РЅСѓР¶РЅРѕ РїРѕРєСѓРїР°С‚СЊ, С‡С‚РѕР±С‹ РµС‘ РёСЃРїСЂР°РІРёС‚СЊ. Рђ <a href="fcf-postavshiki.html">FCF РїРѕ SKU</a> РїРѕРєР°Р·С‹РІР°РµС‚, РєР°РєРёРµ С‚РѕРІР°СЂС‹ РІРѕРѕР±С‰Рµ СЃРѕР·РґР°СЋС‚ РґРµРЅСЊРіРё.</p></div>
 
-          <h2>Общая формула управленческого решения</h2>
-          <div class="art-formula"><b>Решение по товару</b> = Маржа + FCF + Рейтинг поставщика + Флаги периода<em>Маржа показывает экономику продажи. FCF — денежный вклад SKU. Рейтинг поставщика — качество закупочных условий. Флаги периода — контекст: маркетинг, stock-out, сезонность, канал, скидки, возвраты, данные.</em></div>
+          <h2>РћР±С‰Р°СЏ С„РѕСЂРјСѓР»Р° СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРѕРіРѕ СЂРµС€РµРЅРёСЏ</h2>
+          <div class="art-formula"><b>Р РµС€РµРЅРёРµ РїРѕ С‚РѕРІР°СЂСѓ</b> = РњР°СЂР¶Р° + FCF + Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєР° + Р¤Р»Р°РіРё РїРµСЂРёРѕРґР°<em>РњР°СЂР¶Р° РїРѕРєР°Р·С‹РІР°РµС‚ СЌРєРѕРЅРѕРјРёРєСѓ РїСЂРѕРґР°Р¶Рё. FCF вЂ” РґРµРЅРµР¶РЅС‹Р№ РІРєР»Р°Рґ SKU. Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєР° вЂ” РєР°С‡РµСЃС‚РІРѕ Р·Р°РєСѓРїРѕС‡РЅС‹С… СѓСЃР»РѕРІРёР№. Р¤Р»Р°РіРё РїРµСЂРёРѕРґР° вЂ” РєРѕРЅС‚РµРєСЃС‚: РјР°СЂРєРµС‚РёРЅРі, stock-out, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ, РєР°РЅР°Р», СЃРєРёРґРєРё, РІРѕР·РІСЂР°С‚С‹, РґР°РЅРЅС‹Рµ.</em></div>
 
-          <h2>Финальный вывод</h2>
-          <p>Маржа — это итог, а не объяснение. Факторный мост показывает, что её изменило: количество, ассортимент, себестоимость или цена. Флаги и диагностические признаки показывают, почему: промо, stock-out, сезонность, канал, поставщик. Только вместе они дают решение, которому можно доверять.</p>
-          <p>Одинаковый товар нельзя оценивать только по цене закупки или марже. Его нужно видеть через связку: какие товары создают деньги (<a href="fcf-postavshiki.html">FCF по SKU</a>), у кого выгоднее покупать (<a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a>), как это влияет на маржу (этот факторный анализ) — и какие факторы исказили результат периода.</p>
+          <h2>Р¤РёРЅР°Р»СЊРЅС‹Р№ РІС‹РІРѕРґ</h2>
+          <p>РњР°СЂР¶Р° вЂ” СЌС‚Рѕ РёС‚РѕРі, Р° РЅРµ РѕР±СЉСЏСЃРЅРµРЅРёРµ. Р¤Р°РєС‚РѕСЂРЅС‹Р№ РјРѕСЃС‚ РїРѕРєР°Р·С‹РІР°РµС‚, С‡С‚Рѕ РµС‘ РёР·РјРµРЅРёР»Рѕ: РєРѕР»РёС‡РµСЃС‚РІРѕ, Р°СЃСЃРѕСЂС‚РёРјРµРЅС‚, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ РёР»Рё С†РµРЅР°. Р¤Р»Р°РіРё Рё РґРёР°РіРЅРѕСЃС‚РёС‡РµСЃРєРёРµ РїСЂРёР·РЅР°РєРё РїРѕРєР°Р·С‹РІР°СЋС‚, РїРѕС‡РµРјСѓ: РїСЂРѕРјРѕ, stock-out, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ, РєР°РЅР°Р», РїРѕСЃС‚Р°РІС‰РёРє. РўРѕР»СЊРєРѕ РІРјРµСЃС‚Рµ РѕРЅРё РґР°СЋС‚ СЂРµС€РµРЅРёРµ, РєРѕС‚РѕСЂРѕРјСѓ РјРѕР¶РЅРѕ РґРѕРІРµСЂСЏС‚СЊ.</p>
+          <p>РћРґРёРЅР°РєРѕРІС‹Р№ С‚РѕРІР°СЂ РЅРµР»СЊР·СЏ РѕС†РµРЅРёРІР°С‚СЊ С‚РѕР»СЊРєРѕ РїРѕ С†РµРЅРµ Р·Р°РєСѓРїРєРё РёР»Рё РјР°СЂР¶Рµ. Р•РіРѕ РЅСѓР¶РЅРѕ РІРёРґРµС‚СЊ С‡РµСЂРµР· СЃРІСЏР·РєСѓ: РєР°РєРёРµ С‚РѕРІР°СЂС‹ СЃРѕР·РґР°СЋС‚ РґРµРЅСЊРіРё (<a href="fcf-postavshiki.html">FCF РїРѕ SKU</a>), Сѓ РєРѕРіРѕ РІС‹РіРѕРґРЅРµРµ РїРѕРєСѓРїР°С‚СЊ (<a href="supplier-rating-purchasing-priorities.html">СЂРµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєРѕРІ</a>), РєР°Рє СЌС‚Рѕ РІР»РёСЏРµС‚ РЅР° РјР°СЂР¶Сѓ (СЌС‚РѕС‚ С„Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР·) вЂ” Рё РєР°РєРёРµ С„Р°РєС‚РѕСЂС‹ РёСЃРєР°Р·РёР»Рё СЂРµР·СѓР»СЊС‚Р°С‚ РїРµСЂРёРѕРґР°.</p>
 
-          <h2>Как автоматизировать факторный анализ маржи</h2>
-          <p>Факторный анализ не должен собираться вручную в конце месяца. Данные по продажам, себестоимости, складу, маркетингу и возвратам должны автоматически попадать в модель.</p>
-          <h3>Что можно автоматизировать через n8n / Make</h3>
-          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Процесс</th><th>Что делает автоматизация</th></tr></thead><tbody><tr><td>Импорт продаж</td><td>Загружает продажи по SKU из ERP / CRM / кассы / маркетплейса</td></tr><tr><td>Импорт себестоимости</td><td>Подтягивает COGS и закупочные цены</td></tr><tr><td>Импорт склада</td><td>Загружает наличие, stock-out days, availability %</td></tr><tr><td>Импорт маркетинга</td><td>Подтягивает campaign name, marketing spend, promo days</td></tr><tr><td>Импорт возвратов</td><td>Добавляет returns rate и сумму возвратов</td></tr><tr><td>Обновление справочников</td><td>SKU, категории, поставщики, сезонность, каналы продаж</td></tr><tr><td>Уведомления</td><td>Отправляет alerts, если Price Effect или Cost Effect в красной зоне</td></tr></tbody></table></div>
-          <h3>Что показывает Power BI</h3>
-          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Dashboard</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>Margin Bridge</td><td>Изменение маржи по факторам: volume, mix, cost, price</td></tr><tr><td>Risk Flags</td><td>Price, Volume, Mix, Cost, Data Quality</td></tr><tr><td>Promo Impact</td><td>Как маркетинг и скидки повлияли на маржу</td></tr><tr><td>Stock-out Impact</td><td>Сколько маржи потеряно из-за отсутствия товара</td></tr><tr><td>Seasonality Check</td><td>Сопоставимость периодов и сезонный эффект</td></tr><tr><td>SKU Drill-down</td><td>Какие товары ухудшили или улучшили маржу</td></tr></tbody></table></div>
-          <div class="callout"><span class="callout__label">Главный вывод</span><p>Факторный анализ маржи становится сильным только тогда, когда цифры обновляются автоматически, а собственник видит не таблицу, а dashboard причин и решений.</p></div>
+          <h2>РљР°Рє Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ С„Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё</h2>
+          <p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РЅРµ РґРѕР»Р¶РµРЅ СЃРѕР±РёСЂР°С‚СЊСЃСЏ РІСЂСѓС‡РЅСѓСЋ РІ РєРѕРЅС†Рµ РјРµСЃСЏС†Р°. Р”Р°РЅРЅС‹Рµ РїРѕ РїСЂРѕРґР°Р¶Р°Рј, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё, СЃРєР»Р°РґСѓ, РјР°СЂРєРµС‚РёРЅРіСѓ Рё РІРѕР·РІСЂР°С‚Р°Рј РґРѕР»Р¶РЅС‹ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїРѕРїР°РґР°С‚СЊ РІ РјРѕРґРµР»СЊ.</p>
+          <h3>Р§С‚Рѕ РјРѕР¶РЅРѕ Р°РІС‚РѕРјР°С‚РёР·РёСЂРѕРІР°С‚СЊ С‡РµСЂРµР· n8n / Make</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>РџСЂРѕС†РµСЃСЃ</th><th>Р§С‚Рѕ РґРµР»Р°РµС‚ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёСЏ</th></tr></thead><tbody><tr><td>РРјРїРѕСЂС‚ РїСЂРѕРґР°Р¶</td><td>Р—Р°РіСЂСѓР¶Р°РµС‚ РїСЂРѕРґР°Р¶Рё РїРѕ SKU РёР· ERP / CRM / РєР°СЃСЃС‹ / РјР°СЂРєРµС‚РїР»РµР№СЃР°</td></tr><tr><td>РРјРїРѕСЂС‚ СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚Рё</td><td>РџРѕРґС‚СЏРіРёРІР°РµС‚ COGS Рё Р·Р°РєСѓРїРѕС‡РЅС‹Рµ С†РµРЅС‹</td></tr><tr><td>РРјРїРѕСЂС‚ СЃРєР»Р°РґР°</td><td>Р—Р°РіСЂСѓР¶Р°РµС‚ РЅР°Р»РёС‡РёРµ, stock-out days, availability %</td></tr><tr><td>РРјРїРѕСЂС‚ РјР°СЂРєРµС‚РёРЅРіР°</td><td>РџРѕРґС‚СЏРіРёРІР°РµС‚ campaign name, marketing spend, promo days</td></tr><tr><td>РРјРїРѕСЂС‚ РІРѕР·РІСЂР°С‚РѕРІ</td><td>Р”РѕР±Р°РІР»СЏРµС‚ returns rate Рё СЃСѓРјРјСѓ РІРѕР·РІСЂР°С‚РѕРІ</td></tr><tr><td>РћР±РЅРѕРІР»РµРЅРёРµ СЃРїСЂР°РІРѕС‡РЅРёРєРѕРІ</td><td>SKU, РєР°С‚РµРіРѕСЂРёРё, РїРѕСЃС‚Р°РІС‰РёРєРё, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ, РєР°РЅР°Р»С‹ РїСЂРѕРґР°Р¶</td></tr><tr><td>РЈРІРµРґРѕРјР»РµРЅРёСЏ</td><td>РћС‚РїСЂР°РІР»СЏРµС‚ alerts, РµСЃР»Рё Price Effect РёР»Рё Cost Effect РІ РєСЂР°СЃРЅРѕР№ Р·РѕРЅРµ</td></tr></tbody></table></div>
+          <h3>Р§С‚Рѕ РїРѕРєР°Р·С‹РІР°РµС‚ Power BI</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Dashboard</th><th>Р§С‚Рѕ РІРёРґРёС‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРє</th></tr></thead><tbody><tr><td>Margin Bridge</td><td>РР·РјРµРЅРµРЅРёРµ РјР°СЂР¶Рё РїРѕ С„Р°РєС‚РѕСЂР°Рј: volume, mix, cost, price</td></tr><tr><td>Risk Flags</td><td>Price, Volume, Mix, Cost, Data Quality</td></tr><tr><td>Promo Impact</td><td>РљР°Рє РјР°СЂРєРµС‚РёРЅРі Рё СЃРєРёРґРєРё РїРѕРІР»РёСЏР»Рё РЅР° РјР°СЂР¶Сѓ</td></tr><tr><td>Stock-out Impact</td><td>РЎРєРѕР»СЊРєРѕ РјР°СЂР¶Рё РїРѕС‚РµСЂСЏРЅРѕ РёР·-Р·Р° РѕС‚СЃСѓС‚СЃС‚РІРёСЏ С‚РѕРІР°СЂР°</td></tr><tr><td>Seasonality Check</td><td>РЎРѕРїРѕСЃС‚Р°РІРёРјРѕСЃС‚СЊ РїРµСЂРёРѕРґРѕРІ Рё СЃРµР·РѕРЅРЅС‹Р№ СЌС„С„РµРєС‚</td></tr><tr><td>SKU Drill-down</td><td>РљР°РєРёРµ С‚РѕРІР°СЂС‹ СѓС…СѓРґС€РёР»Рё РёР»Рё СѓР»СѓС‡С€РёР»Рё РјР°СЂР¶Сѓ</td></tr></tbody></table></div>
+          <div class="callout"><span class="callout__label">Р“Р»Р°РІРЅС‹Р№ РІС‹РІРѕРґ</span><p>Р¤Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃС‚Р°РЅРѕРІРёС‚СЃСЏ СЃРёР»СЊРЅС‹Рј С‚РѕР»СЊРєРѕ С‚РѕРіРґР°, РєРѕРіРґР° С†РёС„СЂС‹ РѕР±РЅРѕРІР»СЏСЋС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё, Р° СЃРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РЅРµ С‚Р°Р±Р»РёС†Сѓ, Р° dashboard РїСЂРёС‡РёРЅ Рё СЂРµС€РµРЅРёР№.</p></div>
           </section>
       </article>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Хотите понять, почему изменилась маржа — и что с этим делать?</p>
-        <p class="cta-band__text">FINMENTOR помогает собственникам построить факторный анализ маржи с флагами: цена, количество, mix, себестоимость, маркетинговая активность, наличие товара на складе, сезонность, скидки, возвраты и качество данных.</p>
+        <p class="cta-band__title">РҐРѕС‚РёС‚Рµ РїРѕРЅСЏС‚СЊ, РїРѕС‡РµРјСѓ РёР·РјРµРЅРёР»Р°СЃСЊ РјР°СЂР¶Р° вЂ” Рё С‡С‚Рѕ СЃ СЌС‚РёРј РґРµР»Р°С‚СЊ?</p>
+        <p class="cta-band__text">FINMENTOR РїРѕРјРѕРіР°РµС‚ СЃРѕР±СЃС‚РІРµРЅРЅРёРєР°Рј РїРѕСЃС‚СЂРѕРёС‚СЊ С„Р°РєС‚РѕСЂРЅС‹Р№ Р°РЅР°Р»РёР· РјР°СЂР¶Рё СЃ С„Р»Р°РіР°РјРё: С†РµРЅР°, РєРѕР»РёС‡РµСЃС‚РІРѕ, mix, СЃРµР±РµСЃС‚РѕРёРјРѕСЃС‚СЊ, РјР°СЂРєРµС‚РёРЅРіРѕРІР°СЏ Р°РєС‚РёРІРЅРѕСЃС‚СЊ, РЅР°Р»РёС‡РёРµ С‚РѕРІР°СЂР° РЅР° СЃРєР»Р°РґРµ, СЃРµР·РѕРЅРЅРѕСЃС‚СЊ, СЃРєРёРґРєРё, РІРѕР·РІСЂР°С‚С‹ Рё РєР°С‡РµСЃС‚РІРѕ РґР°РЅРЅС‹С….</p>
         <div class="article-cta-actions">
-          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">Проверить маржу бизнеса <span>&rarr;</span></a>
-          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать CFO-диагностику <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">РџСЂРѕРІРµСЂРёС‚СЊ РјР°СЂР¶Сѓ Р±РёР·РЅРµСЃР° <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Р—Р°РєР°Р·Р°С‚СЊ CFO-РґРёР°РіРЅРѕСЃС‚РёРєСѓ <span>&rarr;</span></a>
         </div>
       </section>
     </div>
 
     <div class="container">
-      <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Серия FINMENTOR: закупки, поставщики, маржа, Cash Flow</p>
-        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="fcf-postavshiki.html">FCF по SKU: какие товары создают Cash Flow</a><a href="working-capital.html">Оборотный капитал</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="upravlencheskiy-pl.html">Управленческий P&L</a></div>
+      <nav class="related" aria-label="РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹">
+        <p class="related__label">РЎРµСЂРёСЏ FINMENTOR: Р·Р°РєСѓРїРєРё, РїРѕСЃС‚Р°РІС‰РёРєРё, РјР°СЂР¶Р°, Cash Flow</p>
+        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Р РµР№С‚РёРЅРі РїРѕСЃС‚Р°РІС‰РёРєРѕРІ: Сѓ РєРѕРіРѕ РєСѓРїРёС‚СЊ С‚РѕРІР°СЂ</a><a href="fcf-postavshiki.html">FCF РїРѕ SKU: РєР°РєРёРµ С‚РѕРІР°СЂС‹ СЃРѕР·РґР°СЋС‚ Cash Flow</a><a href="working-capital.html">РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</a><a href="cash-flow.html">РџРѕС‡РµРјСѓ РїСЂРёР±С‹Р»СЊ РЅРµ СЂР°РІРЅР° РґРµРЅСЊРіР°Рј</a><a href="upravlencheskiy-pl.html">РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&L</a></div>
       </nav>
     </div>
   </main>
@@ -409,15 +413,15 @@
   <footer class="doc-foot">
     <div class="container doc-foot__row">
       <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
+        <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
         <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+      <span class="doc-foot__muted">В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹. В· Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ. <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a></span>
     </div>
   </footer>
   <script src="assistant.js"></script>

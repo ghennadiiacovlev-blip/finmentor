@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
-  FINMENTOR — proprietary website content and implementation.
-  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  FINMENTOR вЂ” proprietary website content and implementation.
+  В© 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
 --><html lang="ru">
@@ -12,23 +12,26 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
-    gtag('config', 'G-94L98WZ12');
+    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
-  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="copyright" content="В© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>Business Control System — управленческая система для бизнеса | FINMENTOR</title>
-  <meta name="description" content="Business Control System — система управления бизнесом через цифры: P&amp;L, Cash Flow, казначейство, KPI, Power BI и регламенты. От 5 000 €, срок 1–3 месяца." />
+  <title>Business Control System вЂ” СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ СЃРёСЃС‚РµРјР° РґР»СЏ Р±РёР·РЅРµСЃР° | FINMENTOR</title>
+  <meta name="description" content="Business Control System вЂ” СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј С‡РµСЂРµР· С†РёС„СЂС‹: P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, Power BI Рё СЂРµРіР»Р°РјРµРЅС‚С‹. РћС‚ 5 000 в‚¬, СЃСЂРѕРє 1вЂ“3 РјРµСЃСЏС†Р°." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/business-control-system.html" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Business Control System — управленческая система для бизнеса | FINMENTOR" />
-  <meta property="og:description" content="Business Control System — система управления бизнесом через цифры: P&amp;L, Cash Flow, казначейство, KPI, Power BI и регламенты. От 5 000 €, срок 1–3 месяца." />
+  <meta property="og:title" content="Business Control System вЂ” СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ СЃРёСЃС‚РµРјР° РґР»СЏ Р±РёР·РЅРµСЃР° | FINMENTOR" />
+  <meta property="og:description" content="Business Control System вЂ” СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј С‡РµСЂРµР· С†РёС„СЂС‹: P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, Power BI Рё СЂРµРіР»Р°РјРµРЅС‚С‹. РћС‚ 5 000 в‚¬, СЃСЂРѕРє 1вЂ“3 РјРµСЃСЏС†Р°." />
   <meta property="og:url" content="https://www.finmentor.md/business-control-system.html" />
   <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
@@ -36,8 +39,8 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Business Control System — управленческая система для бизнеса | FINMENTOR" />
-  <meta name="twitter:description" content="Business Control System — система управления бизнесом через цифры: P&amp;L, Cash Flow, казначейство, KPI, Power BI и регламенты. От 5 000 €, срок 1–3 месяца." />
+  <meta name="twitter:title" content="Business Control System вЂ” СѓРїСЂР°РІР»РµРЅС‡РµСЃРєР°СЏ СЃРёСЃС‚РµРјР° РґР»СЏ Р±РёР·РЅРµСЃР° | FINMENTOR" />
+  <meta name="twitter:description" content="Business Control System вЂ” СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј С‡РµСЂРµР· С†РёС„СЂС‹: P&amp;L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, Power BI Рё СЂРµРіР»Р°РјРµРЅС‚С‹. РћС‚ 5 000 в‚¬, СЃСЂРѕРє 1вЂ“3 РјРµСЃСЏС†Р°." />
   <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -54,7 +57,7 @@
       "@id": "https://www.finmentor.md/business-control-system.html#service",
       "name": "Business Control System",
       "serviceType": "Business Control System",
-      "description": "Business Control System — система управления бизнесом через цифры: P&L, Cash Flow, казначейство, KPI, Power BI и регламенты. От 5 000 €, срок 1–3 месяца.",
+      "description": "Business Control System вЂ” СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј С‡РµСЂРµР· С†РёС„СЂС‹: P&L, Cash Flow, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, KPI, Power BI Рё СЂРµРіР»Р°РјРµРЅС‚С‹. РћС‚ 5 000 в‚¬, СЃСЂРѕРє 1вЂ“3 РјРµСЃСЏС†Р°.",
       "url": "https://www.finmentor.md/business-control-system.html",
       "areaServed": [
         "MD",
@@ -73,7 +76,7 @@
         "@type": "Offer",
         "price": "5000",
         "priceCurrency": "EUR",
-        "description": "Business Control System, от 5 000 €"
+        "description": "Business Control System, РѕС‚ 5 000 в‚¬"
       }
     },
     {
@@ -82,13 +85,13 @@
         {
           "@type": "ListItem",
           "position": 1,
-          "name": "Главная",
+          "name": "Р“Р»Р°РІРЅР°СЏ",
           "item": "https://www.finmentor.md/"
         },
         {
           "@type": "ListItem",
           "position": 2,
-          "name": "Материалы",
+          "name": "РњР°С‚РµСЂРёР°Р»С‹",
           "item": "https://www.finmentor.md/materials.html"
         },
         {
@@ -104,34 +107,34 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Сколько стоит Business Control System?",
+          "name": "РЎРєРѕР»СЊРєРѕ СЃС‚РѕРёС‚ Business Control System?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "От 5 000 €. Точная стоимость зависит от масштаба бизнеса, количества компаний и глубины внедрения."
+            "text": "РћС‚ 5 000 в‚¬. РўРѕС‡РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ Р·Р°РІРёСЃРёС‚ РѕС‚ РјР°СЃС€С‚Р°Р±Р° Р±РёР·РЅРµСЃР°, РєРѕР»РёС‡РµСЃС‚РІР° РєРѕРјРїР°РЅРёР№ Рё РіР»СѓР±РёРЅС‹ РІРЅРµРґСЂРµРЅРёСЏ."
           }
         },
         {
           "@type": "Question",
-          "name": "Сколько занимает внедрение?",
+          "name": "РЎРєРѕР»СЊРєРѕ Р·Р°РЅРёРјР°РµС‚ РІРЅРµРґСЂРµРЅРёРµ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "1–3 месяца в зависимости от состояния учёта и сложности группы. Работа идёт этапами с понятными результатами на каждом."
+            "text": "1вЂ“3 РјРµСЃСЏС†Р° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЃРѕСЃС‚РѕСЏРЅРёСЏ СѓС‡С‘С‚Р° Рё СЃР»РѕР¶РЅРѕСЃС‚Рё РіСЂСѓРїРїС‹. Р Р°Р±РѕС‚Р° РёРґС‘С‚ СЌС‚Р°РїР°РјРё СЃ РїРѕРЅСЏС‚РЅС‹РјРё СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё РЅР° РєР°Р¶РґРѕРј."
           }
         },
         {
           "@type": "Question",
-          "name": "Нужно ли сначала проходить диагностику?",
+          "name": "РќСѓР¶РЅРѕ Р»Рё СЃРЅР°С‡Р°Р»Р° РїСЂРѕС…РѕРґРёС‚СЊ РґРёР°РіРЅРѕСЃС‚РёРєСѓ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Желательно. Financial Health Check показывает приоритеты и снижает риск делать лишнее. Иногда внедрение начинается сразу после анкеты и установочной встречи."
+            "text": "Р–РµР»Р°С‚РµР»СЊРЅРѕ. Financial Health Check РїРѕРєР°Р·С‹РІР°РµС‚ РїСЂРёРѕСЂРёС‚РµС‚С‹ Рё СЃРЅРёР¶Р°РµС‚ СЂРёСЃРє РґРµР»Р°С‚СЊ Р»РёС€РЅРµРµ. РРЅРѕРіРґР° РІРЅРµРґСЂРµРЅРёРµ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ Р°РЅРєРµС‚С‹ Рё СѓСЃС‚Р°РЅРѕРІРѕС‡РЅРѕР№ РІСЃС‚СЂРµС‡Рё."
           }
         },
         {
           "@type": "Question",
-          "name": "Можно ли внедрять удалённо?",
+          "name": "РњРѕР¶РЅРѕ Р»Рё РІРЅРµРґСЂСЏС‚СЊ СѓРґР°Р»С‘РЅРЅРѕ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да. Внедрение идёт через регулярные онлайн-встречи, общий рабочий контур и защищённый обмен данными."
+            "text": "Р”Р°. Р’РЅРµРґСЂРµРЅРёРµ РёРґС‘С‚ С‡РµСЂРµР· СЂРµРіСѓР»СЏСЂРЅС‹Рµ РѕРЅР»Р°Р№РЅ-РІСЃС‚СЂРµС‡Рё, РѕР±С‰РёР№ СЂР°Р±РѕС‡РёР№ РєРѕРЅС‚СѓСЂ Рё Р·Р°С‰РёС‰С‘РЅРЅС‹Р№ РѕР±РјРµРЅ РґР°РЅРЅС‹РјРё."
           }
         }
       ]
@@ -143,11 +146,11 @@
 <body>
   <header class="doc-bar">
     <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Навигация">
-        <a href="index.html" class="doc-bar__hide">На главную</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+      <a class="logo" href="index.html" aria-label="finmentor вЂ” РЅР° РіР»Р°РІРЅСѓСЋ"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="РќР°РІРёРіР°С†РёСЏ">
+        <a href="index.html" class="doc-bar__hide">РќР° РіР»Р°РІРЅСѓСЋ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
         <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
       </nav>
     </div>
@@ -155,64 +158,64 @@
 
   <main>
     <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Business Control System</span>
+      <nav class="crumbs" aria-label="РҐР»РµР±РЅС‹Рµ РєСЂРѕС€РєРё">
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a> / <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a> / <span>Business Control System</span>
       </nav>
     </div>
 
     <section class="doc-hero">
       <div class="container">
-        <p class="doc-hero__eyebrow">Услуга · Внедрение системы</p>
-        <h1>Business Control System: система управления бизнесом через цифры</h1>
-        <p class="doc-hero__lead">Переход от хаоса к системе: единый управленческий контур, в котором собственник видит деньги, прибыль, риски и отклонения — и принимает решения на цифрах.</p>
-        <p class="doc-hero__context">Внедрение системы — ядро работы внешнего CFO.</p>
+        <p class="doc-hero__eyebrow">РЈСЃР»СѓРіР° В· Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹</p>
+        <h1>Business Control System: СЃРёСЃС‚РµРјР° СѓРїСЂР°РІР»РµРЅРёСЏ Р±РёР·РЅРµСЃРѕРј С‡РµСЂРµР· С†РёС„СЂС‹</h1>
+        <p class="doc-hero__lead">РџРµСЂРµС…РѕРґ РѕС‚ С…Р°РѕСЃР° Рє СЃРёСЃС‚РµРјРµ: РµРґРёРЅС‹Р№ СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ РєРѕРЅС‚СѓСЂ, РІ РєРѕС‚РѕСЂРѕРј СЃРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, СЂРёСЃРєРё Рё РѕС‚РєР»РѕРЅРµРЅРёСЏ вЂ” Рё РїСЂРёРЅРёРјР°РµС‚ СЂРµС€РµРЅРёСЏ РЅР° С†РёС„СЂР°С….</p>
+        <p class="doc-hero__context">Р’РЅРµРґСЂРµРЅРёРµ СЃРёСЃС‚РµРјС‹ вЂ” СЏРґСЂРѕ СЂР°Р±РѕС‚С‹ РІРЅРµС€РЅРµРіРѕ CFO.</p>
       </div>
     </section>
 
     <div class="container">
       <article class="doc">
         <section>
-          <h2>Для кого</h2>
-          <ul><li>Бизнесу, который перерос «ручное» управление финансами.</li><li>Растущим компаниям и группам компаний.</li><li>Собственникам, которые хотят управлять на цифрах, а не на ощущениях.</li><li>Тем, кто прошёл диагностику и готов внедрять систему.</li></ul>
-          <h2>Что входит</h2>
-          <ul><li>Управленческий P&L.</li><li>Cash Flow.</li><li>Платёжный календарь.</li><li>Казначейство, фонды и приоритеты платежей.</li><li>Система KPI.</li><li>Power BI dashboard.</li><li>План-факт контроль.</li><li>Регламенты финансового управления.</li><li>Monthly owner report.</li></ul>
+          <h2>Р”Р»СЏ РєРѕРіРѕ</h2>
+          <ul><li>Р‘РёР·РЅРµСЃСѓ, РєРѕС‚РѕСЂС‹Р№ РїРµСЂРµСЂРѕСЃ В«СЂСѓС‡РЅРѕРµВ» СѓРїСЂР°РІР»РµРЅРёРµ С„РёРЅР°РЅСЃР°РјРё.</li><li>Р Р°СЃС‚СѓС‰РёРј РєРѕРјРїР°РЅРёСЏРј Рё РіСЂСѓРїРїР°Рј РєРѕРјРїР°РЅРёР№.</li><li>РЎРѕР±СЃС‚РІРµРЅРЅРёРєР°Рј, РєРѕС‚РѕСЂС‹Рµ С…РѕС‚СЏС‚ СѓРїСЂР°РІР»СЏС‚СЊ РЅР° С†РёС„СЂР°С…, Р° РЅРµ РЅР° РѕС‰СѓС‰РµРЅРёСЏС….</li><li>РўРµРј, РєС‚Рѕ РїСЂРѕС€С‘Р» РґРёР°РіРЅРѕСЃС‚РёРєСѓ Рё РіРѕС‚РѕРІ РІРЅРµРґСЂСЏС‚СЊ СЃРёСЃС‚РµРјСѓ.</li></ul>
+          <h2>Р§С‚Рѕ РІС…РѕРґРёС‚</h2>
+          <ul><li>РЈРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ P&L.</li><li>Cash Flow.</li><li>РџР»Р°С‚С‘Р¶РЅС‹Р№ РєР°Р»РµРЅРґР°СЂСЊ.</li><li>РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ, С„РѕРЅРґС‹ Рё РїСЂРёРѕСЂРёС‚РµС‚С‹ РїР»Р°С‚РµР¶РµР№.</li><li>РЎРёСЃС‚РµРјР° KPI.</li><li>Power BI dashboard.</li><li>РџР»Р°РЅ-С„Р°РєС‚ РєРѕРЅС‚СЂРѕР»СЊ.</li><li>Р РµРіР»Р°РјРµРЅС‚С‹ С„РёРЅР°РЅСЃРѕРІРѕРіРѕ СѓРїСЂР°РІР»РµРЅРёСЏ.</li><li>Monthly owner report.</li></ul>
           <h2>P&amp;L, Cash Flow, Treasury, KPI, Power BI</h2>
-          <p>Система строится как единый контур: управленческий учёт даёт прибыль по направлениям, казначейство — контроль денег, KPI — измеримые цели, Power BI — живой дашборд. Всё связано между собой и обновляется регулярно.</p>
-          <div class="cta-band"><p class="cta-band__title">Постройте систему управления</p><p class="cta-band__text">Заполните анкету или обсудите внедрение — на основе анкеты готовится план под ваш бизнес.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Разобрать мой бизнес</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
-          <h2>Результат</h2>
-          <p>Бизнес становится управляемым: деньги, прибыль, риски, отклонения и решения находятся в одном контуре. Собственник видит реальную картину и управляет ей, а не реагирует постфактум.</p>
-          <h2>Срок и стоимость</h2>
-          <p><strong>Срок:</strong> 1–3 месяца. <strong>Стоимость:</strong> от 5 000 €. Зависит от масштаба бизнеса, числа компаний и глубины внедрения.</p>
-          <div class="callout"><span class="callout__label">Что дальше</span><p>После внедрения системы логичный следующий шаг — ежемесячное сопровождение (CFO Control Partner) для поддержания дисциплины или AI-трансформация для автоматизации отчётности и контроля.</p></div>
-          <h2>Контроль оборотного капитала</h2>
-          <p>Business Control System включает контроль оборотного капитала — там, где чаще всего застревают деньги:</p>
-          <ul><li>Дебиторка и кредиторка по срокам.</li><li>Запасы и их оборачиваемость.</li><li>Авансы полученные и выданные.</li><li>Условия оплаты клиентам и поставщикам.</li><li>Связь оборотного капитала с Cash Flow и казначейством.</li></ul>
+          <p>РЎРёСЃС‚РµРјР° СЃС‚СЂРѕРёС‚СЃСЏ РєР°Рє РµРґРёРЅС‹Р№ РєРѕРЅС‚СѓСЂ: СѓРїСЂР°РІР»РµРЅС‡РµСЃРєРёР№ СѓС‡С‘С‚ РґР°С‘С‚ РїСЂРёР±С‹Р»СЊ РїРѕ РЅР°РїСЂР°РІР»РµРЅРёСЏРј, РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕ вЂ” РєРѕРЅС‚СЂРѕР»СЊ РґРµРЅРµРі, KPI вЂ” РёР·РјРµСЂРёРјС‹Рµ С†РµР»Рё, Power BI вЂ” Р¶РёРІРѕР№ РґР°С€Р±РѕСЂРґ. Р’СЃС‘ СЃРІСЏР·Р°РЅРѕ РјРµР¶РґСѓ СЃРѕР±РѕР№ Рё РѕР±РЅРѕРІР»СЏРµС‚СЃСЏ СЂРµРіСѓР»СЏСЂРЅРѕ.</p>
+          <div class="cta-band"><p class="cta-band__title">РџРѕСЃС‚СЂРѕР№С‚Рµ СЃРёСЃС‚РµРјСѓ СѓРїСЂР°РІР»РµРЅРёСЏ</p><p class="cta-band__text">Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ РёР»Рё РѕР±СЃСѓРґРёС‚Рµ РІРЅРµРґСЂРµРЅРёРµ вЂ” РЅР° РѕСЃРЅРѕРІРµ Р°РЅРєРµС‚С‹ РіРѕС‚РѕРІРёС‚СЃСЏ РїР»Р°РЅ РїРѕРґ РІР°С€ Р±РёР·РЅРµСЃ.</p><div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Р Р°Р·РѕР±СЂР°С‚СЊ РјРѕР№ Р±РёР·РЅРµСЃ</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a></div></div>
+          <h2>Р РµР·СѓР»СЊС‚Р°С‚</h2>
+          <p>Р‘РёР·РЅРµСЃ СЃС‚Р°РЅРѕРІРёС‚СЃСЏ СѓРїСЂР°РІР»СЏРµРјС‹Рј: РґРµРЅСЊРіРё, РїСЂРёР±С‹Р»СЊ, СЂРёСЃРєРё, РѕС‚РєР»РѕРЅРµРЅРёСЏ Рё СЂРµС€РµРЅРёСЏ РЅР°С…РѕРґСЏС‚СЃСЏ РІ РѕРґРЅРѕРј РєРѕРЅС‚СѓСЂРµ. РЎРѕР±СЃС‚РІРµРЅРЅРёРє РІРёРґРёС‚ СЂРµР°Р»СЊРЅСѓСЋ РєР°СЂС‚РёРЅСѓ Рё СѓРїСЂР°РІР»СЏРµС‚ РµР№, Р° РЅРµ СЂРµР°РіРёСЂСѓРµС‚ РїРѕСЃС‚С„Р°РєС‚СѓРј.</p>
+          <h2>РЎСЂРѕРє Рё СЃС‚РѕРёРјРѕСЃС‚СЊ</h2>
+          <p><strong>РЎСЂРѕРє:</strong> 1вЂ“3 РјРµСЃСЏС†Р°. <strong>РЎС‚РѕРёРјРѕСЃС‚СЊ:</strong> РѕС‚ 5 000 в‚¬. Р—Р°РІРёСЃРёС‚ РѕС‚ РјР°СЃС€С‚Р°Р±Р° Р±РёР·РЅРµСЃР°, С‡РёСЃР»Р° РєРѕРјРїР°РЅРёР№ Рё РіР»СѓР±РёРЅС‹ РІРЅРµРґСЂРµРЅРёСЏ.</p>
+          <div class="callout"><span class="callout__label">Р§С‚Рѕ РґР°Р»СЊС€Рµ</span><p>РџРѕСЃР»Рµ РІРЅРµРґСЂРµРЅРёСЏ СЃРёСЃС‚РµРјС‹ Р»РѕРіРёС‡РЅС‹Р№ СЃР»РµРґСѓСЋС‰РёР№ С€Р°Рі вЂ” РµР¶РµРјРµСЃСЏС‡РЅРѕРµ СЃРѕРїСЂРѕРІРѕР¶РґРµРЅРёРµ (CFO Control Partner) РґР»СЏ РїРѕРґРґРµСЂР¶Р°РЅРёСЏ РґРёСЃС†РёРїР»РёРЅС‹ РёР»Рё AI-С‚СЂР°РЅСЃС„РѕСЂРјР°С†РёСЏ РґР»СЏ Р°РІС‚РѕРјР°С‚РёР·Р°С†РёРё РѕС‚С‡С‘С‚РЅРѕСЃС‚Рё Рё РєРѕРЅС‚СЂРѕР»СЏ.</p></div>
+          <h2>РљРѕРЅС‚СЂРѕР»СЊ РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р°</h2>
+          <p>Business Control System РІРєР»СЋС‡Р°РµС‚ РєРѕРЅС‚СЂРѕР»СЊ РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р° вЂ” С‚Р°Рј, РіРґРµ С‡Р°С‰Рµ РІСЃРµРіРѕ Р·Р°СЃС‚СЂРµРІР°СЋС‚ РґРµРЅСЊРіРё:</p>
+          <ul><li>Р”РµР±РёС‚РѕСЂРєР° Рё РєСЂРµРґРёС‚РѕСЂРєР° РїРѕ СЃСЂРѕРєР°Рј.</li><li>Р—Р°РїР°СЃС‹ Рё РёС… РѕР±РѕСЂР°С‡РёРІР°РµРјРѕСЃС‚СЊ.</li><li>РђРІР°РЅСЃС‹ РїРѕР»СѓС‡РµРЅРЅС‹Рµ Рё РІС‹РґР°РЅРЅС‹Рµ.</li><li>РЈСЃР»РѕРІРёСЏ РѕРїР»Р°С‚С‹ РєР»РёРµРЅС‚Р°Рј Рё РїРѕСЃС‚Р°РІС‰РёРєР°Рј.</li><li>РЎРІСЏР·СЊ РѕР±РѕСЂРѕС‚РЅРѕРіРѕ РєР°РїРёС‚Р°Р»Р° СЃ Cash Flow Рё РєР°Р·РЅР°С‡РµР№СЃС‚РІРѕРј.</li></ul>
         </section>
       </article>
     </div>
 
     <div class="container">
       <section class="faq">
-        <h2>Частые вопросы</h2>
-        <details class="faq__item"><summary>Сколько стоит Business Control System?</summary><div class="faq__item__body">От 5 000 €. Точная стоимость зависит от масштаба бизнеса, количества компаний и глубины внедрения.</div></details>
-        <details class="faq__item"><summary>Сколько занимает внедрение?</summary><div class="faq__item__body">1–3 месяца в зависимости от состояния учёта и сложности группы. Работа идёт этапами с понятными результатами на каждом.</div></details>
-        <details class="faq__item"><summary>Нужно ли сначала проходить диагностику?</summary><div class="faq__item__body">Желательно. Financial Health Check показывает приоритеты и снижает риск делать лишнее. Иногда внедрение начинается сразу после анкеты и установочной встречи.</div></details>
-        <details class="faq__item"><summary>Можно ли внедрять удалённо?</summary><div class="faq__item__body">Да. Внедрение идёт через регулярные онлайн-встречи, общий рабочий контур и защищённый обмен данными.</div></details>
+        <h2>Р§Р°СЃС‚С‹Рµ РІРѕРїСЂРѕСЃС‹</h2>
+        <details class="faq__item"><summary>РЎРєРѕР»СЊРєРѕ СЃС‚РѕРёС‚ Business Control System?</summary><div class="faq__item__body">РћС‚ 5 000 в‚¬. РўРѕС‡РЅР°СЏ СЃС‚РѕРёРјРѕСЃС‚СЊ Р·Р°РІРёСЃРёС‚ РѕС‚ РјР°СЃС€С‚Р°Р±Р° Р±РёР·РЅРµСЃР°, РєРѕР»РёС‡РµСЃС‚РІР° РєРѕРјРїР°РЅРёР№ Рё РіР»СѓР±РёРЅС‹ РІРЅРµРґСЂРµРЅРёСЏ.</div></details>
+        <details class="faq__item"><summary>РЎРєРѕР»СЊРєРѕ Р·Р°РЅРёРјР°РµС‚ РІРЅРµРґСЂРµРЅРёРµ?</summary><div class="faq__item__body">1вЂ“3 РјРµСЃСЏС†Р° РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЃРѕСЃС‚РѕСЏРЅРёСЏ СѓС‡С‘С‚Р° Рё СЃР»РѕР¶РЅРѕСЃС‚Рё РіСЂСѓРїРїС‹. Р Р°Р±РѕС‚Р° РёРґС‘С‚ СЌС‚Р°РїР°РјРё СЃ РїРѕРЅСЏС‚РЅС‹РјРё СЂРµР·СѓР»СЊС‚Р°С‚Р°РјРё РЅР° РєР°Р¶РґРѕРј.</div></details>
+        <details class="faq__item"><summary>РќСѓР¶РЅРѕ Р»Рё СЃРЅР°С‡Р°Р»Р° РїСЂРѕС…РѕРґРёС‚СЊ РґРёР°РіРЅРѕСЃС‚РёРєСѓ?</summary><div class="faq__item__body">Р–РµР»Р°С‚РµР»СЊРЅРѕ. Financial Health Check РїРѕРєР°Р·С‹РІР°РµС‚ РїСЂРёРѕСЂРёС‚РµС‚С‹ Рё СЃРЅРёР¶Р°РµС‚ СЂРёСЃРє РґРµР»Р°С‚СЊ Р»РёС€РЅРµРµ. РРЅРѕРіРґР° РІРЅРµРґСЂРµРЅРёРµ РЅР°С‡РёРЅР°РµС‚СЃСЏ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ Р°РЅРєРµС‚С‹ Рё СѓСЃС‚Р°РЅРѕРІРѕС‡РЅРѕР№ РІСЃС‚СЂРµС‡Рё.</div></details>
+        <details class="faq__item"><summary>РњРѕР¶РЅРѕ Р»Рё РІРЅРµРґСЂСЏС‚СЊ СѓРґР°Р»С‘РЅРЅРѕ?</summary><div class="faq__item__body">Р”Р°. Р’РЅРµРґСЂРµРЅРёРµ РёРґС‘С‚ С‡РµСЂРµР· СЂРµРіСѓР»СЏСЂРЅС‹Рµ РѕРЅР»Р°Р№РЅ-РІСЃС‚СЂРµС‡Рё, РѕР±С‰РёР№ СЂР°Р±РѕС‡РёР№ РєРѕРЅС‚СѓСЂ Рё Р·Р°С‰РёС‰С‘РЅРЅС‹Р№ РѕР±РјРµРЅ РґР°РЅРЅС‹РјРё.</div></details>
       </section>
     </div>
 
     <div class="container">
-      <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="cases.html">Анонимные сценарии</a><a href="working-capital.html">Оборотный капитал</a><a href="financial-health-check.html">Financial Health Check</a><a href="kaznacheystvo.html">Казначейство</a></div>
+      <nav class="related" aria-label="РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹">
+        <p class="related__label">РЎРІСЏР·Р°РЅРЅС‹Рµ РјР°С‚РµСЂРёР°Р»С‹</p>
+        <div class="related__grid"><a href="cases.html">РђРЅРѕРЅРёРјРЅС‹Рµ СЃС†РµРЅР°СЂРёРё</a><a href="working-capital.html">РћР±РѕСЂРѕС‚РЅС‹Р№ РєР°РїРёС‚Р°Р»</a><a href="financial-health-check.html">Financial Health Check</a><a href="kaznacheystvo.html">РљР°Р·РЅР°С‡РµР№СЃС‚РІРѕ</a></div>
       </nav>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
-        <p class="cta-band__title">Перейдите от хаоса к системе</p>
-        <p class="cta-band__text">Заполните анкету или обсудите внедрение — и получите план системы управления под ваш бизнес.</p>
-        <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Разобрать мой бизнес</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Заполнить анкету</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Написать в FINMENTOR Bot</a></div>
+        <p class="cta-band__title">РџРµСЂРµР№РґРёС‚Рµ РѕС‚ С…Р°РѕСЃР° Рє СЃРёСЃС‚РµРјРµ</p>
+        <p class="cta-band__text">Р—Р°РїРѕР»РЅРёС‚Рµ Р°РЅРєРµС‚Сѓ РёР»Рё РѕР±СЃСѓРґРёС‚Рµ РІРЅРµРґСЂРµРЅРёРµ вЂ” Рё РїРѕР»СѓС‡РёС‚Рµ РїР»Р°РЅ СЃРёСЃС‚РµРјС‹ СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕРґ РІР°С€ Р±РёР·РЅРµСЃ.</p>
+        <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Р Р°Р·РѕР±СЂР°С‚СЊ РјРѕР№ Р±РёР·РЅРµСЃ</a><a href="questionnaire.html" class="btn btn--ghost btn--lg">Р—Р°РїРѕР»РЅРёС‚СЊ Р°РЅРєРµС‚Сѓ</a><a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">РќР°РїРёСЃР°С‚СЊ РІ FINMENTOR Bot</a></div>
       </section>
     </div>
   </main>
@@ -220,15 +223,15 @@
   <footer class="doc-foot">
     <div class="container doc-foot__row">
       <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="index.html">Р“Р»Р°РІРЅР°СЏ</a>
+        <a href="materials.html">РњР°С‚РµСЂРёР°Р»С‹</a>
+        <a href="questionnaire.html">РђРЅРєРµС‚Р°</a>
+        <a href="privacy.html">РџРѕР»РёС‚РёРєР° РєРѕРЅС„РёРґРµРЅС†РёР°Р»СЊРЅРѕСЃС‚Рё</a>
         <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+      <span class="doc-foot__muted">В© 2026 FINMENTORв„ў. Р’СЃРµ РїСЂР°РІР° Р·Р°С‰РёС‰РµРЅС‹. В· Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">РњР°С‚РµСЂРёР°Р»С‹ СЃР°Р№С‚Р°, СЃС‚СЂСѓРєС‚СѓСЂР°, С‚РµРєСЃС‚С‹, РјРµС‚РѕРґРѕР»РѕРіРёСЏ, РІРёР·СѓР°Р»СЊРЅС‹Рµ СЌР»РµРјРµРЅС‚С‹ Рё Р±СЂРµРЅРґ FINMENTORв„ў РЅРµ РјРѕРіСѓС‚ РєРѕРїРёСЂРѕРІР°С‚СЊСЃСЏ, РїСѓР±Р»РёРєРѕРІР°С‚СЊСЃСЏ, РїРµСЂРµСЂР°Р±Р°С‚С‹РІР°С‚СЊСЃСЏ РёР»Рё РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РІ РєРѕРјРјРµСЂС‡РµСЃРєРёС… С†РµР»СЏС… Р±РµР· РїРёСЃСЊРјРµРЅРЅРѕРіРѕ СЃРѕРіР»Р°СЃРёСЏ. <a href="terms.html">РЈСЃР»РѕРІРёСЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ</a></span>
     </div>
   </footer>
   <script src="assistant.js"></script>
