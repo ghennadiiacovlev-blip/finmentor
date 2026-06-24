@@ -803,6 +803,27 @@
     function send(name, params) {
       if (typeof gtag === 'function') { try { gtag('event', name, params || {}); } catch (e) {} }
     }
+    function safeLinkUrl(a) {
+      var href = a.getAttribute('href') || '';
+      if (/^mailto:/i.test(href)) return 'mailto';
+      if (/^tel:/i.test(href)) return 'tel';
+      if (/t\.me\//i.test(href)) return 'telegram';
+      if (/wa\.me\//i.test(href)) return 'whatsapp';
+      try {
+        var u = new URL(href, window.location.href);
+        if (u.origin !== window.location.origin) return u.hostname;
+        return u.pathname + (u.hash || '');
+      } catch (e) {
+        return href.split('?')[0].slice(0, 120);
+      }
+    }
+    function safeLinkText(a) {
+      return (a.textContent || '')
+        .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig, '[email]')
+        .replace(/\+?\d[\d\s().-]{6,}\d/g, '[phone]')
+        .trim()
+        .slice(0, 80);
+    }
     document.addEventListener('click', function (e) {
       var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
       if (!a) return;
@@ -822,7 +843,7 @@
         else if (/questionnaire\.html/.test(href)) name = 'click_questionnaire';
         else if (/#consult$/.test(href)) name = 'click_discovery_call';
       }
-      if (name) send(name, { link_url: a.href || '', link_text: (a.textContent || '').trim().slice(0, 80) });
+      if (name) send(name, { link_url: safeLinkUrl(a), link_text: safeLinkText(a) });
     }, true);
   }
 
