@@ -14,8 +14,10 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    if (new URLSearchParams(window.location.search).get('debug_ga4') === '1') {
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
       gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
     } else {
       gtag('config', 'G-94L98WZ12');
     }
