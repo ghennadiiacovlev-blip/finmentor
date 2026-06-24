@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+-->
+<html lang="ru">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-94L98WZ12');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Материалы FINMENTOR — база знаний для собственника бизнеса</title>
+  <meta name="description" content="Материалы FINMENTOR: короткие экспертные разборы для собственника о деньгах, прибыли, платежах, оборотном капитале, управленческой отчётности, Power BI и AI." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/materials.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="FINMENTOR" />
+  <meta property="og:title" content="Материалы FINMENTOR" />
+  <meta property="og:description" content="Короткие экспертные разборы для собственника: деньги, прибыль, платежи, оборотный капитал, управленческая отчётность и автоматизация финансовой системы." />
+  <meta property="og:url" content="https://www.finmentor.md/materials.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Материалы FINMENTOR" />
+  <meta name="twitter:description" content="База знаний FINMENTOR для собственника: Cash Flow, P&L, платежи, оборотный капитал, Power BI и AI." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://www.finmentor.md/materials.html#page",
+        "name": "Материалы FINMENTOR",
+        "description": "Короткие экспертные разборы для собственника: деньги, прибыль, платежи, оборотный капитал, управленческая отчётность и автоматизация финансовой системы.",
+        "inLanguage": "ru",
+        "url": "https://www.finmentor.md/materials.html",
+        "isPartOf": { "@type": "WebSite", "name": "FINMENTOR", "url": "https://www.finmentor.md/" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/" },
+          { "@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/materials.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    .materials-hero__actions { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
+    .materials-hub { padding-bottom:var(--sp-10); }
+    .materials-nav { display:flex; flex-wrap:wrap; gap:10px; margin:var(--sp-6) 0 var(--sp-8); }
+    .materials-nav a { border:1px solid var(--glass-border); border-radius:var(--r-pill); padding:8px 12px; color:var(--text-secondary); font-size:0.84rem; transition:border-color var(--dur-base) ease, color var(--dur-base) ease, background var(--dur-base) ease; }
+    .materials-nav a:hover { border-color:var(--border-gold); color:var(--text-primary); background:rgba(201,162,39,0.06); }
+    .materials-section { margin-top:var(--sp-8); }
+    .materials-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-4); margin-bottom:var(--sp-4); border-bottom:1px solid var(--glass-border); padding-bottom:var(--sp-3); }
+    .materials-section__label { font-family:var(--font-mono); color:var(--accent); font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; }
+    .materials-section h2 { font-family:var(--font-display); font-size:clamp(1.45rem,2.2vw,2rem); margin-top:6px; }
+    .materials-count { color:var(--text-muted); font-size:0.84rem; white-space:nowrap; }
+    .materials-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:var(--sp-4); }
+    .kb-item { min-height:174px; display:flex; flex-direction:column; gap:8px; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); text-decoration:none; transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, background var(--dur-base) ease; }
+    a.kb-item:hover { border-color:var(--border-gold); transform:translateY(-3px); background:rgba(255,255,255,0.065); }
+    .kb-item__cat { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .kb-item__title { color:var(--text-primary); font-weight:700; font-size:1rem; line-height:1.35; }
+    .kb-item__desc { color:var(--text-secondary); font-size:0.86rem; line-height:1.55; }
+    .kb-item__status { margin-top:auto; display:inline-flex; width:max-content; max-width:100%; border:1px solid var(--glass-border-gold); border-radius:var(--r-pill); padding:4px 9px; color:var(--accent); font-size:0.74rem; font-weight:700; }
+    .kb-item--soon { opacity:0.82; }
+    .kb-item--soon .kb-item__status { color:var(--text-muted); border-color:var(--glass-border); }
+    .materials-note { margin-top:var(--sp-7); padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:rgba(255,255,255,0.025); color:var(--text-secondary); line-height:1.65; }
+    @media (max-width:640px) {
+      .materials-section__head { display:block; }
+      .materials-count { display:block; margin-top:8px; }
+      .kb-item { min-height:0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Навигация">
+        <a href="index.html" class="doc-bar__hide">На главную</a>
+        <a href="materials.html">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a> / <span>Материалы</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">База знаний FINMENTOR</p>
+        <h1>Материалы FINMENTOR</h1>
+        <p class="doc-hero__lead">Короткие экспертные разборы для собственника: деньги, прибыль, платежи, оборотный капитал, управленческая отчётность и автоматизация финансовой системы.</p>
+        <div class="materials-hero__actions">
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg">Пройти диагностику</a>
+          <a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="materials-hub">
+      <div class="container">
+        <nav class="materials-nav" aria-label="Категории материалов">
+          <a href="#cash-flow">Деньги и Cash Flow</a>
+          <a href="#reporting">Управленческая отчётность</a>
+          <a href="#working-capital">Оборотный капитал</a>
+          <a href="#sku">Закупки, SKU и поставщики</a>
+          <a href="#margin">Маржа</a>
+          <a href="#treasury">Казначейство</a>
+          <a href="#system">Финансовая система</a>
+          <a href="#automation">Power BI / AI</a>
+          <a href="#packages">Пакеты и модули</a>
+        </nav>
+
+        <section class="materials-section" id="cash-flow">
+          <div class="materials-section__head"><div><span class="materials-section__label">A</span><h2>Деньги и Cash Flow</h2></div><span class="materials-count">4 материала</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="cash-flow.html"><span class="kb-item__cat">Cash Flow</span><span class="kb-item__title">Почему прибыль не равна деньгам</span><span class="kb-item__desc">Разбор для собственника: почему P&amp;L может быть прибыльным, а денег на счёте не хватает.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="cash-flow.html"><span class="kb-item__cat">Cash Flow</span><span class="kb-item__title">Cash Flow: как собственнику видеть движение денег</span><span class="kb-item__desc">Какие отчёты и привычки контроля помогают видеть деньги заранее, а не по факту кассового разрыва.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="platezhnyy-kalendar.html"><span class="kb-item__cat">Платежи</span><span class="kb-item__title">Платёжный календарь: как не попасть в кассовый разрыв</span><span class="kb-item__desc">План поступлений и оплат на 4–8 недель, который делает платежи управляемыми.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="treasury-waterfall.html"><span class="kb-item__cat">Приоритеты</span><span class="kb-item__title">Водопад платежей: как расставлять приоритеты</span><span class="kb-item__desc">Как решать, что платить первым, когда денег меньше, чем обязательств на горизонте.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="reporting">
+          <div class="materials-section__head"><div><span class="materials-section__label">B</span><h2>Управленческая отчётность</h2></div><span class="materials-count">4 материала</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="upravlencheskiy-pl.html"><span class="kb-item__cat">P&amp;L</span><span class="kb-item__title">Как собственнику читать P&amp;L</span><span class="kb-item__desc">Главные строки отчёта о прибыли, которые показывают не бухгалтерию, а управленческую реальность.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="methodology.html"><span class="kb-item__cat">Owner report</span><span class="kb-item__title">Что должен видеть собственник каждый месяц</span><span class="kb-item__desc">Деньги, прибыль, отклонения, риски и решения в одном регулярном контуре контроля.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="methodology.html"><span class="kb-item__cat">План-факт</span><span class="kb-item__title">План-факт и отклонения</span><span class="kb-item__desc">Как не просто собирать цифры, а видеть причины отклонений и управленческие действия.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="margin-factor-analysis-flags.html"><span class="kb-item__cat">Маржа</span><span class="kb-item__title">Маржа, EBITDA, операционная прибыль — простыми словами</span><span class="kb-item__desc">Как связать прибыльность с операционными факторами и не потеряться в терминах.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="working-capital">
+          <div class="materials-section__head"><div><span class="materials-section__label">C</span><h2>Оборотный капитал</h2></div><span class="materials-count">5 материалов</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Working capital</span><span class="kb-item__title">Где застряли деньги бизнеса</span><span class="kb-item__desc">Дебиторка, склад, авансы и условия оплат как основные причины кассового напряжения.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Дебиторка</span><span class="kb-item__title">Дебиторка: почему продажи есть, а денег нет</span><span class="kb-item__desc">Как продажи в отсрочку превращаются в скрытое финансирование клиентов.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Запасы</span><span class="kb-item__title">Запасы и склад: скрытый замороженный капитал</span><span class="kb-item__desc">Почему склад может съедать cash flow даже при нормальной марже.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Кредиторка</span><span class="kb-item__title">Кредиторка и поставщики: как не потерять ликвидность</span><span class="kb-item__desc">Как условия поставщиков влияют на денежный цикл и платёжную дисциплину.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Funding gap</span><span class="kb-item__title">Funding gap: сколько дней бизнес финансирует сам себя</span><span class="kb-item__desc">Показатель, который помогает увидеть разрыв между оплатой поставщику и поступлением от клиента.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="sku">
+          <div class="materials-section__head"><div><span class="materials-section__label">D</span><h2>Закупки, SKU и поставщики</h2></div><span class="materials-count">5 материалов</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="fcf-postavshiki.html"><span class="kb-item__cat">SKU Cash Flow</span><span class="kb-item__title">FCF по SKU: какие товары создают Cash Flow</span><span class="kb-item__desc">Как увидеть, какие товары реально приносят свободный денежный поток, а какие замораживают деньги.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="fcf-postavshiki.html"><span class="kb-item__cat">SKU</span><span class="kb-item__title">Почему прибыльный товар может разрушать деньги</span><span class="kb-item__desc">Маржинальность без учёта запасов, оборачиваемости и отсрочек может дать ложный сигнал.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="fcf-postavshiki.html"><span class="kb-item__cat">Supplier financing</span><span class="kb-item__title">Supplier financing: когда поставщик финансирует рост</span><span class="kb-item__desc">Как условия оплаты поставщика могут поддерживать рост или, наоборот, создавать кассовый разрыв.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="supplier-rating-purchasing-priorities.html"><span class="kb-item__cat">Закупки</span><span class="kb-item__title">Как выбирать поставщика, если товар одинаковый</span><span class="kb-item__desc">Цена — не единственный критерий: важны отсрочка, надёжность, скорость и влияние на cash flow.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="supplier-rating-purchasing-priorities.html"><span class="kb-item__cat">Рейтинг</span><span class="kb-item__title">Рейтинг поставщиков: как выбрать, у кого купить одинаковый товар</span><span class="kb-item__desc">Матрица приоритетов для закупок, где учитываются деньги, риск и операционная устойчивость.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="margin">
+          <div class="materials-section__head"><div><span class="materials-section__label">E</span><h2>Маржа и прибыльность</h2></div><span class="materials-count">3 материала</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="margin-factor-analysis-flags.html"><span class="kb-item__cat">Margin</span><span class="kb-item__title">Факторный анализ маржи</span><span class="kb-item__desc">Как разложить изменение маржи на понятные факторы и увидеть, что именно изменилось.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="margin-factor-analysis-flags.html"><span class="kb-item__cat">Отклонения</span><span class="kb-item__title">Почему маржа падает, даже если продажи растут</span><span class="kb-item__desc">Продажи могут расти за счёт менее прибыльного микса, скидок или роста себестоимости.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="margin-factor-analysis-flags.html"><span class="kb-item__cat">Факторы</span><span class="kb-item__title">Как разложить маржу по цене, объёму, себестоимости и структуре продаж</span><span class="kb-item__desc">Финансовая логика, которая помогает отделить управляемые причины от внешних шумов.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="treasury">
+          <div class="materials-section__head"><div><span class="materials-section__label">F</span><h2>Казначейство и контроль платежей</h2></div><span class="materials-count">5 материалов</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="platezhnyy-kalendar.html"><span class="kb-item__cat">Календарь</span><span class="kb-item__title">Платёжный календарь</span><span class="kb-item__desc">Базовый инструмент, который показывает поступления, платежи и риски заранее.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="kaznacheystvo.html"><span class="kb-item__cat">Обязательства</span><span class="kb-item__title">Контроль обязательств</span><span class="kb-item__desc">Как не терять обязательства между договорами, счетами, согласованиями и оплатой.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="kaznacheystvo.html"><span class="kb-item__cat">Лимиты</span><span class="kb-item__title">Лимиты платежей</span><span class="kb-item__desc">Как ограничивать платежи не “на глаз”, а через правила и приоритеты.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="treasury-waterfall.html"><span class="kb-item__cat">Очередь</span><span class="kb-item__title">Очередь платежей и приоритеты</span><span class="kb-item__desc">Что оплачивается первым, что переносится и какие решения должен видеть собственник.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="treasury-waterfall.html"><span class="kb-item__cat">Waterfall</span><span class="kb-item__title">Водопад платежей для собственника</span><span class="kb-item__desc">Управленческий взгляд на платежи: фонды, покрытие, приоритеты и риск кассового разрыва.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="system">
+          <div class="materials-section__head"><div><span class="materials-section__label">G</span><h2>Финансовая система собственника</h2></div><span class="materials-count">4 материала</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="business-control-system.html"><span class="kb-item__cat">CFO-система</span><span class="kb-item__title">Что такое CFO-система контроля</span><span class="kb-item__desc">Не отдельный отчёт, а регулярный контур: данные, отчётность, решения, ответственность.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="power-bi-dlya-sobstvennika.html"><span class="kb-item__cat">Сначала система</span><span class="kb-item__title">Зачем сначала система, потом Power BI</span><span class="kb-item__desc">Dashboard не спасает, если нет логики данных, регламентов и управленческих вопросов.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="power-bi-dlya-sobstvennika.html"><span class="kb-item__cat">Dashboard</span><span class="kb-item__title">Что собственник должен видеть в dashboard</span><span class="kb-item__desc">Деньги, прибыль, платежи, оборотный капитал, отклонения и сигналы риска.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="methodology.html"><span class="kb-item__cat">Методология</span><span class="kb-item__title">Какие отчёты нужны до автоматизации</span><span class="kb-item__desc">Минимальный набор отчётов, который делает автоматизацию осмысленной.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="automation">
+          <div class="materials-section__head"><div><span class="materials-section__label">H</span><h2>Power BI / AI / automation</h2></div><span class="materials-count">5 материалов</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="power-bi-dlya-sobstvennika.html"><span class="kb-item__cat">Power BI</span><span class="kb-item__title">Когда бизнес готов к Power BI</span><span class="kb-item__desc">Признаки, что данные и управленческая логика уже готовы к dashboard.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="ai-dlya-cfo.html"><span class="kb-item__cat">Automation</span><span class="kb-item__title">Почему нельзя автоматизировать хаос</span><span class="kb-item__desc">AI и автоматизация усиливают систему, но не заменяют финансовую логику и порядок данных.</span><span class="kb-item__status">Читать</span></a>
+            <article class="kb-item kb-item--soon"><span class="kb-item__cat">Make / n8n</span><span class="kb-item__title">Make / n8n для финансовых процессов</span><span class="kb-item__desc">Практический разбор интеграций, approval flow и уведомлений будет вынесен в отдельный материал.</span><span class="kb-item__status">Скоро</span></article>
+            <a class="kb-item" href="ai-dlya-cfo.html"><span class="kb-item__cat">AI</span><span class="kb-item__title">AI как помощник CFO, а не замена финансовой логики</span><span class="kb-item__desc">Где AI ускоряет анализ и где финальное суждение должен подтверждать человек.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="questionnaire.html"><span class="kb-item__cat">Диагностика</span><span class="kb-item__title">Как анкета клиента превращается в карту рисков и план работ</span><span class="kb-item__desc">Какие входные данные нужны, чтобы превратить запрос в финансовую карту проблем.</span><span class="kb-item__status">Читать</span></a>
+          </div>
+        </section>
+
+        <section class="materials-section" id="packages">
+          <div class="materials-section__head"><div><span class="materials-section__label">I</span><h2>Пакеты и модули FINMENTOR</h2></div><span class="materials-count">8 материалов</span></div>
+          <div class="materials-list">
+            <a class="kb-item" href="financial-health-check.html"><span class="kb-item__cat">Пакет</span><span class="kb-item__title">Financial Health Check</span><span class="kb-item__desc">Диагностика денег, прибыли, отчётности и рисков для определения следующего шага.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="business-control-system.html"><span class="kb-item__cat">Пакет</span><span class="kb-item__title">Business Control System</span><span class="kb-item__desc">Построение регулярного управленческого контура для собственника и команды.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="monthly-cfo-support.html"><span class="kb-item__cat">Сопровождение</span><span class="kb-item__title">Monthly CFO Support</span><span class="kb-item__desc">Ежемесячный CFO-контроль, разбор отклонений и помощь в управленческих решениях.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="kaznacheystvo.html"><span class="kb-item__cat">Module</span><span class="kb-item__title">Treasury Module</span><span class="kb-item__desc">Казначейство, платёжный календарь, контроль обязательств и приоритеты оплат.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Module</span><span class="kb-item__title">Working Capital Module</span><span class="kb-item__desc">Дебиторка, запасы, кредиторка, funding gap и cash conversion cycle.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="power-bi-dlya-sobstvennika.html"><span class="kb-item__cat">Module</span><span class="kb-item__title">Power BI Module</span><span class="kb-item__desc">Owner dashboard после того, как финансовая логика и источники данных согласованы.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="ai-dlya-cfo.html"><span class="kb-item__cat">Module</span><span class="kb-item__title">AI Automation Module</span><span class="kb-item__desc">AI и автоматизация как ускорители CFO-процессов, а не замена управленческого контроля.</span><span class="kb-item__status">Читать</span></a>
+            <article class="kb-item kb-item--soon"><span class="kb-item__cat">Package</span><span class="kb-item__title">Investor / Bank Package</span><span class="kb-item__desc">Материал по пакету для банка или инвестора готовится и будет опубликован отдельно.</span><span class="kb-item__status">Скоро</span></article>
+          </div>
+        </section>
+
+        <div class="materials-note">
+          Если у карточки нет статуса “Читать”, отдельная HTML-страница пока не опубликована. Такие материалы не ведут на пустые страницы и не создают битых ссылок: их можно запросить через анкету, шаблоны или FINMENTOR Bot.
+        </div>
+
+        <section class="cta-band" style="margin-top:var(--sp-8)">
+          <p class="cta-band__title">Хотите понять, с какого материала начать?</p>
+          <p class="cta-band__text">Пройдите короткую диагностику или запросите шаблон — FINMENTOR подскажет, какие материалы и инструменты релевантны вашей ситуации.</p>
+          <div class="cta-band__row">
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg">Пройти диагностику</a>
+            <a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a>
+            <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Главная</a>
+        <a href="materials.html">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="terms.html">Условия использования материалов</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+    </div>
+  </footer>
+  <script src="assistant.js"></script>
+</body>
+</html>

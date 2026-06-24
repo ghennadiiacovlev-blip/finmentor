@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+-->
 <html lang="ru">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -18,7 +24,7 @@
   <title>FINMENTOR — внешний CFO и система финансового управления для бизнеса</title>
   <meta name="description" content="FINMENTOR помогает собственникам растущего бизнеса выстроить управленческий P&amp;L, Cash Flow, казначейство, KPI, отчётность и регулярный CFO-контроль. Power BI и AI используются для автоматизации уже построенной системы." />
   <meta name="keywords" content="внешний CFO, финансовый директор, управленческий учёт, управленческая отчётность, P&amp;L, Cash Flow, казначейство, KPI, бизнес-контроль, Power BI, AI автоматизация, Finmentor, Кишинёв, Молдова" />
-  <meta name="author" content="Геннадий Яковлев" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/" />
@@ -35,8 +41,6 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="ru_RU" />
-  <meta property="og:locale:alternate" content="ro_RO" />
-  <meta property="og:locale:alternate" content="en_US" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -67,6 +71,15 @@
         "description": "Внешний CFO и эксперт по построению систем финансового управления для собственников бизнеса: управленческий учёт, казначейство, контроль денег, прибыли и рисков. Power BI и AI — инструменты автоматизации уже построенной системы.",
         "knowsAbout": ["Внешний CFO", "Финансовое управление", "Управленческий учёт", "Управленческая отчётность", "Казначейство", "Cash Flow", "KPI", "Финансовое моделирование", "Power BI", "AI Automation", "Инвестиционный анализ"],
         "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
+        "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://www.finmentor.md/#organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/",
+        "email": "cfo@finmentor.md",
+        "founder": { "@id": "https://www.finmentor.md/#person" },
         "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
       },
       {
@@ -673,7 +686,11 @@
       <div class="container about__grid">
         <div class="about__portrait reveal">
           <figure class="portrait">
-            <img class="portrait__img" src="portrait.jpg" width="649" height="812" alt="Геннадий Яковлев — внешний CFO, FINMENTOR" loading="lazy" decoding="async" />
+            <picture class="portrait__picture">
+              <source type="image/webp" media="(max-width: 640px)" srcset="portrait-mobile.webp 430w" sizes="min(86vw, 340px)" />
+              <source type="image/webp" srcset="portrait-medium.webp 520w, portrait-large.webp 780w" sizes="(max-width: 860px) 340px, 420px" />
+              <img class="portrait__img" src="portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Геннадий Яковлев — внешний CFO, FINMENTOR" loading="lazy" decoding="async" />
+            </picture>
           </figure>
         </div>
 
@@ -737,16 +754,18 @@
         <div class="section-head">
           <p class="overline reveal">Материалы</p>
           <h2 class="section-title reveal" data-reveal-delay="1">Избранные материалы FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Короткие экспертные разборы для собственника. Полная база раскрывается внутри статей через связанные материалы.</p>
+        <p class="section-lead reveal" data-reveal-delay="2">Короткие экспертные разборы для собственника. Полная база знаний собрана на отдельной странице материалов.</p>
         </div>
         <div class="materials-grid">
           <a class="material-card reveal" href="cash-flow.html"><span class="material-card__tag">Cash Flow &amp; оборотный капитал</span><span class="material-card__title">Почему прибыль не равна деньгам</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="upravlencheskiy-pl.html" data-reveal-delay="1"><span class="material-card__tag">Управленческая отчётность</span><span class="material-card__title">Как собственнику читать P&amp;L</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Фондовое планирование и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="3"><span class="material-card__tag">Закупки и оборотный капитал</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Платёжный календарь и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Закупки и SKU</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="5"><span class="material-card__tag">CFO-система</span><span class="material-card__title">Финансовая система собственника</span><span class="material-card__arrow">Читать &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
-          <a href="cash-flow.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>
+          <a href="materials.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>
           <a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон</a>
         </div>
       </div>

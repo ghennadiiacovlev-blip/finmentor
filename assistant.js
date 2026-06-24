@@ -2,6 +2,13 @@
    Rule-based navigator: helps the visitor pick a first step.
    No backend, no external API, no AI chat, no personal data collected or sent to GA4.
    Self-contained; safe to load on every page. */
+/*
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+*/
+
 (function () {
   if (window.__faInit) return;
   window.__faInit = true;

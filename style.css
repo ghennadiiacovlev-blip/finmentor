@@ -1,3 +1,10 @@
+/*
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+*/
+
 /* ============================================================================
    FINMENTOR — Design System & Stage 1 Styles
    Vanilla CSS · no build · premium dark theme (deep navy + gold + graphite)
@@ -1519,9 +1526,11 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   width: 100%;
   height: auto;
   display: block;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center 26%;
 }
+.portrait__picture { display: block; line-height: 0; background: rgba(255,255,255,0.02); }
 /* subtle navy grade at the bottom for a premium, cohesive look */
 .portrait::after {
   content: "";

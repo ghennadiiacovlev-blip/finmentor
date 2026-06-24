@@ -3,6 +3,13 @@
    Robust by design: intro dismissal runs first; every feature is guarded so a
    failure in one never blocks the others or traps the intro overlay.
    ========================================================================== */
+/*
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+*/
+
 (function () {
   'use strict';
 
@@ -557,8 +564,7 @@
          //   method: 'POST',
          //   headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
          //   body: JSON.stringify(lead)
-         // }).then(function (r) { if (!r.ok) throw new Error('send failed'); })
-         //   .catch(function () { alert('Не удалось отправить. Напишите: cfo@finmentor.md'); });
+         // }).then(function (r) { if (!r.ok) throw new Error('send failed'); });
 
          ── ВАРИАНТ B · TELEGRAM BOT ─────────────────────────────────────────
          1) Создайте бота через @BotFather → получите TOKEN.
@@ -574,7 +580,7 @@
          //   method: 'POST',
          //   headers: { 'Content-Type': 'application/json' },
          //   body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
-         // }).catch(function () { alert('Не удалось отправить. Напишите: cfo@finmentor.md'); });
+         // });
          //
          // ВНИМАНИЕ (вариант B): токен бота будет виден в коде страницы (он публичный).
          // Для продакшена безопаснее отправлять lead на свой webhook / serverless-функцию,
