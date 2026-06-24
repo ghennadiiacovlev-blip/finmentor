@@ -13,6 +13,8 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
   <title>FINMENTOR — внешний CFO и система финансового управления для бизнеса</title>
   <meta name="description" content="FINMENTOR помогает собственникам растущего бизнеса выстроить управленческий P&amp;L, Cash Flow, казначейство, KPI, отчётность и регулярный CFO-контроль. Power BI и AI используются для автоматизации уже построенной системы." />
   <meta name="keywords" content="внешний CFO, финансовый директор, управленческий учёт, управленческая отчётность, P&amp;L, Cash Flow, казначейство, KPI, бизнес-контроль, Power BI, AI автоматизация, Finmentor, Кишинёв, Молдова" />
@@ -213,6 +215,28 @@
       .chaos__verdict { margin-top:var(--sp-8); }
       .chaos__verdict .text-gold { white-space:normal; }
     }
+
+    /* v-rights — sample outputs: real CFO-document feel (anonymized) */
+    .sample-card { display:flex; flex-direction:column; }
+    .sample-card__body { padding:13px 15px 14px; display:flex; flex-direction:column; flex:1; }
+    .so-line { padding:7px 0; border-bottom:1px solid var(--glass-border); }
+    .so-line:first-child { padding-top:2px; }
+    .so-line__k { display:block; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); opacity:0.85; }
+    .so-line__v { display:block; margin-top:3px; color:var(--text-secondary); font-size:0.82rem; line-height:1.4; }
+    .so-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--glass-border); font-size:0.82rem; }
+    .so-row__l { display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+    .so-row__l b { color:var(--text-primary); font-weight:600; }
+    .so-row__v { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
+    .so-row:last-of-type, .so-line:last-of-type { border-bottom:0; }
+    .so-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .so-dot--red{background:#E5484D;} .so-dot--amber{background:#D8B450;} .so-dot--green{background:#3FB950;}
+    .so-mark { width:14px; display:inline-grid; place-items:center; font-size:0.8rem; color:var(--text-muted); flex-shrink:0; }
+    .so-mark--done { color:#3FB950; }
+    .so-pill { font-size:0.66rem; padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-border); color:var(--text-muted); white-space:nowrap; }
+    .so-pill--done { color:#3FB950; border-color:rgba(63,185,80,0.4); }
+    .so-pill--req { color:var(--accent); border-color:var(--glass-border-gold); }
+    .so-foot { margin-top:auto; padding-top:10px; border-top:1px solid var(--glass-border-gold); font-size:0.73rem; color:var(--accent); display:flex; align-items:center; gap:7px; }
+    .so-foot__dot { width:5px; height:5px; border-radius:50%; background:var(--grad-gold); flex-shrink:0; box-shadow:0 0 6px rgba(201,162,39,0.6); }
   </style>
 </head>
 
@@ -603,20 +627,42 @@
         <h3 class="subhead reveal">Пример результата</h3>
         <div class="sample-grid">
           <article class="sample-card reveal">
-            <div class="sample-card__bar"><span class="sample-card__name">Diagnostic memo</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--mid"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Боли · риски · первый шаг</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">Диагностическая записка</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body">
+              <div class="so-line"><span class="so-line__k">Ключевая проблема</span><span class="so-line__v">Деньги есть в обороте, но не видны в управлении</span></div>
+              <div class="so-line"><span class="so-line__k">Первый вывод</span><span class="so-line__v">Нужен Cash Flow и контроль обязательств</span></div>
+              <div class="so-line"><span class="so-line__k">Фокус</span><span class="so-line__v">Прибыль · платежи · риски</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Понятный вывод и первый шаг</div>
+            </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="1">
-            <div class="sample-card__bar"><span class="sample-card__name">Risk map</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--short"></span><span class="sample-line sample-line--mid"></span><span class="sample-chip">Приоритет рисков</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">Карта рисков</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Дебиторка</b></span><span class="so-row__v">высокий</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>Склад</b></span><span class="so-row__v">средний</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>Платёжный календарь</b></span><span class="so-row__v">контроль</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Приоритет — первые 30 дней</div>
+            </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="2">
-            <div class="sample-card__bar"><span class="sample-card__name">Document checklist</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body"><span class="sample-line sample-line--mid"></span><span class="sample-line"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Что подготовить</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">Список документов</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Bank statements</span><span class="so-pill so-pill--done">готово</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>P&amp;L · Cash Flow</span><span class="so-pill so-pill--done">готово</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>AR / AP aging</span><span class="so-pill so-pill--req">запросить</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Договоры · условия оплат</span><span class="so-pill so-pill--req">запросить</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Что готово / что запросить</div>
+            </div>
           </article>
           <article class="sample-card reveal" data-reveal-delay="3">
-            <div class="sample-card__bar"><span class="sample-card__name">Owner dashboard</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body"><span class="sample-line"></span><span class="sample-line sample-line--mid"></span><span class="sample-line sample-line--short"></span><span class="sample-chip">Деньги · маржа · платежи</span></div>
+            <div class="sample-card__bar"><span class="sample-card__name">Панель собственника</span><span class="sample-card__tag">Образец</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Денежная позиция</span><span class="so-row__v">в норме</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Маржа</span><span class="so-row__v">под контролем</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Платежи к оплате</span><span class="so-row__v">внимание</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Оборотный капитал</span><span class="so-row__v">внимание</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Owner view: что требует решения</div>
+            </div>
           </article>
         </div>
         <p class="sample-note">Это обезличенные образцы оформления, без реальных данных клиентов. Финальные выводы по вашему бизнесу формируются после диагностики.</p>
@@ -817,12 +863,14 @@
       </div>
 
       <div class="footer__bottom">
-        <span>© 2026 Finmentor. Все права защищены.</span>
+        <span>© 2026 FINMENTOR™. Все права защищены.</span>
         <span class="footer__legal">
           <a href="privacy.html">Политика конфиденциальности</a>
+          <a href="terms.html">Условия использования материалов</a>
           <span class="footer__muted">FINMENTOR · Moldova / International</span>
         </span>
       </div>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия.</p>
     </div>
   </footer>
 
