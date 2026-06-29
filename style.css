@@ -1352,6 +1352,17 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   background: linear-gradient(180deg, rgba(201,162,39,0.11), rgba(255,255,255,0.03));
   box-shadow: var(--elev-2), var(--glow-gold);
 }
+.industry-card--retail {
+  border-color: rgba(201,162,39,0.58);
+  background:
+    linear-gradient(180deg, rgba(201,162,39,0.075), rgba(255,255,255,0.024)),
+    linear-gradient(135deg, rgba(55,71,96,0.12), rgba(8,17,31,0));
+}
+.industry-card--retail .industry-card__badge {
+  background: rgba(201,162,39,0.12);
+  color: var(--accent);
+  border: 1px solid var(--glass-border-gold);
+}
 .industry-card__top {
   display: flex;
   align-items: flex-start;
@@ -1398,6 +1409,30 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   transition: transform var(--dur-base) ease;
 }
 .industry-card__cta:hover::after { transform: translateX(3px); }
+.industries__asset-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  margin-top: var(--sp-7);
+  padding: var(--sp-6);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border-gold);
+  background: linear-gradient(135deg, rgba(201,162,39,0.08), rgba(255,255,255,0.025));
+}
+.industries__asset-callout p {
+  max-width: 76ch;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.industries__asset-label {
+  display: block;
+  margin-bottom: var(--sp-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
 .industries__final {
   display: flex;
   align-items: center;
@@ -1419,6 +1454,8 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   .industries { padding-block: var(--sp-9); }
   .industries__grid { grid-template-columns: 1fr; gap: var(--sp-4); }
   .industry-card { padding: var(--sp-5); }
+  .industries__asset-callout { align-items: stretch; flex-direction: column; padding: var(--sp-5); }
+  .industries__asset-callout .btn { width: 100%; justify-content: center; }
   .industries__final { align-items: stretch; flex-direction: column; }
   .industries__final .btn { width: 100%; justify-content: center; }
 }

@@ -128,6 +128,8 @@
     .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
     .module-card { display:flex; flex-direction:column; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, box-shadow var(--dur-base) ease; }
     .module-card:hover { border-color:var(--border-gold); transform:translateY(-3px); box-shadow:0 14px 40px rgba(0,0,0,0.25); }
+    .module-card--retail { border-color:var(--glass-border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); }
+    .module-card--retail .module-card__title { color:var(--accent); }
     .module-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
     .module-card__title { font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:8px 0 6px; line-height:1.3; }
     .module-card__desc { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; margin-bottom:12px; }
@@ -403,14 +405,15 @@
             <a href="questionnaire.html?model=real-estate" class="industry-card__cta" data-cta-id="industries_real_estate" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
           </article>
 
-          <article class="industry-card reveal" data-reveal-delay="2">
+          <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
             <div class="industry-card__top">
               <h3>Retail</h3>
+              <span class="industry-card__badge">RETAIL ENGINE</span>
             </div>
-            <p><b>Боль:</b> Магазины работают, а прибыль непонятна; скидки и неликвиды съедают маржу.</p>
-            <p><b>Контроль:</b> Продажи по магазинам, маржа, скидки, остатки, оборачиваемость, неликвиды, промо.</p>
-            <p><b>Результат:</b> Видно, какой магазин и товар зарабатывает, а какой замораживает деньги.</p>
-            <a href="questionnaire.html?model=retail" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="retail">Проверить розницу</a>
+            <p><b>Боль:</b> Полки заняты товаром, но непонятно, какие категории и SKU реально зарабатывают, а какие просто замораживают деньги.</p>
+            <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и SKU; продажи, остатки, ретробонусы, промо, поставщики и товарный кредит.</p>
+            <p><b>Результат:</b> Видно, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие SKU вывести из ассортимента.</p>
+            <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="3">
@@ -452,6 +455,14 @@
             <p><b>Результат:</b> Удержание, LTV и экономика клуба по сезонам под контролем.</p>
             <a href="questionnaire.html?model=fitness" class="industry-card__cta" data-cta-id="industries_fitness" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="fitness">Проверить фитнес</a>
           </article>
+        </div>
+
+        <div class="industries__asset-callout reveal" data-reveal-delay="2">
+          <div>
+            <span class="industries__asset-label">Одна CFO-логика — разные активы</span>
+            <p>В Real Estate FINMENTOR считает доходность объекта, арендатора и CAPEX. В Retail — доходность полки, категории, SKU и поставщика. В обоих случаях цель одна: показать, какой актив реально зарабатывает, а какой замораживает капитал.</p>
+          </div>
+          <a href="retail-margin-engine.html" class="btn btn--ghost btn--lg" data-cta-id="industries_retail_engine_callout" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine">Смотреть Retail Margin Engine →</a>
         </div>
 
         <div class="industries__final reveal" data-reveal-delay="2">
@@ -638,36 +649,43 @@
             <ul class="module-card__list"><li>FCF по каждому SKU</li><li>Товары — cash destroyers</li><li>DPO / DSO и склад</li><li>Где маркетинг и fixed costs съедают вклад</li></ul>
             <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">Проверить FCF по товарам <span>&rarr;</span></a>
           </article>
-          <article class="module-card reveal">
+          <article class="module-card module-card--retail reveal">
             <span class="module-card__num">04</span>
+            <h3 class="module-card__title">Retail Margin Engine</h3>
+            <p class="module-card__desc"><strong>Полка как финансовый актив.</strong> Система рассчитывает норму маржи для каждого линейного метра, м², категории и SKU. Показывает Margin Gap, требуемую компенсацию поставщика, качество товарного кредита и 9 управленческих действий по ассортименту.</p>
+            <ul class="module-card__list"><li>Норма маржи на полку, м², категорию и SKU</li><li>Ретробонусы, промо и компенсации поставщиков</li><li>Товарный кредит: кто финансирует полку</li><li>Светофор и 9 действий по ассортименту</li></ul>
+            <a href="retail-margin-engine.html" class="module-card__cta" data-ga="click_module_retail_margin_engine">Открыть retail-модель <span>&rarr;</span></a>
+          </article>
+          <article class="module-card reveal">
+            <span class="module-card__num">05</span>
             <h3 class="module-card__title">Supplier Rating &amp; Procurement Control</h3>
             <p class="module-card__desc">Закупки выбирают поставщика не по цене, а по полной финансовой логике: цена, DPO, Cash Flow, НДС, возвраты и риск.</p>
             <ul class="module-card__list"><li>Рейтинг поставщика по коэффициентам</li><li>Цена, DPO, НДС, возвраты, сроки</li><li>Выбор под приоритет компании</li><li>Влияние на маржу и Cash Flow</li></ul>
             <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">Проверить закупки и поставщиков <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
-            <span class="module-card__num">05</span>
+            <span class="module-card__num">06</span>
             <h3 class="module-card__title">Margin Factor Analysis</h3>
             <p class="module-card__desc">Понятно не только что маржа выросла или упала, но и почему — и что с этим делать дальше.</p>
             <ul class="module-card__list"><li>Факторы: цена, количество, mix, себестоимость</li><li>Флаги риска по каждому фактору</li><li>Промо, скидки и stock-out</li><li>Сезонность и качество данных</li></ul>
             <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">Проверить маржу бизнеса <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
-            <span class="module-card__num">06</span>
+            <span class="module-card__num">07</span>
             <h3 class="module-card__title">Working Capital Control</h3>
             <p class="module-card__desc">Поиск замороженных денег: где застряла ликвидность в дебиторке, запасах и авансах — и как сократить денежный цикл.</p>
             <ul class="module-card__list"><li>Дебиторка, кредиторка, запасы</li><li>DSO, DPO, Inventory Days</li><li>Денежный цикл (CCC)</li><li>Источники замороженных денег</li></ul>
             <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">Проверить оборотный капитал <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
-            <span class="module-card__num">07</span>
+            <span class="module-card__num">08</span>
             <h3 class="module-card__title">Power BI Owner Dashboard</h3>
             <p class="module-card__desc">Собственник получает ежедневную панель: где деньги, где маржа, какие платежи заблокированы и где возникнет Funding Gap.</p>
             <ul class="module-card__list"><li>Деньги, маржа, Cash Flow</li><li>Платежи и Funding Gap</li><li>FCF по SKU, закупки, поставщики</li><li>Ключевые флаги риска в одной панели</li></ul>
             <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">Собрать dashboard собственника <span>&rarr;</span></a>
           </article>
           <article class="module-card reveal">
-            <span class="module-card__num">08</span>
+            <span class="module-card__num">09</span>
             <h3 class="module-card__title">n8n / Make CFO Automation</h3>
             <p class="module-card__desc">Меньше ручной работы: заявки, согласования, уведомления, обновление данных и ежедневные отчёты работают автоматически.</p>
             <ul class="module-card__list"><li>Заявки и approval flow</li><li>Уведомления в Telegram / email</li><li>Интеграции Sheets / ERP / CRM / Power BI</li><li>Daily reports и alerts по рискам</li></ul>
@@ -677,7 +695,7 @@
         <p class="module-note">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
         <div class="choose">
           <h3 class="choose__title">Как выбрать, с чего начать</h3>
-          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
+          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Полка занята товаром, но непонятна доходность SKU</td><td><a href="retail-margin-engine.html">Retail Margin Engine</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
         </div>
       </div>
     </section>
@@ -847,7 +865,9 @@
           <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Платёжный календарь и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Закупки и SKU</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="5"><span class="material-card__tag">CFO-система</span><span class="material-card__title">Финансовая система собственника</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="5"><span class="material-card__tag">Retail Margin Engine</span><span class="material-card__title">Каждый SKU должен платить за своё место</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="6"><span class="material-card__tag">Supplier Shelf Credit</span><span class="material-card__title">Товарный кредит поставщика: кто финансирует полку</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="7"><span class="material-card__tag">CFO-система</span><span class="material-card__title">Финансовая система собственника</span><span class="material-card__arrow">Читать &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
           <a href="materials.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>

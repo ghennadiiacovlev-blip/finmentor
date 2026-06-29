@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Retail Margin Engine — доходность полки, SKU и поставщика | FINMENTOR</title>
+  <meta name="description" content="FINMENTOR Retail Margin Engine: CFO-модель для retail, которая считает норму маржи на полку, м², категорию и SKU, показывает Margin Gap, Supplier Shelf Credit и действия по ассортименту." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/retail-margin-engine.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Retail Margin Engine — доходность полки, SKU и поставщика | FINMENTOR" />
+  <meta property="og:description" content="Каждая полка должна зарабатывать: норма маржи на линейный метр, м², категорию и SKU, товарный кредит поставщика и 9 управленческих действий." />
+  <meta property="og:url" content="https://www.finmentor.md/retail-margin-engine.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="article:author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta property="article:section" content="Retail / Margin Control / CFO Model" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Retail Margin Engine — доходность полки, SKU и поставщика | FINMENTOR" />
+  <meta name="twitter:description" content="CFO-модель для retail: полка как финансовый актив, Margin Gap, Supplier Shelf Credit и действия по ассортименту." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Retail Margin Engine: каждая полка должна зарабатывать",
+        "description": "FINMENTOR Retail Margin Engine превращает торговую площадь в финансовый актив: норма маржи на полку, м², категорию и SKU, Margin Gap, Supplier Shelf Credit и управленческие действия.",
+        "inLanguage": "ru-RU",
+        "articleSection": "Retail / Margin Control / CFO Model",
+        "author": { "@type": "Person", "name": "FINMENTOR / Ghennadi Iacovlev" },
+        "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/", "logo": { "@type": "ImageObject", "url": "https://www.finmentor.md/icon-512.png" } },
+        "mainEntityOfPage": "https://www.finmentor.md/retail-margin-engine.html",
+        "image": "https://www.finmentor.md/og-image.png?v=81"
+      },
+      {
+        "@type": "Service",
+        "name": "FINMENTOR Retail Margin Engine",
+        "serviceType": "Retail CFO model / Margin control",
+        "provider": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/" },
+        "areaServed": "Moldova / International",
+        "description": "Финансовая система для retail: доходность полки, категории, SKU, поставщика, ретробонусов, промо и товарного кредита."
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "Что показывает Retail Margin Engine?", "acceptedAnswer": { "@type": "Answer", "text": "Модель показывает норму маржи на полку, м², категорию и SKU, Margin Gap, качество товарного кредита поставщика и действия по ассортименту." } },
+          { "@type": "Question", "name": "Это подходит только для сетевой розницы?", "acceptedAnswer": { "@type": "Answer", "text": "Нет. Модель подходит магазинам, шоурумам, сетям и компаниям, где торговая площадь, категории, SKU и поставщики должны быть связаны с маржей и cash flow." } },
+          { "@type": "Question", "name": "Нужно ли сначала проходить диагностику?", "acceptedAnswer": { "@type": "Answer", "text": "Диагностика помогает понять качество данных, приоритет категорий и глубину внедрения. После неё проще собрать корректную CFO-модель под экономику конкретного retail-бизнеса." } }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/" },
+          { "@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/materials.html" },
+          { "@type": "ListItem", "position": 3, "name": "Retail Margin Engine", "item": "https://www.finmentor.md/retail-margin-engine.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    .retail-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .retail-kpi__card { padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .retail-kpi__card--accent { border-color:var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.12),var(--glass-fill)); }
+    .retail-kpi__label { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .retail-kpi__title { margin-top:8px; font-weight:700; color:var(--text-primary); line-height:1.35; }
+    .retail-kpi__text { margin-top:6px; color:var(--text-secondary); font-size:0.88rem; line-height:1.55; }
+    .retail-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:var(--sp-5) 0; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .retail-table-wrap table { width:100%; border-collapse:collapse; min-width:720px; font-size:0.9rem; }
+    .retail-table-wrap th,.retail-table-wrap td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .retail-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .retail-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .retail-table-wrap strong { color:var(--text-primary); }
+    .retail-actions { counter-reset: action; display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .retail-action { counter-increment:action; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:rgba(255,255,255,0.025); }
+    .retail-action::before { content:counter(action, decimal-leading-zero); display:block; font-family:var(--font-mono); font-size:0.72rem; color:var(--accent); margin-bottom:8px; }
+    .retail-action strong { display:block; color:var(--text-primary); margin-bottom:6px; }
+    .retail-action span { color:var(--text-secondary); font-size:0.88rem; line-height:1.5; }
+    .doc-hero__cta { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
+    .doc-bar__row { padding-inline:var(--sp-6); }
+    @media (max-width:900px){ .retail-actions{grid-template-columns:repeat(2,1fr);} }
+    @media (max-width:600px){ .doc-bar__row{padding-inline:var(--sp-5);} .retail-actions{grid-template-columns:1fr;} .doc-hero__cta .btn{width:100%;} }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Навигация">
+        <a href="index.html" class="doc-bar__hide">На главную</a>
+        <a href="materials.html" class="doc-bar__hide">Материалы</a>
+        <a href="questionnaire.html" class="doc-bar__hide">Анкета</a>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Retail Margin Engine</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">FINMENTOR · Retail CFO-модель</p>
+        <h1>Каждая полка должна зарабатывать</h1>
+        <p class="doc-hero__lead">FINMENTOR Retail Margin Engine превращает торговую площадь в финансовый актив: рассчитывает норму маржи для каждого линейного метра, м², категории и SKU, показывает недобор доходности, качество товарного кредита поставщика и формирует управленческие действия.</p>
+        <p class="doc-hero__context">Retail = доходность полки, категории, SKU, поставщика, ретробонуса, промо и товарного кредита.</p>
+        <div class="doc-hero__cta">
+          <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--lg" onclick="gtag('event','click_retail_engine_questionnaire')">Пройти retail-диагностику</a>
+          <a href="index.html#consult" class="btn btn--ghost btn--lg" onclick="gtag('event','click_retail_engine_discovery')">Обсудить retail-модель</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section>
+          <h2>Полка как финансовый актив</h2>
+          <p>В Real Estate актив — объект недвижимости. В Retail актив — торговая полка, место, категория и SKU. Если актив занимает пространство, он должен приносить доходность выше нормы, а не просто создавать оборот и красивую выкладку.</p>
+          <div class="quote-band"><p>Актив должен зарабатывать. Полка, категория и SKU должны показывать, какой вклад они дают в маржу, cash flow и переговорную позицию с поставщиком.</p></div>
+
+          <h2>SKU должен платить за своё место</h2>
+          <p>Retail Margin Engine считает не только валовую маржу по товару. Модель связывает продажи, площадь, линейные метры, остатки, ретробонусы, промо, условия поставщика и оборачиваемость. Так становится видно, какой SKU окупает своё место, а какой занимает полку и замораживает капитал.</p>
+          <div class="retail-kpi">
+            <div class="retail-kpi__card retail-kpi__card--accent"><span class="retail-kpi__label">Target Margin</span><p class="retail-kpi__title">Норма доходности полки</p><p class="retail-kpi__text">Сколько маржи должен приносить метр, м², категория и SKU.</p></div>
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Margin Gap</span><p class="retail-kpi__title">Недобор доходности</p><p class="retail-kpi__text">Разница между фактической маржей и нормой, которую должен дать актив.</p></div>
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Supplier Credit</span><p class="retail-kpi__title">Кто финансирует полку</p><p class="retail-kpi__text">Поставщик, собственник или оба — через DPO, остатки и товарный кредит.</p></div>
+          </div>
+
+          <h2>Поставщик должен финансировать свою долю полки</h2>
+          <p>Если товар стоит на полке, но уже оплачен поставщику, полку финансирует собственник. Если товар ещё не оплачен, её временно финансирует поставщик. Модель показывает owner cash gap: сколько денег собственника заморожено в товаре, и какие условия нужны для переговоров — ретробонус, промо-компенсация, отсрочка или изменение ассортимента.</p>
+
+          <h2>Target Marja → Space → Category → SKU → Supplier → Decision</h2>
+          <div class="flow" aria-label="Логика Retail Margin Engine">
+            <span class="flow__node">Target Marja</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Space</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Category</span><span class="flow__arrow">→</span>
+            <span class="flow__node">SKU</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Supplier</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Decision</span>
+          </div>
+
+          <h2>Что считает CFO-модель</h2>
+          <div class="retail-table-wrap"><table>
+            <thead><tr><th>Уровень</th><th>Что считается</th><th>Какое решение даёт</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Полка / метр</strong></td><td>Норма маржи на линейный метр и м², фактическая доходность места.</td><td>Расширить, сократить или переформатировать место.</td></tr>
+              <tr><td><strong>Категория</strong></td><td>Маржа, mix, оборот, остатки, промо, ретробонусы, доля площади.</td><td>Перераспределить площадь и управлять ассортиментной ролью.</td></tr>
+              <tr><td><strong>SKU</strong></td><td>Вклад в маржу и cash flow, Margin Gap, slow movers, stock risk.</td><td>Оставить, заменить, вывести или запросить компенсацию.</td></tr>
+              <tr><td><strong>Поставщик</strong></td><td>DPO, товарный кредит, ретробонусы, промо-компенсации, переговорная позиция.</td><td>Пересобрать условия: отсрочка, бонус, промо-бюджет, ассортимент.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>9 управленческих действий</h2>
+          <div class="retail-actions">
+            <div class="retail-action"><strong>Расширить</strong><span>SKU или категорию, если доходность выше нормы и cash flow здоровый.</span></div>
+            <div class="retail-action"><strong>Сократить</strong><span>Полку или площадь, если место занято слабым вкладом.</span></div>
+            <div class="retail-action"><strong>Вывести</strong><span>SKU, который не покрывает норму и замораживает деньги.</span></div>
+            <div class="retail-action"><strong>Заменить</strong><span>Позицию на товар с лучшей маржей, оборачиваемостью или отсрочкой.</span></div>
+            <div class="retail-action"><strong>Запросить ретробонус</strong><span>Когда поставщик занимает полку, но не даёт достаточный вклад.</span></div>
+            <div class="retail-action"><strong>Запросить промо-компенсацию</strong><span>Если скидка нужна рынку, но разрушает маржу продавца.</span></div>
+            <div class="retail-action"><strong>Увеличить отсрочку</strong><span>Чтобы supplier credit покрыл период нахождения товара на полке.</span></div>
+            <div class="retail-action"><strong>Пересобрать mix</strong><span>Сместить продажи в категории и SKU, которые реально зарабатывают.</span></div>
+            <div class="retail-action"><strong>Вынести в dashboard</strong><span>Светофор по Margin Gap, supplier credit и действиям для owner review.</span></div>
+          </div>
+
+          <h2>Supplier Shelf Credit</h2>
+          <p>Supplier Shelf Credit показывает, кто финансирует полку: поставщик через отсрочку или собственник через оплаченный запас. Если товар уже оплачен, но продолжает стоять на полке, бизнес несёт owner cash gap. Если отсрочка покрывает срок нахождения товара, поставщик участвует в финансировании оборота.</p>
+          <div class="retail-table-wrap"><table>
+            <thead><tr><th>Ситуация</th><th>Финансирует</th><th>Управленческий вывод</th></tr></thead>
+            <tbody>
+              <tr><td>Товар на полке, поставщик уже оплачен</td><td>Собственник</td><td>Нужна компенсация, сокращение остатка или вывод SKU.</td></tr>
+              <tr><td>Товар на полке, отсрочка ещё действует</td><td>Поставщик</td><td>Условия поддерживают оборот, но нужно проверить маржу.</td></tr>
+              <tr><td>Промо снижает цену без компенсации</td><td>Собственник</td><td>Запрашивать промо-бюджет или пересматривать участие.</td></tr>
+              <tr><td>Ретробонус покрывает Margin Gap</td><td>Поставщик частично</td><td>Категорию можно оставить при контроле условий.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Для кого подходит</h2>
+          <ul>
+            <li>Розничным магазинам и сетям, где площадь и полка должны приносить измеримую доходность.</li>
+            <li>Компаниям с широким SKU, поставщиками, ретробонусами, промо и товарным кредитом.</li>
+            <li>Собственникам, которые видят оборот, но не понимают, какие категории реально зарабатывают.</li>
+            <li>Командам закупок и категорийного менеджмента, которым нужна финансовая логика решений.</li>
+          </ul>
+
+          <h2>Что получает клиент</h2>
+          <ul>
+            <li>Карту доходности полки, категории, SKU и поставщика.</li>
+            <li>Светофор Margin Gap и список управленческих действий.</li>
+            <li>Позицию для переговоров с поставщиками: ретробонусы, промо, компенсации, отсрочка.</li>
+            <li>Owner dashboard для регулярного контроля retail-экономики.</li>
+            <li>Связь retail-модели с P&amp;L, Cash Flow, запасами и оборотным капиталом.</li>
+          </ul>
+
+          <div class="cta-band">
+            <p class="cta-band__title">Проверьте, какие полки и SKU реально зарабатывают</p>
+            <p class="cta-band__text">Начните с retail-диагностики: FINMENTOR посмотрит категории, SKU, поставщиков, остатки, промо и товарный кредит — и покажет, где полка создаёт деньги, а где замораживает капитал.</p>
+            <div class="cta-band__row">
+              <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--lg">Пройти retail-диагностику</a>
+              <a href="index.html#consult" class="btn btn--ghost btn--lg">Discovery Call</a>
+              <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="faq">
+        <h2>Частые вопросы</h2>
+        <details class="faq__item"><summary>Это отдельный продукт или часть CFO-системы?</summary><div class="faq__item__body">Это отраслевой модуль FINMENTOR для retail. Он может быть отдельной диагностикой или частью Business Control System, если бизнесу нужен полный контур P&amp;L, Cash Flow, платежей и dashboard.</div></details>
+        <details class="faq__item"><summary>Какие данные нужны для модели?</summary><div class="faq__item__body">Продажи, маржа, остатки, площадь или линейные метры, категории, SKU, поставщики, DPO, ретробонусы, промо и базовые условия закупки.</div></details>
+        <details class="faq__item"><summary>Что делать, если данных по полке пока нет?</summary><div class="faq__item__body">Модель можно начать с категорий и SKU, а затем добавить площадь, линейные метры и более точную привязку к месту. Важно сначала собрать управленческую логику и качество данных.</div></details>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Связанные материалы">
+        <p class="related__label">Связанные материалы</p>
+        <div class="related__grid"><a href="fcf-postavshiki.html">FCF по SKU</a><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков</a><a href="margin-factor-analysis-flags.html">Факторный анализ маржи</a><a href="working-capital.html">Оборотный капитал</a><a href="business-control-system.html">Business Control System</a><a href="questionnaire.html?model=retail">Анкета для retail</a></div>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Главная</a>
+        <a href="materials.html">Материалы</a>
+        <a href="questionnaire.html">Анкета</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+    </div>
+  </footer>
+  <script src="assistant.js"></script>
+</body>
+</html>
