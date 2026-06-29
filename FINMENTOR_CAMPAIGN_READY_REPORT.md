@@ -13,7 +13,7 @@
 - `main.js`: добавлен безопасный общий обработчик `data-event` / CTA events и `window.finmentorTrack`, без PII.
 - `privacy.html`: уточнено, что GA4 получает только обезличенные параметры диагностики.
 - `style.css`: добавлены стили блока отраслей.
-- `monthly-cfo-support.html`, `README.md`: убрана формулировка `AI-автоматизация`.
+- `monthly-cfo-support.html`, `README.md`: убрана неподходящая продуктовая формулировка про автоматизацию.
 
 ## Где находится webhook constant
 
@@ -89,4 +89,3 @@ GA4 events содержат только safe-параметры: `source`, `pag
   - mock webhook POST уходит, success message показывается;
   - placeholder webhook показывает fallback;
   - GA4 submit events не содержат PII.
-
