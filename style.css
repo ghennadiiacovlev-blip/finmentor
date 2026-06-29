@@ -394,7 +394,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 .header {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: var(--z-header);
+  z-index: calc(var(--z-menu) + 2);
   height: var(--header-h);
   display: flex;
   align-items: center;
@@ -474,7 +474,14 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 .lang--lg .lang__btn { font-size: 0.85rem; padding: 8px 16px; }
 
 /* Burger */
-.burger { display: none; width: 28px; height: 22px; position: relative; }
+.burger {
+  display: none;
+  width: 28px;
+  height: 22px;
+  position: relative;
+  z-index: calc(var(--z-menu) + 1);
+  cursor: pointer;
+}
 .burger span {
   position: absolute; left: 0; right: 0; height: 2px;
   background: var(--text-primary);
@@ -503,9 +510,17 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   padding: var(--sp-8) var(--sp-6);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--dur-base) ease, visibility var(--dur-base) ease;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity var(--dur-base) ease, visibility var(--dur-base) ease, transform var(--dur-base) var(--ease-out-expo);
 }
-.mobile-menu.is-open { opacity: 1; visibility: visible; }
+.mobile-menu.is-open,
+body.menu-open .mobile-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 .mobile-menu__nav { display: flex; flex-direction: column; gap: var(--sp-2); }
 .mobile-menu__link {
   font-family: var(--font-display);

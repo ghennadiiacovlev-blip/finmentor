@@ -288,7 +288,7 @@
         <a href="#steps" class="nav__link">Как работаем</a>
         <a href="#solutions" class="nav__link">Решения</a>
         <a href="#knowledge" class="nav__link">Материалы</a>
-        <a href="questionnaire.html" class="nav__link">Анкета</a>
+        <a href="questionnaire.html" class="nav__link">Финансовый рентген</a>
         <a href="#consult" class="nav__link">Контакты</a>
       </nav>
 
@@ -301,6 +301,22 @@
       </div>
     </div>
   </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Мобильная навигация">
+    <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
+      <a href="#about" class="mobile-menu__link" style="--mi:0">О проекте</a>
+      <a href="#audience" class="mobile-menu__link" style="--mi:1">Для кого</a>
+      <a href="#steps" class="mobile-menu__link" style="--mi:2">Как работаем</a>
+      <a href="#solutions" class="mobile-menu__link" style="--mi:3">Решения</a>
+      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Материалы</a>
+      <a href="questionnaire.html" class="mobile-menu__link" style="--mi:5">Финансовый рентген</a>
+      <a href="#consult" class="mobile-menu__link" style="--mi:6">Контакты</a>
+    </nav>
+    <div class="mobile-menu__footer">
+      <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
+      <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">FINMENTOR Bot</a>
+    </div>
+  </div>
 
   <main>
     <section class="hero" id="top">
@@ -322,7 +338,7 @@
         </p>
 
         <div class="hero__actions reveal" data-reveal-delay="3">
-          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовую диагностику</a>
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
           <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Оставить заявку в FINMENTOR Bot</a>
           <a href="#industries" class="btn btn--ghost btn--lg" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Решения под вашу бизнес-модель ↓</a>
         </div>
@@ -467,8 +483,8 @@
         </div>
 
         <div class="industries__final reveal" data-reveal-delay="2">
-          <p>Не нашли свою модель? Начните с финансовой диагностики — система настраивается под вашу экономику.</p>
-          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-cta-id="industries_general_diagnostic" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовую диагностику</a>
+          <p>Не нашли свою модель? Начните с финансового рентгена — система настраивается под вашу экономику.</p>
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-cta-id="industries_general_diagnostic" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
         </div>
       </div>
     </section>
@@ -541,7 +557,7 @@
             <div class="package__section">
               <span class="package__label">Что входит</span>
               <ul class="package__list">
-                <li>Предварительная анкета собственника</li>
+                <li>Финансовый рентген собственника</li>
                 <li>Интервью 60–90 минут</li>
                 <li>Экспресс-анализ P&amp;L / Cash Flow / долгов / платежей</li>
                 <li>Карта финансовых болей</li>
@@ -556,7 +572,7 @@
             </div>
             <div class="package__term"><span>Срок</span><strong>1–2 недели</strong></div>
             <p class="package__next"><span class="package__next-label">Дальше</span> Внедрение системы или ежемесячное сопровождение Control Light.</p>
-            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Пройти финансовую диагностику</a>
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Пройти финансовый рентген</a>
           </article>
 
           <!-- 2 · Внедрение системы — FLAGSHIP -->
@@ -617,7 +633,7 @@
         <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
         <div class="packages__cta reveal">
           <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовую диагностику</a>
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовый рентген</a>
         </div>
       </div>
     </section>

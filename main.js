@@ -230,12 +230,27 @@
       burger.classList.toggle('is-open', open);
       menu.classList.toggle('is-open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
       menu.setAttribute('aria-hidden', open ? 'false' : 'true');
       document.body.classList.toggle('is-locked', open);
+      document.body.classList.toggle('menu-open', open);
     }
-    burger.addEventListener('click', function () { setOpen(!menu.classList.contains('is-open')); });
+    setOpen(false);
+    burger.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
+    });
     menu.querySelectorAll('a').forEach(function (link) {
       link.addEventListener('click', function () { setOpen(false); });
+    });
+    menu.addEventListener('click', function (e) {
+      if (e.target === menu) setOpen(false);
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.classList.contains('is-open')) return;
+      if (menu.contains(e.target) || burger.contains(e.target)) return;
+      setOpen(false);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && menu.classList.contains('is-open')) setOpen(false);

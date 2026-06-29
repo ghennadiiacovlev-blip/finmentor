@@ -90,7 +90,7 @@
       <nav class="doc-bar__nav" aria-label="Навигация">
         <a href="index.html" class="doc-bar__hide">На главную</a>
         <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+        <a href="questionnaire.html">Финансовый рентген</a>
         <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
       </nav>
     </div>
@@ -108,7 +108,7 @@
         <p class="doc-hero__eyebrow">Экспресс-диагностика · 3 минуты</p>
         <h1>Мини-скан оборотного капитала</h1>
         <p class="doc-hero__lead">Ответьте на несколько вопросов, чтобы понять, где в бизнесе могут застревать деньги: в дебиторке, запасах, авансах, условиях оплаты или платёжной дисциплине.</p>
-        <p class="doc-hero__context">Мини-скан — лёгкий вход. Полная диагностика — в анкете и на Discovery Call.</p>
+        <p class="doc-hero__context">Мини-скан — лёгкий вход. Полная диагностика — в финансовом рентгене и на Discovery Call.</p>
       </div>
     </section>
 
@@ -147,7 +147,7 @@
           </div>
           <p class="scan__disclaimer" id="scanDisc">Вывод предварительный и требует подтверждения документами. Мини-скан не является финансовым заключением — это самодиагностика зон, требующих управленческого внимания.</p>
           <div class="scan__actions">
-            <a href="questionnaire.html" class="btn btn--primary" id="scanQ">Заполнить полную анкету</a>
+            <a href="questionnaire.html" class="btn btn--primary" id="scanQ">Пройти финансовый рентген бизнеса</a>
             <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Открыть FINMENTOR Bot</a>
             <button type="button" class="btn btn--ghost" id="scanCopy">Скопировать результат</button>
           </div>
@@ -169,7 +169,7 @@
           <a href="working-capital.html">Оборотный капитал</a>
           <a href="cases.html">Анонимные сценарии</a>
           <a href="methodology.html">Методология FINMENTOR</a>
-          <a href="questionnaire.html">Полная анкета</a>
+          <a href="questionnaire.html">Финансовый рентген бизнеса</a>
         </div>
       </nav>
     </div>
@@ -180,7 +180,7 @@
       <div class="doc-foot__links">
         <a href="index.html">Главная</a>
         <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Анкета</a>
+        <a href="questionnaire.html">Финансовый рентген</a>
         <a href="privacy.html">Политика конфиденциальности</a>
         <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
@@ -325,7 +325,7 @@
     pl: { href: 'upravlencheskiy-pl.html', title: 'Как собственнику читать управленческий P&L', slug: 'upravlencheskiy-pl' },
     calendar: { href: 'platezhnyy-kalendar.html', title: 'Платёжный календарь и приоритеты платежей', slug: 'platezhnyy-kalendar' },
     treasury: { href: 'kaznacheystvo.html', title: 'Казначейство и фондовое планирование', slug: 'kaznacheystvo' },
-    quest: { href: 'questionnaire.html', title: 'Заполнить полную анкету-диагностику', slug: 'questionnaire' }
+    quest: { href: 'questionnaire.html', title: 'Пройти полный финансовый рентген', slug: 'questionnaire' }
   };
   var DEEPER = {
     inventory_trap: { text: 'Если деньги заморожены в запасах, важно анализировать не только маржу, но и FCF по SKU: какие товары создают деньги, а какие съедают оборотный капитал.', arts: ['fcf'] },
@@ -404,7 +404,7 @@
       'Что проверить в первую очередь:'];
     L.documents_to_check.forEach(function (d) { lines.push('— ' + d); });
     lines.push('', 'Рекомендуемый маршрут: ' + L.recommended_route);
-    lines.push('Следующий шаг: заполнить анкету или отправить этот результат в FINMENTOR Bot.');
+    lines.push('Следующий шаг: пройти финансовый рентген или отправить этот результат в FINMENTOR Bot.');
     var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
     if (nm || co || ct || cm) { lines.push(''); if (nm) lines.push('Имя: ' + nm); if (co) lines.push('Компания: ' + co); if (ct) lines.push('Контакт: ' + ct); if (cm) lines.push('Комментарий: ' + cm); }
     lines.push('', 'https://www.finmentor.md/working-capital-scan.html');
