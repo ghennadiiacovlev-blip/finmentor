@@ -376,12 +376,12 @@
         tagsLabel: 'Что видно в Power BI',
         tags: ['выручка','прибыль','расходы','дебиторка','кредиторка','остатки денег','продажи','склад','маржинальность','KPI','план-факт','cash flow','аренда','CAPEX','проекты'],
         result: 'Собственник открывает дашборд и видит бизнес в реальном времени — без ручной подготовки отчётов.' },
-      { id: 'ai', group: 'expertise', chip: 'AI & Automation', dir: 'AI & Automation',
+      { id: 'ai', group: 'expertise', chip: 'Digital Automation', dir: 'Digital Automation',
         title: 'Финансовая отчётность собирается вручную',
         problem: 'Сотрудники тратят много времени на сбор данных, согласования и отчёты.',
-        solution: 'Автоматизация через AI, Make, n8n и AI-агентов.',
+        solution: 'Автоматизация через Make, n8n и цифровые сценарии.',
         tagsLabel: 'Примеры автоматизации',
-        tags: ['автоматический сбор отчётов','уведомления о рисках','контроль просроченной дебиторки','напоминания ответственным','AI-анализ отклонений','управленческий отчёт','интеграция Google Sheets / email / CRM / 1С / Power BI'],
+        tags: ['автоматический сбор отчётов','уведомления о рисках','контроль просроченной дебиторки','напоминания ответственным','анализ отклонений и автоматические alerts','управленческий отчёт','интеграция Google Sheets / email / CRM / 1С / Power BI'],
         result: 'Меньше ручной работы, быстрее контроль, меньше ошибок.' },
       { id: 'realestate', group: 'industry', chip: 'Недвижимость', dir: 'Real Estate · Недвижимость',
         title: 'Объект сдаётся, но собственник не понимает его доходность',
@@ -801,7 +801,28 @@
   /* GA4 events — delegated, fired only if gtag is available; never blocks navigation */
   function initGA() {
     function send(name, params) {
-      if (typeof gtag === 'function') { try { gtag('event', name, params || {}); } catch (e) {} }
+      if (typeof gtag === 'function') { try { gtag('event', name, safeParams(params || {})); } catch (e) {} }
+    }
+    function safeParams(params) {
+      var allow = {
+        link_url: true, link_text: true,
+        cta_id: true, cta_location: true, destination: true,
+        business_model: true, pain: true,
+        source: true, page_slug: true, completion_score: true,
+        data_quality_hint: true, urgency_level: true,
+        industry_category: true, desired_first_step: true
+      };
+      var out = {};
+      Object.keys(params || {}).forEach(function (k) {
+        if (!allow[k]) return;
+        var v = params[k];
+        if (v === undefined || v === null) return;
+        out[k] = String(v)
+          .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig, '[email]')
+          .replace(/\+?\d[\d\s().-]{6,}\d/g, '[phone]')
+          .slice(0, 120);
+      });
+      return out;
     }
     function safeLinkUrl(a) {
       var href = a.getAttribute('href') || '';
@@ -824,9 +845,23 @@
         .trim()
         .slice(0, 80);
     }
+    function ctaParams(a) {
+      return {
+        cta_id: a.getAttribute('data-cta-id') || '',
+        cta_location: a.getAttribute('data-cta-location') || '',
+        destination: a.getAttribute('data-destination') || safeLinkUrl(a),
+        business_model: a.getAttribute('data-business-model') || '',
+        pain: a.getAttribute('data-pain') || '',
+        link_url: safeLinkUrl(a),
+        link_text: safeLinkText(a)
+      };
+    }
+    window.finmentorTrack = function (name, params) { send(name, params || {}); };
     document.addEventListener('click', function (e) {
       var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
       if (!a) return;
+      var eventName = a.getAttribute('data-event');
+      if (eventName) { send(eventName, ctaParams(a)); return; }
       var name = a.getAttribute('data-ga');
       if (!name) {
         var href = a.getAttribute('href') || '';
