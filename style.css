@@ -1424,6 +1424,121 @@ body.menu-open .mobile-menu {
   transition: transform var(--dur-base) ease;
 }
 .industry-card__cta:hover::after { transform: translateX(3px); }
+.methodologies {
+  margin-top: var(--sp-8);
+  padding: var(--sp-7);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018)),
+    radial-gradient(circle at 20% 0%, rgba(201,162,39,0.12), transparent 34%);
+  box-shadow: var(--elev-1);
+}
+.methodologies__head {
+  max-width: 920px;
+  margin-bottom: var(--sp-6);
+}
+.methodologies__head h3 {
+  margin: var(--sp-2) 0 var(--sp-3);
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  line-height: 1.08;
+  color: var(--text-primary);
+}
+.methodologies__head p,
+.methodologies__note {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.methodologies__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+.method-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: rgba(8,17,31,0.44);
+}
+.method-card--flagship {
+  border-color: rgba(201,162,39,0.68);
+  background: linear-gradient(180deg, rgba(201,162,39,0.09), rgba(8,17,31,0.48));
+}
+.method-card--retail {
+  border-color: rgba(201,162,39,0.5);
+  background: linear-gradient(135deg, rgba(201,162,39,0.075), rgba(55,71,96,0.12));
+}
+.method-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.method-card__top h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2vw, 1.36rem);
+  line-height: 1.18;
+  color: var(--text-primary);
+}
+.method-card__top span {
+  flex-shrink: 0;
+  max-width: 180px;
+  border-radius: var(--r-pill);
+  padding: 5px 9px;
+  border: 1px solid var(--glass-border-gold);
+  color: var(--accent);
+  background: rgba(201,162,39,0.08);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: right;
+}
+.method-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.58;
+}
+.method-card p b { color: var(--text-primary); }
+.method-card__desc {
+  color: var(--text-primary);
+  font-weight: 650;
+}
+.method-card__proof {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+.method-card__cta {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: auto;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.method-card__cta::after {
+  content: "→";
+  margin-left: 8px;
+  transition: transform var(--dur-base) ease;
+}
+.method-card__cta:hover::after { transform: translateX(3px); }
+.methodologies__note {
+  margin: var(--sp-6) 0 0;
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border-hairline);
+  font-size: 0.9rem;
+}
 .industries__asset-callout {
   display: flex;
   align-items: center;
@@ -1464,11 +1579,16 @@ body.menu-open .mobile-menu {
 }
 @media (max-width: 1080px) {
   .industries__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .methodologies__grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
   .industries { padding-block: var(--sp-9); }
   .industries__grid { grid-template-columns: 1fr; gap: var(--sp-4); }
   .industry-card { padding: var(--sp-5); }
+  .methodologies { padding: var(--sp-5); }
+  .method-card { padding: var(--sp-4); }
+  .method-card__top { flex-direction: column; align-items: flex-start; }
+  .method-card__top span { max-width: 100%; text-align: left; }
   .industries__asset-callout { align-items: stretch; flex-direction: column; padding: var(--sp-5); }
   .industries__asset-callout .btn { width: 100%; justify-content: center; }
   .industries__final { align-items: stretch; flex-direction: column; }

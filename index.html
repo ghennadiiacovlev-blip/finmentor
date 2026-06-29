@@ -417,6 +417,7 @@
             </div>
             <p><b>Боль:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
             <p><b>Контроль:</b> Арендаторы и договоры, NOI, Cap Rate, vacancy, CAPEX, tenant rating, окупаемость.</p>
+            <p><b>Расчётная методология:</b> NOI, vacancy, tenant rating, rent vs market, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
             <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p>
             <a href="questionnaire.html?model=real-estate" class="industry-card__cta" data-cta-id="industries_real_estate" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
           </article>
@@ -428,6 +429,7 @@
             </div>
             <p><b>Боль:</b> Полки заняты товаром, но непонятно, какие категории и SKU реально зарабатывают, а какие просто замораживают деньги.</p>
             <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и SKU; продажи, остатки, promo, retrobonus, поставщики и Supplier Shelf Credit.</p>
+            <p><b>Расчётная методология:</b> Target Marja, margin per meter, SKU profitability, Supplier Shelf Credit, retrobonus, promo economics, 9 управленческих действий.</p>
             <p><b>Результат:</b> Dashboard показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие SKU вывести из ассортимента.</p>
             <p><b>Доказательность:</b> v1.2: 19 листов, 4 900+ формул, QA 19/19 PASS, 0 ошибок после пересчёта.</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
@@ -474,10 +476,89 @@
           </article>
         </div>
 
+        <div class="methodologies reveal" data-reveal-delay="2" aria-labelledby="methodologiesTitle">
+          <div class="methodologies__head">
+            <p class="overline">CFO-модели</p>
+            <h3 id="methodologiesTitle">Расчётные методологии FINMENTOR</h3>
+            <p>FINMENTOR не ограничивается консультациями. Для каждой бизнес-модели мы строим расчётную методологию: какие данные собирать, какие показатели считать, где возникает риск, что влияет на cash flow и какое управленческое решение должен принять собственник.</p>
+          </div>
+
+          <div class="methodologies__grid">
+            <article class="method-card method-card--flagship">
+              <div class="method-card__top">
+                <h4>Real Estate Control System</h4>
+                <span>Флагманская методология FINMENTOR</span>
+              </div>
+              <p class="method-card__desc">Доходность объекта, арендатора и CAPEX.</p>
+              <p><b>Метрики:</b> NOI, vacancy, lost income, rent vs market, tenant rating, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
+              <p><b>Решения:</b> пересмотреть аренду, усилить обеспечение, удержать арендатора, инвестировать, не инвестировать, изменить договор.</p>
+              <a href="questionnaire.html?model=real-estate" class="method-card__cta" data-cta-id="method_real_estate" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
+            </article>
+
+            <article class="method-card method-card--retail">
+              <div class="method-card__top">
+                <h4>Retail Margin Engine</h4>
+                <span>Retail Engine v1.2</span>
+              </div>
+              <p class="method-card__desc">Доходность полки, категории, SKU и поставщика.</p>
+              <p><b>Метрики:</b> Target Marja, margin per meter, SKU profitability, Margin Gap, Supplier Shelf Credit, retrobonus, promo economics.</p>
+              <p><b>Решения:</b> расширить место, сократить, запросить ретробонус, компенсацию, увеличить отсрочку, заменить SKU, вывести SKU.</p>
+              <p class="method-card__proof">19 функциональных блоков · 4 900+ расчётных связей · QA 19/19 PASS</p>
+              <a href="retail-margin-engine.html" class="method-card__cta" data-cta-id="method_retail_engine" data-cta-location="methodologies" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Открыть Retail Engine</a>
+            </article>
+
+            <article class="method-card">
+              <div class="method-card__top">
+                <h4>Distribution Working Capital Control</h4>
+                <span>Адаптируется под клиента</span>
+              </div>
+              <p class="method-card__desc">Контроль складов, дебиторки, поставщиков и лимитов клиентов.</p>
+              <p><b>Метрики:</b> inventory days, AR aging, AP aging, stock turnover, client limits, supplier exposure, margin by product group, cash gap.</p>
+              <p><b>Решения:</b> сократить запасы, пересмотреть лимиты, ускорить инкассацию, изменить закупки, усилить контроль поставщиков.</p>
+              <a href="questionnaire.html?model=distribution" class="method-card__cta" data-cta-id="method_distribution" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Проверить дистрибуцию</a>
+            </article>
+
+            <article class="method-card">
+              <div class="method-card__top">
+                <h4>E-commerce Unit Economics</h4>
+                <span>Адаптируется под клиента</span>
+              </div>
+              <p class="method-card__desc">Прибыльность SKU, канала и заказа после рекламы, логистики и возвратов.</p>
+              <p><b>Метрики:</b> CAC, LTV, ROAS, contribution margin, return rate, logistics cost, SKU profitability, channel profitability.</p>
+              <p><b>Решения:</b> остановить канал, изменить бюджет, поднять цену, сократить возвраты, изменить ассортимент.</p>
+              <a href="questionnaire.html?model=ecommerce" class="method-card__cta" data-cta-id="method_ecommerce" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Проверить e-commerce</a>
+            </article>
+
+            <article class="method-card">
+              <div class="method-card__top">
+                <h4>Custom Manufacturing Order Profitability</h4>
+                <span>Адаптируется под клиента</span>
+              </div>
+              <p class="method-card__desc">Финансовый контроль заказа, себестоимости, авансов и незавершёнки.</p>
+              <p><b>Метрики:</b> planned vs actual cost, materials, labor, overhead, advance payments, WIP, margin by order, delivery delay impact.</p>
+              <p><b>Решения:</b> пересчитать цену, остановить убыточный заказ, изменить авансы, контролировать материалы, пересмотреть сроки.</p>
+              <a href="questionnaire.html?model=manufacturing" class="method-card__cta" data-cta-id="method_manufacturing" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Проверить производство</a>
+            </article>
+
+            <article class="method-card">
+              <div class="method-card__top">
+                <h4>Fitness LTV &amp; Churn Control</h4>
+                <span>Адаптируется под клиента</span>
+              </div>
+              <p class="method-card__desc">Доходность клиента, абонемента, тренера и загрузки клуба.</p>
+              <p><b>Метрики:</b> LTV, churn, retention, hall utilization, trainer profitability, seasonality, subscription margin.</p>
+              <p><b>Решения:</b> изменить тарифы, удержать клиента, пересобрать расписание, оптимизировать тренеров, управлять сезонностью.</p>
+              <a href="questionnaire.html?model=fitness" class="method-card__cta" data-cta-id="method_fitness" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="fitness">Проверить фитнес</a>
+            </article>
+          </div>
+
+          <p class="methodologies__note">Флагманские модули внедряются отдельно после диагностики, оценки качества данных и согласования объёма работ. Для Retail доказательность v1.2 уже показана на отдельной странице; остальные расчётные методологии адаптируются под экономику конкретного клиента.</p>
+        </div>
+
         <div class="industries__asset-callout reveal" data-reveal-delay="2">
           <div>
             <span class="industries__asset-label">Одна CFO-логика — разные активы</span>
-            <p>В Real Estate FINMENTOR считает доходность объекта, арендатора и CAPEX. В Retail — доходность полки, категории, SKU и поставщика. В обоих случаях цель одна: показать, какой актив реально зарабатывает, а какой замораживает капитал.</p>
+            <p>В Real Estate актив — объект и арендатор. В Retail — полка, категория и SKU. В Distribution — склад и дебиторка. В E-commerce — канал, заказ и SKU. В Manufacturing — заказ и незавершёнка. В Fitness — клиент, абонемент и загрузка. В каждом случае FINMENTOR отвечает на один вопрос: какой актив реально зарабатывает, а какой замораживает капитал?</p>
           </div>
           <a href="retail-margin-engine.html" class="btn btn--ghost btn--lg" data-cta-id="industries_retail_engine_callout" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine">Смотреть Retail Margin Engine →</a>
         </div>
@@ -630,7 +711,7 @@
           </article>
         </div>
 
-        <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой Excel-файла, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
+        <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой отдельной таблицы, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
         <div class="packages__cta reveal">
           <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
           <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовый рентген</a>
