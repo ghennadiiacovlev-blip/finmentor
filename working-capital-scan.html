@@ -54,7 +54,9 @@
 {
   "@context": "https://schema.org",
   "@graph": [
-    {"@type": "WebPage", "@id": "https://www.finmentor.md/wctest", "name": "Мини-скан оборотного капитала", "description": "Короткая самодиагностика оборотного капитала: дебиторка, запасы, авансы, условия оплаты и платежи.", "inLanguage": "ru", "url": "https://www.finmentor.md/working-capital-scan.html", "isPartOf": {"@type": "WebSite", "name": "FINMENTOR", "url": "https://www.finmentor.md/"}},
+    {"@type": "WebPage", "@id": "https://www.finmentor.md/working-capital-scan.html#webpage", "name": "Мини-скан оборотного капитала", "description": "Короткая самодиагностика оборотного капитала: дебиторка, запасы, авансы, условия оплаты и платежи.", "inLanguage": "ru", "url": "https://www.finmentor.md/working-capital-scan.html", "isPartOf": {"@type": "WebSite", "@id": "https://www.finmentor.md/#website", "name": "FINMENTOR", "url": "https://www.finmentor.md/"}},
+    {"@type": "Organization", "@id": "https://www.finmentor.md/#organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/", "email": "cfo@finmentor.md", "founder": {"@type": "Person", "name": "Ghennadi Iacovlev"}},
+    {"@type": "Service", "@id": "https://www.finmentor.md/working-capital-scan.html#service", "name": "Мини-скан оборотного капитала FINMENTOR", "provider": {"@id": "https://www.finmentor.md/#organization"}, "serviceType": "Working capital triage", "description": "Контекстный мини-скан зон риска оборотного капитала: дебиторка, запасы, авансы, условия оплаты и платежная дисциплина.", "areaServed": ["MD", "RO", "EU"]},
     {"@type": "BreadcrumbList", "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Главная", "item": "https://www.finmentor.md/"},
       {"@type": "ListItem", "position": 2, "name": "Материалы", "item": "https://www.finmentor.md/materials.html"},
@@ -91,7 +93,7 @@
         <a href="index.html" class="doc-bar__hide">На главную</a>
         <a href="materials.html">Материалы</a>
         <a href="questionnaire.html">Финансовый рентген</a>
-        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm">Пройти финансовый рентген</a>
       </nav>
     </div>
   </header>
@@ -150,6 +152,7 @@
             <a href="questionnaire.html" class="btn btn--primary" id="scanQ">Пройти финансовый рентген бизнеса</a>
             <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Открыть FINMENTOR Bot</a>
             <button type="button" class="btn btn--ghost" id="scanCopy">Скопировать результат</button>
+            <button type="button" class="btn btn--ghost" id="scanSend">Отправить результат FINMENTOR</button>
           </div>
           <div class="scan__optional">
             <div><label for="scanName">Имя (необязательно)</label><input id="scanName" type="text" autocomplete="off" /></div>
@@ -157,7 +160,12 @@
             <div><label for="scanContact">Email или Telegram (необязательно)</label><input id="scanContact" type="text" autocomplete="off" /></div>
             <div class="field--full"><label for="scanComment">Комментарий (необязательно)</label><textarea id="scanComment" rows="2"></textarea></div>
           </div>
-          <p class="scan__note">Поля необязательны — мини-скан работает и без них. Данные не отправляются автоматически: используйте «Скопировать результат» или «Открыть FINMENTOR Bot».</p>
+          <label class="consent scan__consent" for="scanConsent">
+            <input type="checkbox" id="scanConsent" class="consent__box" />
+            <span class="consent__text">Я согласен на обработку данных для связи со мной и рассмотрения результата согласно <a href="privacy.html" target="_blank" rel="noopener">Политике конфиденциальности</a>.</span>
+          </label>
+          <p class="scan__send-status" id="scanSendStatus" hidden></p>
+          <p class="scan__note">Поля необязательны — мини-скан работает и без них. Для передачи результата FINMENTOR нужен consent; если webhook не подключён, используйте «Скопировать результат» или «Открыть FINMENTOR Bot».</p>
         </div>
       </section>
     </div>
@@ -196,12 +204,16 @@
 (function () {
   var root = document.getElementById('wcScanV88');
   if (!root) return;
+  var WEBHOOK_URL = "https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake";
   function ga(name, params) { if (typeof gtag === 'function') { try { gtag('event', name, params || {}); } catch (e) {} } }
 
   var questions = Array.prototype.slice.call(root.querySelectorAll('[data-scan-q]'));
   var bar = document.getElementById('scanBar');
   var submit = document.getElementById('scanSubmit');
   var result = document.getElementById('scanResult');
+  var sendBtn = document.getElementById('scanSend');
+  var sendStatus = document.getElementById('scanSendStatus');
+  var scanConsent = document.getElementById('scanConsent');
   var answers = {};
   var started = false;
   var lastResult = null;
@@ -394,6 +406,90 @@
   var tgBtn = document.getElementById('scanTg'); if (tgBtn) tgBtn.addEventListener('click', function () { if (lastResult) ga('click_bot_from_scan', gaParams()); });
 
   function val(id) { var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+  function webhookUrl() {
+    var url = String(WEBHOOK_URL || '').trim();
+    if (!/^https?:\/\//i.test(url)) return '';
+    if (/PASTE_|WEBHOOK_URL|example\.com/i.test(url)) return '';
+    return url;
+  }
+  function showSendStatus(text, isError) {
+    if (!sendStatus) return;
+    sendStatus.hidden = false;
+    sendStatus.textContent = text;
+    sendStatus.classList.toggle('is-error', !!isError);
+  }
+  function scanMeta(consent) {
+    var params = new URLSearchParams(window.location.search || '');
+    return {
+      utm_source: (params.get('utm_source') || '').trim(),
+      utm_medium: (params.get('utm_medium') || '').trim(),
+      utm_campaign: (params.get('utm_campaign') || '').trim(),
+      utm_content: (params.get('utm_content') || '').trim(),
+      utm_term: (params.get('utm_term') || '').trim(),
+      page_url: window.location.href,
+      referrer: document.referrer || '',
+      timestamp: new Date().toISOString(),
+      consent: !!consent
+    };
+  }
+  function selectedAnswers() {
+    return questions.map(function (q) {
+      var chosen = q.querySelector('.scan__opt.is-sel');
+      return {
+        question_id: q.getAttribute('data-scan-q') || '',
+        question: (q.querySelector('.scan__qtitle') || {}).textContent || '',
+        answer: chosen ? chosen.textContent.trim() : '',
+        signal: chosen ? (chosen.getAttribute('data-cat') || '') : ''
+      };
+    });
+  }
+  function buildPayload() {
+    var contact = val('scanContact');
+    return {
+      tool: 'mini_scan',
+      lead: {
+        name: val('scanName'),
+        company: val('scanCompany'),
+        contact: contact,
+        email: /@/.test(contact) ? contact : '',
+        telegram: /(^@|t\.me\/)/i.test(contact) ? contact : ''
+      },
+      answers: {
+        selected_answers: selectedAnswers(),
+        result: lastResult,
+        comment: val('scanComment')
+      },
+      signals: {
+        model: 'working-capital',
+        urgency: lastResult ? lastResult.risk_level : '',
+        score_zone: lastResult ? lastResult.risk_level : '',
+        first_step: lastResult ? lastResult.recommended_route : ''
+      },
+      meta: scanMeta(!!(scanConsent && scanConsent.checked))
+    };
+  }
+  function postMiniScan(payload) {
+    var url = webhookUrl();
+    if (!url) return Promise.reject(new Error('webhook_not_configured'));
+    var controller = window.AbortController ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, 12000) : null;
+    return fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined
+    }).then(function (r) {
+      if (timer) clearTimeout(timer);
+      if (!r.ok) throw new Error('webhook_status_' + r.status);
+      return r;
+    }).catch(function (err) {
+      if (timer) clearTimeout(timer);
+      throw err;
+    });
+  }
   function buildShareText() {
     if (!lastResult) return '';
     var L = lastResult;
@@ -417,6 +513,31 @@
     function done() { var old = copyBtn.textContent; copyBtn.textContent = 'Скопировано ✓'; setTimeout(function () { copyBtn.textContent = old; }, 1800); if (lastResult) ga('copy_working_capital_scan_result', gaParams()); }
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); }); }
     else { fallbackCopy(text); done(); }
+  });
+  if (sendBtn) sendBtn.addEventListener('click', function () {
+    if (!lastResult) {
+      render();
+      if (!lastResult) return;
+    }
+    if (!scanConsent || !scanConsent.checked) {
+      showSendStatus('Чтобы отправить результат FINMENTOR, подтвердите согласие рядом с Политикой конфиденциальности.', true);
+      if (scanConsent) scanConsent.focus();
+      return;
+    }
+    if (!webhookUrl()) {
+      showSendStatus('Webhook пока не подключён. Скопируйте результат или отправьте его в FINMENTOR Bot.', true);
+      return;
+    }
+    sendBtn.disabled = true;
+    showSendStatus('Отправляем результат...', false);
+    var payload = buildPayload();
+    postMiniScan(payload).then(function () {
+      ga('lead_submit', { tool: 'mini_scan', score_zone: payload.signals.score_zone, first_step: payload.signals.first_step });
+      window.location.href = 'thank-you.html?tool=mini_scan';
+    }).catch(function () {
+      sendBtn.disabled = false;
+      showSendStatus('Не удалось автоматически отправить результат. Скопируйте результат или откройте FINMENTOR Bot.', true);
+    });
   });
 
   window.finmentorScan = { result: function () { return lastResult; }, scores: computeScores };

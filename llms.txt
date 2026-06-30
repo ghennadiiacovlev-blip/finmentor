@@ -1,0 +1,28 @@
+# FINMENTOR
+
+FINMENTOR is an external CFO and financial control methodology website for business owners. The site is in Russian and focuses on management reporting, Cash Flow, P&L, treasury, working capital, KPI, risk control, dashboards, and business-model-specific CFO systems.
+
+Primary URL: https://www.finmentor.md/
+Primary language: ru
+Contact: cfo@finmentor.md
+Telegram Bot: https://t.me/finmentor_md_bot
+
+## Key Pages
+
+- https://www.finmentor.md/ — FINMENTOR overview, business models, methodologies, expert modules, founder, contact form.
+- https://www.finmentor.md/questionnaire.html — Финансовый рентген бизнеса, quick diagnostic and gated extended intake before Discovery Call.
+- https://www.finmentor.md/retail-margin-engine.html — FINMENTOR Retail Margin Engine, CFO model for shelf, category, SKU, supplier credit, promo, retrobonus, dashboard and QA logic.
+- https://www.finmentor.md/business-control-system.html — Business Control System for owner-level financial management.
+- https://www.finmentor.md/monthly-cfo-support.html — Regular external CFO support.
+- https://www.finmentor.md/working-capital-scan.html — Contextual mini-scan for working capital risks.
+- https://www.finmentor.md/materials.html — Knowledge hub and articles.
+- https://www.finmentor.md/privacy.html — Privacy policy.
+- https://www.finmentor.md/terms.html — Terms of materials use.
+
+## Positioning
+
+FINMENTOR is not positioned as an automatic diagnosis tool. Digital tools and automation help speed and quality, while final conclusions and recommendations pass expert review.
+
+## Data And Privacy
+
+The website must not send personal data to GA4. Lead forms send data only to the configured Make/n8n webhook after user consent. If the webhook is not configured, users are offered fallback options: copy result, Telegram Bot, or email.

@@ -87,6 +87,14 @@
         "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
       },
       {
+        "@type": "WebSite",
+        "@id": "https://www.finmentor.md/#website",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/",
+        "inLanguage": "ru",
+        "publisher": { "@id": "https://www.finmentor.md/#organization" }
+      },
+      {
         "@type": "ProfessionalService",
         "@id": "https://www.finmentor.md/#service",
         "name": "FINMENTOR",
@@ -100,6 +108,16 @@
         "serviceType": ["External CFO", "Financial management", "Management reporting", "Treasury", "Cash flow control", "KPI", "Business control system", "BI / digital automation"],
         "address": { "@type": "PostalAddress", "addressLocality": "Chișinău", "addressCountry": "MD" },
         "sameAs": ["https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"]
+      },
+      {
+        "@type": "Service",
+        "@id": "https://www.finmentor.md/#financial-control-service",
+        "name": "FINMENTOR CFO-система финансового контроля",
+        "provider": { "@id": "https://www.finmentor.md/#organization" },
+        "serviceType": "External CFO, financial control system, management reporting, Cash Flow, P&L, KPI and risk control",
+        "areaServed": ["MD", "RO", "EU"],
+        "url": "https://www.finmentor.md/",
+        "description": "Авторская CFO-система FINMENTOR для собственника: Cash Flow, P&L, платежи, дебиторка, обязательства, маржа, KPI, риски и dashboard в одной управленческой логике."
       }
     ]
   }
@@ -294,7 +312,7 @@
 
       <div class="header__actions">
         <!-- Языковой переключатель убран до готовности переводов RO/EN. Вернуть, когда переводы будут готовы. -->
-        <a href="#consult" class="btn btn--primary btn--sm header__cta">Разобрать мой бизнес</a>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
         <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
@@ -314,7 +332,7 @@
     </nav>
     <div class="mobile-menu__footer">
       <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
-      <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">FINMENTOR Bot</a>
+      <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
     </div>
   </div>
 
@@ -339,18 +357,18 @@
 
         <div class="hero__actions reveal" data-reveal-delay="3">
           <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
-          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Оставить заявку в FINMENTOR Bot</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
           <a href="#industries" class="btn btn--ghost btn--lg" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Решения под вашу бизнес-модель ↓</a>
         </div>
 
         <p class="hero__trust-line reveal" data-reveal-delay="4">Авторская методология · экспертная проверка · цифровая автоматизация · dashboard собственника</p>
 
         <div class="hero__stats glass reveal" data-reveal-delay="5">
-          <div class="stat"><div class="stat__num"><span data-count="15">0</span><span class="stat__suffix">+</span></div><div class="stat__label">лет в финансах</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="15" data-target="15">15</span><span class="stat__suffix">+</span></div><div class="stat__label">лет в финансах</div></div>
           <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="5">0</span></div><div class="stat__label">опор в едином контуре</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="5" data-target="5">5</span></div><div class="stat__label">опор в едином контуре</div></div>
           <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="10">0</span></div><div class="stat__label">кейсов по направлениям</div></div>
+          <div class="stat"><div class="stat__num"><span data-count="10" data-target="10">10</span></div><div class="stat__label">кейсов по направлениям</div></div>
         </div>
       </div>
 
@@ -432,6 +450,7 @@
             <p><b>Расчётная методология:</b> Target Marja, margin per meter, SKU profitability, Supplier Shelf Credit, retrobonus, promo economics, 9 управленческих действий.</p>
             <p><b>Результат:</b> Dashboard показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие SKU вывести из ассортимента.</p>
             <p><b>Доказательность:</b> v1.2: 19 листов, 4 900+ формул, QA 19/19 PASS, 0 ошибок после пересчёта.</p>
+            <p class="method-card__legal">QA-метрики описывают качество модели и расчётной логики; они не являются гарантией финансового результата клиента.</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
 
@@ -504,6 +523,7 @@
               <p><b>Метрики:</b> Target Marja, margin per meter, SKU profitability, Margin Gap, Supplier Shelf Credit, retrobonus, promo economics.</p>
               <p><b>Решения:</b> расширить место, сократить, запросить ретробонус, компенсацию, увеличить отсрочку, заменить SKU, вывести SKU.</p>
               <p class="method-card__proof">19 функциональных блоков · 4 900+ расчётных связей · QA 19/19 PASS</p>
+              <p class="method-card__legal">QA-метрики описывают качество модели и расчётной логики; они не являются гарантией финансового результата клиента.</p>
               <a href="retail-margin-engine.html" class="method-card__cta" data-cta-id="method_retail_engine" data-cta-location="methodologies" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Открыть Retail Engine</a>
             </article>
 
@@ -588,7 +608,7 @@
           <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&amp;L, KPI и платежи живут в разных таблицах</li>
         </ul>
         <div class="audience__cta reveal" data-reveal-delay="2">
-          <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Проверить, где застревают деньги</a>
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
         </div>
       </div>
     </section>
@@ -625,7 +645,7 @@
         <div class="section-head">
           <p class="overline reveal">Решения</p>
           <h2 class="section-title reveal" data-reveal-delay="1">Продуктовая лестница внешнего&nbsp;CFO</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Начните с Discovery Call. Дальше — диагностика, внедрение системы и регулярный CFO-контроль. BI/AI — дополнительный модуль после фундамента.</p>
+          <p class="section-lead reveal" data-reveal-delay="2">Начните с финансового рентгена. Дальше — Discovery Call, диагностика, внедрение системы и регулярный CFO-контроль. BI/AI — дополнительный модуль после фундамента.</p>
         </div>
 
         <div class="packages__grid">
@@ -713,8 +733,8 @@
 
         <p class="roi-note reveal"><strong>Стоимость зависит</strong> от количества юрлиц, состояния учёта, числа источников данных, глубины внедрения и регулярности сопровождения. Её стоит сравнивать не с ценой отдельной таблицы, а с ценой кассовых разрывов, замороженной дебиторки, ошибок в платежах и решений без данных. Формат сопровождения (встречи, часы, отчёты и зоны ответственности) фиксируется заранее: поддержка не является безлимитным финансовым отделом.</p>
         <div class="packages__cta reveal">
-          <a href="#consult" class="btn btn--primary btn--lg" data-ga="click_discovery_call">Записаться на Discovery Call</a>
-          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost btn--lg" data-ga="click_questionnaire">Пройти финансовый рентген</a>
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
         </div>
       </div>
     </section>
@@ -943,7 +963,7 @@
           <p class="cta-band__title">Проверьте, где заморожены деньги</p>
           <p class="cta-band__text">Быстрый разбор оборотного капитала: дебиторка, запасы, авансы и денежный цикл — без перегруза формулами. После результата подскажем релевантный материал и следующий шаг.</p>
           <div class="cta-band__row">
-            <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Пройти mini-scan</a>
+            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть контекстный mini-scan</a>
             <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">Подробнее об оборотном капитале</a>
           </div>
         </div>
@@ -982,7 +1002,7 @@
           <p class="section-lead reveal" data-reveal-delay="2">Прозрачный процесс без неизвестности — вы понимаете каждый следующий шаг.</p>
         </div>
         <div class="after-grid">
-          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Вы оставляете <strong>короткий запрос</strong> через mini-scan или FINMENTOR&nbsp;Bot.</p></div>
+          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Вы проходите <strong>финансовый рентген</strong> или пишете напрямую в FINMENTOR&nbsp;Bot.</p></div>
           <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR смотрит контекст и определяет, <strong>что нужно уточнить</strong>.</p></div>
           <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">На <strong>Discovery Call</strong> обсуждаем бизнес, данные и главную боль.</p></div>
           <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Формируется <strong>список документов</strong> и рекомендуемый формат работы.</p></div>

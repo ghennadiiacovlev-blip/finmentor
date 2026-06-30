@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: 'thank-you', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+    var FM_THANKYOU_TOOL = new URLSearchParams(window.location.search).get('tool') || 'unknown';
+    if (!/^(xray_quick|xray_extended|mini_scan|contact)$/.test(FM_THANKYOU_TOOL)) FM_THANKYOU_TOOL = 'unknown';
+    gtag('event', 'lead_thank_you_view', {
+      page_slug: 'thank-you',
+      tool: FM_THANKYOU_TOOL
+    });
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Заявка получена | FINMENTOR</title>
+  <meta name="description" content="FINMENTOR получил заявку и вернётся с первым шагом: диагностикой, списком документов или предложением по формату работы." />
+  <meta name="robots" content="noindex, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/thank-you.html" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="FINMENTOR"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-nav" aria-label="Навигация">
+        <a href="index.html">Главная</a>
+        <a href="questionnaire.html">Финансовый рентген</a>
+        <a href="materials.html">Материалы</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="doc-hero thankyou-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">FINMENTOR · заявка получена</p>
+        <h1>Спасибо. Заявка получена.</h1>
+        <p class="doc-hero__lead">FINMENTOR предварительно изучит контекст и вернётся с первым шагом: диагностикой, списком документов или предложением по формату работы.</p>
+        <p class="doc-hero__context">Если вопрос срочный, можно написать напрямую в FINMENTOR Bot. Персональные данные не передаются в GA4; обработка заявки идёт через операционный webhook FINMENTOR после подключения.</p>
+        <div class="doc-hero__cta">
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
+          <a href="materials.html" class="btn btn--ghost btn--lg">Перейти к материалам</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Главная</a>
+        <a href="privacy.html">Политика конфиденциальности</a>
+        <a href="terms.html">Условия использования материалов</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
+    </div>
+  </footer>
+  <script src="main.js"></script>
+  <script src="assistant.js"></script>
+</body>
+</html>

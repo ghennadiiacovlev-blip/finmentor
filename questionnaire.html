@@ -393,12 +393,12 @@
             <p class="q-result__body" id="dxBody"></p>
             <ul class="q-risk-list" id="dxRisks"></ul>
             <p class="q-result__next" id="dxNext"></p>
-            <button type="button" class="btn btn--primary q-result__cta" id="dxContinue" data-cta-id="diagnostic_continue_intake" data-cta-location="diagnostic_result" data-destination="#extendedIntake">Продолжить расширенную диагностику для подготовки Financial Health Check →</button>
+            <button type="button" class="btn btn--primary q-result__cta" id="dxContinue" data-cta-id="diagnostic_continue_intake" data-cta-location="diagnostic_result" data-destination="#extendedIntake">Продолжить подготовку к Discovery Call →</button>
           </div>
         </section>
 
         <!-- Блок 1 — Контакт, страна и формат коммуникации -->
-        <section class="q-block" id="extendedIntake">
+        <section class="q-block" id="extendedIntake" hidden>
           <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Контакт и формат коммуникации</h2><span class="q-block__count">1 / 11</span></div>
           <div class="q-grid">
             <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
@@ -661,7 +661,7 @@
         <div class="q-success" id="qSuccess" hidden>
           <strong>Готово.</strong> <span id="qSuccessText">Финансовый рентген подготовлен. Чтобы передать его FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на email.</span>
           <span class="q-success__row">
-            <a class="btn btn--primary" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_success_bot" data-cta-location="questionnaire_success" data-destination="telegram">Открыть FINMENTOR Bot</a>
+            <a class="btn btn--ghost" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_success_bot" data-cta-location="questionnaire_success" data-destination="telegram">Открыть FINMENTOR Bot</a>
             <button type="button" class="btn btn--ghost" id="qCopySuccess">Скопировать ответы</button>
             <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
           </span>
@@ -705,7 +705,8 @@
 // No external libs, no native select, no PII to GA4, no PII logged. Webhook placeholder is inert until replaced.
 (function () {
   // Replace this single value with the approved Make / n8n production webhook URL.
-  var FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL = "PASTE_MAKE_WEBHOOK_URL_HERE";
+  var WEBHOOK_URL = "https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake";
+  var FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL = WEBHOOK_URL;
 
   var form = document.getElementById('qFormV86');
   if (!form) return;
@@ -1166,7 +1167,11 @@
       desired_first_step: radioVal('dx_review') || 'unknown'
     });
     var target = document.getElementById('extendedIntake');
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (target) {
+      target.hidden = false;
+      target.classList.add('is-open');
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   });
 
   // ---------- preliminary AI hints (no AI, frontend only) ----------
@@ -1312,6 +1317,7 @@
       documents_status: radioVal('q_documents_status')
     };
     return {
+      tool: 'xray_extended',
       source: 'website_questionnaire',
       site_version: SITE_VERSION,
       lead_id: leadId,
@@ -1320,6 +1326,33 @@
       source_page: 'questionnaire.html',
       page_url: hiddenVal('page_url') || (window.location ? window.location.href : 'https://www.finmentor.md/questionnaire.html'),
       referrer: hiddenVal('referrer') || document.referrer || '',
+      meta: {
+        utm_source: attribution.utm_source,
+        utm_medium: attribution.utm_medium,
+        utm_campaign: attribution.utm_campaign,
+        utm_content: attribution.utm_content,
+        utm_term: attribution.utm_term,
+        page_url: hiddenVal('page_url') || (window.location ? window.location.href : 'https://www.finmentor.md/questionnaire.html'),
+        referrer: hiddenVal('referrer') || document.referrer || '',
+        timestamp: createdAt,
+        consent: accepted
+      },
+      answers: {
+        quick_diagnostic: dx ? dx.answers_short : [],
+        extended_intake: {
+          selected_pains: checkVals('q_pain'),
+          goals: checkVals('q_goal'),
+          documents: checkVals('q_doc'),
+          work_interest: checkVals('q_workinterest'),
+          comment: textVal('q_comment')
+        }
+      },
+      signals: {
+        model: modelKey || '',
+        urgency: (dx && dx.urgency) || radioVal('q_urgency') || '',
+        score_zone: dx ? dx.traffic_light : '',
+        first_step: packageHint()
+      },
       risk_zone: dx ? dx.traffic_light : '',
       attribution: attribution,
       client: {
@@ -1585,7 +1618,7 @@
           industry_category: (payload.diagnostic && payload.diagnostic.business_model_key) || payload.business_profile.industry_category || 'unknown',
           desired_first_step: payload.main_pain.desired_first_step || 'unknown'
         });
-        showSuccess(true);
+        window.location.href = 'thank-you.html?tool=xray_extended';
       })
       .catch(function () {
         setSubmitting(false);

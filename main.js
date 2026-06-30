@@ -13,12 +13,74 @@
 (function () {
   'use strict';
 
+  var WEBHOOK_URL = "https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake";
+  window.WEBHOOK_URL = typeof window.WEBHOOK_URL === 'string' ? window.WEBHOOK_URL : WEBHOOK_URL;
+
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  function webhookUrl() {
+    var url = String(window.WEBHOOK_URL || WEBHOOK_URL || '').trim();
+    if (!/^https?:\/\//i.test(url)) return '';
+    if (/PASTE_|WEBHOOK_URL|example\.com/i.test(url)) return '';
+    return url;
+  }
+
+  function utmMeta() {
+    var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    var out = {};
+    var params = new URLSearchParams(window.location.search || '');
+    keys.forEach(function (key) {
+      var val = (params.get(key) || '').trim();
+      if (!val) {
+        try { val = sessionStorage.getItem('finmentor_' + key) || ''; } catch (e) {}
+      } else {
+        try { sessionStorage.setItem('finmentor_' + key, val); } catch (e) {}
+      }
+      out[key] = val;
+    });
+    return out;
+  }
+
+  function leadMeta(consent) {
+    var meta = utmMeta();
+    meta.page_url = window.location.href;
+    meta.referrer = document.referrer || '';
+    meta.timestamp = new Date().toISOString();
+    meta.consent = !!consent;
+    return meta;
+  }
+
+  function postLeadPayload(payload) {
+    var url = webhookUrl();
+    if (!url) return Promise.reject(new Error('webhook_not_configured'));
+    var controller = window.AbortController ? new AbortController() : null;
+    var timer = controller ? window.setTimeout(function () { controller.abort(); }, 12000) : null;
+    return fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined
+    }).then(function (res) {
+      if (timer) window.clearTimeout(timer);
+      if (!res.ok) throw new Error('webhook_status_' + res.status);
+      return res;
+    }).catch(function (err) {
+      if (timer) window.clearTimeout(timer);
+      throw err;
+    });
+  }
+
+  function thankYou(tool) {
+    window.location.href = 'thank-you.html' + (tool ? '?tool=' + encodeURIComponent(tool) : '');
   }
 
   /* ------------------------------------------------------------- INTRO */
@@ -263,7 +325,7 @@
     if (!nums.length) return;
 
     function animate(el) {
-      var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+      var target = parseInt(el.getAttribute('data-target') || el.getAttribute('data-count') || el.textContent, 10) || 0;
       if (prefersReduced) { el.textContent = target; return; }
       var dur = 1400, start = null;
       function tick(ts) {
@@ -556,60 +618,51 @@
         return;
       }
 
-      var lead = {
-        name: name.value.trim(),
-        contact: contact.value.trim(),
-        business: (form.querySelector('[name="business"]') || {}).value || '',
-        message: (form.querySelector('[name="message"]') || {}).value || ''
+      var business = (form.querySelector('[name="business"]') || {}).value || '';
+      var message = (form.querySelector('[name="message"]') || {}).value || '';
+      var contactValue = contact.value.trim();
+      var payload = {
+        tool: 'contact',
+        lead: {
+          name: name.value.trim(),
+          contact: contactValue,
+          company: business.trim(),
+          email: /@/.test(contactValue) ? contactValue : '',
+          telegram: /(^@|t\.me\/)/i.test(contactValue) ? contactValue : ''
+        },
+        answers: {
+          business: business.trim(),
+          message: message.trim()
+        },
+        signals: {
+          model: '',
+          urgency: '',
+          score_zone: '',
+          first_step: 'contact'
+        },
+        meta: leadMeta(true)
       };
 
-      /* ====================================================================
-         ПОДКЛЮЧЕНИЕ ОТПРАВКИ ЗАЯВКИ  (выбрать ОДИН вариант перед запуском)
-         --------------------------------------------------------------------
-         Сейчас заявка НЕ отправляется — только валидируется и показывает успех.
-         Реальные токены НЕ подключены. Раскомментируйте нужный блок и подставьте данные.
+      if (window.finmentorTrack) {
+        window.finmentorTrack('lead_submit', {
+          source: 'contact_form',
+          page_slug: 'index',
+          tool: 'contact',
+          first_step: 'contact'
+        });
+      }
 
-         ── ВАРИАНТ A · FORMSPREE (проще всего, без сервера) ──────────────────
-         1) Зарегистрируйтесь на https://formspree.io и создайте форму.
-         2) Вставьте ваш endpoint вместо FORMSPREE_ENDPOINT.
-         3) Раскомментируйте:
-
-         // var FORMSPREE_ENDPOINT = 'https://formspree.io/f/XXXXXXXX'; // ← ВСТАВИТЬ ENDPOINT
-         // fetch(FORMSPREE_ENDPOINT, {
-         //   method: 'POST',
-         //   headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-         //   body: JSON.stringify(lead)
-         // }).then(function (r) { if (!r.ok) throw new Error('send failed'); });
-
-         ── ВАРИАНТ B · TELEGRAM BOT ─────────────────────────────────────────
-         1) Создайте бота через @BotFather → получите TOKEN.
-         2) Узнайте CHAT_ID: напишите боту, откройте
-            https://api.telegram.org/bot<TOKEN>/getUpdates — поле chat.id.
-         3) Вставьте TOKEN и CHAT_ID и раскомментируйте:
-
-         // var TELEGRAM_TOKEN   = 'ВСТАВИТЬ_TELEGRAM_TOKEN';   // ← ТОКЕН бота от @BotFather
-         // var TELEGRAM_CHAT_ID = 'ВСТАВИТЬ_CHAT_ID';          // ← ВАШ CHAT ID
-         // var text = 'Заявка с сайта. Имя: ' + lead.name + ', Контакт: ' + lead.contact +
-         //   ', Бизнес: ' + lead.business + ', Задача: ' + lead.message;
-         // fetch('https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/sendMessage', {
-         //   method: 'POST',
-         //   headers: { 'Content-Type': 'application/json' },
-         //   body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
-         // });
-         //
-         // ВНИМАНИЕ (вариант B): токен бота будет виден в коде страницы (он публичный).
-         // Для продакшена безопаснее отправлять lead на свой webhook / serverless-функцию,
-         // которая уже пересылает сообщение в Telegram, не раскрывая токен.
-
-         После подключения console.log ниже можно удалить.
-         ==================================================================== */
-      try { console.log('[finmentor] lead (ещё не отправляется):', lead); } catch (err) {}
-
-      // TODO (приоритет): подключить Make/n8n webhook —
-      //   form submit → webhook → Telegram + Gmail + Google Sheets.
-      //   Готовые варианты подключения (Formspree / Telegram Bot) описаны в блоке выше.
-      if (success) success.hidden = false;
       if (submit) submit.disabled = true;
+      postLeadPayload(payload).then(function () {
+        thankYou('contact');
+      }).catch(function () {
+        if (submit) submit.disabled = false;
+        if (success) {
+          success.hidden = false;
+          success.innerHTML = '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.';
+          success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
     });
 
     form.addEventListener('input', function (e) {
@@ -620,6 +673,47 @@
         var w = e.target.closest('.consent');
         if (w) w.classList.remove('is-error');
       }
+    });
+  }
+
+  /* ------------------------------------------------------------- COOKIE CONSENT */
+  function initCookieConsent() {
+    var key = 'finmentor_cookie_consent';
+    try { if (localStorage.getItem(key)) return; } catch (e) {}
+
+    var banner = document.createElement('div');
+    banner.className = 'fm-cookie';
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-live', 'polite');
+    banner.setAttribute('aria-label', 'Настройки cookies FINMENTOR');
+    banner.innerHTML =
+      '<div class="fm-cookie__text"><strong>Cookies и аналитика</strong><span>FINMENTOR использует технические cookies и обезличенную аналитику, чтобы понимать работу сайта. Персональные данные в GA4 не отправляются.</span></div>' +
+      '<div class="fm-cookie__actions">' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-cookie-choice="deny">Только необходимые</button>' +
+        '<button type="button" class="btn btn--primary btn--sm" data-cookie-choice="accept">Принять</button>' +
+      '</div>';
+    document.body.appendChild(banner);
+
+    function close(choice) {
+      try { localStorage.setItem(key, choice); } catch (e) {}
+      if (typeof gtag === 'function') {
+        try {
+          gtag('consent', 'update', {
+            analytics_storage: choice === 'accept' ? 'granted' : 'denied',
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied'
+          });
+        } catch (e) {}
+      }
+      banner.classList.add('is-hiding');
+      window.setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 220);
+    }
+
+    banner.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-cookie-choice]') : null;
+      if (!btn) return;
+      close(btn.getAttribute('data-cookie-choice') || 'deny');
     });
   }
 
@@ -723,16 +817,7 @@
         return;
       }
 
-      /* TODO: подключить Make/n8n webhook:
-         questionnaire submit -> webhook -> AI agent -> Telegram + Gmail + Google Sheets / CRM.
-         Пример:
-         // var payload = collectAnswers();
-         // fetch('WEBHOOK_URL', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: payload })
-         //   .then(function (r) { if (!r.ok) throw new Error('send failed'); })
-         //   .catch(function () { ... показать fallback-контакты ... });
-         Пока backend не подключён — данные НЕ уходят в CRM / AI-agent, показываем честный success ниже. */
-
-      try { console.log('[finmentor] questionnaire (не отправляется автоматически):\n' + collectAnswers()); } catch (err) {}
+      // Legacy #qForm fallback only. Current questionnaire.html owns #qFormV86 and posts via its page script.
       if (success) { success.hidden = false; success.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     });
   }
@@ -915,5 +1000,6 @@
     guard(initWcScan);
     guard(initLang);
     guard(initGA);
+    guard(initCookieConsent);
   });
 })();
