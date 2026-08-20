@@ -89,7 +89,7 @@
     if (!intro) return;
 
     var alreadySkipped = document.documentElement.classList.contains('intro-skip');
-    var INTRO_MS = 4400;
+    var INTRO_MS = 1300;
 
     function dismiss() {
       intro.classList.add('is-done');
@@ -687,7 +687,7 @@
     banner.setAttribute('aria-live', 'polite');
     banner.setAttribute('aria-label', 'Настройки cookies FINMENTOR');
     banner.innerHTML =
-      '<div class="fm-cookie__text"><strong>Cookies и аналитика</strong><span>FINMENTOR использует технические cookies и обезличенную аналитику, чтобы понимать работу сайта. Персональные данные в GA4 не отправляются.</span></div>' +
+      '<div class="fm-cookie__text"><strong>Cookies и аналитика</strong><span>FINMENTOR использует технические cookies и обезличенную аналитику. Персональные данные в GA4 не отправляются.</span></div>' +
       '<div class="fm-cookie__actions">' +
         '<button type="button" class="btn btn--ghost btn--sm" data-cookie-choice="deny">Только необходимые</button>' +
         '<button type="button" class="btn btn--primary btn--sm" data-cookie-choice="accept">Принять</button>' +

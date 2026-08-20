@@ -358,8 +358,8 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   opacity: 0;
   filter: blur(14px);
   transform: translateY(0.32em) scale(1.12);
-  animation: introLetter 0.7s var(--ease-out-expo) forwards;
-  animation-delay: calc(0.3s + var(--i) * 0.09s);
+  animation: introLetter 0.55s var(--ease-out-expo) forwards;
+  animation-delay: calc(0.12s + var(--i) * 0.05s);
 }
 /* shimmer sweep across the wordmark */
 .intro__wordmark::after {
@@ -368,7 +368,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   inset: -10% -5%;
   background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
   transform: translateX(-130%);
-  animation: introShimmer 1.1s var(--ease-inout) 1.35s forwards;
+  animation: introShimmer 0.8s var(--ease-inout) 0.5s forwards;
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -380,7 +380,7 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   text-transform: uppercase;
   color: var(--text-muted);
   opacity: 0;
-  animation: introTagline 0.9s ease 2.1s forwards;
+  animation: introTagline 0.5s ease 0.6s forwards;
 }
 
 @keyframes introLetter {
@@ -2839,5 +2839,175 @@ body.menu-open .mobile-menu {
   .ai-mandate-grid span,
   .ai-outcome-grid div {
     flex-basis: 100%;
+  }
+}
+
+/* ============================================================================
+   v11 — Premium refinement (owner review package)
+   Hero secondary link · differentiation strip · module system map ·
+   deliverables list · nav wrap fix · mobile menu vs cookie banner fix
+   ========================================================================== */
+
+/* --- Header nav: keep links on one line at 1025–1440 --- */
+.nav { flex-wrap: nowrap; }
+.nav__link { white-space: nowrap; }
+@media (max-width: 1280px) {
+  .nav { gap: var(--sp-4); }
+  .nav__link { font-size: 0.88rem; }
+}
+@media (max-width: 1120px) {
+  .nav { gap: var(--sp-3); }
+  .nav__link { font-size: 0.85rem; }
+}
+
+/* --- Hero: quiet secondary link under the two primary actions --- */
+.hero__secondary { margin-top: var(--sp-4); }
+.hero__link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.95rem; font-weight: 500; color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border-gold);
+  padding-bottom: 2px;
+  transition: color var(--dur-base) ease, border-color var(--dur-base) ease;
+}
+.hero__link:hover { color: var(--accent-bright); border-color: var(--accent); }
+
+/* --- Differentiation strip: accountant / BI / FINMENTOR --- */
+.diff { padding-block: var(--sp-8); }
+.diff__grid { max-width: 880px; margin-inline: auto; display: grid; gap: 0; }
+.diff__row {
+  display: grid; grid-template-columns: 220px 1fr; gap: var(--sp-5);
+  align-items: baseline; padding: var(--sp-5) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.diff__row:first-child { border-top: 1px solid var(--border-hairline); }
+.diff__who {
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.diff__row p { color: var(--text-secondary); font-size: 1.02rem; line-height: 1.6; margin: 0; }
+.diff__row--fm { border-bottom-color: var(--glass-border-gold); }
+.diff__row--fm .diff__who { color: var(--accent); }
+.diff__row--fm p { color: var(--text-primary); }
+@media (max-width: 720px) {
+  .diff__row { grid-template-columns: 1fr; gap: var(--sp-2); padding: var(--sp-4) 0; }
+}
+
+/* --- Audience closing note (replaces third repeated primary CTA) --- */
+.audience__note {
+  margin-top: var(--sp-6); color: var(--text-secondary); font-size: 1rem;
+  line-height: 1.6; max-width: 640px;
+}
+.audience__note::before {
+  content: ""; display: inline-block; width: 28px; height: 1px; margin-right: 10px;
+  vertical-align: middle; background: var(--gold-500); opacity: 0.82;
+}
+
+/* --- Industries: methodology note inside the asset callout --- */
+.industries__asset-note {
+  margin-top: var(--sp-4); color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;
+}
+
+/* --- Module system map: grouped rows instead of a card catalogue --- */
+.sysmap { display: grid; gap: var(--sp-7); margin-top: var(--sp-6); }
+.sysmap__group { display: grid; gap: 0; }
+.sysmap__label {
+  font-family: var(--font-mono); font-size: 0.76rem; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+  padding-bottom: var(--sp-3); border-bottom: 1px solid var(--glass-border-gold);
+}
+.sysmap__row {
+  display: grid; grid-template-columns: 300px 1fr auto; gap: var(--sp-5);
+  align-items: baseline; padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--border-hairline);
+  transition: background var(--dur-fast) ease;
+}
+.sysmap__row:hover { background: rgba(255, 255, 255, 0.025); }
+.sysmap__name { font-weight: 600; color: var(--text-primary); font-size: 1rem; line-height: 1.45; }
+.sysmap__desc { color: var(--text-secondary); font-size: 0.94rem; line-height: 1.6; }
+.sysmap__arrow { color: var(--accent); font-size: 1rem; transition: transform var(--dur-fast) ease; }
+.sysmap__row:hover .sysmap__arrow { transform: translateX(4px); }
+.sysmap__row:hover .sysmap__name { color: var(--accent-bright); }
+.sysmap__tag {
+  display: inline-block; margin-left: 8px; padding: 2px 9px;
+  font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.06em;
+  color: var(--accent); border: 1px solid var(--glass-border-gold);
+  border-radius: var(--r-pill); vertical-align: middle; white-space: nowrap;
+}
+.sysmap__row--flag .sysmap__name { color: var(--accent-bright); }
+@media (max-width: 860px) {
+  .sysmap__row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: var(--sp-1) var(--sp-4); }
+  .sysmap__name { grid-column: 1; }
+  .sysmap__arrow { grid-column: 2; grid-row: 1; align-self: center; }
+  .sysmap__desc { grid-column: 1 / -1; }
+}
+
+/* --- Proof: link to full scenarios + deliverables as a light list --- */
+.proof-more { margin-top: var(--sp-5); }
+.deliv-list {
+  margin-top: var(--sp-5); display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3) var(--sp-7); max-width: 940px; padding: 0; list-style: none;
+}
+.deliv-list li {
+  color: var(--text-secondary); font-size: 0.95rem; line-height: 1.55;
+  padding: var(--sp-3) 0 var(--sp-3) 22px; position: relative;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.deliv-list li::before {
+  content: ""; position: absolute; left: 0; top: 1.32em; width: 10px; height: 1px;
+  background: var(--gold-500); opacity: 0.85;
+}
+.deliv-list li strong { color: var(--text-primary); font-weight: 600; }
+@media (max-width: 720px) { .deliv-list { grid-template-columns: 1fr; } }
+
+/* --- Mobile menu must sit above the cookie banner (z 950+ vs 980) --- */
+body.menu-open .fm-cookie,
+body.menu-open .fa-launch,
+body.menu-open .fa-panel {
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity var(--dur-fast) ease, visibility var(--dur-fast) ease;
+}
+
+/* --- Inner-page doc-bar: prevent 390px overflow (pre-existing defect) --- */
+.doc-bar__row { min-width: 0; }
+.doc-bar__nav { min-width: 0; flex-wrap: nowrap; }
+.doc-bar__nav a { white-space: nowrap; }
+@media (max-width: 480px) {
+  .doc-bar__nav { gap: var(--sp-3); }
+  .doc-bar__nav a { font-size: 0.82rem; }
+  .doc-bar__nav a[href="materials.html"] { display: none; }
+  .doc-bar__nav .btn--sm { padding-inline: 12px; }
+}
+
+/* --- v11 a11y: keyboard focus for new interactive elements --- */
+.sysmap__row:focus-visible,
+.hero__link:focus-visible,
+.material-card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+@media (max-width: 480px) {
+  /* doc-bar content may measure 1-2px over with fallback fonts; clip instead of page scroll */
+  .doc-bar { overflow-x: clip; }
+}
+
+/* ============================================================================
+   v12 — Final owner hardening: compact mobile cookie banner (<=720px)
+   Presentation only — consent logic, keys and GA4 behavior untouched.
+   ========================================================================== */
+@media (max-width: 720px) {
+  .fm-cookie {
+    left: 10px; right: 10px;
+    bottom: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 12px; gap: 8px;
+    flex-direction: column; align-items: stretch;
+  }
+  .fm-cookie__text { font-size: 0.78rem; line-height: 1.35; gap: 2px; }
+  .fm-cookie__text strong { font-size: 0.84rem; }
+  .fm-cookie__actions { gap: 8px; flex-wrap: nowrap; }
+  .fm-cookie__actions .btn {
+    flex: 1 1 0; min-width: 0; min-height: 44px;
+    padding-block: 10px; white-space: normal; line-height: 1.2;
+    font-size: 0.85rem;
   }
 }

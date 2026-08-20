@@ -143,28 +143,7 @@
   <noscript><style>.intro{display:none!important}</style></noscript>
   <style>
     /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
-    .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
-    .module-card { display:flex; flex-direction:column; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, box-shadow var(--dur-base) ease; }
-    .module-card:hover { border-color:var(--border-gold); transform:translateY(-3px); box-shadow:0 14px 40px rgba(0,0,0,0.25); }
-    .module-card--retail { border-color:var(--glass-border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); }
-    .module-card--retail .module-card__title { color:var(--accent); }
-    .module-card__num { font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.12em; color:var(--accent); }
-    .module-card__title { font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:8px 0 6px; line-height:1.3; }
-    .module-card__desc { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; margin-bottom:12px; }
-    .module-card__list { list-style:none; padding:0; margin:0 0 16px; display:flex; flex-direction:column; gap:6px; }
-    .module-card__list li { position:relative; padding-left:18px; color:var(--text-secondary); font-size:0.84rem; line-height:1.45; }
-    .module-card__list li::before { content:""; position:absolute; left:0; top:7px; width:6px; height:6px; border-radius:50%; background:var(--accent); }
-    .module-card__cta { margin-top:auto; display:inline-flex; align-items:center; gap:8px; color:var(--accent); font-weight:600; font-size:0.88rem; text-decoration:none; transition:gap var(--dur-base) ease; }
-    .module-card__cta:hover { gap:12px; }
-    .choose { margin-top:var(--sp-8); }
-    .choose__title { font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:var(--sp-4); }
-    .choose-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--glass-border); border-radius:var(--r-md); }
-    .choose-table { width:100%; border-collapse:collapse; min-width:480px; font-size:0.9rem; }
-    .choose-table th, .choose-table td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; }
-    .choose-table thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
-    .choose-table tbody tr:last-child td { border-bottom:0; }
-    .choose-table a { color:var(--accent); text-decoration:none; font-weight:600; white-space:nowrap; }
-    @media (max-width:600px){ .module-card{padding:var(--sp-4);} }
+    /* sample grid collapses via auto-fit/minmax on narrow screens */
 
     /* v10 — Lean Premium homepage sections */
     .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
@@ -174,10 +153,6 @@
     .step-card__desc { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; }
     .hero__divider { margin:var(--sp-4) auto 0; padding:12px 16px; border-left:2px solid var(--gold-500); color:var(--text-secondary); font-size:0.9rem; line-height:1.5; background:rgba(201,162,39,0.06); border-radius:0 var(--r-sm) var(--r-sm) 0; max-width:640px; }
     .hero__divider b { color:var(--text-primary); }
-    .deliv-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:var(--sp-5); }
-    .deliv-item { display:flex; align-items:flex-start; gap:10px; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); color:var(--text-secondary); font-size:0.9rem; line-height:1.45; }
-    .deliv-item::before { content:""; flex-shrink:0; width:7px; height:7px; margin-top:6px; border-radius:50%; background:var(--accent); }
-    .deliv-item strong { color:var(--text-primary); font-weight:600; }
     .sample-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
     .sample-card { border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)); overflow:hidden; }
     .sample-card__bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-bottom:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
@@ -205,9 +180,6 @@
     .material-card__arrow { margin-top:auto; color:var(--accent); font-size:0.84rem; font-weight:600; }
     .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
     @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
-
-
-
 
     /* v10.2 — hero scroll-cue: never overlap the stats card */
     .hero__content { padding-bottom:64px; }
@@ -358,18 +330,10 @@
         <div class="hero__actions reveal" data-reveal-delay="3">
           <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
           <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
-          <a href="#industries" class="btn btn--ghost btn--lg" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Решения под вашу бизнес-модель ↓</a>
         </div>
+        <p class="hero__secondary reveal" data-reveal-delay="3"><a href="#industries" class="hero__link" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Решения под вашу бизнес-модель&nbsp;↓</a></p>
 
-        <p class="hero__trust-line reveal" data-reveal-delay="4">Авторская методология · экспертная проверка · цифровая автоматизация · dashboard собственника</p>
-
-        <div class="hero__stats glass reveal" data-reveal-delay="5">
-          <div class="stat"><div class="stat__num"><span data-count="15" data-target="15">15</span><span class="stat__suffix">+</span></div><div class="stat__label">лет в финансах</div></div>
-          <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="5" data-target="5">5</span></div><div class="stat__label">опор в едином контуре</div></div>
-          <div class="stat__divider"></div>
-          <div class="stat"><div class="stat__num"><span data-count="10" data-target="10">10</span></div><div class="stat__label">кейсов по направлениям</div></div>
-        </div>
+        <p class="hero__trust-line reveal" data-reveal-delay="4">15+ лет в корпоративных финансах · CFO-подход · финальные выводы — после экспертной проверки</p>
       </div>
 
       <a href="#chaos" class="hero__scroll" aria-label="Листать вниз">
@@ -419,6 +383,16 @@
       </div>
     </section>
 
+    <section class="sec diff" id="difference" aria-label="Чем FINMENTOR отличается">
+      <div class="container">
+        <div class="diff__grid reveal">
+          <div class="diff__row"><span class="diff__who">Бухгалтерский учёт</span><p>обеспечивает корректность учёта, отчётности и налогового соответствия.</p></div>
+          <div class="diff__row"><span class="diff__who">BI и автоматизация</span><p>делают данные видимыми и процессы быстрее, но сами по себе не определяют финансовую логику решений.</p></div>
+          <div class="diff__row diff__row--fm"><span class="diff__who">FINMENTOR</span><p>добавляет управленческий контур собственника: связывает деньги, прибыль, Cash&nbsp;Flow, KPI и риски с конкретными управленческими решениями. Power&nbsp;BI, автоматизация и AI подключаются к уже построенной финансовой логике.</p></div>
+        </div>
+      </div>
+    </section>
+
     <section class="industries" id="industries">
       <div class="container">
         <div class="section-head">
@@ -435,7 +409,6 @@
             </div>
             <p><b>Боль:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
             <p><b>Контроль:</b> Арендаторы и договоры, NOI, Cap Rate, vacancy, CAPEX, tenant rating, окупаемость.</p>
-            <p><b>Расчётная методология:</b> NOI, vacancy, tenant rating, rent vs market, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
             <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p>
             <a href="questionnaire.html?model=real-estate" class="industry-card__cta" data-cta-id="industries_real_estate" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
           </article>
@@ -447,10 +420,7 @@
             </div>
             <p><b>Боль:</b> Полки заняты товаром, но непонятно, какие категории и SKU реально зарабатывают, а какие просто замораживают деньги.</p>
             <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и SKU; продажи, остатки, promo, retrobonus, поставщики и Supplier Shelf Credit.</p>
-            <p><b>Расчётная методология:</b> Target Marja, margin per meter, SKU profitability, Supplier Shelf Credit, retrobonus, promo economics, 9 управленческих действий.</p>
             <p><b>Результат:</b> Dashboard показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие SKU вывести из ассортимента.</p>
-            <p><b>Доказательность:</b> v1.2: 19 листов, 4 900+ формул, QA 19/19 PASS, 0 ошибок после пересчёта.</p>
-            <p class="method-card__legal">QA-метрики описывают качество модели и расчётной логики; они не являются гарантией финансового результата клиента.</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
 
@@ -495,90 +465,13 @@
           </article>
         </div>
 
-        <div class="methodologies reveal" data-reveal-delay="2" aria-labelledby="methodologiesTitle">
-          <div class="methodologies__head">
-            <p class="overline">CFO-модели</p>
-            <h3 id="methodologiesTitle">Расчётные методологии FINMENTOR</h3>
-            <p>FINMENTOR не ограничивается консультациями. Для каждой бизнес-модели мы строим расчётную методологию: какие данные собирать, какие показатели считать, где возникает риск, что влияет на cash flow и какое управленческое решение должен принять собственник.</p>
-          </div>
-
-          <div class="methodologies__grid">
-            <article class="method-card method-card--flagship">
-              <div class="method-card__top">
-                <h4>Real Estate Control System</h4>
-                <span>Флагманская методология FINMENTOR</span>
-              </div>
-              <p class="method-card__desc">Доходность объекта, арендатора и CAPEX.</p>
-              <p><b>Метрики:</b> NOI, vacancy, lost income, rent vs market, tenant rating, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
-              <p><b>Решения:</b> пересмотреть аренду, усилить обеспечение, удержать арендатора, инвестировать, не инвестировать, изменить договор.</p>
-              <a href="questionnaire.html?model=real-estate" class="method-card__cta" data-cta-id="method_real_estate" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
-            </article>
-
-            <article class="method-card method-card--retail">
-              <div class="method-card__top">
-                <h4>Retail Margin Engine</h4>
-                <span>Retail Engine v1.2</span>
-              </div>
-              <p class="method-card__desc">Доходность полки, категории, SKU и поставщика.</p>
-              <p><b>Метрики:</b> Target Marja, margin per meter, SKU profitability, Margin Gap, Supplier Shelf Credit, retrobonus, promo economics.</p>
-              <p><b>Решения:</b> расширить место, сократить, запросить ретробонус, компенсацию, увеличить отсрочку, заменить SKU, вывести SKU.</p>
-              <p class="method-card__proof">19 функциональных блоков · 4 900+ расчётных связей · QA 19/19 PASS</p>
-              <p class="method-card__legal">QA-метрики описывают качество модели и расчётной логики; они не являются гарантией финансового результата клиента.</p>
-              <a href="retail-margin-engine.html" class="method-card__cta" data-cta-id="method_retail_engine" data-cta-location="methodologies" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Открыть Retail Engine</a>
-            </article>
-
-            <article class="method-card">
-              <div class="method-card__top">
-                <h4>Distribution Working Capital Control</h4>
-                <span>Адаптируется под клиента</span>
-              </div>
-              <p class="method-card__desc">Контроль складов, дебиторки, поставщиков и лимитов клиентов.</p>
-              <p><b>Метрики:</b> inventory days, AR aging, AP aging, stock turnover, client limits, supplier exposure, margin by product group, cash gap.</p>
-              <p><b>Решения:</b> сократить запасы, пересмотреть лимиты, ускорить инкассацию, изменить закупки, усилить контроль поставщиков.</p>
-              <a href="questionnaire.html?model=distribution" class="method-card__cta" data-cta-id="method_distribution" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Проверить дистрибуцию</a>
-            </article>
-
-            <article class="method-card">
-              <div class="method-card__top">
-                <h4>E-commerce Unit Economics</h4>
-                <span>Адаптируется под клиента</span>
-              </div>
-              <p class="method-card__desc">Прибыльность SKU, канала и заказа после рекламы, логистики и возвратов.</p>
-              <p><b>Метрики:</b> CAC, LTV, ROAS, contribution margin, return rate, logistics cost, SKU profitability, channel profitability.</p>
-              <p><b>Решения:</b> остановить канал, изменить бюджет, поднять цену, сократить возвраты, изменить ассортимент.</p>
-              <a href="questionnaire.html?model=ecommerce" class="method-card__cta" data-cta-id="method_ecommerce" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Проверить e-commerce</a>
-            </article>
-
-            <article class="method-card">
-              <div class="method-card__top">
-                <h4>Custom Manufacturing Order Profitability</h4>
-                <span>Адаптируется под клиента</span>
-              </div>
-              <p class="method-card__desc">Финансовый контроль заказа, себестоимости, авансов и незавершёнки.</p>
-              <p><b>Метрики:</b> planned vs actual cost, materials, labor, overhead, advance payments, WIP, margin by order, delivery delay impact.</p>
-              <p><b>Решения:</b> пересчитать цену, остановить убыточный заказ, изменить авансы, контролировать материалы, пересмотреть сроки.</p>
-              <a href="questionnaire.html?model=manufacturing" class="method-card__cta" data-cta-id="method_manufacturing" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Проверить производство</a>
-            </article>
-
-            <article class="method-card">
-              <div class="method-card__top">
-                <h4>Fitness LTV &amp; Churn Control</h4>
-                <span>Адаптируется под клиента</span>
-              </div>
-              <p class="method-card__desc">Доходность клиента, абонемента, тренера и загрузки клуба.</p>
-              <p><b>Метрики:</b> LTV, churn, retention, hall utilization, trainer profitability, seasonality, subscription margin.</p>
-              <p><b>Решения:</b> изменить тарифы, удержать клиента, пересобрать расписание, оптимизировать тренеров, управлять сезонностью.</p>
-              <a href="questionnaire.html?model=fitness" class="method-card__cta" data-cta-id="method_fitness" data-cta-location="methodologies" data-event="health_check_cta" data-destination="questionnaire" data-business-model="fitness">Проверить фитнес</a>
-            </article>
-          </div>
-
-          <p class="methodologies__note">Флагманские модули внедряются отдельно после диагностики, оценки качества данных и согласования объёма работ. Для Retail доказательность v1.2 уже показана на отдельной странице; остальные расчётные методологии адаптируются под экономику конкретного клиента.</p>
-        </div>
+        
 
         <div class="industries__asset-callout reveal" data-reveal-delay="2">
           <div>
             <span class="industries__asset-label">Одна CFO-логика — разные активы</span>
             <p>В Real Estate актив — объект и арендатор. В Retail — полка, категория и SKU. В Distribution — склад и дебиторка. В E-commerce — канал, заказ и SKU. В Manufacturing — заказ и незавершёнка. В Fitness — клиент, абонемент и загрузка. В каждом случае FINMENTOR отвечает на один вопрос: какой актив реально зарабатывает, а какой замораживает капитал?</p>
+            <p class="industries__asset-note">Для каждой модели есть расчётная методология: какие данные собирать, какие показатели считать и какое решение принимает собственник. Флагманские модули внедряются после диагностики и адаптируются под экономику конкретного бизнеса. Для Retail доказательность модели v1.2 показана на отдельной странице.</p>
           </div>
           <a href="retail-margin-engine.html" class="btn btn--ghost btn--lg" data-cta-id="industries_retail_engine_callout" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine">Смотреть Retail Margin Engine →</a>
         </div>
@@ -607,9 +500,7 @@
           <li class="audience__item reveal" data-reveal-delay="2">Нет единого источника правды по цифрам</li>
           <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&amp;L, KPI и платежи живут в разных таблицах</li>
         </ul>
-        <div class="audience__cta reveal" data-reveal-delay="2">
-          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
-        </div>
+        <p class="audience__note reveal" data-reveal-delay="2">Если узнали хотя бы три пункта — финансовый рентген покажет, где система теряет контроль первым делом.</p>
       </div>
     </section>
 
@@ -743,78 +634,69 @@
         <div class="section-head">
           <p class="overline reveal">Дополнительно · после диагностики</p>
           <h2 class="section-title reveal" data-reveal-delay="1">Экспертные модули FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Можно начать с диагностики, а затем подключить к любому пакету конкретный модуль под вашу задачу: платежи, товары, поставщиков, маржу, dashboard или автоматизацию.</p>
+          <p class="section-lead reveal" data-reveal-delay="2">Это не каталог инструментов, а одна система. После диагностики к ней подключается модуль под вашу задачу — от платёжной дисциплины до dashboard собственника.</p>
         </div>
-        <div class="module-grid">
-          <article class="module-card reveal">
-            <span class="module-card__num">01</span>
-            <h3 class="module-card__title">Treasury &amp; Payment Discipline</h3>
-            <p class="module-card__desc">Система управления платежами: деньги получают назначение, приоритет и правила — платёж проходит, только если есть покрытие.</p>
-            <ul class="module-card__list"><li>Фонды и метафонды</li><li>Приоритеты P0–P5 и Payment Waterfall</li><li>Покрытие 7/14/30 и Funding Gap</li><li>Статусы и блокировки платежей</li></ul>
-            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Проверить платёжную дисциплину <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">02</span>
-            <h3 class="module-card__title">Fund Planning &amp; Payment Waterfall</h3>
-            <p class="module-card__desc">Собственник видит не остаток на счёте, а реальную платёжную способность: какие деньги свободны, а какие уже зарезервированы.</p>
-            <ul class="module-card__list"><li>Какие деньги действительно свободны</li><li>Что уже закреплено за обязательствами</li><li>Что оплатить, отложить или заблокировать</li><li>Правила покрытия и разблокировки</li></ul>
-            <a href="questionnaire.html?topic=treasury" class="module-card__cta" data-ga="click_module_treasury">Внедрить водопад платежей <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">03</span>
-            <h3 class="module-card__title">SKU Cash Flow Analysis</h3>
-            <p class="module-card__desc">Закупки и ассортимент перестают оцениваться по выручке: видно, какие товары создают деньги, а какие замораживают оборотный капитал.</p>
-            <ul class="module-card__list"><li>FCF по каждому SKU</li><li>Товары — cash destroyers</li><li>DPO / DSO и склад</li><li>Где маркетинг и fixed costs съедают вклад</li></ul>
-            <a href="questionnaire.html?topic=fcf-sku" class="module-card__cta" data-ga="click_module_fcf_sku">Проверить FCF по товарам <span>&rarr;</span></a>
-          </article>
-          <article class="module-card module-card--retail reveal">
-            <span class="module-card__num">04</span>
-            <h3 class="module-card__title">Retail Margin Engine</h3>
-            <p class="module-card__desc"><strong>Полка как финансовый актив.</strong> CFO-модель v1.2 на 19 листах и 4 900+ формулах рассчитывает норму маржи для каждого линейного метра, м², категории и SKU. Показывает Margin Gap, Supplier Shelf Credit, dashboard и 9 управленческих действий.</p>
-            <ul class="module-card__list"><li>Норма маржи на полку, м², категорию и SKU</li><li>Promo calculator и retrobonus calculator</li><li>Supplier Shelf Credit: кто финансирует полку</li><li>QA 19/19 PASS и 0 ошибок после пересчёта</li></ul>
-            <a href="retail-margin-engine.html" class="module-card__cta" data-ga="click_module_retail_margin_engine">Открыть retail-модель <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">05</span>
-            <h3 class="module-card__title">Supplier Rating &amp; Procurement Control</h3>
-            <p class="module-card__desc">Закупки выбирают поставщика не по цене, а по полной финансовой логике: цена, DPO, Cash Flow, НДС, возвраты и риск.</p>
-            <ul class="module-card__list"><li>Рейтинг поставщика по коэффициентам</li><li>Цена, DPO, НДС, возвраты, сроки</li><li>Выбор под приоритет компании</li><li>Влияние на маржу и Cash Flow</li></ul>
-            <a href="questionnaire.html?topic=supplier-rating" class="module-card__cta" data-ga="click_module_supplier_rating">Проверить закупки и поставщиков <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">06</span>
-            <h3 class="module-card__title">Margin Factor Analysis</h3>
-            <p class="module-card__desc">Понятно не только что маржа выросла или упала, но и почему — и что с этим делать дальше.</p>
-            <ul class="module-card__list"><li>Факторы: цена, количество, mix, себестоимость</li><li>Флаги риска по каждому фактору</li><li>Промо, скидки и stock-out</li><li>Сезонность и качество данных</li></ul>
-            <a href="questionnaire.html?topic=margin" class="module-card__cta" data-ga="click_module_margin">Проверить маржу бизнеса <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">07</span>
-            <h3 class="module-card__title">Working Capital Control</h3>
-            <p class="module-card__desc">Поиск замороженных денег: где застряла ликвидность в дебиторке, запасах и авансах — и как сократить денежный цикл.</p>
-            <ul class="module-card__list"><li>Дебиторка, кредиторка, запасы</li><li>DSO, DPO, Inventory Days</li><li>Денежный цикл (CCC)</li><li>Источники замороженных денег</li></ul>
-            <a href="questionnaire.html?topic=working-capital" class="module-card__cta" data-ga="click_module_working_capital">Проверить оборотный капитал <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">08</span>
-            <h3 class="module-card__title">Power BI Owner Dashboard</h3>
-            <p class="module-card__desc">Собственник получает ежедневную панель: где деньги, где маржа, какие платежи заблокированы и где возникнет Funding Gap.</p>
-            <ul class="module-card__list"><li>Деньги, маржа, Cash Flow</li><li>Платежи и Funding Gap</li><li>FCF по SKU, закупки, поставщики</li><li>Ключевые флаги риска в одной панели</li></ul>
-            <a href="questionnaire.html?topic=power-bi" class="module-card__cta" data-ga="click_module_power_bi">Собрать dashboard собственника <span>&rarr;</span></a>
-          </article>
-          <article class="module-card reveal">
-            <span class="module-card__num">09</span>
-            <h3 class="module-card__title">n8n / Make CFO Automation</h3>
-            <p class="module-card__desc">Меньше ручной работы: заявки, согласования, уведомления, обновление данных и ежедневные отчёты работают автоматически.</p>
-            <ul class="module-card__list"><li>Заявки и approval flow</li><li>Уведомления в Telegram / email</li><li>Интеграции Sheets / ERP / CRM / Power BI</li><li>Daily reports и alerts по рискам</li></ul>
-            <a href="questionnaire.html?topic=automation" class="module-card__cta" data-ga="click_module_automation">Автоматизировать CFO-процессы <span>&rarr;</span></a>
-          </article>
+
+        <div class="sysmap reveal" data-reveal-delay="1">
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Контроль денег</h3>
+            <a class="sysmap__row" href="questionnaire.html?topic=treasury" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Treasury &amp; Payment Discipline</span>
+              <span class="sysmap__desc">Платежи хаотично, «кто громче попросил» — вместо этого фонды, приоритеты P0–P5 и правило: платёж проходит, только если есть покрытие.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row" href="questionnaire.html?topic=treasury" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Fund Planning &amp; Payment Waterfall</span>
+              <span class="sysmap__desc">Остаток на счёте ≠ свободные деньги — видно, что уже зарезервировано за обязательствами, а что реально доступно.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row" href="questionnaire.html?topic=working-capital" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Working Capital Control</span>
+              <span class="sysmap__desc">Деньги «есть», но заморожены — дебиторка, запасы, авансы и денежный цикл показывают, где застряла ликвидность.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Маржа · закупки · ассортимент</h3>
+            <a class="sysmap__row" href="questionnaire.html?topic=fcf-sku" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">SKU Cash Flow Analysis</span>
+              <span class="sysmap__desc">Выручка растёт, а денег меньше — FCF по каждому SKU показывает, какие товары создают деньги, а какие их замораживают.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row sysmap__row--flag" href="retail-margin-engine.html" data-ga="click_module_retail_margin_engine" data-cta-id="module_retail_engine" data-cta-location="modules" data-event="cta_click" data-destination="retail-margin-engine">
+              <span class="sysmap__name">Retail Margin Engine <span class="sysmap__tag">v1.2 · QA 19/19 PASS</span></span>
+              <span class="sysmap__desc">Полка как финансовый актив: норма маржи на метр, категорию и SKU, Supplier Shelf Credit, promo и retrobonus — 19 блоков и 4&nbsp;900+ расчётных связей.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row" href="questionnaire.html?topic=supplier-rating" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Supplier Rating &amp; Procurement Control</span>
+              <span class="sysmap__desc">Закупки выбирают «по цене» — рейтинг поставщика учитывает цену, DPO, НДС, возвраты и влияние на Cash Flow.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row" href="questionnaire.html?topic=margin" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Margin Factor Analysis</span>
+              <span class="sysmap__desc">Маржа изменилась, причины неизвестны — факторный анализ: цена, количество, mix, себестоимость, промо и флаги риска.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Digital · Power BI · автоматизация</h3>
+            <a class="sysmap__row" href="questionnaire.html?topic=power-bi" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">Power BI Owner Dashboard</span>
+              <span class="sysmap__desc">Цифры разбросаны по таблицам — ежедневная панель собственника: деньги, маржа, платежи, Funding Gap и флаги риска в одном экране.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a class="sysmap__row" href="questionnaire.html?topic=automation" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+              <span class="sysmap__name">n8n / Make CFO Automation</span>
+              <span class="sysmap__desc">Слишком много ручной работы — заявки, согласования, уведомления и ежедневные отчёты работают автоматически внутри построенной логики.</span>
+              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
         </div>
-        <p class="module-note">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
-        <div class="choose">
-          <h3 class="choose__title">Как выбрать, с чего начать</h3>
-          <div class="choose-table-wrap"><table class="choose-table"><thead><tr><th>Если у вас задача</th><th>С чего начать</th></tr></thead><tbody><tr><td>Нет понимания, где прибыль и деньги</td><td><a href="questionnaire.html?topic=financial-diagnostic">Financial Diagnostic</a></td></tr><tr><td>Хаос в платежах</td><td><a href="questionnaire.html?topic=treasury">Treasury &amp; Payment Discipline</a></td></tr><tr><td>Деньги заморожены в товарах</td><td><a href="questionnaire.html?topic=fcf-sku">SKU Cash Flow Analysis</a></td></tr><tr><td>Полка занята товаром, но непонятна доходность SKU</td><td><a href="retail-margin-engine.html">Retail Margin Engine</a></td></tr><tr><td>Закупки выбирают только по цене</td><td><a href="questionnaire.html?topic=supplier-rating">Supplier Rating</a></td></tr><tr><td>Маржа растёт или падает, но непонятно почему</td><td><a href="questionnaire.html?topic=margin">Margin Factor Analysis</a></td></tr><tr><td>Собственник хочет видеть всё в одной панели</td><td><a href="questionnaire.html?topic=power-bi">Power BI Owner Dashboard</a></td></tr><tr><td>Много ручной работы в финансах</td><td><a href="questionnaire.html?topic=automation">CFO Automation</a></td></tr></tbody></table></div>
-        </div>
+
+        <p class="module-note reveal">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
       </div>
     </section>
     <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
@@ -876,18 +758,19 @@
             <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит прибыль, деньги и обязательства в одной картине.</p></div>
           </article>
         </div>
+        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Смотреть все сценарии контроля&nbsp;&rarr;</a></p>
 
-        <h3 class="subhead reveal">Что вы получаете</h3>
-        <div class="deliv-grid">
-          <div class="deliv-item reveal"><span><strong>Diagnostic memo</strong> — карта финансовых болей и рисков</span></div>
-          <div class="deliv-item reveal"><span><strong>Risk map</strong> — приоритизация рисков и quick wins</span></div>
-          <div class="deliv-item reveal"><span><strong>Document checklist</strong> — что нужно для диагностики</span></div>
-          <div class="deliv-item reveal"><span><strong>Cash Flow / P&amp;L structure</strong> — управленческая логика</span></div>
-          <div class="deliv-item reveal"><span><strong>Payment calendar logic</strong> — приоритеты и покрытие</span></div>
-          <div class="deliv-item reveal"><span><strong>Action plan</strong> — план на 30 / 60 / 90 дней</span></div>
-          <div class="deliv-item reveal"><span><strong>Owner dashboard concept</strong> — что видит собственник</span></div>
-          <div class="deliv-item reveal"><span><strong>Recommendation</strong> — рекомендуемый формат и пакет</span></div>
-        </div>
+        <h3 class="subhead reveal">Что вы получаете после диагностики</h3>
+        <ul class="deliv-list reveal">
+          <li><strong>Diagnostic memo</strong> — карта финансовых болей и рисков</li>
+          <li><strong>Risk map</strong> — приоритизация рисков и quick wins</li>
+          <li><strong>Document checklist</strong> — что нужно для диагностики</li>
+          <li><strong>Cash Flow / P&amp;L structure</strong> — управленческая логика</li>
+          <li><strong>Payment calendar logic</strong> — приоритеты и покрытие</li>
+          <li><strong>Action plan</strong> — план на 30 / 60 / 90 дней</li>
+          <li><strong>Owner dashboard concept</strong> — что видит собственник</li>
+          <li><strong>Recommendation</strong> — рекомендуемый формат и пакет</li>
+        </ul>
 
         <h3 class="subhead reveal">Пример результата</h3>
         <div class="sample-grid">
@@ -989,17 +872,13 @@
 
     <section class="sec sec--alt" id="mini-scan">
       <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Лёгкий вход</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Начните с 3-минутного mini-scan</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Ответьте на 9 вопросов и получите предварительный профиль: где могут застревать деньги — в дебиторке, запасах, условиях поставщиков, платёжной дисциплине или отчётности. Это не полноценная диагностика, а первый CFO-triage.</p>
-        </div>
-        <div class="cta-band" style="margin-top:var(--sp-6)">
-          <p class="cta-band__title">Проверьте, где заморожены деньги</p>
-          <p class="cta-band__text">Быстрый разбор оборотного капитала: дебиторка, запасы, авансы и денежный цикл — без перегруза формулами. После результата подскажем релевантный материал и следующий шаг.</p>
-          <div class="cta-band__row">
-            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть контекстный mini-scan</a>
-            <a href="working-capital.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital">Подробнее об оборотном капитале</a>
+        <div class="cta-band">
+          <p class="overline reveal">Лёгкий вход · 3 минуты</p>
+          <p class="cta-band__title reveal">Не готовы к полному рентгену? Начните с mini-scan оборотного капитала</p>
+          <p class="cta-band__text reveal">9 вопросов покажут, где могут застревать деньги: дебиторка, запасы, авансы, условия поставщиков или платёжная дисциплина. Это первый CFO-triage, а не полноценная диагностика.</p>
+          <div class="cta-band__row reveal">
+            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть mini-scan</a>
+            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Подробнее об оборотном капитале&nbsp;&rarr;</a>
           </div>
         </div>
       </div>
@@ -1019,8 +898,6 @@
           <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Закупки и SKU</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="5"><span class="material-card__tag">Retail Margin Engine v1.2</span><span class="material-card__title">Каждый SKU должен платить за своё место</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="6"><span class="material-card__tag">Supplier Shelf Credit</span><span class="material-card__title">Кто финансирует полку: поставщик или собственник</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="business-control-system.html" data-reveal-delay="7"><span class="material-card__tag">CFO-система</span><span class="material-card__title">Финансовая система собственника</span><span class="material-card__arrow">Читать &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
           <a href="materials.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>
@@ -1118,9 +995,6 @@
           <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
           <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
         </div>
-          <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" class="social" aria-label="LinkedIn Геннадия Яковлева" target="_blank" rel="noopener noreferrer">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0-.02-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95 4.03 0 4.78 2.5 4.78 5.75V21H20.6v-5.3c0-1.27-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H13V9z"/></svg>
-          </a>
         </div>
 
         <nav class="footer__col" aria-label="Подвал — навигация">
@@ -1129,6 +1003,8 @@
           <a href="#steps">Как работаем</a>
           <a href="#solutions">Решения</a>
           <a href="#cases">Кейсы</a>
+          <a href="materials.html">Материалы</a>
+          <a href="questionnaire.html">Финансовый рентген</a>
         </nav>
 
         <div class="footer__col">
