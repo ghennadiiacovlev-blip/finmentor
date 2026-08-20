@@ -12,6 +12,7 @@ Telegram Bot: https://t.me/finmentor_md_bot
 - https://www.finmentor.md/ — FINMENTOR overview, business models, methodologies, expert modules, founder, contact form.
 - https://www.finmentor.md/questionnaire.html — Финансовый рентген бизнеса, quick diagnostic and gated extended intake before Discovery Call.
 - https://www.finmentor.md/retail-margin-engine.html — FINMENTOR Retail Margin Engine, CFO model for shelf, category, SKU, supplier credit, promo, retrobonus, dashboard and QA logic.
+- https://www.finmentor.md/ai-agent-economics.html — FINMENTOR AI Economics Control System for AI spend, digital labour cost, Cost per Accepted Outcome, AI ROI, routing, budget and governance.
 - https://www.finmentor.md/business-control-system.html — Business Control System for owner-level financial management.
 - https://www.finmentor.md/monthly-cfo-support.html — Regular external CFO support.
 - https://www.finmentor.md/working-capital-scan.html — Contextual mini-scan for working capital risks.

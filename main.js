@@ -907,6 +907,7 @@
       var allow = {
         link_url: true, link_text: true,
         cta_id: true, cta_location: true, destination: true,
+        source_section: true,
         business_model: true, pain: true,
         source: true, page_slug: true, completion_score: true,
         data_quality_hint: true, urgency_level: true,
@@ -950,10 +951,19 @@
         cta_id: a.getAttribute('data-cta-id') || '',
         cta_location: a.getAttribute('data-cta-location') || '',
         destination: a.getAttribute('data-destination') || safeLinkUrl(a),
+        source_section: a.getAttribute('data-source-section') || '',
         business_model: a.getAttribute('data-business-model') || '',
         pain: a.getAttribute('data-pain') || '',
         link_url: safeLinkUrl(a),
         link_text: safeLinkText(a)
+      };
+    }
+    function aiEventParams(a) {
+      var path = window.location.pathname || '';
+      return {
+        page_slug: /ai-agent-economics\.html$/i.test(path) ? 'ai-agent-economics' : 'index',
+        cta_location: a.getAttribute('data-cta-location') || '',
+        source_section: a.getAttribute('data-source-section') || ''
       };
     }
     window.finmentorTrack = function (name, params) { send(name, params || {}); };
@@ -961,7 +971,10 @@
       var a = e.target && e.target.closest ? e.target.closest('a, button') : null;
       if (!a) return;
       var eventName = a.getAttribute('data-event');
-      if (eventName) { send(eventName, ctaParams(a)); return; }
+      if (eventName) {
+        send(eventName, /^click_ai_economics_/i.test(eventName) ? aiEventParams(a) : ctaParams(a));
+        return;
+      }
       var name = a.getAttribute('data-ga');
       if (!name) {
         var href = a.getAttribute('href') || '';
@@ -982,6 +995,47 @@
     }, true);
   }
 
+  /* ------------------------------------------------------------- AI ECONOMICS */
+  function initAiEconomicsAnalytics() {
+    function track(name, params) {
+      if (window.finmentorTrack) {
+        window.finmentorTrack(name, params || {});
+      }
+    }
+
+    if (/\/ai-agent-economics\.html$/i.test(window.location.pathname || '')) {
+      track('view_ai_economics_page', {
+        page_slug: 'ai-agent-economics',
+        source_section: 'page_load'
+      });
+    }
+
+    var teaser = document.getElementById('ai-economics-teaser');
+    if (!teaser) return;
+    var fired = false;
+    function fireTeaserView() {
+      if (fired) return;
+      fired = true;
+      track('view_ai_economics_teaser', {
+        page_slug: 'index',
+        source_section: 'homepage_teaser'
+      });
+    }
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            fireTeaserView();
+            io.disconnect();
+          }
+        });
+      }, { threshold: 0.35 });
+      io.observe(teaser);
+    } else {
+      fireTeaserView();
+    }
+  }
+
   function guard(fn) { try { fn(); } catch (e) { if (window.console) console.warn('[finmentor]', e); } }
 
   /* ------------------------------------------------------------- BOOT */
@@ -1000,6 +1054,7 @@
     guard(initWcScan);
     guard(initLang);
     guard(initGA);
+    guard(initAiEconomicsAnalytics);
     guard(initCookieConsent);
   });
 })();
