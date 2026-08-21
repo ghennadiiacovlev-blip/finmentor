@@ -409,6 +409,7 @@
             </div>
             <p><b>Боль:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
             <p><b>Контроль:</b> Арендаторы и договоры, NOI, Cap Rate, vacancy, CAPEX, tenant rating, окупаемость.</p>
+            <p><b>Расчётная методология:</b> NOI, vacancy, tenant rating, rent vs market, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
             <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p>
             <a href="questionnaire.html?model=real-estate" class="industry-card__cta" data-cta-id="industries_real_estate" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="real-estate">Проверить недвижимость</a>
           </article>
@@ -420,6 +421,7 @@
             </div>
             <p><b>Боль:</b> Полки заняты товаром, но непонятно, какие категории и SKU реально зарабатывают, а какие просто замораживают деньги.</p>
             <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и SKU; продажи, остатки, promo, retrobonus, поставщики и Supplier Shelf Credit.</p>
+            <p><b>Расчётная методология:</b> Target Marja, margin per meter, SKU profitability, Margin Gap, Supplier Shelf Credit, retrobonus, promo economics.</p>
             <p><b>Результат:</b> Dashboard показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие SKU вывести из ассортимента.</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
@@ -471,7 +473,7 @@
           <div>
             <span class="industries__asset-label">Одна CFO-логика — разные активы</span>
             <p>В Real Estate актив — объект и арендатор. В Retail — полка, категория и SKU. В Distribution — склад и дебиторка. В E-commerce — канал, заказ и SKU. В Manufacturing — заказ и незавершёнка. В Fitness — клиент, абонемент и загрузка. В каждом случае FINMENTOR отвечает на один вопрос: какой актив реально зарабатывает, а какой замораживает капитал?</p>
-            <p class="industries__asset-note">Для каждой модели есть расчётная методология: какие данные собирать, какие показатели считать и какое решение принимает собственник. Флагманские модули внедряются после диагностики и адаптируются под экономику конкретного бизнеса. Для Retail доказательность модели v1.2 показана на отдельной странице.</p>
+            <p class="industries__asset-note">Для каждой модели есть расчётная методология: какие данные собирать, какие показатели считать и какое решение принимает собственник. Флагманские модули внедряются после диагностики, оценки качества данных и согласования объёма работ — методологии адаптируются под экономику конкретного бизнеса.</p>
           </div>
           <a href="retail-margin-engine.html" class="btn btn--ghost btn--lg" data-cta-id="industries_retail_engine_callout" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine">Смотреть Retail Margin Engine →</a>
         </div>
@@ -632,71 +634,113 @@
 <section class="sec" id="modules">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Дополнительно · после диагностики</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Экспертные модули FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Это не каталог инструментов, а одна система. После диагностики к ней подключается модуль под вашу задачу — от платёжной дисциплины до dashboard собственника.</p>
+          <p class="overline reveal">Решения FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Одна система. Модули под вашу задачу</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Это не каталог инструментов: каждый модуль подключается к общей финансовой логике. У каждого решения есть своя страница — боль, что строит FINMENTOR, что видит собственник и какие решения становятся возможны. Не знаете, с чего начать, — начните с финансового рентгена.</p>
         </div>
 
         <div class="sysmap reveal" data-reveal-delay="1">
           <div class="sysmap__group">
             <h3 class="sysmap__label">Контроль денег</h3>
-            <a class="sysmap__row" href="questionnaire.html?topic=treasury" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="kaznacheystvo.html" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="cta_click" data-destination="kaznacheystvo">
               <span class="sysmap__name">Treasury &amp; Payment Discipline</span>
-              <span class="sysmap__desc">Платежи хаотично, «кто громче попросил» — вместо этого фонды, приоритеты P0–P5 и правило: платёж проходит, только если есть покрытие.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Платежи идут хаотично, «кто громче попросил» — кассовые разрывы возникают неожиданно.</span>
+              <span class="sysmap__gain">Деньги получают назначение и приоритеты P0–P5; платёж проходит, только если есть покрытие; статусы и блокировки вместо ручного режима.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
-            <a class="sysmap__row" href="questionnaire.html?topic=treasury" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="treasury-waterfall.html" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="cta_click" data-destination="treasury-waterfall">
               <span class="sysmap__name">Fund Planning &amp; Payment Waterfall</span>
-              <span class="sysmap__desc">Остаток на счёте ≠ свободные деньги — видно, что уже зарезервировано за обязательствами, а что реально доступно.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Остаток на счёте ≠ свободные деньги: часть уже принадлежит обязательствам.</span>
+              <span class="sysmap__gain">Собственник видит реальную платёжную способность: что свободно, что зарезервировано, что оплатить, отложить или заблокировать.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
-            <a class="sysmap__row" href="questionnaire.html?topic=working-capital" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="working-capital.html" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="cta_click" data-destination="working-capital">
               <span class="sysmap__name">Working Capital Control</span>
-              <span class="sysmap__desc">Деньги «есть», но заморожены — дебиторка, запасы, авансы и денежный цикл показывают, где застряла ликвидность.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Деньги «есть», но заморожены в дебиторке, запасах и авансах.</span>
+              <span class="sysmap__gain">DSO / DPO / Inventory Days и денежный цикл показывают, где застряла ликвидность и как её высвободить.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
           </div>
 
           <div class="sysmap__group">
             <h3 class="sysmap__label">Маржа · закупки · ассортимент</h3>
-            <a class="sysmap__row" href="questionnaire.html?topic=fcf-sku" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="fcf-postavshiki.html" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="cta_click" data-destination="fcf-postavshiki">
               <span class="sysmap__name">SKU Cash Flow Analysis</span>
-              <span class="sysmap__desc">Выручка растёт, а денег меньше — FCF по каждому SKU показывает, какие товары создают деньги, а какие их замораживают.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Выручка растёт, а свободных денег меньше.</span>
+              <span class="sysmap__gain">FCF по каждому SKU: какие товары создают деньги, какие — cash destroyers, и где маркетинг съедает вклад.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
             <a class="sysmap__row sysmap__row--flag" href="retail-margin-engine.html" data-ga="click_module_retail_margin_engine" data-cta-id="module_retail_engine" data-cta-location="modules" data-event="cta_click" data-destination="retail-margin-engine">
-              <span class="sysmap__name">Retail Margin Engine <span class="sysmap__tag">v1.2 · QA 19/19 PASS</span></span>
-              <span class="sysmap__desc">Полка как финансовый актив: норма маржи на метр, категорию и SKU, Supplier Shelf Credit, promo и retrobonus — 19 блоков и 4&nbsp;900+ расчётных связей.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__name">Retail Margin Engine</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Полка, категория и SKU не оцениваются как финансовый актив.</span>
+              <span class="sysmap__gain">Норма маржи на метр, м², категорию и SKU; Supplier Shelf Credit, promo и retrobonus превращаются в управленческие действия.</span></span>
+              <span class="sysmap__more">Флагманская модель <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
-            <a class="sysmap__row" href="questionnaire.html?topic=supplier-rating" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="supplier-rating-purchasing-priorities.html" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="cta_click" data-destination="supplier-rating-purchasing-priorities">
               <span class="sysmap__name">Supplier Rating &amp; Procurement Control</span>
-              <span class="sysmap__desc">Закупки выбирают «по цене» — рейтинг поставщика учитывает цену, DPO, НДС, возвраты и влияние на Cash Flow.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Закупки выбирают поставщика «по цене», игнорируя деньги и риск.</span>
+              <span class="sysmap__gain">Рейтинг по полной финансовой логике: цена, DPO, НДС, возвраты, сроки — и влияние на маржу и Cash Flow.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
-            <a class="sysmap__row" href="questionnaire.html?topic=margin" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="margin-factor-analysis-flags.html" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="cta_click" data-destination="margin-factor-analysis-flags">
               <span class="sysmap__name">Margin Factor Analysis</span>
-              <span class="sysmap__desc">Маржа изменилась, причины неизвестны — факторный анализ: цена, количество, mix, себестоимость, промо и флаги риска.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Маржа изменилась — причины неизвестны.</span>
+              <span class="sysmap__gain">Факторный разбор: цена, количество, mix, себестоимость, промо — с флагами риска и качеством данных.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
           </div>
 
           <div class="sysmap__group">
             <h3 class="sysmap__label">Digital · Power BI · автоматизация</h3>
-            <a class="sysmap__row" href="questionnaire.html?topic=power-bi" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="power-bi-dlya-sobstvennika.html" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="cta_click" data-destination="power-bi-dlya-sobstvennika">
               <span class="sysmap__name">Power BI Owner Dashboard</span>
-              <span class="sysmap__desc">Цифры разбросаны по таблицам — ежедневная панель собственника: деньги, маржа, платежи, Funding Gap и флаги риска в одном экране.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Цифры разбросаны по таблицам и отчётам исполнителей.</span>
+              <span class="sysmap__gain">Ежедневная панель собственника: деньги, маржа, платежи, Funding Gap и ключевые флаги риска в одном экране.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
-            <a class="sysmap__row" href="questionnaire.html?topic=automation" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="health_check_cta" data-destination="questionnaire">
+            <a class="sysmap__row" href="ai-dlya-cfo.html" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="cta_click" data-destination="ai-dlya-cfo">
               <span class="sysmap__name">n8n / Make CFO Automation</span>
-              <span class="sysmap__desc">Слишком много ручной работы — заявки, согласования, уведомления и ежедневные отчёты работают автоматически внутри построенной логики.</span>
-              <span class="sysmap__arrow" aria-hidden="true">&rarr;</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Слишком много ручной работы в финансовой рутине.</span>
+              <span class="sysmap__gain">Заявки, согласования, уведомления и ежедневные отчёты работают автоматически — внутри построенной финансовой логики.</span></span>
+              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
             </a>
           </div>
         </div>
 
         <p class="module-note reveal">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, AI/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
+      </div>
+    </section>
+
+    <section class="sec sec--alt flagship" id="flagship" aria-label="Флагманская модель FINMENTOR">
+      <div class="container">
+        <div class="flagship__grid">
+          <div class="flagship__intro reveal">
+            <p class="overline">Флагманская модель · Retail</p>
+            <h2 class="section-title">Retail Margin Engine: полка как финансовый актив</h2>
+            <p class="flagship__pain">Розница часто управляет ассортиментом по выручке и «ощущению категории». В этот момент часть полки тихо работает в минус: место занято, деньги заморожены в запасах, поставщик не участвует в финансировании, promo съедает маржу — а в отчётах всё выглядит «нормально».</p>
+          </div>
+          <div class="flagship__body">
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Что строит FINMENTOR</h3>
+              <p>Единую логику доходности торгового пространства: норма маржи для каждого линейного метра, м², категории и SKU; экономика promo и retrobonus; Supplier Shelf Credit — кто на самом деле финансирует полку, вы или поставщик. Исходные данные, расчёты, отклонения и управленческие действия связаны в одну систему с dashboard собственника.</p>
+            </div>
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Что видит собственник</h3>
+              <p>Где маржа не добирается до нормы; какие SKU и категории замораживают деньги; какой поставщик кредитует полку, а какой живёт за ваш счёт; что даёт и что забирает каждое promo.</p>
+            </div>
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Какие решения становятся возможны</h3>
+              <p>Расширить или сократить место категории; запросить ретробонус или компенсацию; изменить отсрочку; заменить или вывести SKU; пересмотреть условия поставщика — по цифрам, а не по интуиции.</p>
+            </div>
+          </div>
+          <div class="flagship__foot reveal">
+            <p class="flagship__for"><b>Для кого:</b> розничные сети и магазины, где полка, категория и SKU — главный актив. <b>Как начинаем:</b> диагностика данных → настройка нормы доходности → внедрение контроля и dashboard.</p>
+            <div class="flagship__cta">
+              <a href="retail-margin-engine.html" class="btn btn--primary btn--lg" data-ga="click_module_retail_margin_engine" data-cta-id="flagship_retail_engine" data-cta-location="flagship" data-event="cta_click" data-destination="retail-margin-engine">Открыть Retail Margin Engine</a>
+              <a href="#consult" class="hero__link" data-ga="click_discovery_call" data-cta-id="flagship_discuss" data-cta-location="flagship" data-event="cta_click" data-destination="#consult">Обсудить вашу розницу&nbsp;&rarr;</a>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
@@ -888,8 +932,8 @@
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Материалы</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Избранные материалы FINMENTOR</h2>
-        <p class="section-lead reveal" data-reveal-delay="2">Короткие экспертные разборы для собственника. Полная база знаний собрана на отдельной странице материалов.</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Материалы FINMENTOR</h2>
+        <p class="section-lead reveal" data-reveal-delay="2">Практика, методология и собственные разработки FINMENTOR: наблюдения из реальной работы с деньгами, маржой и управленческим контролем. Полная база — на странице материалов.</p>
         </div>
         <div class="materials-grid">
           <a class="material-card reveal" href="cash-flow.html"><span class="material-card__tag">Cash Flow &amp; оборотный капитал</span><span class="material-card__title">Почему прибыль не равна деньгам</span><span class="material-card__arrow">Читать &rarr;</span></a>
@@ -897,7 +941,7 @@
           <a class="material-card reveal" href="treasury-waterfall.html" data-reveal-delay="2"><span class="material-card__tag">Казначейство и платежи</span><span class="material-card__title">Платёжный календарь и водопад платежей</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="working-capital.html" data-reveal-delay="3"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
           <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="4"><span class="material-card__tag">Закупки и SKU</span><span class="material-card__title">FCF по SKU: какие товары создают Cash Flow</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="5"><span class="material-card__tag">Retail Margin Engine v1.2</span><span class="material-card__title">Каждый SKU должен платить за своё место</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="retail-margin-engine.html" data-reveal-delay="5"><span class="material-card__tag">Разработка FINMENTOR · Retail</span><span class="material-card__title">Каждый SKU должен платить за своё место</span><span class="material-card__arrow">Читать &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
           <a href="materials.html" class="btn btn--ghost btn--lg">Смотреть статьи</a>

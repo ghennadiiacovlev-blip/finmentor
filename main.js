@@ -89,7 +89,7 @@
     if (!intro) return;
 
     var alreadySkipped = document.documentElement.classList.contains('intro-skip');
-    var INTRO_MS = 1300;
+    var INTRO_MS = 4400;
 
     function dismiss() {
       intro.classList.add('is-done');
