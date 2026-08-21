@@ -27,7 +27,73 @@
   // Discovery Call target: same-page section on the homepage, otherwise the homepage section.
   function disco() { return document.getElementById('consult') ? '#consult' : 'index.html#consult'; }
 
+
+  /* ---- Inner-page mobile navigation (pages with .doc-bar, no static #mobileMenu) ---- */
+  function initDocMobileNav() {
+    var bar = document.querySelector('.doc-bar');
+    if (!bar || document.getElementById('mobileMenu') || document.getElementById('burger')) return;
+    var row = bar.querySelector('.doc-bar__row') || bar;
+
+    var burger = document.createElement('button');
+    burger.type = 'button';
+    burger.id = 'burger';
+    burger.className = 'burger';
+    burger.setAttribute('aria-label', 'Открыть меню');
+    burger.setAttribute('aria-expanded', 'false');
+    burger.setAttribute('aria-controls', 'mobileMenu');
+    burger.innerHTML = '<span></span><span></span><span></span>';
+    row.appendChild(burger);
+
+    var menu = document.createElement('div');
+    menu.id = 'mobileMenu';
+    menu.className = 'mobile-menu mobile-menu--doc';
+    menu.setAttribute('aria-hidden', 'true');
+    menu.innerHTML =
+      '<div class="mobile-menu__head">' +
+        '<a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>' +
+        '<button type="button" class="mobile-menu__close" aria-label="Закрыть меню"><span></span><span></span></button>' +
+      '</div>' +
+      '<nav class="mobile-menu__nav" aria-label="Мобильная навигация">' +
+        '<a class="mobile-menu__link" style="--mi:0" href="index.html">На главную</a>' +
+        '<a class="mobile-menu__link" style="--mi:1" href="index.html#audience">Для кого</a>' +
+        '<a class="mobile-menu__link" style="--mi:2" href="index.html#steps">Как работаем</a>' +
+        '<a class="mobile-menu__link" style="--mi:3" href="index.html#solutions">Решения</a>' +
+        '<a class="mobile-menu__link" style="--mi:4" href="materials.html">Материалы</a>' +
+        '<a class="mobile-menu__link" style="--mi:5" href="questionnaire.html">Финансовый рентген</a>' +
+        '<a class="mobile-menu__link" style="--mi:6" href="index.html#consult">Контакты</a>' +
+      '</nav>' +
+      '<div class="mobile-menu__footer">' +
+        '<a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="docbar_mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>' +
+        '<a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>' +
+      '</div>';
+    document.body.appendChild(menu);
+
+    function setOpen(open) {
+      burger.classList.toggle('is-open', open);
+      menu.classList.toggle('is-open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+      document.body.classList.toggle('is-locked', open);
+      document.body.classList.toggle('menu-open', open);
+    }
+    setOpen(false);
+    burger.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
+    });
+    menu.querySelector('.mobile-menu__close').addEventListener('click', function () { setOpen(false); });
+    menu.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () { setOpen(false); });
+    });
+    menu.addEventListener('click', function (e) { if (e.target === menu) setOpen(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu.classList.contains('is-open')) setOpen(false);
+    });
+  }
+
   ready(function () {
+    try { initDocMobileNav(); } catch (e) { if (window.console) console.warn('[finmentor]', e); }
     if (document.getElementById('faPanel')) return;
 
     var SC = [
@@ -81,7 +147,7 @@
     launch.setAttribute('aria-haspopup', 'dialog');
     launch.setAttribute('aria-expanded', 'false');
     launch.setAttribute('aria-controls', 'faPanel');
-    launch.setAttribute('aria-label', 'Открыть финансовый навигатор — помощь в выборе первого шага');
+    launch.setAttribute('aria-label', 'Помочь выбрать следующий шаг');
     launch.innerHTML =
       '<svg class="fa-launch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></svg>' +
       '<span class="fa-launch__lg">Нужна подсказка?</span>' +

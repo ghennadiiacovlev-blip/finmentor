@@ -2980,16 +2980,6 @@ body.menu-open .fa-panel {
   transition: opacity var(--dur-fast) ease, visibility var(--dur-fast) ease;
 }
 
-/* --- Inner-page doc-bar: prevent 390px overflow (pre-existing defect) --- */
-.doc-bar__row { min-width: 0; }
-.doc-bar__nav { min-width: 0; flex-wrap: nowrap; }
-.doc-bar__nav a { white-space: nowrap; }
-@media (max-width: 480px) {
-  .doc-bar__nav { gap: var(--sp-3); }
-  .doc-bar__nav a { font-size: 0.82rem; }
-  .doc-bar__nav a[href="materials.html"] { display: none; }
-  .doc-bar__nav .btn--sm { padding-inline: 12px; }
-}
 
 /* --- v11 a11y: keyboard focus for new interactive elements --- */
 .sysmap__row:focus-visible,
@@ -2998,10 +2988,6 @@ body.menu-open .fa-panel {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
   border-radius: var(--r-sm);
-}
-@media (max-width: 480px) {
-  /* doc-bar content may measure 1-2px over with fallback fonts; clip instead of page scroll */
-  .doc-bar { overflow-x: clip; }
 }
 
 /* ============================================================================
@@ -3069,3 +3055,112 @@ body.menu-open .fa-panel {
 @media (max-width: 920px) {
   .flagship__body { grid-template-columns: 1fr; gap: var(--sp-5); }
 }
+
+/* ============================================================================
+   v14 — Mobile shell hardening + premium light balance
+   ========================================================================== */
+
+/* --- Inner-page doc-bar: logo + burger (<=640px). Desktop unchanged. --- */
+.doc-bar .burger {
+  display: none;
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+  background: none; border: 0; padding: 0;
+  min-width: 44px; min-height: 44px; width: 44px; height: 44px;
+}
+.doc-bar .burger span { left: 8px; right: 8px; }
+.doc-bar .burger span:nth-child(1) { top: 14px; }
+.doc-bar .burger span:nth-child(2) { top: 21px; }
+.doc-bar .burger span:nth-child(3) { top: 28px; }
+.doc-bar .burger.is-open span:nth-child(1),
+.doc-bar .burger.is-open span:nth-child(3) { top: 21px; }
+@media (max-width: 640px) {
+  .doc-bar__nav { display: none; }
+  .doc-bar .burger { display: block; }
+  .doc-bar__row { min-width: 0; }
+}
+.mobile-menu--doc { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+.mobile-menu__head {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 56px; margin-bottom: var(--sp-4);
+}
+.mobile-menu__close {
+  position: relative; width: 44px; height: 44px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+}
+.mobile-menu__close span {
+  position: absolute; left: 10px; right: 10px; top: 50%; height: 2px;
+  background: var(--text-primary); border-radius: 2px;
+}
+.mobile-menu__close span:first-child { transform: rotate(45deg); }
+.mobile-menu__close span:last-child { transform: rotate(-45deg); }
+.mobile-menu__close:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: var(--r-sm); }
+
+/* --- Floating assistant: compact 48px trigger on phones. Logic untouched. --- */
+@media (max-width: 560px) {
+  .fa-launch {
+    width: 48px; height: 48px; min-height: 48px;
+    padding: 0; border-radius: 50%;
+    justify-content: center; gap: 0;
+  }
+  .fa-launch__lg, .fa-launch__sm { display: none; }
+  .fa-launch__icon { width: 21px; height: 21px; }
+  body:has(.fm-cookie) .fa-launch { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+/* --- Premium light system: warm institutional ivory sections --------------- */
+.sec--light {
+  --text-primary: #16233C;
+  --text-secondary: #3D4A5F;
+  --text-muted: #6B7688;
+  --glass-fill: rgba(255, 255, 255, 0.78);
+  --glass-fill-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(18, 28, 46, 0.12);
+  --glass-border-gold: rgba(140, 106, 26, 0.38);
+  --border-hairline: rgba(18, 28, 46, 0.11);
+  --border-gold: rgba(140, 106, 26, 0.5);
+  --accent: #8C6A1A;
+  --accent-bright: #6F5312;
+  --gold-500: #8C6A1A;
+  --focus-ring: #6F5312;
+  --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
+  --elev-2: 0 14px 34px rgba(16, 27, 44, 0.10);
+  background: #F2EFE7;
+  color: var(--text-secondary);
+  border-top: 1px solid rgba(18, 28, 46, 0.08);
+  border-bottom: 1px solid rgba(18, 28, 46, 0.08);
+}
+.sec--light + .sec--light { border-top: 0; }
+.sec--light .section-title, .sec--light .subhead { color: var(--text-primary); }
+.sec--light .audience__item,
+.sec--light .process__step,
+.sec--light .result-card,
+.sec--light .material-card,
+.sec--light .kb-item { -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.65); }
+.sec--light .process__num { color: #1A1405; }
+.sec--light .deliv-list li strong { color: var(--text-primary); }
+.sec--light .hero__link { border-bottom-color: rgba(140, 106, 26, 0.4); }
+/* dark exhibits stay dark: sample dashboards read as framed documents on paper */
+.sec--light .sample-card {
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --text-primary: #F3F5F8;
+  --text-secondary: #B9C2CF;
+  --text-muted: #8792A3;
+  --accent: #C9A227;
+  --border-hairline: rgba(255, 255, 255, 0.09);
+  background: #0C1626;
+  box-shadow: 0 18px 40px rgba(12, 20, 34, 0.28);
+}
+.sec--light .material-card { background: rgba(255, 255, 255, 0.82); }
+.sec--light a.kb-item:hover { background: #FFFFFF; }
+
+/* --- Mobile typography breathing (phones only) ----------------------------- */
+@media (max-width: 480px) {
+  .section-title { font-size: clamp(1.55rem, 6.6vw, 1.9rem); line-height: 1.16; }
+  .section-lead { font-size: 0.98rem; line-height: 1.62; }
+  .flagship__pain { font-size: 0.98rem; }
+}
+/* drawer on doc pages: solid enough to avoid header ghosting; hide bar while open */
+.mobile-menu--doc { background: rgba(8, 15, 27, 0.97); }
+body.menu-open .doc-bar { visibility: hidden; }

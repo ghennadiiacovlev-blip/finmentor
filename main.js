@@ -282,6 +282,7 @@
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
+
   /* ------------------------------------------------------------- MOBILE MENU */
   function initMenu() {
     var burger = document.getElementById('burger');
