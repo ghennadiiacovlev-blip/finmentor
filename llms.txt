@@ -17,6 +17,12 @@ Telegram Bot: https://t.me/finmentor_md_bot
 - https://www.finmentor.md/monthly-cfo-support.html — Regular external CFO support.
 - https://www.finmentor.md/working-capital-scan.html — Contextual mini-scan for working capital risks.
 - https://www.finmentor.md/materials.html — Knowledge hub and articles.
+- https://www.finmentor.md/real-estate-control-system.html — Real Estate Control System: property and tenant profitability control (NOI, vacancy, rent vs market, tenant rating, CAPEX payback).
+- https://www.finmentor.md/client-base-control-system.html — Client Base Control System: client base as an asset portfolio, renewal propensity, Expected Renewal Value and Revenue at Risk, retention priorities under team capacity (vertical: Fitness Membership Renewal Engine).
+- https://www.finmentor.md/renewal-revenue-at-risk.html — Article: Renewal is a managed value — revenue at risk in subscription businesses.
+- https://www.finmentor.md/supplier-shelf-credit.html — Article: Supplier Shelf Credit — who actually finances the retail shelf.
+- https://www.finmentor.md/pribyl-vs-cash.html — Article: Profit vs Cash — why P&L does not answer the owner's cash question.
+- https://www.finmentor.md/capacity-released.html — Article: Capacity Released is not Cash Saving — AI hours vs real economics.
 - https://www.finmentor.md/privacy.html — Privacy policy.
 - https://www.finmentor.md/terms.html — Terms of materials use.
 
