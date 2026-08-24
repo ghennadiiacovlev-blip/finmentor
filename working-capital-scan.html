@@ -31,6 +31,9 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/working-capital-scan.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/working-capital-scan.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/working-capital-scan.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Мини-скан оборотного капитала | FINMENTOR" />
   <meta property="og:description" content="9 вопросов за 3 минуты — где в бизнесе могут застревать деньги." />
@@ -50,6 +53,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="lang.css" />
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -93,6 +97,7 @@
         <a href="index.html" class="doc-bar__hide">На главную</a>
         <a href="materials.html">Материалы</a>
         <a href="questionnaire.html">Финансовый рентген</a>
+        <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="working-capital-scan.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/working-capital-scan.html" data-lang-switch="ro" lang="ro">RO</a></span>
         <a href="questionnaire.html" class="btn btn--primary btn--sm">Пройти финансовый рентген</a>
       </nav>
     </div>
@@ -543,6 +548,7 @@
   window.finmentorScan = { result: function () { return lastResult; }, scores: computeScores };
 })();
   </script>
+  <script src="lang.js"></script>
   <script src="main.js"></script>
   <script src="assistant.js"></script>
 </body>

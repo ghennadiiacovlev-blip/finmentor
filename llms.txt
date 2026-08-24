@@ -1,9 +1,10 @@
 # FINMENTOR
 
-FINMENTOR is an external CFO and financial control methodology website for business owners. The site is in Russian and focuses on management reporting, Cash Flow, P&L, treasury, working capital, KPI, risk control, dashboards, and business-model-specific CFO systems.
+FINMENTOR is a bilingual Russian / Romanian external-CFO and financial-control website for business owners. It covers management reporting, Cash Flow, P&L, treasury, working capital, KPI, risk control, dashboards, and business-model-specific CFO systems.
 
 Primary URL: https://www.finmentor.md/
-Primary language: ru
+Primary/master language: ru
+Full Romanian mirror: https://www.finmentor.md/ro/ (same filenames)
 Contact: cfo@finmentor.md
 Telegram Bot: https://t.me/finmentor_md_bot
 
@@ -26,6 +27,8 @@ Telegram Bot: https://t.me/finmentor_md_bot
 - https://www.finmentor.md/privacy.html — Privacy policy.
 - https://www.finmentor.md/terms.html — Terms of materials use.
 
+- Every key page above has a Romanian equivalent under /ro/ with the same filename (e.g. https://www.finmentor.md/ro/retail-margin-engine.html).
+
 ## Positioning
 
 FINMENTOR is not positioned as an automatic diagnosis tool. Digital tools and automation help speed and quality, while final conclusions and recommendations pass expert review.
@@ -33,3 +36,7 @@ FINMENTOR is not positioned as an automatic diagnosis tool. Digital tools and au
 ## Data And Privacy
 
 The website must not send personal data to GA4. Lead forms send data only to the configured Make/n8n webhook after user consent. If the webhook is not configured, users are offered fallback options: copy result, Telegram Bot, or email.
+
+## Languages
+
+The site is bilingual: Russian (master, at /) and Romanian (full mirror, at /ro/ with identical filenames). Language preference is stored client-side (localStorage `finmentor_language`); the root homepage shows a one-time language gate for new visitors. Reciprocal hreflang (ru / ro / x-default) is declared on every indexable page and in sitemap.xml.

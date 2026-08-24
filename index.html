@@ -32,6 +32,9 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
   <link rel="canonical" href="https://www.finmentor.md/" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -45,6 +48,7 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="ru_RU" />
+  <meta property="og:locale:alternate" content="ro_RO" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -129,6 +133,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="lang.css" />
 
   <!-- Pre-paint guard: skip intro for returning visitors / reduced-motion to avoid a flash -->
   <script>
@@ -137,6 +142,16 @@
         var played = sessionStorage.getItem('fm_intro_played');
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (played || reduced) document.documentElement.classList.add('intro-skip');
+      } catch (e) {}
+    })();
+  </script>
+  <!-- Pre-paint language guard (root only): saved preference wins; first visit opens the language gate -->
+  <script>
+    (function () {
+      try {
+        var lang = localStorage.getItem('finmentor_language');
+        if (lang === 'ro') { location.replace('ro/' + (location.search || '') + (location.hash || '')); return; }
+        if (!lang) document.documentElement.classList.add('lang-gate-pending');
       } catch (e) {}
     })();
   </script>
@@ -250,6 +265,19 @@
 </head>
 
 <body>
+  <!-- ===================================================== LANGUAGE ENTRY (root only) -->
+  <div class="lang-gate" id="langGate" role="dialog" aria-modal="true" aria-label="Selectarea limbii / Выбор языка">
+    <div class="lang-gate__inner">
+      <div class="lang-gate__wordmark" aria-hidden="true"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></div>
+      <div class="lang-gate__rule" aria-hidden="true"></div>
+      <p class="lang-gate__label">Limbă&nbsp;&middot;&nbsp;Язык</p>
+      <div class="lang-gate__choices">
+        <a class="lang-gate__btn" href="ro/" data-lang-choice="ro" lang="ro">ROMÂNĂ</a>
+        <button type="button" class="lang-gate__btn" data-lang-choice="ru" lang="ru">РУССКИЙ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============================================================= INTRO (restored from v8.6) -->
   <div class="intro" id="intro">
     <canvas class="intro__canvas" aria-hidden="true"></canvas>
@@ -283,7 +311,7 @@
       </nav>
 
       <div class="header__actions">
-        <!-- Языковой переключатель убран до готовности переводов RO/EN. Вернуть, когда переводы будут готовы. -->
+        <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="index.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/index.html" data-lang-switch="ro" lang="ro">RO</a></span>
         <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
         <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
           <span></span><span></span><span></span>
@@ -302,6 +330,10 @@
       <a href="questionnaire.html" class="mobile-menu__link" style="--mi:5">Финансовый рентген</a>
       <a href="#consult" class="mobile-menu__link" style="--mi:6">Контакты</a>
     </nav>
+    <div class="mobile-menu__lang">
+      <span class="mobile-menu__lang-label">Язык · Limbă</span>
+      <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="index.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/index.html" data-lang-switch="ro" lang="ro">RO</a></span>
+    </div>
     <div class="mobile-menu__footer">
       <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
       <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>
@@ -461,8 +493,8 @@
               <h3>Fitness</h3>
             </div>
             <p><b>Боль:</b> Продления происходят «как получится»: отток виден задним числом, выручка следующего сезона не управляется, скидки удержания раздаются интуитивно.</p>
-            <p><b>Контроль:</b> Профиль клиента-актива, склонность к продлению, Expected Renewal Value и Revenue at Risk, план удержания под мощность команды, миграция сегментов.</p>
-            <p><b>Разработка:</b> Client Base Control System · вертикаль Fitness Membership Renewal Engine — помесячный управленческий цикл, проверенный в реальном бизнесе.</p>
+            <p><b>Контроль:</b> Профиль клиента-актива, склонность к продлению, выручка продлений под риском, план удержания под мощность команды, миграция сегментов.</p>
+            <p><b>Разработка:</b> Client Base Control System · вертикаль Fitness Membership Renewal Engine — выросшая из помесячного управленческого цикла в реальном бизнесе.</p>
             <p><b>Результат:</b> Выручка продлений следующего периода и её риск — под контролем собственника.</p>
             <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Подробнее о системе</a>
           </article>
@@ -1070,6 +1102,7 @@
     </div>
   </footer>
 
+  <script src="lang.js"></script>
   <script src="main.js"></script>
   <script src="assistant.js"></script>
 </body>

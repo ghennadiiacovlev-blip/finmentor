@@ -31,6 +31,9 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#0A1626" />
   <link rel="canonical" href="https://www.finmentor.md/terms.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/terms.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/terms.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Условия использования материалов FINMENTOR" />
   <meta property="og:description" content="Условия использования материалов FINMENTOR™: авторские права, запрет копирования методологии, структуры, визуальных элементов, HTML/CSS/JS-реализации и коммерческого переиспользования без согласия." />
@@ -50,6 +53,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="lang.css" />
 
   <!-- NB: это шаблон. Перед публикацией рекомендуется проверить текст с юристом и подставить реальные данные оператора. -->
   <style>
@@ -91,7 +95,7 @@
 <body>
   <div class="container legal-bar">
     <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-    <a class="legal-back" href="index.html">← На главную</a>
+    <span class="legal-bar__right"><span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="terms.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/terms.html" data-lang-switch="ro" lang="ro">RO</a></span><a class="legal-back" href="index.html">← На главную</a></span>
   </div>
 
   <main class="container legal">
@@ -139,6 +143,7 @@
       Документ носит общий, информационный характер и не является юридической консультацией. Финальную редакцию следует согласовать с юристом и привести в соответствие с законодательством Республики Молдова и применимым международным правом; регистрация словесного знака FINMENTOR и (отдельно) логотипа оформляется в установленном порядке.
     </div>
   </main>
+  <script src="lang.js"></script>
   <script src="assistant.js"></script>
   <footer class="doc-foot">
     <div class="container doc-foot__row">

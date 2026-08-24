@@ -16,6 +16,15 @@
   var WEBHOOK_URL = "https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake";
   window.WEBHOOK_URL = typeof window.WEBHOOK_URL === 'string' ? window.WEBHOOK_URL : WEBHOOK_URL;
 
+  /* i18n (additive): Romanian pages define window.FM_I18N before this script.
+     Without it every string below falls back to the approved Russian original,
+     so the Russian site behaves byte-for-byte as before. */
+  var I18N = window.FM_I18N || {};
+  function tr(key, fallback) {
+    return (I18N.strings && typeof I18N.strings[key] === 'string') ? I18N.strings[key] : fallback;
+  }
+  var SITE_LANG = (document.documentElement.getAttribute('lang') || 'ru').toLowerCase();
+
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
@@ -53,6 +62,7 @@
     meta.referrer = document.referrer || '';
     meta.timestamp = new Date().toISOString();
     meta.consent = !!consent;
+    meta.site_language = SITE_LANG;
     return meta;
   }
 
@@ -105,15 +115,26 @@
       return;
     }
 
+    function play() {
+      document.body.classList.add('is-locked');
+      var skip = document.getElementById('introSkip');
+      if (skip) skip.addEventListener('click', dismiss);
+      var timer = window.setTimeout(dismiss, INTRO_MS);
+      // Safety net if anything stalls
+      window.setTimeout(function () {
+        if (!intro.classList.contains('is-done')) { window.clearTimeout(timer); dismiss(); }
+      }, INTRO_MS + 2500);
+    }
+
+    // Root language gate (multilingual entry): the intro is held unrendered by
+    // lang.css until the visitor chooses a language; lang.js then starts it.
+    if (document.documentElement.classList.contains('lang-gate-pending')) {
+      window.__fmStartIntro = play;
+      return;
+    }
+
     // Play once
-    document.body.classList.add('is-locked');
-    var skip = document.getElementById('introSkip');
-    if (skip) skip.addEventListener('click', dismiss);
-    var timer = window.setTimeout(dismiss, INTRO_MS);
-    // Safety net if anything stalls
-    window.setTimeout(function () {
-      if (!intro.classList.contains('is-done')) { window.clearTimeout(timer); dismiss(); }
-    }, INTRO_MS + 2500);
+    play();
   }
 
   /* ------------------------------------------------------------- PARTICLE FIELD (constellation) */
@@ -293,7 +314,7 @@
       burger.classList.toggle('is-open', open);
       menu.classList.toggle('is-open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+      burger.setAttribute('aria-label', open ? tr('menuClose', 'Закрыть меню') : tr('menuOpen', 'Открыть меню'));
       menu.setAttribute('aria-hidden', open ? 'false' : 'true');
       document.body.classList.toggle('is-locked', open);
       document.body.classList.toggle('menu-open', open);
@@ -430,13 +451,13 @@
       bcs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/><path d="M6.4 6.4l4 4M17.6 6.4l-4 4M6.4 17.6l4-4M17.6 17.6l-4-4"/></svg>'
     };
 
-    var GROUPS = [
+    var GROUPS = I18N.groups || [
       { id: 'expertise', label: 'Экспертиза' },
       { id: 'industry', label: 'Отрасли' },
       { id: 'system', label: 'Система' }
     ];
 
-    var CASES = [
+    var CASES = I18N.cases || [
       { id: 'finance', group: 'expertise', chip: 'Finance', dir: 'Finance · Управленческий учёт',
         title: 'Собственник не понимает реальную прибыль бизнеса',
         problem: 'Бухгалтерская прибыль есть, но денег на счетах не хватает.',
@@ -530,14 +551,14 @@
       var isBcs = c.id === 'bcs';
       var ctaClass = isBcs ? 'btn btn--primary case-card__cta' : 'btn btn--ghost case-card__cta';
       var ctaHref = isBcs ? '#solutions' : '#consult';
-      var ctaText = isBcs ? 'Построить систему управления' : 'Обсудить ваш случай';
+      var ctaText = isBcs ? tr('caseCtaBcs', 'Построить систему управления') : tr('caseCtaDefault', 'Обсудить ваш случай');
       return '<div class="case-card__inner">' +
         '<div class="case-card__eyebrow"><span class="case-card__icon">' + (ICON[c.id] || '') + '</span>' +
-          '<span class="case-card__dir">' + esc(c.dir) + '</span><span class="case-card__kicker">Кейс</span></div>' +
+          '<span class="case-card__dir">' + esc(c.dir) + '</span><span class="case-card__kicker">' + tr('caseKicker', 'Кейс') + '</span></div>' +
         '<h3 class="case-card__title">' + esc(c.title) + '</h3>' +
-        '<div class="case-block case-block--problem"><span class="case-block__label">Проблема</span><p>' + esc(c.problem) + '</p></div>' +
-        '<div class="case-block case-block--solution"><span class="case-block__label">Решение FINMENTOR</span><p>' + esc(c.solution) + '</p>' + tagsHtml + '</div>' +
-        '<div class="case-block case-block--result"><span class="case-block__label">Результат</span><p>' + esc(c.result) + '</p></div>' +
+        '<div class="case-block case-block--problem"><span class="case-block__label">' + tr('caseProblem', 'Проблема') + '</span><p>' + esc(c.problem) + '</p></div>' +
+        '<div class="case-block case-block--solution"><span class="case-block__label">' + tr('caseSolution', 'Решение FINMENTOR') + '</span><p>' + esc(c.solution) + '</p>' + tagsHtml + '</div>' +
+        '<div class="case-block case-block--result"><span class="case-block__label">' + tr('caseResult', 'Результат') + '</span><p>' + esc(c.result) + '</p></div>' +
         '<a href="' + ctaHref + '" class="' + ctaClass + '">' + ctaText + '</a>' +
         '</div>';
     }
@@ -660,7 +681,7 @@
         if (submit) submit.disabled = false;
         if (success) {
           success.hidden = false;
-          success.innerHTML = '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.';
+          success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
           success.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       });
@@ -686,12 +707,12 @@
     banner.className = 'fm-cookie';
     banner.setAttribute('role', 'dialog');
     banner.setAttribute('aria-live', 'polite');
-    banner.setAttribute('aria-label', 'Настройки cookies FINMENTOR');
+    banner.setAttribute('aria-label', tr('cookieAria', 'Настройки cookies FINMENTOR'));
     banner.innerHTML =
-      '<div class="fm-cookie__text"><strong>Cookies и аналитика</strong><span>FINMENTOR использует технические cookies и обезличенную аналитику. Персональные данные в GA4 не отправляются.</span></div>' +
+      '<div class="fm-cookie__text"><strong>' + tr('cookieTitle', 'Cookies и аналитика') + '</strong><span>' + tr('cookieText', 'FINMENTOR использует технические cookies и обезличенную аналитику. Персональные данные в GA4 не отправляются.') + '</span></div>' +
       '<div class="fm-cookie__actions">' +
-        '<button type="button" class="btn btn--ghost btn--sm" data-cookie-choice="deny">Только необходимые</button>' +
-        '<button type="button" class="btn btn--primary btn--sm" data-cookie-choice="accept">Принять</button>' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-cookie-choice="deny">' + tr('cookieDeny', 'Только необходимые') + '</button>' +
+        '<button type="button" class="btn btn--primary btn--sm" data-cookie-choice="accept">' + tr('cookieAccept', 'Принять') + '</button>' +
       '</div>';
     document.body.appendChild(banner);
 
@@ -751,7 +772,7 @@
     }
 
     function collectAnswers() {
-      var lines = ['FINMENTOR — Анкета диагностики', ''];
+      var lines = [tr('qCopyTitle', 'FINMENTOR — Анкета диагностики'), ''];
       var qs = form.querySelectorAll('.q');
       Array.prototype.forEach.call(qs, function (q) {
         var labelEl = q.querySelector('.q__label, legend');
@@ -781,8 +802,8 @@
       copyBtn.addEventListener('click', function () {
         var txt = collectAnswers();
         var done = function () {
-          copyBtn.textContent = 'Скопировано ✓';
-          setTimeout(function () { copyBtn.textContent = 'Скопировать ответы'; }, 2500);
+          copyBtn.textContent = tr('copied', 'Скопировано ✓');
+          setTimeout(function () { copyBtn.textContent = tr('copyAnswers', 'Скопировать ответы'); }, 2500);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
@@ -848,7 +869,7 @@
       });
     });
 
-    var LEVELS = {
+    var LEVELS = I18N.wcLevels || {
       low: { band: 'Низкий риск · базовый контроль есть', title: 'У вас уже есть часть контроля', text: 'Следующий шаг — связать оборотный капитал с Cash Flow, платёжным календарём и регулярной управленческой отчётностью.' },
       medium: { band: 'Средний риск · деньги могут застревать', title: 'Есть признаки, что деньги застревают', text: 'Похоже, деньги могут застревать в дебиторке, запасах, авансах или платёжной дисциплине. Стоит провести диагностику оборотного капитала и Cash Flow.' },
       high: { band: 'Высокий риск · нужна диагностика', title: 'Деньгами, вероятно, управляют реактивно', text: 'Высокая вероятность, что платежи решаются вручную, cash gap виден поздно, а прибыль не превращается в свободный cash flow. Рекомендуется Financial Health Check или Discovery Call.' }
@@ -856,13 +877,13 @@
     function levelFor(total) { var pct = total / (questions.length * 3); return pct < 0.34 ? 'low' : (pct < 0.67 ? 'medium' : 'high'); }
     function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
     function buildShare(L) {
-      var lines = ['Мини-скан оборотного капитала — FINMENTOR', 'Результат: ' + L.band];
+      var lines = [tr('wcShareTitle', 'Мини-скан оборотного капитала — FINMENTOR'), tr('wcResult', 'Результат') + ': ' + L.band];
       var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
-      if (nm) lines.push('Имя: ' + nm);
-      if (co) lines.push('Компания: ' + co);
-      if (ct) lines.push('Контакт: ' + ct);
-      if (cm) lines.push('Комментарий: ' + cm);
-      lines.push('https://www.finmentor.md/working-capital-scan.html');
+      if (nm) lines.push(tr('wcName', 'Имя') + ': ' + nm);
+      if (co) lines.push(tr('wcCompany', 'Компания') + ': ' + co);
+      if (ct) lines.push(tr('wcContact', 'Контакт') + ': ' + ct);
+      if (cm) lines.push(tr('wcComment', 'Комментарий') + ': ' + cm);
+      lines.push(tr('wcShareUrl', 'https://www.finmentor.md/working-capital-scan.html'));
       var text = lines.join('\n');
       root.__shareText = text;
       var tg = document.getElementById('scanTg');
@@ -893,7 +914,7 @@
     if (copyBtn) copyBtn.addEventListener('click', function () {
       if (root.__L) buildShare(root.__L);
       var text = root.__shareText || '';
-      function done() { var old = copyBtn.textContent; copyBtn.textContent = 'Скопировано ✓'; setTimeout(function () { copyBtn.textContent = old; }, 1800); ga('copy_working_capital_scan_result'); }
+      function done() { var old = copyBtn.textContent; copyBtn.textContent = tr('copied', 'Скопировано ✓'); setTimeout(function () { copyBtn.textContent = old; }, 1800); ga('copy_working_capital_scan_result'); }
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); }); }
       else { fallbackCopy(text); done(); }
     });

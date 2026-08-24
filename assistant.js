@@ -13,6 +13,13 @@
   if (window.__faInit) return;
   window.__faInit = true;
 
+  /* i18n (additive): Romanian pages define window.FM_I18N before this script.
+     Without it every string below falls back to the approved Russian original. */
+  var I18N = window.FM_I18N || {};
+  function tr(key, fallback) {
+    return (I18N.strings && typeof I18N.strings[key] === 'string') ? I18N.strings[key] : fallback;
+  }
+
   function ready(fn) {
     if (document.readyState !== 'loading') fn();
     else document.addEventListener('DOMContentLoaded', fn);
@@ -38,7 +45,7 @@
     burger.type = 'button';
     burger.id = 'burger';
     burger.className = 'burger';
-    burger.setAttribute('aria-label', 'Открыть меню');
+    burger.setAttribute('aria-label', tr('menuOpen', 'Открыть меню'));
     burger.setAttribute('aria-expanded', 'false');
     burger.setAttribute('aria-controls', 'mobileMenu');
     burger.innerHTML = '<span></span><span></span><span></span>';
@@ -48,23 +55,35 @@
     menu.id = 'mobileMenu';
     menu.className = 'mobile-menu mobile-menu--doc';
     menu.setAttribute('aria-hidden', 'true');
+    var isRo = (document.documentElement.getAttribute('lang') || '').toLowerCase() === 'ro';
+    var pageFile = (window.location.pathname.split('/').pop() || 'index.html');
+    if (!/\.html?$/i.test(pageFile)) pageFile = 'index.html';
+    var ruHref = isRo ? '../' + pageFile : pageFile;
+    var roHref = isRo ? pageFile : 'ro/' + pageFile;
     menu.innerHTML =
       '<div class="mobile-menu__head">' +
-        '<a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>' +
-        '<button type="button" class="mobile-menu__close" aria-label="Закрыть меню"><span></span><span></span></button>' +
+        '<a class="logo" href="index.html" aria-label="' + tr('logoAria', 'finmentor — на главную') + '"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>' +
+        '<button type="button" class="mobile-menu__close" aria-label="' + tr('menuClose', 'Закрыть меню') + '"><span></span><span></span></button>' +
       '</div>' +
-      '<nav class="mobile-menu__nav" aria-label="Мобильная навигация">' +
-        '<a class="mobile-menu__link" style="--mi:0" href="index.html">На главную</a>' +
-        '<a class="mobile-menu__link" style="--mi:1" href="index.html#audience">Для кого</a>' +
-        '<a class="mobile-menu__link" style="--mi:2" href="index.html#steps">Как работаем</a>' +
-        '<a class="mobile-menu__link" style="--mi:3" href="index.html#solutions">Решения</a>' +
-        '<a class="mobile-menu__link" style="--mi:4" href="materials.html">Материалы</a>' +
-        '<a class="mobile-menu__link" style="--mi:5" href="questionnaire.html">Финансовый рентген</a>' +
-        '<a class="mobile-menu__link" style="--mi:6" href="index.html#consult">Контакты</a>' +
+      '<nav class="mobile-menu__nav" aria-label="' + tr('mobileNavAria', 'Мобильная навигация') + '">' +
+        '<a class="mobile-menu__link" style="--mi:0" href="index.html">' + tr('navHome', 'На главную') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:1" href="index.html#audience">' + tr('navAudience', 'Для кого') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:2" href="index.html#steps">' + tr('navSteps', 'Как работаем') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:3" href="index.html#solutions">' + tr('navSolutions', 'Решения') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:4" href="materials.html">' + tr('navMaterials', 'Материалы') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:5" href="questionnaire.html">' + tr('navXray', 'Финансовый рентген') + '</a>' +
+        '<a class="mobile-menu__link" style="--mi:6" href="index.html#consult">' + tr('navContacts', 'Контакты') + '</a>' +
       '</nav>' +
+      '<div class="mobile-menu__lang">' +
+        '<span class="mobile-menu__lang-label">' + tr('langLabel', 'Язык · Limbă') + '</span>' +
+        '<span class="lang" role="group" aria-label="' + tr('langAria', 'Выбор языка') + '">' +
+          '<a class="lang__btn' + (isRo ? '' : ' is-active') + '" href="' + ruHref + '" data-lang-switch="ru" lang="ru"' + (isRo ? '' : ' aria-current="true"') + '>RU</a>' +
+          '<a class="lang__btn' + (isRo ? ' is-active' : '') + '" href="' + roHref + '" data-lang-switch="ro" lang="ro"' + (isRo ? ' aria-current="true"' : '') + '>RO</a>' +
+        '</span>' +
+      '</div>' +
       '<div class="mobile-menu__footer">' +
-        '<a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="docbar_mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>' +
-        '<a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Лучше сразу написать → FINMENTOR Bot</a>' +
+        '<a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="docbar_mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">' + tr('ctaXray', 'Пройти финансовый рентген') + '</a>' +
+        '<a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">' + tr('ctaBot', 'Лучше сразу написать → FINMENTOR Bot') + '</a>' +
       '</div>';
     document.body.appendChild(menu);
 
@@ -72,7 +91,7 @@
       burger.classList.toggle('is-open', open);
       menu.classList.toggle('is-open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+      burger.setAttribute('aria-label', open ? tr('menuClose', 'Закрыть меню') : tr('menuOpen', 'Открыть меню'));
       menu.setAttribute('aria-hidden', open ? 'false' : 'true');
       document.body.classList.toggle('is-locked', open);
       document.body.classList.toggle('menu-open', open);
@@ -96,7 +115,7 @@
     try { initDocMobileNav(); } catch (e) { if (window.console) console.warn('[finmentor]', e); }
     if (document.getElementById('faPanel')) return;
 
-    var SC = [
+    var SC = I18N.assistantScenarios || [
       { choose: 'assistant_choose_working_capital',
         opt: 'Прибыль есть, но денег не хватает',
         a: 'Часто причина в оборотном капитале: дебиторка, запасы, авансы или условия оплаты. Начните с короткого mini-scan.',
@@ -139,7 +158,7 @@
         ] }
     ];
 
-    var DISC = '<p class="fa-disclaimer">Ассистент помогает выбрать первый шаг. Это не финансовое заключение и не индивидуальная рекомендация.</p>';
+    var DISC = '<p class="fa-disclaimer">' + tr('faDisclaimer', 'Ассистент помогает выбрать первый шаг. Это не финансовое заключение и не индивидуальная рекомендация.') + '</p>';
 
     var launch = document.createElement('button');
     launch.type = 'button';
@@ -147,22 +166,22 @@
     launch.setAttribute('aria-haspopup', 'dialog');
     launch.setAttribute('aria-expanded', 'false');
     launch.setAttribute('aria-controls', 'faPanel');
-    launch.setAttribute('aria-label', 'Помочь выбрать следующий шаг');
+    launch.setAttribute('aria-label', tr('faLaunchAria', 'Помочь выбрать следующий шаг'));
     launch.innerHTML =
       '<svg class="fa-launch__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z"/></svg>' +
-      '<span class="fa-launch__lg">Нужна подсказка?</span>' +
-      '<span class="fa-launch__sm">Помочь выбрать шаг</span>';
+      '<span class="fa-launch__lg">' + tr('faLaunchLg', 'Нужна подсказка?') + '</span>' +
+      '<span class="fa-launch__sm">' + tr('faLaunchSm', 'Помочь выбрать шаг') + '</span>';
 
     var panel = document.createElement('div');
     panel.className = 'fa-panel';
     panel.id = 'faPanel';
     panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-label', 'Финансовый навигатор FINMENTOR');
+    panel.setAttribute('aria-label', tr('faPanelTitle', 'Финансовый навигатор FINMENTOR'));
     panel.hidden = true;
     panel.innerHTML =
       '<div class="fa-panel__head">' +
-        '<span class="fa-panel__title">Финансовый навигатор FINMENTOR</span>' +
-        '<button type="button" class="fa-panel__close" aria-label="Закрыть навигатор">' +
+        '<span class="fa-panel__title">' + tr('faPanelTitle', 'Финансовый навигатор FINMENTOR') + '</span>' +
+        '<button type="button" class="fa-panel__close" aria-label="' + tr('faCloseAria', 'Закрыть навигатор') + '">' +
           '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
         '</button>' +
       '</div>' +
@@ -174,8 +193,8 @@
     var closeBtn = panel.querySelector('.fa-panel__close');
 
     function renderMenu() {
-      var h = '<p class="fa-intro">Я помогу выбрать первый шаг: mini-scan, диагностика, Discovery Call или нужную страницу. Это не финансовое заключение — для анализа данных нужна диагностика.</p>' +
-              '<p class="fa-q">Что сейчас больше всего беспокоит?</p>' +
+      var h = '<p class="fa-intro">' + tr('faIntro', 'Я помогу выбрать первый шаг: mini-scan, диагностика, Discovery Call или нужную страницу. Это не финансовое заключение — для анализа данных нужна диагностика.') + '</p>' +
+              '<p class="fa-q">' + tr('faQ', 'Что сейчас больше всего беспокоит?') + '</p>' +
               '<div class="fa-options">';
       SC.forEach(function (s, i) { h += '<button type="button" class="fa-opt" data-i="' + i + '">' + esc(s.opt) + '</button>'; });
       h += '</div>' + DISC;
@@ -188,7 +207,7 @@
 
     function renderAnswer(s) {
       ga(s.choose);
-      var h = '<button type="button" class="fa-back" id="faBack" aria-label="Назад к выбору">&larr; Назад</button>' +
+      var h = '<button type="button" class="fa-back" id="faBack" aria-label="' + tr('faBackAria', 'Назад к выбору') + '">&larr; ' + tr('faBack', 'Назад') + '</button>' +
               '<p class="fa-q" style="margin-top:var(--sp-4)">' + esc(s.opt) + '</p>' +
               '<p class="fa-answer__text">' + esc(s.a) + '</p>' +
               '<div class="fa-ctas">';
