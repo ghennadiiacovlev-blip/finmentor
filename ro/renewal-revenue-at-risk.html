@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Prelungirea — variabilă gestionabilă: veniturile sub risc | FINMENTOR</title>
+  <meta name="description" content="Prelungirea — variabilă gestionabilă, nu noroc: propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, risc versus recuperabilitate și controlul discounturilor de retenție în afacerile cu abonamente." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/renewal-revenue-at-risk.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/renewal-revenue-at-risk.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/renewal-revenue-at-risk.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Prelungirea — variabilă gestionabilă: veniturile sub risc | FINMENTOR" />
+  <meta property="og:description" content="Prelungirea — variabilă gestionabilă, nu noroc: propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, risc versus recuperabilitate și controlul discounturilor de retenție în afacerile cu abonamente." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/renewal-revenue-at-risk.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Prelungirea — variabilă gestionabilă: veniturile sub risc | FINMENTOR" />
+  <meta name="twitter:description" content="Prelungirea — variabilă gestionabilă, nu noroc: propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, risc versus recuperabilitate și controlul discounturilor de retenție în afacerile cu abonamente." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://www.finmentor.md/ro/kaznacheystvo.html#article",
+      "headline": "Trezoreria și cascada plăților: cum gestionați banii fără haos",
+      "description": "Trezorerie pentru afaceri: planificare pe fonduri, metafonduri, cascada plăților, priorități, Payment Gate, acoperire pe 7/14/30 de zile, dashboard Power BI și AI treasury briefing.",
+      "inLanguage": "ro",
+      "datePublished": "2026-06-21",
+      "dateModified": "2026-06-21",
+      "mainEntityOfPage": "https://www.finmentor.md/ro/kaznacheystvo.html",
+      "image": "https://www.finmentor.md/og-image.png?v=81",
+      "author": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.finmentor.md/ro/icon-512.png"
+        }
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Trezorerie",
+          "item": "https://www.finmentor.md/ro/kaznacheystvo.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Prin ce diferă planificarea pe fonduri de un buget obișnuit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bugetul planifică venituri și cheltuieli, în timp ce planificarea pe fonduri distribuie banii efectivi pe destinații și priorități manageriale, stabilind ce se plătește în primul rând."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce este cascada plăților?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Este ordinea de utilizare a banilor: mai întâi plățile obligatorii și critice, apoi stabilitatea operațională, apoi dezvoltarea și dividendele. Ea arată când vă puteți permite dezvoltarea fără un gol de numerar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce arată acoperirea pe 7 / 14 / 30 de zile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dacă banii ajung pentru obligațiile din următoarea săptămână, două săptămâni și o lună. Astfel golul de numerar se vede din timp, nu în ziua plății."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Este nevoie de un trezorier separat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nu. Trezoreria este un proces cu reguli clare, fonduri și șabloane; poate fi construită pe echipa existentă."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://www.finmentor.md/ro/renewal-revenue-at-risk.html#main",
+      "headline": "Prelungirea — variabilă gestionabilă, nu noroc",
+      "description": "Prelungirea — variabilă gestionabilă, nu noroc: propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, risc versus recuperabilitate și controlul discounturilor de retenție în afacerile cu abonamente.",
+      "inLanguage": "ro",
+      "author": {
+        "@type": "Person",
+        "name": "Ghennadi Iacovlev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/"
+      },
+      "mainEntityOfPage": "https://www.finmentor.md/ro/renewal-revenue-at-risk.html"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Prelungirea sub control",
+          "item": "https://www.finmentor.md/ro/renewal-revenue-at-risk.html"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+<style>
+    .cb-example { margin:var(--sp-4) 0; padding:var(--sp-5); border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:rgba(201,162,39,0.05); }
+    .cb-example__tag { font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:10px; }
+    .cb-example p { margin:0 0 8px; color:var(--text-secondary); }
+    .cb-example .f { font-family:var(--font-mono); font-size:0.92rem; color:var(--text-primary); }
+    .cb-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:var(--sp-4) 0; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .cb-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
+    .cb-table-wrap th,.cb-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); }
+    .cb-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .cb-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .cb-table-wrap .ok { color:var(--text-primary); }
+    .cb-table-wrap .risk { color:#E7C55A; font-weight:600; }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../renewal-revenue-at-risk.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="renewal-revenue-at-risk.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Prelungirea sub control</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">Metodologie · Baza de clienți</p>
+        <h1>Prelungirea — variabilă gestionabilă, nu noroc</h1>
+        <p class="doc-hero__lead">Într-o afacere cu abonamente, cea mai mare parte a veniturilor viitoare vine din prelungiri. Și de ele nu se ocupă aproape nimeni: abandonul se numără retroactiv, retenția se face „din memorie”, discounturile se acordă din instinct. În realitate, prelungirea este o mărime măsurabilă și gestionabilă.</p>
+        <p class="doc-hero__context">FINMENTOR · Ghennadi Iacovlev · jurnal profesional de CFO</p>
+      </div>
+    </section>
+
+    <div class="container"><section>
+      <h2>De ce există problema</h2>
+      <p>Veniturile unei afaceri cu abonamente curg în două ritmuri: vânzările perioadei noi se văd imediat, iar prelungirile — abia atunci când nu se mai întâmplă. Evidența înregistrează neplata, dar nu o anunță din timp. Așa că managementul bazei se reduce la reacție: clientul a plecat — sunăm; sezonul a scăzut — lansăm o promoție. Deciziile vin după pierdere, când nu mai e nimic de schimbat.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Ce vede de obicei managementul</h2>
+      <p>Raportul de vânzări și procentul abandonului pe perioada trecută. Ambele cifre sunt oneste — și ambele inutile pentru management: descriu ce s-a întâmplat deja. Instantaneul lunii curente înșală și el: clientul cu frecvență „normală” în această lună poate fi într-un trend descendent. Exemplu ilustrativ — doi clienți, vizite pe luni:</p>
+      <div class="cb-table-wrap"><table>
+        <thead><tr><th>Client</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th><th>Media</th><th>Ce vede sistemul</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A</strong></td><td>6</td><td>6</td><td>7</td><td>6</td><td>6</td><td>6,2</td><td class="ok">Model stabil — obiceiul este format</td></tr>
+          <tr><td><strong>B</strong></td><td>12</td><td>10</td><td>8</td><td>6</td><td>3</td><td>7,8</td><td class="risk">Trend descendent — acțiune necesară acum</td></tr>
+        </tbody>
+      </table></div>
+      <p>Nivelul mediu al clientului B este <b>mai ridicat</b> decât al clientului A — iar raportul-instantaneu îl va trece pe B la „buni”. Riscul este însă tocmai la B: <b>nivelul ≠ trendul</b>, comportamentul se răcește înaintea banilor.</p>
+      <p>Continuarea aceleiași idei — <b>traiectorie în locul instantaneului</b>. Comportamentul clientului este fixat în secțiuni de control „client × data instantaneului”: convențional T−180, T−120, T−90, T−60, T−30 înainte de data prelungirii. Atunci se vede nu doar „cine e în risc azi”, ci și când a început deteriorarea, cât de repede avansează — și cât timp a mai rămas pentru acțiune.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Ce prezice cu adevărat prelungirea: obiceiul</h2>
+      <p>Prelungirea unui abonament anual se decide, în bună măsură, în <b>primele lui 30 / 60 / 90 de zile</b>. Întrebarea-cheie a acestei ferestre: și-a format clientul un obicei stabil de a folosi clubul? Lanțul managerial: activare → prima vizită → vizite repetate → săptămâni active → obicei stabil. Clientul care nu a ajuns la un obicei stabil în primele luni este candidat la abandon tăcut cu mult înainte de data prelungirii; pragurile concrete se configurează pentru fiecare business, nu se publică drept constante universale.</p>
+      <p>Doi factori care nu trebuie amestecați: <b>vechimea (tenure)</b> — de cât timp este clientul cu clubul, și <b>prospețimea (recency)</b> — cât a trecut de la ultima activitate semnificativă: vizită, antrenament personal, clasă de grup, contact de serviciu. Trei ani de vechime cu șase săptămâni de tăcere nu înseamnă loialitate — înseamnă un obicei rupt la un client valoros.</p>
+      <p>De aici, al treilea principiu: <b>norma personală contează mai mult decât media clubului</b>. Trei vizite pe săptămână, constante, devenite brusc zero — este un semnal de rupere a obiceiului, cu alt înțeles decât „frecvența scăzută” a unui client care a venit dintotdeauna rar. Nivel de referință personal → abatere → semnal de risc.</p>
+      <p>Și al patrulea: <b>constanța ritmului contează mai mult decât volumul mediu</b>. Seriile de vizite 8 / 7 / 9 / 8 / 7 și 0 / 15 / 0 / 2 / 13 dau o medie apropiată — și două tipare de comportament foarte diferite: un ritm format față de salturi urmate, de regulă, de abandon.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Ce se întâmplă financiar</h2>
+      <p>Fiecare client are o <b>propensiune de prelungire</b> — iar pe ea o evaluează comportamentul: obiceiul și constanța lui, prospețimea activității, profunzimea utilizării, atașamentul de grup, disciplina de plată. Este important de fixat din start statutul acestei evaluări: <b>înainte de calibrare, propensiunea este o ierarhizare a riscului, nu o probabilitate</b>. De aceea stratul financiar funcționează în două regimuri.</p>
+      <p><b>Înainte de calibrare.</b> Valoarea prelungirilor concentrate în zonele de risc se adună în <b>venitul indicativ expus riscului</b> (Indicative Revenue at Risk) — expunerea orientativă a sezonului următor, pe segmente și produse. Este suficientă pentru priorități și acțiuni — fără a pretinde precizie.</p>
+      <div class="cb-example">
+        <span class="cb-example__tag">După calibrare · calcul ilustrativ pe cifre convenționale</span>
+        <p class="f">Expected Renewal Value = valoarea prelungirii × P(prelungire)</p>
+        <p class="f">Revenue at Risk = valoarea prelungirii × (1 − P(prelungire))</p>
+        <p style="margin-top:12px">Odată ce backtest-ul pe prelungirile istorice ale businessului concret a transformat zonele într-o P(prelungire) calibrată, formulele se aplică literal: un abonament de 100 convențional, la P = 0,8, înseamnă 80 venit așteptat din prelungire și <b>20 expuse riscului</b>; o sută de astfel de clienți — 2 000 de unități convenționale de expunere. Nu mai este „un procent de abandon”, ci o sumă pe care se planifică acțiuni.</p>
+      </div>
+      <p>Mai departe — două diferențe oneste. Prima: <b>riscul ≠ recuperabilitatea</b>. O parte din clienții în risc pot fi recuperați prin acțiune, o parte — nu; a consuma capacitatea echipei pe cei nerecuperabili înseamnă a-i pierde și pe ei, și pe cei care încă mai pot fi păstrați. A doua: <b>discountul ≠ retenția</b>. Discounturile „ca să nu plece” ajung deseori la cei care s-ar fi prelungit oricum — este Retention Discount Leakage: veniturile se diluează, propensiunea de prelungire nu se schimbă.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Drumul spre putere predictivă: calibrarea ca etapă explicită</h2>
+      <p>Metodologia a crescut dintr-un circuit managerial practic (Membership Renewal Engine — ciclu lunar într-un business de fitness real, 2021), dar puterea predictivă nu o declară — o <b>câștigă</b> pe un drum explicit: cohorte istorice → client × data instantaneului → prelungit / neprelungit → backtest → validare out-of-time → calibrare → pilot → învățare operațională. Până la parcurgerea acestui drum, logica publică vorbește despre propensiune, priorități și expunere indicativă — nu despre probabilități și nu despre precizie.</p>
+      <p>Circuitul se închide prin învățare: date → semnal → risc → bani → acțiune → rezultat → învățare. Prelungirile efective se întorc în model și îl rafinează — este parte din metodologie, nu o opțiune.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Logica managerială FINMENTOR</h2>
+      <p>Client Base Control System conduce fiecare client ca pe un activ: profil (obicei, prospețime, profunzime, atașament, disciplină) → propensiune de prelungire (zone indicative până la calibrare) → venituri expuse riscului → recuperabilitate și prioritate de retenție → următoarea acțiune, pe capacitatea reală a echipei → economia retenției → prelungirea efectivă → calibrare și învățare. Circuitul îl închide migrația lunară a segmentelor: control → abatere → decizie — sistemul reacționează la schimbarea trendului, nu la faptul neplății. Metodologia a crescut dintr-un circuit managerial practic — Membership Renewal Engine, ciclu lunar într-un business de fitness real — și se transferă pe orice plăți recurente; calibrarea predictivă finală se face pe prelungirile istorice ale businessului concret.</p>
+    </section></div>
+    <div class="container"><section>
+      <h2>Concluzia managerială</h2>
+      <p>Cereți sistemului dvs. trei cifre în fiecare lună: veniturile așteptate din prelungirile perioadei următoare, veniturile expuse riscului și cota de risc acoperită de acțiunile planificate ale echipei. Dacă aceste cifre lipsesc, baza nu este condusă — este lăsată să se golească, iar pierderea primește apoi numele de sezonalitate.</p>
+    </section></div>
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Materiale și soluții conexe</p>
+        <div class="related__grid"><a href="client-base-control-system.html">Client Base Control System — dezvoltare FINMENTOR</a><a href="pribyl-vs-cash.html">Profit există, bani nu: P&L și Cash</a><a href="capacity-released.html">Capacity Released ≠ Cash Saving</a><a href="working-capital.html">Capital de lucru</a></div>
+      </nav>
+    </div>
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Vă regăsiți în aceste situații?</p>
+        <p class="cta-band__text">Radiografia Financiară arată unde se pierde controlul în primul rând. Sau deschideți dezvoltarea în care trăiește această logică.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Începeți Radiografia Financiară</a><a href="client-base-control-system.html" class="btn btn--ghost btn--lg">Deschideți Client Base Control System</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condiții de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../i18n-ro.js"></script>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>
