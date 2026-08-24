@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Client Base Control System — baza de clienți sub control | FINMENTOR</title>
+  <meta name="description" content="Client Base Control System FINMENTOR: cum gestionați prelungirile într-un business pe abonamente. Analiză pe un singur client: profilul activului, propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, priorități de retenție dimensionate după capacitatea echipei." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/client-base-control-system.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/client-base-control-system.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/client-base-control-system.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Client Base Control System — baza de clienți sub control | FINMENTOR" />
+  <meta property="og:description" content="Client Base Control System FINMENTOR: cum gestionați prelungirile într-un business pe abonamente. Analiză pe un singur client: profilul activului, propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, priorități de retenție dimensionate după capacitatea echipei." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/client-base-control-system.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Client Base Control System — baza de clienți sub control | FINMENTOR" />
+  <meta name="twitter:description" content="Client Base Control System FINMENTOR: cum gestionați prelungirile într-un business pe abonamente. Analiză pe un singur client: profilul activului, propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, priorități de retenție dimensionate după capacitatea echipei." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://www.finmentor.md/ro/kaznacheystvo.html#article",
+      "headline": "Trezoreria și cascada plăților: cum gestionați banii fără haos",
+      "description": "Trezorerie pentru afaceri: planificare pe fonduri, metafonduri, cascada plăților, priorități, Payment Gate, acoperire pe 7/14/30 de zile, dashboard Power BI și AI treasury briefing.",
+      "inLanguage": "ro",
+      "datePublished": "2026-06-21",
+      "dateModified": "2026-06-21",
+      "mainEntityOfPage": "https://www.finmentor.md/ro/kaznacheystvo.html",
+      "image": "https://www.finmentor.md/og-image.png?v=81",
+      "author": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.finmentor.md/ro/icon-512.png"
+        }
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Trezorerie",
+          "item": "https://www.finmentor.md/ro/kaznacheystvo.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Prin ce diferă planificarea pe fonduri de un buget obișnuit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bugetul planifică venituri și cheltuieli, în timp ce planificarea pe fonduri distribuie banii efectivi pe destinații și priorități manageriale, stabilind ce se plătește în primul rând."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce este cascada plăților?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Este ordinea de utilizare a banilor: mai întâi plățile obligatorii și critice, apoi stabilitatea operațională, apoi dezvoltarea și dividendele. Ea arată când vă puteți permite dezvoltarea fără un gol de numerar."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce arată acoperirea pe 7 / 14 / 30 de zile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dacă banii ajung pentru obligațiile din următoarea săptămână, două săptămâni și o lună. Astfel golul de numerar se vede din timp, nu în ziua plății."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Este nevoie de un trezorier separat?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nu. Trezoreria este un proces cu reguli clare, fonduri și șabloane; poate fi construită pe echipa existentă."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <style>
+    /* Client Base — page-local components in the shared token language */
+    .cb-scenes { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .cb-scene { padding:var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-lg); background:rgba(255,255,255,0.025); }
+    .cb-scene b { display:block; color:var(--text-primary); margin-bottom:6px; font-size:0.98rem; }
+    .cb-scene p { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; margin:0; }
+    .cb-scene span { display:block; margin-top:10px; font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.06em; color:var(--accent); }
+    .cb-step { position:relative; padding:var(--sp-5) 0 var(--sp-5) 64px; border-top:1px solid var(--border-hairline); }
+    .cb-step:first-of-type { border-top:0; }
+    .cb-step::before { content:attr(data-n); position:absolute; left:0; top:calc(var(--sp-5) + 2px); font-family:var(--font-mono); font-size:1rem; color:var(--accent); border:1px solid var(--glass-border-gold); border-radius:var(--r-pill); padding:4px 10px; }
+    .cb-step h3 { color:var(--text-primary); font-size:1.15rem; margin:0 0 var(--sp-3); }
+    .cb-factors { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3); margin-top:var(--sp-4); }
+    .cb-factor { padding:14px 16px; border:1px solid var(--glass-border); border-radius:var(--r-md); background:rgba(255,255,255,0.02); }
+    .cb-factor b { display:block; color:var(--text-primary); font-size:0.9rem; margin-bottom:4px; }
+    .cb-factor span { color:var(--text-muted); font-size:0.82rem; line-height:1.5; }
+    .cb-bands { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:var(--sp-4); }
+    .cb-band { text-align:center; padding:12px 8px; border:1px solid var(--glass-border); border-radius:var(--r-md); color:var(--text-secondary); font-size:0.85rem; background:rgba(255,255,255,0.02); }
+    .cb-band--hi { border-color:var(--glass-border-gold); color:var(--text-primary); }
+    .cb-band small { display:block; margin-top:4px; font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.06em; color:var(--text-muted); text-transform:uppercase; }
+    .cb-example { margin:var(--sp-4) 0; padding:var(--sp-5); border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:rgba(201,162,39,0.05); }
+    .cb-example__tag { font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:10px; }
+    .cb-example p { margin:0 0 8px; color:var(--text-secondary); }
+    .cb-example .f { font-family:var(--font-mono); font-size:0.92rem; color:var(--text-primary); }
+    .cb-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:var(--sp-4) 0; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .cb-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
+    .cb-table-wrap th,.cb-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); }
+    .cb-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .cb-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .cb-table-wrap .ok { color:var(--text-primary); }
+    .cb-table-wrap .risk { color:var(--accent-bright, #E7C55A); color:#E7C55A; font-weight:600; }
+    .cb-quad { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); margin-top:var(--sp-4); }
+    .cb-q { padding:var(--sp-4); border:1px solid var(--glass-border); border-radius:var(--r-md); background:rgba(255,255,255,0.02); font-size:0.9rem; color:var(--text-secondary); line-height:1.55; }
+    .cb-q b { display:block; color:var(--text-primary); margin-bottom:4px; }
+    .cb-q--focus { border-color:var(--glass-border-gold); background:rgba(201,162,39,0.05); }
+    .cb-levels { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); margin:var(--sp-4) 0; }
+    .cb-level { padding:var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-lg); background:rgba(255,255,255,0.025); }
+    .cb-level--v { border-color:var(--glass-border-gold); }
+    .cb-level h3 { color:var(--text-primary); font-size:1.05rem; margin:0 0 8px; }
+    .cb-level .lvl { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); display:block; margin-bottom:8px; }
+    .cb-level p { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; margin:0; }
+    @media (max-width:860px){ .cb-scenes,.cb-quad,.cb-levels{grid-template-columns:1fr;} .cb-factors{grid-template-columns:1fr 1fr;} .cb-bands{grid-template-columns:repeat(2,1fr);} .cb-step{padding-left:0; padding-top:calc(var(--sp-5) + 34px);} .cb-step::before{top:var(--sp-4);} }
+    @media (max-width:480px){ .cb-factors{grid-template-columns:1fr;} }
+  </style>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.finmentor.md/ro/client-base-control-system.html#main",
+      "headline": "Client Base Control System: baza de clienți sub control",
+      "description": "Client Base Control System FINMENTOR: cum gestionați prelungirile într-un business pe abonamente. Analiză pe un singur client: profilul activului, propensiunea de prelungire, Expected Renewal Value și Revenue at Risk, nivel versus trend, priorități de retenție dimensionate după capacitatea echipei.",
+      "inLanguage": "ro",
+      "author": {
+        "@type": "Person",
+        "name": "Ghennadi Iacovlev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/"
+      },
+      "mainEntityOfPage": "https://www.finmentor.md/ro/client-base-control-system.html"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Client Base Control System",
+          "item": "https://www.finmentor.md/ro/client-base-control-system.html"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../client-base-control-system.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="client-base-control-system.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Client Base Control System</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">Dezvoltare FINMENTOR · Baza de clienți</p>
+        <h1>Client Base Control System: baza de clienți sub control</h1>
+        <p class="doc-hero__lead">Cea mai mare parte a veniturilor viitoare ale unei afaceri cu abonamente vine din prelungiri — și tocmai aici lipsește, de regulă, orice management: abandonul se numără retroactiv, când banii n-au mai venit. FINMENTOR conduce baza de clienți ca pe un portofoliu de active — și îi răspunde proprietarului din timp: <b>câte venituri ale perioadei următoare sunt deja expuse riscului și ce e de făcut chiar în această săptămână.</b></p>
+        <p class="doc-hero__context">Obicei → inerția comportamentului → ruperea obiceiului → profunzimea implicării → propensiune de prelungire → venituri expuse riscului → recuperabilitate → prioritate de retenție → următoarea acțiune → economia retenției → prelungirea efectivă → calibrare.</p>
+      </div>
+    </section>
+
+    <div class="container"><section>
+      <h2>Vă este cunoscută imaginea?</h2>
+      <div class="cb-scenes">
+        <article class="cb-scene"><b>„Sezonul s-a închis mai prost decât ne așteptam”</b><p>Raportul de venituri a arătat normal tot anul. Că o parte din bază nu se va prelungi — s-a văzut abia atunci când nu s-a prelungit. Nu mai era nimic de gestionat.</p><span>Abandonul se vede post-factum</span></article>
+        <article class="cb-scene"><b>„Sunați-i pe toți cei care nu au mai venit demult”</b><p>Managerii sună „pe toți la rând” sau pe cei de care își amintesc. O parte din apeluri ajung la clienți care s-ar fi prelungit oricum. O parte — la cei care nu mai pot fi recuperați.</p><span>Capacitatea echipei se irosește la întâmplare</span></article>
+        <article class="cb-scene"><b>„Dăm un discount, ca să nu plece”</b><p>Discountul de retenție se acordă intuitiv — și cel mai des celui care a cerut mai tare, nu celui al cărui comportament vorbește cu adevărat despre risc.</p><span>Retention Discount Leakage</span></article>
+        <article class="cb-scene"><b>„Doar venea normal”</b><p>Un client cu frecvență decentă în ultima lună nu s-a prelungit. Trendul lui se stingea de câteva luni — dar instantaneul pe o lună nu arată asta.</p><span>Nivel ≠ trend</span></article>
+      </div>
+      <p>Numitorul comun al acestor istorii este unul singur: <b>deciziile despre bază se iau după pierdere</b>, pentru că evidența înregistrează faptul neplății, dar nu avertizează asupra lui. Client Base Control System inversează ordinea: mai întâi riscul și prioritatea — apoi acțiunea — și abia apoi sezonul.</p>
+    </section></div>
+
+    <div class="container"><section>
+      <h2>Cum gândește sistemul: analiză pe un singur client</h2>
+      <p>Mai jos nu este o metodologie abstractă, ci logica de lucru a sistemului, pas cu pas. Exact așa răspunde ea la întrebarea „acest client se va prelungi?” — și transformă răspunsul în bani și acțiuni.</p>
+
+      <div class="cb-step" data-n="01">
+        <h3>Profilul clientului ca activ: șase factori în locul impresiei „parcă vine”</h3>
+        <p>Fiecare client primește un profil managerial. Nu „activ / inactiv”, ci șase dimensiuni, fiecare răspunzând la o întrebare a proprietarului:</p>
+        <div class="cb-factors">
+          <div class="cb-factor"><b>Vechime și prelungiri (tenure)</b><span>De cât timp este clientul cu noi și de câte ori s-a prelungit deja?</span></div>
+          <div class="cb-factor"><b>Prospețimea activității (recency)</b><span>Cât a trecut de la ultima activitate semnificativă: vizită, antrenament personal, clasă de grup, contact de serviciu?</span></div>
+          <div class="cb-factor"><b>Frecvența vizitelor</b><span>Trăiește abonamentul cu adevărat — sau stă în portofel?</span></div>
+          <div class="cb-factor"><b>Profunzimea serviciilor</b><span>Folosește clientul produsul în întregime sau un singur scenariu îngust?</span></div>
+          <div class="cb-factor"><b>Activitatea de grup</b><span>Există o legătură socială — cea mai subestimată ancoră a retenției?</span></div>
+          <div class="cb-factor"><b>Bani secundari</b><span>Lasă clientul bani peste abonament — semnal de implicare?</span></div>
+          <div class="cb-factor"><b>Disciplina de plată</b><span>Plata față de preț, datorie, depozit, înghețări — igiena relației?</span></div>
+        </div>
+      </div>
+
+      <div class="cb-step" data-n="02">
+        <h3>Nucleul comportamental: obiceiul, norma personală și constanța ritmului</h3>
+        <p><b>Vechimea ≠ prospețimea.</b> Un client poate fi cu clubul de trei ani — și să nu mai apară de șase săptămâni. Vechimea vorbește despre istoria relației, prospețimea — despre cât de vie este ea chiar acum. Sistemul nu amestecă niciodată acești doi factori.</p>
+        <p><b>Primele 30 / 60 / 90 de zile ale abonamentului anual</b> decid în bună măsură soarta prelungirii. Întrebarea-cheie a acestei ferestre: și-a format clientul un obicei stabil de a folosi clubul? Sistemul îl urmărește pe lanțul <i>activare → prima vizită → vizite repetate → săptămâni active → obicei stabil</i> — și îi marchează pe cei la care obiceiul nu s-a închegat, cât sezonul e încă în față. Pragurile concrete sunt un parametru de configurare pentru fiecare business, nu o constantă publică.</p>
+        <p><b>Norma personală contează mai mult decât media clubului.</b> Sistemul construiește nivelul de referință personal al fiecărui client și reacționează la abaterea de la el: cine venea constant de trei ori pe săptămână și s-a oprit brusc este un semnal de rupere a obiceiului — cu totul alt înțeles decât „frecvență scăzută” la un client care a venit dintotdeauna rar. Nivel de referință personal → abatere → semnal de risc.</p>
+        <p><b>Constanța ritmului contează mai mult decât volumul mediu.</b> Vizitele 8 / 7 / 9 / 8 / 7 și vizitele 0 / 15 / 0 / 2 / 13 dau o medie apropiată — și două tipare de comportament foarte diferite: un ritm format față de salturi urmate, de regulă, de abandon. Sistemul evaluează constanța, nu doar volumul.</p>
+      </div>
+
+      <div class="cb-step" data-n="03">
+        <h3>Comportament → propensiune de prelungire</h3>
+        <p>Ideea-cheie a dezvoltării: <b>despre prelungirea viitoare vorbește cel mai devreme comportamentul, nu cuvintele</b>. Compozitul a trei factori comportamentali — frecvența, profunzimea serviciilor, activitatea de grup — plasează fiecare client într-una dintre zonele indicative de propensiune de prelungire (Renewal Propensity). Vechimea, banii și disciplina de plată rămân dimensiuni separate în profil — ele explică clientul, dar zona este dată de comportament.</p>
+        <div class="cb-bands">
+          <div class="cb-band">Scăzută<small>pleacă în tăcere</small></div>
+          <div class="cb-band">Moderată<small>se decide acum</small></div>
+          <div class="cb-band cb-band--hi">Ridicată<small>îl ține obiceiul</small></div>
+          <div class="cb-band cb-band--hi">Maximă<small>nucleul bazei</small></div>
+        </div>
+        <p style="margin-top:var(--sp-3)"><small style="color:var(--text-muted)">Zonele sunt indicative până la calibrarea pe prelungirile efective ale businessului concret. Este un instrument de prioritizare, nu o predicție: sistemul le numește tocmai propensiune — un reper managerial până la calibrare, nu o estimare statistică strictă.</small></p>
+      </div>
+
+      <div class="cb-step" data-n="04">
+        <h3>De la propensiune la bani: înainte de calibrare și după</h3>
+        <p><b>Propensiunea nu este o probabilitate.</b> Până la calibrarea pe prelungirile efective ale businessului concret, zonele de propensiune sunt o ierarhizare a riscului, nu o estimare statistică a P(prelungire). De aceea logica banilor funcționează, onest, în două regimuri.</p>
+        <p><b>Înainte de calibrare.</b> Sistemul însumează valoarea prelungirilor concentrate în zonele de risc — aceasta este <b>venitul indicativ expus riscului</b> (Indicative Revenue at Risk): expunerea orientativă a sezonului următor, defalcată pe segmente, produse și manageri. Este suficient pentru a stabili prioritățile și a porni acțiunile — și prea devreme pentru a promite precizie.</p>
+        <div class="cb-example">
+          <span class="cb-example__tag">După calibrare · calcul ilustrativ pe cifre convenționale</span>
+          <p class="f">Expected Renewal Value = valoarea prelungirii × P(prelungire)</p>
+          <p class="f">Revenue at Risk = valoarea prelungirii × (1 − P(prelungire))</p>
+          <p style="margin-top:12px">Odată ce backtest-ul pe prelungirile istorice a transformat zonele într-o P(prelungire) calibrată, formulele se aplică literal: un abonament de 100 convențional, la P = 0,8, înseamnă 80 venit așteptat din prelungire și <b>20 expuse riscului</b>; o sută de astfel de clienți — 2 000 de unități convenționale de expunere a sezonului. Înainte de calibrare, aceste formule nu se folosesc în vitrina publică.</p>
+        </div>
+        <p>În ambele regimuri, proprietarul are o sumă cu care poate lucra <i>înainte de</i> pierdere — nu un procent constatat <i>după</i>. Se schimbă doar statutul cifrei: de la expunere orientativă la estimare calibrată.</p>
+      </div>
+
+      <div class="cb-step" data-n="05">
+        <h3>Nivel ≠ trend: de ce „frecvența medie” înșală</h3>
+        <p>Instantaneul pe o lună — principala autoamăgire a raportării pe bază. Exemplu ilustrativ — doi clienți, vizite pe luni:</p>
+        <div class="cb-table-wrap"><table>
+          <thead><tr><th>Client</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th><th>Media</th><th>Verdictul sistemului</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>6</td><td>6</td><td>7</td><td>6</td><td>6</td><td>6,2</td><td class="ok">Model stabil — obiceiul este format</td></tr>
+            <tr><td><strong>B</strong></td><td>12</td><td>10</td><td>8</td><td>6</td><td>3</td><td>7,8</td><td class="risk">Trend descendent — risc, acțiune necesară acum</td></tr>
+          </tbody>
+        </table></div>
+        <p>Nivelul mediu al clientului B este <b>mai ridicat</b> decât al clientului A — și orice raport-instantaneu îl va trece pe B la „buni”. Sistemul se uită însă la dinamică: B se răcește de cinci luni, iar fereastra în care acțiunea mai poate schimba rezultatul se închide. <b>Comportamentul se răcește înaintea banilor</b> — pe asta stă întregul sistem.</p>
+        <p>Arhitectural, totul este organizat ca <b>client × data instantaneului</b>: comportamentul este fixat în secțiuni de control — convențional T−180, T−120, T−90, T−60, T−30 înainte de data prelungirii. Proprietarul vede nu doar „cine e în risc azi”, ci și <b>când și cum</b> a început deteriorarea — și acționează după traiectoria riscului, nu după ultimul instantaneu.</p>
+      </div>
+
+      <div class="cb-step" data-n="06">
+        <h3>Risc ≠ recuperabilitate: unde direcționați capacitatea limitată</h3>
+        <p>Capacitatea echipei de retenție — apeluri, contacte, oferte de serviciu — este un buget, și el este mereu mai mic decât baza. Sistemul împarte clienții nu în „buni și răi”, ci pe două axe: risc și recuperabilitate.</p>
+        <div class="cb-quad">
+          <div class="cb-q cb-q--focus"><b>Risc ridicat · recuperabil</b>Prioritatea nr. 1: aici merge capacitatea echipei. Trend descendent + legătură păstrată = acțiunea încă schimbă rezultatul.</div>
+          <div class="cb-q"><b>Risc ridicat · nerecuperabil</b>De lăsat să plece, conștient. A consuma contacte aici înseamnă a-i pierde și pe acești clienți, și pe cei care încă puteau fi reținuți.</div>
+          <div class="cb-q"><b>Risc scăzut · „a cerut discount”</b>Retention Discount Leakage: discount pentru cine s-ar fi prelungit oricum — o diluare curată a veniturilor, fără efect asupra prelungirii. Sistemul marchează asemenea cazuri înainte de aprobarea discountului.</div>
+          <div class="cb-q"><b>Risc scăzut · fără acoperire de serviciu</b>Pârghie nefolosită: clientul plătește, dar nu este acoperit de serviciu. De activat înainte să înceapă să scadă frecvența.</div>
+        </div>
+        <p style="margin-top:var(--sp-3)">Circuitul este închis de <b>migrația lunară a segmentelor</b>: sistemul conduce nu instantaneul bazei, ci mișcarea ei. Control → abatere → decizie — în fiecare lună. Al doilea circuit care se închide este învățarea: date → semnal → risc → bani → acțiune → rezultat → învățare; prelungirile efective se întorc în model și îl rafinează.</p>
+      </div>
+    </section></div>
+
+    <div class="container"><section>
+      <h2>Două niveluri ale sistemului</h2>
+      <div class="cb-levels">
+        <div class="cb-level"><span class="lvl">Nivelul 1 · Sistem-umbrelă</span><h3>Client Base Control System</h3><p>Logică universală pentru orice plăți recurente: abonamente, contracte de servicii, închirierea locurilor și a spațiilor de lucru, abonamente B2B. Profilul activului → propensiune → ERV / Revenue at Risk → acțiuni dimensionate după capacitate → migrație.</p></div>
+        <div class="cb-level cb-level--v"><span class="lvl">Nivelul 2 · Verticală de industrie</span><h3>Fitness Membership Renewal Engine</h3><p>Execuție pentru fitness: abonamente și tipurile lor, vizite, sală/bazin, antrenamente de grup, înghețări, sezonalitate, pârghii de serviciu (antrenor, instructaj, fitness-test). Verticala pe care sistemul s-a născut și a funcționat.</p></div>
+      </div>
+    </section></div>
+
+    <div class="container"><section>
+      <h2>De unde vine acest sistem</h2>
+      <p>Client Base Control System nu a fost inventat ca produs de consultanță. La baza lui stă o dezvoltare managerială FINMENTOR, creată în 2021 pentru un business real de fitness și care a funcționat acolo <b>în ciclu lunar</b>: opt registre operaționale (plăți, vizite, sală și bazin, antrenamente de grup, serviciu) se adunau în profilul fiecărui client, profilul — în zone de propensiune, zonele — în prognoza veniturilor din prelungiri, iar prognoza — într-o listă concretă de sarcini pentru manageri, ținând cont de capacitatea lor reală. Încă de atunci circuitul era închis de migrația lunară a segmentelor: sistemul gestiona mișcarea bazei, nu instantaneul ei.</p>
+      <p>În versiunea publică, scalele interne, ponderile și scripturile nu se dezvăluie — sunt IP-ul de lucru al sistemului. În vitrină — logica managerială; în implementare — circuitul complet, configurat pe datele businessului concret.</p>
+      <p><b>Drumul spre putere predictivă este explicit, nu subînțeles.</b> Metodologia a crescut dintr-un circuit managerial practic; calibrarea statistică este o etapă separată, pe datele businessului concret: cohorte istorice → client × data instantaneului → prelungit / neprelungit → backtest → validare out-of-time → calibrare → pilot → învățare operațională. Până la parcurgerea acestui drum, sistemul vorbește despre propensiune și priorități — nu despre probabilități.</p>
+    </section></div>
+
+    <div class="container"><section>
+      <h2>Ce primește proprietarul</h2>
+      <p>Sistemul răspunde la întrebările pe care proprietarul și le pune în fiecare sezon: ce se întâmplă cu baza; cine a început să „se răcească” și când a început; câți bani din prelungiri stau în segmentul de risc; cine mai poate fi recuperat și cu cine începem; are nevoie de discount tocmai acest client; ajunge capacitatea echipei; se recuperează costul retenției.</p>
+      <ul class="deliv-list">
+        <li><strong>Profilurile clienților ca active</strong> — șase factori în locul lui „activ / inactiv”</li>
+        <li><strong>Zonele de propensiune de prelungire</strong> — indicative până la calibrare; backtest-ul și validarea out-of-time sunt o etapă explicită a implementării</li>
+        <li><strong>Vitrina Expected Renewal Value / Revenue at Risk</strong> — pe bază, produse și manageri</li>
+        <li><strong>Plan de acțiuni dimensionat după capacitatea echipei</strong> — la cine mergem în primul rând și pe cine lăsăm să plece conștient</li>
+        <li><strong>Controlul discounturilor de retenție</strong> — Retention Discount Leakage sub observație</li>
+        <li><strong>Migrația lunară a segmentelor</strong> — gestionarea mișcării bazei, la nevoie — dashboard-ul proprietarului</li>
+      </ul>
+      <p class="doc-note">Sistemul nu face afirmații predictive despre precizie. Zonele de propensiune sunt un instrument managerial de prioritizare; concluziile finale trec prin validarea expertului FINMENTOR. Nu este o mențiune cu litere mici — este parte din metodologie.</p>
+    </section></div>
+
+    <div class="container"><section>
+      <h2>Pentru cine și cum începem</h2>
+      <p><b>Pentru cine:</b> cluburi și studiouri de fitness, servicii pe abonament, contracte de servicii, închirierea locurilor și a spațiilor de lucru, abonamente B2B — oriunde veniturile sunt formate din plăți recurente ale clienților.</p>
+      <p><b>Cum începem:</b> diagnosticul datelor (plăți, utilizare, produse) → configurarea profilurilor, factorilor și zonelor de propensiune → implementarea controlului, a ciclului de acțiuni și a migrației segmentelor.</p>
+    </section></div>
+
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Materiale și soluții conexe</p>
+        <div class="related__grid"><a href="renewal-revenue-at-risk.html">Articol: Prelungirea — variabilă gestionabilă</a><a href="cases.html">Scenarii de control din practică</a><a href="pribyl-vs-cash.html">Profit există, bani nu: P&L și Cash</a><a href="capacity-released.html">Capacity Released ≠ Cash Saving</a><a href="power-bi-dlya-sobstvennika.html">Power BI pentru proprietar</a></div>
+      </nav>
+    </div>
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Cât din veniturile sezonului următor este deja sub risc la dvs.?</p>
+        <p class="cta-band__text">Radiografia Financiară arată unde pierde afacerea controlul în primul rând. Sau discutați baza dvs. de clienți direct — începem cu diagnosticul datelor.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Începeți Radiografia Financiară</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Discutați baza dvs. de clienți</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condiții de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../i18n-ro.js"></script>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>

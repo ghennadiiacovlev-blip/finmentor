@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Planificarea pe fonduri și cascada plăților | FINMENTOR</title>
+  <meta name="description" content="Planificarea pe fonduri și cascada plăților: fonduri și metafonduri, priorități P0–P5, trei filtre de plată, acoperire 7/14/30, funding gap și dashboard-ul capacității de plată." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/treasury-waterfall.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/treasury-waterfall.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/treasury-waterfall.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Planificarea pe fonduri și cascada plăților | FINMENTOR" />
+  <meta property="og:description" content="Cum stabiliți prioritățile de plată când banii nu ajung pentru toate: fonduri, metafonduri, cascada P0–P5, acoperire 7/14/30, funding gap." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/treasury-waterfall.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ro_RO" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="article:author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta property="article:section" content="Treasury / Cash Flow" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Planificarea pe fonduri și cascada plăților | FINMENTOR" />
+  <meta name="twitter:description" content="Fonduri, priorități P0–P5, trei filtre de plată, acoperire 7/14/30 și funding gap — sistemul capacității de plată a afacerii." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Planificarea pe fonduri și cascada plăților: cum stabiliți prioritățile când banii nu ajung pentru toate",
+      "description": "Fonduri și metafonduri, priorități P0–P5, trei filtre de plată, acoperire 7/14/30, funding gap și dashboard-ul capacității de plată.",
+      "inLanguage": "ro",
+      "articleSection": "Treasury / Cash Flow",
+      "author": {
+        "@type": "Person",
+        "name": "FINMENTOR / Ghennadi Iacovlev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.finmentor.md/ro/icon-512.png"
+        }
+      },
+      "mainEntityOfPage": "https://www.finmentor.md/ro/treasury-waterfall.html",
+      "image": "https://www.finmentor.md/og-image.png?v=81"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Planificarea pe fonduri și cascada plăților",
+          "item": "https://www.finmentor.md/ro/treasury-waterfall.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Prin ce diferă planificarea pe fonduri de calendarul plăților?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Calendarul plăților arată când și cât trebuie plătit. Planificarea pe fonduri arată din ce bani se poate plăti și dacă, în fond, se poate — banii primesc destinație, prioritate și acoperire."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce este cascada plăților?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Este algoritmul de distribuire a banilor pe priorități: mai întâi plățile obligatorii, apoi cele fără de care afacerea nu lucrează, apoi protecția veniturilor, cele operaționale planificate, dezvoltarea și, la sfârșit, plățile către proprietar, dacă nu există deficit de lichiditate."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Cum se calculează banii liberi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Available Cash = soldul conturilor + încasările confirmate − banii alocați − rezerva minimă − acoperirea obligatorie. Cash Flow-ul liber rămâne după acoperirea P0/P1 și a rezervei."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Când se pot plăti dividende?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Doar după acoperirea fondurilor obligatorii și a rezervei și în absența deficitului pe 7/14/30 de zile. Dacă există funding gap, plățile către proprietar se blochează."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <style>
+    /* v9.1 — page-scoped article components (FINMENTOR brand) */
+    .art-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 var(--sp-5); border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .art-table-wrap table { width:100%; border-collapse:collapse; min-width:560px; font-size:0.9rem; }
+    .art-table-wrap--wide table { min-width:880px; }
+    .art-table-wrap th,.art-table-wrap td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .art-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; white-space:nowrap; }
+    .art-table-wrap .num { text-align:right; font-family:var(--font-mono); white-space:nowrap; }
+    .art-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .art-table-wrap strong { color:var(--text-primary); }
+    .art-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .art-kpi__card { padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); min-width:0; }
+    .art-kpi__card--accent { border-color:var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.10),var(--glass-fill)); }
+    .art-kpi__lvl { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .art-kpi__metric { color:var(--text-secondary); font-size:0.84rem; margin:6px 0 10px; line-height:1.45; }
+    .art-kpi__val { font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--text-primary); }
+    .art-formula { font-family:var(--font-mono); font-size:0.9rem; line-height:1.7; color:var(--text-primary); background:rgba(255,255,255,0.03); border-left:3px solid var(--gold-500); border-radius:0 var(--r-md) var(--r-md) 0; padding:var(--sp-4) var(--sp-5); margin:var(--sp-4) 0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .art-formula b { color:var(--accent); }
+    .art-formula em { color:var(--text-muted); font-style:normal; display:block; margin-top:8px; font-family:var(--font-sans); font-size:0.82rem; line-height:1.55; white-space:normal; }
+    .art-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+    .art-dot--green{background:#3FB950;} .art-dot--yellow{background:#E3B341;} .art-dot--orange{background:#DB6D28;} .art-dot--red{background:#E5484D;}
+    .art-flag { font-weight:600; color:var(--text-primary); white-space:nowrap; }
+    .doc-hero__cta { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
+    .art-author { font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); margin-top:var(--sp-3); }
+    .faq__item { border-top:1px solid var(--border-hairline); padding:var(--sp-4) 0; }
+    .faq__q { font-weight:600; color:var(--text-primary); margin-bottom:6px; }
+    .faq__a { color:var(--text-secondary); line-height:1.6; }
+    .article-cta-actions { display:flex; flex-wrap:wrap; gap:14px; margin-top:28px; }
+    .cta-btn { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:52px; padding:0 24px; border-radius:14px; font-weight:700; font-size:0.95rem; line-height:1.2; text-decoration:none; transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease; }
+    .cta-btn span { font-size:1.05em; line-height:1; }
+    .cta-btn-primary { background:var(--gold-500); color:#07101d; border:1px solid var(--gold-500); }
+    .cta-btn-primary:hover { background:var(--gold-400); box-shadow:0 10px 30px rgba(201,162,39,0.25); }
+    .cta-btn-secondary { color:var(--text-primary); border:1px solid var(--glass-border-gold); background:rgba(255,255,255,0.03); }
+    .cta-btn-secondary:hover { border-color:var(--accent); background:rgba(201,162,39,0.08); }
+    .cta-btn:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+    .cta-btn:hover { transform:translateY(-2px); }
+    @media (max-width:640px){ .article-cta-actions{flex-direction:column;} .cta-btn{width:100%;} }
+    .article-faq { margin-top:var(--sp-6); }
+    .article-faq .faq-header { margin-bottom:var(--sp-5); }
+    .section-kicker { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); }
+    .faq-list { display:flex; flex-direction:column; gap:12px; }
+    .faq-item { border:1px solid var(--glass-border-gold); border-radius:var(--r-md); background:rgba(255,255,255,0.02); overflow:hidden; transition:border-color .2s ease, background .2s ease; }
+    .faq-item:hover { border-color:var(--accent); }
+    .faq-item[open] { background:linear-gradient(135deg,rgba(201,162,39,0.06),rgba(255,255,255,0.02)); }
+    .faq-item > summary { display:flex; align-items:center; gap:14px; padding:16px 18px; cursor:pointer; list-style:none; }
+    .faq-item > summary::-webkit-details-marker { display:none; }
+    .faq-number { font-family:var(--font-mono); font-size:0.8rem; color:var(--accent); flex-shrink:0; }
+    .faq-question { flex:1; font-weight:600; color:var(--text-primary); font-size:0.98rem; line-height:1.4; }
+    .faq-icon { flex-shrink:0; width:26px; height:26px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--glass-border-gold); color:var(--accent); font-size:1.15rem; line-height:1; transition:transform .25s ease; }
+    .faq-item[open] .faq-icon { transform:rotate(45deg); }
+    .faq-answer { padding:2px 18px 18px 46px; color:var(--text-secondary); line-height:1.65; font-size:0.92rem; animation:faqIn .25s ease; }
+    @keyframes faqIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:translateY(0);} }
+    @media (max-width:600px){ .faq-answer{ padding-left:18px; } }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../treasury-waterfall.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="treasury-waterfall.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discovery Call</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Planificarea pe fonduri și cascada plăților</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">FINMENTOR · Trezorerie și disciplină de plată</p>
+        <h1>Planificarea pe fonduri și cascada plăților: cum stabiliți prioritățile când banii nu ajung pentru toate</h1>
+        <p class="doc-hero__lead">Când banii nu ajung pentru toate, afacerea are nevoie nu de haos în plăți, ci de un sistem: ce plăți sunt obligatorii, care pot fi amânate, care se blochează până la apariția Cash Flow liber — și de ce proprietarul trebuie să vadă nu soldul din cont, ci capacitatea reală de plată a companiei.</p>
+        <p class="art-author">Ghennadi Iacovlev · FINMENTOR — CFO extern</p>
+        <div class="article-cta-actions">
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=treasury" onclick="gtag('event','click_treasury_waterfall_questionnaire')">Verificați disciplina de plată <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_treasury_waterfall_discovery')">Discutați implementarea trezoreriei <span>&rarr;</span></a>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section>
+          <h2>Executive Summary</h2>
+          <p>În majoritatea companiilor plățile merg haotic. Cine a cerut mai tare — aceluia i s-a plătit. Cine este mai aproape de conducător — acela a intrat în lista de plată. Cine presează mai mult — acela primește banii primul. Iar apoi, brusc, se dovedește că pentru impozite, salarii, bancă, chirie sau furnizorul critic banii nu ajung. Nu este o problemă de „bani puțini” — este problema absenței unui sistem de priorități.</p>
+          <p>Când banii sunt suficienți, greșelile trezoreriei aproape nu se văd. Dar la deficit de lichiditate, afacerea își arată imediat adevărata disciplină financiară. Principiul de bază al planificării pe fonduri: <strong>nu toți banii din cont sunt bani liberi</strong>. O parte aparține deja impozitelor, salariilor, băncii, furnizorilor obligatorii, proiectelor care nu pot fi oprite și rezervei.</p>
+          <div class="callout"><span class="callout__label">Ideea principală</span><p>Dacă compania se uită doar la soldul din cont, ea vede iluzia banilor. Dacă privește prin fonduri și cascada plăților — vede capacitatea reală de plată. Trezoreria trebuie să gestioneze nu plățile, ci capacitatea de plată a afacerii.</p></div>
+          <p>Toate sumele din articol sunt demonstrative și anonimizate, servesc doar ilustrării logicii.</p>
+
+          <h3>Ce vede proprietarul în sistemul de trezorerie</h3>
+          <div class="art-kpi">
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Available Cash</p><p class="art-kpi__metric">Banii după rezervă și obligațiile alocate</p><p class="art-kpi__val">Cât este disponibil cu adevărat</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Coverage 7/14/30</p><p class="art-kpi__metric">Acoperirea obligațiilor pe orizonturi</p><p class="art-kpi__val">Rezistă luna</p></div>
+            <div class="art-kpi__card art-kpi__card--accent"><p class="art-kpi__lvl">Free Treasury Cash</p><p class="art-kpi__metric">Liber după fondurile obligatorii</p><p class="art-kpi__val">Ce se poate plăti</p></div>
+            <div class="art-kpi__card"><p class="art-kpi__lvl">Funding Gap</p><p class="art-kpi__metric">Ce lipsește pentru obligații</p><p class="art-kpi__val">Semnal de alarmă</p></div>
+          </div>
+
+          <h2>De ce plățile merg haotic</h2>
+          <p>Haosul în plăți apare rar din cauza oamenilor răi — de regulă, din lipsa regulilor. În companie nu există o listă unică a obligațiilor: o parte din plăți trăiește în Excel, o parte în contabilitate, o parte în mesagerie, o parte „în capul” conducătorului, o parte la achiziții, la jurist, la administratorul imobilului. Deciziile se iau la momentul solicitării: a sunat furnizorul — s-a plătit; antreprenorul i-a scris proprietarului — s-a plătit; contabilul a amintit de impozit — căutăm urgent bani. Într-un asemenea sistem nu există trezorerie — există reacție la presiune. Plățile concurează între ele, dar regulile acestei concurențe nu sunt stabilite, și câștigă nu plata cea mai importantă, ci cea mai zgomotoasă.</p>
+
+          <h2>Cu ce este periculos haosul în plăți</h2>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Risc</th><th>Ce se întâmplă</th><th>Consecința</th></tr></thead>
+            <tbody>
+              <tr><td>Pierderea lichidității</td><td>Plăți fără înțelegerea obligațiilor viitoare</td><td>Apare golul de numerar</td></tr>
+              <tr><td>Ratarea plăților obligatorii</td><td>Banii au plecat spre cheltuieli mai puțin importante</td><td>Nu ajung pentru impozite, salarii, bancă</td></tr>
+              <tr><td>Pierderea încrederii furnizorilor</td><td>Unora li se plătește, altora li se întârzie fără logică</td><td>Condițiile se înrăutățesc, amânarea la plată dispare</td></tr>
+              <tr><td>Oprirea activității operaționale</td><td>Resursele critice nu sunt plătite</td><td>Afacerea pierde capacitatea de a lucra</td></tr>
+              <tr><td>Management manual</td><td>Toate deciziile trec prin proprietar</td><td>Proprietarul devine „casier”</td></tr>
+              <tr><td>Erori și dubluri</td><td>Nu există o coadă unică a obligațiilor</td><td>Plățile se pierd, se dublează, se plătesc târziu</td></tr>
+              <tr><td>Conflicte interne</td><td>Fiecare departament își consideră plata sa cea mai importantă</td><td>Finanțele — arbitru fără reguli</td></tr>
+            </tbody>
+          </table></div>
+          <p>Pericolul principal este că haosul în plăți se transformă pe neobservate în haos în management. Vânzări există, obligații există, dar în fiecare lună sună aceeași întrebare: „de ce iar nu ajung banii?” Răspunsul este de obicei simplu: banii nu au fost distribuiți pe destinații înainte de momentul plății.</p>
+
+          <h2>Ce este planificarea pe fonduri</h2>
+          <p>Planificarea pe fonduri este o metodă de gestionare a banilor în care compania împarte mijloacele disponibile nu doar pe conturi bancare, ci pe destinație economică. Banii primesc un „rol”. Nu „avem în cont 1 000 000”, ci: din acest 1 000 000 — 300 000 plăți obligatorii pe 7 zile, 200 000 salarii, 150 000 impozite, 100 000 bancă, 150 000 furnizori critici, 100 000 rezervă; bani liberi aproape nu există. Soldul din cont încetează să mai fie indicatorul principal. Principală devine întrebarea: <strong>ce parte din bani este cu adevărat liberă după acoperirea fondurilor obligatorii?</strong></p>
+
+          <h3>Ce este un fond</h3>
+          <p>Fondul este un „portofel” managerial în interiorul trezoreriei, care are destinație, sursă de finanțare, limită, reguli de alimentare și cheltuire, responsabil, prioritate, orizont de control și status de acoperire.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Fond</th><th>Destinație</th></tr></thead>
+            <tbody>
+              <tr><td>Payroll Fund</td><td>Salariile și obligațiile aferente</td></tr>
+              <tr><td>Tax Fund</td><td>Impozite, contribuții, plăți obligatorii către stat</td></tr>
+              <tr><td>Debt Service Fund</td><td>Credite, dobânzi, leasing, obligații bancare</td></tr>
+              <tr><td>Critical Suppliers Fund</td><td>Furnizorii fără de care afacerea nu poate lucra</td></tr>
+              <tr><td>Rent / Utilities Fund</td><td>Chirie, utilități, plăți de exploatare</td></tr>
+              <tr><td>Construction / CAPEX Fund</td><td>Construcții, reparații, proiecte de investiții</td></tr>
+              <tr><td>Legal / Compliance Fund</td><td>Plăți juridice și obligatorii</td></tr>
+              <tr><td>Reserve Fund</td><td>Rezerva de lichiditate</td></tr>
+              <tr><td>Owner Distribution Fund</td><td>Plăți către proprietar, dacă sistemul le permite</td></tr>
+            </tbody>
+          </table></div>
+
+          <h3>Ce este un metafond</h3>
+          <p>Metafondul este un nivel mai înalt de grupare a fondurilor, o categorie strategică de bani. Dacă fondul răspunde la întrebarea „pentru ce sunt destinați banii”, metafondul răspunde la „ce funcție strategică îndeplinește acest grup de bani”.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Metafond</th><th>Ce fonduri include</th><th>Sensul managerial</th></tr></thead>
+            <tbody>
+              <tr><td>Survival / Mandatory</td><td>Impozite, salarii, bancă, chirie, obligații juridice</td><td>Plăți care nu pot fi ignorate</td></tr>
+              <tr><td>Operating Continuity</td><td>Furnizori critici, utilități, logistică, IT</td><td>Asigură funcționarea afacerii</td></tr>
+              <tr><td>Revenue Protection</td><td>Plăți fără de care se opresc vânzările sau încasările</td><td>Protecția Cash Flow-ului viitor</td></tr>
+              <tr><td>Development / CAPEX</td><td>Construcții, reparații, investiții</td><td>Creștere și dezvoltare</td></tr>
+              <tr><td>Reserve / Liquidity</td><td>Rezerva, soldul de siguranță</td><td>Protecție împotriva golului de numerar</td></tr>
+              <tr><td>Owner / Discretionary</td><td>Dividende, plăți neobligatorii, bonusuri</td><td>Doar după îndeplinirea condițiilor financiare</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>De ce planificarea pe fonduri este mai puternică decât un calendar obișnuit al plăților</h2>
+          <p>Calendarul plăților arată când trebuie plătit. Planificarea pe fonduri arată din ce bani se poate plăti și dacă, în fond, se poate. Sunt niveluri diferite de management.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Instrument</th><th>Ce arată</th><th>Limitare</th></tr></thead>
+            <tbody>
+              <tr><td>Calendarul plăților</td><td>Datele și sumele plăților</td><td>Nu arată întotdeauna prioritatea și sursa banilor</td></tr>
+              <tr><td>Cash Flow Forecast</td><td>Încasările și plățile viitoare</td><td>Poate să nu separe banii pe destinații</td></tr>
+              <tr><td>Coada plăților</td><td>Cine așteaptă plata</td><td>Fără fonduri se transformă într-o listă de rugăminți</td></tr>
+              <tr><td>Planificarea pe fonduri</td><td>Destinația banilor, prioritățile, acoperirea fondurilor</td><td>Oferă decizia managerială</td></tr>
+              <tr><td>Cascada plăților</td><td>Algoritmul de distribuire a banilor</td><td>Arată cine primește plata primul și cine așteaptă</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Ce este cascada plăților</h2>
+          <p>Cascada plăților este algoritmul de distribuire a banilor pe priorități. Când banii intră, ei nu trebuie să devină automat „disponibili pentru orice plăți” — mai întâi trec prin sistemul de priorități: întâi plățile obligatorii, apoi cele fără de care afacerea nu poate lucra, apoi protecția încasărilor viitoare, apoi plățile operaționale planificate, apoi dezvoltarea și CAPEX, apoi cele neobligatorii, iar la sfârșit — plățile către proprietar, dacă nu există deficit de lichiditate. Cascada răspunde la întrebarea: <strong>ce plătim mai întâi, dacă banii nu ajung pentru toate?</strong></p>
+          <div class="callout"><span class="callout__label">De ce îi trebuie asta proprietarului</span><p>Proprietarului nu-i trebuie o listă de 200 de plăți. Îi trebuie răspunsul la o singură întrebare: „dacă azi plătim asta, ce nu vom putea plăti mâine?” Cascada plăților răspunde exact la ea.</p></div>
+
+          <h2>Logica de bază a cascadei de plăți: P0–P5</h2>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Prioritate</th><th>Categorie</th><th>Sensul</th><th>Exemple</th></tr></thead>
+            <tbody>
+              <tr><td><strong>P0</strong></td><td>Critical / Legal / Blocking</td><td>Nu se poate să nu plătești</td><td>Impozite cu termen strict, bancă, salarii, obligații juridice</td></tr>
+              <tr><td><strong>P1</strong></td><td>Business Continuity</td><td>Fără asta afacerea se oprește</td><td>Furnizori critici, utilități, pază, IT, servicii operaționale</td></tr>
+              <tr><td><strong>P2</strong></td><td>Revenue Protection</td><td>Protejează încasările viitoare</td><td>Marfă pentru vânzări confirmate, lansarea chiriașului, antreprenor-cheie</td></tr>
+              <tr><td><strong>P3</strong></td><td>Planned Operating</td><td>Plăți operaționale planificate</td><td>Furnizori regulați, cheltuieli administrative, servicii standard</td></tr>
+              <tr><td><strong>P4</strong></td><td>Development / CAPEX</td><td>Dezvoltare, îmbunătățiri, proiecte</td><td>Reparații, construcții, echipamente, sarcini de investiții</td></tr>
+              <tr><td><strong>P5</strong></td><td>Discretionary / Owner</td><td>Plăți neobligatorii</td><td>Dividende, bonusuri, cheltuieli care pot fi amânate</td></tr>
+            </tbody>
+          </table></div>
+          <p>Important: prioritatea înaltă nu înseamnă plată automată. Ea înseamnă că plata are dreptul să treacă mai departe prin sistemul de aprobare.</p>
+
+          <h2>Trei filtre înainte de plată</h2>
+          <p>Plata nu trebuie să ajungă la bancă imediat după solicitare — ea trece prin trei filtre.</p>
+          <h3>1. Purchase Gate — filtrul de dinaintea apariției obligației</h3>
+          <p>Se justifică achiziția în principiu; există buget, fond, limită, responsabil, alternativă; poate fi amânată; nu creează ea un gol de numerar viitor? Purchase Gate protejează compania de crearea obligațiilor pentru care ulterior nu vor exista bani.</p>
+          <h3>2. AP Gate — filtrul obligațiilor de plată</h3>
+          <p>Există contract, factură, act/aviz; este confirmată suma; este corect furnizorul; a venit termenul; există litigiu; se poate negocia o amânare; ce prioritate are. AP Gate transformă rugămințile haotice de plată într-o coadă verificată de obligații.</p>
+          <h3>3. Payment Gate — filtrul final înainte de plată</h3>
+          <p>Există bani în fondul necesar; nu va afecta plata acoperirea pe 7/14/30 de zile; nu va coborî rezerva sub minim; nu este blocat fondul; nu încalcă covenantele sau regulile interne; a trecut aprobarea; există alternativa plății parțiale. Payment Gate răspunde la întrebarea principală: <strong>se poate plăti acum?</strong></p>
+
+          <h2>Regula 7 / 14 / 30 de zile</h2>
+          <p>Trezoreria trebuie să privească nu doar ziua de azi.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Orizont</th><th>Ce verificăm</th><th>Sensul managerial</th></tr></thead>
+            <tbody>
+              <tr><td>7 zile</td><td>Cele mai apropiate obligații</td><td>Riscul unui gol de numerar imediat</td></tr>
+              <tr><td>14 zile</td><td>Acoperire pe termen scurt</td><td>Ce va fi după plățile apropiate</td></tr>
+              <tr><td>30 de zile</td><td>Ciclul lunar complet</td><td>Rezistă compania o lună</td></tr>
+            </tbody>
+          </table></div>
+          <p>Dacă plata trece azi, dar creează deficit peste 7 zile, ea nu trebuie să treacă automat.</p>
+          <div class="art-formula"><b>Cash Coverage</b> = Bani disponibili ÷ Plăți obligatorii ale perioadei</div>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th class="num">Coverage</th><th>Status</th><th>Decizie</th></tr></thead>
+            <tbody>
+              <tr><td class="num">≥ 1,20x</td><td><span class="art-dot art-dot--green"></span><span class="art-flag">Green</span></td><td>Plățile pot merge conform planului</td></tr>
+              <tr><td class="num">1,00–1,20x</td><td><span class="art-dot art-dot--yellow"></span><span class="art-flag">Yellow</span></td><td>Plătiți cu prudență, controlați rezerva</td></tr>
+              <tr><td class="num">0,80–1,00x</td><td><span class="art-dot art-dot--orange"></span><span class="art-flag">Orange</span></td><td>Este necesară prioritizarea și amânarea unei părți din plăți</td></tr>
+              <tr><td class="num">&lt; 0,80x</td><td><span class="art-dot art-dot--red"></span><span class="art-flag">Red</span></td><td>Plăți doar P0/P1, restul se blochează</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Cum se calculează banii disponibili</h2>
+          <p>Greșeala principală este să consideri disponibili toți banii din contul bancar.</p>
+          <div class="art-formula"><b>Available Cash</b> = Bank Balance + Confirmed Inflows − Restricted Funds − Minimum Reserve − Mandatory Coverage<em>Bank Balance — soldul conturilor. Confirmed Inflows — încasări confirmate, nu vânzări așteptate. Restricted Funds — bani alocați obligațiilor. Minimum Reserve — soldul de siguranță. Mandatory Coverage — plățile obligatorii ale orizontului apropiat.</em></div>
+
+          <h2>Ce este Cash Flow-ul liber în trezorerie</h2>
+          <p>Cash Flow-ul liber pentru plăți nu este profitul contabil și nici soldul total de bani, ci suma care rămâne după acoperirea fondurilor obligatorii și a rezervei.</p>
+          <div class="art-formula"><b>Free Treasury Cash</b> = Available Cash − P0 Coverage − P1 Coverage − Minimum Liquidity Reserve<em>Dacă Free Treasury Cash este negativ, compania nu are dreptul să plătească P3–P5 fără o decizie separată. Asta protejează afacerea de situația în care azi s-a plătit o factură „comodă”, iar peste o săptămână nu ajung banii pentru o plată obligatorie.</em></div>
+
+          <h2>Cum se atribuie prioritatea plății</h2>
+          <p>Prioritatea trebuie stabilită nu de emoție, ci de reguli.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Factor</th><th>Întrebare</th><th>Influența asupra priorității</th></tr></thead>
+            <tbody>
+              <tr><td>Obligativitate juridică</td><td>Există amendă, penalitate, risc de instanță?</td><td>Crește</td></tr>
+              <tr><td>Criticitate operațională</td><td>Se oprește afacerea fără plată?</td><td>Crește</td></tr>
+              <tr><td>Influența asupra veniturilor</td><td>Va bloca plata încasările viitoare?</td><td>Crește</td></tr>
+              <tr><td>Riscul furnizorului</td><td>Pierdem amânarea la plată sau livrarea?</td><td>Crește</td></tr>
+              <tr><td>Urgență</td><td>A venit termenul de plată?</td><td>Crește</td></tr>
+              <tr><td>Posibilitatea amânării</td><td>Se poate muta fără daune?</td><td>Scade</td></tr>
+              <tr><td>Existența documentelor</td><td>Există contract, factură, act?</td><td>Fără documente plata se blochează</td></tr>
+              <tr><td>Existența fondului</td><td>Există acoperire în fond?</td><td>Fără acoperire plata nu trece</td></tr>
+              <tr><td>Importanță strategică</td><td>Influențează proiectul-cheie?</td><td>Poate crește</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Exemplu de model de scoring al plății</h2>
+          <p>Pentru a elimina subiectivitatea, se poate folosi un model pe puncte.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Criteriu</th><th class="num">Puncte</th></tr></thead>
+            <tbody>
+              <tr><td>Lege / bancă / salarii</td><td class="num">+30</td></tr>
+              <tr><td>Oprește afacerea</td><td class="num">+25</td></tr>
+              <tr><td>Protejează veniturile viitoare</td><td class="num">+20</td></tr>
+              <tr><td>Furnizor critic</td><td class="num">+15</td></tr>
+              <tr><td>Restanță de peste 7 zile</td><td class="num">+10</td></tr>
+              <tr><td>Există fond confirmat</td><td class="num">+10</td></tr>
+              <tr><td>Se poate amâna fără daune</td><td class="num">−20</td></tr>
+              <tr><td>Nu există pachetul complet de documente</td><td class="num">−50</td></tr>
+              <tr><td>Nu există buget aprobat</td><td class="num">−20</td></tr>
+              <tr><td>Încalcă rezerva de lichiditate</td><td class="num">−100</td></tr>
+            </tbody>
+          </table></div>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th class="num">Punctaj total</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="num">70+</td><td>De plătit în primul rând</td></tr>
+              <tr><td class="num">50–69</td><td>De plătit dacă există acoperire</td></tr>
+              <tr><td class="num">30–49</td><td>De amânat / de plătit parțial</td></tr>
+              <tr><td class="num">&lt; 30</td><td>A nu se plăti fără decizie separată</td></tr>
+              <tr><td class="num">Negativ</td><td>Blocare</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Statusurile cozii de plăți</h2>
+          <p>Este important să vedeți nu doar „achitat / neachitat”, ci ciclul de viață complet al plății: De achitat, În aprobare, Aprobat, Amânat, Blocat, Achitat parțial, Achitat, Respins.</p>
+          <div class="callout"><span class="callout__label">Cel mai important status</span><p>„Aprobat, dar neachitat” este deja o obligație care creează o sarcină viitoare asupra Cash Flow, chiar dacă banii încă nu au plecat. O plată aprobată este o decizie deja luată.</p></div>
+
+          <h2>Ce înseamnă „blocat”</h2>
+          <p>Blocarea nu este un refuz definitiv, ci un semnal managerial.</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Cauza blocării</th><th>Ce înseamnă</th></tr></thead>
+            <tbody>
+              <tr><td>Nu există fond</td><td>Sursa plății nu este stabilită</td></tr>
+              <tr><td>Nu există buget</td><td>Cheltuiala nu a fost planificată</td></tr>
+              <tr><td>Nu există documente</td><td>Nu se poate plăti fără temei</td></tr>
+              <tr><td>Încalcă rezerva</td><td>După plată compania coboară sub soldul minim</td></tr>
+              <tr><td>Încalcă acoperirea 7/14/30</td><td>Plata creează un gol de numerar</td></tr>
+              <tr><td>Prioritate scăzută</td><td>Există obligații mai importante</td></tr>
+              <tr><td>Se așteaptă o încasare</td><td>Se deblochează după intrarea banilor</td></tr>
+              <tr><td>Este necesară decizia proprietarului</td><td>Riscul depășește limita standard</td></tr>
+            </tbody>
+          </table></div>
+          <p>O astfel de abordare schimbă cultura. Finanțele nu mai spun „nu vrem să plătim” — ele spun „plata nu trece după regulile de acoperire și prioritate”.</p>
+
+          <h2>Cum funcționează cascada în practică</h2>
+          <p>Să presupunem că compania are 1 000 000 în conturi. Asta nu înseamnă că se pot plăti facturi de 1 000 000 — mai întâi sistemul distribuie banii (sumele sunt demonstrative).</p>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Nivel</th><th>Destinație</th><th class="num">Suma</th></tr></thead>
+            <tbody>
+              <tr><td>Soldul conturilor</td><td>Bank Balance</td><td class="num">1 000 000</td></tr>
+              <tr><td>Încasări confirmate 7 zile</td><td>Confirmed Inflows</td><td class="num">+300 000</td></tr>
+              <tr><td>Rezerva minimă</td><td>Reserve</td><td class="num">−200 000</td></tr>
+              <tr><td>Salarii</td><td>P0</td><td class="num">−250 000</td></tr>
+              <tr><td>Impozite</td><td>P0</td><td class="num">−150 000</td></tr>
+              <tr><td>Bancă</td><td>P0</td><td class="num">−120 000</td></tr>
+              <tr><td>Furnizori critici</td><td>P1</td><td class="num">−300 000</td></tr>
+              <tr><td><strong>Resursă liberă</strong></td><td><strong>Free Treasury Cash</strong></td><td class="num"><strong>280 000</strong></td></tr>
+            </tbody>
+          </table></div>
+          <p>Acum compania nu are 1 300 000 de bani liberi, ci doar 280 000 după acoperirea obligatorie. Dacă în coadă există un CAPEX de 500 000, el nu trece automat — se amână, se împarte în părți sau așteaptă încasări suplimentare.</p>
+
+          <h2>Cum se citește dashboard-ul de plăți</h2>
+          <p>Un dashboard bun răspunde nu la întrebarea „câți bani sunt în cont”, ci „pentru ce ajung acești bani”.</p>
+          <h3>Blocul 1. Cash Position</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Indicator</th><th class="num">Valoare</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Soldul conturilor</td><td class="num">1 000 000</td><td>Informație</td></tr>
+              <tr><td>Încasări confirmate 7 zile</td><td class="num">300 000</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>Plăți obligatorii 7 zile</td><td class="num">820 000</td><td><span class="art-dot art-dot--yellow"></span></td></tr>
+              <tr><td>Rezerva minimă</td><td class="num">200 000</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>Free Treasury Cash</td><td class="num">280 000</td><td><span class="art-dot art-dot--yellow"></span></td></tr>
+            </tbody>
+          </table></div>
+          <h3>Blocul 2. Coverage</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Orizont</th><th class="num">Obligații</th><th class="num">Acoperire</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>7 zile</td><td class="num">820 000</td><td class="num">1,22x</td><td><span class="art-dot art-dot--green"></span></td></tr>
+              <tr><td>14 zile</td><td class="num">1 450 000</td><td class="num">0,96x</td><td><span class="art-dot art-dot--orange"></span></td></tr>
+              <tr><td>30 de zile</td><td class="num">2 700 000</td><td class="num">0,74x</td><td><span class="art-dot art-dot--red"></span></td></tr>
+            </tbody>
+          </table></div>
+          <h3>Blocul 3. Payment Queue</h3>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Categorie</th><th class="num">Suma</th><th>Prioritate</th><th>Decizie</th></tr></thead>
+            <tbody>
+              <tr><td>Impozite</td><td class="num">150 000</td><td>P0</td><td>De achitat</td></tr>
+              <tr><td>Salarii</td><td class="num">250 000</td><td>P0</td><td>De achitat</td></tr>
+              <tr><td>Bancă</td><td class="num">120 000</td><td>P0</td><td>De achitat</td></tr>
+              <tr><td>Furnizor critic</td><td class="num">300 000</td><td>P1</td><td>De plătit parțial / de aprobat</td></tr>
+              <tr><td>CAPEX</td><td class="num">500 000</td><td>P4</td><td>De amânat</td></tr>
+              <tr><td>Dividende</td><td class="num">200 000</td><td>P5</td><td>De blocat până la Green coverage</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Regula dividendelor și a plăților către proprietar</h2>
+          <div class="art-formula"><b>Owner Distribution Allowed</b> = TRUE doar dacă 7/14/30 Coverage ≥ target și Funding Gap = 0<em>Plățile către proprietar sunt posibile doar după acoperirea fondurilor obligatorii, a rezervei și în absența deficitului pe 7/14/30 de zile. Dacă există funding gap, dividendele nu sunt o decizie liberă.</em></div>
+          <p>Nu este o restricție pentru proprietar, ci o protecție a afacerii: banii scoși azi se pot transforma mâine în gol de numerar, restanță față de bancă, risc fiscal sau pierderea unui furnizor.</p>
+
+          <h2>Funding Gap: semnalul principal de alarmă</h2>
+          <div class="art-formula"><b>Funding Gap</b> = Required Payments − Available Cash<em>Dacă Funding Gap > 0, compania trebuie să ia o decizie: să accelereze încasările, să amâne plăți, să negocieze o amânare, să plătească parțial, să atragă finanțare, să oprească CAPEX, să blocheze P5 sau să revizuiască prioritățile.</em></div>
+          <p>Funding Gap nu se ascunde — el trebuie arătat proprietarului direct.</p>
+
+          <h2>Ce decizii oferă planificarea pe fonduri</h2>
+          <div class="art-table-wrap"><table>
+            <thead><tr><th>Decizie</th><th>Ce se schimbă</th></tr></thead>
+            <tbody>
+              <tr><td>Definirea fondurilor obligatorii</td><td>Banii încetează să mai fie o „grămadă comună”</td></tr>
+              <tr><td>Introducerea priorităților de plată</td><td>Plata merge după reguli, nu după presiune</td></tr>
+              <tr><td>Vederea deficitului din timp</td><td>Golul de numerar apare în dashboard, nu în ziua plății</td></tr>
+              <tr><td>Blocarea plăților neobligatorii</td><td>Compania protejează salariile, impozitele, banca și nucleul operațional</td></tr>
+              <tr><td>Gestionarea amânărilor la plată</td><td>Furnizorii devin parte a strategiei de trezorerie</td></tr>
+              <tr><td>Controlul CAPEX</td><td>Dezvoltarea nu distruge lichiditatea</td></tr>
+              <tr><td>Oferirea imaginii proprietarului</td><td>Se vede ce se poate plăti, ce nu și de ce</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Ce trebuie să vadă proprietarul în fiecare zi</h2>
+          <p>Proprietarul nu trebuie să se uite la fiecare rând din lista de plată, dar trebuie să vadă 10 indicatori: soldul banilor în conturi; încasările confirmate 7/14/30; plățile obligatorii 7/14/30; acoperirea obligațiilor; Funding Gap; Cash Flow-ul liber după fondurile obligatorii; plățile blocate; plățile amânate; plățile care necesită decizie; posibilitatea sau interdicția plăților către proprietar. Acest dashboard răspunde la întrebarea principală: <strong>„ce se întâmplă cu afacerea, dacă azi plătim această sumă?”</strong></p>
+
+          <h2>Prin ce diferă planificarea pe fonduri de controlul manual</h2>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Regim manual</th><th>Sistem pe fonduri</th></tr></thead>
+            <tbody>
+              <tr><td>Deciziile se iau după apeluri</td><td>Deciziile se iau după priorități</td></tr>
+              <tr><td>Nu există o imagine unică a obligațiilor</td><td>Există o coadă unică a plăților</td></tr>
+              <tr><td>Banii se calculează după soldul din cont</td><td>Banii sunt împărțiți pe fonduri</td></tr>
+              <tr><td>Proprietarul decide fiecare plată</td><td>Proprietarul aprobă regulile</td></tr>
+              <tr><td>CAPEX poate mânca banii operaționali</td><td>CAPEX trece doar după acoperirea obligațiilor</td></tr>
+              <tr><td>Dividendele pot crea un gol de numerar</td><td>Plățile se blochează la funding gap</td></tr>
+              <tr><td>Finanțele sting incendii</td><td>Finanțele gestionează lichiditatea din timp</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Greșeli la implementare</h2>
+          <ul>
+            <li><strong>Să consideri toți banii liberi.</strong> O parte din bani este deja rezervată de obligațiile viitoare.</li>
+            <li><strong>Să nu separi încasările confirmate de cele așteptate.</strong> O vânzare așteptată și o plată promisă de client încă nu sunt bani. Bani înseamnă o încasare cu probabilitate înaltă și dată concretă.</li>
+            <li><strong>Să dai CAPEX-ului aceeași prioritate ca plăților obligatorii.</strong> Dacă CAPEX ia banii de la salarii, impozite sau bancă, sistemul funcționează greșit.</li>
+            <li><strong>Să nu ții cont de „aprobat, dar neachitat”.</strong> O plată aprobată este deja o sarcină viitoare asupra Cash Flow.</li>
+            <li><strong>Să nu ai reguli de blocare.</strong> Dacă orice plată poate fi „împinsă”, trezorerie practic nu există.</li>
+          </ul>
+
+          <h2>Cum implementați planificarea pe fonduri</h2>
+          <p><strong>Pasul 1. Adunați o coadă unică a obligațiilor.</strong> Toate plățile într-un singur registru: furnizor, sumă, dată, temei, contract, factură, imobil/proiect, companie, fond, prioritate, status, responsabil.</p>
+          <p><strong>Pasul 2. Creați nomenclatorul fondurilor.</strong> Fiecare plată intră într-un fond.</p>
+          <div class="art-table-wrap art-table-wrap--wide"><table>
+            <thead><tr><th>Fond</th><th>Prioritate</th><th>Responsabil</th><th>Se poate bloca</th></tr></thead>
+            <tbody>
+              <tr><td>Salarii</td><td>P0</td><td>Finance / HR</td><td>Nu</td></tr>
+              <tr><td>Impozite</td><td>P0</td><td>Accounting</td><td>Nu</td></tr>
+              <tr><td>Bancă</td><td>P0</td><td>CFO</td><td>Nu</td></tr>
+              <tr><td>Furnizori critici</td><td>P1</td><td>Operations</td><td>Parțial</td></tr>
+              <tr><td>Plăți operaționale</td><td>P3</td><td>Department Head</td><td>Da</td></tr>
+              <tr><td>CAPEX</td><td>P4</td><td>Project Manager</td><td>Da</td></tr>
+              <tr><td>Dividende</td><td>P5</td><td>Owner / CFO</td><td>Da</td></tr>
+            </tbody>
+          </table></div>
+          <p><strong>Pasul 3. Introduceți regulile de acoperire.</strong> Pentru fiecare fond — rezerva minimă, orizontul de acoperire, limita, sursa de alimentare, condițiile de blocare și deblocare.</p>
+          <p><strong>Pasul 4. Configurați cascada plăților.</strong> Algoritmul arată automat: ce se plătește azi, ce se amână, ce se blochează, ce necesită decizie, unde este funding gap, ce încasări sunt necesare pentru deblocare.</p>
+          <p><strong>Pasul 5. Introduceți Treasury Dashboard zilnic:</strong> Cash today, Confirmed inflows, Mandatory payments, Free Treasury Cash, Funding Gap, Payment Queue, Blocked payments, 7/14/30 coverage.</p>
+
+          <h2>Concluzia finală</h2>
+          <p>Planificarea pe fonduri și cascada plăților nu sunt doar Excel și nici doar un calendar al plăților. Este arhitectura financiară a afacerii. Ea răspunde la întrebările: ce bani sunt cu adevărat liberi; ce plăți sunt obligatorii; care pot fi amânate; care nu pot fi efectuate; ce fonduri sunt subfinanțate; când apare funding gap; se poate plăti proprietarului; cum se evită golul de numerar.</p>
+          <p>Când compania implementează planificarea pe fonduri, ea încetează să trăiască în regimul „pe cine plătim azi” și începe să gestioneze lichiditatea din timp. Principiul de bază: <strong>trezoreria trebuie să gestioneze nu plățile, ci capacitatea de plată a afacerii</strong> — iar capacitatea de plată începe nu de la soldul din cont, ci de la distribuirea corectă a banilor pe fonduri, priorități și cascadă.</p>
+          <p>Acest sistem este parte a metodologiei unice FINMENTOR: <a href="platezhnyy-kalendar.html">calendarul plăților</a> și <a href="kaznacheystvo.html">trezoreria</a> dau orizontul și coada, <a href="fcf-postavshiki.html">FCF pe SKU</a> arată ce produse creează bani, iar <a href="cash-flow.html">Cash Flow-ul managerial</a> adună totul într-o singură imagine.</p>
+
+          
+          <h2>Cum automatizați planificarea pe fonduri</h2>
+          <p>Planificarea pe fonduri nu trebuie să trăiască doar în Excel. Excel poate fi prima etapă, dar un sistem matur trebuie să adune automat plățile, statusurile, încasările și să-i arate proprietarului un dashboard.</p>
+          <h3>Ce se poate automatiza prin n8n / Make</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Proces</th><th>Ce face automatizarea</th></tr></thead><tbody><tr><td>Colectarea solicitărilor de plată</td><td>Solicitările din formular / Google Sheets / email / Telegram intră într-o coadă unică</td></tr><tr><td>Verificarea documentelor</td><td>Sistemul marchează dacă există contract, factură, act, aviz</td></tr><tr><td>Aprobarea plăților</td><td>Plata pleacă la responsabil pentru approval</td></tr><tr><td>Statusurile plăților</td><td>De achitat / în aprobare / aprobat / amânat / blocat / achitat</td></tr><tr><td>Notificări</td><td>Finance, CFO și proprietarul primesc alerte pe Funding Gap și blocked payments</td></tr><tr><td>Controlul termenelor</td><td>Sistemul amintește de plățile P0/P1 și de restanțe</td></tr><tr><td>Daily treasury report</td><td>În fiecare dimineață se trimite un raport scurt în Telegram / email</td></tr></tbody></table></div>
+          <h3>Ce arată Power BI</h3>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Dashboard</th><th>Ce vede proprietarul</th></tr></thead><tbody><tr><td>Cash Position</td><td>Sold, încasări confirmate, rezervă, bani liberi</td></tr><tr><td>7/14/30 Coverage</td><td>Ajung banii pentru obligațiile apropiate</td></tr><tr><td>Funding Gap</td><td>Unde și când apare deficitul</td></tr><tr><td>Payment Waterfall</td><td>Ce plăți trec primele</td></tr><tr><td>Blocked Payments</td><td>Ce este blocat și de ce</td></tr><tr><td>Approved but Unpaid</td><td>Ce este deja aprobat și creează sarcină viitoare</td></tr><tr><td>Owner Distribution Gate</td><td>Se pot scoate bani din afacere</td></tr></tbody></table></div>
+          <div class="callout"><span class="callout__label">Concluzia principală</span><p>Excel creează metodologia. n8n / Make creează procesul. Power BI creează transparența pentru proprietar.</p></div>
+          <section class="article-faq">
+            <div class="faq-header">
+              <span class="section-kicker">FAQ</span>
+              <h2>Întrebări frecvente</h2>
+              <p>Răspunsuri scurte la întrebările care apar cel mai des la proprietar la implementarea sistemului de trezorerie.</p>
+            </div>
+            <div class="faq-list">
+              <details class="faq-item" open><summary><span class="faq-number">01</span><span class="faq-question">Prin ce diferă planificarea pe fonduri de calendarul plăților?</span><span class="faq-icon">+</span></summary><div class="faq-answer">Calendarul arată când și cât trebuie plătit. Planificarea pe fonduri — din ce bani se poate plăti și dacă, în fond, se poate: banii primesc destinație, prioritate și acoperire.</div></details>
+              <details class="faq-item"><summary><span class="faq-number">02</span><span class="faq-question">Ce este cascada plăților?</span><span class="faq-icon">+</span></summary><div class="faq-answer">Algoritmul de distribuire a banilor pe priorități: mai întâi plățile obligatorii, apoi cele fără de care afacerea nu lucrează, apoi protecția veniturilor, cele operaționale planificate, dezvoltarea și, la sfârșit, plățile către proprietar, dacă nu există deficit de lichiditate.</div></details>
+              <details class="faq-item"><summary><span class="faq-number">03</span><span class="faq-question">Cum se calculează banii liberi?</span><span class="faq-icon">+</span></summary><div class="faq-answer">Available Cash = soldul conturilor + încasările confirmate − banii alocați − rezerva minimă − acoperirea obligatorie. Cash Flow-ul liber rămâne după acoperirea P0/P1 și a rezervei.</div></details>
+              <details class="faq-item"><summary><span class="faq-number">04</span><span class="faq-question">Când se pot plăti dividende?</span><span class="faq-icon">+</span></summary><div class="faq-answer">Doar după acoperirea fondurilor obligatorii și a rezervei și în absența deficitului pe 7/14/30 de zile. Dacă există funding gap, plățile către proprietar se blochează.</div></details>
+            </div>
+          </section>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Vreți să înțelegeți ce plăți se pot efectua și care trebuie blocate?</p>
+        <p class="cta-band__text">FINMENTOR ajută proprietarii să construiască sistemul de trezorerie: calendarul plăților, planificarea pe fonduri, cascada plăților, prioritățile P0–P5, controlul Funding Gap și dashboard-ul acoperirii pe 7/14/30 de zile. Pentru ca afacerea să vadă nu doar soldul din cont, ci capacitatea reală de plată: ce se poate plăti azi, ce trebuie amânat și ce plată va crea mâine un gol de numerar.</p>
+        <div class="article-cta-actions">
+          <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=treasury" onclick="gtag('event','click_treasury_waterfall_questionnaire')">Verificați disciplina de plată <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_treasury_waterfall_discovery')">Discutați implementarea trezoreriei <span>&rarr;</span></a>
+        </div>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Seria FINMENTOR: trezorerie, bani, sortiment</p>
+        <div class="related__grid"><a href="platezhnyy-kalendar.html">Calendarul plăților</a><a href="kaznacheystvo.html">Trezoreria și cascada plăților</a><a href="cash-flow.html">De ce profitul nu înseamnă bani</a><a href="fcf-postavshiki.html">FCF pe SKU: ce produse generează Cash Flow</a><a href="working-capital-scan.html">Mini-scanarea capitalului de lucru</a></div>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condiții de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../i18n-ro.js"></script>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>

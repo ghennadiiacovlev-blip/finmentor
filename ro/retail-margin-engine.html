@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Retail Margin Engine — randamentul raftului, SKU și furnizorului | FINMENTOR</title>
+  <meta name="description" content="FINMENTOR Retail Margin Engine — modelul CFO flagship pentru retail: norma de marjă pe metru, categorie și SKU, Supplier Shelf Credit, promo și retrobonus, dashboard-ul proprietarului și acțiuni manageriale concrete." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/retail-margin-engine.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/retail-margin-engine.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/retail-margin-engine.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Retail Margin Engine — randamentul raftului, SKU și furnizorului | FINMENTOR" />
+  <meta property="og:description" content="Modelul CFO flagship FINMENTOR pentru retail: norma de marjă pe raft și SKU, Supplier Shelf Credit, promo/retrobonus și dashboard-ul proprietarului." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/retail-margin-engine.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ro_RO" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta property="article:author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta property="article:section" content="Retail / Margin Control / CFO Model" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Retail Margin Engine — randamentul raftului, SKU și furnizorului | FINMENTOR" />
+  <meta name="twitter:description" content="Modelul CFO FINMENTOR pentru retail: raftul ca activ financiar, Supplier Shelf Credit, dashboard, promo/retrobonus și 9 acțiuni." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Retail Margin Engine: fiecare raft trebuie să câștige bani",
+      "description": "FINMENTOR Retail Margin Engine transformă spațiul comercial în activ financiar: norma de marjă pe raft, m², categorie și SKU, Supplier Shelf Credit, dashboard-ul proprietarului și acțiuni manageriale.",
+      "inLanguage": "ro",
+      "articleSection": "Retail / Margin Control / CFO Model",
+      "author": {
+        "@type": "Person",
+        "name": "FINMENTOR / Ghennadi Iacovlev"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.finmentor.md/ro/icon-512.png"
+        }
+      },
+      "mainEntityOfPage": "https://www.finmentor.md/ro/retail-margin-engine.html",
+      "image": "https://www.finmentor.md/og-image.png?v=81"
+    },
+    {
+      "@type": "Service",
+      "name": "FINMENTOR Retail Margin Engine",
+      "serviceType": "Retail CFO model / Margin control",
+      "provider": {
+        "@type": "Organization",
+        "name": "FINMENTOR",
+        "url": "https://www.finmentor.md/ro/"
+      },
+      "areaServed": "Moldova / International",
+      "description": "Sistem financiar pentru retail: randamentul raftului, categoriei, SKU, furnizorului, retrobonusurilor, promo și creditului comercial."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Ce arată Retail Margin Engine?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Modelul arată norma de marjă pe raft, m², categorie și SKU, Margin Gap, calitatea creditului comercial al furnizorului și acțiunile pe sortiment."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Se potrivește doar retailului de rețea?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nu. Modelul se potrivește magazinelor, showroom-urilor, rețelelor și companiilor în care spațiul comercial, categoriile, SKU și furnizorii trebuie legate de marjă și cash flow."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Este nevoie mai întâi de diagnostic?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Diagnosticul ajută la înțelegerea calității datelor, a priorității categoriilor și a profunzimii implementării. După el, este mai simplu de construit un model CFO corect pe economia businessului de retail concret."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Acasă",
+          "item": "https://www.finmentor.md/ro/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Materiale",
+          "item": "https://www.finmentor.md/ro/materials.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Retail Margin Engine",
+          "item": "https://www.finmentor.md/ro/retail-margin-engine.html"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <style>
+    .retail-kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .retail-kpi__card { padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .retail-kpi__card--accent { border-color:var(--border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.12),var(--glass-fill)); }
+    .retail-kpi__label { font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .retail-kpi__title { margin-top:8px; font-weight:700; color:var(--text-primary); line-height:1.35; }
+    .retail-kpi__text { margin-top:6px; color:var(--text-secondary); font-size:0.88rem; line-height:1.55; }
+    .retail-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:var(--sp-5) 0; border:1px solid var(--glass-border); border-radius:var(--r-md); }
+    .retail-table-wrap table { width:100%; border-collapse:collapse; min-width:720px; font-size:0.9rem; }
+    .retail-table-wrap th,.retail-table-wrap td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--glass-border); color:var(--text-secondary); line-height:1.45; vertical-align:top; }
+    .retail-table-wrap thead th { background:rgba(255,255,255,0.035); color:var(--text-primary); font-weight:600; font-size:0.8rem; }
+    .retail-table-wrap tbody tr:last-child td { border-bottom:0; }
+    .retail-table-wrap strong { color:var(--text-primary); }
+    .retail-actions { counter-reset: action; display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .retail-action { counter-increment:action; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:rgba(255,255,255,0.025); }
+    .retail-action::before { content:counter(action, decimal-leading-zero); display:block; font-family:var(--font-mono); font-size:0.72rem; color:var(--accent); margin-bottom:8px; }
+    .retail-action strong { display:block; color:var(--text-primary); margin-bottom:6px; }
+    .retail-action span { color:var(--text-secondary); font-size:0.88rem; line-height:1.5; }
+    .retail-proof { margin-top:var(--sp-6); display:grid; grid-template-columns:repeat(4,1fr); gap:var(--sp-4); }
+    .retail-proof__item { padding:var(--sp-4); border-radius:var(--r-lg); border:1px solid var(--glass-border-gold); background:linear-gradient(135deg,rgba(201,162,39,0.09),rgba(255,255,255,0.025)); }
+    .retail-proof__num { display:block; font-family:var(--font-display); font-size:clamp(1.45rem,2.4vw,2rem); font-weight:700; color:var(--text-primary); line-height:1; }
+    .retail-proof__label { display:block; margin-top:8px; color:var(--text-secondary); font-size:0.86rem; line-height:1.4; }
+    .retail-proof__note { margin-top:var(--sp-3); color:var(--text-muted); font-size:0.84rem; line-height:1.55; max-width:78ch; }
+    .retail-feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-4); margin:var(--sp-5) 0; }
+    .retail-feature { padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .retail-feature strong { display:block; color:var(--text-primary); margin-bottom:7px; line-height:1.35; }
+    .retail-feature span { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; }
+    .retail-pill-row { display:flex; flex-wrap:wrap; gap:10px; margin:var(--sp-4) 0 var(--sp-5); }
+    .retail-pill-row span { font-family:var(--font-mono); font-size:0.72rem; color:var(--accent); border:1px solid var(--glass-border-gold); border-radius:var(--r-pill); padding:7px 11px; background:rgba(201,162,39,0.07); }
+    .retail-path { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-4); margin:var(--sp-5) 0; counter-reset:path; }
+    .retail-path__step { counter-increment:path; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:rgba(255,255,255,0.025); }
+    .retail-path__step::before { content:counter(path, decimal-leading-zero); display:block; font-family:var(--font-mono); color:var(--accent); margin-bottom:8px; }
+    .retail-path__step strong { display:block; color:var(--text-primary); margin-bottom:6px; }
+    .retail-path__step span { color:var(--text-secondary); font-size:0.88rem; line-height:1.55; }
+    .doc-hero__cta { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
+    .doc-bar__row { padding-inline:var(--sp-6); }
+    @media (max-width:900px){ .retail-proof{grid-template-columns:repeat(2,1fr);} .retail-feature-grid,.retail-path{grid-template-columns:1fr 1fr;} .retail-actions{grid-template-columns:repeat(2,1fr);} }
+    @media (max-width:600px){ .doc-bar__row{padding-inline:var(--sp-5);} .retail-proof,.retail-feature-grid,.retail-path,.retail-actions{grid-template-columns:1fr;} .doc-hero__cta .btn{width:100%;} }
+  </style>
+</head>
+<body>
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html" class="doc-bar__hide">Materiale</a>
+        <a href="questionnaire.html" class="doc-bar__hide">Radiografia Financiară</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../retail-margin-engine.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="retail-margin-engine.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--sm">Radiografia Financiară</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Retail Margin Engine</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">FINMENTOR · Model CFO pentru Retail</p>
+        <h1>Fiecare raft trebuie să câștige bani</h1>
+        <p class="doc-hero__lead">FINMENTOR Retail Margin Engine transformă spațiul comercial în activ financiar: calculează norma de marjă pentru fiecare metru liniar, m², categorie și SKU, arată deficitul de randament, calitatea creditului comercial al furnizorului și formează acțiuni manageriale.</p>
+        <p class="doc-hero__context">Verticala retail flagship FINMENTOR: raft, categorie, SKU, furnizor, promo, retrobonus, credit comercial și dashboard-ul proprietarului.</p>
+        <div class="doc-hero__cta">
+          <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--lg" onclick="gtag('event','click_retail_engine_questionnaire')">Începeți Radiografia Financiară pentru retail</a>
+          <a href="index.html#consult" class="btn btn--ghost btn--lg" onclick="gtag('event','click_retail_engine_discovery')">Discutați modelul de retail</a>
+        </div>
+        <div class="retail-proof" aria-label="Disciplina calității modelului">
+          <div class="retail-proof__item"><span class="retail-proof__label"><strong>Logică unică</strong> — datele, calculele, abaterile și acțiunile sunt legate într-un singur sistem</span></div>
+          <div class="retail-proof__item"><span class="retail-proof__label"><strong>Recalcul de control</strong> — modelul trece prin verificare completă înainte de livrare</span></div>
+          <div class="retail-proof__item"><span class="retail-proof__label"><strong>Verificarea scenariilor</strong> — circuitele demonstrativ și „client nou”</span></div>
+          <div class="retail-proof__item"><span class="retail-proof__label"><strong>Validare de expert</strong> — concluziile sunt confirmate prin expertiză CFO</span></div>
+        </div>
+        <p class="retail-proof__note">Pagina publică nu dezvăluie date reale ale clienților și arhitectura internă a modelului.</p>
+        <p class="retail-proof__legal">Metricile QA descriu calitatea modelului și a logicii de calcul; ele nu sunt o garanție a rezultatului financiar al clientului.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section>
+          <h2>Raftul ca activ financiar</h2>
+          <p>În Real Estate activul este imobilul. În Retail activul este raftul comercial, locul, categoria și SKU. Dacă activul ocupă spațiu, el trebuie să aducă un randament peste normă, nu doar să creeze rulaj și un aranjament frumos.</p>
+          <div class="quote-band"><p>Activul trebuie să câștige bani. Raftul, categoria și SKU trebuie să arate ce contribuție aduc la marjă, cash flow și la poziția de negociere cu furnizorul.</p></div>
+
+          <h2>Ce este în interiorul modelului</h2>
+          <p>Retail Margin Engine nu este un raport separat, ci un sistem financiar integrat pentru retail. El leagă introducerea datelor, norma de randament, plasarea, vânzările, furnizorii, promo, retrobonusurile, controlul calității și dashboard-ul proprietarului.</p>
+          <div class="retail-feature-grid">
+            <div class="retail-feature"><strong>Executive Dashboard</strong><span>Fișe și ratinguri pentru proprietar: randament, credit comercial, furnizori A/B și zone de revizuire D/E.</span></div>
+            <div class="retail-feature"><strong>Space → Category → SKU</strong><span>Magazin, echipament, suprafață, metri liniari, categorii, SKU, placement și vânzări într-o logică unică.</span></div>
+            <div class="retail-feature"><strong>Promo + Retrobonus</strong><span>Blocuri separate pentru efectul promo, retrobonusuri și compensațiile furnizorilor.</span></div>
+            <div class="retail-feature"><strong>Supplier Scorecard</strong><span>Evaluarea furnizorului prin marjă, condiții, amânare la plată, suport, raft și acțiuni.</span></div>
+            <div class="retail-feature"><strong>Supplier Shelf Credit</strong><span>Calculul complet al creditului comercial: cine finanțează marfa de pe raft și ce cash gap rămâne la proprietar.</span></div>
+            <div class="retail-feature"><strong>Controlul calității datelor și al implementării</strong><span>Verificarea integrității datelor, recalcul de control și implementare atentă pe datele businessului concret.</span></div>
+          </div>
+          <div class="retail-pill-row" aria-label="Circuitele de control ale modelului">
+            <span>Dashboard-ul proprietarului</span><span>Promo economics</span><span>Retrobonus</span><span>Supplier score</span><span>Shelf financing</span><span>Verificări de control</span>
+          </div>
+
+          <h2>SKU trebuie să plătească pentru locul său</h2>
+          <p>Retail Margin Engine calculează nu doar marja brută pe produs. Modelul leagă vânzările, suprafața, metrii liniari, stocurile, retrobonusurile, promo, condițiile furnizorului și viteza de rotație. Astfel se vede care SKU își acoperă locul și care doar ocupă raftul și blochează capitalul.</p>
+          <div class="retail-kpi">
+            <div class="retail-kpi__card retail-kpi__card--accent"><span class="retail-kpi__label">Target Margin</span><p class="retail-kpi__title">Norma de randament a raftului</p><p class="retail-kpi__text">Câtă marjă trebuie să aducă metrul, m², categoria și SKU.</p></div>
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Margin Gap</span><p class="retail-kpi__title">Deficitul de randament</p><p class="retail-kpi__text">Diferența dintre marja efectivă și norma pe care trebuie să o dea activul.</p></div>
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Supplier Credit</span><p class="retail-kpi__title">Cine finanțează raftul</p><p class="retail-kpi__text">Furnizorul, proprietarul sau ambii — prin DPO, stocuri și credit comercial.</p></div>
+          </div>
+
+          <h2>Ce vede proprietarul pe dashboard</h2>
+          <p>Dashboard-ul arată nu doar vânzări, ci imaginea managerială: ce rafturi, categorii, SKU și furnizori câștigă bani, unde este necesară revizuirea condițiilor și unde banii proprietarului sunt blocați în marfa altcuiva.</p>
+          <div class="retail-feature-grid">
+            <div class="retail-feature"><strong>Raftul finanțat de furnizori, %</strong><span>Ponderea stock value acoperită de amânarea la plată și accounts payable.</span></div>
+            <div class="retail-feature"><strong>Banii proprietarului în stoc</strong><span>Owner cash gap pe furnizori și categorii.</span></div>
+            <div class="retail-feature"><strong>Furnizori strategici A/B</strong><span>Cine aduce marjă, acoperire și suport pentru raft.</span></div>
+            <div class="retail-feature"><strong>De revizuit D/E</strong><span>Cine ocupă loc și capital fără randament suficient.</span></div>
+            <div class="retail-feature"><strong>Top credit quality</strong><span>Furnizorii cu cel mai bun credit comercial și calitate a acoperirii.</span></div>
+            <div class="retail-feature"><strong>9 acțiuni manageriale</strong><span>Ce extindeți, reduceți, scoateți, compensați sau duceți la negocieri.</span></div>
+          </div>
+
+          <h2>Furnizorul trebuie să-și finanțeze partea sa de raft</h2>
+          <p>Dacă marfa stă pe raft, dar este deja plătită furnizorului, raftul este finanțat de proprietar. Dacă marfa încă nu este plătită, ea este finanțată temporar de furnizor. Modelul arată owner cash gap: câți bani ai proprietarului sunt blocați în marfă și ce condiții sunt necesare pentru negocieri — retrobonus, compensație promo, amânare la plată sau schimbarea sortimentului.</p>
+
+          <h2>Target Marja → Space → Category → SKU → Supplier → Decision</h2>
+          <div class="flow" aria-label="Logica Retail Margin Engine">
+            <span class="flow__node">Target Marja</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Space</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Category</span><span class="flow__arrow">→</span>
+            <span class="flow__node">SKU</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Supplier</span><span class="flow__arrow">→</span>
+            <span class="flow__node">Decision</span>
+          </div>
+
+          <h2>Ce calculează modelul CFO</h2>
+          <div class="retail-table-wrap"><table>
+            <thead><tr><th>Nivel</th><th>Ce se calculează</th><th>Ce decizie oferă</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Raft / metru</strong></td><td>Norma de marjă pe metru liniar și m², randamentul efectiv al locului.</td><td>Extindeți, reduceți sau reformatați locul.</td></tr>
+              <tr><td><strong>Categorie</strong></td><td>Marjă, mix, rulaj, stocuri, promo, retrobonusuri, cota de suprafață.</td><td>Redistribuiți suprafața și gestionați rolul din sortiment.</td></tr>
+              <tr><td><strong>SKU</strong></td><td>Contribuția la marjă și cash flow, Margin Gap, slow movers, stock risk.</td><td>Păstrați, înlocuiți, scoateți sau cereți compensație.</td></tr>
+              <tr><td><strong>Furnizor</strong></td><td>DPO, credit comercial, retrobonusuri, compensații promo, poziția de negociere.</td><td>Reconstruiți condițiile: amânare, bonus, buget promo, sortiment.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>9 acțiuni manageriale</h2>
+          <div class="retail-actions">
+            <div class="retail-action"><strong>Extindeți</strong><span>SKU sau categoria, dacă randamentul este peste normă și cash flow-ul e sănătos.</span></div>
+            <div class="retail-action"><strong>Reduceți</strong><span>Raftul sau suprafața, dacă locul este ocupat de o contribuție slabă.</span></div>
+            <div class="retail-action"><strong>Scoateți</strong><span>SKU care nu acoperă norma și blochează banii.</span></div>
+            <div class="retail-action"><strong>Înlocuiți</strong><span>Poziția cu un produs cu marjă, rotație sau amânare la plată mai bune.</span></div>
+            <div class="retail-action"><strong>Cereți retrobonus</strong><span>Când furnizorul ocupă raftul, dar nu aduce o contribuție suficientă.</span></div>
+            <div class="retail-action"><strong>Cereți compensație promo</strong><span>Dacă discountul este cerut de piață, dar distruge marja vânzătorului.</span></div>
+            <div class="retail-action"><strong>Măriți amânarea la plată</strong><span>Pentru ca supplier credit să acopere perioada în care marfa stă pe raft.</span></div>
+            <div class="retail-action"><strong>Reconstruiți mixul</strong><span>Mutați vânzările spre categoriile și SKU care câștigă cu adevărat.</span></div>
+            <div class="retail-action"><strong>Scoateți în dashboard</strong><span>Semafor pe Margin Gap, supplier credit și acțiuni pentru owner review.</span></div>
+          </div>
+
+          <h2>Supplier Shelf Credit: cine finanțează raftul</h2>
+          <p>Supplier Shelf Credit arată cine finanțează raftul: furnizorul prin amânarea la plată sau proprietarul prin stocul deja plătit. Dacă marfa este deja plătită, dar continuă să stea pe raft, afacerea suportă un owner cash gap. Dacă amânarea acoperă perioada în care marfa stă pe raft, furnizorul participă la finanțarea rulajului.</p>
+          <div class="retail-kpi">
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Financing coverage</span><p class="retail-kpi__title">MIN(100%; AP / Stock value)</p><p class="retail-kpi__text">Ce parte din marfa de pe raft este finanțată efectiv de furnizor.</p></div>
+            <div class="retail-kpi__card retail-kpi__card--accent"><span class="retail-kpi__label">Owner cash gap</span><p class="retail-kpi__title">MAX(0; Stock value − AP)</p><p class="retail-kpi__text">Câți bani ai proprietarului sunt blocați în marfa furnizorului.</p></div>
+            <div class="retail-kpi__card"><span class="retail-kpi__label">Credit class</span><p class="retail-kpi__title">A / B / C / D / E</p><p class="retail-kpi__text">Clasa furnizorului după marjă, acoperire, rotație, retro și suport.</p></div>
+          </div>
+          <div class="retail-table-wrap"><table>
+            <thead><tr><th>Situația</th><th>Finanțează</th><th>Concluzia managerială</th></tr></thead>
+            <tbody>
+              <tr><td>Marfa pe raft, furnizorul deja plătit</td><td>Proprietarul</td><td>Este necesară compensație, reducerea stocului sau scoaterea SKU.</td></tr>
+              <tr><td>Marfa pe raft, amânarea încă în vigoare</td><td>Furnizor</td><td>Condițiile susțin rulajul, dar marja trebuie verificată.</td></tr>
+              <tr><td>Promo reduce prețul fără compensație</td><td>Proprietarul</td><td>De cerut buget promo sau de revizuit participarea.</td></tr>
+              <tr><td>Retrobonusul acoperă Margin Gap</td><td>Furnizorul, parțial</td><td>Categoria poate fi păstrată cu controlul condițiilor.</td></tr>
+            </tbody>
+          </table></div>
+
+          <h2>Cui i se potrivește</h2>
+          <ul>
+            <li>Magazinelor și rețelelor de retail, unde suprafața și raftul trebuie să aducă un randament măsurabil.</li>
+            <li>Companiilor cu SKU numeroase, furnizori, retrobonusuri, promo și credit comercial.</li>
+            <li>Proprietarilor care văd rulajul, dar nu înțeleg ce categorii câștigă cu adevărat.</li>
+            <li>Echipelor de achiziții și category management, care au nevoie de logică financiară a deciziilor.</li>
+          </ul>
+
+          <h2>Ce primește clientul</h2>
+          <ul>
+            <li>Harta randamentului pe raft, categorie, SKU și furnizor.</li>
+            <li>Semaforul Margin Gap și lista acțiunilor manageriale.</li>
+            <li>Poziția pentru negocieri cu furnizorii: retrobonusuri, promo, compensații, amânare la plată.</li>
+            <li>Owner dashboard pentru controlul regulat al economiei de retail.</li>
+            <li>Legătura modelului de retail cu P&L, Cash Flow, stocurile și capitalul de lucru.</li>
+          </ul>
+
+          <h2>Drumul clientului: diagnostic → model → control regulat</h2>
+          <div class="retail-path">
+            <div class="retail-path__step"><strong>Diagnostic</strong><span>Analizăm categoriile, SKU, furnizorii, suprafața, stocurile, promo, retrobonusurile și calitatea datelor.</span></div>
+            <div class="retail-path__step"><strong>Model CFO</strong><span>Construim Retail Margin Engine pe economia businessului: target margin, placement, supplier credit, QA și dashboard.</span></div>
+            <div class="retail-path__step"><strong>Control regulat</strong><span>Owner review lunar: ce rafturi extindem, ce SKU scoatem, unde reconstruim condițiile furnizorului.</span></div>
+          </div>
+
+          <h2>Disciplina calității modelului</h2>
+          <div class="retail-table-wrap"><table>
+            <thead><tr><th>Verificare</th><th>Status</th><th>Ce înseamnă asta pentru client</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Structura modelului</strong></td><td>Circuite conexe</td><td>Circuite separate pentru dashboard, setări, raft, SKU, promo, retrobonus, furnizori și metodologie.</td></tr>
+              <tr><td><strong>Logica de calcul</strong></td><td>Unică</td><td>Calculele sunt legate între circuite și susțin dashboard-ul managerial fără verificări manuale.</td></tr>
+              <tr><td><strong>Controlul calității</strong></td><td>Recalcul complet</td><td>Modelul este verificat pe scenariile client, demonstrativ și „client nou” înainte de livrare.</td></tr>
+              <tr><td><strong>Supplier Shelf Credit</strong></td><td>PASS</td><td>Se verifică absența erorilor în motorul de credit și limitarea financing coverage la 100%.</td></tr>
+            </tbody>
+          </table></div>
+          <p class="retail-proof__legal">Metricile QA descriu calitatea modelului și a logicii de calcul; ele nu sunt o garanție a rezultatului financiar al clientului.</p>
+
+          <div class="cta-band">
+            <p class="cta-band__title">Verificați ce rafturi și SKU câștigă cu adevărat</p>
+            <p class="cta-band__text">Începeți cu Radiografia Financiară pentru retail: FINMENTOR analizează categoriile, SKU, furnizorii, stocurile, promo și creditul comercial — și arată unde raftul creează bani și unde blochează capitalul.</p>
+            <div class="cta-band__row">
+              <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--lg">Începeți Radiografia Financiară pentru retail</a>
+              <a href="index.html#consult" class="btn btn--ghost btn--lg">Discovery Call</a>
+              <a href="https://t.me/finmentor_md_bot" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="faq">
+        <h2>Întrebări frecvente</h2>
+        <details class="faq__item"><summary>Este un produs separat sau parte din sistemul CFO?</summary><div class="faq__item__body">Este modulul de industrie FINMENTOR pentru retail. Poate fi un diagnostic separat sau parte din Business Control System, dacă afacerea are nevoie de circuitul complet P&L, Cash Flow, plăți și dashboard.</div></details>
+        <details class="faq__item"><summary>Ce date sunt necesare pentru model?</summary><div class="faq__item__body">Vânzări, marjă, stocuri, suprafață sau metri liniari, categorii, SKU, furnizori, DPO, retrobonusuri, promo și condițiile de bază ale achizițiilor.</div></details>
+        <details class="faq__item"><summary>Ce facem dacă date pe raft încă nu există?</summary><div class="faq__item__body">Modelul poate începe cu categorii și SKU, iar apoi se adaugă suprafața, metrii liniari și legarea mai exactă de loc. Important este să se construiască mai întâi logica managerială și calitatea datelor.</div></details>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Materiale conexe</p>
+        <div class="related__grid"><a href="supplier-shelf-credit.html">Articol: Supplier Shelf Credit</a><a href="fcf-postavshiki.html">FCF pe SKU</a><a href="supplier-rating-purchasing-priorities.html">Ratingul furnizorilor</a><a href="margin-factor-analysis-flags.html">Analiza factorială a marjei</a><a href="working-capital.html">Capital de lucru</a><a href="business-control-system.html">Business Control System</a><a href="questionnaire.html?model=retail">Radiografia Financiară pentru retail</a></div>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Radiografia Financiară</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condiții de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../i18n-ro.js"></script>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>

@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
+    if (FM_GA4_DEBUG) {
+      gtag('config', 'G-94L98WZ12', { debug_mode: true });
+      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
+    } else {
+      gtag('config', 'G-94L98WZ12');
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>FINMENTOR — CFO extern și sistem de management financiar pentru afaceri</title>
+  <meta name="description" content="FINMENTOR ajută proprietarii afacerilor în creștere să construiască P&L managerial, Cash Flow, trezorerie, KPI, raportare și control CFO regulat. Power BI și AI se folosesc pentru automatizarea sistemului deja construit." />
+  <meta name="keywords" content="CFO extern, director financiar, contabilitate managerială, raportare managerială, P&L, Cash Flow, trezorerie, KPI, business control, Power BI, automatizare AI, Finmentor, Chișinău, Moldova" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Finmentor" />
+  <meta property="og:title" content="FINMENTOR — CFO extern și sistem de management financiar pentru afaceri" />
+  <meta property="og:description" content="CFO extern pentru afaceri în creștere: P&L managerial, Cash Flow, trezorerie, KPI și control regulat. Power BI și AI — pentru automatizarea sistemului deja construit." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ro_RO" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FINMENTOR — CFO extern și sistem de management financiar pentru afaceri" />
+  <meta name="twitter:description" content="CFO extern care construiește sistemul de control financiar al afacerii și apoi îl automatizează." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+
+  <!-- Icons & manifest -->
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Structured data: Person + ProfessionalService -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://www.finmentor.md/ro/#person",
+      "name": "Ghennadi Iacovlev",
+      "alternateName": "Ghennadi Iacovlev",
+      "jobTitle": "CFO extern, expert în management financiar",
+      "url": "https://www.finmentor.md/ro/",
+      "image": "https://www.finmentor.md/og-image.png?v=81",
+      "email": "cfo@finmentor.md",
+      "description": "CFO extern și expert în construirea sistemelor de management financiar pentru proprietarii de afaceri: contabilitate managerială, trezorerie, controlul banilor, profitului și riscurilor. Power BI și AI — instrumente de automatizare a sistemului deja construit.",
+      "knowsAbout": [
+        "Внешний CFO",
+        "Финансовое управление",
+        "Управленческий учёт",
+        "Управленческая отчётность",
+        "Казначейство",
+        "Cash Flow",
+        "KPI",
+        "Финансовое моделирование",
+        "Power BI",
+        "AI Automation",
+        "Инвестиционный анализ"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Chișinău",
+        "addressCountry": "MD"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.finmentor.md/ro/#organization",
+      "name": "FINMENTOR",
+      "url": "https://www.finmentor.md/ro/",
+      "email": "cfo@finmentor.md",
+      "founder": {
+        "@id": "https://www.finmentor.md/ro/#person"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.finmentor.md/ro/#website",
+      "name": "FINMENTOR",
+      "url": "https://www.finmentor.md/ro/",
+      "inLanguage": "ro",
+      "publisher": {
+        "@id": "https://www.finmentor.md/ro/#organization"
+      }
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "https://www.finmentor.md/ro/#service",
+      "name": "FINMENTOR",
+      "url": "https://www.finmentor.md/ro/",
+      "image": "https://www.finmentor.md/og-image.png?v=81",
+      "email": "cfo@finmentor.md",
+      "description": "CFO extern și sistem de management financiar pentru proprietarii afacerilor în creștere: P&L managerial, Cash Flow, trezorerie, KPI, raportare și control regulat. Power BI și AI — pentru automatizarea sistemului deja construit.",
+      "slogan": "CFO extern care construiește sistemul de control al afacerii și apoi îl automatizează.",
+      "founder": {
+        "@id": "https://www.finmentor.md/ro/#person"
+      },
+      "areaServed": [
+        "MD",
+        "RO"
+      ],
+      "serviceType": [
+        "External CFO",
+        "Financial management",
+        "Management reporting",
+        "Treasury",
+        "Cash flow control",
+        "KPI",
+        "Business control system",
+        "BI / digital automation"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Chișinău",
+        "addressCountry": "MD"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/in/ghennadi-iacovlev-791ba831"
+      ]
+    },
+    {
+      "@type": "Service",
+      "@id": "https://www.finmentor.md/ro/#financial-control-service",
+      "name": "FINMENTOR — sistem CFO de control financiar",
+      "provider": {
+        "@id": "https://www.finmentor.md/ro/#organization"
+      },
+      "serviceType": "External CFO, financial control system, management reporting, Cash Flow, P&L, KPI and risk control",
+      "areaServed": [
+        "MD",
+        "RO",
+        "EU"
+      ],
+      "url": "https://www.finmentor.md/ro/",
+      "description": "Sistemul FINMENTOR de control financiar pentru proprietar: Cash Flow, P&L, plăți, creanțe, obligații, marjă, KPI, riscuri și dashboard într-o singură logică managerială."
+    }
+  ]
+}
+  </script>
+
+  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+
+  <!-- Pre-paint guard: skip intro for returning visitors / reduced-motion to avoid a flash -->
+  <script>
+    (function () {
+      try {
+        var played = sessionStorage.getItem('fm_intro_played');
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (played || reduced) document.documentElement.classList.add('intro-skip');
+      } catch (e) {}
+    })();
+  </script>
+  <noscript><style>.intro{display:none!important}</style></noscript>
+  <style>
+    /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
+    /* sample grid collapses via auto-fit/minmax on narrow screens */
+
+    /* v10 — Lean Premium homepage sections */
+    .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .step-card { position:relative; padding:var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .step-card__num { font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.14em; color:var(--accent); }
+    .step-card__title { font-family:var(--font-display); font-size:1.25rem; font-weight:700; color:var(--text-primary); margin:10px 0 8px; }
+    .step-card__desc { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; }
+    .hero__divider { margin:var(--sp-4) auto 0; padding:12px 16px; border-left:2px solid var(--gold-500); color:var(--text-secondary); font-size:0.9rem; line-height:1.5; background:rgba(201,162,39,0.06); border-radius:0 var(--r-sm) var(--r-sm) 0; max-width:640px; }
+    .hero__divider b { color:var(--text-primary); }
+    .sample-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .sample-card { border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)); overflow:hidden; }
+    .sample-card__bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-bottom:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .sample-card__name { font-weight:700; color:var(--text-primary); font-size:0.88rem; }
+    .sample-card__tag { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); white-space:nowrap; }
+    .sample-card__body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+    .sample-line { height:9px; border-radius:5px; background:linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.03)); }
+    .sample-line--short { width:55%; } .sample-line--mid { width:78%; }
+    .sample-chip { display:inline-block; align-self:flex-start; margin-top:4px; padding:4px 10px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-secondary); font-size:0.74rem; }
+    .sample-note { margin-top:var(--sp-4); color:var(--text-muted); font-size:0.8rem; }
+    .after-grid { display:flex; flex-direction:column; gap:12px; margin-top:var(--sp-5); max-width:760px; }
+    .after-step { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .after-step__num { flex-shrink:0; width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--border-gold); color:var(--accent); font-family:var(--font-mono); font-size:0.82rem; }
+    .after-step__text { color:var(--text-secondary); font-size:0.92rem; line-height:1.55; }
+    .after-step__text strong { color:var(--text-primary); }
+    .trust-links { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:var(--sp-4) 0 var(--sp-2); }
+    .trust-links a { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-primary); text-decoration:none; font-size:0.84rem; font-weight:600; transition:border-color var(--dur-base) ease, background var(--dur-base) ease; }
+    .trust-links a:hover { border-color:var(--accent); background:rgba(201,162,39,0.08); }
+    .trust-links__meet { color:var(--text-muted); font-size:0.82rem; }
+    .materials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .material-card { display:flex; flex-direction:column; gap:6px; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); text-decoration:none; transition:border-color var(--dur-base) ease, transform var(--dur-base) ease; }
+    .material-card:hover { border-color:var(--border-gold); transform:translateY(-3px); }
+    .material-card__tag { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .material-card__title { color:var(--text-primary); font-weight:700; font-size:1rem; line-height:1.35; }
+    .material-card__arrow { margin-top:auto; color:var(--accent); font-size:0.84rem; font-weight:600; }
+    .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
+    @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
+
+    /* v10.2 — hero scroll-cue: never overlap the stats card */
+    .hero__content { padding-bottom:64px; }
+    .hero__scroll { bottom:18px; gap:8px; z-index:1; }
+    .hero__scroll-line { height:30px; }
+    @media (max-height: 780px){ .hero__scroll { display:none; } }
+    @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } }
+
+    /* v10.3 — premium visual polish (index-only overrides; no markup/JS/style.css changes) */
+    /* chaos: premium divider + soft top depth */
+    .chaos { position:relative; }
+    .chaos::before { content:""; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); opacity:0.35; pointer-events:none; }
+    .chaos::after { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:120px; background:radial-gradient(ellipse at top, rgba(201,162,39,0.10), transparent 70%); pointer-events:none; }
+    /* clean, even, premium card grid (drop chaotic tilt/scatter; equal heights) */
+    .chaos__grid { counter-reset:cx; align-items:stretch; gap:var(--sp-4); position:relative; z-index:1; }
+    .chaos-card { transform:none; height:100%; display:flex; flex-direction:column; justify-content:center; counter-increment:cx;
+      padding:calc(var(--sp-5) + 4px) var(--sp-5); border-radius:var(--r-lg);
+      background:linear-gradient(155deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+      border:1px solid var(--glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+      -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+      transition:transform var(--dur-base) var(--ease-out-expo), border-color var(--dur-base) ease, box-shadow var(--dur-base) ease, background-color var(--dur-base) ease; }
+    .chaos-card::before { content:""; position:absolute; top:18px; left:0; width:3px; height:26px; border-radius:0 3px 3px 0; background:var(--grad-gold); opacity:0.9; }
+    .chaos-card::after { content:counter(cx, decimal-leading-zero); position:absolute; top:14px; right:16px; font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.04em; color:var(--accent); opacity:0.42; }
+    /* subtle visual grouping: 1-4 cash/payments (gold) · 5-8 data/control (muted blue) */
+    .chaos-card:nth-child(n+5)::before { background:linear-gradient(180deg, #6f9bd8, #3f6aa6); }
+    .chaos-card:nth-child(n+5)::after { color:#8fb3e6; }
+    .chaos-card__text { color:var(--text-secondary); font-size:0.95rem; line-height:1.55; padding-left:12px; padding-right:6px; }
+    .chaos-card:hover { transform:translateY(-3px); border-color:var(--border-gold);
+      box-shadow:0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+      background:linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)); }
+    /* final phrase: bigger, more air, understated gold underline-glow */
+    .chaos__verdict { margin-top:calc(var(--sp-10) + var(--sp-2)); font-size:clamp(1.6rem, 3.6vw, 2.7rem); letter-spacing:-0.01em; }
+    .chaos__verdict .text-gold { position:relative; white-space:nowrap; }
+    .chaos__verdict .text-gold::after { content:""; position:absolute; left:6%; right:6%; bottom:-10px; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); box-shadow:0 0 14px 1px rgba(201,162,39,0.45); }
+    /* premium keyboard focus (a11y) */
+    a:focus-visible, button:focus-visible, .btn:focus-visible { outline:2px solid var(--gold-500); outline-offset:3px; border-radius:var(--r-sm); }
+    .hero__scroll-label { opacity:0.8; }
+    @media (max-width:640px){
+      .chaos__grid { gap:var(--sp-3); }
+      .chaos-card { padding:var(--sp-5) var(--sp-4); }
+      .chaos-card__text { padding-left:10px; }
+      .chaos__verdict { margin-top:var(--sp-8); }
+      .chaos__verdict .text-gold { white-space:normal; }
+    }
+
+    /* v-rights — sample outputs: real CFO-document feel (anonymized) */
+    .sample-card { display:flex; flex-direction:column; }
+    .sample-card__body { padding:13px 15px 14px; display:flex; flex-direction:column; flex:1; }
+    .so-line { padding:7px 0; border-bottom:1px solid var(--glass-border); }
+    .so-line:first-child { padding-top:2px; }
+    .so-line__k { display:block; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); opacity:0.85; }
+    .so-line__v { display:block; margin-top:3px; color:var(--text-secondary); font-size:0.82rem; line-height:1.4; }
+    .so-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--glass-border); font-size:0.82rem; }
+    .so-row__l { display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+    .so-row__l b { color:var(--text-primary); font-weight:600; }
+    .so-row__v { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
+    .so-row:last-of-type, .so-line:last-of-type { border-bottom:0; }
+    .so-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .so-dot--red{background:#E5484D;} .so-dot--amber{background:#D8B450;} .so-dot--green{background:#3FB950;}
+    .so-mark { width:14px; display:inline-grid; place-items:center; font-size:0.8rem; color:var(--text-muted); flex-shrink:0; }
+    .so-mark--done { color:#3FB950; }
+    .so-pill { font-size:0.66rem; padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-border); color:var(--text-muted); white-space:nowrap; }
+    .so-pill--done { color:#3FB950; border-color:rgba(63,185,80,0.4); }
+    .so-pill--req { color:var(--accent); border-color:var(--glass-border-gold); }
+    .so-foot { margin-top:auto; padding-top:10px; border-top:1px solid var(--glass-border-gold); font-size:0.73rem; color:var(--accent); display:flex; align-items:center; gap:7px; }
+    .so-foot__dot { width:5px; height:5px; border-radius:50%; background:var(--grad-gold); flex-shrink:0; box-shadow:0 0 6px rgba(201,162,39,0.6); }
+  </style>
+</head>
+
+<body>
+  <!-- ===================================================== LANGUAGE ENTRY (root only) -->
+    </div>
+  </div>
+
+  <!-- ============================================================= INTRO (restored from v8.6) -->
+  <div class="intro" id="intro">
+    <canvas class="intro__canvas" aria-hidden="true"></canvas>
+    <button class="intro__skip" type="button" id="introSkip">Omiteți →</button>
+
+    <div class="intro__center">
+      <div class="intro__wordmark" aria-label="finmentor">
+        <span class="intro__word intro__word--fin">
+          <span style="--i:0">f</span><span style="--i:1">i</span><span style="--i:2">n</span>
+        </span><span class="intro__word intro__word--mentor">
+          <span style="--i:3">m</span><span style="--i:4">e</span><span style="--i:5">n</span><span style="--i:6">t</span><span style="--i:7">o</span><span style="--i:8">r</span>
+        </span>
+      </div>
+      <div class="intro__tagline">De la haos financiar — la un sistem de management al afacerii</div>
+    </div>
+  </div>
+<header class="header" id="header">
+    <div class="container header__inner">
+      <a class="logo" href="#top" aria-label="finmentor — spre pagina principală">
+        <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
+      </a>
+
+      <nav class="nav" aria-label="Navigare principală">
+        <a href="#about" class="nav__link">Despre proiect</a>
+        <a href="#audience" class="nav__link">Pentru cine</a>
+        <a href="#steps" class="nav__link">Cum lucrăm</a>
+        <a href="#solutions" class="nav__link">Soluții</a>
+        <a href="#knowledge" class="nav__link">Materiale</a>
+        <a href="questionnaire.html" class="nav__link">Radiografia Financiară</a>
+        <a href="#consult" class="nav__link">Contacte</a>
+      </nav>
+
+      <div class="header__actions">
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../index.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="index.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Începeți Radiografia Financiară</a>
+        <button class="burger" id="burger" type="button" aria-label="Deschideți meniul" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Navigare mobilă">
+    <nav class="mobile-menu__nav" aria-label="Navigare mobilă">
+      <a href="#about" class="mobile-menu__link" style="--mi:0">Despre proiect</a>
+      <a href="#audience" class="mobile-menu__link" style="--mi:1">Pentru cine</a>
+      <a href="#steps" class="mobile-menu__link" style="--mi:2">Cum lucrăm</a>
+      <a href="#solutions" class="mobile-menu__link" style="--mi:3">Soluții</a>
+      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Materiale</a>
+      <a href="questionnaire.html" class="mobile-menu__link" style="--mi:5">Radiografia Financiară</a>
+      <a href="#consult" class="mobile-menu__link" style="--mi:6">Contacte</a>
+    </nav>
+    <div class="mobile-menu__lang">
+      <span class="mobile-menu__lang-label">Limbă · Язык</span>
+      <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../index.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="index.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+    </div>
+    <div class="mobile-menu__footer">
+      <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Începeți Radiografia Financiară</a>
+      <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Mai simplu: scrieți direct → FINMENTOR Bot</a>
+    </div>
+  </div>
+
+  <main>
+    <section class="hero" id="top">
+      <canvas class="hero__canvas" aria-hidden="true"></canvas>
+      <div class="hero__mesh" aria-hidden="true">
+        <span class="hero__blob hero__blob--gold"></span>
+        <span class="hero__blob hero__blob--blue"></span>
+        <span class="hero__blob hero__blob--navy"></span>
+      </div>
+      <div class="hero__grain" aria-hidden="true"></div>
+
+      <div class="container hero__content">
+        <p class="hero__kicker reveal">SISTEM CFO PENTRU PROPRIETAR · MODELUL FINMENTOR DE CONTROL FINANCIAR</p>
+        <h1 class="hero__title reveal" data-reveal-delay="1">
+          Sistemul financiar care îi arată proprietarului unde sunt banii, profitul și riscul
+        </h1>
+        <p class="hero__subtitle reveal" data-reveal-delay="2">
+          FINMENTOR reunește Cash Flow, P&L, plățile, creanțele, obligațiile, marja, KPI și riscurile într-un singur tablou de control — astfel încât proprietarul să vadă nu rapoarte disparate, ci logica financiară a afacerii, și să ia deciziile pe cifre.
+        </p>
+
+        <div class="hero__actions reveal" data-reveal-delay="3">
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Începeți Radiografia Financiară</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Mai simplu: scrieți direct → FINMENTOR Bot</a>
+        </div>
+        <p class="hero__secondary reveal" data-reveal-delay="3"><a href="#industries" class="hero__link" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Soluții pentru modelul dvs. de business ↓</a></p>
+
+        <p class="hero__trust-line reveal" data-reveal-delay="4">15+ ani în finanțe corporative · Abordare de CFO · Concluziile finale trec prin validarea expertului</p>
+      </div>
+
+      <a href="#chaos" class="hero__scroll" aria-label="Derulați în jos">
+        <span class="hero__scroll-label">SCROLL</span>
+        <span class="hero__scroll-line"></span>
+      </a>
+    </section>
+
+    <section class="chaos" id="chaos">
+      <div class="chaos__haze" aria-hidden="true"></div>
+      <div class="container">
+        <div class="section-head">
+          <p class="overline overline--risk reveal">Simptome</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Așa arată haosul financiar</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Fără un sistem unic, proprietarul vede rapoarte, dar nu vede afacerea reală.</p>
+        </div>
+
+        <div class="chaos__grid">
+          <article class="chaos-card reveal" data-reveal-delay="1" style="--rot:-1.4deg; --dy:0px">
+            <p class="chaos-card__text">Profitul există pe hârtie, dar banii din cont nu ajung.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.2deg; --dy:22px">
+            <p class="chaos-card__text">Rapoartele vin târziu și nu ajută la luarea deciziilor.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
+            <p class="chaos-card__text">Plățile se aprobă haotic, fără priorități și fonduri.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
+            <p class="chaos-card__text">Golurile de numerar apar pe neașteptate.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
+            <p class="chaos-card__text">Vânzările cresc, dar marja și profitul nu cresc.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
+            <p class="chaos-card__text">Datele sunt împrăștiate între 1C, Excel, Google Sheets, CRM și mesagerie.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
+            <p class="chaos-card__text">Proprietarul nu vede KPI, riscurile și abaterile într-un singur loc.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
+            <p class="chaos-card__text">AI și automatizarea nu sunt folosite, deși munca manuală este prea multă.</p>
+          </article>
+        </div>
+
+        <p class="chaos__verdict reveal">Nu este o problemă de oameni. <span class="text-gold">Este absența unui sistem.</span></p>
+        <span class="chaos__bridge" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="sec diff" id="difference" aria-label="Prin ce se deosebește FINMENTOR">
+      <div class="container">
+        <div class="diff__grid reveal">
+          <div class="diff__row"><span class="diff__who">Contabilitatea</span><p>asigură corectitudinea evidenței, a raportării și conformitatea fiscală.</p></div>
+          <div class="diff__row"><span class="diff__who">BI și automatizarea</span><p>fac datele vizibile și procesele mai rapide, dar nu definesc prin ele însele logica financiară a deciziilor.</p></div>
+          <div class="diff__row diff__row--fm"><span class="diff__who">FINMENTOR</span><p>adaugă circuitul managerial al proprietarului: leagă banii, profitul, Cash Flow, KPI și riscurile de decizii manageriale concrete. Power BI, automatizarea și AI se conectează la logica financiară deja construită.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="industries" id="industries">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Modele de business</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Sistem financiar adaptat modelului dvs. de business</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Un singur nucleu CFO — bani, profit, Cash Flow, KPI, riscuri. Industrii diferite — economie diferită. FINMENTOR reglează controlul pe metricile care contează cu adevărat în afacerea dvs.</p>
+        </div>
+
+        <div class="industries__grid">
+          <article class="industry-card industry-card--flagship reveal" data-reveal-delay="1">
+            <div class="industry-card__top">
+              <h3>Real Estate</h3>
+              <span class="industry-card__badge">Flagship</span>
+            </div>
+            <p><b>Durerea:</b> Imobilul nu se amortizează, chiriașii creează riscuri, se văd doar sumele facturate, nu banii.</p>
+            <p><b>Controlul:</b> Chiriași și contracte, NOI, Cap Rate, vacancy, CAPEX, tenant rating, recuperarea investiției.</p>
+            <p><b>Metodologia de calcul:</b> NOI, vacancy, tenant rating, rent vs market, deposit coverage, CAPEX payback, cash flow, risk traffic light.</p>
+            <p><b>Rezultatul:</b> Randamentul fiecărui imobil și chiriaș devine vizibil, riscurile — din timp.</p>
+            <a href="real-estate-control-system.html" class="industry-card__cta" data-ga="click_industry_real_estate" data-cta-id="industry_real_estate" data-cta-location="industries" data-event="cta_click" data-destination="real-estate-control-system">Real Estate Control System &rarr;</a>
+          </article>
+
+          <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
+            <div class="industry-card__top">
+              <h3>Retail</h3>
+              <span class="industry-card__badge">RETAIL ENGINE</span>
+            </div>
+            <p><b>Durerea:</b> Rafturile sunt pline cu marfă, dar nu este clar ce categorii și SKU chiar câștigă bani și care doar îi blochează.</p>
+            <p><b>Controlul:</b> Norma de marjă pe metru liniar, m², categorie și SKU; vânzări, stocuri, promo, retrobonus, furnizori și Supplier Shelf Credit.</p>
+            <p><b>Metodologia de calcul:</b> Target Marja, margin per meter, SKU profitability, Margin Gap, Supplier Shelf Credit, retrobonus, promo economics.</p>
+            <p><b>Rezultatul:</b> Dashboard-ul arată ce extindeți, ce reduceți, unde cereți retrobonus, unde este necesară compensația furnizorului și ce SKU scoateți din sortiment.</p>
+            <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Verificați retailul</a>
+          </article>
+
+          <article class="industry-card reveal" data-reveal-delay="3">
+            <div class="industry-card__top">
+              <h3>E-commerce</h3>
+            </div>
+            <p><b>Durerea:</b> Cifra de afaceri crește, reclama consumă bugetul, iar profitul pe unitate rămâne neclar.</p>
+            <p><b>Controlul:</b> Unit economics, CAC, LTV, ROAS, logistică, retururi, depozit, SKU-profitability, cash gap.</p>
+            <p><b>Rezultatul:</b> Profitul pe SKU și pe canal se vede după reclamă, logistică și retururi.</p>
+            <a href="questionnaire.html?model=ecommerce" class="industry-card__cta" data-cta-id="industries_ecommerce" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Verificați e-commerce-ul</a>
+          </article>
+
+          <article class="industry-card reveal" data-reveal-delay="1">
+            <div class="industry-card__top">
+              <h3>Distribution</h3>
+            </div>
+            <p><b>Durerea:</b> Banii sunt blocați în depozit și creanțe, limitele clienților — stabilite „din ochi”.</p>
+            <p><b>Controlul:</b> Depozit, creanțe, furnizori, grupe de marfă, limite pe clienți, capital de lucru, marjă.</p>
+            <p><b>Rezultatul:</b> Capitalul de lucru și marja reală pe grupe și clienți — sub control.</p>
+            <a href="questionnaire.html?model=distribution" class="industry-card__cta" data-cta-id="industries_distribution" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Verificați distribuția</a>
+          </article>
+
+          <article class="industry-card reveal" data-reveal-delay="2">
+            <div class="industry-card__top">
+              <h3>Custom Manufacturing</h3>
+            </div>
+            <p><b>Durerea:</b> Comenzi există, dar marja pe comandă e neclară; producția neterminată și avansurile trăiesc separat.</p>
+            <p><b>Controlul:</b> Comenzi, cost planificat vs efectiv, materiale, avansuri, termene, marjă pe comandă, producție neterminată.</p>
+            <p><b>Rezultatul:</b> Profitul fiecărei comenzi devine vizibil și se vede unde se scurge costul.</p>
+            <a href="questionnaire.html?model=manufacturing" class="industry-card__cta" data-cta-id="industries_manufacturing" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Verificați producția</a>
+          </article>
+
+          <article class="industry-card reveal" data-reveal-delay="3">
+            <div class="industry-card__top">
+              <h3>Fitness</h3>
+            </div>
+            <p><b>Durerea:</b> Prelungirile se întâmplă „cum iese”: abandonul clienților se vede post-factum, veniturile sezonului următor nu sunt gestionate, discounturile de retenție se acordă intuitiv.</p>
+            <p><b>Controlul:</b> Profilul clientului ca activ, propensiunea de prelungire, veniturile din prelungiri expuse riscului, plan de retenție pe capacitatea echipei, migrația segmentelor.</p>
+            <p><b>Dezvoltare:</b> Client Base Control System · verticala Fitness Membership Renewal Engine — crescută dintr-un ciclu managerial lunar într-un business real.</p>
+            <p><b>Rezultatul:</b> Veniturile din prelungiri pentru perioada următoare și riscul lor — sub controlul proprietarului.</p>
+            <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Detalii despre sistem</a>
+          </article>
+        </div>
+
+        
+
+        <div class="industries__asset-callout reveal" data-reveal-delay="2">
+          <div>
+            <span class="industries__asset-label">O singură logică CFO — active diferite</span>
+            <p>În Real Estate activul este imobilul și chiriașul. În Retail — raftul, categoria și SKU. În Distribution — depozitul și creanțele. În E-commerce — canalul, comanda și SKU. În Manufacturing — comanda și producția neterminată. În Fitness — clientul, abonamentul și gradul de ocupare. În fiecare caz, FINMENTOR răspunde la o singură întrebare: care activ câștigă bani cu adevărat și care blochează capitalul?</p>
+            <p class="industries__asset-note">Fiecare model are o metodologie de calcul: ce date se colectează, ce indicatori se calculează și ce decizie ia proprietarul. Modulele flagship se implementează după diagnostic, evaluarea calității datelor și convenirea volumului de lucru — metodologiile se adaptează la economia fiecărui business.</p>
+          </div>
+          <a href="retail-margin-engine.html" class="btn btn--ghost btn--lg" data-cta-id="industries_retail_engine_callout" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine">Vedeți Retail Margin Engine →</a>
+        </div>
+
+        <div class="industries__final reveal" data-reveal-delay="2">
+          <p>Nu v-ați regăsit modelul? Începeți cu Radiografia Financiară — sistemul se configurează pe economia dvs.</p>
+          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-cta-id="industries_general_diagnostic" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire">Începeți Radiografia Financiară</a>
+        </div>
+      </div>
+    </section>
+
+        <section class="audience sec--light" id="audience">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Pentru cine</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Pentru cine este FINMENTOR</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR lucrează cu proprietarii afacerilor mici și mijlocii în creștere, care au deja contabilitate, Excel, 1C și echipă, dar nu au o funcție CFO completă, o raportare managerială unificată și un control regulat al banilor, profitului și riscurilor.</p>
+        </div>
+        <ul class="audience__grid">
+          <li class="audience__item reveal">Mai multe direcții, proiecte sau persoane juridice</li>
+          <li class="audience__item reveal" data-reveal-delay="1">Cifra de afaceri e deja suficient de mare ca greșelile să coste scump</li>
+          <li class="audience__item reveal" data-reveal-delay="2">Contabilitate există, dar nu răspunde la întrebările manageriale</li>
+          <li class="audience__item reveal" data-reveal-delay="1">Proprietarul aprobă personal o parte semnificativă a plăților</li>
+          <li class="audience__item reveal" data-reveal-delay="2">Raportarea vine târziu</li>
+          <li class="audience__item reveal" data-reveal-delay="3">Afacerea a crescut mai repede decât sistemul financiar</li>
+          <li class="audience__item reveal" data-reveal-delay="2">Nu există o sursă unică de adevăr pentru cifre</li>
+          <li class="audience__item reveal" data-reveal-delay="3">Cash Flow, P&L, KPI și plățile trăiesc în tabele diferite</li>
+        </ul>
+        <p class="audience__note reveal" data-reveal-delay="2">Dacă ați recunoscut cel puțin trei puncte — Radiografia Financiară va arăta unde pierde sistemul controlul în primul rând.</p>
+      </div>
+    </section>
+
+    <section class="sec steps sec--light" id="steps">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Cum lucrăm</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Cum funcționează FINMENTOR — trei pași</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">De la diagnostic la sistem de control și suport. Power BI, AI și automatizarea se conectează doar după ce logica financiară este deja construită.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card reveal">
+            <span class="step-card__num">01</span>
+            <h3 class="step-card__title">Diagnostic</h3>
+            <p class="step-card__desc">Înțelegem unde sunt banii, profitul, obligațiile și riscurile: analizăm Cash Flow, P&L, plățile, creanțele, datoriile către furnizori și calitatea datelor.</p>
+          </article>
+          <article class="step-card reveal" data-reveal-delay="1">
+            <span class="step-card__num">02</span>
+            <h3 class="step-card__title">Sistem de control</h3>
+            <p class="step-card__desc">Construim P&L managerial, Cash Flow, calendarul plăților, KPI, reguli de plată și raportarea proprietarului — un singur circuit pe cifre.</p>
+          </article>
+          <article class="step-card reveal" data-reveal-delay="2">
+            <span class="step-card__num">03</span>
+            <h3 class="step-card__title">Suport și automatizare</h3>
+            <p class="step-card__desc">CFO-review regulat și controlul deciziilor. Power BI, AI, Make / n8n și Google Sheets se conectează doar după ce logica financiară este construită.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+<section class="packages" id="solutions">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Soluții</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Scara de produse a CFO-ului extern</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Începeți cu Radiografia Financiară. Apoi — Discovery Call, diagnostic, implementarea sistemului și control CFO regulat. BI/AI — modul suplimentar, după fundament.</p>
+        </div>
+
+        <div class="packages__grid">
+          <!-- 1 · Диагностика -->
+          <article class="package reveal" data-reveal-delay="1">
+            <span class="package__tier">Pasul 1 · Diagnostic</span>
+            <h3 class="package__name">Financial Health Check</h3>
+            <p class="package__goal">Înțelegeți rapid unde se pierd banii, profitul și controlul.</p>
+            <p class="package__price"><span class="package__price-from">de la</span> 1 500 €</p>
+            <div class="package__section">
+              <span class="package__label">Ce include</span>
+              <ul class="package__list">
+                <li>Radiografia Financiară a proprietarului</li>
+                <li>Interviu de 60–90 de minute</li>
+                <li>Analiză expres P&L / Cash Flow / datorii / plăți</li>
+                <li>Harta problemelor financiare</li>
+                <li>Evaluarea nivelului contabilității manageriale</li>
+                <li>Lista riscurilor critice</li>
+                <li>Roadmap pentru 30 / 60 / 90 de zile</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Rezultat</span>
+              <p class="package__result">Proprietarul înțelege unde este problema, ce se repară mai întâi și ce format de lucru urmează.</p>
+            </div>
+            <div class="package__term"><span>Termen</span><strong>1–2 săptămâni</strong></div>
+            <p class="package__next"><span class="package__next-label">Pasul următor</span> Implementarea sistemului sau suportul lunar Control Light.</p>
+            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Începeți Radiografia Financiară</a>
+          </article>
+
+          <!-- 2 · Внедрение системы — FLAGSHIP -->
+          <article class="package package--flagship reveal" data-reveal-delay="2">
+            <span class="package__tier package__tier--badge">★ Pasul 2 · Implementarea sistemului</span>
+            <h3 class="package__name">Business Control System</h3>
+            <p class="package__goal">Construiți sistemul de management al afacerii pe cifre.</p>
+            <p class="package__price"><span class="package__price-from">de la</span> 5 000 €</p>
+            <div class="package__section">
+              <span class="package__label">Ce include</span>
+              <ul class="package__list">
+                <li>P&L managerial</li>
+                <li>Cash Flow</li>
+                <li>Calendarul plăților</li>
+                <li>Trezorerie</li>
+                <li>Fonduri și priorități de plată</li>
+                <li>KPI</li>
+                <li>Power BI dashboard</li>
+                <li>Control plan–realizat</li>
+                <li>Regulamentele managementului financiar</li>
+                <li>Monthly owner report</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Rezultat</span>
+              <p class="package__result">Afacerea devine gestionabilă: banii, profitul, riscurile, abaterile și deciziile într-un singur circuit.</p>
+            </div>
+            <div class="package__term"><span>Termen</span><strong>1–3 luni</strong></div>
+            <p class="package__next"><span class="package__next-label">Pasul următor</span> Control CFO regulat (Monthly) sau BI / automatizare.</p>
+            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Construiți sistemul CFO</a>
+          </article>
+
+          <!-- 3 · BI / автоматизация (после построения системы) -->
+          <article class="package reveal" data-reveal-delay="3">
+            <span class="package__tier">Pasul 3 · Control regulat</span>
+            <h3 class="package__name">Monthly CFO Support</h3>
+            <p class="package__goal">Formatul de bază <strong>light</strong> al disciplinei CFO regulate: revizuirea cifrelor-cheie și o listă scurtă de acțiuni.</p>
+            <p class="package__price">de la 750 € / lună</p>
+            <div class="package__section">
+              <span class="package__label">Ce include</span>
+              <ul class="package__list">
+                <li>1 întâlnire CFO pe lună (60–90 de minute)</li>
+                <li>Revizuirea indicatorilor financiari-cheie</li>
+                <li>Listă scurtă de acțiuni manageriale (action list)</li>
+                <li>Control de bază al abaterilor</li>
+              </ul>
+            </div>
+            <div class="package__section">
+              <span class="package__label">Rezultat</span>
+              <p class="package__result">Disciplină managerială regulată în format light — volumul de întâlniri și ore se fixează din start.</p>
+            </div>
+            <div class="package__term"><span>Format</span><strong>Lunar</strong></div>
+            <p class="package__next"><span class="package__next-label">Separat</span> Suport extins, întâlniri suplimentare, controlul Cash Flow / P&L / plăților și dashboard-review — formatele Standard și Premium se calculează după diagnostic.</p>
+            <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Discutați suportul CFO</a>
+          </article>
+        </div>
+
+        <p class="roi-note reveal"><strong>Costul depinde</strong> de numărul de persoane juridice, starea evidenței, numărul surselor de date, profunzimea implementării și regularitatea suportului. Merită comparat nu cu prețul unui tabel separat, ci cu prețul golurilor de numerar, al creanțelor blocate, al erorilor de plată și al deciziilor luate fără date. Formatul suportului (întâlniri, ore, rapoarte și zone de responsabilitate) se fixează din start: suportul nu este un departament financiar nelimitat.</p>
+        <div class="packages__cta reveal">
+          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Începeți Radiografia Financiară</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-event="bot_click" data-destination="telegram">Mai simplu: scrieți direct → FINMENTOR Bot</a>
+        </div>
+      </div>
+    </section>
+<section class="sec" id="modules">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Soluțiile FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Un singur sistem. Module pentru sarcina dvs.</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Nu este un catalog de instrumente: fiecare modul se conectează la logica financiară comună. Fiecare soluție are pagina sa — durerea, ce construiește FINMENTOR, ce vede proprietarul și ce decizii devin posibile. Nu știți de unde să începeți — începeți cu Radiografia Financiară.</p>
+        </div>
+
+        <div class="sysmap reveal" data-reveal-delay="1">
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Controlul banilor</h3>
+            <a class="sysmap__row" href="kaznacheystvo.html" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="cta_click" data-destination="kaznacheystvo">
+              <span class="sysmap__name">Treasury &amp; Payment Discipline</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Plățile merg haotic, „cine cere mai tare” — golurile de numerar apar pe neașteptate.</span>
+              <span class="sysmap__gain">Banii primesc destinație și priorități P0–P5; plata trece doar dacă există acoperire; statusuri și blocări în locul regimului manual.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row" href="treasury-waterfall.html" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="cta_click" data-destination="treasury-waterfall">
+              <span class="sysmap__name">Fund Planning &amp; Payment Waterfall</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Soldul din cont ≠ bani liberi: o parte aparține deja obligațiilor.</span>
+              <span class="sysmap__gain">Proprietarul vede capacitatea reală de plată: ce este liber, ce este rezervat, ce se achită, se amână sau se blochează.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row" href="working-capital.html" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="cta_click" data-destination="working-capital">
+              <span class="sysmap__name">Working Capital Control</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Bani „există”, dar sunt blocați în creanțe, stocuri și avansuri.</span>
+              <span class="sysmap__gain">DSO / DPO / Inventory Days și ciclul de numerar arată unde a rămas blocată lichiditatea și cum poate fi eliberată.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+          </div>
+
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Marjă · achiziții · sortiment</h3>
+            <a class="sysmap__row" href="fcf-postavshiki.html" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="cta_click" data-destination="fcf-postavshiki">
+              <span class="sysmap__name">SKU Cash Flow Analysis</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Veniturile cresc, iar banii liberi sunt tot mai puțini.</span>
+              <span class="sysmap__gain">FCF pe fiecare SKU: ce produse generează bani, care sunt cash destroyers și unde marketingul consumă contribuția.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row sysmap__row--flag" href="retail-margin-engine.html" data-ga="click_module_retail_margin_engine" data-cta-id="module_retail_engine" data-cta-location="modules" data-event="cta_click" data-destination="retail-margin-engine">
+              <span class="sysmap__name">Retail Margin Engine</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Raftul, categoria și SKU nu sunt evaluate ca activ financiar.</span>
+              <span class="sysmap__gain">Norma de marjă pe metru, m², categorie și SKU; Supplier Shelf Credit, promo și retrobonus devin acțiuni manageriale.</span></span>
+              <span class="sysmap__more">Model flagship <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row" href="supplier-rating-purchasing-priorities.html" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="cta_click" data-destination="supplier-rating-purchasing-priorities">
+              <span class="sysmap__name">Supplier Rating &amp; Procurement Control</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Achizițiile aleg furnizorul „după preț”, ignorând banii și riscul.</span>
+              <span class="sysmap__gain">Rating pe logica financiară completă: preț, DPO, TVA, retururi, termene — și impactul asupra marjei și Cash Flow.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row" href="margin-factor-analysis-flags.html" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="cta_click" data-destination="margin-factor-analysis-flags">
+              <span class="sysmap__name">Margin Factor Analysis</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Marja s-a schimbat — cauzele sunt necunoscute.</span>
+              <span class="sysmap__gain">Analiză factorială: preț, cantitate, mix, cost, promo — cu semnale de risc și calitatea datelor.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+          </div>
+
+          <div class="sysmap__group">
+            <h3 class="sysmap__label">Digital · Power BI · automatizare</h3>
+            <a class="sysmap__row" href="power-bi-dlya-sobstvennika.html" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="cta_click" data-destination="power-bi-dlya-sobstvennika">
+              <span class="sysmap__name">Power BI Owner Dashboard</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Cifrele sunt împrăștiate prin tabelele și rapoartele executanților.</span>
+              <span class="sysmap__gain">Panoul zilnic al proprietarului: bani, marjă, plăți, Funding Gap și semnalele-cheie de risc pe un singur ecran.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="sysmap__row" href="ai-dlya-cfo.html" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="cta_click" data-destination="ai-dlya-cfo">
+              <span class="sysmap__name">n8n / Make CFO Automation</span>
+              <span class="sysmap__body"><span class="sysmap__desc">Prea multă muncă manuală în rutina financiară.</span>
+              <span class="sysmap__gain">Solicitările, aprobările, notificările și rapoartele zilnice funcționează automat — în interiorul logicii financiare construite.</span></span>
+              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
+            </a>
+          </div>
+        </div>
+
+        <p class="module-note reveal">Stack-ul tehnologic se alege după diagnostic și se convine din start. Serviciile cu plată, licențele Power BI, Make/n8n, AI/API sau integrarea tehnică cu 1C nu se conectează fără confirmarea clientului.</p>
+      </div>
+    </section>
+
+    <section class="sec sec--alt flagship" id="flagship" aria-label="Din dezvoltările FINMENTOR — Retail Margin Engine">
+      <div class="container">
+        <div class="flagship__grid">
+          <div class="flagship__intro reveal">
+            <p class="overline">Din dezvoltările FINMENTOR · Retail</p>
+            <h2 class="section-title">Retail Margin Engine: raftul ca activ financiar</h2>
+            <p class="flagship__pain">Retailul gestionează adesea sortimentul după venituri și „senzația categoriei”. În acel moment, o parte din raft lucrează tăcut în minus: spațiul e ocupat, banii sunt blocați în stocuri, furnizorul nu participă la finanțare, promo consumă marja — iar în rapoarte totul pare „normal”.</p>
+          </div>
+          <div class="flagship__body">
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Ce construiește FINMENTOR</h3>
+              <p>O logică unică a randamentului spațiului comercial: norma de marjă pentru fiecare metru liniar, m², categorie și SKU; economia promo și retrobonus; Supplier Shelf Credit — cine finanțează de fapt raftul, dvs. sau furnizorul. Datele inițiale, calculele, abaterile și acțiunile manageriale sunt legate într-un singur sistem, cu dashboard-ul proprietarului.</p>
+            </div>
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Ce vede proprietarul</h3>
+              <p>Unde marja nu atinge norma; ce SKU și categorii blochează banii; ce furnizor creditează raftul și care trăiește pe contul dvs.; ce aduce și ce ia fiecare promo.</p>
+            </div>
+            <div class="flagship__col reveal">
+              <h3 class="flagship__h">Ce decizii devin posibile</h3>
+              <p>Extindeți sau reduceți spațiul categoriei; cereți retrobonus sau compensație; modificați amânarea la plată; înlocuiți sau scoateți SKU; renegociați condițiile furnizorului — pe cifre, nu pe intuiție.</p>
+            </div>
+          </div>
+          <div class="flagship__foot reveal">
+            <p class="flagship__for"><b>Pentru cine:</b> rețele de retail și magazine în care raftul, categoria și SKU sunt activul principal. <b>Cum începem:</b> diagnosticul datelor → setarea normei de randament → implementarea controlului și dashboard.</p>
+            <div class="flagship__cta">
+              <a href="retail-margin-engine.html" class="btn btn--primary btn--lg" data-ga="click_module_retail_margin_engine" data-cta-id="flagship_retail_engine" data-cta-location="flagship" data-event="cta_click" data-destination="retail-margin-engine">Deschideți Retail Margin Engine</a>
+              <a href="#consult" class="hero__link" data-ga="click_discovery_call" data-cta-id="flagship_discuss" data-cta-location="flagship" data-event="cta_click" data-destination="#consult">Discutați retailul dvs. →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
+      <div class="container">
+        <div class="ai-teaser">
+          <div class="ai-teaser__copy">
+            <p class="overline reveal">AI ECONOMICS · DIGITAL LABOUR CONTROL</p>
+            <h2 class="section-title reveal" data-reveal-delay="1">Plătiți deja pentru AI. Dar știți ce aduce el efectiv afacerii?</h2>
+            <p class="ai-teaser__lead reveal" data-reveal-delay="2"><strong>Facturile pentru ChatGPT, Claude, Copilot și API arată cheltuielile, dar nu arată costul real al rezultatului util, timpul angajaților pentru verificare, prețul erorilor și efectul financiar.</strong></p>
+            <p class="ai-teaser__bridge reveal" data-reveal-delay="3">FINMENTOR leagă cheltuielile pentru AI de un rezultat de business concret și arată ce scalați, ce optimizați și ce opriți.</p>
+            <div class="ai-pain-grid reveal" data-reveal-delay="4" aria-label="Semnalele economiei AI">
+              <div class="ai-pain"><strong>Bugetul AI crește</strong><span>dar ROI rămâne o presupunere.</span></div>
+              <div class="ai-pain"><strong>Orele sunt „economisite”</strong><span>dar compania nu a obținut economii bănești.</span></div>
+              <div class="ai-pain"><strong>Modelele scumpe se folosesc peste tot</strong><span>fără o alegere justificată economic.</span></div>
+              <div class="ai-pain"><strong>AI se scalează</strong><span>înainte ca economia procesului să fie dovedită.</span></div>
+            </div>
+            <div class="ai-teaser__actions reveal" data-reveal-delay="5">
+              <a href="ai-agent-economics.html" class="btn btn--primary btn--lg" data-event="click_ai_economics_page" data-cta-id="ai_economics_teaser_primary" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html">Verificați dacă AI-ul dvs. își acoperă costurile</a>
+              <a href="ai-agent-economics.html#methodology" class="btn btn--ghost btn--lg" data-event="click_ai_economics_methodology" data-cta-id="ai_economics_teaser_methodology" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html#methodology">Cum funcționează AI Economics</a>
+            </div>
+          </div>
+
+          <div class="ai-teaser__model reveal" data-reveal-delay="4" aria-label="Lanțul de control financiar al AI">
+            <div class="ai-flow">
+              <span>AI Spend</span>
+              <span>Full Cost</span>
+              <span>Accepted Business Outcome</span>
+              <span>Financial Effect</span>
+              <span>Management Decision</span>
+            </div>
+            <div class="ai-decisions" aria-label="Decizii manageriale">
+              <span>SCALE</span><span>OPTIMIZE</span><span>PILOT</span><span>REDESIGN</span><span>STOP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="proof-cases sec sec--light" id="cases">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Dovezi</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Cum arată în practică</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Scenarii anonime ale proprietarilor și ce schimbă FINMENTOR. Fără cifre inventate și fără garanții — doar logica de lucru.</p>
+        </div>
+        <div class="results__grid">
+          <article class="result-card reveal" data-reveal-delay="1">
+            <div class="result-row"><span class="result-row__label">Problema</span><p>Profit există, dar banii nu ajung — banii rămâneau blocați în creanțe, stocuri și plăți haotice.</p></div>
+            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Cash Flow, registrul creanțelor/datoriilor, calendarul plăților și prioritățile de plată.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Proprietarul vede golul de numerar cu 30 de zile înainte și primește un plan de acțiuni.</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="2">
+            <div class="result-row"><span class="result-row__label">Problema</span><p>Plăți în fiecare zi, dar fără priorități — deciziile se luau manual.</p></div>
+            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Logica acoperirii pe 7/14/30 de zile, plățile critice și ordinea aprobării.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Disciplină de plată în locul regimului manual „cine cere mai tare”.</p></div>
+          </article>
+          <article class="result-card reveal" data-reveal-delay="3">
+            <div class="result-row"><span class="result-row__label">Problema</span><p>Mult Excel, dar nicio imagine unică — profitul, banii și obligațiile stau separat.</p></div>
+            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Structura P&L-ului managerial, Cash Flow și dashboard-ul proprietarului.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Proprietarul vede profitul, banii și obligațiile într-o singură imagine.</p></div>
+          </article>
+        </div>
+        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Vedeți toate scenariile de control →</a></p>
+
+        <h3 class="subhead reveal">Ce primiți după diagnostic</h3>
+        <ul class="deliv-list reveal">
+          <li><strong>Diagnostic memo</strong> — harta problemelor și riscurilor financiare</li>
+          <li><strong>Risk map</strong> — prioritizarea riscurilor și quick wins</li>
+          <li><strong>Document checklist</strong> — ce este necesar pentru diagnostic</li>
+          <li><strong>Cash Flow / P&amp;L structure</strong> — logica managerială</li>
+          <li><strong>Payment calendar logic</strong> — priorități și acoperire</li>
+          <li><strong>Action plan</strong> — plan pentru 30 / 60 / 90 de zile</li>
+          <li><strong>Owner dashboard concept</strong> — ce vede proprietarul</li>
+          <li><strong>Recommendation</strong> — formatul și pachetul recomandat</li>
+        </ul>
+
+        <h3 class="subhead reveal">Exemplu de rezultat</h3>
+        <div class="sample-grid">
+          <article class="sample-card reveal">
+            <div class="sample-card__bar"><span class="sample-card__name">Notă de diagnostic</span><span class="sample-card__tag">Exemplu</span></div>
+            <div class="sample-card__body">
+              <div class="so-line"><span class="so-line__k">Problema-cheie</span><span class="so-line__v">Banii există în circulație, dar nu se văd în management</span></div>
+              <div class="so-line"><span class="so-line__k">Prima concluzie</span><span class="so-line__v">Este nevoie de Cash Flow și de controlul obligațiilor</span></div>
+              <div class="so-line"><span class="so-line__k">Focus</span><span class="so-line__v">Profit · plăți · riscuri</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Concluzie clară și primul pas</div>
+            </div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="1">
+            <div class="sample-card__bar"><span class="sample-card__name">Harta riscurilor</span><span class="sample-card__tag">Exemplu</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Creanțe</b></span><span class="so-row__v">ridicat</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>Depozit</b></span><span class="so-row__v">mediu</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>Calendarul plăților</b></span><span class="so-row__v">control</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Prioritate — primele 30 de zile</div>
+            </div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="2">
+            <div class="sample-card__bar"><span class="sample-card__name">Lista documentelor</span><span class="sample-card__tag">Exemplu</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Bank statements</span><span class="so-pill so-pill--done">gata</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>P&amp;L · Cash Flow</span><span class="so-pill so-pill--done">gata</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>AR / AP aging</span><span class="so-pill so-pill--req">de solicitat</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Contracte · condiții de plată</span><span class="so-pill so-pill--req">de solicitat</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Ce este gata / ce se solicită</div>
+            </div>
+          </article>
+          <article class="sample-card reveal" data-reveal-delay="3">
+            <div class="sample-card__bar"><span class="sample-card__name">Panoul proprietarului</span><span class="sample-card__tag">Exemplu</span></div>
+            <div class="sample-card__body">
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Poziția de numerar</span><span class="so-row__v">în regulă</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Marjă</span><span class="so-row__v">sub control</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Plăți de achitat</span><span class="so-row__v">atenție</span></div>
+              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Capital de lucru</span><span class="so-row__v">atenție</span></div>
+              <div class="so-foot"><span class="so-foot__dot"></span>Owner view: ce necesită decizie</div>
+            </div>
+          </article>
+        </div>
+        <p class="sample-note">Acestea sunt mostre de prezentare anonimizate, fără date reale ale clienților. Concluziile finale pentru afacerea dvs. se formează după diagnostic.</p>
+      </div>
+    </section>
+
+<section class="about" id="about">
+      <div class="container about__grid">
+        <div class="about__portrait reveal">
+          <figure class="portrait">
+            <picture class="portrait__picture">
+              <source type="image/webp" media="(max-width: 640px)" srcset="portrait-mobile.webp 430w" sizes="min(86vw, 340px)" />
+              <source type="image/webp" srcset="portrait-medium.webp 520w, portrait-large.webp 780w" sizes="(max-width: 860px) 340px, 420px" />
+              <img class="portrait__img" src="../portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Ghennadi Iacovlev — CFO extern, FINMENTOR" loading="lazy" decoding="async" />
+            </picture>
+          </figure>
+        </div>
+
+        <div class="about__body">
+          <p class="overline reveal">Cine stă în spatele FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Cine stă în spatele FINMENTOR</h2>
+          <p class="about__lead reveal" data-reveal-delay="2">
+            FINMENTOR este un sistem financiar pe care l-am construit eu însumi, pe baza practicii mele de mulți ani ca director financiar și a lucrului cu afaceri reale ale proprietarilor.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="3">
+            Nu am creat acest sistem în teorie. El a crescut din sarcini practice: goluri de numerar, control slab al plăților, profit neclar, creanțe blocate, cheltuieli negestionate, riscuri ale chiriașilor, decizii de investiții, imobile, depozite, comenzi, marjă și KPI.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="4">
+            În FINMENTOR am reunit ceea ce îi trebuie cu adevărat proprietarului pentru management: Cash Flow, P&L, obligații, creanțe, plăți, marjă, riscuri, KPI și dashboard într-o singură logică. Nu este un șablon „pentru toți”, ci un sistem care se configurează pe economia fiecărui business.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="5">
+            Pentru mine, FINMENTOR nu este doar consultanță. Este o metodologie personală de control financiar, al cărei scop este să-i ofere proprietarului o imagine clară a afacerii și un instrument de decizie prin cifre.
+          </p>
+          <p class="about__text reveal" data-reveal-delay="6">
+            Instrumentele digitale moderne și automatizarea ajută la procesarea mai rapidă a datelor și la menținerea calității, dar concluziile finale și recomandările trec întotdeauna prin validarea expertului.
+          </p>
+
+          <div class="anchor-list reveal" data-reveal-delay="7">
+            <span><b>Abordare de CFO</b> — funcția directorului financiar</span>
+            <span>Fundament Big4 / IFRS</span>
+            <span>Raportare managerială</span>
+            <span>Cash flow &amp; treasury control</span>
+            <span>Modele investiționale și operaționale</span>
+            <span>Mai multe persoane juridice, proiecte și imobile</span>
+          </div>
+
+
+          <div class="trust-links reveal" data-reveal-delay="8">
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot">FINMENTOR Bot</a>
+            <a href="mailto:cfo@finmentor.md" data-ga="click_email">Email</a>
+            <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin">LinkedIn</a>
+            <span class="trust-links__meet">Întâlnire personală la Chișinău — prin acord prealabil</span>
+          </div>
+
+          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="9" data-ga="click_discovery_call">Discutați afacerea dvs.</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec sec--alt" id="mini-scan">
+      <div class="container">
+        <div class="cta-band">
+          <p class="overline reveal">Start ușor · 3 minute</p>
+          <p class="cta-band__title reveal">Nu sunteți gata de radiografia completă? Începeți cu mini-scanarea capitalului de lucru</p>
+          <p class="cta-band__text reveal">9 întrebări arată unde pot rămâne blocați banii: creanțe, stocuri, avansuri, condițiile furnizorilor sau disciplina de plată. Este un prim CFO-triage, nu un diagnostic complet.</p>
+          <div class="cta-band__row reveal">
+            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Deschideți mini-scanarea</a>
+            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Detalii despre capitalul de lucru →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec materials sec--light" id="knowledge">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Materiale</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Materiale FINMENTOR</h2>
+        <p class="section-lead reveal" data-reveal-delay="2">Practica, metodologia și dezvoltările proprii FINMENTOR: observații din lucrul real cu banii, marja și controlul managerial. Baza completă — pe pagina de materiale.</p>
+        </div>
+        <div class="materials-grid">
+          <a class="material-card reveal" href="supplier-shelf-credit.html" data-reveal-delay="2"><span class="material-card__tag">Metodologie · Retail</span><span class="material-card__title">Supplier Shelf Credit: cine finanțează raftul comercial</span><span class="material-card__arrow">Citiți →</span></a>
+          <a class="material-card reveal" href="pribyl-vs-cash.html" data-reveal-delay="3"><span class="material-card__tag">Bani și profit</span><span class="material-card__title">Profit există, bani nu: P&L și Cash</span><span class="material-card__arrow">Citiți →</span></a>
+          <a class="material-card reveal" href="capacity-released.html" data-reveal-delay="4"><span class="material-card__tag">AI Economics</span><span class="material-card__title">Capacity Released &ne; Cash Saving</span><span class="material-card__arrow">Citiți →</span></a>
+          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="5"><span class="material-card__tag">Capital de lucru</span><span class="material-card__title">Capitalul de lucru: unde sunt blocați banii</span><span class="material-card__arrow">Citiți →</span></a>
+        </div>
+        <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
+          <a href="materials.html" class="btn btn--ghost btn--lg">Vedeți articolele</a>
+          <a href="templates.html" class="btn btn--ghost btn--lg">Solicitați șablonul</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec after" id="after">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">După solicitare</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Ce se întâmplă după solicitare</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Proces transparent, fără necunoscute — înțelegeți fiecare pas următor.</p>
+        </div>
+        <div class="after-grid">
+          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Parcurgeți <strong>Radiografia Financiară</strong> sau scrieți direct în FINMENTOR Bot.</p></div>
+          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR analizează contextul și stabilește <strong>ce trebuie clarificat</strong>.</p></div>
+          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">La <strong>Discovery Call</strong> discutăm afacerea, datele și durerea principală.</p></div>
+          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Se formează <strong>lista documentelor</strong> și formatul de lucru recomandat.</p></div>
+          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Concluziile finale și costul se convin <strong>după înțelegerea volumului</strong>.</p></div>
+        </div>
+        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Important</span><p>AI poate pregăti o schiță de analiză și poate accelera pregătirea, dar concluziile finale despre afacerea dvs. sunt confirmate de un om.</p></div>
+      </div>
+    </section>
+
+<section class="consult" id="consult">
+      <div class="consult__glow" aria-hidden="true"></div>
+      <div class="container consult__grid">
+        <div class="consult__intro">
+          <p class="overline reveal">Consultație</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Analizăm afacerea dvs. într-o singură consultație</h2>
+          <p class="consult__lead reveal" data-reveal-delay="2">
+            Vă arăt unde se pierd banii și controlul — și cum se construiește sistemul de management al afacerii.
+          </p>
+          <ul class="consult__points reveal" data-reveal-delay="3">
+            <li>Analiză clară: unde se pierd banii și profitul</li>
+            <li>Decizii prioritare pentru afacerea dvs.</li>
+            <li>Înțelegerea pasului următor — fără obligații</li>
+          </ul>
+          <p class="contact-bot-note">Lăsați un mesaj prin FINMENTOR Bot — botul colectează informația de bază despre solicitare și o transmite pentru răspuns.</p>
+          <div class="contact-strip">
+          <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
+          <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn-ul lui Ghennadi Iacovlev"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+        </div>
+        </div>
+
+        <form class="form glass reveal" id="consultForm" data-reveal-delay="2" novalidate>
+          <div class="field">
+            <label for="f-name">Nume</label>
+            <input id="f-name" name="name" type="text" autocomplete="name" placeholder="Cum să vă adresăm" required />
+          </div>
+          <div class="field">
+            <label for="f-contact">Email sau messenger</label>
+            <input id="f-contact" name="contact" type="text" placeholder="Email, Telegram sau telefon" required />
+          </div>
+          <div class="field">
+            <label for="f-biz">Tip de business / industrie</label>
+            <input id="f-biz" name="business" type="text" placeholder="Ex.: imobiliare, comerț, producție" />
+          </div>
+          <div class="field">
+            <label for="f-msg">Pe scurt despre sarcină <span class="field__opt">(opțional)</span></label>
+            <textarea id="f-msg" name="message" rows="3" placeholder="Ce doriți să analizăm?"></textarea>
+          </div>
+          <label class="consent" for="f-consent">
+            <input type="checkbox" id="f-consent" name="consent" class="consent__box" required />
+            <span class="consent__text">Sunt de acord cu prelucrarea datelor cu caracter personal conform <a href="privacy.html" target="_blank" rel="noopener">Politicii de confidențialitate</a>.</span>
+          </label>
+          <button type="submit" class="btn btn--primary btn--lg form__submit">Vreau o analiză a afacerii mele</button>
+          <p class="form__note">Răspund în cursul unei zile lucrătoare. Confidențialitate garantată.</p>
+          <p class="form-consent">Trimițând formularul, confirm că am luat cunoștință de <a href="privacy.html">Politica de confidențialitate</a> și sunt de acord cu prelucrarea datelor pentru a fi contactat și pentru examinarea solicitării mele.</p>
+          <p class="form__fallback">Dacă formularul nu a funcționat, scrieți direct:
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> ·
+            <a href="mailto:cfo@finmentor.md">Email</a>
+          </p>
+          <div class="form__success" id="formSuccess" hidden>
+            <strong>Mulțumim! Solicitarea a fost primită.</strong> Vă voi contacta. Pentru un răspuns rapid, scrieți direct:
+            <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> ·
+            <a href="mailto:cfo@finmentor.md">Email</a>.
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contacts">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="#top" aria-label="finmentor — sus"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">De la haos financiar — la un sistem de management al afacerii.</p>
+          <div class="contact-strip contact-strip--footer">
+          <a class="contact-btn" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> FINMENTOR Bot</a>
+          <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn-ul lui Ghennadi Iacovlev"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+        </div>
+        </div>
+
+        <nav class="footer__col" aria-label="Subsol — navigare">
+          <span class="footer__col-label">Secțiuni</span>
+          <a href="#about">Despre proiect</a>
+          <a href="#steps">Cum lucrăm</a>
+          <a href="#solutions">Soluții</a>
+          <a href="#cases">Studii de caz</a>
+          <a href="materials.html">Materiale</a>
+          <a href="questionnaire.html">Radiografia Financiară</a>
+        </nav>
+
+        <div class="footer__col">
+          <span class="footer__col-label">Contacte</span>
+          <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
+          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+          <span class="footer__muted">Chișinău, Moldova</span>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 FINMENTOR™. Toate drepturile rezervate.</span>
+        <span class="footer__legal">
+          <a href="privacy.html">Politica de confidențialitate</a>
+          <a href="terms.html">Condiții de utilizare a materialelor</a>
+          <span class="footer__muted">FINMENTOR · Moldova / International</span>
+        </span>
+      </div>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris.</p>
+    </div>
+  </footer>
+
+  <script src="../i18n-ro.js"></script>
+  <script src="../lang.js"></script>
+  <script src="../main.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>
