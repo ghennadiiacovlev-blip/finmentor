@@ -675,7 +675,16 @@
       }
 
       if (submit) submit.disabled = true;
-      postLeadPayload(payload).then(function () {
+      var enrichPromise = Promise.resolve(payload);
+      if (window.FMAnalytics && typeof window.FMAnalytics.enrichLeadPayload === 'function') {
+        try { enrichPromise = window.FMAnalytics.enrichLeadPayload(payload, 1800); } catch (e) {}
+      } else {
+        payload.meta.analytics_consent = false;
+      }
+      enrichPromise.catch(function () { return payload; }).then(function (enrichedPayload) {
+        payload = enrichedPayload || payload;
+        return postLeadPayload(payload);
+      }).then(function () {
         thankYou('contact');
       }).catch(function () {
         if (submit) submit.disabled = false;

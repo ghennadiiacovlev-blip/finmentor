@@ -270,6 +270,62 @@
     closeBanner(banner);
   }
 
+  function getAttributionContext(timeoutMs) {
+    return new Promise(function (resolve) {
+      var out = { analytics_consent: getChoice() === 'accept' };
+      if (!out.analytics_consent || !configured || typeof window.gtag !== 'function' || window.gtag === noopGtag) {
+        resolve(out);
+        return;
+      }
+
+      var finished = false;
+      var pending = 2;
+      var waitMs = (typeof timeoutMs === 'number' && timeoutMs >= 0) ? timeoutMs : 1800;
+      var timer = window.setTimeout(finish, waitMs);
+
+      function finish() {
+        if (finished) return;
+        finished = true;
+        window.clearTimeout(timer);
+        resolve(out);
+      }
+
+      function capture(key, value) {
+        if (finished) return;
+        var clean = String(value === undefined || value === null ? '' : value).trim().slice(0, 120);
+        if (clean) out[key] = clean;
+        pending -= 1;
+        if (pending <= 0) finish();
+      }
+
+      try {
+        window.gtag('get', GA4_ID, 'client_id', function (value) { capture('ga_client_id', value); });
+        window.gtag('get', GA4_ID, 'session_id', function (value) { capture('ga_session_id', value); });
+      } catch (e) {
+        finish();
+      }
+    });
+  }
+
+  function enrichLeadPayload(payload, timeoutMs) {
+    payload = (payload && typeof payload === 'object') ? payload : {};
+    payload.meta = (payload.meta && typeof payload.meta === 'object') ? payload.meta : {};
+
+    return getAttributionContext(timeoutMs).then(function (context) {
+      payload.meta.analytics_consent = !!context.analytics_consent;
+      delete payload.meta.ga_client_id;
+      delete payload.meta.ga_session_id;
+      if (context.ga_client_id) payload.meta.ga_client_id = context.ga_client_id;
+      if (context.ga_session_id) payload.meta.ga_session_id = context.ga_session_id;
+      return payload;
+    }, function () {
+      payload.meta.analytics_consent = getChoice() === 'accept';
+      delete payload.meta.ga_client_id;
+      delete payload.meta.ga_session_id;
+      return payload;
+    });
+  }
+
   function initConsentUi() {
     if (bannerMounted) return;
 
@@ -318,6 +374,8 @@
       choose(choice, document.querySelector('.fm-cookie[data-fm-analytics-consent="1"]'));
     },
     getConsent: getChoice,
+    getAttributionContext: getAttributionContext,
+    enrichLeadPayload: enrichLeadPayload,
     isLoaded: function () { return loaded; }
   };
 
