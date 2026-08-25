@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Read-model generation / concurrency design
 
-Status: **DESIGN DECISION / QA PROOF REQUIRED**  
+Status: **DESIGN DECISION / QA PARTIAL PASS**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -61,7 +61,7 @@ For writers that mutate mirrored fields (`Save Bot Session`, `Save Intake State`
 4. If the authoritative write fails, leave the tombstone / MISS state; never publish the attempted new projection.
 5. After authoritative commit succeeds, the sync helper re-reads the authoritative `Bot_Sessions` row by `chat_id`.
 6. Compute the safe projection and `projection_version` from that authoritative row.
-7. Before publishing the derived row, re-read the Data Table tombstone and require `sync_token` to still equal the helper token.
+7. Before publishing, re-read the Data Table tombstone and require `sync_token` to still equal the helper token.
 8. If the token differs, a newer mutation has started; abort the older helper without publishing.
 9. If the token still matches, upsert the safe projection with `cache_valid=true`, the same `sync_token`, `projection_version`, `source_updated_at`, and `mirror_updated_at`.
 10. Read-after-write verify exact one-row match, token equality, projection version equality, and current-cycle fields.
@@ -122,27 +122,35 @@ Safe resume fields plus consistency metadata:
 
 Do not mirror raw Telegram payloads, notes, `previous_lead_id`, or n8n internal row metadata into the Mini App response.
 
-## QA matrix required before production writer changes
+## QA evidence already passed
+
+QA mirror helper `OwLC7SANtHo69SKo` has proven:
+
+- normal upsert + read-after-write verify;
+- identical replay is idempotent and remains one row;
+- cycle changes propagate in the derived projection;
+- forced `projection_version` mismatch invalidates/deletes the derived row;
+- a missing row after skipped/failed publish produces safe MISS;
+- stale consent/lead guards remain false when cycle binding is not current;
+- unknown-user and hostile-browser identity/state handling remain safe from the earlier harness.
+
+The existing publish-failure test is not yet the strongest failure test because the row was already absent before the simulated upsert failure. The production gate requires proof that a previously valid derived row cannot survive a failed new publish as a stale HIT.
+
+## QA matrix still required before production writer changes
 
 Use QA infrastructure only and prove:
 
-1. normal mutation: invalidate → authoritative commit simulation → authoritative re-read → publish → verify;
-2. repeated same mutation is idempotent and remains one row;
-3. authoritative write failure leaves MISS/tombstone, never attempted new state;
-4. mirror upsert failure leaves/returns to MISS;
-5. verification mismatch invalidates derived row;
-6. duplicate derived rows force fallback;
-7. Data Table outage forces fallback;
-8. stale consent and stale lead cycle bindings remain false;
-9. unknown user never receives another row;
-10. hostile browser identity/state is ignored;
-11. **concurrency A/B:** newer mutation changes `sync_token`; older helper attempts to publish and must abort;
-12. **concurrency B/A completion reversal:** final published projection must correspond to the authoritative row and newest valid token, not helper completion order;
-13. confirmation-only writer requires no mirror and does not invalidate the read model;
-14. reconciliation can rebuild derived rows idempotently from authoritative `Bot_Sessions`.
+1. **strong publish-failure invalidation:** begin with `cache_valid=true` old row, establish a new tombstone/sync token, force the new mirror publish to fail, and prove the old state is not readable as HIT;
+2. duplicate derived rows force fallback;
+3. Data Table outage forces fallback;
+4. MISS forces authoritative fallback and safe repair selection;
+5. concurrency A/B: mutation A starts, mutation B replaces `sync_token`, helper A later attempts publish and must abort;
+6. concurrency B/A completion reversal: helper completion order must not determine the final cache; newest active token plus authoritative re-read governs publication;
+7. confirmation-only writer requires no mirror and does not invalidate the read model;
+8. reconciliation/backfill rebuilds rows idempotently from authoritative `Bot_Sessions`.
 
 ## Production boundary
 
 Do not yet modify production writers, backfill a production Data Table, activate reconciliation, merge PR #10, or begin B.2.1-C.
 
-Only after the QA matrix passes should a controlled production mirror gate be designed.
+Only after the remaining QA matrix passes should a controlled production mirror gate be designed.
