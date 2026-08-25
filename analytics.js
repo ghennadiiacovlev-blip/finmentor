@@ -51,6 +51,50 @@
     return out;
   }
 
+  // GA4 must never receive arbitrary URL query. Only this whitelist of non-identifying
+  // parameters survives into page_location/page_path. Everything else is dropped, so a
+  // PII-bearing link cannot turn into a GA dimension after the visitor accepts analytics.
+  var URL_PARAM_ALLOW = {
+    tool: true,
+    utm_source: true, utm_medium: true, utm_campaign: true, utm_content: true, utm_term: true,
+    topic: true, model: true, pain: true, intent: true, source: true,
+    lang: true, debug_ga4: true
+  };
+
+  function scrubbedParamValue(value) {
+    return String(value === undefined || value === null ? '' : value)
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig, '')
+      .replace(/\+?\d[\d\s().-]{6,}\d/g, '')
+      .slice(0, 100);
+  }
+
+  function safeQueryString() {
+    var out = [];
+    try {
+      new URLSearchParams(location.search || '').forEach(function (value, key) {
+        if (!URL_PARAM_ALLOW[key]) return;
+        var clean = scrubbedParamValue(value);
+        // Only plain tokens survive. Free text, encoded payloads and anything left
+        // hollowed out by the scrubbers above are all rejected outright.
+        if (!/^[A-Za-z0-9_.-]{1,64}$/.test(clean)) return;
+        out.push(encodeURIComponent(key) + '=' + encodeURIComponent(clean));
+      });
+    } catch (e) {
+      return '';
+    }
+    return out.length ? '?' + out.join('&') : '';
+  }
+
+  // Path and location are rebuilt from origin + pathname + whitelisted query. The raw
+  // location.href and location.search are never handed to GA, and the fragment is dropped.
+  function safePagePath() {
+    return (location.pathname || '/') + safeQueryString();
+  }
+
+  function safePageLocation() {
+    return location.origin + safePagePath();
+  }
+
   // Before consent we intentionally discard analytics events instead of queuing
   // them for later transmission. Google code itself is not loaded until consent.
   function noopGtag() {}
@@ -81,15 +125,34 @@
     }
   }
 
+  // All three lead tools report the same conversion. mini_scan used to redirect to
+  // thank-you without ever emitting generate_lead, so those leads were never counted.
+  var LEAD_TOOLS = {
+    contact:       { form_name: 'consultation',              lead_type: 'consultation' },
+    xray_extended: { form_name: 'financial_xray',            lead_type: 'financial_xray' },
+    mini_scan:     { form_name: 'working_capital_mini_scan', lead_type: 'working_capital_mini_scan' }
+  };
+
   function emitConfirmedLead() {
     if (!/\/thank-you\.html$/i.test(location.pathname || '')) return;
 
     var tool = '';
-    try { tool = (new URLSearchParams(location.search || '')).get('tool') || ''; } catch (e) {}
-    if (tool !== 'contact' && tool !== 'xray_extended') return;
+    var submissionId = '';
+    try {
+      var params = new URLSearchParams(location.search || '');
+      tool = params.get('tool') || '';
+      submissionId = params.get('sid') || '';
+    } catch (e) {}
+
+    var meta = LEAD_TOOLS[tool];
+    if (!meta) return;
+    // Reaching thank-you only counts when it followed a same-origin submission.
     if (!sameOriginReferrer()) return;
 
-    var dedupeKey = 'finmentor_ga4_generate_lead:' + tool;
+    // Dedupe on the submission id, so a genuine second lead from the same tool in the
+    // same tab is still counted. Keying on the tool alone suppressed it for the whole
+    // session. Falls back to the tool name when no id is present.
+    var dedupeKey = 'finmentor_ga4_generate_lead:' + (submissionId || tool);
     try {
       if (sessionStorage.getItem(dedupeKey) === '1') return;
       sessionStorage.setItem(dedupeKey, '1');
@@ -99,8 +162,8 @@
       source: 'website',
       page_slug: 'thank-you',
       site_language: document.documentElement.lang || '',
-      form_name: tool === 'xray_extended' ? 'financial_xray' : 'consultation',
-      lead_type: tool === 'xray_extended' ? 'financial_xray' : 'consultation'
+      form_name: meta.form_name,
+      lead_type: meta.lead_type
     });
   }
 
@@ -209,9 +272,9 @@
     });
 
     window.gtag('event', 'page_view', {
-      page_location: location.href,
+      page_location: safePageLocation(),
       page_title: document.title,
-      page_path: location.pathname + location.search,
+      page_path: safePagePath(),
       language: document.documentElement.lang || '',
       debug_mode: debug
     });
@@ -376,6 +439,9 @@
     getConsent: getChoice,
     getAttributionContext: getAttributionContext,
     enrichLeadPayload: enrichLeadPayload,
+    // Exposed so the regression suite can assert the query scrubber directly.
+    safePagePath: safePagePath,
+    safePageLocation: safePageLocation,
     isLoaded: function () { return loaded; }
   };
 

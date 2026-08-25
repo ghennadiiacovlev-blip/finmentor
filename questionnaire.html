@@ -10,6 +10,7 @@
   -->
   <!-- FINMENTOR analytics: consent-aware loader -->
   <script src="analytics.js"></script>
+  <script src="lead-transport.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
@@ -21,7 +22,7 @@
   <link rel="canonical" href="https://www.finmentor.md/questionnaire.html" />
   <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/questionnaire.html" />
   <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/questionnaire.html" />
-  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/questionnaire.html" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Финансовый рентген бизнеса — Cash Flow, P&amp;L, KPI и риски | FINMENTOR" />
   <meta property="og:description" content="Быстрый финансовый рентген FINMENTOR: Cash Flow, P&amp;L, платежи, дебиторка, маржа, KPI, автоматизация и риски. Расширенная диагностика готовит контекст к Financial Health Check." />
@@ -1548,26 +1549,12 @@
     }
   }
 
+  // Success requires HTTP 2xx AND a JSON body with ok === true. That is the only signal
+  // that Lead Intake durably committed the canonical Pipeline row; a bare 2xx is not.
   function postQuestionnairePayload(payload) {
     if (!hasWebhookUrl()) return Promise.reject(new Error('webhook_not_configured'));
-    var controller = window.AbortController ? new AbortController() : null;
-    var timer = controller ? setTimeout(function () { controller.abort(); }, 12000) : null;
-    return fetch(FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'omit',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller ? controller.signal : undefined
-    }).then(function (r) {
-      if (timer) clearTimeout(timer);
-      if (!r.ok) throw new Error('webhook_status_' + r.status);
-      return r;
-    }).catch(function (err) {
-      if (timer) clearTimeout(timer);
-      throw err;
-    });
+    if (!window.FMLeadTransport) return Promise.reject(new Error('transport_unavailable'));
+    return window.FMLeadTransport.postLead(FINMENTOR_QUESTIONNAIRE_WEBHOOK_URL, payload, { timeoutMs: 12000 });
   }
 
   function showSuccess(sent, message) {
@@ -1610,7 +1597,7 @@
       payload = enrichedPayload || payload;
       return postQuestionnairePayload(payload);
     })
-      .then(function () {
+      .then(function (result) {
         setSubmitting(false);
         trackSafe('lead_submit', {
           source: 'website_questionnaire',
@@ -1621,7 +1608,9 @@
           industry_category: (payload.diagnostic && payload.diagnostic.business_model_key) || payload.business_profile.industry_category || 'unknown',
           desired_first_step: payload.main_pain.desired_first_step || 'unknown'
         });
-        window.location.href = 'thank-you.html?tool=xray_extended';
+        window.location.href = window.FMLeadTransport
+          ? window.FMLeadTransport.thankYouUrl('xray_extended', result && result.requestId)
+          : 'thank-you.html?tool=xray_extended';
       })
       .catch(function () {
         setSubmitting(false);

@@ -10,6 +10,7 @@
   -->
   <!-- FINMENTOR analytics: consent-aware loader -->
   <script src="analytics.js"></script>
+  <script src="lead-transport.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
@@ -21,7 +22,7 @@
   <link rel="canonical" href="https://www.finmentor.md/working-capital-scan.html" />
   <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/working-capital-scan.html" />
   <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/working-capital-scan.html" />
-  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/working-capital-scan.html" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Мини-скан оборотного капитала | FINMENTOR" />
   <meta property="og:description" content="9 вопросов за 3 минуты — где в бизнесе могут застревать деньги." />
@@ -461,27 +462,13 @@
       meta: scanMeta(!!(scanConsent && scanConsent.checked))
     };
   }
+  // Success requires HTTP 2xx AND a JSON body with ok === true. That is the only signal
+  // that Lead Intake durably committed the canonical Pipeline row; a bare 2xx is not.
   function postMiniScan(payload) {
     var url = webhookUrl();
     if (!url) return Promise.reject(new Error('webhook_not_configured'));
-    var controller = window.AbortController ? new AbortController() : null;
-    var timer = controller ? setTimeout(function () { controller.abort(); }, 12000) : null;
-    return fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'omit',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller ? controller.signal : undefined
-    }).then(function (r) {
-      if (timer) clearTimeout(timer);
-      if (!r.ok) throw new Error('webhook_status_' + r.status);
-      return r;
-    }).catch(function (err) {
-      if (timer) clearTimeout(timer);
-      throw err;
-    });
+    if (!window.FMLeadTransport) return Promise.reject(new Error('transport_unavailable'));
+    return window.FMLeadTransport.postLead(url, payload, { timeoutMs: 12000 });
   }
   function buildShareText() {
     if (!lastResult) return '';
@@ -524,9 +511,11 @@
     sendBtn.disabled = true;
     showSendStatus('Отправляем результат...', false);
     var payload = buildPayload();
-    postMiniScan(payload).then(function () {
+    postMiniScan(payload).then(function (result) {
       ga('lead_submit', { tool: 'mini_scan', score_zone: payload.signals.score_zone, first_step: payload.signals.first_step });
-      window.location.href = 'thank-you.html?tool=mini_scan';
+      window.location.href = window.FMLeadTransport
+        ? window.FMLeadTransport.thankYouUrl('mini_scan', result && result.requestId)
+        : 'thank-you.html?tool=mini_scan';
     }).catch(function () {
       sendBtn.disabled = false;
       showSendStatus('Не удалось автоматически отправить результат. Скопируйте результат или откройте FINMENTOR Bot.', true);
