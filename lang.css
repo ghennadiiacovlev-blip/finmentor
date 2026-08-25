@@ -178,3 +178,6 @@ html.lang-gate-pending body { overflow: hidden; }
   .header__cta { --btn-px: 9px; font-size: 0.72rem; }
   .header .lang__btn { padding: 5px 8px; font-size: 0.66rem; }
 }
+
+/* Homepage accessibility: improve small note contrast on light/dark surfaces. */
+.sample-note { color: var(--text-secondary) !important; }
