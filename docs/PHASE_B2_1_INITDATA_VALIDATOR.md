@@ -78,7 +78,7 @@ deep%2541link%20with%20space%2Fslash%2Bplus
 
 A second decode would incorrectly change `%41` into `A`; that path is rejected by design.
 
-The raw `+` decision is now locked for the B.2.1 implementation because it is the path actually proven in the target n8n sandbox. A live Telegram `initData` canary remains mandatory before production activation; if Telegram live data demonstrates a different transport encoding, this decision must be revisited from evidence rather than silently changed.
+The raw `+` decision is locked for the B.2.1 implementation because it is the path proven in the target n8n sandbox. A live Telegram `initData` canary remains mandatory before production activation; if live Telegram data demonstrates a different transport encoding, this decision must be revisited from evidence rather than silently changed.
 
 ### Sorting decision
 
@@ -143,7 +143,7 @@ Conclusion: cryptographic validation itself is negligible relative to the curren
 
 ## 6. Repository implementation consequence
 
-The reference implementation in `gateway/telegram-initdata.mjs` is required to mirror the proven target-runtime behavior:
+The reference implementation in `gateway/telegram-initdata.mjs` now mirrors the proven target-runtime behavior:
 
 - no dependency on `URLSearchParams`;
 - one-pass strict percent decoding;
@@ -153,7 +153,9 @@ The reference implementation in `gateway/telegram-initdata.mjs` is required to m
 - Ed25519 data-check-string excludes `hash` and `signature`;
 - freshness enforced after signature validity.
 
-Tests in `gateway/telegram-initdata.test.mjs` cover these rules.
+Tests in `gateway/telegram-initdata.test.mjs` cover these rules, including malformed percent escapes, duplicate decoded keys, strict one-pass decoding, raw-plus behavior, canonical order independence, bot-ID tamper, added/removed fields, behavioral hash exclusion and Telegram production-key import.
+
+The GitHub Actions validator gate passed after these runtime-alignment changes.
 
 ## 7. Remaining gap
 
