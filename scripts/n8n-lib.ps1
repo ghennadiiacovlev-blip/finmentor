@@ -36,7 +36,12 @@ function Invoke-N8n {
         $json = $Body | ConvertTo-Json -Depth 100
         return Invoke-RestMethod -Method $Method -Uri $uri -Headers $ctx.Headers -ContentType 'application/json' -Body $json
     }
-    Invoke-RestMethod -Method $Method -Uri $uri -Headers $ctx.Headers
+    # Bodyless POSTs (activate/deactivate) still need an explicit JSON content type;
+    # PowerShell otherwise defaults to form-urlencoded and n8n rejects it.
+    if ($Method -eq 'Get') {
+        return Invoke-RestMethod -Method $Method -Uri $uri -Headers $ctx.Headers
+    }
+    Invoke-RestMethod -Method $Method -Uri $uri -Headers $ctx.Headers -ContentType 'application/json'
 }
 
 function Get-N8nWorkflow {
