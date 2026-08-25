@@ -5,10 +5,10 @@
   "active": false,
   "activeVersionId": null,
   "createdAt": "2026-07-01T07:57:13.388Z",
-  "updatedAt": "2026-08-24T14:30:22.418Z",
+  "updatedAt": "2026-08-25T17:37:00.02Z",
   "isArchived": false,
   "versionId": "40aa1cba-72ac-4e85-864a-73b4d8dce2ab",
-  "versionCounter": 17,
+  "versionCounter": 18,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -807,7 +807,7 @@
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
-    "availableInMCP": true
+    "availableInMCP": false
   },
   "staticData": null,
   "meta": null,

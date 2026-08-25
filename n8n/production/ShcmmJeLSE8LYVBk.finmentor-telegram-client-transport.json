@@ -5,10 +5,10 @@
   "active": true,
   "activeVersionId": "575e2665-055f-441e-9942-56c62208ac6b",
   "createdAt": "2026-08-25T02:36:07.108Z",
-  "updatedAt": "2026-08-25T02:38:56.282Z",
+  "updatedAt": "2026-08-25T17:39:03.829Z",
   "isArchived": false,
   "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
-  "versionCounter": 2,
+  "versionCounter": 4,
   "sourceWorkflowId": null,
   "triggerCount": 0,
   "nodes": [
@@ -1948,7 +1948,8 @@
   "nodeGroups": [],
   "settings": {
     "executionOrder": "v1",
-    "availableInMCP": true
+    "availableInMCP": false,
+    "errorWorkflow": "RBiFLhVjizMkAzrK"
   },
   "staticData": null,
   "meta": {
@@ -3928,6 +3929,38 @@
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
         "createdAt": "2026-08-25T03:32:47.941Z"
+      },
+      {
+        "id": 70,
+        "workflowId": "ShcmmJeLSE8LYVBk",
+        "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+        "event": "activated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T17:36:55.135Z"
+      },
+      {
+        "id": 82,
+        "workflowId": "ShcmmJeLSE8LYVBk",
+        "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+        "event": "activated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T17:39:03.911Z"
+      },
+      {
+        "id": 69,
+        "workflowId": "ShcmmJeLSE8LYVBk",
+        "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+        "event": "deactivated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T17:36:55.134Z"
+      },
+      {
+        "id": 81,
+        "workflowId": "ShcmmJeLSE8LYVBk",
+        "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+        "event": "deactivated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T17:39:03.91Z"
       }
     ]
   }

@@ -17,6 +17,7 @@ const GATES = [
   ['Command Center authorisation', 'command-center-auth.test.mjs'],
   ['Lead Intake trust boundary', 'lead-intake-trust.test.mjs'],
   ['AI safe projection', 'ai-safe-projection.test.mjs'],
+  ['Error Monitor alert', 'error-alert.test.mjs'],
   ['Website contract', 'website-contract.test.mjs'],
   ['n8n export hygiene', 'n8n-manifest-drift.test.mjs']
 ];

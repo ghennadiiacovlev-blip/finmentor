@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-08-25T17:08:59Z",
+  "generatedAt": "2026-08-25T17:47:11Z",
   "tenantHost": "ghennadi.app.n8n.cloud",
   "spreadsheetId": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
-  "totalWorkflows": 34,
-  "activeWorkflows": 5,
-  "exported": 8,
+  "totalWorkflows": 35,
+  "activeWorkflows": 8,
+  "exported": 9,
   "workflows": [
     {
       "id": "imeJIDeNyaWDyXzh",
       "name": "FINMENTOR Daily Lead Digest PREMIUM FINAL",
-      "active": false,
+      "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 16:38:54",
+      "updatedAt": "08/25/2026 17:39:07",
       "nodeCount": 9,
-      "structuralHash": "3035ec6c558d38cca76a6c97f6e7b0c8fce2007b8ea836f5e96524682b60786f",
+      "structuralHash": "066e34d566d034eff4727878d9dd306b331023a94cd6a8d5781d2b8da93332e2",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.googleSheets",
@@ -28,13 +28,34 @@
       "trackedReason": "Daily Lead Digest - locator repaired, awaiting owner re-activation"
     },
     {
+      "id": "RBiFLhVjizMkAzrK",
+      "name": "FINMENTOR Error Monitor PREMIUM",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:45:32",
+      "nodeCount": 5,
+      "structuralHash": "00235edb5047f2a5049afa64a40b8e0daef75c81bef170a6b2d322d5ff8c56ba",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.errorTrigger",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "RBiFLhVjizMkAzrK.finmentor-error-monitor-premium.json",
+      "trackedReason": ""
+    },
+    {
       "id": "zeLOCuf0K1bkaKl2",
       "name": "FINMENTOR Followup Sequence PREMIUM v2",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 16:38:53",
+      "updatedAt": "08/25/2026 17:39:06",
       "nodeCount": 15,
-      "structuralHash": "353435b5d8cb15a3c30005aa2829ae2ce9a48759e893565c41522c6b9cb75b65",
+      "structuralHash": "5f794b8f42d3184a619e8c1e329a7b9811b34fca1e30750ed5eb1aa539c70476",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.googleSheets",
@@ -54,9 +75,9 @@
       "name": "FINMENTOR Lead Command Center PREMIUM FINAL",
       "active": false,
       "archived": false,
-      "updatedAt": "08/24/2026 14:30:22",
+      "updatedAt": "08/25/2026 17:37:00",
       "nodeCount": 21,
-      "structuralHash": "3409d1984d24d23c019af7d6cd16949ec907e941565d3ea1e37f94604cb3c9b8",
+      "structuralHash": "bb5c2a060057f5ee2ac598141cf76883d5955dd55b0e4df5040a63d4bc7b7c9e",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.googleSheets",
@@ -75,11 +96,11 @@
     {
       "id": "qF9tonlHHIxc8MDd",
       "name": "FINMENTOR Lead Command Center SECURE CANDIDATE",
-      "active": false,
+      "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 16:34:19",
+      "updatedAt": "08/25/2026 17:39:08",
       "nodeCount": 22,
-      "structuralHash": "96938c3f3c0c4894ee6a02b740f0740da02b7399e2d37784ad0557049d126f1f",
+      "structuralHash": "013584e178f9762c6d9ea0665dd83b8137a9f829b66c920bbdd467bb0e0bdf2f",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.googleSheets",
@@ -100,9 +121,9 @@
       "name": "FINMENTOR Lead Intake PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 17:05:16",
+      "updatedAt": "08/25/2026 17:39:01",
       "nodeCount": 57,
-      "structuralHash": "a22cc201a8f377374fd600943c22167091046cf00240545a85a4022f67099148",
+      "structuralHash": "ba14f84c1615995a1b8f91b83b55c085c45e98d381ae496d3f7aacb5428e2148",
       "nodeTypes": [
         "@n8n/n8n-nodes-langchain.openAi",
         "n8n-nodes-base.code",
@@ -127,9 +148,9 @@
       "name": "FINMENTOR SLA Lead Watch PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 16:38:51",
+      "updatedAt": "08/25/2026 17:39:05",
       "nodeCount": 10,
-      "structuralHash": "148e1096d92d10e23336ca8d44e857af3cf37155bf3d394a97ada50d249f6532",
+      "structuralHash": "14cc5ac7a09716b2f9bbcc54eb24e8a15c35300172e40eedb4318d093c71cf0c",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.googleSheets",
@@ -148,9 +169,9 @@
       "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 17:05:51",
+      "updatedAt": "08/25/2026 17:39:02",
       "nodeCount": 33,
-      "structuralHash": "d69c5068b2b67487bcfc4cfdf0736b71be46de1c92a6f617c84e7d7e3429f610",
+      "structuralHash": "a0ce72c3c702be36cf326ca0f8c262953408d5990e72cea0b02f3941747e9e29",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.executeWorkflow",
@@ -172,9 +193,9 @@
       "name": "FINMENTOR Telegram Client Transport",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 02:38:56",
+      "updatedAt": "08/25/2026 17:39:03",
       "nodeCount": 20,
-      "structuralHash": "c62f998b5686a74ad2ba9f5d808e6e1d75bf17334cd942add6b3b0e0fcf6a384",
+      "structuralHash": "f7c15622b34f6d45990250e08a1b5e9bd170c34e3cdfd067e67fab63d2e150c6",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.executeWorkflowTrigger",
