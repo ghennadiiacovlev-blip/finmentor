@@ -19,6 +19,7 @@ const load = (f) => readFileSync(join(SRC, f), 'utf8');
 const normalizeSrc = load('normalize-score-lead.js');
 const dedupSrc = load('dedup-guard.js');
 const mergeSrc = load('build-merge-update.js');
+const buildRowSrc = load('build-pipeline-row.js');
 
 let pass = 0;
 const failures = [];
@@ -50,6 +51,13 @@ function runNormalize({ payload, headers = {}, settings = {}, internalRoute = fa
   if (internalRoute) named['Internal Auth Entry'] = item({ __internal_route: true });
   const fn = new Function('$input', '$', '$now', normalizeSrc);
   const out = fn(item({ payload }), (n) => named[n], new Date().toISOString());
+  return out[0].json ? out[0].json : out[0];
+}
+
+function runBuildRow({ lead, settings = {} }) {
+  const named = { 'Settings to Object': item({ settings }) };
+  const fn = new Function('$input', '$', buildRowSrc);
+  const out = fn(item(lead), (n) => named[n]);
   return out[0].json ? out[0].json : out[0];
 }
 
@@ -386,6 +394,55 @@ check('the authenticated internal route does grant provenance', () => {
 
 check('no source reads internal_intake_key any more', () => {
   assert(!normalizeSrc.match(/settings\.internal_intake_key/), 'normalize still reads the Settings secret');
+});
+
+// -------------------------------------------------- new-lead row writes the eight columns
+
+console.log('\nNEW-LEAD ROW CARRIES THE ATTRIBUTION COLUMNS (Pipeline AZ:BG)');
+
+const ATTR8 = ['request_id', 'analytics_consent', 'ga_client_id', 'ga_session_id',
+  'utm_source_first', 'utm_medium_first', 'utm_campaign_first', 'first_touch_at'];
+
+const newLead = (meta = {}) => ({
+  lead_id: 'FIN-NEW-1', lead_priority: 'COLD', status: 'new', next_action: '',
+  company: 'QA Co', name: 'QA Name', email: 'qa@finmentor-qa.invalid',
+  request_id: 'fmr_new_1',
+  utm_source: 'last_src', utm_medium: 'last_med', utm_campaign: 'last_camp',
+  raw_json: JSON.stringify({ meta })
+});
+
+check('the new-lead row emits all eight attribution columns', () => {
+  const row = runBuildRow({ lead: newLead({ analytics_consent: true }) });
+  for (const f of ATTR8) {
+    assert(Object.prototype.hasOwnProperty.call(row, f), f + ' missing from the new-lead row');
+  }
+});
+
+check('GA identifiers are written on a new lead only under consent', () => {
+  const yes = runBuildRow({ lead: newLead({ analytics_consent: true, ga_client_id: 'GA1.1.9', ga_session_id: 'S9' }) });
+  assert(yes.analytics_consent === 'TRUE', 'consent not recorded: ' + yes.analytics_consent);
+  assert(yes.ga_client_id === 'GA1.1.9' && yes.ga_session_id === 'S9', 'consented GA ids not written');
+
+  const no = runBuildRow({ lead: newLead({ analytics_consent: false, ga_client_id: 'GA1.1.9', ga_session_id: 'S9' }) });
+  assert(no.analytics_consent === 'FALSE', 'refusal not recorded: ' + no.analytics_consent);
+  assert(no.ga_client_id === '' && no.ga_session_id === '', 'GA ids written without consent');
+});
+
+check('first touch is taken from meta and kept distinct from last touch', () => {
+  const row = runBuildRow({ lead: newLead({
+    analytics_consent: true,
+    attribution_first_touch: { utm_source: 'first_src', utm_medium: 'first_med', utm_campaign: 'first_camp', captured_at: '2026-01-01T00:00:00.000Z' }
+  }) });
+  assert(row.utm_source_first === 'first_src', 'first source wrong: ' + row.utm_source_first);
+  assert(row.first_touch_at === '2026-01-01T00:00:00.000Z', 'first_touch_at wrong');
+  assert(row.utm_source === 'last_src', 'last touch was overwritten by first touch');
+});
+
+check('a malformed raw_json cannot break the CRM write', () => {
+  const row = runBuildRow({ lead: Object.assign(newLead(), { raw_json: '{not json' }) });
+  assert(row.analytics_consent === 'FALSE', 'malformed payload did not fail closed');
+  assert(row.utm_source_first === '', 'malformed payload produced a first touch');
+  assert(row.lead_id === 'FIN-NEW-1', 'malformed payload broke the row');
 });
 
 // ------------------------------------------------------- merge-path attribution policy

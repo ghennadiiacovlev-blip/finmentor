@@ -76,36 +76,12 @@ function Get-Node([string]$name) {
     $m[0]
 }
 
-# 1. Build Pipeline Row emits the new fields.
-$buildRow = Get-Node 'Build Pipeline Row'
-if ($buildRow.parameters.jsCode -match 'utm_source_first') { Fail 'Build Pipeline Row already emits attribution fields; refusing to double-patch' }
-
-$inject = @'
-
-// --- structured attribution and idempotency key (see docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md)
-// utm_source / utm_medium / utm_campaign remain LAST touch. First touch is a separate
-// dimension so a merge can advance last touch without destroying how the lead arrived.
-const __meta = (function () { try { return JSON.parse(item.raw_json || '{}').meta || {}; } catch (e) { return {}; } })();
-const __first = (__meta.attribution_first_touch && typeof __meta.attribution_first_touch === 'object') ? __meta.attribution_first_touch : {};
-row.request_id = String(item.request_id || '');
-row.analytics_consent = (__meta.analytics_consent === true) ? 'TRUE' : 'FALSE';
-// GA identifiers are written only when consent was accepted at submit time.
-row.ga_client_id = (__meta.analytics_consent === true) ? String(__meta.ga_client_id || '') : '';
-row.ga_session_id = (__meta.analytics_consent === true) ? String(__meta.ga_session_id || '') : '';
-row.utm_source_first = String(__first.utm_source || '');
-row.utm_medium_first = String(__first.utm_medium || '');
-row.utm_campaign_first = String(__first.utm_campaign || '');
-row.first_touch_at = String(__first.captured_at || '');
-'@
-
-# The node must expose its row object under a predictable name for the injection to attach to.
-if ($buildRow.parameters.jsCode -notmatch '(?m)^\s*(const|let|var)\s+row\s*=') {
-    Fail 'Build Pipeline Row does not declare a `row` object; inspect it before patching'
-}
-$idx = $buildRow.parameters.jsCode.LastIndexOf('return')
-if ($idx -lt 0) { Fail 'Build Pipeline Row has no return statement' }
-$buildRow.parameters.jsCode = $buildRow.parameters.jsCode.Insert($idx, $inject + "`n")
-
+# 1. Build Pipeline Row is deployed from its versioned source.
+#
+# It used to be string-spliced: the patch appended `row.request_id = ...` before the final
+# `return`. That could never have worked — the node builds its object inline inside the
+# return statement and declares no `row` variable at all. The guard caught it on the first
+# real run, which is the only reason it was found before a production write.
 # 2. Save to Pipeline gains the columns in its explicit map.
 $save = Get-Node 'Save to Pipeline'
 if ($save.parameters.columns.mappingMode -ne 'defineBelow') { Fail "Save to Pipeline mapping mode changed to $($save.parameters.columns.mappingMode)" }
@@ -130,8 +106,13 @@ function Set-NodeFromSource([string]$nodeName, [string]$file) {
     (Get-Node $nodeName).parameters.jsCode = $code
     $code
 }
+$buildRowCode = Set-NodeFromSource 'Build Pipeline Row' 'build-pipeline-row.js'
 $dedupCode = Set-NodeFromSource 'Dedup Guard' 'dedup-guard.js'
 $mergeCode = Set-NodeFromSource 'Build Merge Update' 'build-merge-update.js'
+
+foreach ($col in $REQUIRED) {
+    if ($buildRowCode -notmatch [regex]::Escape($col)) { Fail "build-pipeline-row.js does not emit '$col'" }
+}
 
 # The sources must carry the corrected contracts, not merely be present.
 if ($dedupCode -notmatch 'requestIdCorroborated') { Fail 'dedup-guard.js has no corroborated request_id tier' }
@@ -160,7 +141,8 @@ $vSave = ($v.nodes | Where-Object { $_.name -eq 'Save to Pipeline' })
 foreach ($col in $REQUIRED) {
     if (-not $vSave.parameters.columns.value.PSObject.Properties[$col]) { Fail "read-after-write: column '$col' not persisted in Save to Pipeline" }
 }
-if (($v.nodes | Where-Object { $_.name -eq 'Build Pipeline Row' }).parameters.jsCode -notmatch 'utm_source_first') { Fail 'read-after-write: Build Pipeline Row not persisted' }
+$vRow = (($v.nodes | Where-Object { $_.name -eq 'Build Pipeline Row' }).parameters.jsCode -replace "`r`n", "`n").TrimEnd()
+if ($vRow -ne $buildRowCode) { Fail 'read-after-write: Build Pipeline Row does not match build-pipeline-row.js byte for byte' }
 $vDedup = (($v.nodes | Where-Object { $_.name -eq 'Dedup Guard' }).parameters.jsCode -replace "`r`n", "`n").TrimEnd()
 $vMerge = (($v.nodes | Where-Object { $_.name -eq 'Build Merge Update' }).parameters.jsCode -replace "`r`n", "`n").TrimEnd()
 if ($vDedup -ne $dedupCode) { Fail 'read-after-write: Dedup Guard does not match dedup-guard.js byte for byte' }

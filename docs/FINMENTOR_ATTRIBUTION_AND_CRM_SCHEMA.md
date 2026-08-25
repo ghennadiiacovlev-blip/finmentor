@@ -2,7 +2,7 @@
 
 Date: 2026-08-25
 Covers: INDP2-05, INDP2-06 (attribution), INDP2-02 (idempotency), INDP2-07 (GA lifecycle)
-Status: client half **DONE**; server half **BLOCKED — needs one owner-approved schema change**
+Status: **DEPLOYED AND LIVE-VERIFIED 2026-08-25.** Columns AZ:BG added by the owner; Lead Intake patched; 53/53 live checks on synthetic identities.
 
 ---
 
@@ -105,19 +105,23 @@ the columns exist — which is also why the deploy script refuses to run before 
 
 ## 2. REQUIRED: CRM schema change
 
-**This is the single blocker for three findings.** It needs the owner to add columns to the
+**APPLIED 2026-08-25.** This was the single blocker for three findings. It needed the owner to add columns to the
 `Pipeline` tab, because the Lead Intake `Save to Pipeline` node maps columns explicitly
 (`defineBelow`) and will fail on a column the sheet does not have.
 
-Current `Pipeline` schema is **51 columns, A:AY**, ending at `days_in_stage` — verified against the live header, and corroborated by the 51 columns `Save to Pipeline` maps explicitly. It carries `utm_source`,
-`utm_medium` and `utm_campaign` but has no field for consent, GA identifiers, first touch, or
-a request key.
+The `Pipeline` schema **was 51 columns, A:AY**, ending at `days_in_stage` — verified against the
+live header and corroborated by the 51 columns `Save to Pipeline` mapped. It carried
+`utm_source`, `utm_medium` and `utm_campaign` but no field for consent, GA identifiers, first
+touch, or a request key.
 
-### 2.1 Columns to add
+**It is now 59 columns, A:BG.** The owner appended AZ:BG on 2026-08-25; the first 51 were
+verified byte-for-byte unchanged, with no duplicates and no gap column.
 
-Append these to the **end** of the `Pipeline` header row, in this order. Appending at the end
-does not shift any existing column, so no formula, filter or Dashboard view that references
-the current layout is affected.
+### 2.1 Columns added
+
+Appended to the **end** of the `Pipeline` header row, in this order. Appending at the end
+shifts no existing column, so no formula, filter or Dashboard view that references the
+previous layout was affected.
 
 | # | Col | Column | Purpose | Finding |
 |---|---|---|---|---|
@@ -139,7 +143,7 @@ owner's data model: hidden formulas, pivot ranges, filter views or external Look
 bindings can depend on the exact shape, and none of that is visible from the n8n API. A
 remediation phase should not silently reshape the system of record.
 
-### 2.3 After the columns exist
+### 2.3 After the columns exist — DONE
 
 Run:
 
@@ -269,8 +273,8 @@ This design depends on section 2 being applied first: without `ga_client_id` and
 | Attribution stored without PII | **DONE** (verified) |
 | Merge-path attribution policy | **DONE** — `build-merge-update.js` v3, gated |
 | `request_id` corroborated trust rules | **DONE** — `dedup-guard.js`, gated |
-| Structured CRM attribution columns | **BLOCKED** — owner schema change, section 2 |
-| Atomic idempotency | **PARTIAL** — corroborated retry key; see 2.4 and 2.5 |
+| Structured CRM attribution columns | **DONE** — AZ:BG live, deployed and verified |
+| Atomic idempotency | **PARTIAL** — corroborated retry key live; true atomicity needs a store with compare-and-set |
 | Internal provenance without a Sheets secret | **DESIGNED** — section 5, needs the n8n credential |
 | Server-side GA4 lifecycle | **BLOCKED_EXTERNAL_SECRET** — section 3 |
 

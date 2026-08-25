@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T17:47:11Z",
+  "generatedAt": "2026-08-25T19:56:17Z",
   "tenantHost": "ghennadi.app.n8n.cloud",
   "spreadsheetId": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
   "totalWorkflows": 35,
@@ -121,9 +121,9 @@
       "name": "FINMENTOR Lead Intake PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 17:39:01",
+      "updatedAt": "08/25/2026 19:46:19",
       "nodeCount": 57,
-      "structuralHash": "ba14f84c1615995a1b8f91b83b55c085c45e98d381ae496d3f7aacb5428e2148",
+      "structuralHash": "27bfed7f1769a20173951f0c7a26ef46edcd0d1338924ed69d8d286ad210c4a3",
       "nodeTypes": [
         "@n8n/n8n-nodes-langchain.openAi",
         "n8n-nodes-base.code",

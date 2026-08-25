@@ -9,14 +9,18 @@ Severity base: second independent audit (P0=1, P1=5, P2=16, P3=6)
 
 ## EXECUTIVE RESULT
 
-**P0 CLOSED. All five P1 CLOSED. Eleven of sixteen P2 CLOSED, the other five owner- or
-platform-gated with their implementable half applied. Five of six P3 CLOSED, the sixth
-deliberately CLASSIFIED. All four newly discovered findings closed.**
+**P0 CLOSED. All five P1 CLOSED. Fourteen of sixteen P2 CLOSED. Five of six P3 CLOSED, the
+sixth deliberately CLASSIFIED. All four newly discovered findings closed.**
 
 **Phase 10 is COMPLETE and LIVE-PROVEN** — see
-`docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`. Nothing remains open on design,
-implementation or proof. Everything outstanding needs an input only the owner can supply: the
-Pipeline schema change, a GA4 secret, an edge-layer decision, and a native Romanian review.
+`docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`. The Pipeline schema change was applied
+by the owner on 2026-08-25 and the attribution deployment followed, closing INDP2-02,
+INDP2-05 and INDP2-06 with 53/53 live checks.
+
+Nothing remains open on design, implementation or proof. Two items are left, both needing an
+input only the owner can supply: a GA4 Measurement Protocol secret (INDP2-07) and an
+edge-layer decision for five HTTP headers (INDP2-14). A native Romanian review of the
+machine-translated mini-scan copy is also outstanding as a quality gate.
 
 Four facts contradicted the briefing and were corrected against the live tenant:
 
@@ -135,8 +139,8 @@ production workflows still active. Full inventory in
 
 An independent review of the attribution work **before** the Pipeline schema was touched
 found five defects. None had reached production, because the schema change that would have
-activated them had not been made. All five are fixed in code, docs and gates; nothing was
-deployed.
+activated them had not been made. All five were fixed in code, docs and gates **before** the
+owner applied the schema change and authorised deployment.
 
 | # | Defect | Resolution |
 |---|---|---|
@@ -156,10 +160,54 @@ edits the nodes it names cannot notice the node it forgot. `Dedup Guard` and
 `Build Merge Update` are now deployed from their versioned sources with byte-for-byte
 read-after-write verification.
 
-**Repo is deliberately ahead of the tenant.** `dedup-guard.js`, `normalize-score-lead.js` and
-`build-merge-update.js` now differ from the deployed nodes and will stay that way until the
-owner adds the columns and the deploy script runs. This is intentional drift, recorded here
-so it is not mistaken for the INDP3-04 defect.
+---
+
+## Attribution deployment — applied and live-verified 2026-08-25
+
+The owner added the eight columns and authorised the deployment. Sequence, in order:
+
+| Step | Result |
+|---|---|
+| Live header re-read before touching anything | 51 columns, A:AY, `days_in_stage` last — precondition PASS |
+| Owner appended AZ:BG | **59 columns, A:BG**; first 51 byte-for-byte unchanged; AZ:BG exact; no duplicates; no gap column |
+| Synthetic lead #1 (header refresh + regression probe) | `ok:true`, `mode:new` — the 51-column append still worked against the widened sheet |
+| Dry run | `live Pipeline header: 59 columns`, all eight present, **preflight PASS**, no workflow change |
+| `-Apply` | **apply PASS**, **read-after-write PASS**, active unchanged |
+| Post-deploy verification (independent of the script) | Lead Intake active; `Save to Pipeline` maps 59 columns, all eight present; Build Pipeline Row, Dedup Guard and Build Merge Update each byte-for-byte equal to their versioned source |
+| Live synthetic QA, 5 submissions | **53/53 checks PASS**, re-derived from raw retained execution data |
+| Production regression | **NONE** — 0 non-success executions tenant-wide; 8 active workflows; 0 MCP-exposed |
+
+**A sixth defect surfaced during the dry run.** The `Build Pipeline Row` patch asserted the
+node declared a `row` variable and appended `row.request_id = …` before the final `return`.
+The node has no such variable — it builds its object inline inside the return statement — so
+the splice could never have worked. The guard refused and nothing was written. The node is
+now versioned as `build-pipeline-row.js` v2 and deployed from file like the others, which is
+the same structural fix already applied after defect 3. Two of the six defects in this change
+were caused by string-splicing deploys; none remain.
+
+### Live QA evidence
+
+Five submissions on synthetic `.invalid` identities, verified from raw execution data rather
+than from the webhook responses:
+
+| Case | Expected | Observed |
+|---|---|---|
+| A1 — new lead, consent true | all eight columns written | `request_id`, `analytics_consent=TRUE`, both GA ids, first touch and `first_touch_at` all present and correct |
+| A2 — same `request_id`, same identity | retry, nothing changes | matched `request_id+identity`, `dedup_is_retry=true`, no escalation, **no merge write at all** |
+| **B — A1's `request_id`, different identity** | **must not merge** | **`mode:new`**, no row selected, not corroborated, its own canonical `lead_id`, no GA ids without consent |
+| A3 — genuine later submission | last touch advances, first touch preserved | `utm_source` → `qa_last_3`, `utm_source_first` still `qa_first_src`, `first_touch_at` unchanged |
+| A4 — later submission, consent false | records FALSE, writes no new GA ids | `analytics_consent=FALSE`, offered `GA1.1.MUSTNOTWRITE` rejected, previously consented ids retained |
+| Duplicates | one row per identity | identity A: 1 row; identity B: 1 row; distinct; no extra rows under the QA stamp |
+
+Case B is the one that matters: it is the adversarial scenario the pre-deployment review
+demanded, executed against production with the real Dedup Guard, and it did not merge.
+
+**Repo and tenant are back in sync** for `build-pipeline-row.js`, `dedup-guard.js` and
+`build-merge-update.js`; `n8n/production/` and the manifest were re-exported.
+`normalize-score-lead.js` remains deliberately ahead: its route-based provenance needs an
+`Internal Auth Entry` node that does not exist yet, and deploying it changes no behaviour
+today because both the old and new code yield `provenance_trusted = false`. Recommended as a
+small follow-up, since it would remove the dormant Settings-secret read entirely.
 
 ---
 
@@ -194,21 +242,26 @@ Activities `623316892`. Zero name-mode locators remain in any active workflow.
 
 ---
 
-## P2 — 11 of 16 CLOSED, 5 owner- or platform-gated
+## P2 — 14 of 16 CLOSED, 2 externally blocked
 
-Of the five that are not closed, none is open on design or implementation. INDP2-02 and
-INDP2-06 shipped their client half and wait on the Pipeline columns; INDP2-05 waits on the
-same columns; INDP2-07 waits on a GA4 secret that does not exist in this environment;
-INDP2-14 shipped the one header the platform allows and waits on an edge-layer decision.
+The Pipeline schema change was applied by the owner on 2026-08-25 and the attribution
+deployment ran, closing INDP2-02, INDP2-05 and INDP2-06. Two remain: INDP2-07 waits on a GA4
+secret that does not exist in this environment, and INDP2-14 shipped the one header the
+platform allows and waits on an edge-layer decision. Neither is open on design or code.
+
+INDP2-02 is closed to its achievable scope. Google Sheets has no conditional append, so the
+write is still not atomic; the `request_id` column makes a concurrent duplicate **detectable
+and reconcilable**, which is the improvement available without moving the ledger to a store
+with compare-and-set. The residual is retained below.
 
 | ID | Finding | Status |
 |---|---|---|
 | INDP2-01 | Clients accept any 2xx | **CLOSED** |
-| INDP2-02 | Dedup is not atomic idempotency | **PARTIAL** — schema-blocked |
+| INDP2-02 | Dedup is not atomic idempotency | **CLOSED** (achievable scope) — live-verified |
 | INDP2-03 | Mini App zero-write resume | **CLOSED** — Phase 10 |
 | INDP2-04 | No Error Trigger / errorWorkflow | **CLOSED** |
-| INDP2-05 | GA fields raw-only | **BLOCKED** — schema |
-| INDP2-06 | UTM first-touch continuity | **CLOSED** (client); structured half schema-blocked |
+| INDP2-05 | GA fields raw-only | **CLOSED** — live-verified |
+| INDP2-06 | UTM first-touch continuity | **CLOSED** — client and structured halves, live-verified |
 | INDP2-07 | Server-side GA4 lifecycle sender | **BLOCKED_EXTERNAL_SECRET** |
 | INDP2-08 | Event taxonomy; pre-submit `lead_submit` | **CLOSED** |
 | INDP2-09 | PR #10 stored-row projection | **CLOSED** — live-proven, execution 3400 |
@@ -295,14 +348,14 @@ against a gid allowlist. Verified: zero occurrences of the owner id, all gids in
 | Gate | Assertions | Result |
 |---|---|---|
 | Command Center authorisation | 43 | **PASS** |
-| Lead Intake trust boundary | 39 | **PASS** |
+| Lead Intake trust boundary | 43 | **PASS** |
 | AI safe projection | 52 | **PASS** |
 | Error Monitor alert | 22 | **PASS** |
 | Website contract | 69 | **PASS** |
 | n8n export hygiene | 70 | **PASS** |
 | Mini App read-model consistency | 41 | **PASS** |
 
-**7/7 gates, 336 assertions, all passing.**
+**7/7 gates, 340 assertions, all passing.**
 
 Correction to the earlier revision of this report: the website contract and n8n export gates
 were recorded as 70 and 72, giving a total of 281. Re-running them reports 69 and 70. Neither
@@ -314,6 +367,7 @@ Live QA (not part of the offline suite):
 | Suite | Result |
 |---|---|
 | Lead Intake trust boundary + locators, 3 synthetic submissions | **17/17 PASS** |
+| Attribution deployment, 5 synthetic submissions, re-derived from raw executions | **53/53 PASS** |
 | Digest locator proof (isolated clone, Telegram disabled) | **PASS** |
 | Error Monitor fire + scrub proof | **13/13 PASS** |
 | Mini App read-model CAS + stored-row equality, execution 3400 | **PASS** (all 10 verdict fields) |
@@ -351,7 +405,9 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
    a trust path that had never executed. Replaced by route-based provenance:
    `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §5. The safe default is unchanged and the
    public path was never at risk.
-2. **Add eight Pipeline columns** — `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §2.1.
+2. ~~Add eight Pipeline columns~~ **DONE 2026-08-25** — AZ:BG added by the owner, deployment applied and live-verified. Original instruction retained below for the record.
+
+   **Add eight Pipeline columns** — `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §2.1.
    The live header is **51 columns, A:AY**, ending at `days_in_stage`, so the new columns are
    **52–59, AZ:BG**. (An earlier revision said 52 existing columns and numbered the new ones
    53–60; that was wrong and is corrected.) Unblocks INDP2-02, INDP2-05 and INDP2-06's
@@ -421,10 +477,11 @@ input that only the owner can supply.
 |---|---|---|
 | Current production website | **GO — keep running** | no regression; 69/69 website contract. Unverified by observation: consent-banner behaviour, layout, GA4 DebugView. RO copy is machine-translated |
 | Current CRM / Telegram production | **GO — keep running** | P0 closed and live-verified, 5/5 P1 closed, Error Monitor active on all 8, Digest restored, locators canonical, MCP exposure 0/35 |
-| New integration release (attribution, idempotency, server-side GA4) | **NO-GO** | blockers 1 and 2. No code work remains; the deploy script refuses to half-apply |
+| Attribution + idempotency release | **SHIPPED** | schema applied, deployed, 53/53 live checks, zero regression |
+| Server-side GA4 lifecycle release | **NO-GO** | needs the Measurement Protocol secret (INDP2-07). No code work remains |
 | Mini App activation | **NO-GO** | B.2.1-C never started, by design. Contract is proven but nothing is deployed behind it, and B.2.1-A still needs a real `initData` canary |
 | PR #10 | **DO NOT MERGE — recommend closing** | docs-only, superseded where it mattered, and its reversed-order "PASS" overstated equality. Close it in favour of the Phase 10 document |
-| Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 336 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
+| Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 340 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
 
 **Not merged. No QA workflow published. The CAS gate was not re-run. No production change was
 made while producing this status** — the tenant was read only: 35 workflows, 0 exposed via
