@@ -101,6 +101,30 @@ Reference implementation for both algorithms lives in:
 gateway/telegram-initdata.mjs
 ```
 
+### 3.5 Target n8n runtime decisions proven by B.2.1-A probes
+
+The target n8n Cloud Code-node sandbox has now been tested directly. Evidence is recorded in:
+
+```text
+docs/PHASE_B2_1_INITDATA_VALIDATOR.md
+```
+
+Implementation decisions for the n8n Gateway:
+
+- Ed25519 verification uses `node:crypto` through `require('crypto')`;
+- WebCrypto is not available in the tested sandbox and is not the planned path;
+- `URLSearchParams` is not available in the tested sandbox;
+- query parsing must therefore be manual and deterministic;
+- percent decoding is performed exactly once;
+- raw `+` is preserved as `+` in the proven parser path;
+- malformed percent escapes reject;
+- duplicate decoded keys reject;
+- key sorting uses deterministic code-unit ordering, not `localeCompare`;
+- third-party Ed25519 canonicalization excludes both `hash` and `signature`;
+- `auth_date` freshness is a separate gate after signature verification.
+
+The probes proved the runtime primitive and canonicalization logic with synthetic signatures, including import of Telegram's production public key. The remaining validation gap is a real Telegram-generated `initData` canary against the production public key before production activation.
+
 ## 4. Bootstrap contract
 
 ### Request
@@ -442,34 +466,3 @@ Only B.2.1-C creates a real lead-side effect, and it requires a separate live ca
 Rollback for B.2.1 is to disable the Mini App Gateway/entry and fall back to the already-proven Telegram Client Concierge.
 
 Do not roll back to known-unsafe historical Concierge versions.
-
-## 16. n8n Cloud Ed25519 runtime capability evidence
-
-Status: **PASS — 2026-08-25**
-
-An isolated, inactive n8n Cloud probe workflow (`kKVHHE5LNHuJUuNR`) was executed manually with synthetic data only. It had no trigger, no credentials, no webhook, no Sheets access and no production side effects.
-
-Observed sandbox/runtime behavior:
-
-- `node:crypto` is available through `require('crypto')`;
-- `Buffer` is available;
-- `process` is not exposed in the Code-node sandbox;
-- `globalThis.crypto.subtle` is not available for this path;
-- therefore B.2.1 implementation should use the `node:crypto` Ed25519 path and must not rely on WebCrypto.
-
-Capability results:
-
-- valid Ed25519 signature verify → PASS;
-- one-character payload tamper → verify false → PASS;
-- raw 32-byte Ed25519 public key wrapped as SPKI using DER prefix `302a300506032b6570032100` → import/verify PASS;
-- 64-byte signature base64url encode/decode without padding → round-trip PASS.
-
-The probe proves the required Ed25519 cryptographic primitives are available in the actual n8n Cloud runtime. It does **not** by itself prove the Telegram-specific `initData` canonicalization rules. Before any production bootstrap endpoint is enabled, a second isolated test must validate the exact Telegram third-party signature format:
-
-```text
-<bot_id>:WebAppData\n<sorted key=value lines excluding hash and signature>
-```
-
-with the Telegram production/test public-key format and verify-only latency measurement.
-
-The probe workflow should remain inactive until B.2.1-A bootstrap validation is complete so the runtime evidence is reproducible. It should then be deleted as controlled test infrastructure, not retained as a production dependency.
