@@ -1,0 +1,3934 @@
+{
+  "id": "ShcmmJeLSE8LYVBk",
+  "name": "FINMENTOR Telegram Client Transport",
+  "description": null,
+  "active": true,
+  "activeVersionId": "575e2665-055f-441e-9942-56c62208ac6b",
+  "createdAt": "2026-08-25T02:36:07.108Z",
+  "updatedAt": "2026-08-25T02:38:56.282Z",
+  "isArchived": false,
+  "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+  "versionCounter": 2,
+  "sourceWorkflowId": null,
+  "triggerCount": 0,
+  "nodes": [
+    {
+      "id": "16b9003f-0ef6-4cac-adcd-a97031c8232d",
+      "name": "Transport Request",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        400
+      ],
+      "parameters": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chat_id",
+              "type": "string"
+            },
+            {
+              "name": "text",
+              "type": "string"
+            },
+            {
+              "name": "keyboard_layout_id",
+              "type": "string"
+            },
+            {
+              "name": "keyboard_data",
+              "type": "object"
+            },
+            {
+              "name": "parse_mode",
+              "type": "string"
+            },
+            {
+              "name": "disable_preview",
+              "type": "boolean"
+            },
+            {
+              "name": "correlation_id",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e168564c-88c8-4d7b-8fa8-f2b5c1ec865a",
+      "name": "Validate Transport Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const inp = $input.first().json || {};\nconst LAYOUTS = { L0_NONE: [], L1_C: [['C']], L2_C: [['C'],['C']], L2_CU: [['C'],['U']], L3_C: [['C'],['C'],['C']], L3_CCU: [['C'],['C'],['U']], L4_CCCC: [['C'],['C'],['C'],['C']], L4_CCUC: [['C'],['C'],['U'],['C']], L5_CCCUC: [['C'],['C'],['C'],['U'],['C']], L6_C: [['C'],['C'],['C'],['C'],['C'],['C']], L7_C: [['C'],['C'],['C'],['C'],['C'],['C'],['C']], L8_C: [['C'],['C'],['C'],['C'],['C'],['C'],['C'],['C']], LAYOUT_MENU: [['C'],['C'],['C'],['C'],['U','C']], LAYOUT_BMODEL: [['C','C'],['C'],['C','C'],['C','C'],['C']] };\n// Telegram callback_data limit is 1-64 BYTES (UTF-8), not JS string length.\nfunction byteLen(s) { try { return new TextEncoder().encode(s).length; } catch (e) { return encodeURIComponent(s).replace(/%[0-9A-F]{2}/gi, 'x').length; } }\nconst corr = String(inp.correlation_id == null ? '' : inp.correlation_id).slice(0, 100);\nfunction fail(code) { return [{ json: { valid: false, error_code: code, chat_id: String(inp.chat_id == null ? '' : inp.chat_id), correlation_id: corr, layout: '' } }]; }\nconst chatId = String(inp.chat_id == null ? '' : inp.chat_id).trim();\nif (!/^-?[0-9]{1,20}$/.test(chatId)) return fail('INVALID_CHAT_ID');\nconst text = String(inp.text == null ? '' : inp.text);\nif (text.trim() === '') return fail('EMPTY_TEXT');\nif (text.length > 4096) return fail('TEXT_TOO_LONG');\nconst layout = String(inp.keyboard_layout_id == null ? '' : inp.keyboard_layout_id).trim();\nif (!Object.prototype.hasOwnProperty.call(LAYOUTS, layout)) return fail('UNKNOWN_LAYOUT');\nconst spec = LAYOUTS[layout];\nconst raw = inp.keyboard_data;\nconst rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rows) ? raw.rows : []);\nif (rows.length !== spec.length) return fail('KEYBOARD_SHAPE_MISMATCH');\nconst kb = [];\nfor (let r = 0; r < spec.length; r++) {\n  const specRow = spec[r];\n  const inRow = rows[r];\n  if (!Array.isArray(inRow) || inRow.length !== specRow.length) return fail('KEYBOARD_SHAPE_MISMATCH');\n  const outRow = [];\n  for (let b = 0; b < specRow.length; b++) {\n    const src = inRow[b] || {};\n    const btnText = String(src.text == null ? '' : src.text).trim();\n    if (btnText === '') return fail('EMPTY_BUTTON_TEXT');\n    if (btnText.length > 128) return fail('BUTTON_TEXT_TOO_LONG');\n    if (specRow[b] === 'C') {\n      const cb = String(src.callback_data == null ? '' : src.callback_data).trim();\n      if (cb === '') return fail('EMPTY_CALLBACK_DATA');\n      if (byteLen(cb) > 64) return fail('CALLBACK_DATA_TOO_LONG');\n      outRow.push({ text: btnText, callback_data: cb });\n    } else {\n      const url = String(src.url == null ? '' : src.url).trim();\n      if (!/^https?:\\/\\/[^\\s]{3,}$/i.test(url)) return fail('INVALID_BUTTON_URL');\n      outRow.push({ text: btnText, url: url });\n    }\n  }\n  kb.push(outRow);\n}\nreturn [{ json: { valid: true, error_code: '', chat_id: chatId, text: text, layout: layout, kb: kb, disable_preview: inp.disable_preview === true, correlation_id: corr } }];"
+      }
+    },
+    {
+      "id": "be4f8e9b-a386-4faf-8e6e-b09a2136a945",
+      "name": "Transport Payload Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -680,
+        400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "3af9d523-1582-4d27-b6da-52bc09df44c0",
+      "name": "Route Keyboard Layout",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -460,
+        400
+      ],
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "outputKey": "L0_NONE",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L0_NONE"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L1_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L1_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L2_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L2_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L2_CU",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L2_CU"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L3_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L3_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L3_CCU",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L3_CCU"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L4_CCCC",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L4_CCCC"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L4_CCUC",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L4_CCUC"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L5_CCCUC",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L5_CCCUC"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L6_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L6_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L7_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L7_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "L8_C",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "L8_C"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "LAYOUT_MENU",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "LAYOUT_MENU"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "outputKey": "LAYOUT_BMODEL",
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.layout }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "LAYOUT_BMODEL"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "UNROUTED"
+        }
+      }
+    },
+    {
+      "id": "a474d23b-dc9f-4a2d-ada0-c789b92450e9",
+      "name": "Render L0_NONE",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -600
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "none",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "fca28254-93ff-46f4-98f4-512066d04ad7"
+    },
+    {
+      "id": "49638b9a-af1a-43e9-ae32-320081b2934e",
+      "name": "Normalize Telegram Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        400
+      ],
+      "parameters": {
+        "jsCode": "const v = $('Validate Transport Payload').first().json || {};\nconst r = $input.first().json || {};\nconst errRaw = r.error;\nconst msg = String((errRaw && (errRaw.message || errRaw.description)) || r.description || (typeof errRaw === 'string' ? errRaw : '') || '');\nconst okFlag = r.ok === true || (r.result && r.result.message_id !== undefined) || r.message_id !== undefined;\nif (okFlag && !errRaw) {\n  return [{ json: { ok: true, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: String((r.result && r.result.message_id) || r.message_id || ''), correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: '', retryable: false } }];\n}\nconst m = msg.toLowerCase();\nlet code = 'TELEGRAM_SEND_FAILED';\nlet retry = true;\nif (m.indexOf('bot was blocked') >= 0 || m.indexOf('user is deactivated') >= 0 || m.indexOf('chat not found') >= 0 || m.indexOf('forbidden') >= 0) { code = 'CHAT_UNAVAILABLE'; retry = false; }\nelse if (m.indexOf('button_url_invalid') >= 0 || m.indexOf('button_data_invalid') >= 0 || m.indexOf('parse entities') >= 0 || m.indexOf('message is too long') >= 0 || m.indexOf('bad request') >= 0) { code = 'INVALID_MESSAGE'; retry = false; }\nelse if (m.indexOf('too many requests') >= 0 || m.indexOf('429') >= 0) { code = 'RATE_LIMITED'; retry = true; }\nelse if (m.indexOf('timeout') >= 0 || m.indexOf('etimedout') >= 0 || m.indexOf('econnreset') >= 0 || m.indexOf('502') >= 0 || m.indexOf('503') >= 0 || m.indexOf('504') >= 0) { code = 'TELEGRAM_UNAVAILABLE'; retry = true; }\nreturn [{ json: { ok: false, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: '', correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: code, retryable: retry } }];"
+      }
+    },
+    {
+      "id": "6a847b23-fd31-4bbd-a72c-e791fa275a8f",
+      "name": "Render L1_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -480
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "a5ce80d8-3422-4953-a5db-1f55707562e4"
+    },
+    {
+      "id": "862f8579-ac83-44b0-a4b7-67a43a9c35e6",
+      "name": "Render L2_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "b3af8a6f-7f0d-4ad2-97b8-c93420806152"
+    },
+    {
+      "id": "6314344d-5089-43a6-9a81-d054aabe6862",
+      "name": "Render L2_CU",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -240
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "url": "={{ $json.kb[1][0].url }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "299546ab-ef83-499d-9b92-b656c9abdde6"
+    },
+    {
+      "id": "aba67b82-af23-4e92-af3a-c54b02f2ae03",
+      "name": "Render L3_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -120
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "8e5b23d2-ae7d-44e3-a168-d17458db2395"
+    },
+    {
+      "id": "3506da99-3f72-4eb3-9194-803f36de9104",
+      "name": "Render L3_CCU",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        0
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "url": "={{ $json.kb[2][0].url }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "f88e9282-a1f2-4d0d-9fb5-412a4d72a6b3"
+    },
+    {
+      "id": "8270918c-6977-48cf-8b61-ca4846fb2ea1",
+      "name": "Render L4_CCCC",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        120
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "6c68cbd9-2288-41e3-8d39-e1c0e4f63cd6"
+    },
+    {
+      "id": "fd9a9f16-9799-4809-8789-ab8fdb8dea5e",
+      "name": "Render L4_CCUC",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        240
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "url": "={{ $json.kb[2][0].url }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "84736570-cbc8-4cdd-9579-91ff3bbf1cdd"
+    },
+    {
+      "id": "3ef34c5c-f282-479b-9a34-e7a405b12e4b",
+      "name": "Render L5_CCCUC",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "url": "={{ $json.kb[3][0].url }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "9eaaf577-4d12-434e-8a93-7ecfb507f7e4"
+    },
+    {
+      "id": "d8aa12b4-2c98-4017-862c-490e3b5d18c7",
+      "name": "Render L6_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        480
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[5][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "725f67e0-37f3-47bf-beba-12e1ecab9973"
+    },
+    {
+      "id": "98ceff00-e0f6-4833-8e13-968990ab41bd",
+      "name": "Render L7_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        600
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[5][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[6][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[6][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "48b86c4d-c50f-4fa6-9219-65f9c8a05629"
+    },
+    {
+      "id": "441e9a68-b52e-41ab-900e-ff03099bfcc8",
+      "name": "Render L8_C",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        720
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[5][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[6][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[6][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[7][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[7][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "f4d6d72e-327e-4d87-95ef-9d05f5fadd5c"
+    },
+    {
+      "id": "83f2ed57-86f7-4274-845f-f6ca68b8b3f3",
+      "name": "Render LAYOUT_MENU",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        840
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "url": "={{ $json.kb[4][0].url }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[4][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "0146c77c-368a-4721-9449-85361dfb3e0a"
+    },
+    {
+      "id": "18bcdfca-abc0-44f7-8286-76d22dda2553",
+      "name": "Render LAYOUT_BMODEL",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        960
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[2][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[3][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[3][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[3][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[4][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": "={{ $json.disable_preview }}"
+        }
+      },
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput",
+      "webhookId": "968623cc-7141-4d7b-a871-91ec2d95dcd3"
+    },
+    {
+      "id": "e2902e36-1140-4b5c-acfd-029c92489654",
+      "name": "Return Transport Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        700
+      ],
+      "parameters": {
+        "jsCode": "const v = $input.first().json || {};\nreturn [{ json: { ok: false, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: '', correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: String(v.error_code ? v.error_code : 'UNROUTED_LAYOUT'), retryable: false } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Transport Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Transport Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Transport Payload": {
+      "main": [
+        [
+          {
+            "node": "Transport Payload Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transport Payload Valid": {
+      "main": [
+        [
+          {
+            "node": "Route Keyboard Layout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Transport Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Keyboard Layout": {
+      "main": [
+        [
+          {
+            "node": "Render L0_NONE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L1_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L2_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L2_CU",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L3_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L3_CCU",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L4_CCCC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L4_CCUC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L5_CCCUC",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L6_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L7_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render L8_C",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render LAYOUT_MENU",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Render LAYOUT_BMODEL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Transport Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L0_NONE": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L1_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L2_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L2_CU": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L3_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L3_CCU": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L4_CCCC": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L4_CCUC": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L5_CCCUC": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L6_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L7_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render L8_C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render LAYOUT_MENU": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render LAYOUT_BMODEL": {
+      "main": [
+        [
+          {
+            "node": "Normalize Telegram Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "ShcmmJeLSE8LYVBk",
+      "projectId": "i98tNjxq2CUeunA3",
+      "project": {
+        "id": "i98tNjxq2CUeunA3",
+        "name": "Ghennadi Iacovlev <cfo@finmentor.md>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-04-29T10:57:49.35Z",
+        "updatedAt": "2026-04-29T10:57:56.466Z"
+      },
+      "createdAt": "2026-08-25T02:36:07.111Z",
+      "updatedAt": "2026-08-25T02:36:07.111Z"
+    }
+  ],
+  "activeVersion": {
+    "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+    "workflowId": "ShcmmJeLSE8LYVBk",
+    "nodes": [
+      {
+        "id": "16b9003f-0ef6-4cac-adcd-a97031c8232d",
+        "name": "Transport Request",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1120,
+          400
+        ],
+        "parameters": {
+          "inputSource": "workflowInputs",
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "chat_id",
+                "type": "string"
+              },
+              {
+                "name": "text",
+                "type": "string"
+              },
+              {
+                "name": "keyboard_layout_id",
+                "type": "string"
+              },
+              {
+                "name": "keyboard_data",
+                "type": "object"
+              },
+              {
+                "name": "parse_mode",
+                "type": "string"
+              },
+              {
+                "name": "disable_preview",
+                "type": "boolean"
+              },
+              {
+                "name": "correlation_id",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "e168564c-88c8-4d7b-8fa8-f2b5c1ec865a",
+        "name": "Validate Transport Payload",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -900,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const inp = $input.first().json || {};\nconst LAYOUTS = { L0_NONE: [], L1_C: [['C']], L2_C: [['C'],['C']], L2_CU: [['C'],['U']], L3_C: [['C'],['C'],['C']], L3_CCU: [['C'],['C'],['U']], L4_CCCC: [['C'],['C'],['C'],['C']], L4_CCUC: [['C'],['C'],['U'],['C']], L5_CCCUC: [['C'],['C'],['C'],['U'],['C']], L6_C: [['C'],['C'],['C'],['C'],['C'],['C']], L7_C: [['C'],['C'],['C'],['C'],['C'],['C'],['C']], L8_C: [['C'],['C'],['C'],['C'],['C'],['C'],['C'],['C']], LAYOUT_MENU: [['C'],['C'],['C'],['C'],['U','C']], LAYOUT_BMODEL: [['C','C'],['C'],['C','C'],['C','C'],['C']] };\n// Telegram callback_data limit is 1-64 BYTES (UTF-8), not JS string length.\nfunction byteLen(s) { try { return new TextEncoder().encode(s).length; } catch (e) { return encodeURIComponent(s).replace(/%[0-9A-F]{2}/gi, 'x').length; } }\nconst corr = String(inp.correlation_id == null ? '' : inp.correlation_id).slice(0, 100);\nfunction fail(code) { return [{ json: { valid: false, error_code: code, chat_id: String(inp.chat_id == null ? '' : inp.chat_id), correlation_id: corr, layout: '' } }]; }\nconst chatId = String(inp.chat_id == null ? '' : inp.chat_id).trim();\nif (!/^-?[0-9]{1,20}$/.test(chatId)) return fail('INVALID_CHAT_ID');\nconst text = String(inp.text == null ? '' : inp.text);\nif (text.trim() === '') return fail('EMPTY_TEXT');\nif (text.length > 4096) return fail('TEXT_TOO_LONG');\nconst layout = String(inp.keyboard_layout_id == null ? '' : inp.keyboard_layout_id).trim();\nif (!Object.prototype.hasOwnProperty.call(LAYOUTS, layout)) return fail('UNKNOWN_LAYOUT');\nconst spec = LAYOUTS[layout];\nconst raw = inp.keyboard_data;\nconst rows = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rows) ? raw.rows : []);\nif (rows.length !== spec.length) return fail('KEYBOARD_SHAPE_MISMATCH');\nconst kb = [];\nfor (let r = 0; r < spec.length; r++) {\n  const specRow = spec[r];\n  const inRow = rows[r];\n  if (!Array.isArray(inRow) || inRow.length !== specRow.length) return fail('KEYBOARD_SHAPE_MISMATCH');\n  const outRow = [];\n  for (let b = 0; b < specRow.length; b++) {\n    const src = inRow[b] || {};\n    const btnText = String(src.text == null ? '' : src.text).trim();\n    if (btnText === '') return fail('EMPTY_BUTTON_TEXT');\n    if (btnText.length > 128) return fail('BUTTON_TEXT_TOO_LONG');\n    if (specRow[b] === 'C') {\n      const cb = String(src.callback_data == null ? '' : src.callback_data).trim();\n      if (cb === '') return fail('EMPTY_CALLBACK_DATA');\n      if (byteLen(cb) > 64) return fail('CALLBACK_DATA_TOO_LONG');\n      outRow.push({ text: btnText, callback_data: cb });\n    } else {\n      const url = String(src.url == null ? '' : src.url).trim();\n      if (!/^https?:\\/\\/[^\\s]{3,}$/i.test(url)) return fail('INVALID_BUTTON_URL');\n      outRow.push({ text: btnText, url: url });\n    }\n  }\n  kb.push(outRow);\n}\nreturn [{ json: { valid: true, error_code: '', chat_id: chatId, text: text, layout: layout, kb: kb, disable_preview: inp.disable_preview === true, correlation_id: corr } }];"
+        }
+      },
+      {
+        "id": "be4f8e9b-a386-4faf-8e6e-b09a2136a945",
+        "name": "Transport Payload Valid",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -680,
+          400
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "leftValue": "={{ $json.valid }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          }
+        }
+      },
+      {
+        "id": "3af9d523-1582-4d27-b6da-52bc09df44c0",
+        "name": "Route Keyboard Layout",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -460,
+          400
+        ],
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "outputKey": "L0_NONE",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L0_NONE"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L1_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L1_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L2_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L2_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L2_CU",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L2_CU"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L3_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L3_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L3_CCU",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L3_CCU"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L4_CCCC",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L4_CCCC"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L4_CCUC",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L4_CCUC"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L5_CCCUC",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L5_CCCUC"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L6_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L6_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L7_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L7_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "L8_C",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "L8_C"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "LAYOUT_MENU",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "LAYOUT_MENU"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "outputKey": "LAYOUT_BMODEL",
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.layout }}",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "rightValue": "LAYOUT_BMODEL"
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra",
+            "renameFallbackOutput": "UNROUTED"
+          }
+        }
+      },
+      {
+        "id": "a474d23b-dc9f-4a2d-ada0-c789b92450e9",
+        "name": "Render L0_NONE",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -600
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "none",
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "fca28254-93ff-46f4-98f4-512066d04ad7"
+      },
+      {
+        "id": "49638b9a-af1a-43e9-ae32-320081b2934e",
+        "name": "Normalize Telegram Result",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          140,
+          400
+        ],
+        "parameters": {
+          "jsCode": "const v = $('Validate Transport Payload').first().json || {};\nconst r = $input.first().json || {};\nconst errRaw = r.error;\nconst msg = String((errRaw && (errRaw.message || errRaw.description)) || r.description || (typeof errRaw === 'string' ? errRaw : '') || '');\nconst okFlag = r.ok === true || (r.result && r.result.message_id !== undefined) || r.message_id !== undefined;\nif (okFlag && !errRaw) {\n  return [{ json: { ok: true, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: String((r.result && r.result.message_id) || r.message_id || ''), correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: '', retryable: false } }];\n}\nconst m = msg.toLowerCase();\nlet code = 'TELEGRAM_SEND_FAILED';\nlet retry = true;\nif (m.indexOf('bot was blocked') >= 0 || m.indexOf('user is deactivated') >= 0 || m.indexOf('chat not found') >= 0 || m.indexOf('forbidden') >= 0) { code = 'CHAT_UNAVAILABLE'; retry = false; }\nelse if (m.indexOf('button_url_invalid') >= 0 || m.indexOf('button_data_invalid') >= 0 || m.indexOf('parse entities') >= 0 || m.indexOf('message is too long') >= 0 || m.indexOf('bad request') >= 0) { code = 'INVALID_MESSAGE'; retry = false; }\nelse if (m.indexOf('too many requests') >= 0 || m.indexOf('429') >= 0) { code = 'RATE_LIMITED'; retry = true; }\nelse if (m.indexOf('timeout') >= 0 || m.indexOf('etimedout') >= 0 || m.indexOf('econnreset') >= 0 || m.indexOf('502') >= 0 || m.indexOf('503') >= 0 || m.indexOf('504') >= 0) { code = 'TELEGRAM_UNAVAILABLE'; retry = true; }\nreturn [{ json: { ok: false, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: '', correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: code, retryable: retry } }];"
+        }
+      },
+      {
+        "id": "6a847b23-fd31-4bbd-a72c-e791fa275a8f",
+        "name": "Render L1_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -480
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "a5ce80d8-3422-4953-a5db-1f55707562e4"
+      },
+      {
+        "id": "862f8579-ac83-44b0-a4b7-67a43a9c35e6",
+        "name": "Render L2_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -360
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "b3af8a6f-7f0d-4ad2-97b8-c93420806152"
+      },
+      {
+        "id": "6314344d-5089-43a6-9a81-d054aabe6862",
+        "name": "Render L2_CU",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -240
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "url": "={{ $json.kb[1][0].url }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "299546ab-ef83-499d-9b92-b656c9abdde6"
+      },
+      {
+        "id": "aba67b82-af23-4e92-af3a-c54b02f2ae03",
+        "name": "Render L3_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          -120
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "8e5b23d2-ae7d-44e3-a168-d17458db2395"
+      },
+      {
+        "id": "3506da99-3f72-4eb3-9194-803f36de9104",
+        "name": "Render L3_CCU",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          0
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "url": "={{ $json.kb[2][0].url }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "f88e9282-a1f2-4d0d-9fb5-412a4d72a6b3"
+      },
+      {
+        "id": "8270918c-6977-48cf-8b61-ca4846fb2ea1",
+        "name": "Render L4_CCCC",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          120
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "6c68cbd9-2288-41e3-8d39-e1c0e4f63cd6"
+      },
+      {
+        "id": "fd9a9f16-9799-4809-8789-ab8fdb8dea5e",
+        "name": "Render L4_CCUC",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          240
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "url": "={{ $json.kb[2][0].url }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "84736570-cbc8-4cdd-9579-91ff3bbf1cdd"
+      },
+      {
+        "id": "3ef34c5c-f282-479b-9a34-e7a405b12e4b",
+        "name": "Render L5_CCCUC",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          360
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "url": "={{ $json.kb[3][0].url }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "9eaaf577-4d12-434e-8a93-7ecfb507f7e4"
+      },
+      {
+        "id": "d8aa12b4-2c98-4017-862c-490e3b5d18c7",
+        "name": "Render L6_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          480
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[5][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "725f67e0-37f3-47bf-beba-12e1ecab9973"
+      },
+      {
+        "id": "98ceff00-e0f6-4833-8e13-968990ab41bd",
+        "name": "Render L7_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          600
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[5][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[6][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[6][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "48b86c4d-c50f-4fa6-9219-65f9c8a05629"
+      },
+      {
+        "id": "441e9a68-b52e-41ab-900e-ff03099bfcc8",
+        "name": "Render L8_C",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          720
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[5][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[5][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[6][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[6][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[7][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[7][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "f4d6d72e-327e-4d87-95ef-9d05f5fadd5c"
+      },
+      {
+        "id": "83f2ed57-86f7-4274-845f-f6ca68b8b3f3",
+        "name": "Render LAYOUT_MENU",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          840
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "url": "={{ $json.kb[4][0].url }}"
+                      }
+                    },
+                    {
+                      "text": "={{ $json.kb[4][1].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][1].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "0146c77c-368a-4721-9449-85361dfb3e0a"
+      },
+      {
+        "id": "18bcdfca-abc0-44f7-8286-76d22dda2553",
+        "name": "Render LAYOUT_BMODEL",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -180,
+          960
+        ],
+        "parameters": {
+          "resource": "message",
+          "operation": "sendMessage",
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ $json.text }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[0][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                      }
+                    },
+                    {
+                      "text": "={{ $json.kb[0][1].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[1][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[2][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                      }
+                    },
+                    {
+                      "text": "={{ $json.kb[2][1].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[2][1].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[3][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][0].callback_data }}"
+                      }
+                    },
+                    {
+                      "text": "={{ $json.kb[3][1].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[3][1].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "={{ $json.kb[4][0].text }}",
+                      "additionalFields": {
+                        "callback_data": "={{ $json.kb[4][0].callback_data }}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "disable_web_page_preview": "={{ $json.disable_preview }}"
+          }
+        },
+        "credentials": {
+          "telegramApi": {
+            "id": "2JnVm0BIX0Z8tvBf",
+            "name": "FINMENTOR Client Concierge Bot"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 1500,
+        "onError": "continueRegularOutput",
+        "webhookId": "968623cc-7141-4d7b-a871-91ec2d95dcd3"
+      },
+      {
+        "id": "e2902e36-1140-4b5c-acfd-029c92489654",
+        "name": "Return Transport Error",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -460,
+          700
+        ],
+        "parameters": {
+          "jsCode": "const v = $input.first().json || {};\nreturn [{ json: { ok: false, chat_id: String(v.chat_id == null ? '' : v.chat_id), message_id: '', correlation_id: String(v.correlation_id == null ? '' : v.correlation_id), error_code: String(v.error_code ? v.error_code : 'UNROUTED_LAYOUT'), retryable: false } }];"
+        }
+      }
+    ],
+    "connections": {
+      "Transport Request": {
+        "main": [
+          [
+            {
+              "node": "Validate Transport Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Transport Payload": {
+        "main": [
+          [
+            {
+              "node": "Transport Payload Valid",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Transport Payload Valid": {
+        "main": [
+          [
+            {
+              "node": "Route Keyboard Layout",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Return Transport Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route Keyboard Layout": {
+        "main": [
+          [
+            {
+              "node": "Render L0_NONE",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L1_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L2_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L2_CU",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L3_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L3_CCU",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L4_CCCC",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L4_CCUC",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L5_CCCUC",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L6_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L7_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render L8_C",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render LAYOUT_MENU",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Render LAYOUT_BMODEL",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Return Transport Error",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L0_NONE": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L1_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L2_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L2_CU": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L3_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L3_CCU": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L4_CCCC": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L4_CCUC": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L5_CCCUC": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L6_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L7_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render L8_C": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render LAYOUT_MENU": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Render LAYOUT_BMODEL": {
+        "main": [
+          [
+            {
+              "node": "Normalize Telegram Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Ghennadi Iacovlev (via MCP)",
+    "name": "Transport fix: UTF-8 byte length for callback_data",
+    "description": "callback_data was checked with JS string length (UTF-16 units); Telegram enforces 1-64 UTF-8 bytes, so Cyrillic/emoji payloads could pass validation and then be rejected by Telegram. Now measured via TextEncoder with an encodeURIComponent fallback. Button text bound raised from 64 to 128 chars so that legitimate long Russian button labels are not falsely rejected.",
+    "autosaved": false,
+    "createdAt": "2026-08-25T02:38:56.284Z",
+    "updatedAt": "2026-08-25T02:38:56.284Z",
+    "workflowPublishHistory": [
+      {
+        "id": 21,
+        "workflowId": "ShcmmJeLSE8LYVBk",
+        "versionId": "575e2665-055f-441e-9942-56c62208ac6b",
+        "event": "activated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T03:32:47.941Z"
+      }
+    ]
+  }
+}

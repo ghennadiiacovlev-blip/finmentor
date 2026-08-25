@@ -1,0 +1,384 @@
+{
+  "id": "imeJIDeNyaWDyXzh",
+  "name": "FINMENTOR Daily Lead Digest PREMIUM FINAL",
+  "description": null,
+  "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-07-01T07:56:42.576Z",
+  "updatedAt": "2026-08-25T16:38:54.66Z",
+  "isArchived": false,
+  "versionId": "e2579c9c-c68a-414f-a163-0cd37800964d",
+  "versionCounter": 13,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "id": "2f494c25-8b9a-43e9-97ad-46f4baae0b7b",
+      "name": "Daily Digest Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9fda2289-6636-4d16-b21e-e08b7fc5ca3a",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '<REDACTED_CHAT_ID>'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "846ba14a-bcdc-4187-8364-146ce58ab02c",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        0
+      ],
+      "id": "9d77b2b9-04bc-46c1-af01-61ef7207e4e4",
+      "name": "Get Pipeline Rows",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 962064347,
+          "mode": "list",
+          "cachedResultName": "AI_Plans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=962064347"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        0
+      ],
+      "id": "3b92e0ad-3537-4575-a52c-15b3538b3682",
+      "name": "Get AI Plans",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Daily Digest — управленческий digest по лидам (plain text).\nconst cfg = (function(){ try { return $('Settings to Object').first().json.settings || {}; } catch(e){ return {}; } })();\nconst TZ = cfg.timezone || 'Europe/Chisinau';\nconst now = new Date();\n\nconst pipe = $('Get Pipeline Rows').all().map(i => i.json)\n  .filter(r => r && Object.keys(r).length > 0 && (r.lead_id || r.company || r.name || r.email || r.phone || r.telegram));\nlet aiPlans = [];\ntry { aiPlans = $('Get AI Plans').all().map(i => i.json).filter(r => r && r.lead_id); } catch(e){ aiPlans = []; }\n\nfunction val(r, ...keys){ for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&String(r[k]).trim()!=='') return String(r[k]).trim(); } return ''; }\nfunction dkey(v){ if(!v) return ''; const d=new Date(v); return Number.isNaN(d.getTime())?'':d.toLocaleDateString('en-CA',{timeZone:TZ}); }\nconst today = now.toLocaleDateString('en-CA',{timeZone:TZ});\nfunction isClosed(stage){ const s=String(stage).toLowerCase(); return ['won','lost','closed','nurture','закрыт'].some(x=>s.includes(x)); }\nfunction hasContact(r){ return !!(val(r,'email')||val(r,'phone')||val(r,'telegram')); }\nfunction isSnoozedFuture(r){ if(val(r,'sla_status').toLowerCase()!=='snoozed') return false; const u=new Date(val(r,'sla_snooze_until')); return !Number.isNaN(u.getTime())&&u>now; }\nfunction isSnoozedExpired(r){ if(val(r,'sla_status').toLowerCase()!=='snoozed') return false; const u=new Date(val(r,'sla_snooze_until')); return !Number.isNaN(u.getTime())&&u<now; }\nfunction isOverdue(r){\n  const f=val(r,'next_follow_up_at'); if(!f) return false;\n  const d=new Date(f); if(Number.isNaN(d.getTime())||d>=now) return false;\n  const sla=val(r,'sla_status').toLowerCase();\n  if(sla==='done'||sla==='nurture') return false;\n  if(isClosed(val(r,'deal_stage'))) return false;\n  if(isSnoozedFuture(r)) return false;\n  return true;\n}\n\nconst active = pipe.filter(r => !isClosed(val(r,'deal_stage')));\nconst byP = p => active.filter(r => val(r,'priority').toUpperCase()===p).length;\nconst newToday = pipe.filter(r => dkey(val(r,'created_at'))===today);\nconst redOrange = active.filter(r => ['RED','ORANGE'].includes(val(r,'financial_zone').toUpperCase()));\nconst overdue = pipe.filter(isOverdue);\nconst noNextAction = active.filter(r => !val(r,'next_action'));\nconst noContact = active.filter(r => !hasContact(r));\nconst snoozedExpired = pipe.filter(isSnoozedExpired);\nconst aiMissing = active.filter(r => {\n  const p=val(r,'priority').toUpperCase(); if(p!=='HOT'&&p!=='WARM') return false;\n  if(val(r,'ai_plan_ready').toUpperCase()==='Y') return false;\n  const st=val(r,'deal_stage').toLowerCase();\n  if(['won','lost','closed','nurture','incomplete'].some(x=>st.includes(x))) return false;\n  return true;\n});\nconst aiReady = active.filter(r => val(r,'ai_plan_ready').toUpperCase()==='Y').length;\nconst recentPlansToday = aiPlans.filter(r => dkey(val(r,'ai_created_at'))===today).length;\n\n// ranking for top active leads\nconst zoneRank = z => ({RED:0,ORANGE:1,YELLOW:2,GREEN:3}[String(z).toUpperCase()] ?? 4);\nconst prioRank = p => ({HOT:0,WARM:1,COLD:2,INCOMPLETE:3}[String(p).toUpperCase()] ?? 4);\nconst topActive = active.slice().sort((a,b)=>{\n  const ao=isOverdue(a)?0:1, bo=isOverdue(b)?0:1;\n  return prioRank(val(a,'priority'))-prioRank(val(b,'priority'))\n    || zoneRank(val(a,'financial_zone'))-zoneRank(val(b,'financial_zone'))\n    || ao-bo;\n}).filter(r => ['HOT','WARM'].includes(val(r,'priority').toUpperCase())).slice(0,10);\n\nfunction leadLine(r,i){ return `${i}. ${val(r,'company')||'-'} / ${val(r,'name')||'-'} | ${val(r,'priority')||'-'}/${val(r,'financial_zone')||'-'} | ${val(r,'deal_stage')||'New'} | ${val(r,'next_action')||'-'} | ${val(r,'lead_id')}`; }\nfunction overdueLine(r,i){ return `${i}. ${val(r,'company')||'-'} / ${val(r,'name')||'-'} | Due: ${dkey(val(r,'next_follow_up_at'))||val(r,'next_follow_up_at')} | ${val(r,'next_action')||'-'} | ${val(r,'lead_id')}`; }\n\n// source/utm today\nconst srcMap = {};\nfor(const r of newToday){ const s=val(r,'utm_source')||'direct/unknown'; srcMap[s]=(srcMap[s]||0)+1; }\nconst srcLines = Object.keys(srcMap).length ? Object.entries(srcMap).map(([k,v])=>`${k}: ${v}`).join('\\n') : 'No new leads today';\n\nconst stats = { active: active.length, new_today: newToday.length, hot: byP('HOT'), warm: byP('WARM'),\n  cold: byP('COLD'), incomplete: byP('INCOMPLETE'), overdue: overdue.length };\n\nlet msg;\nif (active.length === 0) {\n  msg = `FINMENTOR Daily Lead Digest\\nDate: ${today}\\nNo new or active lead issues today.\\nPipeline is clean.`;\n} else {\n  msg =\n`FINMENTOR Daily Lead Digest\nDate: ${today}\nTimezone: ${TZ}\n\n1. Summary\nTotal active leads: ${active.length}\nNew today: ${newToday.length}\nHOT: ${byP('HOT')}\nWARM: ${byP('WARM')}\nCOLD: ${byP('COLD')}\nINCOMPLETE: ${byP('INCOMPLETE')}\nRED/ORANGE: ${redOrange.length}\n\n2. Attention today\nOverdue follow-ups: ${overdue.length}\nNo next action: ${noNextAction.length}\nNo contact: ${noContact.length}\nAI plan not ready: ${aiMissing.length}\nSnoozed expired: ${snoozedExpired.length}\n\n3. HOT / RED active leads\n${topActive.length ? topActive.map((r,i)=>leadLine(r,i+1)).join('\\n') : '-'}\n\n4. Follow-up overdue\n${overdue.length ? overdue.slice(0,10).map((r,i)=>overdueLine(r,i+1)).join('\\n') : '-'}\n\n5. AI status\nAI ready: ${aiReady}\nAI missing: ${aiMissing.length}\nRecent X-Ray plans today: ${recentPlansToday}\n\n6. Source / UTM today\n${srcLines}\n\n7. Recommended owner actions\n- Contact HOT overdue leads today.\n- Review RED/ORANGE leads.\n- Schedule Discovery for qualified leads.\n- Move stale leads to Nurture if no response.`;\n}\n\nif (msg.length > 3800) msg = msg.slice(0,3800) + '\\n...\\nFull list in Google Sheets.';\n\nreturn [{ json: { digest_message: msg, stats } }];\n"
+      },
+      "id": "b5a2fe88-84e2-4a02-9383-abd3eddba840",
+      "name": "Build Daily Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($json.digest_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "bb50b39a-3a8c-4b23-9129-029fe70c1eb9",
+      "name": "Telegram Daily Digest",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Digest Activity — читает статистику из Build Daily Digest (Telegram отдаёт свой ответ).\nconst s = (function(){ try { return $('Build Daily Digest').first().json.stats || {}; } catch(e){ return {}; } })();\nreturn [{ json: {\n  activity_id: 'daily-digest-' + Date.now(),\n  ts: new Date().toISOString(),\n  lead_id: 'DAILY',\n  actor: 'system:digest',\n  channel: 'telegram',\n  action: 'daily_digest_sent',\n  detail: `Daily digest sent: active=${s.active||0}; new_today=${s.new_today||0}; overdue=${s.overdue||0}; hot=${s.hot||0}; warm=${s.warm||0}`\n}}];\n"
+      },
+      "id": "e01a8c40-8a77-416c-ad7d-f9ed4b328bfc",
+      "name": "Build Digest Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list",
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1600,
+        0
+      ],
+      "id": "f53433c0-2283-43fe-82f4-f592cc7718d7",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Daily Digest Schedule": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Get Pipeline Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline Rows": {
+      "main": [
+        [
+          {
+            "node": "Get AI Plans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get AI Plans": {
+      "main": [
+        [
+          {
+            "node": "Build Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Daily Digest": {
+      "main": [
+        [
+          {
+            "node": "Telegram Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Daily Digest": {
+      "main": [
+        [
+          {
+            "node": "Build Digest Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Daily Digest Schedule": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "imeJIDeNyaWDyXzh",
+      "projectId": "i98tNjxq2CUeunA3",
+      "project": {
+        "id": "i98tNjxq2CUeunA3",
+        "name": "Ghennadi Iacovlev <cfo@finmentor.md>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-04-29T10:57:49.35Z",
+        "updatedAt": "2026-04-29T10:57:56.466Z"
+      },
+      "createdAt": "2026-07-01T07:56:42.577Z",
+      "updatedAt": "2026-07-01T07:56:42.577Z"
+    }
+  ],
+  "activeVersion": null
+}

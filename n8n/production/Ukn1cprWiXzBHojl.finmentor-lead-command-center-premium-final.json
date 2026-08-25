@@ -1,0 +1,836 @@
+{
+  "id": "Ukn1cprWiXzBHojl",
+  "name": "FINMENTOR Lead Command Center PREMIUM FINAL",
+  "description": null,
+  "active": false,
+  "activeVersionId": null,
+  "createdAt": "2026-07-01T07:57:13.388Z",
+  "updatedAt": "2026-08-24T14:30:22.418Z",
+  "isArchived": false,
+  "versionId": "40aa1cba-72ac-4e85-864a-73b4d8dce2ab",
+  "versionCounter": 17,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "finmentor-lead-command-center",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -720,
+        304
+      ],
+      "id": "fbc286ea-bf84-4762-a667-0a96defb63eb",
+      "name": "Telegram Command Webhook",
+      "webhookId": "df0eb397-40b2-4ef3-b25c-29dc7e4b1544"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        304
+      ],
+      "id": "b565b93c-b694-429a-ac06-ff9a98b7d93a",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '<REDACTED_CHAT_ID>'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "c8348b10-a613-4525-93ac-d68d50d5c553",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FINMENTOR Command Center v2 — разбор text-команд и callback_query.\nconst webhookItem = $('Telegram Command Webhook').first().json;\nconst update = webhookItem.body || webhookItem;\nconst cfg = $('Settings to Object').first().json.settings || {};\n\nconst allowed = String(cfg.allowed_chat_ids || cfg.owner_chat_id || '')\n  .split(',').map(s => s.trim()).filter(Boolean);\n\nfunction base(extra) {\n  return Object.assign({\n    mode: 'noop', query_type: '', command: '', lead_id: '', args: [],\n    snooze_hours: 24, stage_value: '', note_text: '', deal_value: '', close_reason: '', meeting_date: '',\n    chat_id: '', from_id: '', callback_query_id: '', is_callback: false,\n    allowed: true, reply_text: ''\n  }, extra || {});\n}\n\nlet text = '', chatId = '', fromId = '', cbId = '', isCb = false;\nif (update.callback_query) {\n  isCb = true;\n  text = update.callback_query.data || '';\n  cbId = update.callback_query.id || '';\n  chatId = String(update.callback_query.message?.chat?.id ?? '');\n  fromId = String(update.callback_query.from?.id ?? '');\n} else if (update.message) {\n  text = update.message.text || '';\n  chatId = String(update.message.chat?.id ?? '');\n  fromId = String(update.message.from?.id ?? '');\n}\n\n// служебный апдейт без текста и без callback — игнор\nif (!text.trim()) return [];\n\n// доступ: разрешаем если chat_id ИЛИ from_id в списке\nconst ok = allowed.length === 0 || allowed.includes(chatId) || allowed.includes(fromId);\nif (!ok) {\n  return [base({ mode: 'help', allowed: false, chat_id: chatId, from_id: fromId,\n    callback_query_id: cbId, is_callback: isCb,\n    reply_text: 'Нет доступа. Этот бот управляет лидами FINMENTOR только для авторизованных пользователей.' })];\n}\n\n// callback_data: \"cmd|lead|arg\" ; text: \"cmd lead arg...\"\nlet parts;\nif (isCb) parts = text.split('|').map(s => s.trim());\nelse parts = text.trim().replace(/^\\//, '/').split(/\\s+/);\n\nlet cmd = (parts[0] || '').toLowerCase().replace(/^\\//, '');\nconst rest = parts.slice(1);\n\nconst HELP =\n`FINMENTOR Command Center\n\nЗапросы:\n/today — новые лиды сегодня\n/overdue — просроченные follow-up\n/hot — горячие лиды\n/pipeline — сводка воронки\n/lead <ID> — карточка лида\n\nДействия (<ID> = FIN-/fm-/FM-...):\ndone <ID> — закрыть SLA\nsnooze <ID> <часы> — отложить\nstage <ID> <стадия> — сменить стадию\nmeeting <ID> <дата> — назначить встречу\ndocs <ID> — запросить документы\nproposal <ID> — отправлено предложение\nnurture <ID> — в подогрев\nwon <ID> <сумма> — сделка выиграна\nlost <ID> <причина> — сделка проиграна\nnote <ID> <текст> — заметка`;\n\nconst queryCmds = { today:'today', overdue:'overdue', hot:'hot', pipeline:'pipeline' };\nconst updateCmds = ['done','snooze','stage','meeting','docs','proposal','nurture','won','lost','note'];\n\nif (cmd === 'help' || cmd === 'start') {\n  return [base({ mode: 'help', chat_id: chatId, from_id: fromId, callback_query_id: cbId, is_callback: isCb, reply_text: HELP })];\n}\nif (queryCmds[cmd]) {\n  return [base({ mode: 'query', query_type: queryCmds[cmd], chat_id: chatId, from_id: fromId, callback_query_id: cbId, is_callback: isCb })];\n}\nif (cmd === 'lead') {\n  const id = rest[0] || '';\n  if (!id) return [base({ mode:'help', chat_id:chatId, from_id:fromId, callback_query_id:cbId, is_callback:isCb, reply_text:'Укажи Lead ID: /lead FIN-...' })];\n  return [base({ mode:'query', query_type:'lead', lead_id:id, chat_id:chatId, from_id:fromId, callback_query_id:cbId, is_callback:isCb })];\n}\nif (updateCmds.includes(cmd)) {\n  const id = rest[0] || '';\n  if (!id) return [base({ mode:'help', chat_id:chatId, from_id:fromId, callback_query_id:cbId, is_callback:isCb, reply_text:`Укажи Lead ID: ${cmd} FIN-...` })];\n  const o = base({ mode:'update', command:cmd, lead_id:id, args:rest.slice(1),\n    chat_id:chatId, from_id:fromId, callback_query_id:cbId, is_callback:isCb });\n  if (cmd === 'snooze') o.snooze_hours = Number(rest[1]) > 0 ? Number(rest[1]) : 24;\n  if (cmd === 'stage') o.stage_value = rest.slice(1).join(' ') || 'Discovery Scheduled';\n  if (cmd === 'meeting') o.meeting_date = rest.slice(1).join(' ');\n  if (cmd === 'won') o.deal_value = rest[1] || '';\n  if (cmd === 'lost') o.close_reason = rest.slice(1).join(' ');\n  if (cmd === 'note') o.note_text = rest.slice(1).join(' ');\n  return [o];\n}\n// неизвестная команда\nreturn [base({ mode:'help', chat_id:chatId, from_id:fromId, callback_query_id:cbId, is_callback:isCb,\n  reply_text:'Неизвестная команда. Напиши /help для списка.' })];\n"
+      },
+      "id": "4d1094f6-a942-43db-ae3e-6f0b0240aa7c",
+      "name": "Parse Lead Command v2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query_id }}",
+        "additionalFields": {}
+      },
+      "id": "b5439903-d463-4b26-89a7-94a8328a6295",
+      "name": "Answer Callback Query",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        -112
+      ],
+      "webhookId": "6b207ab1-6a0e-4df2-a7d0-44b8ff743bd2",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3c0b0d74-0be8-4bc8-99a1-527592348889",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "62f62a06-fc90-435c-8f0b-a98561b65835",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "query",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f44cac77-1634-40e1-a09c-fcf1c7ae2759",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3306721a-4b84-4417-be39-4258553b42e7",
+      "name": "Route Command Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        128
+      ],
+      "id": "7e8d145f-8abd-407b-b1aa-ae80a9185eab",
+      "name": "Telegram Command Reply",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        368
+      ],
+      "id": "835b7158-574b-49a7-b699-4657d1bf69db",
+      "name": "Get Pipeline (Query)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Формирует ответ на /today /overdue /hot /pipeline /lead\nconst cmd = $('Parse Lead Command v2').first().json;\nconst cfg = $('Settings to Object').first().json.settings || {};\nconst rows = $input.all().map(i => i.json);\nconst TZ = cfg.timezone || 'Europe/Chisinau';\nconst now = new Date();\n\nfunction val(r,...k){ for(const x of k){ if(r[x]!==undefined&&r[x]!==null&&String(r[x]).trim()!=='') return String(r[x]).trim(); } return ''; }\nfunction dkey(v){ const d=new Date(v); return Number.isNaN(d.getTime())?'':d.toLocaleDateString('en-CA',{timeZone:TZ}); }\nfunction today(){ return now.toLocaleDateString('en-CA',{timeZone:TZ}); }\nfunction isClosed(s){ s=s.toLowerCase(); return ['won','lost','closed','nurture','закрыт'].some(x=>s.includes(x)); }\nfunction line(r,i){ return `${i}. ${val(r,'company')||'—'} / ${val(r,'name')||'—'} [${val(r,'priority')||'—'}/${val(r,'financial_zone')||'—'}]\\n   ${val(r,'next_action')||'—'} | ${val(r,'lead_id')}`; }\n\nfunction slaStatus(r) { return val(r,'sla_status').toLowerCase(); }\nfunction isSnoozedFuture(r) {\n  const s = slaStatus(r);\n  const until = val(r,'sla_snooze_until');\n  if (s !== 'snoozed' || !until) return false;\n  const d = new Date(until);\n  return !Number.isNaN(d.getTime()) && d > now;\n}\nfunction isInactiveForOverdue(r) {\n  const stage = val(r,'deal_stage').toLowerCase();\n  const sla = slaStatus(r);\n  return (\n    ['won','lost','closed','nurture','incomplete','закрыт'].some(x => stage.includes(x)) ||\n    sla === 'done' ||\n    sla === 'nurture' ||\n    isSnoozedFuture(r)\n  );\n}\n\nlet msg = '';\nconst t = cmd.query_type;\n\nif (t === 'lead') {\n  const r = rows.find(x => val(x,'lead_id').toLowerCase() === String(cmd.lead_id).toLowerCase());\n  if (!r) msg = `Lead ID не найден: ${cmd.lead_id}`;\n  else msg =\n`Карточка лида ${val(r,'lead_id')}\nКомпания: ${val(r,'company')||'—'}\nКонтакт: ${val(r,'name')||'—'} | ${[val(r,'phone'),val(r,'telegram'),val(r,'email')].filter(Boolean).join(' · ')||'—'}\nПриоритет/Зона: ${val(r,'priority')||'—'} / ${val(r,'financial_zone')||'—'}\nСтадия: ${val(r,'deal_stage')||'New'}\nБоль: ${val(r,'main_pain')||'—'}\nNext action: ${val(r,'next_action')||'—'}\nFollow-up: ${val(r,'next_follow_up_at')||'—'}\nSLA: ${val(r,'sla_status')||'—'}\nAI-план: ${val(r,'ai_plan_ready')||'—'}`;\n} else if (t === 'today') {\n  const list = rows.filter(r => dkey(val(r,'created_at')) === today());\n  msg = `Новые лиды сегодня: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'overdue') {\n  const list = rows.filter(r => {\n    const f = val(r,'next_follow_up_at');\n    if (!f || isInactiveForOverdue(r)) return false;\n    const d = new Date(f);\n    return !Number.isNaN(d.getTime()) && d < now;\n  })\n    .sort((a,b)=>new Date(val(a,'next_follow_up_at'))-new Date(val(b,'next_follow_up_at')));\n  msg = `Просроченные follow-up: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'hot') {\n  const list = rows.filter(r => val(r,'priority').toUpperCase()==='HOT' && !isClosed(val(r,'deal_stage')));\n  msg = `HOT лиды: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'pipeline') {\n  const active = rows.filter(r => !isClosed(val(r,'deal_stage')));\n  const byP = p => active.filter(r => val(r,'priority').toUpperCase()===p).length;\n  const stages = {};\n  for (const r of active){ const s=val(r,'deal_stage')||'New'; stages[s]=(stages[s]||0)+1; }\n  const red = active.filter(r => ['RED','ORANGE'].includes(val(r,'financial_zone').toUpperCase())).length;\n  msg = `Воронка (активных: ${active.length})\nHOT ${byP('HOT')} · WARM ${byP('WARM')} · COLD ${byP('COLD')} · INCOMPLETE ${byP('INCOMPLETE')}\nRED/ORANGE: ${red}\n\nПо стадиям:\n${Object.entries(stages).map(([k,v])=>`• ${k}: ${v}`).join('\\n')||'—'}`;\n} else {\n  msg = 'Нет данных.';\n}\n\nif (msg.length > 3800) msg = msg.slice(0,3800) + '\\n...\\nПолный список в Google Sheets.';\nreturn [{ json: { reply_text: msg, chat_id: cmd.chat_id, callback_query_id: cmd.callback_query_id } }];\n"
+      },
+      "id": "f94b82d7-f90f-4e37-bfc9-35d3c4d7f057",
+      "name": "Build Query Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        368
+      ],
+      "id": "ddc571ca-cf5b-4702-b084-a7931f7fb56a",
+      "name": "Telegram Query Reply",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        592
+      ],
+      "id": "70c17cc9-7c8e-457e-a5fc-a509c0319308",
+      "name": "Get Pipeline (Update)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Находит строку Pipeline по lead_id и строит payload обновления под команду.\nconst cmd = $('Parse Lead Command v2').first().json;\nconst rows = $input.all().map(i => i.json);\nfunction norm(v){ return String(v ?? '').trim().toLowerCase(); }\nconst target = norm(cmd.lead_id);\nconst row = rows.find(r => norm(r.lead_id) === target);\n\nif (!row) {\n  return [{ json: { _found: false, lead_id: cmd.lead_id, chat_id: cmd.chat_id,\n    callback_query_id: cmd.callback_query_id,\n    reply_text: `Lead ID не найден: ${cmd.lead_id}. Проверь ID или /today.` } }];\n}\n\nconst now = new Date();\nconst fromStage = String(row.deal_stage || 'New');\nconst upd = {\n  lead_id: row.lead_id,\n  updated_at: now.toISOString(),\n  last_activity_at: now.toISOString(),\n  deal_stage: row.deal_stage || '',\n  next_follow_up_at: row.next_follow_up_at || '',\n  last_contacted_at: row.last_contacted_at || '',\n  meeting_date: row.meeting_date || '',\n  documents_requested_at: row.documents_requested_at || '',\n  proposal_sent_at: row.proposal_sent_at || '',\n  deal_value_estimate: row.deal_value_estimate || '',\n  close_reason: row.close_reason || '',\n  sla_status: row.sla_status || '',\n  sla_snooze_until: row.sla_snooze_until || '',\n  owner_note: row.owner_note || ''\n};\nlet toStage = fromStage;\nlet confirm = '';\n\nswitch (cmd.command) {\n  case 'done':\n    upd.sla_status = 'Done'; upd.last_contacted_at = now.toISOString();\n    confirm = `Готово: SLA закрыт. ${row.company || ''}`.trim(); break;\n  case 'snooze': {\n    const h = Number(cmd.snooze_hours) || 24;\n    const snoozeUntil = new Date(now.getTime() + h * 36e5).toISOString();\n    upd.sla_status = 'Snoozed';\n    upd.sla_snooze_until = snoozeUntil;\n    upd.next_follow_up_at = snoozeUntil;\n    confirm = `SLA отложен на ${h} ч.`; break;\n  }\n  case 'stage':\n    toStage = cmd.stage_value || 'Discovery Scheduled'; upd.deal_stage = toStage;\n    confirm = `Стадия: ${toStage}`; break;\n  case 'meeting':\n    toStage = 'Discovery Scheduled'; upd.deal_stage = toStage;\n    if (cmd.meeting_date) upd.meeting_date = cmd.meeting_date;\n    upd.next_follow_up_at = new Date(now.getTime() + 24 * 36e5).toISOString();\n    confirm = `Встреча назначена${cmd.meeting_date ? ': ' + cmd.meeting_date : ''}`; break;\n  case 'docs':\n    toStage = 'Documents Requested'; upd.deal_stage = toStage;\n    upd.documents_requested_at = now.toISOString();\n    upd.next_follow_up_at = new Date(now.getTime() + 48 * 36e5).toISOString();\n    confirm = 'Документы запрошены (+48ч follow-up)'; break;\n  case 'proposal':\n    toStage = 'Proposal Sent'; upd.deal_stage = toStage;\n    upd.proposal_sent_at = now.toISOString();\n    upd.next_follow_up_at = new Date(now.getTime() + 72 * 36e5).toISOString();\n    confirm = 'Предложение отправлено'; break;\n  case 'nurture':\n    toStage = 'Nurture'; upd.deal_stage = toStage; upd.sla_status = 'Nurture';\n    confirm = 'Лид переведён в подогрев (SLA выключен)'; break;\n  case 'won':\n    toStage = 'Won'; upd.deal_stage = toStage; upd.sla_status = 'Done';\n    if (cmd.deal_value) upd.deal_value_estimate = cmd.deal_value;\n    confirm = `Сделка выиграна${cmd.deal_value ? ': ' + cmd.deal_value : ''}`; break;\n  case 'lost':\n    toStage = 'Lost'; upd.deal_stage = toStage; upd.sla_status = 'Done';\n    if (cmd.close_reason) upd.close_reason = cmd.close_reason;\n    confirm = `Сделка проиграна${cmd.close_reason ? ': ' + cmd.close_reason : ''}`; break;\n  case 'note':\n    upd.owner_note = cmd.note_text || '';\n    confirm = 'Заметка сохранена'; break;\n  default:\n    confirm = 'Обновлено';\n}\n\nreturn [{ json: {\n  _found: true,\n  ...upd,\n  from_stage: fromStage,\n  to_stage: toStage,\n  stage_changed: toStage !== fromStage,\n  command: cmd.command,\n  chat_id: cmd.chat_id,\n  callback_query_id: cmd.callback_query_id,\n  company: row.company || '',\n  reply_text: `${confirm}\\nLead ID: ${row.lead_id}`\n}}];\n"
+      },
+      "id": "c03f6cc3-796d-4229-93b1-1bd9e347cf1a",
+      "name": "Find & Build Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c882fcd5-8c32-45e5-8dbd-0eebec146edf",
+              "leftValue": "={{ String($json._found) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d3cc4df9-bb4b-4d2c-9ee2-4eac70044e14",
+      "name": "IF Row Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1997367085,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16EepilGu1c_TViJCr1jZkFXbIZZfBiysV_NA5cNiFsc/edit#gid=1997367085"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        528
+      ],
+      "id": "8729fc64-501a-4b3a-b159-1ac8b18d03dc",
+      "name": "Update Pipeline Row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Пишет строку Status_Log только при смене стадии.\nconst item = $('Find & Build Update').first().json;\nif (!item.stage_changed) return [];\nreturn [{ json: {\n  log_id: `${item.lead_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: item.lead_id,\n  from_stage: item.from_stage || '',\n  to_stage: item.to_stage || '',\n  actor: 'telegram:owner',\n  reason: `command:${item.command}`\n}}];\n"
+      },
+      "id": "53223dec-8a4f-4f88-83da-afa98a789e6d",
+      "name": "Build Status Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Status_Log",
+          "mode": "list",
+          "cachedResultName": "Status_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16EepilGu1c_TViJCr1jZkFXbIZZfBiysV_NA5cNiFsc/edit"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        464
+      ],
+      "id": "f712302e-05f5-42de-b2a4-b532d0334caa",
+      "name": "Save Status_Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Find & Build Update').first().json;\nreturn [{ json: {\n  activity_id: `${item.lead_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: item.lead_id,\n  actor: 'telegram:owner',\n  channel: 'telegram',\n  action: `command:${item.command}`,\n  detail: item.stage_changed ? `stage ${item.from_stage} -> ${item.to_stage}` : (item.reply_text || '').split('\\n')[0]\n}}];\n"
+      },
+      "id": "047cf0d4-5ebf-418a-8bff-6ed73c7fbc67",
+      "name": "Build CC Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Activities",
+          "mode": "list",
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16EepilGu1c_TViJCr1jZkFXbIZZfBiysV_NA5cNiFsc/edit"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        608
+      ],
+      "id": "b21ed03f-bacf-4bd9-8e47-30a07fe32396",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($('Find & Build Update').first().json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        752
+      ],
+      "id": "bdd8c15e-ae59-4e11-a4ca-4c532a63f4f2",
+      "name": "Telegram Update Reply",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        752
+      ],
+      "id": "06f6245e-5580-431e-a158-22750ac611bf",
+      "name": "Telegram Not Found Reply",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9199ecbf-421b-4f79-824d-991ce0424b9c",
+              "leftValue": "={{ String($json.callback_query_id || '') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "53843f09-24b0-4805-8ed5-dac5ba36c0ff",
+      "name": "IF Has Callback",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram Command Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Parse Lead Command v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Lead Command v2": {
+      "main": [
+        [
+          {
+            "node": "IF Has Callback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route Command Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Command Mode": {
+      "main": [
+        [
+          {
+            "node": "Telegram Command Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Pipeline (Query)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Pipeline (Update)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline (Query)": {
+      "main": [
+        [
+          {
+            "node": "Build Query Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Query Reply": {
+      "main": [
+        [
+          {
+            "node": "Telegram Query Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline (Update)": {
+      "main": [
+        [
+          {
+            "node": "Find & Build Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find & Build Update": {
+      "main": [
+        [
+          {
+            "node": "IF Row Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Row Found": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Not Found Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Pipeline Row": {
+      "main": [
+        [
+          {
+            "node": "Build Status Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build CC Activity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram Update Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Status Log": {
+      "main": [
+        [
+          {
+            "node": "Save Status_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build CC Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Callback": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "Ukn1cprWiXzBHojl",
+      "projectId": "i98tNjxq2CUeunA3",
+      "project": {
+        "id": "i98tNjxq2CUeunA3",
+        "name": "Ghennadi Iacovlev <cfo@finmentor.md>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-04-29T10:57:49.35Z",
+        "updatedAt": "2026-04-29T10:57:56.466Z"
+      },
+      "createdAt": "2026-07-01T07:57:13.39Z",
+      "updatedAt": "2026-07-01T07:57:13.39Z"
+    }
+  ],
+  "activeVersion": null
+}

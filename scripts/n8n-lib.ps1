@@ -86,16 +86,37 @@ function Get-WorkflowStructuralHash {
     ($bytes | ForEach-Object { $_.ToString('x2') }) -join ''
 }
 
-# Redaction for anything committed to git. Owner Telegram IDs, bot tokens and
-# long opaque strings never reach the repository.
+# Canonical spreadsheet tab ids. These are configuration, not identity, and must survive
+# redaction so the exports remain useful for drift detection. They are the reason the
+# identity rule below cannot simply redact every 9-10 digit number: gids are the same shape
+# as Telegram chat ids.
+$script:CANONICAL_GIDS = @(
+    '1871239368', '409890193', '936189533', '1883973304', '962064347', '623316892',
+    '1810362432', '1651979710', '532676168', '1289462207', '1584265787', '1612014214',
+    '1997367085'
+)
+
+# Redaction for anything committed to git. Bot tokens, API keys and Telegram identities
+# never reach the repository.
 function ConvertTo-Redacted {
     param([Parameter(Mandatory)][string]$Json)
     $out = $Json
     $out = [regex]::Replace($out, '\b\d{8,10}:[A-Za-z0-9_-]{30,}\b', '<REDACTED_BOT_TOKEN>')
-    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId|owner_chat_id|allowed_chat_ids)"\s*:\s*")[^"]*', '<REDACTED_CHAT_ID>')
-    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId)"\s*:\s*)\d{6,}', '"<REDACTED_CHAT_ID>"')
     $out = [regex]::Replace($out, '\bsk-[A-Za-z0-9_-]{20,}\b', '<REDACTED_API_KEY>')
     $out = [regex]::Replace($out, '\bAIza[A-Za-z0-9_-]{30,}\b', '<REDACTED_API_KEY>')
+
+    # Structured chat-id fields.
+    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId|owner_chat_id|manager_chat_id|allowed_chat_ids)"\s*:\s*")[^"]*', '<REDACTED_CHAT_ID>')
+    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId)"\s*:\s*)\d{6,}', '"<REDACTED_CHAT_ID>"')
+
+    # Telegram ids also appear as bare quoted literals inside node jsCode, most often as a
+    # hardcoded owner fallback. Those are invisible to the key-based rules above, so quoted
+    # 6-12 digit literals are redacted unless they are a known sheet gid.
+    $out = [regex]::Replace($out, "(?<=\\?['`"])(\d{6,12})(?=\\?['`"])", {
+        param($m)
+        if ($script:CANONICAL_GIDS -contains $m.Groups[1].Value) { $m.Groups[1].Value } else { '<REDACTED_CHAT_ID>' }
+    })
+
     $out
 }
 

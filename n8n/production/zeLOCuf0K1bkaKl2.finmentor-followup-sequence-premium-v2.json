@@ -1,0 +1,1939 @@
+{
+  "id": "zeLOCuf0K1bkaKl2",
+  "name": "FINMENTOR Followup Sequence PREMIUM v2",
+  "description": null,
+  "active": true,
+  "activeVersionId": "c6719bbf-261d-48a3-ac7d-2ac307c0bab3",
+  "createdAt": "2026-07-01T07:57:28.344Z",
+  "updatedAt": "2026-08-25T16:38:53.041Z",
+  "isArchived": false,
+  "versionId": "c6719bbf-261d-48a3-ac7d-2ac307c0bab3",
+  "versionCounter": 23,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "069f3c27-f25e-4a2e-a5c5-47dbab348ad1",
+      "name": "Hourly Followup Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1424,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        160
+      ],
+      "id": "f0c2eb86-6f7a-40b4-9ef0-0872c79d8f7d",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '<REDACTED_CHAT_ID>'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "77c07b3b-3535-4290-9874-d9a0bdf3d508",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        160
+      ],
+      "id": "756a7936-c780-4d16-b2b6-d5cd929fe0f1",
+      "name": "Get Pipeline Rows",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1651979710,
+          "mode": "list",
+          "cachedResultName": "Followups",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -624,
+        160
+      ],
+      "id": "6f15fca1-0f1e-44ff-bffe-935e38669cf1",
+      "name": "Get Followups",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Followup Plan — эмитит item_type: new_followup (создать) и due_alert (напомнить).\nconst cfg = (function(){ try { return $('Settings to Object').first().json.settings || {}; } catch(e){ return {}; } })();\nconst now = new Date();\nconst enabled = String(cfg.follow_up_enabled).toLowerCase() === 'true';\nconst hotH = Number(cfg.followup_hot_hours || 24) || 24;\nconst warmH = Number(cfg.followup_warm_hours || 72) || 72;\n\nconst pipe = $('Get Pipeline Rows').all().map(i => i.json)\n  .filter(r => r && Object.keys(r).length > 0 && (r.lead_id || r.company || r.name));\nlet followups = [];\ntry { followups = $('Get Followups').all().map(i => i.json).filter(r => r && r.followup_id); } catch(e){ followups = []; }\n\nfunction val(r, ...keys){ for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&String(r[k]).trim()!=='') return String(r[k]).trim(); } return ''; }\nfunction norm(v){ return String(v ?? '').trim().toLowerCase(); }\nfunction isClosed(stage){ const s=norm(stage); return ['won','lost','closed','nurture','incomplete','закрыт'].some(x=>s.includes(x)); }\nfunction isSnoozedFuture(r){ if(norm(val(r,'sla_status'))!=='snoozed') return false; const u=new Date(val(r,'sla_snooze_until')); return !Number.isNaN(u.getTime())&&u>now; }\nfunction addHours(iso, h){ const d=new Date(iso||Date.now()); if(Number.isNaN(d.getTime())) return ''; d.setHours(d.getHours()+h); return d.toISOString(); }\nfunction slug(t){ return String(t).replace(/[^a-z0-9]+/gi,'-').replace(/(^-|-$)/g,'').toLowerCase(); }\nfunction stamp(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return ''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes()); }\nfunction dkey(v){ if(!v) return ''; const d=new Date(v); return Number.isNaN(d.getTime())?String(v):d.toISOString().slice(0,16).replace('T',' '); }\n\nconst out = [];\n\n// ---------- A) NEW planned followups (только если follow_up_enabled) ----------\nif (enabled) {\n  for (const r of pipe) {\n    const stage = val(r,'deal_stage');\n    if (isClosed(stage)) continue;\n    const priority = val(r,'priority').toUpperCase();\n    if (priority === 'COLD' || priority === 'INCOMPLETE') continue;\n    const sla = norm(val(r,'sla_status'));\n    if (sla === 'done' || sla === 'nurture') continue;\n\n    let type = '', dueAt = '';\n    const nfu = val(r,'next_follow_up_at');\n    if (norm(stage).includes('documents requested')) {\n      type = 'Document reminder';\n      const drq = val(r,'documents_requested_at');\n      dueAt = drq ? addHours(drq, 48) : nfu;\n    } else if (norm(stage).includes('proposal sent')) {\n      type = 'Proposal follow-up';\n      const psa = val(r,'proposal_sent_at');\n      dueAt = psa ? addHours(psa, 72) : nfu;\n    } else if (priority === 'HOT') {\n      type = 'HOT follow-up';\n      dueAt = nfu || addHours(val(r,'created_at'), hotH);\n    } else if (priority === 'WARM') {\n      type = 'WARM follow-up';\n      dueAt = nfu || addHours(val(r,'created_at'), warmH);\n    } else continue;\n    if (!dueAt) continue;\n\n    const leadId = val(r,'lead_id');\n    const forLead = followups.filter(f => norm(f.lead_id) === norm(leadId));\n    const hasFuture = forLead.some(f => ['planned','sent'].includes(norm(f.status)) && new Date(f.due_at) > now);\n    const hasSameType = forLead.some(f => norm(f.type) === norm(type));\n    if (hasFuture || hasSameType) continue;\n\n    const company = val(r,'company')||'-';\n    const name = val(r,'name')||'-';\n    const contact = [val(r,'phone'),val(r,'telegram'),val(r,'email')].filter(Boolean).join(' ')||'no contact';\n    const zone = val(r,'financial_zone')||'-';\n    const nextAction = val(r,'next_action')||'contact lead';\n    const message_template =\n`Follow-up needed\nLead ID: ${leadId}\nCompany: ${company}\nContact: ${name} ${contact}\nPriority/Zone: ${priority}/${zone}\nStage: ${stage||'New'}\nNext action: ${nextAction}\nReason: ${val(r,'priority_reason')||'-'}`;\n\n    out.push({ json: {\n      item_type: 'new_followup',\n      followup_id: `FU-${leadId}-${slug(type)}-${stamp()}`,\n      created_at: now.toISOString(),\n      lead_id: leadId,\n      due_at: dueAt,\n      type,\n      status: 'Planned',\n      priority,\n      channel: 'Telegram',\n      message_template,\n      done_at: '',\n      result: '',\n      note: ''\n    }});\n  }\n}\n\n// ---------- B) DUE alerts из существующих Followups (независимо от follow_up_enabled) ----------\nconst pipeById = {};\nfor (const r of pipe) { const id = norm(val(r,'lead_id')); if (id) pipeById[id] = r; }\n\nfor (const f of followups) {\n  if (norm(f.status) !== 'planned') continue;\n  const due = new Date(val(f,'due_at'));\n  if (Number.isNaN(due.getTime()) || due > now) continue;   // due_at <= now\n  const leadId = val(f,'lead_id');\n  const r = pipeById[norm(leadId)];\n  if (r) {\n    if (isClosed(val(r,'deal_stage'))) continue;\n    const sla = norm(val(r,'sla_status'));\n    if (sla === 'done' || sla === 'nurture') continue;\n    if (isSnoozedFuture(r)) continue;\n  }\n  const company = r ? (val(r,'company')||'-') : '-';\n  const name = r ? (val(r,'name')||'-') : '-';\n  const priority = r ? (val(r,'priority')||val(f,'priority')||'-') : (val(f,'priority')||'-');\n  const zone = r ? (val(r,'financial_zone')||'-') : '-';\n  const stage = r ? (val(r,'deal_stage')||'New') : '-';\n  const nextAction = r ? (val(r,'next_action')||'-') : '-';\n  const type = val(f,'type')||'follow-up';\n\n  const telegram_message =\n`FINMENTOR Follow-up Reminder\n${company} / ${name}\nLead ID: ${leadId}\nPriority/Zone: ${priority}/${zone}\nType: ${type}\nDue: ${dkey(val(f,'due_at'))}\nStage: ${stage}\nNext action: ${nextAction}`;\n\n  out.push({ json: {\n    item_type: 'due_alert',\n    followup_id: val(f,'followup_id'),\n    lead_id: leadId,\n    type,\n    priority,\n    financial_zone: zone,\n    due_at: val(f,'due_at'),\n    telegram_message\n  }});\n}\n\nreturn out;\n"
+      },
+      "id": "3bba9803-eac6-4de6-997f-cb61691173b3",
+      "name": "Build Followup Plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "efe2b6dd-a50d-4202-b697-443ff98ab59d",
+                    "leftValue": "={{ $json.item_type }}",
+                    "rightValue": "new_followup",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "63718b4a-a0e6-4a4e-9fbe-dae4d5eb8832",
+                    "leftValue": "={{ $json.item_type }}",
+                    "rightValue": "due_alert",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c54844e0-10f9-421b-98cd-b5528beff572",
+      "name": "Route Item Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1651979710,
+          "mode": "list",
+          "cachedResultName": "Followups",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "31ddbeb9-a005-4b54-b349-2d58e5f6a77a",
+      "name": "Save New Followups",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Activity на каждый созданный planned followup.\nconst items = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'new_followup');\nreturn items.map(f => ({ json: {\n  activity_id: `FU-ACT-${f.lead_id}-${Date.now()}-${Math.floor(Math.random()*1000)}`,\n  ts: new Date().toISOString(),\n  lead_id: f.lead_id,\n  actor: 'system:followup',\n  channel: 'automation',\n  action: 'followup_planned',\n  detail: `Followup planned: type=${f.type}; due_at=${f.due_at}; priority=${f.priority}`\n}}));\n"
+      },
+      "id": "1f7eacb1-08f9-454d-b61a-dab4f3ec6152",
+      "name": "Build Planned Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list",
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "activity_id",
+              "displayName": "activity_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ts",
+              "displayName": "ts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "actor",
+              "displayName": "actor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        0
+      ],
+      "id": "a3caf8bb-4311-4285-b579-2c567fabba47",
+      "name": "Save Planned Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "chatId": "<REDACTED_CHAT_ID>",
+        "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Done",
+                    "additionalFields": {
+                      "callback_data": "=done|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "⏰ Snooze 24h",
+                    "additionalFields": {
+                      "callback_data": "=snooze|{{$json.lead_id}}|24"
+                    }
+                  },
+                  {
+                    "text": "📞 Discovery",
+                    "additionalFields": {
+                      "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled"
+                    }
+                  },
+                  {
+                    "text": "📄 Docs",
+                    "additionalFields": {
+                      "callback_data": "=docs|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "💤 Nurture",
+                    "additionalFields": {
+                      "callback_data": "=nurture|{{$json.lead_id}}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        352
+      ],
+      "id": "b878f3ec-6882-4c63-8c8d-5639bc031498",
+      "name": "Telegram Followup Reminder",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// После успешного Telegram — пометить отправленные due followups как Sent.\n// Читаем due_alert items из плана (Telegram отдаёт свой API-ответ).\nconst due = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'due_alert');\nconst now = new Date().toISOString();\nreturn due.map(d => ({ json: {\n  followup_id: d.followup_id,\n  status: 'Sent',\n  result: 'Telegram reminder sent',\n  note: `owner reminder ${now}`\n}}));\n"
+      },
+      "id": "529038a3-8779-4203-9ff9-e2a85f14c470",
+      "name": "Mark Followups Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1651979710,
+          "mode": "list",
+          "cachedResultName": "Followups",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "followup_id"
+          ],
+          "schema": [
+            {
+              "id": "followup_id",
+              "displayName": "followup_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "due_at",
+              "displayName": "due_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_template",
+              "displayName": "message_template",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "done_at",
+              "displayName": "done_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "note",
+              "displayName": "note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        352
+      ],
+      "id": "a96d5313-7b80-425b-af36-20d041b4f26b",
+      "name": "Update Followups",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Одна activity на отправку пачки reminder'ов.\nconst due = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'due_alert');\nconst hot = due.filter(d => String(d.priority).toUpperCase() === 'HOT').length;\nconst warm = due.filter(d => String(d.priority).toUpperCase() === 'WARM').length;\nreturn [{ json: {\n  activity_id: `FU-REM-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: 'FOLLOWUP',\n  actor: 'system:followup',\n  channel: 'telegram',\n  action: 'followup_reminder_sent',\n  detail: `Followup reminder sent: due_count=${due.length}; hot=${hot}; warm=${warm}`\n}}];\n"
+      },
+      "id": "31d0b890-ad25-4722-9f02-5d1bc6e388cf",
+      "name": "Build Reminder Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list",
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "activity_id",
+              "displayName": "activity_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ts",
+              "displayName": "ts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "actor",
+              "displayName": "actor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "detail",
+              "displayName": "detail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        352
+      ],
+      "id": "69e55523-860c-4863-a26c-cc2eee889bc5",
+      "name": "Save Reminder Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Hourly Followup Check": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Get Pipeline Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline Rows": {
+      "main": [
+        [
+          {
+            "node": "Get Followups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Followups": {
+      "main": [
+        [
+          {
+            "node": "Build Followup Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Followup Plan": {
+      "main": [
+        [
+          {
+            "node": "Route Item Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Item Type": {
+      "main": [
+        [
+          {
+            "node": "Save New Followups",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Followup Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Planned Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Planned Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Followup Reminder": {
+      "main": [
+        [
+          {
+            "node": "Mark Followups Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Followups Sent": {
+      "main": [
+        [
+          {
+            "node": "Update Followups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reminder Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Reminder Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Followups": {
+      "main": [
+        [
+          {
+            "node": "Build Planned Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Followups": {
+      "main": [
+        [
+          {
+            "node": "Build Reminder Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "staticData": {
+    "node:Hourly Followup Check": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "zeLOCuf0K1bkaKl2",
+      "projectId": "i98tNjxq2CUeunA3",
+      "project": {
+        "id": "i98tNjxq2CUeunA3",
+        "name": "Ghennadi Iacovlev <cfo@finmentor.md>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-04-29T10:57:49.35Z",
+        "updatedAt": "2026-04-29T10:57:56.466Z"
+      },
+      "createdAt": "2026-07-01T07:57:28.346Z",
+      "updatedAt": "2026-07-01T07:57:28.346Z"
+    }
+  ],
+  "activeVersion": {
+    "versionId": "c6719bbf-261d-48a3-ac7d-2ac307c0bab3",
+    "workflowId": "zeLOCuf0K1bkaKl2",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "hours"
+              }
+            ]
+          }
+        },
+        "id": "069f3c27-f25e-4a2e-a5c5-47dbab348ad1",
+        "name": "Hourly Followup Check",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          -1424,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1871239368,
+            "mode": "list",
+            "cachedResultName": "Settings",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -1216,
+          160
+        ],
+        "id": "f0c2eb86-6f7a-40b4-9ef0-0872c79d8f7d",
+        "name": "Read Settings",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '<REDACTED_CHAT_ID>'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+        },
+        "id": "77c07b3b-3535-4290-9874-d9a0bdf3d508",
+        "name": "Settings to Object",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1024,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1883973304,
+            "mode": "list",
+            "cachedResultName": "Pipeline",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -816,
+          160
+        ],
+        "id": "756a7936-c780-4d16-b2b6-d5cd929fe0f1",
+        "name": "Get Pipeline Rows",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1651979710,
+            "mode": "list",
+            "cachedResultName": "Followups",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -624,
+          160
+        ],
+        "id": "6f15fca1-0f1e-44ff-bffe-935e38669cf1",
+        "name": "Get Followups",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "jsCode": "// Build Followup Plan — эмитит item_type: new_followup (создать) и due_alert (напомнить).\nconst cfg = (function(){ try { return $('Settings to Object').first().json.settings || {}; } catch(e){ return {}; } })();\nconst now = new Date();\nconst enabled = String(cfg.follow_up_enabled).toLowerCase() === 'true';\nconst hotH = Number(cfg.followup_hot_hours || 24) || 24;\nconst warmH = Number(cfg.followup_warm_hours || 72) || 72;\n\nconst pipe = $('Get Pipeline Rows').all().map(i => i.json)\n  .filter(r => r && Object.keys(r).length > 0 && (r.lead_id || r.company || r.name));\nlet followups = [];\ntry { followups = $('Get Followups').all().map(i => i.json).filter(r => r && r.followup_id); } catch(e){ followups = []; }\n\nfunction val(r, ...keys){ for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&String(r[k]).trim()!=='') return String(r[k]).trim(); } return ''; }\nfunction norm(v){ return String(v ?? '').trim().toLowerCase(); }\nfunction isClosed(stage){ const s=norm(stage); return ['won','lost','closed','nurture','incomplete','закрыт'].some(x=>s.includes(x)); }\nfunction isSnoozedFuture(r){ if(norm(val(r,'sla_status'))!=='snoozed') return false; const u=new Date(val(r,'sla_snooze_until')); return !Number.isNaN(u.getTime())&&u>now; }\nfunction addHours(iso, h){ const d=new Date(iso||Date.now()); if(Number.isNaN(d.getTime())) return ''; d.setHours(d.getHours()+h); return d.toISOString(); }\nfunction slug(t){ return String(t).replace(/[^a-z0-9]+/gi,'-').replace(/(^-|-$)/g,'').toLowerCase(); }\nfunction stamp(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return ''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes()); }\nfunction dkey(v){ if(!v) return ''; const d=new Date(v); return Number.isNaN(d.getTime())?String(v):d.toISOString().slice(0,16).replace('T',' '); }\n\nconst out = [];\n\n// ---------- A) NEW planned followups (только если follow_up_enabled) ----------\nif (enabled) {\n  for (const r of pipe) {\n    const stage = val(r,'deal_stage');\n    if (isClosed(stage)) continue;\n    const priority = val(r,'priority').toUpperCase();\n    if (priority === 'COLD' || priority === 'INCOMPLETE') continue;\n    const sla = norm(val(r,'sla_status'));\n    if (sla === 'done' || sla === 'nurture') continue;\n\n    let type = '', dueAt = '';\n    const nfu = val(r,'next_follow_up_at');\n    if (norm(stage).includes('documents requested')) {\n      type = 'Document reminder';\n      const drq = val(r,'documents_requested_at');\n      dueAt = drq ? addHours(drq, 48) : nfu;\n    } else if (norm(stage).includes('proposal sent')) {\n      type = 'Proposal follow-up';\n      const psa = val(r,'proposal_sent_at');\n      dueAt = psa ? addHours(psa, 72) : nfu;\n    } else if (priority === 'HOT') {\n      type = 'HOT follow-up';\n      dueAt = nfu || addHours(val(r,'created_at'), hotH);\n    } else if (priority === 'WARM') {\n      type = 'WARM follow-up';\n      dueAt = nfu || addHours(val(r,'created_at'), warmH);\n    } else continue;\n    if (!dueAt) continue;\n\n    const leadId = val(r,'lead_id');\n    const forLead = followups.filter(f => norm(f.lead_id) === norm(leadId));\n    const hasFuture = forLead.some(f => ['planned','sent'].includes(norm(f.status)) && new Date(f.due_at) > now);\n    const hasSameType = forLead.some(f => norm(f.type) === norm(type));\n    if (hasFuture || hasSameType) continue;\n\n    const company = val(r,'company')||'-';\n    const name = val(r,'name')||'-';\n    const contact = [val(r,'phone'),val(r,'telegram'),val(r,'email')].filter(Boolean).join(' ')||'no contact';\n    const zone = val(r,'financial_zone')||'-';\n    const nextAction = val(r,'next_action')||'contact lead';\n    const message_template =\n`Follow-up needed\nLead ID: ${leadId}\nCompany: ${company}\nContact: ${name} ${contact}\nPriority/Zone: ${priority}/${zone}\nStage: ${stage||'New'}\nNext action: ${nextAction}\nReason: ${val(r,'priority_reason')||'-'}`;\n\n    out.push({ json: {\n      item_type: 'new_followup',\n      followup_id: `FU-${leadId}-${slug(type)}-${stamp()}`,\n      created_at: now.toISOString(),\n      lead_id: leadId,\n      due_at: dueAt,\n      type,\n      status: 'Planned',\n      priority,\n      channel: 'Telegram',\n      message_template,\n      done_at: '',\n      result: '',\n      note: ''\n    }});\n  }\n}\n\n// ---------- B) DUE alerts из существующих Followups (независимо от follow_up_enabled) ----------\nconst pipeById = {};\nfor (const r of pipe) { const id = norm(val(r,'lead_id')); if (id) pipeById[id] = r; }\n\nfor (const f of followups) {\n  if (norm(f.status) !== 'planned') continue;\n  const due = new Date(val(f,'due_at'));\n  if (Number.isNaN(due.getTime()) || due > now) continue;   // due_at <= now\n  const leadId = val(f,'lead_id');\n  const r = pipeById[norm(leadId)];\n  if (r) {\n    if (isClosed(val(r,'deal_stage'))) continue;\n    const sla = norm(val(r,'sla_status'));\n    if (sla === 'done' || sla === 'nurture') continue;\n    if (isSnoozedFuture(r)) continue;\n  }\n  const company = r ? (val(r,'company')||'-') : '-';\n  const name = r ? (val(r,'name')||'-') : '-';\n  const priority = r ? (val(r,'priority')||val(f,'priority')||'-') : (val(f,'priority')||'-');\n  const zone = r ? (val(r,'financial_zone')||'-') : '-';\n  const stage = r ? (val(r,'deal_stage')||'New') : '-';\n  const nextAction = r ? (val(r,'next_action')||'-') : '-';\n  const type = val(f,'type')||'follow-up';\n\n  const telegram_message =\n`FINMENTOR Follow-up Reminder\n${company} / ${name}\nLead ID: ${leadId}\nPriority/Zone: ${priority}/${zone}\nType: ${type}\nDue: ${dkey(val(f,'due_at'))}\nStage: ${stage}\nNext action: ${nextAction}`;\n\n  out.push({ json: {\n    item_type: 'due_alert',\n    followup_id: val(f,'followup_id'),\n    lead_id: leadId,\n    type,\n    priority,\n    financial_zone: zone,\n    due_at: val(f,'due_at'),\n    telegram_message\n  }});\n}\n\nreturn out;\n"
+        },
+        "id": "3bba9803-eac6-4de6-997f-cb61691173b3",
+        "name": "Build Followup Plan",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -416,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "efe2b6dd-a50d-4202-b697-443ff98ab59d",
+                      "leftValue": "={{ $json.item_type }}",
+                      "rightValue": "new_followup",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "63718b4a-a0e6-4a4e-9fbe-dae4d5eb8832",
+                      "leftValue": "={{ $json.item_type }}",
+                      "rightValue": "due_alert",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "c54844e0-10f9-421b-98cd-b5528beff572",
+        "name": "Route Item Type",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          -224,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1651979710,
+            "mode": "list",
+            "cachedResultName": "Followups",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          0,
+          0
+        ],
+        "id": "31ddbeb9-a005-4b54-b349-2d58e5f6a77a",
+        "name": "Save New Followups",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "jsCode": "// Activity на каждый созданный planned followup.\nconst items = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'new_followup');\nreturn items.map(f => ({ json: {\n  activity_id: `FU-ACT-${f.lead_id}-${Date.now()}-${Math.floor(Math.random()*1000)}`,\n  ts: new Date().toISOString(),\n  lead_id: f.lead_id,\n  actor: 'system:followup',\n  channel: 'automation',\n  action: 'followup_planned',\n  detail: `Followup planned: type=${f.type}; due_at=${f.due_at}; priority=${f.priority}`\n}}));\n"
+        },
+        "id": "1f7eacb1-08f9-454d-b61a-dab4f3ec6152",
+        "name": "Build Planned Activity",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          208,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 623316892,
+            "mode": "list",
+            "cachedResultName": "Activities",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "activity_id",
+                "displayName": "activity_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "ts",
+                "displayName": "ts",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "lead_id",
+                "displayName": "lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "actor",
+                "displayName": "actor",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "channel",
+                "displayName": "channel",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "action",
+                "displayName": "action",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "detail",
+                "displayName": "detail",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          400,
+          0
+        ],
+        "id": "a3caf8bb-4311-4285-b579-2c567fabba47",
+        "name": "Save Planned Activity",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "chatId": "<REDACTED_CHAT_ID>",
+          "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "✅ Done",
+                      "additionalFields": {
+                        "callback_data": "=done|{{$json.lead_id}}"
+                      }
+                    },
+                    {
+                      "text": "⏰ Snooze 24h",
+                      "additionalFields": {
+                        "callback_data": "=snooze|{{$json.lead_id}}|24"
+                      }
+                    },
+                    {
+                      "text": "📞 Discovery",
+                      "additionalFields": {
+                        "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled"
+                      }
+                    },
+                    {
+                      "text": "📄 Docs",
+                      "additionalFields": {
+                        "callback_data": "=docs|{{$json.lead_id}}"
+                      }
+                    },
+                    {
+                      "text": "💤 Nurture",
+                      "additionalFields": {
+                        "callback_data": "=nurture|{{$json.lead_id}}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "additionalFields": {
+            "appendAttribution": false,
+            "parse_mode": ""
+          }
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          352
+        ],
+        "id": "b878f3ec-6882-4c63-8c8d-5639bc031498",
+        "name": "Telegram Followup Reminder",
+        "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+        "credentials": {
+          "telegramApi": {
+            "id": "Mj41qrGHfrthCtAw",
+            "name": "FINMENTOR Leads Bot FINAL"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "// После успешного Telegram — пометить отправленные due followups как Sent.\n// Читаем due_alert items из плана (Telegram отдаёт свой API-ответ).\nconst due = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'due_alert');\nconst now = new Date().toISOString();\nreturn due.map(d => ({ json: {\n  followup_id: d.followup_id,\n  status: 'Sent',\n  result: 'Telegram reminder sent',\n  note: `owner reminder ${now}`\n}}));\n"
+        },
+        "id": "529038a3-8779-4203-9ff9-e2a85f14c470",
+        "name": "Mark Followups Sent",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          208,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1651979710,
+            "mode": "list",
+            "cachedResultName": "Followups",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1651979710"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [
+              "followup_id"
+            ],
+            "schema": [
+              {
+                "id": "followup_id",
+                "displayName": "followup_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "created_at",
+                "displayName": "created_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "lead_id",
+                "displayName": "lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "due_at",
+                "displayName": "due_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "type",
+                "displayName": "type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "priority",
+                "displayName": "priority",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "channel",
+                "displayName": "channel",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "message_template",
+                "displayName": "message_template",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "done_at",
+                "displayName": "done_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "result",
+                "displayName": "result",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "note",
+                "displayName": "note",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "row_number",
+                "displayName": "row_number",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "number",
+                "canBeUsedToMatch": true,
+                "readOnly": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          400,
+          352
+        ],
+        "id": "a96d5313-7b80-425b-af36-20d041b4f26b",
+        "name": "Update Followups",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      },
+      {
+        "parameters": {
+          "jsCode": "// Одна activity на отправку пачки reminder'ов.\nconst due = $('Build Followup Plan').all().map(i => i.json).filter(x => x.item_type === 'due_alert');\nconst hot = due.filter(d => String(d.priority).toUpperCase() === 'HOT').length;\nconst warm = due.filter(d => String(d.priority).toUpperCase() === 'WARM').length;\nreturn [{ json: {\n  activity_id: `FU-REM-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: 'FOLLOWUP',\n  actor: 'system:followup',\n  channel: 'telegram',\n  action: 'followup_reminder_sent',\n  detail: `Followup reminder sent: due_count=${due.length}; hot=${hot}; warm=${warm}`\n}}];\n"
+        },
+        "id": "31d0b890-ad25-4722-9f02-5d1bc6e388cf",
+        "name": "Build Reminder Activity",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          608,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 623316892,
+            "mode": "list",
+            "cachedResultName": "Activities",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+          },
+          "columns": {
+            "mappingMode": "autoMapInputData",
+            "value": {},
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "activity_id",
+                "displayName": "activity_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "ts",
+                "displayName": "ts",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "lead_id",
+                "displayName": "lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "actor",
+                "displayName": "actor",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "channel",
+                "displayName": "channel",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "action",
+                "displayName": "action",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "detail",
+                "displayName": "detail",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          800,
+          352
+        ],
+        "id": "69e55523-860c-4863-a26c-cc2eee889bc5",
+        "name": "Save Reminder Activity",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
+          }
+        },
+        "retryOnFail": true,
+        "maxTries": 3,
+        "waitBetweenTries": 2000
+      }
+    ],
+    "connections": {
+      "Hourly Followup Check": {
+        "main": [
+          [
+            {
+              "node": "Read Settings",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Settings": {
+        "main": [
+          [
+            {
+              "node": "Settings to Object",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Settings to Object": {
+        "main": [
+          [
+            {
+              "node": "Get Pipeline Rows",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Pipeline Rows": {
+        "main": [
+          [
+            {
+              "node": "Get Followups",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Followups": {
+        "main": [
+          [
+            {
+              "node": "Build Followup Plan",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Followup Plan": {
+        "main": [
+          [
+            {
+              "node": "Route Item Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route Item Type": {
+        "main": [
+          [
+            {
+              "node": "Save New Followups",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Telegram Followup Reminder",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Planned Activity": {
+        "main": [
+          [
+            {
+              "node": "Save Planned Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Telegram Followup Reminder": {
+        "main": [
+          [
+            {
+              "node": "Mark Followups Sent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mark Followups Sent": {
+        "main": [
+          [
+            {
+              "node": "Update Followups",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Reminder Activity": {
+        "main": [
+          [
+            {
+              "node": "Save Reminder Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Save New Followups": {
+        "main": [
+          [
+            {
+              "node": "Build Planned Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update Followups": {
+        "main": [
+          [
+            {
+              "node": "Build Reminder Activity",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Ghennadi Iacovlev",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "createdAt": "2026-08-25T16:38:53.042Z",
+    "updatedAt": "2026-08-25T16:38:53.042Z",
+    "workflowPublishHistory": [
+      {
+        "id": 55,
+        "workflowId": "zeLOCuf0K1bkaKl2",
+        "versionId": "c6719bbf-261d-48a3-ac7d-2ac307c0bab3",
+        "event": "activated",
+        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
+        "createdAt": "2026-08-25T16:38:53.2Z"
+      }
+    ]
+  }
+}
