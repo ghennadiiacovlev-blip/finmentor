@@ -1,88 +1,138 @@
 # FINMENTOR Phase B.2.1-A — Bootstrap Canary Gate
 
-Status: **CODE READY / REAL TELEGRAM INITDATA BLOCKED BY SAFE-INGRESS GATE**
+Status: **NO-RETENTION PASS / REAL TELEGRAM CANARY PENDING**
 Branch: `feat/phase-b2.1a-bootstrap`
 Issue: #4
 
-## Evidence received
+## Current evidence
 
-Isolated n8n workflow `AWQ0Telk7T9ynBlR` was created inactive with no credentials and no production side effects.
+Isolated n8n workflow: `AWQ0Telk7T9ynBlR`.
 
-Confirmed before a real Telegram canary:
+Confirmed:
 - request guards fail closed;
 - production Ed25519 public key imports;
 - proven Telegram canonicalization path is reused;
-- response/log payload emitted by the Code node is redacted from raw `init_data`, signature and hash;
+- response/log object emitted by the Code node does not contain raw `init_data`, signature or hash;
 - Lead Intake calls = 0;
 - Pipeline writes = 0;
 - consent writes = 0;
-- Sheets writes = 0.
+- Sheets writes = 0;
+- Bot_Sessions writes = 0.
 
-## Critical finding: execution persistence
+## No-retention gate — PASS
 
-The inbound Webhook node persisted the raw `init_data` in n8n execution data (and test `pinData`) before the validator Code node could redact anything.
+Workflow settings were changed before any real Telegram sample is allowed:
 
-This is a release blocker for a real Telegram sample.
+- successful production executions: `none`;
+- failed production executions: `none`;
+- manual executions: `false`;
+- execution progress: `false`;
+- workflow `pinData`: none.
 
-### Important distinction
+Synthetic proof:
 
-n8n execution-data **redaction alone is not sufficient as a storage control**. n8n documentation states that redaction is applied when execution data is served/read and that stored database data remains unchanged. Therefore the B.2.1-A canary must not rely only on the redaction UI as proof that raw `init_data` is not persisted.
+- marker request executed as n8n execution `3280`;
+- subsequent fetch returned `Execution '3280' not found`;
+- workflow execution list contained only the older pre-setting synthetic executions `3278` and `3279`.
 
-Before a genuine Telegram request is sent, the isolated canary workflow must be configured so sensitive execution payloads are not retained:
+Conclusion: the canary workflow no longer retains new execution records. Workflow redaction may still be enabled as defense in depth, but it is not relied on as the storage control.
 
-- Save successful production executions: **Do not save**
-- Save failed production executions: **Do not save**
-- Save manual executions: **Do not save** for any real-data manual test
-- Save execution progress: **Do not save**
-- clear all `pinData` from the Webhook and downstream nodes
-- if the n8n plan exposes workflow redaction, also enable production + manual redaction as defense in depth
+The older executions `3278` and `3279` contain synthetic-only test bodies. They should be purged when convenient, but they do not contain genuine Telegram initData and do not block the real canary after the no-save proof.
 
-A real request must not be sent until this no-retention configuration is verified on a non-sensitive synthetic request.
+## Public bot ID
 
-## Bot ID
+The validator remains fail-closed while:
 
-The validator remains fail-closed while `BOT_ID = SET_BOT_ID_BEFORE_CANARY`.
+```text
+BOT_ID = SET_BOT_ID_BEFORE_CANARY
+```
 
-Do not derive or expose the bot token in code. Resolve the public numeric bot ID through a server-side/native Telegram credential operation (for example a controlled `getMe` call) and persist only the numeric bot ID as non-secret configuration.
+Do not extract or reveal the bot token.
+
+A dedicated native Telegram `sendMessage` operation can solve two remaining setup needs in one controlled action:
+
+1. send the owner-only Web App button;
+2. read the outgoing Telegram Message response `from.id`, which is the bot's public numeric ID.
+
+Only the numeric bot ID may be copied into canary configuration. The token must stay inside the existing Telegram credential.
+
+## Owner launch context
+
+The current FINMENTOR Client Concierge already has an owner chat ID in its existing settings/configuration. The canary launcher should reuse that value rather than ask the owner to copy Telegram identifiers manually.
+
+Production Client Concierge flow must remain unchanged. Use a separate temporary launcher workflow with the existing `FINMENTOR Client Concierge Bot` credential.
+
+## Canary page hosting
+
+GitHub deployment is not required for the one-off canary.
+
+Preferred isolated path:
+
+1. create a temporary n8n page workflow with an HTTPS GET Webhook + Respond to Webhook HTML;
+2. serve the reviewed template from `gateway/n8n/canary-page.html`;
+3. replace `__BOOTSTRAP_ENDPOINT__` only inside the temporary runtime response;
+4. activate the page workflow only for the canary window;
+5. activate `AWQ0Telk7T9ynBlR` only for the canary window, with no-retention settings already proven;
+6. send one owner-only Telegram inline Web App button to the page URL;
+7. page sends `Telegram.WebApp.initData` directly to the isolated bootstrap endpoint;
+8. deactivate both temporary workflows after evidence is collected.
+
+The page template:
+- never renders raw `initData`;
+- never logs raw `initData`;
+- never puts it in URL/query/cookies/localStorage/sessionStorage;
+- POSTs it directly as JSON;
+- shows only safe PASS/FAIL output.
 
 ## Real initData handling
 
-Do **not** paste a real `Telegram.WebApp.initData` into chat, GitHub, Sheets, workflow notes or test fixtures.
+Do **not** paste a real `Telegram.WebApp.initData` into chat, GitHub, Sheets, workflow notes or fixtures.
 
-The real sample should travel directly from a Telegram Mini App WebView to the isolated canary endpoint after no-retention is proven. Treat it as short-lived bearer-grade data.
+The real payload must travel directly:
 
-## Canary closure criteria
+```text
+Telegram WebView -> isolated n8n bootstrap canary
+```
 
-B.2.1-A is closed only when a genuine Telegram-generated payload proves:
+## Real canary closure criteria
 
-- production Ed25519 verification PASS;
-- validated Telegram user identity PASS;
-- tampered copy REJECT;
-- changed bot ID REJECT;
-- stale replay after >900 seconds returns EXPIRED;
+B.2.1-A closes only when a genuine Telegram-generated payload proves:
+
+- production Ed25519 verification: PASS;
+- validated Telegram user identity: PASS;
+- tampered signed field: REJECT;
+- changed bot ID: REJECT;
 - response contains no raw initData/signature/hash;
-- execution retention test proves raw initData is not available after completion;
-- zero Lead Intake / Pipeline / consent / Sheets side effects.
+- post-request execution retention remains NONE;
+- zero Lead Intake / Pipeline / consent / Sheets / Bot_Sessions side effects.
 
-The +61 second future-auth-date case remains a unit/runtime policy test because Telegram will not issue a genuinely signed future `auth_date` for a live canary.
+A real future-auth-date test is not required because Telegram will not issue a genuine future `auth_date`; the +60/+61 second rule remains covered by runtime/unit tests.
+
+A genuine stale replay after >900 seconds is optional only if it can be performed without persisting the bearer-grade sample. Do not weaken no-retention controls for the sake of this test.
 
 ## Repository implementation
 
-Runtime-specific source:
 - `gateway/n8n/bootstrap-canary.js`
 - `gateway/n8n/bootstrap-canary.test.js`
+- `gateway/n8n/canary-page.html`
 
-Hardening added during repository review beyond the uploaded draft:
+Hardening already included:
 - reject empty query pairs and empty decoded keys;
-- strict `application/json` media type instead of substring matching;
+- strict `application/json` media type;
 - validate base64url signature character set before decode;
-- require decimal-digit, safe-integer `auth_date`;
-- preserve the already-proven one-pass percent decoding, raw `+`, duplicate-key rejection and code-unit sorting semantics.
+- require digit-only safe-integer `auth_date`;
+- one-pass percent decoding;
+- preserve raw `+`;
+- duplicate decoded-key rejection;
+- deterministic code-unit sorting.
 
 ## Next action
 
-1. Verify no-retention settings using synthetic data.
-2. Resolve public bot ID without exposing the token.
-3. Create an owner-only temporary Telegram Web App launch path without changing the production Concierge flow.
-4. POST `Telegram.WebApp.initData` directly from the WebView to the isolated canary endpoint.
-5. Stop after the real validation report; do not connect Bot_Sessions or Lead Intake yet.
+1. Create temporary no-save n8n page workflow from `canary-page.html`.
+2. Create temporary no-save Telegram launcher workflow.
+3. Send one Web App button to the existing owner chat using the current client-bot credential.
+4. Capture outgoing Message `from.id` as the public numeric bot ID and configure only that ID in `AWQ0Telk7T9ynBlR`.
+5. Activate the isolated page + bootstrap workflows for the shortest canary window.
+6. Open the button in Telegram and run the genuine initData validation.
+7. Verify no execution record remains.
+8. Stop and report; do not connect Bot_Sessions or Lead Intake yet.
