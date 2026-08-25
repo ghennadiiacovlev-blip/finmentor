@@ -5,7 +5,19 @@ const lead = $('Normalize + Score Lead').first().json;
 const rows = $input.all().map(i => i.json).filter(r => r && String(r.lead_id || '').trim() !== '');
 function lower(x) { return String(x ?? '').trim().toLowerCase().replace(/ё/g, 'е'); }
 function normEmail(x) { const e = lower(x); return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) ? e : ''; }
-function normPhone(x) { const s = String(x ?? '').trim(); if (!s || /^@/.test(s) || /telegram/i.test(s)) return ''; const d = s.replace(/[^\d]/g, ''); return (d.length >= 6 && d.length <= 15) ? d : ''; }
+// Must stay identical to normalizePhoneIdentity in Normalize + Score Lead. Stripping every
+// non-digit from an arbitrary string turned digit-bearing emails into phone identities, which
+// let a crafted address collide with a real subscriber's number and merge into their row.
+function normPhone(x) {
+  const s = String(x ?? '').trim();
+  if (!s) return '';
+  if (s.includes('@')) return '';
+  if (/telegram|t\.me/i.test(s)) return '';
+  const core = s.split(/[(,;]/)[0].trim();
+  if (!/^[+\d][\d\s().\-\/]*$/.test(core)) return '';
+  const d = core.replace(/[^\d]/g, '');
+  return (d.length >= 6 && d.length <= 15) ? d : '';
+}
 function normTelegram(x) { let s = lower(x); if (!s) return ''; s = s.replace(/^telegram(\s*chat_id)?\s*:\s*/, '').replace(/^https?:\/\/t\.me\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\d{5,20}$/.test(s)) ? s : ''; }
 function ts(x) { const t = Date.parse(String(x || '')); return Number.isFinite(t) ? t : 0; }
 const now = Date.now();

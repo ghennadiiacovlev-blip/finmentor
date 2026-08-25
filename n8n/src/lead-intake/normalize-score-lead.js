@@ -62,10 +62,33 @@ const name = pick(client.name, lead.name);
 const company = pick(client.company, lead.company);
 const role = pick(client.role);
 const emailRaw = pick(client.email, lead.email);
+function normalizePhoneIdentity(value) {
+  const s = String(value ?? '').trim();
+  if (!s) return '';
+  // An email address or a Telegram handle is never a phone number.
+  if (s.includes('@')) return '';
+  if (/telegram|t\.me/i.test(s)) return '';
+  // Take the leading portion only, so '+373 60 123 456 (Viber)' still normalises, then
+  // require it to be composed purely of phone punctuation and digits. Anything containing
+  // letters is not a number.
+  const core = s.split(/[(,;]/)[0].trim();
+  if (!/^[+\d][\d\s().\-\/]*$/.test(core)) return '';
+  const d = core.replace(/[^\d]/g, '');
+  return (d.length >= 6 && d.length <= 15) ? d : '';
+}
+
 const phoneRaw = pick(client.phone_or_messenger, lead.contact, lead.phone, client.phone);
 const telegramRaw = pick(client.telegram, lead.telegram);
 const emailNorm = (() => { const e = lower(emailRaw); return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) ? e : ''; })();
-const phoneNorm = (() => { const s = String(phoneRaw ?? '').trim(); if (!s || /^@/.test(s) || /telegram/i.test(s)) return ''; const d = s.replace(/[^\d]/g, ''); return (d.length >= 6 && d.length <= 15) ? d : ''; })();
+// A phone identity may only be derived from something actually shaped like a phone.
+//
+// phoneRaw falls back to lead.contact, which on the consultation form is usually an email.
+// The old rule stripped every non-digit and accepted any 6-15 digit run, so
+// 'qa-20260825-202641@example.com' normalised to the "phone" 20260825202641. That is a
+// trust-boundary hole of the same family as the caller lead_id one: an attacker could
+// register an address whose digits equal a victim's phone number and be merged into that
+// victim's Pipeline row. Found by live remediation QA, not by either audit.
+const phoneNorm = normalizePhoneIdentity(phoneRaw);
 const telegramNorm = (() => { let s = lower(telegramRaw); if (!s) return ''; s = s.replace(/^telegram(\s*chat_id)?\s*:\s*/, '').replace(/^https?:\/\/t\.me\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\d{5,20}$/.test(s)) ? s : ''; })();
 const hasRawContact = [emailRaw, phoneRaw, telegramRaw].some(x => String(x || '').trim() !== '');
 const hasValidContact = !!(emailNorm || phoneNorm || telegramNorm);

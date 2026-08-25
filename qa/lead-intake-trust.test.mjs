@@ -208,6 +208,48 @@ check('escalation never lowers priority or zone', () => {
   assert(d.dedup_escalated === false, 'a lower-priority submission escalated an existing HOT/RED row');
 });
 
+console.log('\nPHONE IDENTITY IS ONLY DERIVED FROM PHONE-SHAPED INPUT');
+
+check('an email is never normalised into a phone identity', () => {
+  // Found by live QA: phoneRaw falls back to lead.contact, and the old rule stripped every
+  // non-digit from it, so a digit-bearing email became a phone identity.
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: 'qa-20260825-202641@example.com', company: 'X', email: 'qa-20260825-202641@example.com' } }) });
+  assert(n.phone_norm === '', 'email produced a phone identity: ' + n.phone_norm);
+});
+
+check('a crafted email cannot collide with a real subscriber number', () => {
+  const victim = Object.assign({}, VICTIM_ROW, { email: 'victim@example.com', phone: '+373 60 123 456', telegram: '' });
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'Attacker', contact: 'x37360123456@evil.example', company: 'Attacker Ltd', email: 'x37360123456@evil.example' } }) });
+  assert(n.phone_norm === '', 'crafted email still yielded a phone identity: ' + n.phone_norm);
+  const d = runDedup({ lead: n, rows: [victim] });
+  assert(d.existing_lead_id !== victim.lead_id, 'crafted email merged into the victim row');
+});
+
+check('a genuine phone still normalises', () => {
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: '+373 60 123 456', company: 'X', email: '' } }) });
+  assert(n.phone_norm === '37360123456', 'valid phone lost: ' + n.phone_norm);
+});
+
+check('a phone with a trailing annotation still normalises', () => {
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: '+373 60 123 456 (Viber)', company: 'X', email: '' } }) });
+  assert(n.phone_norm === '37360123456', 'annotated phone lost: ' + n.phone_norm);
+});
+
+check('a Telegram handle is not a phone', () => {
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: '@user12345678', company: 'X', email: '' } }) });
+  assert(n.phone_norm === '', 'handle produced a phone identity: ' + n.phone_norm);
+});
+
+check('a t.me link is not a phone', () => {
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: 'https://t.me/user12345678', company: 'X', email: '' } }) });
+  assert(n.phone_norm === '', 't.me link produced a phone identity: ' + n.phone_norm);
+});
+
+check('free text containing a long digit run is not a phone', () => {
+  const n = runNormalize({ payload: basePayload({ lead: { name: 'X', contact: 'order 20260825202641 please', company: 'X', email: '' } }) });
+  assert(n.phone_norm === '', 'free text produced a phone identity: ' + n.phone_norm);
+});
+
 console.log('\nREQUEST CORRELATION');
 
 check('the client request id is carried through for idempotency use', () => {
