@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Read-model generation / concurrency design
 
-Status: **DESIGN DECISION / QA PARTIAL PASS**  
+Status: **DESIGN DECISION / QA PARTIAL PASS / COMMIT-ORDER CAS REQUIRED**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -46,27 +46,38 @@ Use a deterministic `projection_version` computed from the exact safe mirrored p
 
 `source_updated_at` may still be copied for observability, but must not be used as the sole concurrency/version guarantee.
 
-## Decision 3 — use cache-generation tombstones for concurrency safety
+## Decision 3 — cache invalidation + commit-order token
 
-A pure post-write async mirror can temporarily re-introduce stale state when two same-chat writes race. To prevent an older mirror helper from overwriting a newer mutation, use a **cache generation token**.
+A pure post-write async mirror can temporarily re-introduce stale state when two same-chat writes race. A token created only at mutation start is also insufficient: an older mutation may finish its authoritative commit after a newer mutation and therefore become the actual last committed state.
+
+The derived cache must track **authoritative commit completion order**, not mutation-start order.
 
 For writers that mutate mirrored fields (`Save Bot Session`, `Save Intake State`):
 
-1. Generate a high-entropy `sync_token` for this mutation.
-2. Before the authoritative Sheets write, invalidate the derived row by setting a tombstone for the same `chat_id`:
+1. Generate a high-entropy `start_token`.
+2. **Before** the authoritative Sheets write, invalidate the derived row for that `chat_id`:
    - `cache_valid=false`
-   - `sync_token=<new token>`
+   - `sync_token=start_token`
    - no new authoritative state is asserted.
 3. Perform the existing authoritative `Bot_Sessions` write.
 4. If the authoritative write fails, leave the tombstone / MISS state; never publish the attempted new projection.
-5. After authoritative commit succeeds, the sync helper re-reads the authoritative `Bot_Sessions` row by `chat_id`.
-6. Compute the safe projection and `projection_version` from that authoritative row.
-7. Before publishing, re-read the Data Table tombstone and require `sync_token` to still equal the helper token.
-8. If the token differs, a newer mutation has started; abort the older helper without publishing.
-9. If the token still matches, upsert the safe projection with `cache_valid=true`, the same `sync_token`, `projection_version`, `source_updated_at`, and `mirror_updated_at`.
-10. Read-after-write verify exact one-row match, token equality, projection version equality, and current-cycle fields.
+5. After the authoritative write succeeds, generate a new high-entropy **`commit_token`**.
+6. Set the derived row back to a tombstone using `cache_valid=false`, `sync_token=commit_token`. This post-commit token establishes cache-generation order by successful authoritative commit completion.
+7. The sync helper re-reads the actual authoritative `Bot_Sessions` row by `chat_id` and computes the safe projection + `projection_version`.
+8. Publish must be a **conditional compare-and-set**, not an unconditional upsert: update only the derived row where both `chat_id` and `sync_token=commit_token` still match.
+9. If the conditional publish updates zero rows, a later mutation/commit changed the generation; abort without publishing.
+10. If exactly one row is updated, set `cache_valid=true`, keep the same `commit_token`, and write the safe projection + `projection_version`, `source_updated_at`, `mirror_updated_at`.
+11. Read-after-write verify exactly one row, token equality, projection-version equality and current-cycle fields.
 
-This pre-write Data Table operation is **invalidation only**, not an authoritative state write. Authoritative state still commits only in `Bot_Sessions`.
+The pre-write and post-commit Data Table operations are invalidation/generation control only. Authoritative state still commits only in `Bot_Sessions`.
+
+### Why two token phases are required
+
+Consider mutation A starting before mutation B, but A's authoritative write finishing after B. A start-order token would incorrectly treat B as newer even though A is the final authoritative commit. Issuing the publish generation token **after successful authoritative commit** makes the last successful commit own the newest cache generation.
+
+### No TOCTOU publish
+
+A separate read-token check followed by an unconditional upsert is not sufficient because another mutation can invalidate between those two operations. The publish itself must carry the `sync_token=commit_token` condition in the same Data Table update operation. If the current Data Table node cannot perform this conditional update safely, the consistency gate remains blocked.
 
 ## Decision 4 — fail safe to MISS
 
@@ -74,15 +85,18 @@ Normal Mini App read path:
 
 validated Telegram identity
 → Data Table lookup by `chat_id`
+→ fetch up to **2 rows**, not limit 1
 → accept only exactly one row with `cache_valid=true`
 → read-only evaluator
 → safe resume
+
+Fetch up to 2 rows so duplicate corruption is observable. A limit-1 lookup can hide duplicates and is not production-safe.
 
 Fallback conditions:
 
 - zero rows;
 - `cache_valid=false` tombstone;
-- more than one row;
+- two or more rows;
 - Data Table error;
 - malformed required fields;
 - failed projection verification evidence.
@@ -126,7 +140,7 @@ Do not mirror raw Telegram payloads, notes, `previous_lead_id`, or n8n internal 
 
 QA mirror helper `OwLC7SANtHo69SKo` has proven:
 
-- normal upsert + read-after-write verify;
+- normal projection upsert + read-after-write verify;
 - identical replay is idempotent and remains one row;
 - cycle changes propagate in the derived projection;
 - forced `projection_version` mismatch invalidates/deletes the derived row;
@@ -140,14 +154,15 @@ The existing publish-failure test is not yet the strongest failure test because 
 
 Use QA infrastructure only and prove:
 
-1. **strong publish-failure invalidation:** begin with `cache_valid=true` old row, establish a new tombstone/sync token, force the new mirror publish to fail, and prove the old state is not readable as HIT;
-2. duplicate derived rows force fallback;
+1. **strong publish-failure invalidation:** begin with `cache_valid=true` old row, pre-invalidate, simulate authoritative success, issue a commit token, force conditional publish failure, and prove the old state remains unreadable as HIT;
+2. duplicate derived rows force fallback; test with read limit 2;
 3. Data Table outage forces fallback;
 4. MISS forces authoritative fallback and safe repair selection;
-5. concurrency A/B: mutation A starts, mutation B replaces `sync_token`, helper A later attempts publish and must abort;
-6. concurrency B/A completion reversal: helper completion order must not determine the final cache; newest active token plus authoritative re-read governs publication;
-7. confirmation-only writer requires no mirror and does not invalidate the read model;
-8. reconciliation/backfill rebuilds rows idempotently from authoritative `Bot_Sessions`.
+5. concurrency A/B with normal completion order;
+6. concurrency reversal: A starts, B starts, B commits, A commits later; the final cache must follow the actual final authoritative commit A, not start order;
+7. TOCTOU guard: a newer commit token appears between helper re-read and older helper publish; the older conditional publish must update zero rows;
+8. confirmation-only writer requires no mirror and does not invalidate the read model;
+9. reconciliation/backfill rebuilds rows idempotently from authoritative `Bot_Sessions`.
 
 ## Production boundary
 
