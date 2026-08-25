@@ -1,0 +1,118 @@
+name: FINMENTOR Quality Gates
+
+# The canonical repository CI. The three Mini App workflows beside this one are
+# path-scoped to their own phase; none of them covers the seven gates that guard the
+# remediated production behaviour, so before this workflow existed a merge to main had no
+# mandatory status check over them at all.
+#
+# Everything here is offline: no secrets, no network, no n8n, no Google, no browser. The
+# gates are run through the same entry point used locally, `node qa/run-all.mjs`, so a green
+# CI and a green laptop mean the same thing.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Raise this deliberately when gates are added. It must never be lowered to make a red
+  # build green: a falling count means coverage was removed, which is the thing worth
+  # catching.
+  ASSERTION_BASELINE: '340'
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Runtime
+        run: |
+          node --version
+          echo "no package.json and no dependencies by design; the gates are plain Node"
+
+      - name: Syntax check every gate and the sources they exercise
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in qa/*.test.mjs qa/run-all.mjs scripts/*.mjs n8n/src/**/*.js gateway/*.mjs gateway/n8n/*.js; do
+            [ -e "$f" ] || continue
+            if ! node --check "$f" >/dev/null 2>&1; then
+              echo "SYNTAX FAIL: $f"
+              node --check "$f" || true
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          echo "syntax: all sources parse"
+
+      - name: Canonical quality gates
+        id: gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node qa/run-all.mjs | tee gates.out
+          echo "---"
+          grep -E '^[0-9]+/[0-9]+ gates passed' gates.out
+          grep -E '^TOTAL ASSERTIONS:' gates.out
+
+      - name: Assertion baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          total="$(grep -oE '^TOTAL ASSERTIONS: [0-9]+' gates.out | grep -oE '[0-9]+')"
+          echo "total=$total baseline=${ASSERTION_BASELINE}"
+          if [ "$total" -lt "${ASSERTION_BASELINE}" ]; then
+            echo "FAIL: assertion count fell from ${ASSERTION_BASELINE} to $total — coverage was removed"
+            exit 1
+          fi
+          if [ "$total" -gt "${ASSERTION_BASELINE}" ]; then
+            echo "NOTE: assertions grew to $total; raise ASSERTION_BASELINE in this workflow"
+          fi
+          echo "assertion baseline: PASS"
+
+      - name: Gates are cwd-independent
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$PWD"
+          cd /
+          node "$repo/qa/run-all.mjs" > /tmp/cwd.out
+          grep -qE '^7/7 gates passed' /tmp/cwd.out
+          echo "cwd independence: PASS"
+
+      - name: Secret scan over tracked files
+        shell: bash
+        run: node scripts/secret-scan.mjs
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '### FINMENTOR quality gates'
+            echo
+            if [ -f gates.out ]; then
+              sed -n '1,/gates passed/p' gates.out | sed 's/^/    /'
+              grep -E '^TOTAL ASSERTIONS:' gates.out || true
+            else
+              echo 'gates did not run'
+            fi
+            echo
+            echo 'Offline: no secrets, no network, no n8n, no Google, no browser.'
+            echo 'This workflow changes nothing in production.'
+          } >> "$GITHUB_STEP_SUMMARY"
