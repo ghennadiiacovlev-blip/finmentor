@@ -477,7 +477,7 @@ gate run (execution 3400). Neither remains an owner action.
 |---|---|---|---|---|
 | P0 | 1 | **1** | 0 | — |
 | P1 | 5 | **5** | 0 | — |
-| P2 | 16 | **11** | 5 | 3 owner-schema, 1 external secret, 1 platform |
+| P2 | 16 | **14** | 2 | 1 external secret, 1 platform |
 | P3 | 6 | **5** | 1 | INDP3-03 CLASSIFIED — deliberate retention |
 | NEW | 4 | **4** | 0 | — |
 
@@ -488,24 +488,27 @@ input that only the owner can supply.
 
 | # | Blocker | Blocks | Owner action |
 |---|---|---|---|
-| 1 | Eight Pipeline columns not present | INDP2-02 strong tier, INDP2-05, INDP2-06 structured half | add columns, then run `deploy-attribution-columns.ps1` |
-| 2 | GA4 Measurement Protocol `api_secret` does not exist here | INDP2-07 | create in GA4 admin, store in Settings |
-| 3 | `internal_intake_key` absent from Settings | strong dedup tier only | add a long random value |
-| 4 | GitHub Pages/Fastly cannot set response headers | INDP2-14, five headers | decide on an edge layer (Cloudflare, DNS-only) |
-| 5 | RO mini-scan copy is machine-translated | customer-facing quality | native Romanian review |
+| 1 | GA4 Measurement Protocol `api_secret` does not exist in this environment | INDP2-07 | create it in GA4 admin and store it in **n8n Credentials — not the Settings sheet** |
+| 2 | GitHub Pages / Fastly cannot set response headers | INDP2-14, five headers | decide on an edge layer (Cloudflare in front of the existing origin, DNS-only) |
+| 3 | RO mini-scan copy is machine-translated | customer-facing quality, not a finding | native Romanian review before promotion |
+
+Cleared since the previous revision: the eight Pipeline columns (applied and deployed
+2026-08-25) and `internal_intake_key` (withdrawn — a spreadsheet is not a secret store; see
+the pre-deployment review and schema doc section 5).
 
 ### GO / NO-GO by scope
 
 | Scope | Verdict | Basis |
 |---|---|---|
 | Current production website | **GO — keep running** | no regression; 69/69 website contract. Unverified by observation: consent-banner behaviour, layout, GA4 DebugView. RO copy is machine-translated |
-| Current CRM / Telegram production | **GO — keep running** | P0 closed and live-verified, 5/5 P1 closed, Error Monitor active on all 8, Digest restored, locators canonical, MCP exposure 0/35 |
+| Current CRM / Telegram production | **GO — keep running** | P0 closed and live-verified, 5/5 P1 closed, Error Monitor active on all 8, Digest restored, locators canonical, MCP exposure 0/35, attribution deployed with zero regression |
 | Attribution + idempotency release | **SHIPPED** | schema applied, deployed, 53/53 live checks, zero regression |
 | Server-side GA4 lifecycle release | **NO-GO** | needs the Measurement Protocol secret (INDP2-07). No code work remains |
 | Mini App activation | **NO-GO** | B.2.1-C never started, by design. Contract is proven but nothing is deployed behind it, and B.2.1-A still needs a real `initData` canary |
 | PR #10 | **DO NOT MERGE — recommend closing** | docs-only, superseded where it mattered, and its reversed-order "PASS" overstated equality. Close it in favour of the Phase 10 document |
 | Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 340 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
 
-**Not merged. No QA workflow published. The CAS gate was not re-run. No production change was
-made while producing this status** — the tenant was read only: 35 workflows, 0 exposed via
-MCP, 8 active, `03DcHoJ5XxJYUZQ4` inactive with `availableInMCP: false`.
+**Final tenant state:** 35 workflows, 8 active (the expected production set), 0 exposed via
+MCP, `03DcHoJ5XxJYUZQ4` inactive and unexposed, unsafe Command Center retained OFF as the
+rollback point. Repo and tenant are in sync for every Lead Intake module. Nothing merged, no
+PR opened, no QA workflow published, Mini App not activated.
