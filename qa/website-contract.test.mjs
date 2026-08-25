@@ -394,6 +394,108 @@ check('consultation legacy lead_submit fires only after backend success', () => 
   assert(submitIdx > postIdx && postIdx !== -1, 'lead_submit still precedes the POST');
 });
 
+// --------------------------------------------------------------- attribution
+console.log('\nATTRIBUTION CONTINUITY (first touch / last touch)');
+
+// A shared localStorage across "page loads" models one returning visitor.
+function visitor() {
+  const store = new Map();
+  return {
+    store,
+    visit(pathname, search) {
+      const win = makeWindow({ pathname, search, href: 'https://www.finmentor.md' + pathname + search });
+      win.localStorage.getItem = (k) => (store.has(k) ? store.get(k) : null);
+      win.localStorage.setItem = (k, v) => store.set(k, String(v));
+      runScript('analytics.js', win);
+      return win;
+    }
+  };
+}
+
+check('a campaign landing is captured on page load, before any submit', () => {
+  const v = visitor();
+  const win = v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=brand');
+  const a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch, 'no first touch captured');
+  assert(a.first_touch.utm_source === 'google', 'wrong first touch source: ' + JSON.stringify(a.first_touch));
+  assert(a.first_touch.captured_at, 'first touch has no timestamp');
+});
+
+check('attribution survives navigation to a page with no UTM', () => {
+  // This is the defect: capture used to happen only at submit, from the submitted page's
+  // own URL, so navigating away before converting lost the campaign entirely.
+  const v = visitor();
+  v.visit('/index.html', '?utm_source=facebook&utm_medium=paid&utm_campaign=q3');
+  const win = v.visit('/questionnaire.html', '');
+  const a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch && a.first_touch.utm_source === 'facebook', 'attribution lost on navigation');
+  assert(a.last_touch && a.last_touch.utm_source === 'facebook', 'last touch lost on navigation');
+});
+
+check('first touch is never overwritten by a later campaign', () => {
+  const v = visitor();
+  v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=first');
+  const win = v.visit('/cases.html', '?utm_source=newsletter&utm_medium=email&utm_campaign=second');
+  const a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch.utm_campaign === 'first', 'first touch was overwritten: ' + a.first_touch.utm_campaign);
+  assert(a.last_touch.utm_campaign === 'second', 'last touch did not advance: ' + a.last_touch.utm_campaign);
+});
+
+check('a direct visit with no campaign records no attribution', () => {
+  const v = visitor();
+  const win = v.visit('/index.html', '');
+  const a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch === null && a.last_touch === null, 'invented attribution for a direct visit');
+});
+
+check('a single-visit lead reports the same touch as first and last', () => {
+  const v = visitor();
+  const win = v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=solo');
+  const a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch.utm_campaign === 'solo' && a.last_touch.utm_campaign === 'solo', 'single touch not mirrored');
+});
+
+check('attribution capture stores campaign metadata only, never PII', () => {
+  const v = visitor();
+  v.visit('/index.html', '?utm_source=google&email=someone%40example.com&name=Ion&phone=%2B37360123456');
+  const dumped = JSON.stringify([...v.store.entries()]);
+  for (const token of ['someone@example.com', 'Ion', '37360123456', 'email', 'phone']) {
+    assert(!dumped.includes(token), 'stored attribution contains ' + token + ': ' + dumped);
+  }
+});
+
+check('both mini-scan submitters run FMAnalytics enrichment', () => {
+  for (const f of ['working-capital-scan.html', 'ro/working-capital-scan.html']) {
+    const s = read(f);
+    assert(s.includes('FMAnalytics.enrichLeadPayload'), f + ' does not enrich its payload');
+  }
+});
+
+check('every submitter enriches before posting', () => {
+  for (const f of ['main.js', 'questionnaire.html', 'ro/questionnaire.html',
+    'working-capital-scan.html', 'ro/working-capital-scan.html']) {
+    const s = read(f);
+    const enrich = s.indexOf('enrichLeadPayload');
+    const post = s.indexOf('FMLeadTransport.postLead');
+    assert(enrich !== -1, f + ' has no enrichment');
+    assert(post !== -1, f + ' has no transport call');
+  }
+});
+
+check('enrichment attaches both touches to the payload', () => {
+  const src = read('analytics.js');
+  assert(/payload\.meta\.attribution_first_touch/.test(src), 'first touch not attached to payload');
+  assert(/payload\.meta\.attribution_last_touch/.test(src), 'last touch not attached to payload');
+});
+
+check('GA identifiers are still gated on analytics consent', () => {
+  const src = read('analytics.js');
+  // getAttributionContext resolves with consent-only ids; enrichment deletes them first.
+  assert(/if \(!out\.analytics_consent[\s\S]{0,120}resolve\(out\)/.test(src),
+    'GA identifier capture is not gated on consent');
+  assert(/delete payload\.meta\.ga_client_id/.test(src), 'stale GA client id is not cleared');
+});
+
 // --------------------------------------------------------------- RO parity
 console.log('\nRU / RO PARITY');
 

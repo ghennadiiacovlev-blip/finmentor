@@ -567,7 +567,20 @@
     sendBtn.disabled = true;
     showSendStatus('Отправляем результат...', false);
     var payload = buildPayload();
-    postMiniScan(payload).then(function (result) {
+    // The mini-scan never ran FMAnalytics enrichment, so its leads reached the CRM with no
+    // consent flag, no GA identifiers and no first-touch attribution — unlike every other
+    // submitter. It now uses the same enrichment path, and still submits if it fails.
+    var enrichPromise = Promise.resolve(payload);
+    if (window.FMAnalytics && typeof window.FMAnalytics.enrichLeadPayload === 'function') {
+      try { enrichPromise = window.FMAnalytics.enrichLeadPayload(payload, 1800); } catch (e) {}
+    } else {
+      payload.meta = payload.meta || {};
+      payload.meta.analytics_consent = false;
+    }
+    enrichPromise.catch(function () { return payload; }).then(function (enriched) {
+      payload = enriched || payload;
+      return postMiniScan(payload);
+    }).then(function (result) {
       ga('lead_submit', { tool: 'mini_scan', score_zone: payload.signals.score_zone, first_step: payload.signals.first_step });
       window.location.href = window.FMLeadTransport
         ? window.FMLeadTransport.thankYouUrl('mini_scan', result && result.requestId)

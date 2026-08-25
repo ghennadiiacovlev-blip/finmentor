@@ -51,6 +51,71 @@
     return out;
   }
 
+  // ---------------------------------------------------------------- attribution
+  //
+  // UTM parameters used to be captured only at submit time, and only from the URL of the
+  // page being submitted. A visitor who landed on a campaign link and then navigated before
+  // converting lost their attribution completely. Capture now happens on every page load.
+  //
+  // Both touches are kept, because they answer different questions:
+  //   first_touch - what introduced this lead (never overwritten once set)
+  //   last_touch  - what converted it (overwritten by each new campaign arrival)
+  //
+  // Only campaign metadata is stored. No personal data and no GA identifier is written here,
+  // and GA client/session ids are still attached only after analytics consent.
+  var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+  var FIRST_TOUCH_KEY = 'finmentor_attr_first';
+  var LAST_TOUCH_KEY = 'finmentor_attr_last';
+
+  function readUtmFromUrl() {
+    var out = {};
+    var any = false;
+    try {
+      var params = new URLSearchParams(location.search || '');
+      UTM_KEYS.forEach(function (key) {
+        var value = (params.get(key) || '').trim().slice(0, 120);
+        if (value) { out[key] = value; any = true; }
+      });
+    } catch (e) {
+      return null;
+    }
+    return any ? out : null;
+  }
+
+  function readTouch(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return (parsed && typeof parsed === 'object') ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeTouch(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  function captureAttribution() {
+    var current = readUtmFromUrl();
+    if (!current) return;
+    var stamped = {};
+    UTM_KEYS.forEach(function (k) { if (current[k]) stamped[k] = current[k]; });
+    stamped.captured_at = new Date().toISOString();
+    stamped.landing_page = pageSlug();
+    // First touch is written once and never overwritten.
+    if (!readTouch(FIRST_TOUCH_KEY)) writeTouch(FIRST_TOUCH_KEY, stamped);
+    writeTouch(LAST_TOUCH_KEY, stamped);
+  }
+
+  function getAttribution() {
+    var first = readTouch(FIRST_TOUCH_KEY);
+    var last = readTouch(LAST_TOUCH_KEY);
+    // A single-visit lead has one touch, which is both its first and its last.
+    return { first_touch: first || last || null, last_touch: last || first || null };
+  }
+
   // GA4 must never receive arbitrary URL query. Only this whitelist of non-identifying
   // parameters survives into page_location/page_path. Everything else is dropped, so a
   // PII-bearing link cannot turn into a GA dimension after the visitor accepts analytics.
@@ -374,6 +439,12 @@
     payload = (payload && typeof payload === 'object') ? payload : {};
     payload.meta = (payload.meta && typeof payload.meta === 'object') ? payload.meta : {};
 
+    // Campaign attribution does not depend on analytics consent and is attached either way.
+    // GA client/session identifiers do depend on it and are attached only below.
+    var attribution = getAttribution();
+    payload.meta.attribution_first_touch = attribution.first_touch;
+    payload.meta.attribution_last_touch = attribution.last_touch;
+
     return getAttributionContext(timeoutMs).then(function (context) {
       payload.meta.analytics_consent = !!context.analytics_consent;
       delete payload.meta.ga_client_id;
@@ -426,6 +497,10 @@
     bannerMounted = true;
   }
 
+  // Runs on every page load, before any consent decision, because campaign metadata is not
+  // analytics storage and losing it is unrecoverable once the visitor navigates away.
+  captureAttribution();
+
   initBusinessTracking();
 
   window.FMAnalytics = {
@@ -439,6 +514,7 @@
     getConsent: getChoice,
     getAttributionContext: getAttributionContext,
     enrichLeadPayload: enrichLeadPayload,
+    getAttribution: getAttribution,
     // Exposed so the regression suite can assert the query scrubber directly.
     safePagePath: safePagePath,
     safePageLocation: safePageLocation,
