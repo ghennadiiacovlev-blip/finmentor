@@ -499,29 +499,63 @@ check('GA identifiers are still gated on analytics consent', () => {
 // --------------------------------------------------------------- RO parity
 console.log('\nRU / RO PARITY');
 
-check('RO mini-scan has no Cyrillic runtime strings', () => {
-  const src = read('ro/working-capital-scan.html');
+// A Cyrillic literal on a Romanian page is a defect only when it is DISPLAY text.
+// Some are canonical CRM taxonomy shared with the Russian questionnaire: radio/checkbox
+// value attributes that setRadioByValue looks up by exact value, the substring matchers in
+// docHas(), and the да/нет values docHas() writes to the CRM. Translating those would break
+// deep-link prefill and split RU and RO leads into two taxonomies. Their visible labels are
+// already Romanian.
+const CANONICAL_DATA = new Set(['да', 'нет', 'Дебиторская', 'Кредиторская']);
+
+function untranslatedDisplayLiterals(file) {
+  const src = read(file);
+  const htmlValues = new Set((src.match(/value="[^"]*"/g) || []).map((m) => m.slice(7, -1)));
   const offenders = [];
   const re = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
   let m;
   while ((m = re.exec(src)) !== null) {
     for (const lit of m[1].match(/(['"])(?:(?!\1)[^\\]|\\.)*\1/g) || []) {
-      if (/[Ѐ-ӿ]/.test(lit)) offenders.push(lit.slice(0, 70));
+      if (!/[Ѐ-ӿ]/.test(lit)) continue;
+      const inner = lit.slice(1, -1);
+      if (htmlValues.has(inner) || CANONICAL_DATA.has(inner)) continue;
+      offenders.push(lit.slice(0, 70));
     }
   }
-  assert(offenders.length === 0, offenders.length + ' Cyrillic literal(s): ' + offenders.slice(0, 4).join(' | '));
+  return offenders;
+}
+
+check('RO mini-scan has no untranslated display strings', () => {
+  const o = untranslatedDisplayLiterals('ro/working-capital-scan.html');
+  assert(o.length === 0, o.length + ' literal(s): ' + o.slice(0, 4).join(' | '));
 });
-check('RO questionnaire has no Cyrillic runtime strings', () => {
+
+check('RO questionnaire has no untranslated display strings', () => {
+  const o = untranslatedDisplayLiterals('ro/questionnaire.html');
+  assert(o.length === 0, o.length + ' literal(s): ' + o.slice(0, 4).join(' | '));
+});
+
+check('RO deep-link prefill still resolves against the canonical taxonomy', () => {
+  // Regression guard: translating these map values would break ?model= / ?pain= prefill,
+  // because setRadioByValue matches the HTML value attribute exactly.
   const src = read('ro/questionnaire.html');
-  const offenders = [];
-  const re = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
-  let m;
-  while ((m = re.exec(src)) !== null) {
-    for (const lit of m[1].match(/(['"])(?:(?!\1)[^\\]|\\.)*\1/g) || []) {
-      if (/[Ѐ-ӿ]/.test(lit)) offenders.push(lit.slice(0, 70));
-    }
+  const htmlValues = new Set((src.match(/value="[^"]*"/g) || []).map((m) => m.slice(7, -1)));
+  const broken = [];
+  for (const m of src.match(/industry: '([^']+)'/g) || []) {
+    const v = /industry: '([^']+)'/.exec(m)[1];
+    if (!htmlValues.has(v)) broken.push('industry=' + v);
   }
-  assert(offenders.length === 0, offenders.length + ' Cyrillic literal(s): ' + offenders.slice(0, 4).join(' | '));
+  for (const m of src.match(/intake: '([^']+)'/g) || []) {
+    const v = /intake: '([^']+)'/.exec(m)[1];
+    if (!htmlValues.has(v)) broken.push('intake=' + v);
+  }
+  assert(broken.length === 0, broken.length + ' prefill target(s) match no input value: ' + broken.slice(0, 4).join(' | '));
+});
+
+check('the mini-scan result strings are actually Romanian now', () => {
+  const src = read('ro/working-capital-scan.html');
+  for (const expected of ['Nivel de risc', 'Concluzie preliminară', 'Traseu recomandat', 'Trimitem rezultatul']) {
+    assert(src.includes(expected), 'missing translated string: ' + expected);
+  }
 });
 check('RO pages declare lang="ro"', () => {
   for (const f of ['ro/questionnaire.html', 'ro/working-capital-scan.html']) {

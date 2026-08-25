@@ -298,67 +298,67 @@
 
   var PROFILES = {
     ar_debtor_trap: {
-      title: 'Деньги могут застревать в дебиторке',
-      diagnosis: 'Предварительно видно: бизнес продаёт, но деньги приходят позже, чем нужно для оплаты обязательств. Вероятная зона риска — дебиторка.',
-      why: 'Даже прибыльный бизнес может столкнуться с кассовым разрывом, если клиенты платят позже, чем компания платит поставщикам и сотрудникам.',
-      stuck: ['Дебиторка — деньги у клиентов', 'Просроченные счета без контроля', 'Условия и сроки оплаты клиентов'],
-      check: ['Реестр дебиторки по клиентам и срокам', 'Банковские выписки за 3–6 месяцев', 'Договоры / условия оплаты клиентов', 'Aging report, если есть'],
-      first: ['Собрать реестр дебиторки и выделить просрочку', 'Рассчитать DSO — средний срок оплаты', 'Ввести правила контроля счетов и оплат', 'Построить cash forecast 7/14/30'],
+      title: 'Banii se pot bloca în creanțe',
+      diagnosis: 'Preliminar se observă: afacerea vinde, dar banii intră mai târziu decât este nevoie pentru a acoperi obligațiile. Zona probabilă de risc — creanțele.',
+      why: 'Chiar și o afacere profitabilă poate ajunge la un decalaj de numerar dacă clienții plătesc mai târziu decât plătește compania furnizorii și angajații.',
+      stuck: ['Creanțele — banii aflați la clienți', 'Facturi restante fără control', 'Condițiile și termenele de plată ale clienților'],
+      check: ['Registrul creanțelor pe clienți și termene', 'Extrase bancare pe 3–6 luni', 'Contracte / condiții de plată ale clienților', 'Aging report, dacă există'],
+      first: ['Construiți registrul creanțelor și evidențiați restanțele', 'Calculați DSO — termenul mediu de încasare', 'Introduceți reguli de control al facturilor și plăților', 'Construiți un cash forecast 7/14/30'],
       route: 'Financial Health Check + Working Capital module'
     },
     inventory_trap: {
-      title: 'Деньги могут быть заморожены в запасах',
-      diagnosis: 'Предварительно видно: часть оборотного капитала может лежать на складе. Вероятная зона риска — запасы и оборачиваемость.',
-      why: 'Запасы — это деньги в товаре. Если товар оборачивается медленно или закупки опережают продажи, ликвидность замораживается, даже когда отчёты прибыльны.',
-      stuck: ['Запасы и склад', 'Медленно оборачиваемые товары', 'Закупки, опережающие продажи'],
-      check: ['Остатки склада', 'Продажи по SKU', 'Закупки', 'Маркетинг по SKU', 'Условия поставщиков'],
-      first: ['Рассчитать оборачиваемость и Inventory Days', 'Сделать ABC/XYZ-анализ ассортимента', 'Выделить SKU, которые замораживают деньги', 'Посчитать FCF по ключевым товарам'],
+      title: 'Banii pot fi blocați în stocuri',
+      diagnosis: 'Preliminar se observă: o parte din capitalul de lucru poate sta în depozit. Zona probabilă de risc — stocurile și rotația lor.',
+      why: 'Stocurile sunt bani imobilizați în marfă. Dacă marfa se rotește lent sau achizițiile devansează vânzările, lichiditatea se blochează, chiar dacă rapoartele arată profit.',
+      stuck: ['Stocuri și depozit', 'Mărfuri cu rotație lentă', 'Achiziții care devansează vânzările'],
+      check: ['Soldurile din depozit', 'Vânzări pe SKU', 'Achiziții', 'Marketing pe SKU', 'Condițiile furnizorilor'],
+      first: ['Calculați rotația stocurilor și Inventory Days', 'Realizați analiza ABC/XYZ a sortimentului', 'Identificați SKU-urile care blochează banii', 'Calculați FCF pentru mărfurile-cheie'],
       route: 'Financial Health Check + FCF by SKU / Working Capital module'
     },
     ap_supplier_pressure: {
-      title: 'Поставщики могут финансировать цикл недостаточно',
-      diagnosis: 'Предварительно видно: компания может платить поставщикам раньше, чем получает деньги от клиентов. Вероятная зона риска — короткая отсрочка и денежный разрыв.',
-      why: 'Если оплата поставщикам уходит раньше поступлений от клиентов, возникает funding gap, который компания финансирует своими деньгами.',
-      stuck: ['Авансы и предоплаты поставщикам', 'Короткая отсрочка (DPO)', 'Funding gap операционного цикла'],
-      check: ['Реестр кредиторки', 'Условия оплаты поставщиков', 'График платежей', 'Банковские выписки'],
-      first: ['Рассчитать DPO и funding gap', 'Сравнить отсрочку с полным циклом (Inventory Days + DSO)', 'Подготовить переговоры по условиям с ключевыми поставщиками', 'Построить cash forecast 7/14/30'],
+      title: 'Furnizorii pot finanța insuficient ciclul',
+      diagnosis: 'Preliminar se observă: compania poate plăti furnizorii înainte de a încasa banii de la clienți. Zona probabilă de risc — termenul scurt de plată și decalajul de numerar.',
+      why: 'Dacă plățile către furnizori pleacă înaintea încasărilor de la clienți, apare un funding gap pe care compania îl finanțează din banii proprii.',
+      stuck: ['Avansuri și plăți anticipate către furnizori', 'Termen scurt de plată (DPO)', 'Funding gap al ciclului operațional'],
+      check: ['Registrul datoriilor către furnizori', 'Condițiile de plată ale furnizorilor', 'Graficul plăților', 'Extrase bancare'],
+      first: ['Calculați DPO și funding gap', 'Comparați termenul de plată cu ciclul complet (Inventory Days + DSO)', 'Pregătiți negocierea condițiilor cu furnizorii-cheie', 'Construiți un cash forecast 7/14/30'],
       route: 'Financial Health Check + Treasury / Supplier Financing analysis'
     },
     treasury_discipline: {
-      title: 'Основной риск — платёжная дисциплина',
-      diagnosis: 'Предварительно видно: вопрос может быть не только в выручке, а в отсутствии правил — кто, когда и по какому приоритету оплачивается.',
-      why: 'Без платёжного календаря и приоритетов платежи решаются вручную, а cash gap виден поздно. Это операционный риск ликвидности независимо от прибыли.',
-      stuck: ['Хаотичные платежи без приоритетов', 'Отсутствие платёжного календаря', 'Решения по платежам в ручном режиме'],
-      check: ['Список регулярных платежей', 'Реестр кредиторки', 'Банковские выписки', 'Налоги / зарплаты / кредиты', 'Список критичных платежей'],
-      first: ['Собрать реестр обязательств на 30 дней', 'Построить платёжный календарь 7/14/30', 'Классифицировать платежи по приоритету', 'Ввести правила согласования платежей'],
-      route: 'Business Control System или Treasury module'
+      title: 'Riscul principal — disciplina de plată',
+      diagnosis: 'Preliminar se observă: problema poate să nu fie doar în încasări, ci în lipsa regulilor — cine, când și cu ce prioritate este plătit.',
+      why: 'Fără un calendar al plăților și fără priorități, plățile se decid manual, iar cash gap-ul se vede târziu. Este un risc operațional de lichiditate, indiferent de profit.',
+      stuck: ['Plăți haotice, fără priorități', 'Lipsa unui calendar al plăților', 'Deciziile de plată se iau manual'],
+      check: ['Lista plăților recurente', 'Registrul datoriilor către furnizori', 'Extrase bancare', 'Taxe / salarii / credite', 'Lista plăților critice'],
+      first: ['Construiți registrul obligațiilor pe 30 de zile', 'Construiți calendarul plăților 7/14/30', 'Clasificați plățile după prioritate', 'Introduceți reguli de aprobare a plăților'],
+      route: 'Business Control System sau modulul Treasury'
     },
     reporting_blind_zone: {
-      title: 'Финансовая картина неполная',
-      diagnosis: 'Предварительно видно: без управленческого P&L и Cash Flow собственник видит только фрагменты, а решения принимаются по ощущениям.',
-      why: 'Если деньги, прибыль и обязательства не сведены в одну систему, сложно увидеть, где застревает ликвидность и какой риск возникает.',
-      stuck: ['Нет управленческого Cash Flow', 'Нет управленческого P&L', 'Данные разбросаны по Excel / 1С / чатам'],
-      check: ['ОСВ / trial balance', 'Банковские выписки', 'Текущие Excel-отчёты', 'P&L, если есть', 'Cash Flow, если есть'],
-      first: ['Свести управленческий P&L и Cash Flow', 'Построить единый источник цифр', 'Настроить регулярную отчётность для собственника', 'Рассчитать DSO / DPO / Inventory Days'],
+      title: 'Imaginea financiară este incompletă',
+      diagnosis: 'Preliminar se observă: fără un P&L de management și un Cash Flow, proprietarul vede doar fragmente, iar deciziile se iau din intuiție.',
+      why: 'Dacă banii, profitul și obligațiile nu sunt reunite într-un singur sistem, este greu de văzut unde se blochează lichiditatea și ce risc apare.',
+      stuck: ['Nu există un Cash Flow de management', 'Nu există un P&L de management', 'Datele sunt împrăștiate prin Excel / 1C / conversații'],
+      check: ['Balanța de verificare / trial balance', 'Extrase bancare', 'Rapoartele Excel actuale', 'P&L, dacă există', 'Cash Flow, dacă există'],
+      first: ['Consolidați P&L-ul de management și Cash Flow-ul', 'Construiți o sursă unică a cifrelor', 'Configurați o raportare periodică pentru proprietar', 'Calculați DSO / DPO / Inventory Days'],
       route: 'Business Control System'
     },
     growth_cash_gap: {
-      title: 'Рост может съедать деньги',
-      diagnosis: 'Предварительно видно: рост продаж не всегда улучшает ликвидность — закупки, зарплаты и аренда могут расти раньше поступлений.',
-      why: 'Растущий бизнес увеличивает дебиторку и запасы быстрее, чем поступают деньги. Если оборотный капитал не рассчитан, рост сам создаёт кассовый разрыв.',
-      stuck: ['Дебиторка, растущая вместе с продажами', 'Запасы под рост', 'Расходы, опережающие поступления'],
-      check: ['Продажи по месяцам', 'Закупки', 'Дебиторка', 'Кредиторка', 'План продаж', 'Прогноз платежей'],
-      first: ['Рассчитать потребность в оборотном капитале под рост', 'Построить cash forecast 7/14/30', 'Связать план продаж с прогнозом платежей', 'Контролировать DSO и Inventory Days при росте'],
+      title: 'Creșterea poate consuma banii',
+      diagnosis: 'Preliminar se observă: creșterea vânzărilor nu îmbunătățește întotdeauna lichiditatea — achizițiile, salariile și chiria pot crește înaintea încasărilor.',
+      why: 'O afacere în creștere mărește creanțele și stocurile mai repede decât intră banii. Dacă necesarul de capital de lucru nu este calculat, creșterea însăși produce decalajul de numerar.',
+      stuck: ['Creanțe care cresc odată cu vânzările', 'Stocuri constituite pentru creștere', 'Cheltuieli care devansează încasările'],
+      check: ['Vânzări pe luni', 'Achiziții', 'Creanțe', 'Datorii către furnizori', 'Planul de vânzări', 'Prognoza plăților'],
+      first: ['Calculați necesarul de capital de lucru pentru creștere', 'Construiți un cash forecast 7/14/30', 'Corelați planul de vânzări cu prognoza plăților', 'Controlați DSO și Inventory Days în perioada de creștere'],
       route: 'Financial Health Check + Cash Flow Forecast / Working Capital module'
     },
     mixed_cfo_review: {
-      title: 'Риски смешанные — нужна CFO-диагностика',
-      diagnosis: 'Предварительно видно несколько зон риска одновременно: деньги могут застревать в дебиторке, запасах и платёжной дисциплине. Нужна не точечная правка, а диагностика всей финансовой системы.',
-      why: 'Когда несколько блоков набирают высокий риск, точечные действия не помогают — важно увидеть всю систему: дебиторку, запасы, поставщиков, платежи и отчётность вместе.',
-      stuck: ['Дебиторка', 'Запасы', 'Поставщики и авансы', 'Платёжная дисциплина', 'Отсутствие Cash Flow'],
-      check: ['Банковские выписки за 3–6 месяцев', 'Реестр дебиторки', 'Реестр кредиторки', 'Список регулярных платежей', 'Остатки склада / SKU', 'Текущий P&L / Cash Flow, если есть'],
-      first: ['Собрать реестр обязательств на 30 дней', 'Построить cash forecast 7/14/30', 'Классифицировать платежи', 'Проверить просроченную дебиторку', 'Рассчитать DSO / DPO / Inventory Days', 'Выделить товары, которые замораживают деньги'],
-      route: 'Financial Health Check как первый шаг'
+      title: 'Riscuri mixte — este necesară o diagnoză CFO',
+      diagnosis: 'Preliminar se observă mai multe zone de risc simultan: banii se pot bloca în creanțe, în stocuri și în disciplina de plată. Nu este nevoie de o corecție punctuală, ci de o diagnoză a întregului sistem financiar.',
+      why: 'Când mai multe blocuri acumulează risc ridicat, acțiunile punctuale nu ajută — este important să vedeți întregul sistem: creanțe, stocuri, furnizori, plăți și raportare, împreună.',
+      stuck: ['Creanțe', 'Stocuri', 'Furnizori și avansuri', 'Disciplina de plată', 'Lipsa unui Cash Flow'],
+      check: ['Extrase bancare pe 3–6 luni', 'Registrul creanțelor', 'Registrul datoriilor către furnizori', 'Lista plăților recurente', 'Soldurile din depozit / SKU', 'P&L / Cash Flow actual, dacă există'],
+      first: ['Construiți registrul obligațiilor pe 30 de zile', 'Construiți un cash forecast 7/14/30', 'Clasificați plățile', 'Verificați creanțele restante', 'Calculați DSO / DPO / Inventory Days', 'Identificați mărfurile care blochează banii'],
+      route: 'Financial Health Check ca prim pas'
     }
   };
 
@@ -375,28 +375,28 @@
 
   function riskLevel(sc) {
     var pct = sc.risk / 19;
-    var lvl = pct < 0.25 ? 'Низкий' : (pct < 0.5 ? 'Средний' : (pct < 0.75 ? 'Высокий' : 'Критический'));
-    if (sc.urg >= 3 && (lvl === 'Низкий' || lvl === 'Средний')) lvl = 'Высокий';
+    var lvl = pct < 0.25 ? 'Scăzut' : (pct < 0.5 ? 'Mediu' : (pct < 0.75 ? 'Ridicat' : 'Critic'));
+    if (sc.urg >= 3 && (lvl === 'Scăzut' || lvl === 'Mediu')) lvl = 'Ridicat';
     return lvl;
   }
 
   // contextual articles (only files that exist in the site)
   var ART = {
-    fcf: { href: 'fcf-postavshiki.html', title: 'Финансирование за счёт поставщиков: какие товары создают Cash Flow', slug: 'fcf-postavshiki' },
-    cashflow: { href: 'cash-flow.html', title: 'Почему прибыль не равна деньгам (Cash Flow)', slug: 'cash-flow' },
-    pl: { href: 'upravlencheskiy-pl.html', title: 'Как собственнику читать управленческий P&L', slug: 'upravlencheskiy-pl' },
-    calendar: { href: 'platezhnyy-kalendar.html', title: 'Платёжный календарь и приоритеты платежей', slug: 'platezhnyy-kalendar' },
-    treasury: { href: 'kaznacheystvo.html', title: 'Казначейство и фондовое планирование', slug: 'kaznacheystvo' },
-    quest: { href: 'questionnaire.html', title: 'Пройти полный финансовый рентген', slug: 'questionnaire' }
+    fcf: { href: 'fcf-postavshiki.html', title: 'Finanțarea prin furnizori: ce mărfuri generează Cash Flow', slug: 'fcf-postavshiki' },
+    cashflow: { href: 'cash-flow.html', title: 'De ce profitul nu înseamnă bani (Cash Flow)', slug: 'cash-flow' },
+    pl: { href: 'upravlencheskiy-pl.html', title: 'Cum să citească proprietarul un P&L de management', slug: 'upravlencheskiy-pl' },
+    calendar: { href: 'platezhnyy-kalendar.html', title: 'Calendarul plăților și prioritățile de plată', slug: 'platezhnyy-kalendar' },
+    treasury: { href: 'kaznacheystvo.html', title: 'Trezorerie și planificarea fondurilor', slug: 'kaznacheystvo' },
+    quest: { href: 'questionnaire.html', title: 'Parcurgeți Radiografia Financiară completă', slug: 'questionnaire' }
   };
   var DEEPER = {
-    inventory_trap: { text: 'Если деньги заморожены в запасах, важно анализировать не только маржу, но и FCF по SKU: какие товары создают деньги, а какие съедают оборотный капитал.', arts: ['fcf'] },
-    ap_supplier_pressure: { text: 'Если отсрочка поставщика не покрывает операционный цикл, товар приходится финансировать собственными деньгами. В статье разобрана логика DPO, DSO и Funding Gap.', arts: ['fcf'] },
-    growth_cash_gap: { text: 'Рост продаж может создавать кассовый разрыв, если запасы, дебиторка и условия поставщиков не связаны в единую Cash Flow-модель.', arts: ['fcf', 'quest'] },
-    reporting_blind_zone: { text: 'Чтобы собрать полную финансовую картину, начните с управленческого Cash Flow и P&L.', arts: ['cashflow', 'pl', 'quest'] },
-    treasury_discipline: { text: 'Платёжная дисциплина строится на календаре платежей и приоритетах казначейства.', arts: ['calendar', 'treasury', 'quest'] },
-    ar_debtor_trap: { text: 'Чтобы понять реальный риск дебиторки, нужно связать продажи, сроки оплат, банковские поступления и платёжный календарь.', arts: ['quest', 'cashflow'] },
-    mixed_cfo_review: { text: 'Риски смешанные — полезно увидеть, как деньги, запасы, поставщики и платежи связаны в одной системе.', arts: ['fcf', 'cashflow', 'quest'] }
+    inventory_trap: { text: 'Dacă banii sunt blocați în stocuri, este important să analizați nu doar marja, ci și FCF pe SKU: ce mărfuri generează bani și care consumă capitalul de lucru.', arts: ['fcf'] },
+    ap_supplier_pressure: { text: 'Dacă termenul de plată al furnizorului nu acoperă ciclul operațional, marfa trebuie finanțată din bani proprii. Articolul explică logica DPO, DSO și Funding Gap.', arts: ['fcf'] },
+    growth_cash_gap: { text: 'Creșterea vânzărilor poate produce un decalaj de numerar dacă stocurile, creanțele și condițiile furnizorilor nu sunt legate într-un model Cash Flow unitar.', arts: ['fcf', 'quest'] },
+    reporting_blind_zone: { text: 'Pentru a obține o imagine financiară completă, începeți cu Cash Flow-ul și P&L-ul de management.', arts: ['cashflow', 'pl', 'quest'] },
+    treasury_discipline: { text: 'Disciplina de plată se construiește pe calendarul plăților și pe prioritățile de trezorerie.', arts: ['calendar', 'treasury', 'quest'] },
+    ar_debtor_trap: { text: 'Pentru a înțelege riscul real al creanțelor, trebuie corelate vânzările, termenele de plată, încasările bancare și calendarul plăților.', arts: ['quest', 'cashflow'] },
+    mixed_cfo_review: { text: 'Riscurile sunt mixte — este util să vedeți cum banii, stocurile, furnizorii și plățile se leagă într-un singur sistem.', arts: ['fcf', 'cashflow', 'quest'] }
   };
 
   function fillList(id, arr) { var ul = document.getElementById(id); if (!ul) return; ul.innerHTML = ''; arr.forEach(function (t) { var li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }); }
@@ -426,7 +426,7 @@
     var P = PROFILES[profKey];
     var risk = riskLevel(sc);
 
-    document.getElementById('scanBand').textContent = risk + ' риск · предварительная зона внимания';
+    document.getElementById('scanBand').textContent = risk + ' risc · zonă preliminară de atenție';
     document.getElementById('scanTitle').textContent = P.title;
     document.getElementById('scanText').textContent = P.diagnosis;
     document.getElementById('scanWhy').textContent = P.why;
@@ -529,16 +529,16 @@
   function buildShareText() {
     if (!lastResult) return '';
     var L = lastResult;
-    var lines = ['Мини-скан оборотного капитала — FINMENTOR', '',
-      'Уровень риска: ' + L.risk_level,
-      'Зона риска: ' + PROFILES[L.primary_profile].title,
-      'Предварительный вывод: ' + L.diagnosis, '',
-      'Что проверить в первую очередь:'];
+    var lines = ['Mini-scanarea capitalului de lucru — FINMENTOR', '',
+      'Nivel de risc: ' + L.risk_level,
+      'Zonă de risc: ' + PROFILES[L.primary_profile].title,
+      'Concluzie preliminară: ' + L.diagnosis, '',
+      'Ce trebuie verificat în primul rând:'];
     L.documents_to_check.forEach(function (d) { lines.push('— ' + d); });
-    lines.push('', 'Рекомендуемый маршрут: ' + L.recommended_route);
-    lines.push('Следующий шаг: пройти финансовый рентген или отправить этот результат в FINMENTOR Bot.');
+    lines.push('', 'Traseu recomandat: ' + L.recommended_route);
+    lines.push('Pasul următor: parcurgeți Radiografia Financiară sau trimiteți acest rezultat în FINMENTOR Bot.');
     var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
-    if (nm || co || ct || cm) { lines.push(''); if (nm) lines.push('Имя: ' + nm); if (co) lines.push('Компания: ' + co); if (ct) lines.push('Контакт: ' + ct); if (cm) lines.push('Комментарий: ' + cm); }
+    if (nm || co || ct || cm) { lines.push(''); if (nm) lines.push('Nume: ' + nm); if (co) lines.push('Companie: ' + co); if (ct) lines.push('Contact: ' + ct); if (cm) lines.push('Comentariu: ' + cm); }
     lines.push('', 'https://www.finmentor.md/working-capital-scan.html');
     return lines.join('\n');
   }
@@ -546,7 +546,7 @@
   var copyBtn = document.getElementById('scanCopy');
   if (copyBtn) copyBtn.addEventListener('click', function () {
     var text = buildShareText(); if (!text) return;
-    function done() { var old = copyBtn.textContent; copyBtn.textContent = 'Скопировано ✓'; setTimeout(function () { copyBtn.textContent = old; }, 1800); if (lastResult) ga('copy_working_capital_scan_result', gaParams()); }
+    function done() { var old = copyBtn.textContent; copyBtn.textContent = 'Copiat ✓'; setTimeout(function () { copyBtn.textContent = old; }, 1800); if (lastResult) ga('copy_working_capital_scan_result', gaParams()); }
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); }); }
     else { fallbackCopy(text); done(); }
   });
@@ -556,16 +556,16 @@
       if (!lastResult) return;
     }
     if (!scanConsent || !scanConsent.checked) {
-      showSendStatus('Чтобы отправить результат FINMENTOR, подтвердите согласие рядом с Политикой конфиденциальности.', true);
+      showSendStatus('Pentru a trimite rezultatul către FINMENTOR, confirmați acordul de lângă Politica de confidențialitate.', true);
       if (scanConsent) scanConsent.focus();
       return;
     }
     if (!webhookUrl()) {
-      showSendStatus('Webhook пока не подключён. Скопируйте результат или отправьте его в FINMENTOR Bot.', true);
+      showSendStatus('Webhook-ul nu este încă conectat. Copiați rezultatul sau trimiteți-l în FINMENTOR Bot.', true);
       return;
     }
     sendBtn.disabled = true;
-    showSendStatus('Отправляем результат...', false);
+    showSendStatus('Trimitem rezultatul...', false);
     var payload = buildPayload();
     // The mini-scan never ran FMAnalytics enrichment, so its leads reached the CRM with no
     // consent flag, no GA identifiers and no first-touch attribution — unlike every other
@@ -587,7 +587,7 @@
         : 'thank-you.html?tool=mini_scan';
     }).catch(function () {
       sendBtn.disabled = false;
-      showSendStatus('Не удалось автоматически отправить результат. Скопируйте результат или откройте FINMENTOR Bot.', true);
+      showSendStatus('Rezultatul nu a putut fi trimis automat. Copiați rezultatul sau deschideți FINMENTOR Bot.', true);
     });
   });
 
