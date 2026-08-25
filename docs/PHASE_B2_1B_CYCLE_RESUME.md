@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Authoritative Cycle Read / Resume
 
-Status: **COMPONENT LOGIC PASS / PERFORMANCE BLOCKED / TARGETED READ OPTIMIZATION OPEN**  
+Status: **COMPONENT LOGIC PASS / PERFORMANCE BLOCKED / PAYLOAD-WEIGHT DIAGNOSTIC OPEN**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 Depends on: B.2.1-A real Telegram validation closure  
 
@@ -68,7 +68,7 @@ Observed component results:
 - Fan-out was `26 → 1 → 1 → 1` for owner, QA and unknown tests.
 - Cross-contamination tests passed.
 - No production blank-cycle row currently exists, so legacy blank-cycle safety was verified against deterministic synthetic fixtures rather than a live row.
-- Whitelisting in `Build Resume` is mandatory because Bot_Sessions contains legacy technical/raw payload columns such as `reply_markup`, `tg_body`, `result` and `lead_payload`; none may be exposed to Mini App.
+- Whitelisting in `Build Resume` is mandatory because Bot_Sessions contains legacy technical/raw payload columns such as `reply_markup`, `tg_body`, `result`, `lead_payload` and raw JSON-like fields; none may be exposed to Mini App.
 - Zero writes / Lead Intake / CRM side effects were observed in the harness.
 
 ## Performance benchmark — FAIL on full-row scan
@@ -105,50 +105,64 @@ Conclusion:
 - the `<700 ms` B.2.1-B performance gate is not met by a full `A:AV` scan;
 - no live resume canary should run until the read path is improved or the acceptance threshold is explicitly changed.
 
-The benchmark workflow was restored to the production-compatible retry setting and left inactive.
+## Candidate 1 — exact `chat_id` lookup: correctness PASS / performance FAIL
 
-## Approved next diagnostic — optimize read shape, not production data
+Isolated benchmark `D8TnxS6mqqM1RO9v` tested a Google Sheets exact `chat_id` filter with `retryOnFail=false`.
 
-Do **not** move heavy payload columns out of `Bot_Sessions` in B.2.1-B. That is a production schema/data migration and is outside this phase.
+Correctness:
 
-Before changing architecture, test whether the latency is caused by returning all 48 columns / all 26 rows.
+- owner: exactly one row on every lookup, row 26, correct current cycle;
+- QA: exactly one row, `C-QA-001`, owner row absent;
+- unknown: zero rows, no first-row fallback and no cross-contamination;
+- string/numeric chat id coercion was accepted by the node, but downstream identity comparisons must still use `String()` on both sides for deterministic behavior.
 
-The next isolated benchmark is explicitly authorized in this order:
+Measured owner samples:
 
-### Candidate 1 — server-side exact-row lookup with retry disabled
+- 1033 ms
+- 1039 ms
+- 1548 ms
+- 1900 ms
+- median ≈1293 ms
+- p95 ≈1847 ms
 
-Test the Google Sheets node with an exact `chat_id` filter only in an isolated benchmark:
+Wall time for nine lookups was roughly 12.4 s for owner and 12.1 s for QA.
 
-- same workbook / Bot_Sessions sheet;
-- target = owner `chat_id` supplied from a safe synthetic benchmark context;
-- explicit range where supported;
-- `retryOnFail = false`;
-- measure 1 warm-up + at least 8 reads;
-- expected returned items = 1;
-- no writes;
-- do not apply to production automatically.
+Conclusion:
 
-This candidate is worth testing because the historical B.1 `filtersUI` slowdown was observed with retry enabled; the current benchmark has already shown retry itself is not useful when calls succeed. The purpose is to determine whether server-side row reduction can avoid transferring 26 full rows.
+- exact lookup correctness is strong;
+- exact lookup does **not** reduce latency relative to the full scan;
+- Candidate 1 is rejected for B.2.1-B performance;
+- this result does not prove whether n8n filters server-side or fetches-and-filters internally, so row-count reduction is not established as a network optimization.
 
-Acceptance: median <700 ms, exact row only, deterministic owner/QA/unknown behavior, no false empty result.
+## Approved next diagnostic — payload-width isolation only
 
-### Candidate 2 — payload-weight diagnostic
+Do **not** move heavy columns, split the production sheet, create an index sheet, or change the production writer in B.2.1-B.
 
-If Candidate 1 fails, benchmark narrower column ranges only to isolate whether heavy legacy payload columns are the dominant cost.
+The next and final performance diagnostic before an architecture decision is a same-window width benchmark.
 
-Use read-only synthetic benchmarks; do not treat them as final implementation yet.
+First read/map the Bot_Sessions headers exactly. Do not guess column letters.
 
-Measure at minimum:
+Then benchmark three read shapes with the same credential, workbook and sheet:
 
-- canonical/core region without legacy heavy payload columns;
-- cycle-field region separately;
-- full `A:AV` baseline in the same benchmark window.
+1. **FULL** — current `A:AV` baseline.
+2. **CORE** — the smallest contiguous canonical/core range that still contains `chat_id` and all fields genuinely required by exact matching, read-only cycle evaluation and `Build Resume`, excluding legacy heavy/raw payload columns wherever the existing physical layout allows it.
+3. **CYCLE** — the contiguous cycle-field range only, for diagnostic isolation; this is not necessarily a usable final resume read because it may omit `chat_id` or diagnostic state.
 
-Report bytes/field count if n8n exposes it, otherwise item count plus node duration.
+For each shape:
 
-If a narrow range is materially faster, design a final read strategy only after proving that it still retrieves every field needed by `Find Session`, read-only cycle evaluation and `Build Resume`.
+- one warm-up;
+- at least six measured reads;
+- retry setting held constant;
+- report exact range, column count, items, min / median / p95 / max;
+- report estimated payload size if safely measurable without reproducing PII/raw payloads.
 
-Do not introduce a second source-of-truth sheet in B.2.1-B without a separate architecture decision.
+Also inventory heavy legacy/raw columns by header and column letter only, with safe approximate size characteristics. Do not copy the payload values into the report.
+
+Interpretation:
+
+- if CORE/CYCLE are materially faster, payload width is a meaningful contributor and a narrow final read strategy may be justified;
+- if CORE/CYCLE remain around the same ~1.2 s band, Google Sheets round-trip/runtime overhead is the dominant floor and the original `<700 ms` acceptance target should be revisited rather than forcing unsafe schema changes;
+- do not build the live owner resume canary until this ambiguity is resolved and a read strategy/threshold is explicitly accepted.
 
 ## Safe resume response
 
@@ -221,9 +235,10 @@ A future draft-persistence/write phase requires a separate gate.
    - downstream evaluator and resume builder must each receive exactly one item.
 
 7. **Performance**
-   - current full-row baseline is blocked at ~1.2 s median;
-   - evaluate Candidate 1, then Candidate 2 only if needed;
-   - report exact read / find / evaluator / build resume / total bootstrap timing.
+   - full baseline is blocked at ~1.2 s median;
+   - exact lookup is blocked at ~1.3 s median despite correctness;
+   - payload-width isolation is the next diagnostic;
+   - report exact read / find / evaluator / build resume / total bootstrap timing once a final path is accepted.
 
 8. **Privacy / retention**
    - do not reintroduce raw initData persistence;
@@ -231,7 +246,7 @@ A future draft-persistence/write phase requires a separate gate.
 
 ## Live owner resume gate
 
-Build the live owner resume endpoint only after an accepted read strategy meets the performance gate.
+Build the live owner resume endpoint only after an accepted read strategy or revised evidence-based performance threshold is approved.
 
 Then execute one owner-only live canary and prove:
 
@@ -257,7 +272,7 @@ B.2.1-B closes only when:
 - current cycle is resumed without an unintended reset;
 - stale cross-cycle consent/lead cannot leak into current resume state;
 - fan-out protection is exactly one downstream item;
-- an accepted read strategy has warm median <700 ms;
+- the final accepted read strategy meets its evidence-based performance gate;
 - one live owner resume canary passes;
 - zero writes/Lead Intake/CRM side effects;
 - Client Concierge, Transport, Lead Intake and BotFather remain unchanged.
