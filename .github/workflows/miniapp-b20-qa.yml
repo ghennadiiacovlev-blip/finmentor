@@ -63,8 +63,6 @@ jobs:
               if needle in js:
                   errors.append(f'forbidden network surface in JS: {label}')
 
-          # HTML may legitimately load fonts.googleapis.com and the Telegram WebApp SDK.
-          # Only privileged/write surfaces are forbidden in the static B.2.0 shell.
           forbidden_html = {
               'sheets.googleapis.com': 'Google Sheets API literal',
               'api.telegram.org': 'Telegram Bot API literal',
@@ -122,7 +120,7 @@ jobs:
         env:
           MINIAPP_URL: http://127.0.0.1:8000/app/
           QA_ARTIFACT_DIR: qa-artifacts
-        run: node qa/miniapp_b20_browser_qa.mjs
+        run: node qa/miniapp_b20_browser_qa_v2.mjs
 
       - name: Upload browser QA evidence
         if: always()
