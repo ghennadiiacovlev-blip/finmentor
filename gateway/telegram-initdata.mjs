@@ -40,21 +40,43 @@ function safeEqualHex(expectedHex, receivedHex) {
   }
 }
 
+function decodeQueryComponentStrict(value) {
+  try {
+    // Intentionally decode percent escapes exactly once. Raw '+' remains '+'.
+    // This is the path proven in the n8n B.2.1-A format probe and avoids
+    // relying on URLSearchParams, which is unavailable in the target sandbox.
+    return decodeURIComponent(value);
+  } catch {
+    throw new TelegramInitDataError('TG_INITDATA_INVALID');
+  }
+}
+
+function compareCodeUnits(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export function parseInitData(initData) {
   assertString(initData, 'TG_INITDATA_MISSING');
   if (Buffer.byteLength(initData, 'utf8') > 16 * 1024) {
     throw new TelegramInitDataError('TG_INITDATA_TOO_LARGE');
   }
 
-  const params = new URLSearchParams(initData);
-  const entries = [...params.entries()];
-  if (!entries.length) throw new TelegramInitDataError('TG_INITDATA_INVALID');
+  const params = new Map();
+  const parts = initData.split('&');
+  if (!parts.length) throw new TelegramInitDataError('TG_INITDATA_INVALID');
 
-  const seen = new Set();
-  for (const [key] of entries) {
-    if (seen.has(key)) throw new TelegramInitDataError('TG_INITDATA_DUPLICATE_KEY');
-    seen.add(key);
+  for (const part of parts) {
+    if (!part.length) throw new TelegramInitDataError('TG_INITDATA_INVALID');
+    const equals = part.indexOf('=');
+    if (equals < 0) throw new TelegramInitDataError('TG_INITDATA_INVALID');
+
+    const key = decodeQueryComponentStrict(part.slice(0, equals));
+    const value = decodeQueryComponentStrict(part.slice(equals + 1));
+    if (!key) throw new TelegramInitDataError('TG_INITDATA_INVALID');
+    if (params.has(key)) throw new TelegramInitDataError('TG_INITDATA_DUPLICATE_KEY');
+    params.set(key, value);
   }
+
   return params;
 }
 
@@ -62,7 +84,7 @@ export function buildBotDataCheckString(paramsOrInitData) {
   const params = typeof paramsOrInitData === 'string' ? parseInitData(paramsOrInitData) : paramsOrInitData;
   return [...params.entries()]
     .filter(([key]) => key !== 'hash')
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => compareCodeUnits(a, b))
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 }
@@ -74,7 +96,7 @@ export function buildThirdPartyDataCheckString(paramsOrInitData, botId) {
 
   const body = [...params.entries()]
     .filter(([key]) => key !== 'hash' && key !== 'signature')
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => compareCodeUnits(a, b))
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 
