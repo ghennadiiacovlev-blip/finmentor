@@ -2,6 +2,7 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <!--
   FINMENTOR — proprietary website content and implementation.
   © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
@@ -128,9 +129,16 @@
     <h2>7. Păstrarea datelor</h2>
     <p>Păstrăm datele exact atât cât este necesar pentru scopurile de mai sus, după care le ștergem. La solicitarea dvs., datele se șterg mai devreme.</p>
 
-    <h2>8. Furnizorii de servicii și posibila automatizare a solicitărilor</h2>
-    <p>Nu vindem datele dvs. Pentru funcționarea site-ului și procesarea solicitărilor pot fi implicați furnizori de încredere, de exemplu: găzduirea paginilor (GitHub Pages), rețeaua de livrare a conținutului și protecția (Cloudflare), analitica web și fonturile web (serviciile Google), precum și furnizorul de email.</p>
-    <p>În viitor, primirea și procesarea solicitărilor pot fi parțial automatizate (de exemplu, cu instrumente de tip Make / n8n, Google Sheets sau notificări email) — exclusiv pentru scopurile descrise în această Politică și cu consimțământul dvs. Toți furnizorii prelucrează datele doar în volumul necesar prestării serviciului.</p>
+    <h2>8. Furnizorii de servicii și automatizarea procesării solicitărilor</h2>
+    <p>Nu vindem datele dvs. Pentru funcționarea site-ului sunt implicați: găzduirea paginilor (GitHub Pages), analitica web și fonturile web (serviciile Google), precum și furnizorul de email.</p>
+    <p>Primirea și procesarea solicitărilor sunt <strong>deja automatizate</strong>. Când trimiteți un formular, „Radiografia Financiară” sau rezultatul mini-scanării, datele parcurg următorul traseu:</p>
+    <ul>
+      <li><strong>n8n</strong> — platforma de automatizare care preia solicitarea și efectuează procesarea ei.</li>
+      <li><strong>Google Sheets</strong> — păstrarea fișei solicitării și a istoricului lucrului pe ea (CRM-ul nostru).</li>
+      <li><strong>Telegram</strong> — notificarea FINMENTOR despre o solicitare nouă, ca să vă putem răspunde.</li>
+      <li><strong>OpenAI</strong> — pregătirea unui plan analitic intern de lucru pe solicitarea dvs. În OpenAI se transmit <strong>doar date anonimizate</strong> despre afacere și rezultatele diagnosticului: modelul de business, domeniul, intervalul cifrei de afaceri și al numărului de angajați, problemele și obiectivele selectate, nivelul de urgență, statutul documentelor și răspunsurile din chestionar despre evidența financiară. Numele, denumirea companiei, email-ul, telefonul, Telegram, linkurile către pagini și identificatorii de analitică web <strong>nu se transmit</strong> în OpenAI.</li>
+    </ul>
+    <p>Toți furnizorii prelucrează datele doar în volumul necesar prestării serviciului și exclusiv pentru scopurile descrise în această Politică.</p>
 
     <h2>9. Lucrul la distanță, confidențialitatea și NDA</h2>
     <p>FINMENTOR poate lucra la distanță. Datele financiare și de altă natură ale clientului se folosesc doar pentru sarcinile convenite. La solicitare se semnează un NDA (acord de confidențialitate). Cerem accesul minim necesar, nu efectuăm plăți și nu luăm decizii financiare în locul proprietarului fără un regulament aprobat; fișierele finale și sistemele rămân la client.</p>

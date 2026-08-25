@@ -1,3 +1,32 @@
+# FINMENTOR response headers
+#
+# STATUS: INERT ON THE CURRENT HOST.
+#
+# This file uses the Netlify / Cloudflare Pages `_headers` convention. The site is served
+# by GitHub Pages (verified live: `Server: GitHub.com`, Fastly edge), which does NOT read
+# this file and does not allow custom response headers by any other means either. Nothing
+# below is applied to production today.
+#
+# It is kept, and completed, so that the correct policy is already in place the moment the
+# site is fronted by an edge layer that honours it. Do not treat its presence as evidence
+# that these headers are live — verify with a real request:
+#
+#   curl -sI https://www.finmentor.md/ | grep -i -E 'content-security|strict-transport|x-frame|referrer|x-content-type|permissions'
+#
+# See docs/FINMENTOR_SECURITY_HEADERS_PLATFORM_BLOCKER.md for the migration options.
+#
+# Of the six headers the audit found missing, exactly one has a browser-honoured HTML
+# equivalent that works on GitHub Pages today: Referrer-Policy, applied as
+# <meta name="referrer" content="strict-origin-when-cross-origin"> on every page.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://ghennadi.app.n8n.cloud; upgrade-insecure-requests
+
 /
   Content-Type: text/html; charset=utf-8
 

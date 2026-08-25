@@ -489,6 +489,51 @@ check('HTML and sitemap agree on x-default for every shared URL', () => {
   assert(bad.length === 0, bad.length + ' disagreement(s): ' + bad.slice(0, 5).join(' | '));
 });
 
+// --------------------------------------------------------------- security controls
+console.log('\nSECURITY CONTROLS (what GitHub Pages actually honours)');
+
+check('every page declares a referrer policy', () => {
+  const missing = [];
+  for (const f of collectHtml('')) {
+    if (!/<meta[^>]+name=["']referrer["'][^>]+content=["']strict-origin-when-cross-origin["']/i.test(read(f))) {
+      missing.push(f);
+    }
+  }
+  assert(missing.length === 0, missing.length + ' page(s) without referrer meta: ' + missing.slice(0, 5).join(', '));
+});
+
+check('no page declares a referrer policy twice', () => {
+  const dup = [];
+  for (const f of collectHtml('')) {
+    const n = (read(f).match(/<meta[^>]+name=["']referrer["']/gi) || []).length;
+    if (n > 1) dup.push(`${f} (${n})`);
+  }
+  assert(dup.length === 0, 'duplicate referrer meta: ' + dup.join(', '));
+});
+
+check('_headers is labelled inert so it is not mistaken for live config', () => {
+  const h = read('_headers');
+  assert(/INERT ON THE CURRENT HOST/i.test(h), '_headers does not carry the inert warning');
+  assert(/GitHub Pages/i.test(h), '_headers does not name the host that ignores it');
+});
+
+check('the platform blocker is documented rather than claimed as fixed', () => {
+  const doc = read('docs/FINMENTOR_SECURITY_HEADERS_PLATFORM_BLOCKER.md');
+  assert(/PLATFORM_BLOCKER/.test(doc), 'blocker doc missing its marker');
+  assert(/Cloudflare/i.test(doc), 'blocker doc names no concrete edge option');
+});
+
+check('privacy policy describes the live processors, not future ones', () => {
+  for (const f of ['privacy.html', 'ro/privacy.html']) {
+    const s = read(f);
+    assert(s.includes('OpenAI'), f + ' does not disclose OpenAI');
+    assert(s.includes('n8n'), f + ' does not disclose n8n');
+    assert(s.includes('Google Sheets'), f + ' does not disclose Google Sheets');
+    // Cloudflare is not in the serving path; claiming it would be inaccurate.
+    assert(!s.includes('Cloudflare'), f + ' still names Cloudflare, which is not in the path');
+  }
+});
+
 // --------------------------------------------------------------- run async cases
 const run = async () => {
   for (const [name, fn] of transportCases) {
