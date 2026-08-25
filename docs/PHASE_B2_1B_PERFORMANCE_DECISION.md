@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Performance Decision
 
-Status: **GOOGLE SHEETS SYNCHRONOUS READ REJECTED FOR LIVE RESUME / READ-MODEL PROOF REQUIRED**  
+Status: **GOOGLE SHEETS NODE SYNCHRONOUS READ REJECTED FOR LIVE RESUME / ALTERNATE READ PATH PROOF REQUIRED**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -16,7 +16,7 @@ A subsequent low-rate stage-timing diagnostic now resolves the bottleneck decisi
 
 Five genuine owner Mini App resume requests were run 15 seconds apart with no burst and no parallelism.
 
-| Request | Browser total | Server total | Pre-Sheets | Ed25519 | Sheets | Post-Sheets |
+| Request | Browser total | Server total | Pre-Sheets | Ed25519 | Sheets node | Post-Sheets |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | 9146 ms | 7213 ms | 12 ms | 0 ms | 7190 ms | 11 ms |
 | 2 | 8320 ms | 6686 ms | 14 ms | 0 ms | 6659 ms | 13 ms |
@@ -29,16 +29,18 @@ Medians:
 - browser total: **8320 ms**;
 - server total: **6686 ms**;
 - pre-Sheets: **12 ms**;
-- Sheets: **6659 ms**;
+- Google Sheets node: **6659 ms**;
 - post-Sheets: **12 ms**.
 
-The Google Sheets read accounts for effectively all server-side latency. Validator, matching, read-only cycle evaluation and safe response construction are negligible.
+The Google Sheets node read accounts for effectively all server-side latency. Validator, matching, read-only cycle evaluation and safe response construction are negligible.
 
 ## Interpretation
 
-The earlier rapid sequential canary did create queue/backoff escalation, but burst pressure is not the root cause of normal owner resume latency. Low-rate requests still spend roughly 6.1–7.2 seconds in the Google Sheets read.
+The earlier rapid sequential canary did create queue/backoff escalation, but burst pressure is not the root cause of normal owner resume latency. Low-rate requests still spend roughly 6.1–7.2 seconds in the Google Sheets node.
 
 The isolated/manual benchmarks around 1.0–1.7 seconds therefore understate the production webhook critical-path cost on this n8n Cloud instance.
+
+This proves the current **n8n Google Sheets node path** is unacceptable in the synchronous owner-resume path. It does not yet prove the underlying Google Sheets API itself requires 6–7 seconds.
 
 ## Final B.2.1-B performance decision
 
@@ -48,15 +50,30 @@ Do **not** merge PR #10 yet.
 
 Do **not** begin B.2.1-C.
 
-The synchronous Google Sheets read is not acceptable for the real Mini App resume path.
+The next architecture gate must remove the current Google Sheets node from the synchronous critical path.
 
-The next architecture gate must prove a faster **derived read model** while keeping `Bot_Sessions` authoritative.
+## Candidate 0 — direct Google Sheets REST read (preferred first)
 
-## Preferred first candidate
+Before introducing a second read model, test whether the existing Google OAuth credential can safely authenticate a generic HTTP Request to the official Google Sheets API.
 
-Use an isolated n8n Data Table proof because n8n supports internal structured data tables and conditional row retrieval across workflows.
+Use read-only `spreadsheets.values.get` or `spreadsheets.values.batchGet` against the same spreadsheet with an explicit A1 range. The official API supports exact ranges directly.
 
-The proof must occur before production writers are changed.
+This candidate is preferred first because it preserves `Bot_Sessions` as the only stored source of truth and avoids synchronization/staleness complexity.
+
+The proof must:
+
+- use the existing Google OAuth credential without exposing tokens;
+- be isolated/read-only;
+- retrieve only the fields/ranges needed for resume;
+- benchmark manual and production-webhook paths;
+- preserve exact owner / QA / unknown semantics;
+- keep zero writes and no raw Telegram payload retention.
+
+If the existing credential cannot be used safely for a generic HTTP Request, stop this candidate rather than extracting secrets.
+
+## Candidate 1 — n8n Data Table derived read model
+
+Only if direct Sheets REST is unavailable or still too slow, benchmark n8n Data Table exact-row retrieval on the actual Cloud instance.
 
 The Data Table candidate must be:
 
@@ -68,7 +85,7 @@ The Data Table candidate must be:
 - exact for owner, QA and unknown lookup;
 - benchmarked in both manual and production-webhook paths.
 
-Only if the isolated candidate is materially faster should a second gate design synchronization, staleness and fallback semantics.
+Only if this isolated proof is materially faster should a separate gate design production synchronization, miss/stale fallback and consistency semantics.
 
 ## Functional/security gates remain unchanged
 
@@ -84,4 +101,4 @@ B.2.1-B correctness is already PASS for:
 - no raw `initData` retention;
 - zero canary-induced CRM/Sheets writes.
 
-These guarantees must carry into any future read-model proof.
+These guarantees must carry into any future alternate read-path proof.
