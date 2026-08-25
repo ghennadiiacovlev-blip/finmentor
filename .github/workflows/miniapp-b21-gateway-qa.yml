@@ -1,0 +1,55 @@
+name: Mini App B.2.1 Gateway QA
+
+on:
+  pull_request:
+    paths:
+      - 'gateway/**'
+      - 'docs/PHASE_B2_1_GATEWAY_CONTRACT.md'
+      - '.github/workflows/miniapp-b21-gateway-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validator-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check gateway/telegram-initdata.mjs
+          node --check gateway/telegram-initdata.test.mjs
+
+      - name: Telegram initData validation tests
+        run: node --test gateway/telegram-initdata.test.mjs
+
+      - name: Secret / unsafe surface guard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, sys
+
+          files = [Path('gateway/telegram-initdata.mjs'), Path('docs/PHASE_B2_1_GATEWAY_CONTRACT.md')]
+          text = '\n'.join(p.read_text(encoding='utf-8') for p in files)
+          errors=[]
+
+          # Telegram bot tokens are numeric id + colon + long token. Allow the explicit TEST_ONLY fixture only in tests,
+          # which is not included in this scan.
+          if re.search(r'\b\d{6,12}:[A-Za-z0-9_-]{30,}\b', text):
+              errors.append('possible Telegram bot token literal')
+          for needle in ['ghennadi.app.n8n.cloud/webhook/', 'sheets.googleapis.com']:
+              if needle in text:
+                  errors.append(f'production endpoint literal: {needle}')
+
+          if errors:
+              print('\n'.join('FAIL: '+x for x in errors)); sys.exit(1)
+          print('PASS: no production secrets/endpoints in gateway reference')
+          PY
+
+      - name: Contract summary
+        run: |
+          echo 'B.2.1 branch is non-production.'
+          echo 'No Mini App gateway is activated by this workflow.'
+          echo 'Production Concierge / Lead Intake are untouched.'
