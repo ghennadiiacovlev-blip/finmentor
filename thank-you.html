@@ -8,26 +8,8 @@
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
   -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
-    if (FM_GA4_DEBUG) {
-      gtag('config', 'G-94L98WZ12', { debug_mode: true });
-      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: 'thank-you', source: 'debug_test' });
-    } else {
-      gtag('config', 'G-94L98WZ12');
-    }
-    var FM_THANKYOU_TOOL = new URLSearchParams(window.location.search).get('tool') || 'unknown';
-    if (!/^(xray_quick|xray_extended|mini_scan|contact)$/.test(FM_THANKYOU_TOOL)) FM_THANKYOU_TOOL = 'unknown';
-    gtag('event', 'lead_thank_you_view', {
-      page_slug: 'thank-you',
-      tool: FM_THANKYOU_TOOL
-    });
-  </script>
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="analytics.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />

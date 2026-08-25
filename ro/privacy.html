@@ -8,20 +8,8 @@
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
   -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
-    if (FM_GA4_DEBUG) {
-      gtag('config', 'G-94L98WZ12', { debug_mode: true });
-      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
-    } else {
-      gtag('config', 'G-94L98WZ12');
-    }
-  </script>
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="../analytics.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
@@ -125,7 +113,7 @@
     <p>Navigatorul financiar de pe site funcționează după reguli predefinite (rule-based) și ajută la alegerea primului pas potrivit. El nu solicită și nu colectează date personale și nu oferă recomandări financiare individuale. În sistemul de analitică web pot fi transmise doar evenimente de interacțiune anonimizate (de exemplu, ce variantă a fost aleasă), fără date personale.</p>
 
     <h2>4. Analitica web și absența transmiterii datelor personale</h2>
-    <p>Site-ul folosește Google Analytics 4 (identificatorul de măsurare G-94L98WZ12) pentru statistica anonimizată a vizitelor și interacțiunilor. Noi <strong>nu transmitem în analitica web date personale</strong>: numele, email-ul, telefonul, Telegram, denumirea companiei și textul comentariilor nu se trimit în evenimentele de analitică. Din mini-scanare și din Radiografia Financiară pot fi transmise în analitică doar parametri generalizați: pagina, sursa, categoria modelului de business, nivelul de urgență, score / zona rezultatului și primul pas ales, fără răspunsurile și contactele dvs.</p>
+    <p>Site-ul folosește Google Analytics 4 pentru statistica anonimizată a vizitelor și interacțiunilor. Google Analytics se încarcă numai după consimțământul dvs. explicit în bannerul cookies. Noi <strong>nu transmitem în analitica web date personale</strong>: numele, email-ul, telefonul, Telegram, denumirea companiei și textul comentariilor nu se trimit în evenimentele de analitică. Din mini-scanare și din Radiografia Financiară pot fi transmise în analitică doar parametri generalizați: pagina, sursa, categoria modelului de business, nivelul de urgență, score / zona rezultatului și primul pas ales, fără răspunsurile și contactele dvs.</p>
 
     <h2>5. Scopurile prelucrării</h2>
     <ul>
