@@ -19,7 +19,8 @@ const GATES = [
   ['AI safe projection', 'ai-safe-projection.test.mjs'],
   ['Error Monitor alert', 'error-alert.test.mjs'],
   ['Website contract', 'website-contract.test.mjs'],
-  ['n8n export hygiene', 'n8n-manifest-drift.test.mjs']
+  ['n8n export hygiene', 'n8n-manifest-drift.test.mjs'],
+  ['Mini App read-model consistency', 'miniapp-readmodel.test.mjs']
 ];
 
 const results = [];

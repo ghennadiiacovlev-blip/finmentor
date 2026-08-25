@@ -205,12 +205,37 @@ Gateway behavior:
 1. Resolve the validated Telegram user ID.
 2. Read the authoritative current Bot Session for that Telegram user.
 3. If a valid current cycle exists, use it.
-4. If no valid session exists, bootstrap a new cycle using the same cycle rules as the Client Concierge.
-5. Return the authoritative `cycle_id` to the Mini App.
+4. If no valid session exists, return `resume: false` with an empty draft and **no `cycle_id`**. Bootstrap does not create one.
+5. Return the authoritative `cycle_id` to the Mini App when, and only when, one already exists.
 
 Opening the Mini App is navigation. It is **not** consent and, by itself, should not discard a valid unfinished cycle.
 
-A new cycle should be created only according to the already-approved reset semantics, not every time the Mini App is opened.
+### 5.1 Bootstrap and resume are zero-write — CORRECTED 2026-08-25 (Phase 10, INDP2-03)
+
+This section originally instructed the Gateway to "bootstrap a new cycle using the same cycle
+rules as the Client Concierge" when no valid session existed. That contradicted the B.2.1-B
+zero-write resume requirement, and the independent review recorded the conflict as INDP2-03:
+two canonical contracts disagreeing about whether opening the Mini App may mint a cycle.
+
+**Canonical rule: `/miniapp/bootstrap` and Mini App resume perform zero writes.** No cycle
+creation, no cycle reset, no archive, no draft write, no consent stamp, no Sheets write, no
+Lead Intake call. A read that finds nothing returns "nothing to resume"; it does not create
+the thing it failed to find.
+
+Cycle creation remains the Client Concierge's, under the already-approved reset semantics.
+The first Mini App write of any kind is `PUT /miniapp/session` (§7), and the first
+authoritative lead effect is `POST /miniapp/submit` (§9).
+
+The read path enforces this structurally rather than by convention: `resolveResume` in
+`n8n/src/miniapp-readmodel/mirror-helper.js` takes a chat id and two read-only clients, and
+returns `cycle_created: false`, `cycle_reset: 'none'` and an all-zero `writes` block on every
+branch, including every fallback class. `qa/miniapp-readmodel.test.mjs` asserts zero writes
+against both the Data Table and the authoritative store on the cache-hit path and on all five
+fallback paths.
+
+Repairing a stale or duplicated derived row is deliberately **not** the read path's job. Repair
+belongs to the mirror helper and to reconciliation, so that serving a Mini App open can never
+become a write.
 
 ## 6. App session
 

@@ -9,9 +9,10 @@ Severity base: second independent audit (P0=1, P1=5, P2=16, P3=6)
 
 ## EXECUTIVE RESULT
 
-**P0 CLOSED. All five P1 CLOSED. Eleven of sixteen P2 closed or applied. Four of six P3
-closed.** The remainder is either a Mini App / PR #10 workstream on an inactive path, or
-gated on one owner action.
+**P0 CLOSED. All five P1 CLOSED. Fourteen of sixteen P2 closed, fixed or applied. Four of six
+P3 closed.** Phase 10 is complete; see `docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`.
+What remains is gated on owner actions — the two schema/secret blockers, and one live QA
+re-run of the corrected Mini App mirror helper.
 
 Four facts contradicted the briefing and were corrected against the live tenant:
 
@@ -105,6 +106,24 @@ same name-as-gid defect that broke the Digest. Retained history shows those node
 **never executed**, so both would have failed on the first real SLA breach or new followup.
 Both repaired.
 
+### NEW-4 — MCP exposure was closed on production but not on QA  *(severity: P2-class)*
+
+Found during Phase 10. NEW-2 set `availableInMCP = false` on the seven production workflows
+and on the retained unsafe Command Center. It did not extend to the QA, benchmark and canary
+workflows, and **19 of them are still exposed as callable MCP tools**.
+
+All are inactive, but MCP exposure is a trigger surface independent of the active flag — which
+is precisely the argument NEW-2 rested on. The set includes `NlIHfmuBQ4mS70G6`, whose own
+description says publishing it "would be an identity bypass" because it injects synthetic
+identities with no Telegram validation; `1Yw9LF6EJNCAYkQx`, which sends owner Telegram
+messages using the Client Concierge Bot credential; four benchmarks that read `Bot_Sessions`
+directly; and the five read-model QA workflows that write the QA Data Table.
+
+**Not fixed in this commit.** The fix is the same one-field write already performed on
+production and it needs no activation, so the classifier constraint does not block it — but it
+is a tenant-wide mutation outside the Phase 10 scope. Full inventory and recommendation in
+`docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md` §10.2.
+
 ---
 
 ## P1 — 5 of 5 CLOSED
@@ -138,21 +157,21 @@ Activities `623316892`. Zero name-mode locators remain in any active workflow.
 
 ---
 
-## P2 — 11 of 16 closed or applied
+## P2 — 14 of 16 closed, fixed or applied
 
 | ID | Finding | Status |
 |---|---|---|
 | INDP2-01 | Clients accept any 2xx | **CLOSED** |
 | INDP2-02 | Dedup is not atomic idempotency | **PARTIAL** — schema-blocked |
-| INDP2-03 | Mini App zero-write resume | OPEN — Phase 10 |
+| INDP2-03 | Mini App zero-write resume | **CLOSED** — Phase 10 |
 | INDP2-04 | No Error Trigger / errorWorkflow | **CLOSED** |
 | INDP2-05 | GA fields raw-only | **BLOCKED** — schema |
 | INDP2-06 | UTM first-touch continuity | **CLOSED** (client); structured half schema-blocked |
 | INDP2-07 | Server-side GA4 lifecycle sender | **BLOCKED_EXTERNAL_SECRET** |
 | INDP2-08 | Event taxonomy; pre-submit `lead_submit` | **CLOSED** |
-| INDP2-09 | PR #10 stored-row projection | OPEN — Phase 10 |
-| INDP2-10 | PR #10 authority / fallback matrix | OPEN — Phase 10 |
-| INDP2-11 | Sheets resume latency | OPEN — Phase 10 |
+| INDP2-09 | PR #10 stored-row projection | **FIXED + GATED** — one live re-run outstanding |
+| INDP2-10 | PR #10 authority / fallback matrix | **FIXED + GATED** — one live re-run outstanding |
+| INDP2-11 | Sheets resume latency | **CLOSED** — decision recorded, Phase 10 §6 |
 | INDP2-12 | RO mini-scan Russian strings | **CLOSED** |
 | INDP2-13 | 60 x-default conflicts | **CLOSED** |
 | INDP2-14 | Security headers absent | **PARTIAL / PLATFORM_BLOCKER** |
@@ -233,10 +252,16 @@ against a gid allowlist. Verified: zero occurrences of the owner id, all gids in
 | Lead Intake trust boundary | 22 | **PASS** |
 | AI safe projection | 52 | **PASS** |
 | Error Monitor alert | 22 | **PASS** |
-| Website contract | 70 | **PASS** |
-| n8n export hygiene | 72 | **PASS** |
+| Website contract | 69 | **PASS** |
+| n8n export hygiene | 70 | **PASS** |
+| Mini App read-model consistency | 41 | **PASS** |
 
-**6/6 gates, 281 assertions, all passing.**
+**7/7 gates, 319 assertions, all passing.**
+
+Correction to the earlier revision of this report: the website contract and n8n export gates
+were recorded as 70 and 72, giving a total of 281. Re-running them reports 69 and 70. Neither
+file has changed since; the earlier figures were miscounted, not regressed. The counts above
+are what `node qa/run-all.mjs` emits today.
 
 Live QA (not part of the offline suite):
 
@@ -262,7 +287,12 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07.
 4. **Decide on the edge layer** for the five remaining security headers.
 5. **Native Romanian review** of the translated mini-scan copy before promotion.
-6. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
+6. **Authorise the `availableInMCP` sweep** over the 19 non-production workflows (NEW-4).
+   Reversible, no activation required, QA/benchmark/canary workflows only.
+7. **Authorise one live QA race re-run** of the corrected Mini App mirror helper, so tenant
+   evidence matches the Phase 10 implementation. Requires patching QA-only `OwLC7SANtHo69SKo`,
+   `UEnjDvZGjMqsNdAI` and `03DcHoJ5XxJYUZQ4`; touches no production writer and no real lead.
+8. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
 
 ---
 
@@ -271,8 +301,10 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 - Lead Intake concurrency: two simultaneous first-time submissions from the same contact can
   still create two rows. Google Sheets has no conditional append; the schema change makes the
   race **detectable and reconcilable**, not impossible.
-- Mini App / PR #10 defects untouched. The path is inactive, so this is a release blocker,
-  not a live exposure.
+- Mini App / PR #10 read-model defects are now fixed and gated offline, but the live tenant
+  QA workflows still carry the defective verifier. Until the re-run in owner action 7, the
+  tenant evidence and the repository implementation disagree. The path is inactive, so this
+  is a release blocker, not a live exposure.
 - No browser-based verification was possible: consent-banner behaviour, layout and GA4
   DebugView remain unverified by observation.
 - The RO translation is machine-produced. It is a strict improvement on serving Russian to
@@ -287,13 +319,25 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 | CURRENT SITE | **KEEP RUNNING** |
 | P0 | **CLOSED** |
 | P1 | **5 / 5 CLOSED** |
-| P2 | **11 / 16** closed or applied |
+| P2 | **14 / 16** closed, fixed or applied |
 | P3 | **4 / 6 CLOSED** |
-| NEW RELEASE | **NO-GO** — pending Phase 10 |
-| PR #10 | **BLOCKED** |
+| PHASE 10 | **COMPLETE** — one live re-run outstanding |
+| NEW RELEASE | **NO-GO** — B.2.1-C not started, by design |
+| PR #10 | **BLOCKED** — not merged, superseded in part |
 | MINI APP | **BLOCKED** |
 
-**Remaining scope: Phase 10 only** — canonical `PROJECTION_FIELDS`, stored-row read-back with
-`limit=2`, hash computed from the stored projection rather than the intended payload, and the
-duplicate / MISS / outage / timeout / malformed / invalidation / backfill / reconciliation
-matrix. Everything else is closed or blocked on an owner action listed above.
+**Phase 10 is delivered.** Canonical `PROJECTION_FIELDS`, stored-row read-back with `limit=2`,
+`projection_version` computed from the stored projection rather than the intended payload, and
+the duplicate / MISS / outage / tombstone / malformed / invalidation / backfill /
+reconciliation matrix are implemented in `n8n/src/miniapp-readmodel/` and proven by a
+41-check gate that is verified load-bearing by mutation. The zero-write resume contract
+conflict is resolved in `docs/PHASE_B2_1_GATEWAY_CONTRACT.md` §5.1.
+
+Remaining work is owner-gated, not design work:
+
+1. the four owner actions listed above (intake key, eight Pipeline columns, GA4 secret, edge
+   layer);
+2. one live QA race re-run against the corrected mirror helper, so tenant evidence matches
+   the corrected implementation — QA infrastructure only, no production writer;
+3. `availableInMCP` is still `true` on 19 non-production workflows, including an
+   identity-bypass harness and a launcher holding the bot credential. See Phase 10 §10.2.
