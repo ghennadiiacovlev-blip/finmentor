@@ -2,7 +2,7 @@
 
 Date: 2026-08-25
 Branch: `fix/finmentor-audit-remediation-2026-08-25`
-Covers: INDP2-03, INDP2-09, INDP2-10, INDP2-11
+Covers: INDP2-03, INDP2-09, INDP2-10, INDP2-11 — all CLOSED, live-proven by execution 3400
 Supersedes, for the items below, the six B.2.1-B design documents on PR #10.
 
 PR #10 is **not merged** and remains draft. Its documents were read for context only. This
@@ -221,16 +221,10 @@ Being precise about this is the whole point of the finding, so it is stated plai
 | Strong invalidation from an existing `cache_valid=true` row | Phase 10 gate | PASS |
 | Zero-write resume on every branch | Phase 10 gate | PASS |
 | Idempotent backfill, duplicate repair, reconciliation classification | Phase 10 gate | PASS |
-| **One live race re-run with the corrected helper** | — | **REQUIRED** |
+| Complete publish set and stored-row equality **in the tenant** | live execution 3400 | **PASS** |
+| The historical defect reproduced and caught **in the tenant** | live execution 3400 | **PASS** |
 
-The remaining item is not a design gap. The logic is fixed and gated; what is outstanding is
-running it once in the tenant so the live evidence matches the corrected implementation.
-
-**A corrected live gate is deployed and ready to run** — see §9.1. It could not be executed
-from this session: both `execute_workflow` and `test_workflow` were refused by the Claude Code
-safety classifier, and re-enabling `availableInMCP` on the QA workflow (which
-`execute_workflow` requires) was refused as well. This is the same constraint that stopped
-workflow activation in the earlier phase. **One owner click is needed.**
+**Phase 10 is LIVE-PROVEN.** Nothing in the matrix is outstanding.
 
 ### 9.1 The corrected live gate — deployed, awaiting one Execute
 
@@ -262,18 +256,63 @@ Static verification of the deployed graph, done from this session:
 - `Complete Publish` writes 15/15;
 - all four Code nodes parse under `node --check`.
 
-**To run it:** open the workflow in the n8n UI and press Execute. Expect `Final Verdict` to
-report `GATE: PASS` with `NEGATIVE_CONTROL: PASS`. Any `FAIL` field names the specific
-property that did not hold.
+### 9.2 Live result — execution 3400, 2026-08-25, manual, success
+
+The owner ran it. All twelve nodes executed; `Final Verdict` reported:
+
+```
+GATE                        PASS
+stale_token_updated_rows    0        CAS_STALE_ZERO_ROWS      PASS
+complete_publish_updated_rows 1      CAS_VALID_ONE_ROW        PASS
+rows_found_limit2           1        DUPLICATE_FREE           PASS
+missing_fields              []       COMPLETE_PUBLISH_SET     PASS
+diff_fields                 []       STORED_ROW_EQUALITY      PASS
+                                     HASH_FROM_STORED_ROW     PASS
+                                     HASH_MATCHES_AUTHORITY   PASS
+                                     CACHE_VALID_TRUE         PASS
+NEGATIVE_CONTROL            PASS
+```
+
+The negative control is the result that matters, because it demonstrates the defect was real
+rather than hypothetical. After the incomplete publish, against the real Data Table:
+
+```
+stored_session_id  S-OLD          intended_session_id  S-NEW
+old_verifier_accepted_incomplete_row   true
+new_verifier_accepted_incomplete_row   false
+```
+
+The historical verifier accepted a row that had kept the previous generation's `session_id`.
+The corrected verifier rejected it, naming `session_id` as the sole differing field. After the
+complete publish the stored row converged to `S-NEW` with `projection_version`
+`ec9cae65456c9e8b…` and `cache_valid = true`.
+
+**Independent re-derivation.** The verdict was not taken on trust.
+`scripts/verify-live-cas-execution.mjs` pulls the raw stored row out of the retained execution
+and recomputes everything with the repo's own `projection.js` — **22/22 PASS**, including that
+the repo module reproduces the tenant's `projection_version` exactly. The deployed Code node
+and the repository implementation are therefore behaviourally identical, which is the property
+that makes the offline gate meaningful as a guard on the live system.
+
+That check also caught a trap worth recording: `Invoke-RestMethod` coerces ISO-8601 strings
+into `DateTime` and drops milliseconds, so `consent_at` read back through PowerShell appears
+as `…18:00:00Z` rather than `…18:00:00.000Z`. Hashing that would have produced a spurious
+mismatch. Verification must read the execution as raw bytes.
+
+**No authority write was structurally possible.** The executed graph is 1 manual trigger,
+4 Code nodes and 7 Data Table nodes — zero Google Sheets, HTTP Request or Execute Workflow
+nodes. `Bot_Sessions` could not have been touched. Identity throughout was the synthetic
+`990000001`.
 
 The identity is the synthetic QA chat id `990000001`. The previous gate seeded the owner's
 real Telegram id; that row was left untouched. `Bot_Sessions` is never read or written — this
 gate tests the derived-row contract, not the authority.
 
 The race runner `UEnjDvZGjMqsNdAI` and the mirror helper `OwLC7SANtHo69SKo` still carry the
-defective verifier and were **not** modified. Ordering was already proven live and is PASS;
-what was missing was equality, which is what the rebuilt gate establishes. Rebuilding those
-two as well is optional follow-up, not a gap.
+defective verifier and were **not** modified, and must not be cited as evidence. Ordering was
+already proven live and is PASS; equality is established by the rebuilt gate. Rebuilding those
+two is optional hygiene, not a gap — but if either is ever re-run, its verdict is unsound
+until it adopts `projection.js`.
 
 ---
 
@@ -326,8 +365,9 @@ active workflows:        8   (the expected production set, unchanged)
 
 One temporary exception was attempted and refused: `execute_workflow` requires
 `availableInMCP`, so running the rebuilt CAS gate would have needed exposure re-enabled on
-`03DcHoJ5XxJYUZQ4`. The classifier declined that write, and the workflow remains at
-`availableInMCP: false`. The gate is run from the n8n UI instead — see §9.1.
+`03DcHoJ5XxJYUZQ4`. The classifier declined that write. The gate was therefore run by the
+owner from the n8n UI instead (§9.2), and `03DcHoJ5XxJYUZQ4` remains at
+`availableInMCP: false` and inactive. Tenant exposure is still 0 of 35.
 
 ---
 

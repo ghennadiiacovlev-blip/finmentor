@@ -9,10 +9,15 @@ Severity base: second independent audit (P0=1, P1=5, P2=16, P3=6)
 
 ## EXECUTIVE RESULT
 
-**P0 CLOSED. All five P1 CLOSED. Fourteen of sixteen P2 closed, fixed or applied. Four of six
-P3 closed.** Phase 10 is complete; see `docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`.
-What remains is gated on owner actions — the two schema/secret blockers, and one live QA
-re-run of the corrected Mini App mirror helper.
+**P0 CLOSED. All five P1 CLOSED. Eleven of sixteen P2 CLOSED, the other five owner- or
+platform-gated with their implementable half applied. Five of six P3 CLOSED, the sixth
+deliberately CLASSIFIED. All four newly discovered findings closed.**
+
+**Phase 10 is COMPLETE and LIVE-PROVEN** — see
+`docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`. Nothing remains open on design,
+implementation or proof. Everything outstanding needs an input only the owner can supply: the
+Pipeline schema change, a GA4 secret, the intake key, an edge-layer decision, and a native
+Romanian review.
 
 Four facts contradicted the briefing and were corrected against the live tenant:
 
@@ -158,7 +163,12 @@ Activities `623316892`. Zero name-mode locators remain in any active workflow.
 
 ---
 
-## P2 — 14 of 16 closed, fixed or applied
+## P2 — 11 of 16 CLOSED, 5 owner- or platform-gated
+
+Of the five that are not closed, none is open on design or implementation. INDP2-02 and
+INDP2-06 shipped their client half and wait on the Pipeline columns; INDP2-05 waits on the
+same columns; INDP2-07 waits on a GA4 secret that does not exist in this environment;
+INDP2-14 shipped the one header the platform allows and waits on an edge-layer decision.
 
 | ID | Finding | Status |
 |---|---|---|
@@ -170,8 +180,8 @@ Activities `623316892`. Zero name-mode locators remain in any active workflow.
 | INDP2-06 | UTM first-touch continuity | **CLOSED** (client); structured half schema-blocked |
 | INDP2-07 | Server-side GA4 lifecycle sender | **BLOCKED_EXTERNAL_SECRET** |
 | INDP2-08 | Event taxonomy; pre-submit `lead_submit` | **CLOSED** |
-| INDP2-09 | PR #10 stored-row projection | **FIXED + GATED** — one live re-run outstanding |
-| INDP2-10 | PR #10 authority / fallback matrix | **FIXED + GATED** — one live re-run outstanding |
+| INDP2-09 | PR #10 stored-row projection | **CLOSED** — live-proven, execution 3400 |
+| INDP2-10 | PR #10 authority / fallback matrix | **CLOSED** — live-proven, execution 3400 |
 | INDP2-11 | Sheets resume latency | **CLOSED** — decision recorded, Phase 10 §6 |
 | INDP2-12 | RO mini-scan Russian strings | **CLOSED** |
 | INDP2-13 | 60 x-default conflicts | **CLOSED** |
@@ -204,7 +214,11 @@ performed.**
 
 ---
 
-## P3 — 4 of 6 closed
+## P3 — 5 of 6 CLOSED, 1 CLASSIFIED
+
+Corrected count: an earlier revision of this report said "4 of 6" while its own table below
+listed five CLOSED. INDP3-03 is CLASSIFIED rather than closed because the resolution was a
+deliberate decision to retain, not to delete — that is an outcome, not an omission.
 
 | ID | Finding | Status |
 |---|---|---|
@@ -271,6 +285,25 @@ Live QA (not part of the offline suite):
 | Lead Intake trust boundary + locators, 3 synthetic submissions | **17/17 PASS** |
 | Digest locator proof (isolated clone, Telegram disabled) | **PASS** |
 | Error Monitor fire + scrub proof | **13/13 PASS** |
+| Mini App read-model CAS + stored-row equality, execution 3400 | **PASS** (all 10 verdict fields) |
+| Independent re-derivation of execution 3400 from the raw stored row | **22/22 PASS** |
+
+**Execution 3400** (2026-08-25, manual, success) closed INDP2-09 and INDP2-10. It reproduced
+the historical defect against the real Data Table and caught it: after a publish set that
+omitted `session_id`, the stored row still read `S-OLD` where `S-NEW` was intended — the old
+intended-payload verifier accepted that row, the corrected stored-row verifier rejected it and
+named `session_id`. The subsequent complete publish converged the row to `S-NEW` with
+`cache_valid = true`, a limit-2 read returning exactly one row, no missing fields and no
+differing fields. A superseded `sync_token` updated zero rows; the current one updated one.
+
+The verdict was not taken on trust. `scripts/verify-live-cas-execution.mjs` re-derives
+everything from the raw retained execution using the repository's own `projection.js` and
+passes 22/22, including reproducing the tenant's stored `projection_version` exactly. The
+deployed n8n Code node and the repository implementation are therefore behaviourally
+identical, which is what makes the offline gate a real guard on the live system.
+
+The executed graph contained zero Google Sheets, HTTP Request or Execute Workflow nodes, so no
+authoritative write was structurally possible. Identity was the synthetic `990000001`.
 
 All QA used synthetic identities on the RFC 2606 reserved `.invalid` TLD, so no real address
 could be contacted. Evidence rows are QA-marked and deliberately retained.
@@ -288,12 +321,10 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07.
 4. **Decide on the edge layer** for the five remaining security headers.
 5. **Native Romanian review** of the translated mini-scan copy before promotion.
-6. **Press Execute on QA workflow `03DcHoJ5XxJYUZQ4`** in the n8n UI. It has been rebuilt as a
-   real stored-row equality gate and is ready; the classifier refused every execution path
-   available to this session, so it needs one click. Expect `GATE: PASS` with
-   `NEGATIVE_CONTROL: PASS`. Synthetic identity, QA Data Table only, no production writer.
-   See Phase 10 §9.1.
-7. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
+6. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
+
+Completed since the previous revision: the `availableInMCP` sweep (NEW-4) and the live CAS
+gate run (execution 3400). Neither remains an owner action.
 
 ---
 
@@ -302,10 +333,14 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 - Lead Intake concurrency: two simultaneous first-time submissions from the same contact can
   still create two rows. Google Sheets has no conditional append; the schema change makes the
   race **detectable and reconcilable**, not impossible.
-- Mini App / PR #10 read-model defects are now fixed and gated offline, but the live tenant
-  QA workflows still carry the defective verifier. Until the re-run in owner action 7, the
-  tenant evidence and the repository implementation disagree. The path is inactive, so this
-  is a release blocker, not a live exposure.
+- The Mini App read-model contract is now proven, but nothing is deployed behind it: no
+  production mirror exists, the Client Concierge writers are unmodified, no backfill has run
+  and reconciliation is not activated. The QA race runner `UEnjDvZGjMqsNdAI` and mirror helper
+  `OwLC7SANtHo69SKo` still carry the old verifier and must not be cited as evidence unless
+  they are rebuilt on `projection.js` first.
+- B.2.1-A still lacks its final gate: a real Telegram-generated `initData` canary against the
+  production Ed25519 public key. The runtime primitive and canonicalisation are proven with
+  synthetic signatures; the end-to-end signature path is not.
 - No browser-based verification was possible: consent-banner behaviour, layout and GA4
   DebugView remain unverified by observation.
 - The RO translation is machine-produced. It is a strict improvement on serving Russian to
@@ -315,29 +350,40 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 
 ## FINAL
 
-| Item | Verdict |
-|---|---|
-| CURRENT SITE | **KEEP RUNNING** |
-| P0 | **CLOSED** |
-| P1 | **5 / 5 CLOSED** |
-| P2 | **14 / 16** closed, fixed or applied |
-| P3 | **4 / 6 CLOSED** |
-| PHASE 10 | **COMPLETE** — one live re-run outstanding |
-| NEW RELEASE | **NO-GO** — B.2.1-C not started, by design |
-| PR #10 | **BLOCKED** — not merged, superseded in part |
-| MINI APP | **BLOCKED** |
+### Severity ledger
 
-**Phase 10 is delivered.** Canonical `PROJECTION_FIELDS`, stored-row read-back with `limit=2`,
-`projection_version` computed from the stored projection rather than the intended payload, and
-the duplicate / MISS / outage / tombstone / malformed / invalidation / backfill /
-reconciliation matrix are implemented in `n8n/src/miniapp-readmodel/` and proven by a
-41-check gate that is verified load-bearing by mutation. The zero-write resume contract
-conflict is resolved in `docs/PHASE_B2_1_GATEWAY_CONTRACT.md` §5.1.
+| Severity | Total | Closed | Remaining | Nature of the remainder |
+|---|---|---|---|---|
+| P0 | 1 | **1** | 0 | — |
+| P1 | 5 | **5** | 0 | — |
+| P2 | 16 | **11** | 5 | 3 owner-schema, 1 external secret, 1 platform |
+| P3 | 6 | **5** | 1 | INDP3-03 CLASSIFIED — deliberate retention |
+| NEW | 4 | **4** | 0 | — |
 
-Remaining work is owner-gated, not design work:
+**Nothing remains open on design, implementation or proof.** Every remaining item needs an
+input that only the owner can supply.
 
-1. the four owner actions listed above (intake key, eight Pipeline columns, GA4 secret, edge
-   layer);
-2. one Execute click on the rebuilt QA gate `03DcHoJ5XxJYUZQ4`, so tenant evidence matches
-   the corrected implementation — QA infrastructure only, no production writer;
-3. NEW-4 is closed: `availableInMCP` is now false on all 35 workflows in the tenant.
+### Remaining external / platform blockers
+
+| # | Blocker | Blocks | Owner action |
+|---|---|---|---|
+| 1 | Eight Pipeline columns not present | INDP2-02 strong tier, INDP2-05, INDP2-06 structured half | add columns, then run `deploy-attribution-columns.ps1` |
+| 2 | GA4 Measurement Protocol `api_secret` does not exist here | INDP2-07 | create in GA4 admin, store in Settings |
+| 3 | `internal_intake_key` absent from Settings | strong dedup tier only | add a long random value |
+| 4 | GitHub Pages/Fastly cannot set response headers | INDP2-14, five headers | decide on an edge layer (Cloudflare, DNS-only) |
+| 5 | RO mini-scan copy is machine-translated | customer-facing quality | native Romanian review |
+
+### GO / NO-GO by scope
+
+| Scope | Verdict | Basis |
+|---|---|---|
+| Current production website | **GO — keep running** | no regression; 69/69 website contract. Unverified by observation: consent-banner behaviour, layout, GA4 DebugView. RO copy is machine-translated |
+| Current CRM / Telegram production | **GO — keep running** | P0 closed and live-verified, 5/5 P1 closed, Error Monitor active on all 8, Digest restored, locators canonical, MCP exposure 0/35 |
+| New integration release (attribution, idempotency, server-side GA4) | **NO-GO** | blockers 1 and 2. No code work remains; the deploy script refuses to half-apply |
+| Mini App activation | **NO-GO** | B.2.1-C never started, by design. Contract is proven but nothing is deployed behind it, and B.2.1-A still needs a real `initData` canary |
+| PR #10 | **DO NOT MERGE — recommend closing** | docs-only, superseded where it mattered, and its reversed-order "PASS" overstated equality. Close it in favour of the Phase 10 document |
+| Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 319 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
+
+**Not merged. No QA workflow published. The CAS gate was not re-run. No production change was
+made while producing this status** — the tenant was read only: 35 workflows, 0 exposed via
+MCP, 8 active, `03DcHoJ5XxJYUZQ4` inactive with `availableInMCP: false`.
