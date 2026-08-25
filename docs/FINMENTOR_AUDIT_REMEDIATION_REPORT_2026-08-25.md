@@ -119,9 +119,10 @@ identities with no Telegram validation; `1Yw9LF6EJNCAYkQx`, which sends owner Te
 messages using the Client Concierge Bot credential; four benchmarks that read `Bot_Sessions`
 directly; and the five read-model QA workflows that write the QA Data Table.
 
-**Not fixed in this commit.** The fix is the same one-field write already performed on
-production and it needs no activation, so the classifier constraint does not block it — but it
-is a tenant-wide mutation outside the Phase 10 scope. Full inventory and recommendation in
+**CLOSED.** `scripts/harden-mcp-exposure.ps1 -Apply` was run over all 19, each write verified
+read-after-write with nodes and connections byte-identical and the active state unchanged. A
+tenant-wide re-read confirms **0 of 35 workflows are exposed via MCP**, with the expected 8
+production workflows still active. Full inventory in
 `docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md` §10.2.
 
 ---
@@ -287,12 +288,12 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07.
 4. **Decide on the edge layer** for the five remaining security headers.
 5. **Native Romanian review** of the translated mini-scan copy before promotion.
-6. **Authorise the `availableInMCP` sweep** over the 19 non-production workflows (NEW-4).
-   Reversible, no activation required, QA/benchmark/canary workflows only.
-7. **Authorise one live QA race re-run** of the corrected Mini App mirror helper, so tenant
-   evidence matches the Phase 10 implementation. Requires patching QA-only `OwLC7SANtHo69SKo`,
-   `UEnjDvZGjMqsNdAI` and `03DcHoJ5XxJYUZQ4`; touches no production writer and no real lead.
-8. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
+6. **Press Execute on QA workflow `03DcHoJ5XxJYUZQ4`** in the n8n UI. It has been rebuilt as a
+   real stored-row equality gate and is ready; the classifier refused every execution path
+   available to this session, so it needs one click. Expect `GATE: PASS` with
+   `NEGATIVE_CONTROL: PASS`. Synthetic identity, QA Data Table only, no production writer.
+   See Phase 10 §9.1.
+7. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
 
 ---
 
@@ -337,7 +338,6 @@ Remaining work is owner-gated, not design work:
 
 1. the four owner actions listed above (intake key, eight Pipeline columns, GA4 secret, edge
    layer);
-2. one live QA race re-run against the corrected mirror helper, so tenant evidence matches
+2. one Execute click on the rebuilt QA gate `03DcHoJ5XxJYUZQ4`, so tenant evidence matches
    the corrected implementation — QA infrastructure only, no production writer;
-3. `availableInMCP` is still `true` on 19 non-production workflows, including an
-   identity-bypass harness and a launcher holding the bot credential. See Phase 10 §10.2.
+3. NEW-4 is closed: `availableInMCP` is now false on all 35 workflows in the tenant.
