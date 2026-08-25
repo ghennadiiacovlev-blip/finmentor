@@ -6,6 +6,14 @@
 # the append and would lose the lead. The precondition below therefore refuses to run at all
 # until every column is present.
 #
+# The live Pipeline header is 51 columns, A:AY, ending at days_in_stage. The eight new
+# columns are therefore 52-59, AZ:BG. Appending at the end shifts nothing.
+#
+# request_id is NOT server-owned. It is minted in the browser by lead-transport.js, which
+# also accepts a caller-supplied payload.meta.request_id. It is deployed here as a
+# corroborated retry key only — never as a standalone row-selection tier. See section 2.4 of
+# the schema document.
+#
 # The live Pipeline header is read WITHOUT direct Sheets access, by inspecting the column
 # names in the most recent Read Pipeline (Dedup) output of a retained Lead Intake execution.
 # That is the same header the append node writes against.
@@ -106,18 +114,37 @@ foreach ($col in $REQUIRED) {
     $save.parameters.columns.value | Add-Member -NotePropertyName $col -NotePropertyValue "={{ `$json.$col }}"
 }
 
-# 3. Dedup Guard gains a strong tier on the server-owned request id.
-$dedup = Get-Node 'Dedup Guard'
-if ($dedup.parameters.jsCode -notmatch 'lead\.provenance_trusted && lead\.lead_id') { Fail 'Dedup Guard is not at the expected revision' }
-if ($dedup.parameters.jsCode -notmatch 'request_id exact match') {
-    $anchor = "if (lead.provenance_trusted && lead.lead_id)"
-    $tier = @'
-// Strong tier: the server-owned request id. Unlike a caller lead_id this is not a
-// selection capability - it is a random per-submission key the caller cannot use to name
-// somebody else's row without already knowing that submission's id.
-if (lead.request_id) consider(rows.filter(r => String(r.request_id || '').trim() === String(lead.request_id).trim() && String(r.request_id || '').trim() !== ''), 'request_id exact match', 'strong');
-'@
-    $dedup.parameters.jsCode = $dedup.parameters.jsCode.Replace($anchor, $tier + $anchor)
+# 3. Dedup Guard and Build Merge Update are deployed from their versioned sources rather
+# than string-spliced.
+#
+# Splicing is how the previous revision worked, and it is precisely why the merge path was
+# missed: a patch that only edits the nodes it names cannot notice the node it forgot, and
+# Build Merge Update — the one node on the path where merges actually happen — wrote no
+# attribution at all. Deploying whole files is idempotent and keeps n8n in step with the
+# repository (INDP3-04).
+$SRC = Join-Path $PSScriptRoot '../n8n/src/lead-intake'
+function Set-NodeFromSource([string]$nodeName, [string]$file) {
+    $path = Join-Path $SRC $file
+    if (-not (Test-Path $path)) { Fail "missing versioned source: $path" }
+    $code = ((Get-Content $path -Raw) -replace "`r`n", "`n").TrimEnd()
+    (Get-Node $nodeName).parameters.jsCode = $code
+    $code
+}
+$dedupCode = Set-NodeFromSource 'Dedup Guard' 'dedup-guard.js'
+$mergeCode = Set-NodeFromSource 'Build Merge Update' 'build-merge-update.js'
+
+# The sources must carry the corrected contracts, not merely be present.
+if ($dedupCode -notmatch 'requestIdCorroborated') { Fail 'dedup-guard.js has no corroborated request_id tier' }
+if ($dedupCode -notmatch "lead\.email_norm && normEmail\(r\.email\) === lead\.email_norm") { Fail 'dedup-guard.js request_id tier is not corroborated by a server-derived identity' }
+if ($dedupCode -notmatch "'request_id\+identity'") { Fail 'dedup-guard.js does not label the corroborated tier' }
+if ($mergeCode -notmatch 'utm_source_first') { Fail 'build-merge-update.js has no first-touch policy' }
+if ($mergeCode -notmatch 'gaAllowed') { Fail 'build-merge-update.js does not gate GA identifiers on consent' }
+if ($mergeCode -notmatch 'const genuine = !item\.dedup_is_retry') { Fail 'build-merge-update.js does not exempt retries' }
+
+# 4. The merge writer must stay auto-mapped, or the new keys silently never reach the sheet.
+$mergeWrite = Get-Node 'Update Pipeline (Merge)'
+if ($mergeWrite.parameters.columns.mappingMode -ne 'autoMapInputData') {
+    Fail "Update Pipeline (Merge) is '$($mergeWrite.parameters.columns.mappingMode)', not autoMapInputData; its explicit map would need the eight columns adding by hand"
 }
 
 Write-Host '  preflight: PASS'
@@ -134,7 +161,10 @@ foreach ($col in $REQUIRED) {
     if (-not $vSave.parameters.columns.value.PSObject.Properties[$col]) { Fail "read-after-write: column '$col' not persisted in Save to Pipeline" }
 }
 if (($v.nodes | Where-Object { $_.name -eq 'Build Pipeline Row' }).parameters.jsCode -notmatch 'utm_source_first') { Fail 'read-after-write: Build Pipeline Row not persisted' }
-if (($v.nodes | Where-Object { $_.name -eq 'Dedup Guard' }).parameters.jsCode -notmatch 'request_id exact match') { Fail 'read-after-write: Dedup Guard not persisted' }
+$vDedup = (($v.nodes | Where-Object { $_.name -eq 'Dedup Guard' }).parameters.jsCode -replace "`r`n", "`n").TrimEnd()
+$vMerge = (($v.nodes | Where-Object { $_.name -eq 'Build Merge Update' }).parameters.jsCode -replace "`r`n", "`n").TrimEnd()
+if ($vDedup -ne $dedupCode) { Fail 'read-after-write: Dedup Guard does not match dedup-guard.js byte for byte' }
+if ($vMerge -ne $mergeCode) { Fail 'read-after-write: Build Merge Update does not match build-merge-update.js byte for byte' }
 
 Save-WorkflowSnapshot -Workflow $v -Directory $snapshotDir -Label 'after' | Out-Null
 Write-Host '  apply: PASS'

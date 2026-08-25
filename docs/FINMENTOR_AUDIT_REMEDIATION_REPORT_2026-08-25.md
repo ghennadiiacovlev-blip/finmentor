@@ -16,8 +16,7 @@ deliberately CLASSIFIED. All four newly discovered findings closed.**
 **Phase 10 is COMPLETE and LIVE-PROVEN** — see
 `docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md`. Nothing remains open on design,
 implementation or proof. Everything outstanding needs an input only the owner can supply: the
-Pipeline schema change, a GA4 secret, the intake key, an edge-layer decision, and a native
-Romanian review.
+Pipeline schema change, a GA4 secret, an edge-layer decision, and a native Romanian review.
 
 Four facts contradicted the briefing and were corrected against the live tenant:
 
@@ -115,7 +114,7 @@ Both repaired.
 
 Found during Phase 10. NEW-2 set `availableInMCP = false` on the seven production workflows
 and on the retained unsafe Command Center. It did not extend to the QA, benchmark and canary
-workflows, and **19 of them are still exposed as callable MCP tools**.
+workflows, and **19 of them were still exposed as callable MCP tools**.
 
 All are inactive, but MCP exposure is a trigger surface independent of the active flag — which
 is precisely the argument NEW-2 rested on. The set includes `NlIHfmuBQ4mS70G6`, whose own
@@ -129,6 +128,38 @@ read-after-write with nodes and connections byte-identical and the active state 
 tenant-wide re-read confirms **0 of 35 workflows are exposed via MCP**, with the expected 8
 production workflows still active. Full inventory in
 `docs/FINMENTOR_PHASE10_MINIAPP_READMODEL_CLOSURE.md` §10.2.
+
+---
+
+## Pre-deployment review of the attribution change — five defects, all fixed
+
+An independent review of the attribution work **before** the Pipeline schema was touched
+found five defects. None had reached production, because the schema change that would have
+activated them had not been made. All five are fixed in code, docs and gates; nothing was
+deployed.
+
+| # | Defect | Resolution |
+|---|---|---|
+| 1 | Doc claimed Pipeline was 52 columns; new columns numbered 53–60 | Live header is **51, A:AY**. New columns are **52–59, AZ:BG**. Independently corroborated: `Save to Pipeline` maps exactly 51 columns, last `days_in_stage` |
+| 2 | `request_id` called "server-owned" and given a **standalone strong dedup tier** | It is minted in the browser by `lead-transport.js`, which also accepts a caller-supplied value. A standalone tier would have restored the INDP1-02 capability under a new field name. Now corroborated-only |
+| 3 | `Build Merge Update` implemented **no** attribution policy | The deploy script patched three nodes and silently skipped the one node on the merge path. Now versioned as `build-merge-update.js` v3 with the full policy |
+| 4 | `internal_intake_key` was to be added to the **Settings sheet** | Withdrawn. A spreadsheet is not a secret store — and the key was never in either `Settings to Object` whitelist, so the branch was dead code. Replaced by route-based provenance |
+| 5 | Doc told the owner to store the GA4 `api_secret` in Settings | Retracted. n8n Credentials only |
+
+Defect 2 is the serious one. Defect 3 meant every documented merge rule was unimplemented on
+the only path where merges happen. Defect 4 was inert but would have become live and harmful
+the moment the owner followed the instruction.
+
+**A structural lesson was applied, not just the five fixes.** The deploy script no longer
+string-splices individual nodes — that is *why* defect 3 survived, since a patch that only
+edits the nodes it names cannot notice the node it forgot. `Dedup Guard` and
+`Build Merge Update` are now deployed from their versioned sources with byte-for-byte
+read-after-write verification.
+
+**Repo is deliberately ahead of the tenant.** `dedup-guard.js`, `normalize-score-lead.js` and
+`build-merge-update.js` now differ from the deployed nodes and will stay that way until the
+owner adds the columns and the deploy script runs. This is intentional drift, recorded here
+so it is not mistaken for the INDP3-04 defect.
 
 ---
 
@@ -147,8 +178,8 @@ values must be plain tokens and pass email/phone scrubbers first, so PII is drop
 under a whitelisted key. Fragment never forwarded.
 
 **INDP1-02** — canonical identity is server-owned; a caller value survives only as
-`submission_lead_id`, honoured as identity solely when the request presents Settings'
-`internal_intake_key`. **Proven live:** a forged `lead_id` from a different contact produced
+`submission_lead_id`, honoured as identity solely when the request arrived through the
+authenticated internal route (schema doc §5; the original Settings-key design is retired). **Proven live:** a forged `lead_id` from a different contact produced
 `mode=new` with a different server-minted id and selected nothing.
 
 **INDP1-03** — `AI_SAFE_PROJECTION` with allowlist + depth-wise key denylist + value
@@ -264,14 +295,14 @@ against a gid allowlist. Verified: zero occurrences of the owner id, all gids in
 | Gate | Assertions | Result |
 |---|---|---|
 | Command Center authorisation | 43 | **PASS** |
-| Lead Intake trust boundary | 22 | **PASS** |
+| Lead Intake trust boundary | 39 | **PASS** |
 | AI safe projection | 52 | **PASS** |
 | Error Monitor alert | 22 | **PASS** |
 | Website contract | 69 | **PASS** |
 | n8n export hygiene | 70 | **PASS** |
 | Mini App read-model consistency | 41 | **PASS** |
 
-**7/7 gates, 319 assertions, all passing.**
+**7/7 gates, 336 assertions, all passing.**
 
 Correction to the earlier revision of this report: the website contract and n8n export gates
 were recorded as 70 and 72, giving a total of 281. Re-running them reports 69 and 70. Neither
@@ -312,13 +343,24 @@ could be contacted. Evidence rows are QA-marked and deliberately retained.
 
 ## OWNER ACTIONS REQUIRED
 
-1. **Add `internal_intake_key`** to the Settings sheet (long random value). The Concierge
-   already sends it. Until then it loses only the strong dedup tier; the public path is
-   already safe.
+1. ~~Add `internal_intake_key` to the Settings sheet.~~ **WITHDRAWN — do not do this.** An
+   independent pre-deployment review found the instruction was wrong twice over. A Google
+   Sheet is not a secret store, and neither `Settings to Object` implementation ever exposed
+   the key, so `provenance_trusted` has always been `false` and the branch was dead code —
+   adding the row would have planted a live secret in a shared spreadsheet *and* switched on
+   a trust path that had never executed. Replaced by route-based provenance:
+   `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §5. The safe default is unchanged and the
+   public path was never at risk.
 2. **Add eight Pipeline columns** — `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §2.1.
-   Unblocks INDP2-02, INDP2-05 and INDP2-06's structured half. Then run
-   `scripts/deploy-attribution-columns.ps1`, which refuses to run until they exist.
-3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07.
+   The live header is **51 columns, A:AY**, ending at `days_in_stage`, so the new columns are
+   **52–59, AZ:BG**. (An earlier revision said 52 existing columns and numbered the new ones
+   53–60; that was wrong and is corrected.) Unblocks INDP2-02, INDP2-05 and INDP2-06's
+   structured half. Then run `scripts/deploy-attribution-columns.ps1`, which refuses to run
+   until they exist.
+3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07, and store it in
+   **n8n Credentials, not the Settings sheet**. An earlier revision of the schema document
+   said Settings; that is retracted. The measurement id `G-94L9B8WZ12` is public and may stay
+   as ordinary configuration.
 4. **Decide on the edge layer** for the five remaining security headers.
 5. **Native Romanian review** of the translated mini-scan copy before promotion.
 6. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
@@ -382,7 +424,7 @@ input that only the owner can supply.
 | New integration release (attribution, idempotency, server-side GA4) | **NO-GO** | blockers 1 and 2. No code work remains; the deploy script refuses to half-apply |
 | Mini App activation | **NO-GO** | B.2.1-C never started, by design. Contract is proven but nothing is deployed behind it, and B.2.1-A still needs a real `initData` canary |
 | PR #10 | **DO NOT MERGE — recommend closing** | docs-only, superseded where it mattered, and its reversed-order "PASS" overstated equality. Close it in favour of the Phase 10 document |
-| Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 319 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
+| Merge remediation branch to `main` | **CONDITIONAL GO — owner's call** | technically mergeable: 7/7 gates, 336 offline assertions, 22 independent live checks. Recommend holding for the native Romanian review first, since that copy is customer-facing advisory content |
 
 **Not merged. No QA workflow published. The CAS gate was not re-run. No production change was
 made while producing this status** — the tenant was read only: 35 workflows, 0 exposed via

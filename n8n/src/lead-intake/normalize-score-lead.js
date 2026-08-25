@@ -40,19 +40,33 @@ const createdAt = pick(incoming.created_at, new Date().toISOString());
 // steer itself into somebody else's Pipeline row.
 //
 // A caller value is now only a correlation reference. It is honoured as identity solely
-// when the request proves provenance with the shared internal key held in Settings, which
-// is how the Telegram Concierge updates the lead it already owns. When that key is not
-// configured, no caller is trusted and every submission gets a fresh server-minted id.
+// when the request arrived through the authenticated internal route, which is how the
+// Telegram Concierge updates the lead it already owns.
 const submissionLeadId = String(incoming.lead_id ?? '').trim().slice(0, 80);
+
+// request_id is generated in the BROWSER (lead-transport.js) and a caller may also supply
+// their own via payload.meta.request_id. It is a correlation and retry key, never proof of
+// anything, and Dedup Guard must never let it select a row on its own.
 const requestId = String(meta.request_id ?? incoming.request_id ?? '').trim().slice(0, 80);
 
-const internalKey = String((function () {
-  try { return $('Settings to Object').first().json.settings.internal_intake_key || ''; } catch (e) { return ''; }
-})()).trim();
-const presentedKey = String((function () {
-  try { return ($('Webhook').first().json.headers || {})['x-finmentor-internal-key'] || ''; } catch (e) { return ''; }
-})()).trim();
-const provenanceTrusted = internalKey !== '' && presentedKey !== '' && presentedKey === internalKey;
+// Provenance is established by the ROUTE, not by a secret in a spreadsheet.
+//
+// The previous design read a shared `internal_intake_key` from the Settings sheet and
+// compared it against a request header. That was wrong twice over. Google Sheets is not a
+// secret store: the tab is visible to everyone the spreadsheet is shared with, it is copied
+// into every export and backup, and it has no rotation, scoping or audit trail. And the key
+// was never exposed by Settings to Object in the first place, so provenance could never be
+// proven and the whole branch was dead code — safe, but inert.
+//
+// Internal callers now arrive through a dedicated entry node whose credential n8n enforces
+// itself, so any request that reaches that node has already been authenticated. The marker
+// is set by the workflow graph and is unreachable from the public webhook: on the public
+// path that node never ran, `$()` throws, and provenance is false. It is deliberately never
+// read from the body or from a header, so no caller can assert it.
+function internalRouteProven() {
+  try { return $('Internal Auth Entry').first().json.__internal_route === true; } catch (e) { return false; }
+}
+const provenanceTrusted = internalRouteProven();
 
 const leadId = (provenanceTrusted && submissionLeadId)
   ? submissionLeadId
