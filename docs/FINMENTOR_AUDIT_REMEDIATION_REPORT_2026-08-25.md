@@ -202,12 +202,35 @@ than from the webhook responses:
 Case B is the one that matters: it is the adversarial scenario the pre-deployment review
 demanded, executed against production with the real Dedup Guard, and it did not merge.
 
-**Repo and tenant are back in sync** for `build-pipeline-row.js`, `dedup-guard.js` and
-`build-merge-update.js`; `n8n/production/` and the manifest were re-exported.
-`normalize-score-lead.js` remains deliberately ahead: its route-based provenance needs an
-`Internal Auth Entry` node that does not exist yet, and deploying it changes no behaviour
-today because both the old and new code yield `provenance_trusted = false`. Recommended as a
-small follow-up, since it would remove the dormant Settings-secret read entirely.
+**Repo and tenant are fully in sync for Lead Intake.** `build-pipeline-row.js`,
+`dedup-guard.js`, `build-merge-update.js` and `normalize-score-lead.js` all match the
+deployed nodes byte-for-byte; `n8n/production/` and the manifest were re-exported.
+
+### Provenance node deployed — 2026-08-25
+
+`Normalize + Score Lead` was the last module still deliberately ahead of the tenant. The
+owner authorised deploying it to remove the dormant Settings-secret read, and it went out as
+a single-node change.
+
+Preflight: live GET, rollback snapshot, active confirmed, exactly one node differing, and the
+source statically confirmed to reference `Internal Auth Entry` while reading neither
+`settings.internal_intake_key` nor `x-finmentor-internal-key` nor any body/header field.
+
+Read-after-write: node byte-for-byte equal to the source; active unchanged; 57 nodes
+unchanged; connections unchanged; all 56 other nodes byte-identical; credentials unchanged;
+`availableInMCP` unchanged.
+
+One synthetic submission proved the public path in production, deliberately hostile: it
+carried a forged `lead_id` of `FIN-FORGED-TARGET-0001` **and** the retired
+`x-finmentor-internal-key` header. Result — `ok:true`, `mode:new`, `provenance_trusted=false`,
+the forged id kept only as `submission_lead_id`, a server-minted canonical id, no existing
+row selected, and all eight attribution columns still written. 14/14 checks re-derived from
+the raw execution.
+
+**Behaviour is unchanged and intentionally so.** Both the old and new code yield
+`provenance_trusted = false` today, because `Internal Auth Entry` does not exist yet. What
+changed is that the trust path can no longer be switched on by adding a row to a spreadsheet.
+Creating that node remains future work and is not authorised here.
 
 ---
 
