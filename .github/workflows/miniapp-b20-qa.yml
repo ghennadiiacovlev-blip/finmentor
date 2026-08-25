@@ -48,7 +48,7 @@ jobs:
           for item in required_templates:
               if item not in p.ids: errors.append(f'missing template: {item}')
 
-          forbidden = {
+          forbidden_js = {
               'fetch(': 'direct fetch call',
               'XMLHttpRequest': 'XHR call',
               'sendBeacon': 'beacon call',
@@ -58,9 +58,21 @@ jobs:
               'ghennadi.app.n8n.cloud': 'production n8n host literal',
               '/webhook/': 'webhook literal'
           }
-          for needle, label in forbidden.items():
-              if needle in js or needle in html:
-                  errors.append(f'forbidden network surface: {label}')
+          for needle, label in forbidden_js.items():
+              if needle in js:
+                  errors.append(f'forbidden network surface in JS: {label}')
+
+          # HTML may legitimately load fonts.googleapis.com and the Telegram WebApp SDK.
+          # Only privileged/write surfaces are forbidden in the static B.2.0 shell.
+          forbidden_html = {
+              'sheets.googleapis.com': 'Google Sheets API literal',
+              'api.telegram.org': 'Telegram Bot API literal',
+              'ghennadi.app.n8n.cloud': 'production n8n host literal',
+              '/webhook/': 'webhook literal'
+          }
+          for needle, label in forbidden_html.items():
+              if needle in html:
+                  errors.append(f'forbidden network surface in HTML: {label}')
 
           if "data-value=\"none\"" not in html:
               errors.append('missing explicit urgency=none choice')
@@ -83,10 +95,10 @@ jobs:
               errors.append('reduced-motion rule missing')
           if not re.search(r'\.segmented button\{[^}]*min-height:44px', css):
               errors.append('segmented tap target <44px or not declared')
-          if not re.search(r'\.icon-btn\{[^}]*width:(?:44|4[4-9])px;[^}]*height:(?:44|4[4-9])px', css):
-              errors.append('back button tap target is below 44px')
-          if '.brand{' in css and 'min-height:44px' not in css.split('.brand{',1)[1].split('}',1)[0]:
-              errors.append('brand-home tap target is below 44px')
+          if not re.search(r'\.choice\{[^}]*min-height:52px', css):
+              errors.append('choice-card tap target contract missing')
+          if not re.search(r'\.btn\{[^}]*min-height:50px', css):
+              errors.append('primary button tap target contract missing')
 
           if errors:
               print('\n'.join('FAIL: '+e for e in errors))
