@@ -1,0 +1,68 @@
+name: Temporary GA4 attribution context builder
+
+on:
+  push:
+    branches:
+      - feat/ga4-offline-attribution-context
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/ga4-offline-attribution-context
+          fetch-depth: 0
+
+      - name: Apply feature patch
+        shell: bash
+        run: python3 .github/temp-ga4-attribution-patch.py
+
+      - name: Static QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          python3 .github/temp-ga4-attribution-static-qa.py
+          node --check analytics.js
+          node --check main.js
+          node --check /tmp/q-ru.js
+          node --check /tmp/q-ro.js
+          changed="$(git diff --name-only | sort)"
+          expected=$'analytics.js\nmain.js\nquestionnaire.html\nro/questionnaire.html'
+          test "$changed" = "$expected"
+
+      - name: Browser QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save puppeteer-core@24.16.0
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          python3 -m http.server 8765 >/tmp/fm-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          sleep 1
+          CHROME="$CHROME" node .github/temp-ga4-attribution-browser-qa.cjs
+
+      - name: Commit exact feature diff and clean temporary files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/temp-ga4-attribution-context.yml
+          rm .github/temp-ga4-attribution-patch.py
+          rm .github/temp-ga4-attribution-static-qa.py
+          rm .github/temp-ga4-attribution-browser-qa.cjs
+          git add analytics.js main.js questionnaire.html ro/questionnaire.html .github/workflows/temp-ga4-attribution-context.yml .github/temp-ga4-attribution-patch.py .github/temp-ga4-attribution-static-qa.py .github/temp-ga4-attribution-browser-qa.cjs
+          changed="$(git diff --cached --name-only | sort)"
+          expected=$'.github/temp-ga4-attribution-browser-qa.cjs\n.github/temp-ga4-attribution-patch.py\n.github/temp-ga4-attribution-static-qa.py\n.github/workflows/temp-ga4-attribution-context.yml\nanalytics.js\nmain.js\nquestionnaire.html\nro/questionnaire.html'
+          test "$changed" = "$expected"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: preserve GA4 attribution context on leads"
+          git push origin HEAD:feat/ga4-offline-attribution-context
