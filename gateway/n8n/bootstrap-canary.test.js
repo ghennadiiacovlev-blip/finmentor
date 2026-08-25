@@ -1,7 +1,7 @@
 const fs = require('fs');
 const crypto = require('crypto');
 
-const SRC = fs.readFileSync('bootstrap.js', 'utf8');
+const SRC = fs.readFileSync('bootstrap-canary.js', 'utf8');
 const LF = String.fromCharCode(10);
 const TEST_BOT_ID = '123456789';
 
@@ -20,7 +20,6 @@ function req(body, ct) {
   return { headers: { 'content-type': ct === undefined ? 'application/json' : ct }, body: body };
 }
 
-// ---- build a synthetic-but-well-formed initData (signed by a NON-Telegram key) ----
 const kp = crypto.generateKeyPairSync('ed25519');
 function buildCanonical(botId, fields) {
   const kept = fields.filter(f => f[0] !== 'hash' && f[0] !== 'signature');
