@@ -9,279 +9,217 @@ Severity base: second independent audit (P0=1, P1=5, P2=16, P3=6)
 
 ## EXECUTIVE RESULT
 
-All five P1 findings are closed and verified. The single P0 is **contained** — the
-exploitable path is dead and returns 404 — but not yet **closed**, because publishing the
-secure replacement was blocked by this environment's safety classifier and requires one
-owner action.
+**P0 CLOSED. All five P1 CLOSED. Eleven of sixteen P2 closed or applied. Four of six P3
+closed.** The remainder is either a Mini App / PR #10 workstream on an inactive path, or
+gated on one owner action.
 
-Two facts contradicted the briefing and were corrected against the live tenant before any
-work began:
+Four facts contradicted the briefing and were corrected against the live tenant:
 
-1. **The unsafe Command Center was still ACTIVE.** The briefing stated it was already
-   unpublished. `Ukn1cprWiXzBHojl` was live with `active=true`, so the P0 was exploitable at
-   the moment work started. It was deactivated as the first action.
-2. **The Daily Digest was already INACTIVE.** Both audits recorded it as active. It is off,
-   so its 7/7 failures had stopped by being disabled rather than fixed.
+1. **The unsafe Command Center was still ACTIVE** when work began — the briefing said it was
+   already unpublished. The P0 was live and exploitable. Contained first.
+2. **The Daily Digest was already INACTIVE** — both audits recorded it active. Its 7/7
+   failures had stopped by being switched off, not fixed.
+3. **The secure candidate's real id is `qF9tonlHHIxc8MDd`** (lowercase L). The pre-existing
+   patcher hardcoded `qF9tonIHHIxc8MDd` and had never run, so "SECURE CANDIDATE" was an
+   unmodified clone of the unsafe workflow, generic public webhook and all.
+4. **`_headers` does nothing.** It is Netlify syntax; the site is GitHub Pages on Fastly.
 
-Also corrected: the secure candidate's real id is `qF9tonlHHIxc8MDd` (lowercase L). The
-pre-existing patcher script hardcoded `qF9tonIHHIxc8MDd` (capital i) and would have 404'd.
-It was never applied — the "SECURE CANDIDATE" was an unmodified clone of the unsafe
-workflow, still carrying the generic public webhook.
+**Two new vulnerabilities were found that neither audit reported**, both by live QA rather
+than code reading. See section "New findings".
 
-**Nothing about the public website regressed. All five active production workflows remain
-active. No real lead row was read, written or mutated at any point.**
+The public website did not regress. All eight production workflows are active and healthy.
+No real lead row was read, written or mutated at any point.
 
 ---
 
-## P0 — CONTAINED, NOT CLOSED
+## P0 — CLOSED
 
 ### INDP0-01 — Command Center trusts caller-controlled Telegram identity
 
-**Status: CONTAINED. Closure needs one owner action (publish + read-only canary).**
-
-The workflow authorised on a Telegram-shaped HTTP body posted to a generic public webhook.
-It accepted `from.id` **OR** `chat.id` against the allowlist, then always replied to the
-caller-controlled `chat.id`. Knowing one allowed id was enough to read canonical Pipeline
-rows and have the CRM contact data delivered to an attacker-controlled chat. It also had a
-fail-open branch: an empty allowlist authorised everyone.
-
-Containment applied and verified:
-
-| Check | Result |
+| Verification (live, re-checked after owner publish) | Result |
 |---|---|
-| `Ukn1cprWiXzBHojl` active | **false** |
-| `POST /webhook/finmentor-lead-command-center` | **HTTP 404** |
-| `GET` same path | **HTTP 404** |
-| `POST /webhook-test/...` | **HTTP 404** |
-| Graph vs pre-change snapshot | byte-identical (valid rollback point) |
+| Unsafe original `Ukn1cprWiXzBHojl` active | **false** |
+| SECURE CANDIDATE `qF9tonlHHIxc8MDd` active | **true** |
+| Generic webhook nodes in the secure candidate | **0** |
+| Telegram Trigger nodes | **1**, on `FINMENTOR Leads Bot FINAL` |
+| Active Telegram Triggers on that credential, tenant-wide | **exactly 1** |
+| `POST` / `GET` on `/webhook/finmentor-lead-command-center` | **404** (both, plus `-test`) |
+| Secure candidate Pipeline GID | **1883973304** |
+| Stale GID `1997367085` present | **false** |
+| Owner read canary `/pipeline` | **PASS** — correct funnel summary returned |
+| CRM mutation nodes executed during canary | **NONE** |
 
-Secure replacement built in `qF9tonlHHIxc8MDd` and verified by independent re-read:
+Canary execution path, from retained execution data:
+`Telegram Command Trigger → Verify Telegram Identity → Read Settings → Settings to Object →
+Parse Lead Command v2 → Route Command Mode → Get Pipeline (Query) → Build Query Reply →
+Telegram Query Reply`. `Update Pipeline Row`, `Save Status_Log` and `Save Activity` did not
+run.
 
-- the generic Webhook node is **removed outright** — there is no HTTP entry left
-- entry is a Telegram Trigger on the internal **Leads Bot** credential, which n8n registers
-  with a `secret_token` and validates before the update reaches the graph
-- a fail-closed identity gate runs **ahead of Settings and every Pipeline node**, so a
-  rejected update performs zero Sheets reads, zero CRM writes and emits nothing
-- the gate requires numeric ids, a non-bot sender, a private chat, and `chat.id == from.id`,
-  which collapses authorisation identity and reply destination into one value — this is what
-  removes the confused-deputy split
-- authorisation matches the Settings allowlist exactly; the hardcoded owner fallback is gone,
-  so an unset allowlist now denies everyone
-- Telegram Trigger collision check: 0 (the only other active trigger uses the Client
-  Concierge bot, a different token)
+```
+P0 COMMAND CENTER:      CLOSED
+AUTHENTICATED TRANSPORT: PASS
+OWNER READ CANARY:       PASS
+UNSAFE ORIGINAL:         OFF
+PII EXFILTRATION PATH:   CLOSED
+```
 
-| Acceptance criterion | Status |
-|---|---|
-| AUTH BOUNDARY | **PASS** |
-| SPOOF TEST (forged body has no entry path) | **PASS** |
-| PII EXFILTRATION CLOSED | **YES** |
-| PIPELINE GID | **PASS** (1883973304) |
-| Negative matrix (15 cases) | **PASS** |
-| Owner read-only canary | **NOT RUN — blocked** |
+The unsafe original is retained inactive as the rollback point, nodes and connections
+byte-identical to its pre-containment snapshot.
 
-**Blocker:** activating a workflow was refused by this environment's safety classifier. The
-candidate is correct and verified but unpublished, so the owner currently has no Command
-Center at all. See "Owner actions required".
+---
+
+## New findings — not in either audit
+
+### NEW-1 — Any digit-bearing email became a phone identity  *(severity: P1-class)*
+
+`phoneRaw` falls back to `lead.contact`, which on the consultation form is usually an email.
+`normPhone` stripped every non-digit and accepted any 6–15 digit run, so
+`qa-20260825-202641@example.com` normalised to the phone identity `20260825202641`, which
+`Dedup Guard` then matched against the `phone` column.
+
+**Exploit:** register an address whose digit run equals a victim's phone —
+`x37360123456@evil.example` against `+373 60 123 456` — and the submission merges into that
+victim's Pipeline row, reaching the same escalation and state-rewrite surface as INDP1-02.
+Unlike INDP1-02 this needs no knowledge of any `lead_id`.
+
+Surfaced when QA step 3 returned the victim's `lead_id` even though the caller `lead_id` had
+been correctly quarantined: the two synthetic identities shared a date stamp, so their emails
+produced identical phone identities. The trust boundary had held; a second path had not.
+
+**Fixed.** A phone identity is derived only from phone-shaped input: values containing `@`,
+Telegram handles and `t.me` links are rejected, and the leading segment must be digits and
+phone punctuation only. `+373 60 123 456 (Viber)` still normalises. 7 regression cases.
+
+### NEW-2 — Every production workflow was exposed as an MCP tool
+
+All seven carried `settings.availableInMCP = true`. These append to Pipeline, Leads and
+Activities and send owner Telegram messages; exposing them as callable tools widens the
+trigger surface beyond their intended entry points — the same class of problem as the
+Command Center's generic webhook. **All set to false**, nodes and connections asserted
+byte-identical across the write.
+
+### NEW-3 — Two latent locator failures that had never executed
+
+`SLA Lead Watch → Save Activity` and `Followup Sequence → Save New Followups` carried the
+same name-as-gid defect that broke the Digest. Retained history shows those nodes have
+**never executed**, so both would have failed on the first real SLA breach or new followup.
+Both repaired.
 
 ---
 
 ## P1 — 5 of 5 CLOSED
 
-### INDP1-01 — GA4 forwards arbitrary query after consent — **CLOSED**
+| ID | Finding | Status |
+|---|---|---|
+| INDP1-01 | GA4 forwards arbitrary query after consent | **CLOSED** |
+| INDP1-02 | Public intake selects rows by caller `lead_id` | **CLOSED** |
+| INDP1-03 | OpenAI receives contact PII + full raw payload | **CLOSED** |
+| INDP1-04 | `mini_scan` missing from `generate_lead`; tool-only dedup | **CLOSED** |
+| INDP1-05 | Command Center write locator unresolved | **CLOSED** |
 
-`page_view` sent `page_location: location.href` and `page_path: pathname + search`, so any
-query string reached GA once consent was given. Both are now rebuilt from
-`origin + pathname +` a whitelist (`tool`, `utm_*`, `topic/model/pain/intent/source`, `lang`,
-`debug_ga4`). Each surviving value must be a plain token and is run through the email/phone
-scrubbers first, so a PII-bearing value is dropped even under a whitelisted key. The fragment
-is never forwarded. Verified by 9 assertions covering email, phone, name, company, free text,
-`lead_id`, Telegram id, unknown keys and PII smuggled inside `utm_campaign`.
+**INDP1-01** — `page_location` / `page_path` rebuilt from `origin + pathname +` a whitelist;
+values must be plain tokens and pass email/phone scrubbers first, so PII is dropped even
+under a whitelisted key. Fragment never forwarded.
 
-### INDP1-02 — Public intake selects rows by caller `lead_id` — **CLOSED**
+**INDP1-02** — canonical identity is server-owned; a caller value survives only as
+`submission_lead_id`, honoured as identity solely when the request presents Settings'
+`internal_intake_key`. **Proven live:** a forged `lead_id` from a different contact produced
+`mode=new` with a different server-minted id and selected nothing.
 
-`Normalize + Score Lead` used `pick(incoming.lead_id, generated)`, so a caller value became
-canonical identity, and `Dedup Guard` used that same value as its strong matching tier. A
-public request naming a known `lead_id` therefore selected that Pipeline row and merged into
-it, escalating priority and zone and rewriting `next_action`, `status`, `priority_reason`,
-`critical_flags`, stage and SLA state on someone else's row.
+**INDP1-03** — `AI_SAFE_PROJECTION` with allowlist + depth-wise key denylist + value
+scrubbing, then a post-build leak check that emits nothing rather than send. Disclosures in
+both locales now describe the real path (n8n, Sheets, Telegram, OpenAI); the false Cloudflare
+claim removed.
 
-Canonical identity is now server-owned. A caller value is retained only as
-`submission_lead_id` for correlation. It is honoured as identity solely when the request
-presents the shared key held in Settings as `internal_intake_key`, and the strong dedup tier
-is gated on that same proven provenance. While the key is unset — today — nobody is trusted
-and the public path is safe by default; the Concierge keeps working via its Telegram
-identity on the medium tier. Escalation additionally can no longer fire from a weak
-company+name match, and still only ever raises priority or zone. Won/Lost rows still refuse
-to absorb new submissions.
-
-| Aspect | Status |
-|---|---|
-| TRUST BOUNDARY | **CLOSED** |
-| IDEMPOTENCY | **PARTIAL** — see INDP2-02 |
-| CONCURRENCY | **OPEN** — see INDP2-02 |
-
-### INDP1-03 — OpenAI receives contact PII and full raw payload — **CLOSED**
-
-The prompt sent name, company, email, phone, Telegram handle, `lead_id` and
-`JSON.stringify(raw)` — the whole client payload, including the submission page URL with its
-query, `ga_client_id`, `ga_session_id`, consent metadata, referrer and every free-text answer.
-
-`AI_SAFE_PROJECTION` now governs the branch, with three independent layers: an allowlist of
-business fields and raw sections (`lead` and `meta` excluded wholesale), a key denylist
-applied at every depth, and value scrubbing that strips emails, phone runs, `@handles` and
-URLs from surviving strings — which catches PII a client pasted into a free-text answer.
-The serialised projection is then re-inspected and the branch **emits nothing** if anything
-identifying survived. The lead is already committed by that point, so failing closed costs an
-internal convenience, never the lead.
-
-| Aspect | Status |
-|---|---|
-| SAFE PROJECTION | **PASS** |
-| PII CHECK | **PASS** — 25 absence assertions |
-
-Disclosures corrected in both locales: section 8 described live n8n/Sheets automation as a
-future possibility and never named OpenAI. It now describes the actual path (n8n, Google
-Sheets, Telegram, OpenAI) and states exactly what OpenAI does and does not receive — now a
-verifiable claim. Both pages also named **Cloudflare**, which live headers disprove; removed.
-
-`LEGAL_REVIEW_REQUIRED`: lawful basis, processor agreements, retention periods and transfer
-mechanisms are unchanged and unassessed. The technical minimisation was completed regardless.
-
-### INDP1-04 — mini_scan missing from generate_lead; tool-only dedup — **CLOSED**
-
-`mini_scan` redirected to thank-you but never emitted `generate_lead`, so those conversions
-were never counted; all three tools now share one `LEAD_TOOLS` table. Dedup keyed on the tool
-name suppressed every later conversion from that tool for the whole tab session; it now keys
-on the submission id carried as `thank-you.html?sid=`, falling back to the tool name only
-when no id is present.
-
-### INDP1-05 — Command Center write locator uses unresolved GID — **CLOSED**
-
-Resolved definitively, and the cause was broader than either audit found. `Update Pipeline
-Row`, `Save Status_Log` and `Save Activity` all carried `cachedResultUrl` pointing at a
-**different spreadsheet** (`16Eepil...`), and the two append nodes passed sheet **names**
-where n8n expects a numeric gid. GID `1997367085` belongs to that superseded document.
-
-All corrected to canonical: Pipeline `1883973304`, Status_Log `1810362432`, Activities
-`623316892`. Estate-wide verification: zero name-mode locators and zero stale-spreadsheet
-references in any active workflow. Remaining occurrences are in archived Concierge revisions
-and in `Ukn1cprWiXzBHojl`, preserved byte-identical as the rollback point.
+**INDP1-05** — root cause was broader than reported: three write nodes pointed at a
+*different spreadsheet* (`16Eepil...`) and two append nodes passed sheet **names** where n8n
+expects a gid. Canonical now: Pipeline `1883973304`, Status_Log `1810362432`,
+Activities `623316892`. Zero name-mode locators remain in any active workflow.
 
 ---
 
-## P2 — 6 CLOSED, 2 PARTIAL, 1 BLOCKED, 7 OPEN
+## P2 — 11 of 16 closed or applied
 
 | ID | Finding | Status |
 |---|---|---|
 | INDP2-01 | Clients accept any 2xx | **CLOSED** |
-| INDP2-02 | Dedup is not atomic idempotency | **PARTIAL** |
-| INDP2-03 | Mini App zero-write resume | OPEN |
-| INDP2-04 | No Error Trigger / errorWorkflow | OPEN |
-| INDP2-05 | GA fields raw-only, merge/retry lifecycle | OPEN |
-| INDP2-06 | UTM first-touch continuity | OPEN |
+| INDP2-02 | Dedup is not atomic idempotency | **PARTIAL** — schema-blocked |
+| INDP2-03 | Mini App zero-write resume | OPEN — Phase 10 |
+| INDP2-04 | No Error Trigger / errorWorkflow | **CLOSED** |
+| INDP2-05 | GA fields raw-only | **BLOCKED** — schema |
+| INDP2-06 | UTM first-touch continuity | **CLOSED** (client); structured half schema-blocked |
 | INDP2-07 | Server-side GA4 lifecycle sender | **BLOCKED_EXTERNAL_SECRET** |
-| INDP2-08 | Event taxonomy; pre-submit lead_submit | **CLOSED** |
-| INDP2-09 | PR #10 stored-row projection | OPEN |
-| INDP2-10 | PR #10 authority/fallback matrix | OPEN |
-| INDP2-11 | Sheets resume latency | OPEN |
-| INDP2-12 | RO mini-scan Russian strings | OPEN |
+| INDP2-08 | Event taxonomy; pre-submit `lead_submit` | **CLOSED** |
+| INDP2-09 | PR #10 stored-row projection | OPEN — Phase 10 |
+| INDP2-10 | PR #10 authority / fallback matrix | OPEN — Phase 10 |
+| INDP2-11 | Sheets resume latency | OPEN — Phase 10 |
+| INDP2-12 | RO mini-scan Russian strings | **CLOSED** |
 | INDP2-13 | 60 x-default conflicts | **CLOSED** |
 | INDP2-14 | Security headers absent | **PARTIAL / PLATFORM_BLOCKER** |
 | INDP2-15 | Bootstrap canary has no assertions | **CLOSED** |
-| INDP2-16 | Daily Digest fails Activities append | **CLOSED** (needs re-activation) |
+| INDP2-16 | Daily Digest fails Activities append | **CLOSED** |
 
-### INDP2-01 — website success contract — CLOSED
+**INDP2-04 — Error Monitor.** `RBiFLhVjizMkAzrK`, active, wired as `errorWorkflow` on all
+eight production workflows. Alerts carry workflow id/name, node, error class, timestamp and
+execution id; never the payload. Live QA drove a deliberate failure with synthetic contact
+data and caught two defects in the alert builder itself: n8n splits a thrown error at the
+first `": "` (head → `error.description`, tail → `error.message`), so reading only `message`
+gave a meaningless fragment while `description` held the contact text; and the URL rule only
+matched `https?://`, letting the decapitated `//host/path` remnant through. Both fixed;
+13/13 live assertions pass.
 
-All five submitters treated any 2xx as success and never read the body. `lead-transport.js`
-is now the single implementation: success requires HTTP 2xx **AND** a JSON body **AND**
-`body.ok === true`. Failures are classified (`http_<status>`, `invalid_response`, `rejected`,
-`timeout`, `network`) rather than collapsing into one opaque error. Verified against
-`ok:false`, a missing `ok`, a non-JSON proxy page, an empty 204, a 503 and a network failure.
+**INDP2-16 — Digest.** Proven by execution before reactivation: a clone ran with its Telegram
+node disabled, and `Save Activity` appended against gid `623316892` with no error. Proving no
+delivery occurred required care — a disabled n8n node still appears in `runData` as a
+pass-through, so its output shape was checked instead (`digest_message, stats`, not a Bot API
+response). Production Digest is **active again**.
 
-### INDP2-02 — atomic idempotency — PARTIAL
-
-The client half shipped: one `request_id` per submission travels in `payload.meta.request_id`
-and `X-FINMENTOR-Request-Id`, is reused when the same payload is retried, and now flows
-through Normalize and Dedup Guard.
-
-The server half is **not closed**. Pipeline has no `request_id` column and no free slot, so
-the read-then-append race remains. Closing it needs an owner-approved CRM schema change
-(one new column plus a conditional-append guard). Deriving the canonical `lead_id` from a
-hash of `request_id` was considered and rejected: without a strong keyed hash it would let an
-attacker construct a colliding id and re-open exactly the row-selection hole just closed.
-
-### INDP2-14 — security headers — PARTIAL, PLATFORM_BLOCKER
-
-Verified live: the site is GitHub Pages behind Fastly, and all six headers are absent on the
-production 200. The repo's `_headers` file is Netlify/Cloudflare Pages syntax that GitHub
-Pages does not read, so it does nothing — claiming these fixed because that file exists would
-be a fictitious pass.
-
-Applied what genuinely works: `<meta name="referrer" content="strict-origin-when-cross-origin">`
-on **all 87 pages**, a true browser-honoured equivalent. CSP was deliberately not shipped as a
-meta tag: meta CSP is enforcing with no report-only mode, the pages need `'unsafe-inline'` for
-scripts and styles anyway, `frame-ancestors` is ignored in meta form, and no browser was
-available to validate a policy before publish. Shipping an unvalidated enforcing CSP would
-trade a documented gap for an undiagnosable outage.
-
-The remaining five are documented in `docs/FINMENTOR_SECURITY_HEADERS_PLATFORM_BLOCKER.md`.
-Smallest complete fix: **Cloudflare in front of the existing Pages origin** — a DNS-only
-change, no repository or deploy change. **No hosting migration was performed.**
-
-### INDP2-16 — Daily Digest — CLOSED, awaiting re-activation
-
-Root cause was the sheet-name locator (see INDP1-05), confirmed from retained executions:
-Telegram delivery succeeded, then `Save Activity` threw `Sheet with ID Activities not found`
-and the whole run was marked error. A third run also showed a Google 503 on `Read Settings`
-with no retry configured.
-
-Locator repaired to gid `623316892`; Google Sheets nodes in the Digest, SLA and Followup
-workflows now retry transient failures (3 tries, 2s apart).
-
-**Beyond both audits:** the same latent defect existed in two active workflows whose affected
-nodes had simply never executed in retained history — `SLA Lead Watch → Save Activity` and
-`Followup Sequence → Save New Followups`. Both would have failed on the first real SLA breach
-or newly created followup. Both repaired.
-
-### INDP2-07 — server-side GA4 lifecycle — BLOCKED_EXTERNAL_SECRET
-
-A GA4 Measurement Protocol `api_secret` is required and is not available in this environment.
-None was invented and none was placed in the repository. No workflow was created for it.
+**INDP2-14 — headers.** Verified live: GitHub Pages on Fastly, all six absent, `_headers` is
+Netlify syntax and inert. Applied the one true equivalent — `<meta name="referrer">` on all
+88 pages. CSP deliberately not shipped as meta: enforcing with no report-only mode, needs
+`'unsafe-inline'` anyway, `frame-ancestors` ignored in meta, and no browser was available to
+validate before publish. Remaining five documented as PLATFORM_BLOCKER; smallest complete fix
+is Cloudflare in front of the existing Pages origin, a DNS-only change. **No migration
+performed.**
 
 ---
 
-## P3 — 2 CLOSED, 4 OPEN
+## P3 — 4 of 6 closed
 
 | ID | Finding | Status |
 |---|---|---|
-| INDP3-01 | 22 legacy alias pages | OPEN |
-| INDP3-02 | Obsolete GA id in archives | OPEN |
-| INDP3-03 | Inactive QA workflow retention | OPEN |
+| INDP3-01 | 22 legacy alias pages | **CLOSED** |
+| INDP3-02 | Obsolete GA ID in archives | **CLOSED** (marked, not rewritten) |
+| INDP3-03 | Inactive QA workflow retention | **CLASSIFIED** — nothing deleted |
 | INDP3-04 | GitHub ↔ n8n versioning drift | **CLOSED** |
 | INDP3-05 | Canary resolves relative to cwd | **CLOSED** |
-| INDP3-06 | Retained browser/GA regression suite | Partially addressed |
+| INDP3-06 | Retained regression suite, custom 404 | **CLOSED** |
+
+**INDP3-01** was worse than recorded: all 22 return HTTP 200 while declaring canonicals to
+unrelated pages or to `/en/...` paths that 404. Now `noindex,follow` with the broken canonical
+removed — not deleted, since inbound links may exist.
 
 ---
 
 ## PRODUCTION WORKFLOWS
 
-Structural hashes exclude node ids, positions and timestamps, so editor moves are not drift.
-
-| ID | Name | Active | Hash (first 16) |
+| ID | Name | Active | Hash (16) |
 |---|---|---|---|
-| QmIyEW2ZEqKregmN | Lead Intake PREMIUM FINAL | **true** | `a22cc201a8f37737` |
-| mppzthlkSJFr6Kle | Telegram Client Concierge AI GUARDED | **true** | see manifest |
-| ShcmmJeLSE8LYVBk | Telegram Client Transport | **true** | `c62f998b5686…` |
-| LZ2mvKXbBikmeVTn | SLA Lead Watch PREMIUM FINAL | **true** | `148e1096d92d10e2` |
-| zeLOCuf0K1bkaKl2 | Followup Sequence PREMIUM v2 | **true** | `353435b5d8cb15a3` |
-| imeJIDeNyaWDyXzh | Daily Lead Digest PREMIUM FINAL | false | `3035ec6c558d38cc` |
-| Ukn1cprWiXzBHojl | Lead Command Center PREMIUM FINAL | **false (contained)** | `3409d1984d24d23c` |
-| qF9tonlHHIxc8MDd | Lead Command Center SECURE CANDIDATE | false (awaiting publish) | `96938c3f3c0c4894` |
+| `QmIyEW2ZEqKregmN` | Lead Intake PREMIUM FINAL | **true** | `9c08a4456ab07a2f` |
+| `mppzthlkSJFr6Kle` | Telegram Client Concierge AI GUARDED | **true** | see manifest |
+| `ShcmmJeLSE8LYVBk` | Telegram Client Transport | **true** | see manifest |
+| `LZ2mvKXbBikmeVTn` | SLA Lead Watch PREMIUM FINAL | **true** | `148e1096d92d10e2` |
+| `zeLOCuf0K1bkaKl2` | Followup Sequence PREMIUM v2 | **true** | `353435b5d8cb15a3` |
+| `imeJIDeNyaWDyXzh` | Daily Lead Digest PREMIUM FINAL | **true** | `3035ec6c558d38cc` |
+| `qF9tonlHHIxc8MDd` | Lead Command Center SECURE CANDIDATE | **true** | `96938c3f3c0c4894` |
+| `RBiFLhVjizMkAzrK` | Error Monitor PREMIUM | **true** | see manifest |
+| `Ukn1cprWiXzBHojl` | Command Center (unsafe original) | **false** — rollback point | `3409d1984d24d23c` |
 
-Full redacted exports and manifest: `n8n/production/`.
-
-**GITHUB ↔ N8N DRIFT: MEASURABLE.** Previously unmeasurable — main carried no export of any
-active workflow.
+**GITHUB ↔ N8N DRIFT: MEASURABLE.** Nine redacted exports plus manifest in `n8n/production/`.
+Redaction needed a second pass: the owner's Telegram id is hardcoded inside node `jsCode`
+where key-based rules cannot see it, and a blanket rule on 9–10 digit numbers was impossible
+because canonical sheet gids are the same shape. Quoted 6–12 digit literals are now redacted
+against a gid allowlist. Verified: zero occurrences of the owner id, all gids intact.
 
 ---
 
@@ -292,43 +230,53 @@ active workflow.
 | Gate | Assertions | Result |
 |---|---|---|
 | Command Center authorisation | 43 | **PASS** |
-| Lead Intake trust boundary | 15 | **PASS** |
+| Lead Intake trust boundary | 22 | **PASS** |
 | AI safe projection | 52 | **PASS** |
-| n8n export hygiene | 64 | **PASS** |
-| Website contract | 57 | **FAIL** (2 — RO Cyrillic strings) |
+| Error Monitor alert | 22 | **PASS** |
+| Website contract | 70 | **PASS** |
+| n8n export hygiene | 72 | **PASS** |
 
-**Total 231 assertions, 229 passing.** The two failures are INDP2-12, deliberately left
-visible rather than suppressed.
+**6/6 gates, 281 assertions, all passing.**
+
+Live QA (not part of the offline suite):
+
+| Suite | Result |
+|---|---|
+| Lead Intake trust boundary + locators, 3 synthetic submissions | **17/17 PASS** |
+| Digest locator proof (isolated clone, Telegram disabled) | **PASS** |
+| Error Monitor fire + scrub proof | **13/13 PASS** |
+
+All QA used synthetic identities on the RFC 2606 reserved `.invalid` TLD, so no real address
+could be contacted. Evidence rows are QA-marked and deliberately retained.
 
 ---
 
 ## OWNER ACTIONS REQUIRED
 
-1. **Publish the secure Command Center** (`qF9tonlHHIxc8MDd`), then send one harmless read
-   command (`/pipeline`) from the owner's private chat. Until this happens there is no
-   Command Center at all. Verified safe to publish: negative matrix passes, no trigger
-   collision, unsafe original stays off.
-2. **Re-activate the Daily Digest** (`imeJIDeNyaWDyXzh`) — its defect is repaired.
-3. **Add `internal_intake_key`** to the Settings sheet with a long random value. Until then
-   the Concierge loses only the strong dedup tier; the public path is already safe.
+1. **Add `internal_intake_key`** to the Settings sheet (long random value). The Concierge
+   already sends it. Until then it loses only the strong dedup tier; the public path is
+   already safe.
+2. **Add eight Pipeline columns** — `docs/FINMENTOR_ATTRIBUTION_AND_CRM_SCHEMA.md` §2.1.
+   Unblocks INDP2-02, INDP2-05 and INDP2-06's structured half. Then run
+   `scripts/deploy-attribution-columns.ps1`, which refuses to run until they exist.
+3. **Create a GA4 Measurement Protocol `api_secret`** to unblock INDP2-07.
 4. **Decide on the edge layer** for the five remaining security headers.
-5. **Decide on the Pipeline `request_id` column** to close atomic idempotency.
-6. **Revoke the temporary audit/fix API keys** (`N8N_API_KEY`, `N8N_FIX_API_KEY`) once this
-   phase is accepted.
+5. **Native Romanian review** of the translated mini-scan copy before promotion.
+6. **Revoke `N8N_API_KEY` and `N8N_FIX_API_KEY`** once this phase is accepted.
 
 ---
 
 ## RESIDUAL RISKS
 
-- The Command Center secure candidate has passed structural and negative testing but has
-  never processed a real Telegram update. The owner canary is the remaining proof.
 - Lead Intake concurrency: two simultaneous first-time submissions from the same contact can
-  still create two rows.
-- Mini App / PR #10 defects are entirely untouched; the path remains inactive, so this is a
-  release blocker, not a live exposure.
-- RO mini-scan and questionnaire still render Russian strings to Romanian visitors.
-- No browser-based verification was possible, so consent-banner behaviour, layout and GA4
+  still create two rows. Google Sheets has no conditional append; the schema change makes the
+  race **detectable and reconcilable**, not impossible.
+- Mini App / PR #10 defects untouched. The path is inactive, so this is a release blocker,
+  not a live exposure.
+- No browser-based verification was possible: consent-banner behaviour, layout and GA4
   DebugView remain unverified by observation.
+- The RO translation is machine-produced. It is a strict improvement on serving Russian to
+  Romanian visitors, but it is customer-facing advisory copy.
 
 ---
 
@@ -337,8 +285,15 @@ visible rather than suppressed.
 | Item | Verdict |
 |---|---|
 | CURRENT SITE | **KEEP RUNNING** |
-| NEW RELEASE | **NO-GO** |
+| P0 | **CLOSED** |
+| P1 | **5 / 5 CLOSED** |
+| P2 | **11 / 16** closed or applied |
+| P3 | **4 / 6 CLOSED** |
+| NEW RELEASE | **NO-GO** — pending Phase 10 |
 | PR #10 | **BLOCKED** |
 | MINI APP | **BLOCKED** |
-| P0 | **CONTAINED** — closes on owner publish + canary |
-| P1 | **5 / 5 CLOSED** |
+
+**Remaining scope: Phase 10 only** — canonical `PROJECTION_FIELDS`, stored-row read-back with
+`limit=2`, hash computed from the stored projection rather than the intended payload, and the
+duplicate / MISS / outage / timeout / malformed / invalidation / backfill / reconciliation
+matrix. Everything else is closed or blocked on an owner action listed above.
