@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Read-model synchronization / consistency design
 
-Status: **QA PARTIAL PASS / CONCURRENCY + FALLBACK MATRIX OPEN**  
+Status: **QA PARTIAL PASS / COMMIT-ORDER CAS + FALLBACK MATRIX OPEN**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -10,7 +10,7 @@ The n8n Data Table live proof passed decisively as a read-path technology, while
 
 `Bot_Sessions` remains the sole authoritative source of truth. Data Table is a derived, non-authoritative read model only.
 
-See also `docs/PHASE_B2_1B_CACHE_GENERATION_DESIGN.md` for the concurrency-safe generation-token design.
+See also `docs/PHASE_B2_1B_CACHE_GENERATION_DESIGN.md` for the concurrency-safe commit-order token design.
 
 ## Production writer inventory
 
@@ -36,28 +36,33 @@ Use a deterministic `projection_version` (recommended SHA-256) over a canonical 
 
 Keep `source_updated_at` only for observability.
 
-## Concurrency-safe cache generation
+## Commit-order cache generation
 
-Use a per-mutation high-entropy `sync_token` tombstone for the derived cache:
+For `Save Bot Session` and `Save Intake State` only:
 
-- before an authoritative write that changes mirrored fields, invalidate the Data Table row for that `chat_id` with `cache_valid=false` and a new `sync_token`;
-- perform the existing authoritative `Bot_Sessions` write;
-- on authoritative failure, leave the tombstone so Mini App receives MISS/fallback rather than stale state;
-- after authoritative success, a reusable sync helper re-reads the actual authoritative row from `Bot_Sessions`;
-- helper computes the safe projection + `projection_version`;
-- before publishing, helper re-checks that the current Data Table `sync_token` still matches its token;
-- if token changed, a newer mutation exists and the older helper must abort without publishing;
-- if token still matches, publish `cache_valid=true` and verify the written projection.
+1. pre-write invalidate the derived row (`cache_valid=false`) with a high-entropy start token;
+2. perform the authoritative `Bot_Sessions` write;
+3. on authoritative failure, leave MISS/tombstone;
+4. after authoritative success, issue a new high-entropy **commit token** and update the tombstone to that token;
+5. sync helper re-reads the actual authoritative row and computes safe projection + `projection_version`;
+6. publish by **conditional Data Table update where `chat_id` and `sync_token=commit_token` both match**;
+7. if zero rows update, a later generation exists; abort without publishing;
+8. if exactly one row updates, set `cache_valid=true` and verify token/version/current-cycle fields.
 
-The pre-write Data Table operation is invalidation only; it never asserts new authoritative state.
+A read-token check followed by unconditional upsert is not sufficient; the token condition must be part of the publish operation to close the TOCTOU race.
+
+This design orders cache generations by successful authoritative commit completion rather than mutation start time.
 
 ## Fast read path
 
 validated Telegram identity
 → Data Table exact lookup by `chat_id`
+→ fetch up to 2 rows
 → accept only exactly one row with `cache_valid=true`
 → read-only evaluator
 → strict safe resume projection.
+
+Limit 2 is intentional: a limit-1 lookup can hide duplicate corruption.
 
 Fallback to authoritative `Bot_Sessions` on:
 
@@ -75,11 +80,11 @@ Never select an arbitrary first row.
 The helper must:
 
 - be reusable from both mirrored production writers;
-- receive only routing metadata such as `chat_id` and `sync_token`;
+- receive only routing metadata such as `chat_id` and `commit_token`;
 - re-read the authoritative row after commit rather than trust the pre-write payload;
 - compute a minimal safe projection;
 - exclude raw Telegram and legacy payload fields;
-- upsert idempotently by `chat_id`;
+- publish only through conditional token-matched update;
 - verify exactly one row, token equality, projection-version equality and current-cycle fields;
 - invalidate/delete on publish or verify failure where safely possible;
 - alert on unrecoverable mirror inconsistency;
@@ -124,21 +129,22 @@ Passed so far:
 - stale consent/lead cycle guards remain safe;
 - unknown-user and hostile browser-field handling remain safe from earlier harness evidence.
 
-Important limitation of the current failed-upsert test: the row was already absent before the simulated failure. This proves the safe MISS end state, but not yet the stronger case where an existing healthy/stale row must be invalidated when publish fails.
+Important limitation of the current failed-upsert test: the row was already absent before the simulated failure. This proves the safe MISS end state, but not yet the stronger case where an existing valid/stale row must be made unreadable when a new publish fails.
 
 ## QA still required before production changes
 
 The remaining QA matrix must prove:
 
-1. **strong publish-failure invalidation** — start with an existing `cache_valid=true` row, force mirror publish/upsert failure, and prove the row becomes tombstone/MISS rather than remaining a stale HIT;
-2. duplicate derived rows force authoritative fallback; never select the first row;
-3. Data Table outage/error forces authoritative fallback;
-4. MISS selects authoritative fallback and safe repair path;
-5. concurrency A/B — newer mutation changes `sync_token`; older helper later attempts to publish and must abort;
-6. concurrency B/A completion reversal — final cache must correspond to the authoritative row and newest valid token, not helper completion order;
-7. confirmation-only writer requires no mirror action and does not invalidate the read model;
-8. one-time backfill design is idempotent, duplicate-safe and minimal-field only;
-9. reconciliation design can rebuild/repair the derived table from authoritative `Bot_Sessions` without making the read model authoritative.
+1. strong publish-failure invalidation starting from an existing `cache_valid=true` row;
+2. Data Table conditional publish can atomically require both `chat_id` and current `sync_token`; if the node cannot do this, stop;
+3. duplicate derived rows force authoritative fallback; never hide duplicates with limit 1;
+4. Data Table outage/error forces authoritative fallback;
+5. MISS selects authoritative fallback and safe repair path;
+6. concurrency normal order and reversed authoritative commit completion order;
+7. TOCTOU attempt where token changes between helper re-read and publish; older publish must update zero rows;
+8. confirmation-only writer requires no mirror action;
+9. one-time backfill design is idempotent, duplicate-safe and minimal-field only;
+10. reconciliation design can rebuild/repair the derived table from authoritative `Bot_Sessions` without making the read model authoritative.
 
 ## Backfill / reconciliation principles
 
