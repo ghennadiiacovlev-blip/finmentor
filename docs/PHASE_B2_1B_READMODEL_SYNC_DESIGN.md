@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Read-model synchronization / consistency design
 
-Status: **QA PARTIAL PASS / COMMIT-ORDER CAS + FALLBACK MATRIX OPEN**  
+Status: **QA PARTIAL PASS / TRUE-CONCURRENCY TOCTOU PASS / FAILURE + REVERSED-ORDER MATRIX OPEN**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -10,7 +10,7 @@ The n8n Data Table live proof passed decisively as a read-path technology, while
 
 `Bot_Sessions` remains the sole authoritative source of truth. Data Table is a derived, non-authoritative read model only.
 
-See also `docs/PHASE_B2_1B_CACHE_GENERATION_DESIGN.md` for the concurrency-safe commit-order token design.
+See also `docs/PHASE_B2_1B_CACHE_GENERATION_DESIGN.md` for the concurrency-safe commit-order token design and `docs/PHASE_B2_1B_CONSISTENCY_QA_CAS.md` for the latest CAS / race evidence.
 
 ## Production writer inventory
 
@@ -32,7 +32,7 @@ Do not change `Save Confirmation State` merely to support the read model.
 
 Do not use `cycle_id + updated_at` as the sole version guarantee. Under concurrent same-chat writes, pre-commit runtime timestamps do not reliably encode final commit order.
 
-Use a deterministic `projection_version` (recommended SHA-256) over a canonical serialization of the exact safe mirrored projection read from the authoritative `Bot_Sessions` row after commit.
+Use a deterministic `projection_version` (SHA-256) over a canonical serialization of the exact safe mirrored projection read from the authoritative `Bot_Sessions` row after commit.
 
 Keep `source_updated_at` only for observability.
 
@@ -51,7 +51,20 @@ For `Save Bot Session` and `Save Intake State` only:
 
 A read-token check followed by unconditional upsert is not sufficient; the token condition must be part of the publish operation to close the TOCTOU race.
 
-This design orders cache generations by successful authoritative commit completion rather than mutation start time.
+## True-concurrency evidence
+
+A genuine overlapping race has now proven the TOCTOU protection in real n8n execution overlap:
+
+- GEN_A started first and paused ~20 seconds between authoritative re-read and conditional publish;
+- GEN_B ran start-to-finish inside that pause and superseded/published the newer generation;
+- GEN_A resumed and its stale conditional publish updated **zero rows** (`ABORTED_CAS_MISMATCH`);
+- final cache remained the newer GEN_B projection;
+- final derived row count was exactly one with limit-2 verification;
+- stale lead-cycle semantics were evaluated against the final generation and remained safe.
+
+This proves the conditional publish CAS under real overlapping execution, not just sequential simulation.
+
+The highest-priority remaining concurrency test is reversed authoritative completion order: A starts first, B commits first, A commits last; final cache must converge to A. This distinguishes convergence to final authority from incidental helper-finish ordering.
 
 ## Fast read path
 
@@ -115,36 +128,34 @@ The helper must:
 
 Do not mirror raw/legacy payloads, `notes`, `previous_lead_id`, or n8n internal row metadata into the Mini App response.
 
-## QA evidence received
-
-QA mirror helper: `OwLC7SANtHo69SKo` (QA-only; never activate as a production endpoint).
-
-Passed so far:
+## QA passed so far
 
 - normal projection upsert + read-after-write verification;
-- identical replay remains one row / idempotent;
+- identical replay remains one row / idempotent in the basic case;
 - cycle-change projection follows the authoritative test state;
-- verification mismatch invalidates the derived row;
+- verification mismatch test previously reached safe MISS end state;
 - missing-row / failed-publish end state converges to safe MISS;
 - stale consent/lead cycle guards remain safe;
-- unknown-user and hostile browser-field handling remain safe from earlier harness evidence.
+- unknown-user and hostile browser-field handling remain safe from earlier harness evidence;
+- conditional publish CAS semantics;
+- true parallel overlap;
+- explicit token-change TOCTOU race;
+- stale helper updates zero rows;
+- final cache matched final authority in the tested normal commit-order race.
 
-Important limitation of the current failed-upsert test: the row was already absent before the simulated failure. This proves the safe MISS end state, but not yet the stronger case where an existing valid/stale row must be made unreadable when a new publish fails.
+Important limitation: the prior failed-upsert test began from an absent row. The stronger case still needs proof starting from an existing `cache_valid=true` row.
 
 ## QA still required before production changes
 
-The remaining QA matrix must prove:
-
-1. strong publish-failure invalidation starting from an existing `cache_valid=true` row;
-2. Data Table conditional publish can atomically require both `chat_id` and current `sync_token`; if the node cannot do this, stop;
-3. duplicate derived rows force authoritative fallback; never hide duplicates with limit 1;
-4. Data Table outage/error forces authoritative fallback;
-5. MISS selects authoritative fallback and safe repair path;
-6. concurrency normal order and reversed authoritative commit completion order;
-7. TOCTOU attempt where token changes between helper re-read and publish; older publish must update zero rows;
-8. confirmation-only writer requires no mirror action;
-9. one-time backfill design is idempotent, duplicate-safe and minimal-field only;
-10. reconciliation design can rebuild/repair the derived table from authoritative `Bot_Sessions` without making the read model authoritative.
+1. reversed authoritative completion order converges to the final authoritative projection;
+2. strong publish-failure invalidation starting from an existing `cache_valid=true` row;
+3. verification mismatch invalidation starting from an existing readable row;
+4. duplicate derived rows force authoritative fallback; never hide duplicates with limit 1;
+5. Data Table MISS forces authoritative fallback and safe repair selection;
+6. Data Table outage/error forces authoritative fallback;
+7. post-race replay is idempotent and leaves exactly one row;
+8. one-time backfill design is idempotent, duplicate-safe and minimal-field only;
+9. reconciliation design can rebuild/repair the derived table from authoritative `Bot_Sessions` without making the read model authoritative.
 
 ## Backfill / reconciliation principles
 
