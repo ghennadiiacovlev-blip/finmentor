@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.0 — UX / Safety QA
 
-Status: **B.2.0 PROTOTYPE READY FOR REVIEW**
+Status: **B.2.0 RELEASE GATE PASS**
 Branch: `feat/phase-b2-premium-miniapp`
 Scope: static Telegram Mini App prototype only. No production n8n changes, no backend writes, no Lead Intake calls.
 
@@ -28,7 +28,7 @@ Scope: static Telegram Mini App prototype only. No production n8n changes, no ba
 - Telegram display data is used only for non-privileged prefill/presentation in B.2.0.
 
 ### Consent clarity
-The consent screen now shows a compact summary of what is about to be sent:
+The consent screen shows a compact summary of what is about to be sent:
 - company;
 - business profile / turnover;
 - urgency horizon.
@@ -49,14 +49,57 @@ B.2.0 contains:
 - no direct Google Sheets access;
 - no direct Lead Intake call.
 
-The only runtime integrations in the prototype shell are the Telegram WebApp SDK and ordinary user-initiated links to FINMENTOR pages.
+The only runtime integrations in the prototype shell are the Telegram WebApp SDK, Google Fonts and ordinary user-initiated links to FINMENTOR pages.
 
 ### Code sanity
-- Final `app.js` source was syntax-checked with Node (`node --check`) after the B.2.0 hardening changes.
-- A syntax defect introduced during QA in turnover-map object keys was caught before release and corrected; the final source parses cleanly.
+- Final `app.js` source passes `node --check` in GitHub Actions.
+- Duplicate HTML IDs are checked automatically.
+- Static contracts verify templates, consent actions, urgency semantics, accessibility markers and forbidden backend/network surfaces.
 - Existing production website files are not modified by the Mini App prototype.
 
-## 2. UX improvements made during QA
+## 2. Real Chromium QA evidence
+
+GitHub Actions workflow: `Mini App B.2.0 QA`.
+
+Final browser run:
+- run id: `32816136609`;
+- head SHA: `50ac9d1f2b2a5a5061d83b7cf6b6cecd8136d7dd`;
+- conclusion: **SUCCESS**;
+- Chromium: Playwright headless browser on `ubuntu-latest`;
+- artifact: `finmentor-b20-browser-qa`.
+
+Validated in a real rendered browser, not only by source inspection:
+
+- 390 px outside-Telegram entry;
+- 390 px preliminary result;
+- 390 px consent;
+- 390 px decline state;
+- 430 px Telegram-context entry;
+- 430 px Telegram-context YES/submitted state;
+- no horizontal overflow in tested views;
+- core CTA / choice / segmented targets meet the >=44 px interaction contract;
+- visible keyboard focus outline is present;
+- back navigation preserves selected state;
+- `urgency = none` visibly states that it does not increase priority;
+- outside Telegram, direct phone/email is required;
+- inside Telegram, direct phone/email may remain optional;
+- consent copy explicitly names Telegram context only when Telegram context exists;
+- decline state uses neutral `—`, `Передача не выполнена`, `Ничего не передано` semantics;
+- YES state is still mock-only in B.2.0.
+
+Browser network evidence:
+- forbidden requests: **0**;
+- console errors: **0**;
+- page errors: **0**;
+- observed external requests are limited to Google Fonts and the Telegram WebApp SDK/assets needed for presentation.
+
+Forbidden runtime destinations were explicitly checked for:
+- production n8n host;
+- Google Sheets API;
+- Telegram Bot API;
+- webhook paths.
+
+## 3. UX improvements made during QA
 
 1. Replaced the generic `Private` status chip with context-aware `Telegram` / `Preview` status so B.2.0 does not imply server-side identity verification that does not yet exist.
 2. Added explicit accessible progress semantics.
@@ -69,8 +112,9 @@ The only runtime integrations in the prototype shell are the Telegram WebApp SDK
 9. Preserved in-memory answers across back navigation and a return to the entry screen; `Начать заново` remains the explicit reset.
 10. Added reduced-motion handling for screen transitions / scroll behavior.
 11. Preserved the existing FINMENTOR dark navy / restrained gold visual system rather than introducing a second brand language.
+12. Added repeatable GitHub Actions static + Chromium QA so later B.2 changes cannot silently regress these contracts.
 
-## 3. Known non-blocking B.2.0 limitations
+## 4. Known non-blocking B.2.0 limitations
 
 These are intentionally deferred to B.2.1+ and are not defects of the static prototype:
 
@@ -81,11 +125,11 @@ These are intentionally deferred to B.2.1+ and are not defects of the static pro
 - No production SLA / expected response time is shown until that business rule is formally defined.
 - No network recovery screen is active until there is a real Gateway call to recover from.
 
-## 4. Release decision
+## 5. Release decision
 
-**B.2.0 = READY FOR PR / VISUAL REVIEW**
+**B.2.0 = READY TO MERGE**
 
-Safe next step after PR review:
+Next phase:
 
 **B.2.1 — Mini App Gateway Bootstrap**
 
@@ -99,10 +143,10 @@ Required before any real submission:
 7. implement idempotent submit semantics around canonical `lead_id`;
 8. add recoverable error/retry UI.
 
-## 5. Production safety
+## 6. Production safety
 
 During B.2.0 work:
-- `main` is unchanged;
+- `main` remains unchanged until PR merge;
 - the active n8n Client Concierge is unchanged;
 - the active Transport is unchanged;
 - the active Lead Intake is unchanged;
