@@ -18,6 +18,7 @@ Scope: static Telegram Mini App prototype only. No production n8n changes, no ba
 - `Нет срочности` remains a negative urgency value (`urgency = none`) and does not raise priority.
 - No lead submission is possible before a dedicated YES consent action.
 - Consent NO produces an explicit `Ничего не передано` state.
+- Decline state no longer reuses a success/checkmark presentation.
 - Preliminary result is clearly labelled as non-audit / non-guarantee output.
 - Result logic is descriptive and avoids fake numeric scoring.
 
@@ -35,6 +36,8 @@ The consent screen now shows a compact summary of what is about to be sent:
 Copy differs by context:
 - Telegram: answers + entered contact + Telegram context needed for follow-up;
 - outside Telegram: answers + entered direct contact; no Telegram-context claim.
+
+The pre-consent visual is intentionally neutral rather than a success checkmark so the interface does not imply that consent has already been granted.
 
 ### Security / integration boundary
 B.2.0 contains:
@@ -61,10 +64,11 @@ The only runtime integrations in the prototype shell are the Telegram WebApp SDK
 4. Enforced a direct callback contact outside Telegram.
 5. Added explicit consent summary before YES / NO.
 6. Kept YES and NO visually separate and unambiguous.
-7. Added functional post-result links for materials, services and website navigation.
-8. Preserved in-memory answers across back navigation and a return to the entry screen; `Начать заново` remains the explicit reset.
-9. Added reduced-motion handling for screen transitions / scroll behavior.
-10. Preserved the existing FINMENTOR dark navy / restrained gold visual system rather than introducing a second brand language.
+7. Made pre-consent and consent-decline visuals neutral; a decline no longer looks like a successful submission.
+8. Added functional post-result links for materials, services and website navigation.
+9. Preserved in-memory answers across back navigation and a return to the entry screen; `Начать заново` remains the explicit reset.
+10. Added reduced-motion handling for screen transitions / scroll behavior.
+11. Preserved the existing FINMENTOR dark navy / restrained gold visual system rather than introducing a second brand language.
 
 ## 3. Known non-blocking B.2.0 limitations
 
