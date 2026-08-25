@@ -1,170 +1,130 @@
-# FINMENTOR Phase B.2.1-B — Read-model Sync / Consistency Gate
+# FINMENTOR Phase B.2.1-B — Read-model synchronization / consistency design
 
-Status: **DESIGN GATE OPEN / PRODUCTION SYNC NOT IMPLEMENTED**  
+Status: **DESIGN ACTIVE / QA PROOF REQUIRED**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
-## Why this gate exists
+## Current evidence
 
-The isolated n8n Data Table read-model proved that the production-webhook latency problem is not inherent to the B.2.1-B resume logic.
+The n8n Data Table live proof passed decisively as a read-path technology, while the current production-webhook Google Sheets node is too slow for synchronous Mini App resume.
 
-Live owner proof (five real Telegram requests, spaced 15 seconds):
+`Bot_Sessions` remains the sole authoritative source of truth. Data Table is a derived, non-authoritative read model only.
 
-- Data Table: 21 / 16 / 15 / 15 / 16 ms
-- Data Table P50: 16 ms
-- Data Table P95: 21 ms
-- server total P50: 38 ms
-- browser totals: 1971 / 1894 / 1789 / 1588 / 1893 ms
-- browser P50: 1893 ms
-- browser P95: 1971 ms
-- requests >4000 ms: 0
-- consistency: PASS
-- forbidden leak fields: none
+See also `docs/PHASE_B2_1B_CACHE_GENERATION_DESIGN.md` for the concurrency-safe generation-token design.
 
-This meets the approved live UX gate and proves Data Table is a viable **read-path technology**.
+## Production writer inventory
 
-However, the QA table was manually seeded and is already a stale copy by design. It is not authoritative and must not be promoted to production without an explicit consistency contract.
+Production Client Concierge workflow `mppzthlkSJFr6Kle` contains exactly three `Bot_Sessions` writers, all `appendOrUpdate` by `chat_id`:
 
-`Bot_Sessions` remains the sole authoritative source of truth.
+1. `Save Bot Session` — full session projection after confirmed Telegram delivery.
+2. `Save Intake State` — lead/intake/cycle-related state.
+3. `Save Confirmation State` — `updated_at` + `notes` only; currently `onError: continueRegularOutput`.
 
-## Non-negotiable architecture
+## Important scope correction
 
-Data Table may be used only as a derived read model/cache for Mini App resume.
+`Save Confirmation State` changes no field used by the Mini App read model. Therefore it does **not** need read-model invalidation or mirroring, and its current error behavior is not a blocker for read-model correctness.
 
-It must never become an independent writable source of truth for cycle, consent, or lead state.
+Only `Save Bot Session` and `Save Intake State` mutate fields included in the derived resume projection.
 
-Authoritative mutations continue to occur through the existing Concierge/session logic and authoritative `Bot_Sessions` persistence path.
+## Versioning decision
 
-## Required consistency contract before production
+Do not use `cycle_id + updated_at` as the sole version guarantee. Under concurrent same-chat writes, pre-commit runtime timestamps do not reliably encode final commit order.
 
-The next implementation gate must explicitly define and prove all of the following.
+Use a deterministic `projection_version` (recommended SHA-256) over a canonical serialization of the exact safe mirrored projection read from the authoritative `Bot_Sessions` row after commit.
 
-### 1. Update ordering
+Keep `source_updated_at` only for observability.
 
-For every authoritative session mutation:
+## Concurrency-safe cache generation
 
-1. authoritative state is committed first;
-2. derived Data Table row is refreshed only after authoritative commit succeeds;
-3. if the mirror refresh fails, authoritative state remains valid and the failure is observable/recoverable;
-4. Mini App must never treat a failed mirror write as an authoritative success.
+Use a per-mutation high-entropy `sync_token` tombstone for the derived cache:
 
-Do not reverse this ordering.
+- before an authoritative write that changes mirrored fields, invalidate the Data Table row for that `chat_id` with `cache_valid=false` and a new `sync_token`;
+- perform the existing authoritative `Bot_Sessions` write;
+- on authoritative failure, leave the tombstone so Mini App receives MISS/fallback rather than stale state;
+- after authoritative success, a reusable sync helper re-reads the actual authoritative row from `Bot_Sessions`;
+- helper computes the safe projection + `projection_version`;
+- before publishing, helper re-checks that the current Data Table `sync_token` still matches its token;
+- if token changed, a newer mutation exists and the older helper must abort without publishing;
+- if token still matches, publish `cache_valid=true` and verify the written projection.
 
-### 2. Freshness marker
+The pre-write Data Table operation is invalidation only; it never asserts new authoritative state.
 
-Each read-model row must include a deterministic freshness/version marker derived from authoritative state, not from browser time.
+## Fast read path
 
-Preferred candidates:
+validated Telegram identity
+→ Data Table exact lookup by `chat_id`
+→ accept only exactly one row with `cache_valid=true`
+→ read-only evaluator
+→ strict safe resume projection.
 
-- authoritative `updated_at` / source update timestamp;
-- cycle id plus authoritative mutation timestamp/version;
-- another monotonic server-side version if one already exists.
+Fallback to authoritative `Bot_Sessions` on:
 
-The exact marker must be chosen and documented before implementation.
+- MISS;
+- tombstone / `cache_valid=false`;
+- duplicate rows;
+- Data Table error;
+- malformed required fields;
+- failed verification state.
 
-### 3. Staleness bound
+Never select an arbitrary first row.
 
-Define a maximum acceptable read-model age for Mini App resume.
+## Mirror helper principles
 
-A stale row must not silently return as current merely because a `chat_id` match exists.
+The helper must:
 
-The implementation must be able to classify at least:
+- be reusable from both mirrored production writers;
+- receive only routing metadata such as `chat_id` and `sync_token`;
+- re-read the authoritative row after commit rather than trust the pre-write payload;
+- compute a minimal safe projection;
+- exclude raw Telegram and legacy payload fields;
+- upsert idempotently by `chat_id`;
+- verify exactly one row, token equality, projection-version equality and current-cycle fields;
+- invalidate/delete on publish or verify failure where safely possible;
+- alert on unrecoverable mirror inconsistency;
+- never roll back an already successful authoritative Sheets write.
 
-- HIT_FRESH
-- HIT_STALE
-- MISS
-- MIRROR_ERROR / UNAVAILABLE
+## Minimal derived schema
 
-### 4. Miss / stale fallback
+- chat_id
+- session_id
+- state
+- status
+- selected_service
+- business_model
+- main_pain
+- urgency
+- consent
+- lead_id
+- cycle_id
+- consent_cycle_id
+- consent_at
+- lead_cycle_id
+- lead_intake_ok
+- cache_valid
+- sync_token
+- projection_version
+- source_updated_at
+- mirror_updated_at
 
-A miss or stale read-model row must fail safely.
+Do not mirror raw/legacy payloads, `notes`, `previous_lead_id`, or n8n internal row metadata into the Mini App response.
 
-Potential acceptable fallback patterns include:
+## Required QA before production changes
 
-- synchronous authoritative Sheets read only on MISS/STALE;
-- safe `resume_deferred` response plus asynchronous refresh;
-- another explicitly approved authoritative fallback.
+QA-only proof must cover:
 
-The fallback must not create/reset a cycle merely because the Mini App opened.
-
-### 5. Recovery / reconciliation
-
-There must be a deterministic way to rebuild or repair the derived table from `Bot_Sessions`.
-
-A transient mirror failure must not require manual reconstruction of every row.
-
-The reconciliation path must be idempotent and must not mutate the authoritative source.
-
-### 6. Duplicate / row-key safety
-
-The derived table must enforce one logical row per `chat_id`.
-
-No ambiguous duplicate rows may be accepted as a successful resume hit.
-
-If duplicates are detected, fail closed or choose an explicitly versioned deterministic winner only if that policy is formally approved.
-
-### 7. Privacy / minimization
-
-Only the minimum fields required by Mini App resume may be mirrored.
-
-Never mirror legacy/raw payload fields such as:
-
-- raw_json
-- reply_text
-- reply_markup
-- tg_body
-- session
-- lead_payload
-- event
-- result
-- error
-- notes
-
-n8n Data Table internal fields (`id`, `createdAt`, `updatedAt`) must not escape the strict response whitelist.
-
-### 8. Security / identity
-
-Read-model lookup key remains server-validated Telegram identity only.
-
-Browser supplied `chat_id`, `telegram_user_id`, `cycle_id`, `lead_id`, consent, status, priority, and financial-zone values remain untrusted.
-
-### 9. Availability / rollback
-
-Data Table outage must not corrupt authoritative state.
-
-Rollback must be possible by disabling the read-model path and falling back to the proven authoritative read path, accepting the slower UX temporarily.
-
-No data migration rollback should be required because Data Table is derived and disposable.
-
-## Required test matrix
-
-Before B.2.1-B may close, prove at least:
-
-1. fresh owner hit returns exact current authoritative cycle;
-2. fresh QA hit returns QA only;
-3. unknown user returns safe miss/no foreign row;
-4. authoritative mutation followed by successful mirror refresh returns new state;
-5. mirror refresh failure leaves authoritative state correct and marks/handles stale read model safely;
-6. stale row cannot resurrect previous-cycle consent or lead;
-7. cache miss fallback does not create/reset a cycle;
-8. duplicate derived rows fail safely;
-9. read-model rebuild/reconciliation is idempotent;
-10. response whitelist blocks Data Table internal fields and all legacy/raw fields;
-11. real Telegram live resume after synchronization still meets the approved UX gate;
-12. zero Lead Intake/Pipeline/consent side effects during read-only resume.
-
-## Performance gate retained
-
-Do not weaken the already-approved UX thresholds:
-
-- browser P50 < 2.0 s
-- browser P95 < 3.0 s
-- no unreported request > 4.0 s
-
-The live Data Table proof already demonstrated that these thresholds are realistic when the slow Google Sheets read is removed from the critical path.
+- normal invalidate → authoritative commit simulation → mirror publish → verify;
+- idempotent replay;
+- authoritative failure leaves MISS/tombstone;
+- mirror-upsert failure leaves/returns to MISS;
+- verify mismatch invalidates;
+- duplicate safety;
+- Data Table outage fallback;
+- stale consent and lead safety;
+- unknown user / browser tamper;
+- concurrency with two same-chat mutations and reversed helper completion order;
+- confirmation-only writer requiring no mirror action;
+- idempotent reconciliation/backfill design.
 
 ## Stop condition
 
-This document authorizes architecture design and isolated consistency tests only.
-
-Do not begin B.2.1-C until B.2.1-B has a proven production-safe synchronization/fallback contract and final live owner resume pass.
+Do not modify production writers, run production backfill, activate reconciliation, merge PR #10, or start B.2.1-C until the QA consistency matrix passes and a separate controlled production mirror gate is approved.
