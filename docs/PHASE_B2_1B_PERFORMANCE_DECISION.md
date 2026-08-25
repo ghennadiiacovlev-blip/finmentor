@@ -1,128 +1,87 @@
 # FINMENTOR Phase B.2.1-B — Performance Decision
 
-Status: **RAW SHEETS <700 ms GATE RETIRED / LIVE UX GATE APPROVED**  
+Status: **GOOGLE SHEETS SYNCHRONOUS READ REJECTED FOR LIVE RESUME / READ-MODEL PROOF REQUIRED**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
-## Decision
+## Decision history
 
-The original `<700 ms` raw Google Sheets read target is no longer a valid B.2.1-B acceptance gate.
+The original `<700 ms` raw Google Sheets node target was retired after repeated isolated benchmarks showed a broad ~1.0–1.7 s band that was not materially improved by retry changes, exact `chat_id` filtering, or the tested `specifyRange` option.
 
-It is retired for this phase because repeated isolated evidence shows that the current n8n Google Sheets node/runtime has a broad ~1.0–1.7 s round-trip band that is not materially improved by:
+A revised end-to-end UX gate was then tested with real Telegram owner traffic. That gate failed materially.
 
-- retry enabled vs disabled;
-- full 26-row scan vs exact `chat_id` filter;
-- `specifyRange` column narrowing, because the tested node configuration ignores the nested range option and returns the same 40 columns / same payload even for hardcoded `A:C`.
+A subsequent low-rate stage-timing diagnostic now resolves the bottleneck decisively.
 
-Do not change production schema, split `Bot_Sessions`, create an index/helper sheet, or redesign the writer merely to satisfy the retired node-level target.
+## Decisive low-rate evidence
 
-## Evidence snapshot
+Five genuine owner Mini App resume requests were run 15 seconds apart with no burst and no parallelism.
 
-### Full scan
+| Request | Browser total | Server total | Pre-Sheets | Ed25519 | Sheets | Post-Sheets |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 9146 ms | 7213 ms | 12 ms | 0 ms | 7190 ms | 11 ms |
+| 2 | 8320 ms | 6686 ms | 14 ms | 0 ms | 6659 ms | 13 ms |
+| 3 | 7848 ms | 6103 ms | 12 ms | 1 ms | 6079 ms | 12 ms |
+| 4 | 8148 ms | 6413 ms | 12 ms | 0 ms | 6390 ms | 11 ms |
+| 5 | 8896 ms | 7126 ms | 12 ms | 0 ms | 7101 ms | 13 ms |
 
-Observed combined samples:
+Medians:
 
-- min ~525 ms
-- median ~1197 ms
-- p95 ~1657 ms
-- max ~1718 ms
+- browser total: **8320 ms**;
+- server total: **6686 ms**;
+- pre-Sheets: **12 ms**;
+- Sheets: **6659 ms**;
+- post-Sheets: **12 ms**.
 
-### Exact `chat_id` lookup
+The Google Sheets read accounts for effectively all server-side latency. Validator, matching, read-only cycle evaluation and safe response construction are negligible.
 
-Correctness: PASS for owner / QA / unknown.
+## Interpretation
 
-Observed owner samples:
+The earlier rapid sequential canary did create queue/backoff escalation, but burst pressure is not the root cause of normal owner resume latency. Low-rate requests still spend roughly 6.1–7.2 seconds in the Google Sheets read.
 
-- 1033 ms
-- 1039 ms
-- 1548 ms
-- 1900 ms
-- median ~1293 ms
+The isolated/manual benchmarks around 1.0–1.7 seconds therefore understate the production webhook critical-path cost on this n8n Cloud instance.
 
-The exact lookup therefore does not provide a performance advantage.
+## Final B.2.1-B performance decision
 
-### Payload-width diagnostic
+Do **not** relax the UX threshold again.
 
-Empirical header map establishes 47 real Bot_Sessions columns A:AU. The Google Sheets read returned only 40 fields through `result` / AN in the tested configuration.
+Do **not** merge PR #10 yet.
 
-Physical blocks:
+Do **not** begin B.2.1-C.
 
-- canonical: A:AC
-- legacy technical/raw: AD:AO
-- cycle: AP:AU
+The synchronous Google Sheets read is not acceptable for the real Mini App resume path.
 
-The heavy legacy block accounts for about 40% of the observed serialized payload in the diagnostic sample, but width impact could not be isolated because the node ignored all tested range values (`A:AC`, `AP:AU`, even `A:C`) and returned the same field set / byte count.
+The next architecture gate must prove a faster **derived read model** while keeping `Bot_Sessions` authoritative.
 
-Therefore the payload hypothesis remains **INCONCLUSIVE**, not confirmed.
+## Preferred first candidate
 
-## B.1 interpretation correction
+Use an isolated n8n Data Table proof because n8n supports internal structured data tables and conditional row retrieval across workflows.
 
-Historical B.1 evidence should be read as follows:
+The proof must occur before production writers are changed.
 
-- removing `filtersUI` eliminated the ~5.3 s false-retry/slow path;
-- the configured explicit range should not be credited for the speedup unless a future node/runtime proves the range is actually honored.
+The Data Table candidate must be:
 
-This does not invalidate the B.1 production improvement; it corrects the causal attribution.
+- derived / non-authoritative;
+- keyed by `chat_id`;
+- minimal: only safe fields required by read-only resume;
+- free of raw Telegram payloads / legacy technical blobs;
+- equipped with an authoritative source timestamp/version marker;
+- exact for owner, QA and unknown lookup;
+- benchmarked in both manual and production-webhook paths.
 
-## Approved final read architecture for B.2.1-B
-
-Use the simplest already-proven read-only path:
-
-validated Telegram identity
-→ Google Sheets Bot_Sessions read
-→ exact in-memory `String(chat_id)` match
-→ read-only cycle evaluator
-→ strict safe resume projection
-
-Do not use the exact Google Sheets filter as a performance optimization because it is not faster.
-
-Do not redesign storage in this phase.
-
-## Revised performance gate
-
-B.2.1-B is now accepted on end-to-end user-visible resume latency, not on one Google Sheets node duration.
-
-### Live owner canary gate
-
-Run one owner-only real Telegram Mini App canary with no-retention enabled.
-
-The canary page may keep the genuine `initData` only in page memory and may issue one warm-up plus 10 immediate measured bootstrap requests using the same still-fresh payload. It must not persist or display the raw payload.
-
-Measure in the browser from POST start until the safe resume JSON is received and render-ready.
-
-Acceptance:
-
-- first real owner resume response: **< 3.0 s**;
-- measured warm P50 end-to-end resume: **< 2.0 s**;
-- measured warm P95 end-to-end resume: **< 3.0 s**;
-- no individual measured request should exceed **4.0 s** without being reported as a performance exception;
-- Google Sheets node duration must still be reported transparently, but it has no independent `<700 ms` pass/fail threshold.
-
-If these UX thresholds fail, B.2.1-B remains blocked and a different session-store/read-model architecture may be considered in a later explicit decision.
+Only if the isolated candidate is materially faster should a second gate design synchronization, staleness and fallback semantics.
 
 ## Functional/security gates remain unchanged
 
-The performance-gate revision does not weaken correctness or security requirements.
-
-B.2.1-B still requires:
+B.2.1-B correctness is already PASS for:
 
 - real Telegram Ed25519 validation;
-- validated Telegram identity as the only lookup identity;
-- exact owner session match;
-- no cycle creation/reset on Mini App open;
+- validated identity as the lookup source;
+- exact owner/QA/unknown behavior;
+- no cycle mint/reset on Mini App open;
 - current-cycle consent/lead safety;
-- blank-cycle stale consent/lead suppression;
-- no cross-contamination;
-- strict response whitelist / no raw legacy payload fields;
-- no execution retention of raw `initData`;
-- Lead Intake calls = 0;
-- Pipeline writes = 0;
-- consent writes = 0;
-- Bot_Sessions writes = 0;
-- Bot_Events writes = 0;
-- CRM writes = 0;
-- Client Concierge / Transport / Lead Intake / BotFather unchanged.
+- blank-cycle stale-state suppression;
+- strict response whitelist;
+- no raw `initData` retention;
+- zero canary-induced CRM/Sheets writes.
 
-## Next action
-
-Build the isolated Live Resume Canary and run the revised end-to-end UX gate. Do not begin B.2.1-C until B.2.1-B closes.
+These guarantees must carry into any future read-model proof.
