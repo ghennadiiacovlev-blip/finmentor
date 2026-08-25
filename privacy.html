@@ -8,20 +8,8 @@
   Unauthorized copying, redistribution or commercial reuse is prohibited.
   Contact: cfo@finmentor.md
   -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-94L98WZ12"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    var FM_GA4_DEBUG = new URLSearchParams(window.location.search).get('debug_ga4') === '1';
-    if (FM_GA4_DEBUG) {
-      gtag('config', 'G-94L98WZ12', { debug_mode: true });
-      gtag('event', 'ga4_debug_ping', { debug_mode: true, page_slug: location.pathname || '/', source: 'debug_test' });
-    } else {
-      gtag('config', 'G-94L98WZ12');
-    }
-  </script>
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="analytics.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
@@ -120,7 +108,7 @@
     <p>Финансовый навигатор на сайте работает по заранее заданным правилам (rule-based) и помогает выбрать подходящий первый шаг. Он не запрашивает и не собирает персональные данные и не даёт индивидуальных финансовых рекомендаций. В систему веб-аналитики могут передаваться только обезличенные события взаимодействия (например, какой вариант выбран), без персональных данных.</p>
 
     <h2>4. Веб-аналитика и отсутствие передачи персональных данных</h2>
-    <p>Сайт использует Google Analytics 4 (идентификатор измерения G-94L98WZ12) для обезличенной статистики посещений и взаимодействий. Мы <strong>не передаём в веб-аналитику персональные данные</strong>: имя, email, телефон, Telegram, название компании и текст комментариев в события аналитики не отправляются. Из мини-скана и финансового рентгена в аналитику могут передаваться только обобщённые параметры: страница, источник, категория бизнес-модели, уровень срочности, score / зона результата и выбранный первый шаг без ваших ответов и контактов.</p>
+    <p>Сайт использует Google Analytics 4 для обезличенной статистики посещений и взаимодействий. Google Analytics загружается только после вашего явного согласия в баннере cookies. Мы <strong>не передаём в веб-аналитику персональные данные</strong>: имя, email, телефон, Telegram, название компании и текст комментариев в события аналитики не отправляются. Из мини-скана и финансового рентгена в аналитику могут передаваться только обобщённые параметры: страница, источник, категория бизнес-модели, уровень срочности, score / зона результата и выбранный первый шаг без ваших ответов и контактов.</p>
 
     <h2>5. Цели обработки</h2>
     <ul>

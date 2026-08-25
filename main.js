@@ -700,6 +700,10 @@
 
   /* ------------------------------------------------------------- COOKIE CONSENT */
   function initCookieConsent() {
+    if (window.FMAnalytics && typeof window.FMAnalytics.initConsentUi === 'function') {
+      try { window.FMAnalytics.initConsentUi(); } catch (e) {}
+      return;
+    }
     var key = 'finmentor_cookie_consent';
     try { if (localStorage.getItem(key)) return; } catch (e) {}
 
