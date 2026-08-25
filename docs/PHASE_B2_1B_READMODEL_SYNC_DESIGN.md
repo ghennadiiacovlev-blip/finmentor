@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Read-model synchronization / consistency design
 
-Status: **DESIGN ACTIVE / QA PROOF REQUIRED**  
+Status: **QA PARTIAL PASS / CONCURRENCY + FALLBACK MATRIX OPEN**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 PR: #10
 
@@ -25,6 +25,8 @@ Production Client Concierge workflow `mppzthlkSJFr6Kle` contains exactly three `
 `Save Confirmation State` changes no field used by the Mini App read model. Therefore it does **not** need read-model invalidation or mirroring, and its current error behavior is not a blocker for read-model correctness.
 
 Only `Save Bot Session` and `Save Intake State` mutate fields included in the derived resume projection.
+
+Do not change `Save Confirmation State` merely to support the read model.
 
 ## Versioning decision
 
@@ -108,23 +110,42 @@ The helper must:
 
 Do not mirror raw/legacy payloads, `notes`, `previous_lead_id`, or n8n internal row metadata into the Mini App response.
 
-## Required QA before production changes
+## QA evidence received
 
-QA-only proof must cover:
+QA mirror helper: `OwLC7SANtHo69SKo` (QA-only; never activate as a production endpoint).
 
-- normal invalidate → authoritative commit simulation → mirror publish → verify;
-- idempotent replay;
-- authoritative failure leaves MISS/tombstone;
-- mirror-upsert failure leaves/returns to MISS;
-- verify mismatch invalidates;
-- duplicate safety;
-- Data Table outage fallback;
-- stale consent and lead safety;
-- unknown user / browser tamper;
-- concurrency with two same-chat mutations and reversed helper completion order;
-- confirmation-only writer requiring no mirror action;
-- idempotent reconciliation/backfill design.
+Passed so far:
+
+- normal projection upsert + read-after-write verification;
+- identical replay remains one row / idempotent;
+- cycle-change projection follows the authoritative test state;
+- verification mismatch invalidates the derived row;
+- missing-row / failed-publish end state converges to safe MISS;
+- stale consent/lead cycle guards remain safe;
+- unknown-user and hostile browser-field handling remain safe from earlier harness evidence.
+
+Important limitation of the current failed-upsert test: the row was already absent before the simulated failure. This proves the safe MISS end state, but not yet the stronger case where an existing healthy/stale row must be invalidated when publish fails.
+
+## QA still required before production changes
+
+The remaining QA matrix must prove:
+
+1. **strong publish-failure invalidation** — start with an existing `cache_valid=true` row, force mirror publish/upsert failure, and prove the row becomes tombstone/MISS rather than remaining a stale HIT;
+2. duplicate derived rows force authoritative fallback; never select the first row;
+3. Data Table outage/error forces authoritative fallback;
+4. MISS selects authoritative fallback and safe repair path;
+5. concurrency A/B — newer mutation changes `sync_token`; older helper later attempts to publish and must abort;
+6. concurrency B/A completion reversal — final cache must correspond to the authoritative row and newest valid token, not helper completion order;
+7. confirmation-only writer requires no mirror action and does not invalidate the read model;
+8. one-time backfill design is idempotent, duplicate-safe and minimal-field only;
+9. reconciliation design can rebuild/repair the derived table from authoritative `Bot_Sessions` without making the read model authoritative.
+
+## Backfill / reconciliation principles
+
+Backfill and reconciliation must read `Bot_Sessions` as authority and write only the derived Data Table. They must be idempotent, detect duplicate `chat_id` rows, compute `projection_version` from the authoritative projection, exclude raw/legacy fields, and verify the resulting derived row.
+
+No continuous high-frequency polling is authorized. Event-driven authoritative-first invalidation/mirror is primary; reconciliation is defense-in-depth.
 
 ## Stop condition
 
-Do not modify production writers, run production backfill, activate reconciliation, merge PR #10, or start B.2.1-C until the QA consistency matrix passes and a separate controlled production mirror gate is approved.
+Do not modify production writers, run production backfill, activate reconciliation, merge PR #10, or start B.2.1-C until the remaining QA matrix passes and a separate controlled production mirror gate is approved.
