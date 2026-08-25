@@ -659,6 +659,47 @@ check('the platform blocker is documented rather than claimed as fixed', () => {
   assert(/Cloudflare/i.test(doc), 'blocker doc names no concrete edge option');
 });
 
+// The staged policy and the documented expectation are two copies of the same thing, so
+// they can drift. These checks tie them together. None of them proves edge delivery — that
+// needs a real request, and the fixture says so itself.
+check('the expected-headers fixture matches the staged _headers policy', () => {
+  const fx = JSON.parse(read('qa/fixtures/expected-security-headers.json'));
+  const h = read('_headers');
+  for (const entry of fx.headers) {
+    if (entry.name === 'Referrer-Policy') continue; // delivered by meta, asserted above
+    const line = `${entry.name}: ${entry.value}`;
+    assert(h.includes(line), `_headers does not carry the fixture value for ${entry.name}`);
+  }
+});
+
+check('the fixture claims delivery only for the header that is actually delivered', () => {
+  const fx = JSON.parse(read('qa/fixtures/expected-security-headers.json'));
+  const live = fx.headers.filter((e) => e.delivery === 'live').map((e) => e.name);
+  assert(live.length === 1 && live[0] === 'Referrer-Policy',
+    'fixture claims live delivery for: ' + live.join(', ') + ' — only Referrer-Policy reaches browsers today');
+  assert(fx.origin.can_set_response_headers === false,
+    'fixture asserts the origin can set response headers; GitHub Pages cannot');
+});
+
+check('the fixture lists exactly the five unresolved headers', () => {
+  const fx = JSON.parse(read('qa/fixtures/expected-security-headers.json'));
+  const expected = ['Content-Security-Policy', 'Strict-Transport-Security', 'X-Frame-Options',
+    'X-Content-Type-Options', 'Permissions-Policy'].sort();
+  assert(fx.unresolved_count === 5, 'unresolved_count is ' + fx.unresolved_count);
+  assert(JSON.stringify([...fx.unresolved].sort()) === JSON.stringify(expected),
+    'unresolved list drifted: ' + fx.unresolved.join(', '));
+  const staged = fx.headers.filter((e) => e.delivery === 'staged').map((e) => e.name).sort();
+  assert(JSON.stringify(staged) === JSON.stringify(expected),
+    'staged headers disagree with the unresolved list');
+});
+
+check('CSP is not shipped as an enforcing meta tag', () => {
+  // A meta CSP has no report-only mode and ignores frame-ancestors, so shipping one here
+  // would break the live site on publish while not delivering the clickjacking control.
+  const offenders = collectHtml('').filter((f) => /http-equiv=["']Content-Security-Policy["']/i.test(read(f)));
+  assert(offenders.length === 0, 'enforcing meta CSP on: ' + offenders.slice(0, 5).join(', '));
+});
+
 check('privacy policy describes the live processors, not future ones', () => {
   for (const f of ['privacy.html', 'ro/privacy.html']) {
     const s = read(f);
