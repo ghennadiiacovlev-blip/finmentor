@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var GA4_ID = window.FM_GA4_ID || 'G-94L98WZ12';
+  var GA4_ID = window.FM_GA4_ID || 'G-94L9B8WZ12';
   var CONSENT_KEY = 'finmentor_cookie_consent';
   var loaded = false;
   var configured = false;
