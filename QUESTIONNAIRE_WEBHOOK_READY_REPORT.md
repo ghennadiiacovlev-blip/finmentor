@@ -1,3 +1,7 @@
+> **LEGACY / NON-PRODUCTION.** Historical record, kept unedited for the audit trail.
+> It references the obsolete GA4 ID `G-94L98WZ12`; production is `G-94L9B8WZ12`.
+> See [ARCHIVES_LEGACY_NOTICE.md](ARCHIVES_LEGACY_NOTICE.md).
+
 # FINMENTOR Questionnaire Webhook Ready Report
 
 ## Webhook constant

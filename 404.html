@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="robots" content="noindex,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Страница не найдена — FINMENTOR</title>
+  <meta name="description" content="Страница не найдена. Перейдите на главную FINMENTOR или воспользуйтесь основными разделами." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/style.css" />
+  <!-- Consent-aware analytics loader, same as every other page. -->
+  <script src="/analytics.js"></script>
+  <style>
+    .nf { max-width: 720px; margin: 0 auto; padding: 96px 24px 120px; text-align: center; }
+    .nf__code { font-size: clamp(56px, 12vw, 96px); font-weight: 700; line-height: 1; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .nf__title { font-size: clamp(20px, 3.4vw, 28px); margin: 0 0 14px; }
+    .nf__text { opacity: .78; margin: 0 auto 30px; max-width: 46ch; }
+    .nf__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 34px; }
+    .nf__links { display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: center; font-size: 15px; }
+    .nf__links a { opacity: .82; }
+    .nf__lang { margin-top: 30px; font-size: 14px; opacity: .62; }
+    [lang="ro"] .nf__ru, .nf__ro { display: none; }
+  </style>
+</head>
+<body>
+  <main class="nf" role="main">
+    <p class="nf__code">404</p>
+
+    <h1 class="nf__title" data-i18n-ru="Страница не найдена" data-i18n-ro="Pagina nu a fost găsită">Страница не найдена</h1>
+    <p class="nf__text" data-i18n-ru="Возможно, ссылка устарела или адрес введён с ошибкой. Ниже — основные разделы FINMENTOR."
+       data-i18n-ro="Este posibil ca linkul să fie învechit sau adresa să fie greșită. Mai jos sunt secțiunile principale FINMENTOR.">
+      Возможно, ссылка устарела или адрес введён с ошибкой. Ниже — основные разделы FINMENTOR.
+    </p>
+
+    <div class="nf__actions">
+      <a class="btn btn--primary" href="/" data-i18n-ru="На главную" data-i18n-ro="Spre pagina principală">На главную</a>
+      <a class="btn btn--ghost" href="/questionnaire.html" data-i18n-ru="Финансовый рентген" data-i18n-ro="Radiografia Financiară">Финансовый рентген</a>
+    </div>
+
+    <nav class="nf__links" aria-label="Основные разделы">
+      <a href="/working-capital-scan.html" data-i18n-ru="Мини-скан оборотного капитала" data-i18n-ro="Mini-scanarea capitalului de lucru">Мини-скан оборотного капитала</a>
+      <a href="/cases.html" data-i18n-ru="Кейсы" data-i18n-ro="Studii de caz">Кейсы</a>
+      <a href="/methodology.html" data-i18n-ru="Методология" data-i18n-ro="Metodologie">Методология</a>
+      <a href="/materials.html" data-i18n-ru="Материалы" data-i18n-ro="Materiale">Материалы</a>
+    </nav>
+
+    <p class="nf__lang"><a href="/ro/">Română</a> · <a href="/">Русский</a></p>
+  </main>
+
+  <script>
+    // GitHub Pages serves this file for any unmatched path, so the language cannot be
+    // inferred from a directory. Prefer the visitor's stored choice, then the browser.
+    (function () {
+      var ro = false;
+      try { ro = (localStorage.getItem('finmentor_lang') || '').toLowerCase().indexOf('ro') === 0; } catch (e) {}
+      if (!ro) ro = /^ro\b/i.test(navigator.language || '');
+      if (/^\/ro\//.test(location.pathname || '')) ro = true;
+      if (!ro) return;
+
+      document.documentElement.lang = 'ro';
+      document.title = 'Pagina nu a fost găsită — FINMENTOR';
+      var nodes = document.querySelectorAll('[data-i18n-ro]');
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].textContent = nodes[i].getAttribute('data-i18n-ro');
+      }
+      // Keep the visitor inside the Romanian tree.
+      var home = document.querySelector('.nf__actions a[href="/"]');
+      if (home) home.setAttribute('href', '/ro/');
+      var links = document.querySelectorAll('.nf__links a, .nf__actions a[href^="/"]');
+      for (var j = 0; j < links.length; j++) {
+        var href = links[j].getAttribute('href') || '';
+        if (href !== '/' && href.charAt(0) === '/' && href.indexOf('/ro/') !== 0) {
+          links[j].setAttribute('href', '/ro' + href);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
