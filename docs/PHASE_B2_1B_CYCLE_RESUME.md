@@ -1,6 +1,6 @@
 # FINMENTOR Phase B.2.1-B — Authoritative Cycle Read / Resume
 
-Status: **COMPONENT LOGIC PASS / PERFORMANCE + LIVE RESUME PENDING**  
+Status: **COMPONENT LOGIC PASS / PERFORMANCE BLOCKED / TARGETED READ OPTIMIZATION OPEN**  
 Branch: `feat/phase-b2.1b-cycle-resume`  
 Depends on: B.2.1-A real Telegram validation closure  
 
@@ -33,24 +33,16 @@ Mini App opening is not `/start` and is not `Начать заново`.
 ## Read path
 
 Validated Telegram user id
-→ read `Bot_Sessions` using the already-proven fast explicit-range pattern
+→ read `Bot_Sessions`
 → match exactly one row by `chat_id`
 → pass matched row into the read-only cycle evaluator
 → return safe resume projection.
 
-The session lookup must preserve the B.1 fan-out invariant conceptually:
+The session lookup must preserve the fan-out invariant conceptually:
 
 `Read Bot Sessions → Find Session → Read-only Cycle Evaluator → Build Resume`
 
 No node may be inserted between the exact-match stage and evaluator if it rewrites the selected `$json` unexpectedly.
-
-For the Google Sheets read use the proven fast form:
-
-- sheet: `Bot_Sessions`
-- explicit range: `A:AV`
-- no `filtersUI`
-- retry policy may remain enabled
-- target chat id comes from validated Telegram identity, not from browser fields
 
 ## Existing cycle semantics to preserve
 
@@ -69,7 +61,7 @@ Synthetic/read-only harness: `NlIHfmuBQ4mS70G6` (inactive; must never be publish
 
 Observed component results:
 
-- Bot_Sessions read returned 26 rows from gid `1584265787` using explicit `A:AV` and no `filtersUI`.
+- Bot_Sessions read returned 26 rows from gid `1584265787`.
 - Owner exact match selected row 26 and preserved cycle `C-551662084-1787632478740` with current consent and current lead state.
 - QA exact match selected row 27 / `C-QA-001`; hostile browser fields claiming the owner identity were ignored.
 - Unknown synthetic identity returned `session_found=false`, no foreign row and no cycle creation.
@@ -79,28 +71,84 @@ Observed component results:
 - Whitelisting in `Build Resume` is mandatory because Bot_Sessions contains legacy technical/raw payload columns such as `reply_markup`, `tg_body`, `result` and `lead_payload`; none may be exposed to Mini App.
 - Zero writes / Lead Intake / CRM side effects were observed in the harness.
 
-### Current blocker: Sheets latency
+## Performance benchmark — FAIL on full-row scan
 
-Two observed `Read Bot Sessions` durations were approximately 1084 ms and 1587 ms, above the B.1 target. This is not enough evidence to conclude a permanent regression because the prior B.1 isolated/live evidence demonstrated the same explicit-range pattern around the 0.4–0.6 s band.
+Dedicated benchmark `iZPvZ7Fc6O3kim5U` was run with the same workbook, sheet and explicit `A:AV` range.
 
-Do **not** weaken the architecture or reintroduce `filtersUI` to chase latency.
+Variant A — retry enabled (`3 × 2000 ms`), four measured samples:
 
-Before B.2.1-B is closed, run a focused latency gate:
+- 1009 ms
+- 1057 ms
+- 1199 ms
+- 1545 ms
+- median ≈ 1128 ms
 
-1. use the same Google Sheets credential, same workbook, same Bot_Sessions sheet and same explicit `A:AV` range;
-2. no validator, no Webhook and no unrelated Code-node work in the measured section;
-3. warm-up once;
-4. collect at least 8 measured reads;
-5. report min / median / p95 / max and item count;
-6. compare retry enabled vs retry disabled only in isolated test workflows if necessary;
-7. preserve no `filtersUI` and explicit range in every accepted candidate;
-8. if median remains >700 ms, investigate node configuration/runtime variance before building the live resume endpoint.
+Variant B — retry disabled, four measured samples:
 
-Performance acceptance for B.2.1-B:
+- 525 ms
+- 1194 ms
+- 1539 ms
+- 1718 ms
+- median ≈ 1367 ms
 
-- measured warm median session read: **<700 ms**;
-- a single live owner read may vary above median, but should normally remain **<1000 ms**;
-- if owner live read is >1000 ms, report it and do not hide it inside total bootstrap timing.
+Combined eight measured samples:
+
+- min: 525 ms
+- median: ≈1197 ms
+- p95: ≈1657 ms
+- max: 1718 ms
+- items per read: 26
+
+Conclusion:
+
+- retry is **not** the cause;
+- the `<700 ms` B.2.1-B performance gate is not met by a full `A:AV` scan;
+- no live resume canary should run until the read path is improved or the acceptance threshold is explicitly changed.
+
+The benchmark workflow was restored to the production-compatible retry setting and left inactive.
+
+## Approved next diagnostic — optimize read shape, not production data
+
+Do **not** move heavy payload columns out of `Bot_Sessions` in B.2.1-B. That is a production schema/data migration and is outside this phase.
+
+Before changing architecture, test whether the latency is caused by returning all 48 columns / all 26 rows.
+
+The next isolated benchmark is explicitly authorized in this order:
+
+### Candidate 1 — server-side exact-row lookup with retry disabled
+
+Test the Google Sheets node with an exact `chat_id` filter only in an isolated benchmark:
+
+- same workbook / Bot_Sessions sheet;
+- target = owner `chat_id` supplied from a safe synthetic benchmark context;
+- explicit range where supported;
+- `retryOnFail = false`;
+- measure 1 warm-up + at least 8 reads;
+- expected returned items = 1;
+- no writes;
+- do not apply to production automatically.
+
+This candidate is worth testing because the historical B.1 `filtersUI` slowdown was observed with retry enabled; the current benchmark has already shown retry itself is not useful when calls succeed. The purpose is to determine whether server-side row reduction can avoid transferring 26 full rows.
+
+Acceptance: median <700 ms, exact row only, deterministic owner/QA/unknown behavior, no false empty result.
+
+### Candidate 2 — payload-weight diagnostic
+
+If Candidate 1 fails, benchmark narrower column ranges only to isolate whether heavy legacy payload columns are the dominant cost.
+
+Use read-only synthetic benchmarks; do not treat them as final implementation yet.
+
+Measure at minimum:
+
+- canonical/core region without legacy heavy payload columns;
+- cycle-field region separately;
+- full `A:AV` baseline in the same benchmark window.
+
+Report bytes/field count if n8n exposes it, otherwise item count plus node duration.
+
+If a narrow range is materially faster, design a final read strategy only after proving that it still retrieves every field needed by `Find Session`, read-only cycle evaluation and `Build Resume`.
+
+Do not introduce a second source-of-truth sheet in B.2.1-B without a separate architecture decision.
 
 ## Safe resume response
 
@@ -173,8 +221,9 @@ A future draft-persistence/write phase requires a separate gate.
    - downstream evaluator and resume builder must each receive exactly one item.
 
 7. **Performance**
-   - focused warm benchmark as defined above;
-   - report read / find / evaluator / build resume / total bootstrap latency separately.
+   - current full-row baseline is blocked at ~1.2 s median;
+   - evaluate Candidate 1, then Candidate 2 only if needed;
+   - report exact read / find / evaluator / build resume / total bootstrap timing.
 
 8. **Privacy / retention**
    - do not reintroduce raw initData persistence;
@@ -182,19 +231,11 @@ A future draft-persistence/write phase requires a separate gate.
 
 ## Live owner resume gate
 
-After performance passes, build an isolated real resume endpoint:
-
-real Telegram initData
-→ existing proven Ed25519 validator
-→ validated identity only
-→ Bot_Sessions read `A:AV`
-→ exact Find Session
-→ read-only cycle evaluator
-→ safe Build Resume
-→ response
+Build the live owner resume endpoint only after an accepted read strategy meets the performance gate.
 
 Then execute one owner-only live canary and prove:
 
+- real Telegram Ed25519 validation passes;
 - correct authoritative owner row;
 - current cycle unchanged;
 - no cycle creation/reset;
@@ -216,7 +257,7 @@ B.2.1-B closes only when:
 - current cycle is resumed without an unintended reset;
 - stale cross-cycle consent/lead cannot leak into current resume state;
 - fan-out protection is exactly one downstream item;
-- performance gate passes;
+- an accepted read strategy has warm median <700 ms;
 - one live owner resume canary passes;
 - zero writes/Lead Intake/CRM side effects;
 - Client Concierge, Transport, Lead Intake and BotFather remain unchanged.
