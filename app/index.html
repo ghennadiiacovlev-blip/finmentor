@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#08111F" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>FINMENTOR — Private CFO Diagnostic</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <header class="topbar">
+      <button class="icon-btn" id="backBtn" type="button" aria-label="Назад" hidden><span aria-hidden="true">←</span></button>
+      <a class="brand" href="#" id="brandHome" aria-label="FINMENTOR — главная"><span class="brand__fin">fin</span><span class="brand__mentor">mentor</span></a>
+      <span class="secure-chip" id="secureChip"><span class="secure-chip__dot"></span><span id="secureChipText">Prototype</span></span>
+    </header>
+
+    <div class="progress" id="progress" role="progressbar" aria-label="Прогресс диагностики" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress__bar" id="progressBar"></div></div>
+
+    <main class="main" id="main" aria-live="polite"></main>
+
+    <footer class="footer-note"><span>FINMENTOR</span><span>Предварительная диагностика, не аудит</span></footer>
+  </div>
+
+  <template id="tpl-entry">
+    <section class="screen screen--entry">
+      <div class="hero-mark">Private CFO diagnostic</div>
+      <h1>Поймите, <span class="gold">где теряется контроль</span> над деньгами и прибылью.</h1>
+      <p class="lead">Короткая управленческая диагностика FINMENTOR. 3–5 минут, без загрузки документов.</p>
+      <div class="trust-grid">
+        <div class="trust-card"><b>01</b><span>Контекст бизнеса</span></div>
+        <div class="trust-card"><b>02</b><span>Финансовый контроль</span></div>
+        <div class="trust-card"><b>03</b><span>Предварительный следующий шаг</span></div>
+      </div>
+      <div class="telegram-context" id="telegramContext" role="status"></div>
+      <button class="btn btn--primary btn--xl" type="button" data-action="start">Начать диагностику</button>
+      <button class="btn btn--ghost" type="button" data-action="website">Открыть finmentor.md</button>
+      <p class="micro">Отправка эксперту происходит только после отдельного согласия.</p>
+    </section>
+  </template>
+
+  <template id="tpl-profile">
+    <section class="screen">
+      <div class="step-kicker">01 · Профиль бизнеса</div>
+      <h2>Сначала — масштаб и контекст.</h2>
+      <p class="sub">Нам нужны только данные, которые реально меняют маршрут диагностики.</p>
+      <div class="field-group">
+        <label>Сфера бизнеса</label>
+        <div class="choice-grid" data-field="sector">
+          <button class="choice" type="button" data-value="retail">Торговля</button><button class="choice" type="button" data-value="services">Услуги</button>
+          <button class="choice" type="button" data-value="production">Производство</button><button class="choice" type="button" data-value="real_estate">Недвижимость</button>
+          <button class="choice" type="button" data-value="ecommerce">E-commerce</button><button class="choice" type="button" data-value="other">Другое</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Годовой оборот</label>
+        <div class="choice-grid choice-grid--stack" data-field="turnover">
+          <button class="choice" type="button" data-value="lt100k">до 100k EUR</button><button class="choice" type="button" data-value="100k_500k">100k–500k EUR</button>
+          <button class="choice" type="button" data-value="500k_2m">500k–2M EUR</button><button class="choice" type="button" data-value="2m_10m">2M–10M EUR</button>
+          <button class="choice" type="button" data-value="gt10m">10M+ EUR</button>
+        </div>
+      </div>
+      <button class="btn btn--primary" type="button" data-action="next" disabled>Продолжить</button>
+    </section>
+  </template>
+
+  <template id="tpl-control">
+    <section class="screen">
+      <div class="step-kicker">02 · Финансовый контроль</div>
+      <h2>Что собственник видит <span class="gold">без ручного поиска</span>?</h2>
+      <p class="sub">Выберите описание, которое ближе всего к текущей реальности.</p>
+      <div class="diagnostic-list">
+        <article class="diag-card" data-field="cash"><div><span class="diag-card__num">01</span><h3>Деньги / Cash Flow</h3></div><div class="segmented"><button type="button" data-value="clear">Вижу</button><button type="button" data-value="partial">Частично</button><button type="button" data-value="unclear">Не вижу</button></div></article>
+        <article class="diag-card" data-field="profit"><div><span class="diag-card__num">02</span><h3>Прибыль / P&amp;L</h3></div><div class="segmented"><button type="button" data-value="clear">Вижу</button><button type="button" data-value="partial">Частично</button><button type="button" data-value="unclear">Не вижу</button></div></article>
+        <article class="diag-card" data-field="treasury"><div><span class="diag-card__num">03</span><h3>Платежи и казначейство</h3></div><div class="segmented"><button type="button" data-value="clear">Система</button><button type="button" data-value="partial">Смешанно</button><button type="button" data-value="unclear">Хаос</button></div></article>
+        <article class="diag-card" data-field="kpi"><div><span class="diag-card__num">04</span><h3>KPI и управленческий контроль</h3></div><div class="segmented"><button type="button" data-value="clear">Работает</button><button type="button" data-value="partial">Частично</button><button type="button" data-value="unclear">Нет системы</button></div></article>
+      </div>
+      <button class="btn btn--primary" type="button" data-action="next" disabled>Продолжить</button>
+    </section>
+  </template>
+
+  <template id="tpl-priority">
+    <section class="screen">
+      <div class="step-kicker">03 · Приоритет</div>
+      <h2>Что сейчас требует решения?</h2>
+      <div class="field-group">
+        <label>Главная проблема</label>
+        <div class="choice-grid choice-grid--stack" data-field="pain">
+          <button class="choice" type="button" data-value="cash_gap">Прибыль есть, денег не хватает</button><button class="choice" type="button" data-value="reporting">Нет понятного Cash Flow / P&amp;L</button>
+          <button class="choice" type="button" data-value="payments">Платежи идут хаотично</button><button class="choice" type="button" data-value="margin">Не понимаю реальную маржу</button>
+          <button class="choice" type="button" data-value="control">Нет управленческого контроля</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Горизонт решения</label>
+        <div class="choice-grid choice-grid--stack" data-field="urgency">
+          <button class="choice" type="button" data-value="now">Нужно решать сейчас</button><button class="choice" type="button" data-value="month">В течение месяца</button>
+          <button class="choice" type="button" data-value="quarter">В течение квартала</button><button class="choice" type="button" data-value="none">Нет срочности</button>
+        </div>
+      </div>
+      <label class="text-label" for="contextText">Контекст — необязательно</label>
+      <textarea id="contextText" maxlength="500" placeholder="Например: растём, но нет уверенности в Cash Flow на 3 месяца"></textarea>
+      <button class="btn btn--primary" type="button" data-action="preview" disabled>Показать предварительный результат</button>
+    </section>
+  </template>
+
+  <template id="tpl-preview">
+    <section class="screen">
+      <div class="step-kicker">04 · Предварительный результат</div>
+      <div class="result-hero"><span class="result-hero__label">Зона внимания</span><strong id="resultFocus">Финансовый контроль</strong><p id="resultSummary">По вашим ответам основной риск сейчас — разрыв между данными и управленческими решениями.</p></div>
+      <div class="insight-grid" id="insightGrid"></div>
+      <div class="next-step-card"><span>Следующий разумный шаг</span><h3 id="nextStepTitle">Financial X-Ray</h3><p id="nextStepText">Короткий экспертный разбор, чтобы подтвердить причины и определить, какие данные действительно нужны.</p></div>
+      <p class="disclaimer">Это предварительная оценка только по вашим ответам. Она не является аудитом, бухгалтерской проверкой или финансовой гарантией.</p>
+      <button class="btn btn--primary" type="button" data-action="contact">Передать контекст эксперту</button>
+      <button class="btn btn--ghost" type="button" data-action="restart">Начать заново</button>
+    </section>
+  </template>
+
+  <template id="tpl-contact">
+    <section class="screen">
+      <div class="step-kicker">05 · Контакт</div>
+      <h2>Как удобно вернуться к вам?</h2>
+      <p class="sub">Заполните минимум. В Telegram можно оставить Telegram основным каналом; вне Telegram потребуется телефон или email.</p>
+      <div class="input-grid">
+        <label>Имя<input id="contactName" type="text" autocomplete="name" placeholder="Ваше имя" /></label>
+        <label>Компания<input id="contactCompany" type="text" autocomplete="organization" placeholder="Название компании" /></label>
+        <label id="directLabel">Телефон или email<input id="contactDirect" type="text" autocomplete="email" placeholder="Необязательно в Telegram" /><span class="field-hint" id="directHint"></span></label>
+      </div>
+      <button class="btn btn--primary" type="button" data-action="consent" disabled>Продолжить</button>
+    </section>
+  </template>
+
+  <template id="tpl-consent">
+    <section class="screen">
+      <div class="step-kicker">06 · Согласие</div>
+      <div class="consent-card"><span class="consent-card__icon">✓</span><h2>Передать запрос эксперту FINMENTOR?</h2><p id="consentText">Будут переданы ответы диагностики и контактные данные.</p></div>
+      <div class="consent-summary" id="consentSummary"></div>
+      <div class="consent-actions"><button class="btn btn--primary" type="button" data-action="submit-yes">Да, передать эксперту</button><button class="btn btn--ghost btn--neutral" type="button" data-action="submit-no">Пока не передавать</button></div>
+      <p class="micro">B.2.0 prototype: backend submission отключён. Кнопки демонстрируют только UX.</p>
+    </section>
+  </template>
+
+  <template id="tpl-submitted">
+    <section class="screen screen--center">
+      <div class="success-orb">✓</div>
+      <div class="step-kicker">Контекст подготовлен</div>
+      <h2 id="submitTitle">Спасибо. Запрос готов к передаче.</h2>
+      <p class="sub" id="submitText">В рабочей версии здесь появится подтверждение только после canonical <code>ok: true</code> от Lead Intake.</p>
+      <div class="post-grid">
+        <button class="mini-action" type="button" data-action="materials">📊 Что подготовить</button><button class="mini-action" type="button" data-action="services">💼 Услуги FINMENTOR</button>
+        <button class="mini-action" type="button" data-action="website">🌐 Открыть сайт</button><button class="mini-action" type="button" data-action="close">✕ Закрыть</button>
+      </div>
+    </section>
+  </template>
+
+  <script src="app-i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

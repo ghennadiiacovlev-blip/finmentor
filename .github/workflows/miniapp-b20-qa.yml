@@ -1,0 +1,137 @@
+name: Mini App B.2.0 QA
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'qa/**'
+      - 'docs/PHASE_B2_B20_QA_REPORT.md'
+      - '.github/workflows/miniapp-b20-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JavaScript syntax
+        run: node --check app/app.js
+
+      - name: Mini App contract checks
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import re, sys
+
+          html = Path('app/index.html').read_text(encoding='utf-8')
+          js = Path('app/app.js').read_text(encoding='utf-8')
+          css = Path('app/app.css').read_text(encoding='utf-8')
+
+          errors = []
+
+          class IdParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.ids=[]
+              def handle_starttag(self, tag, attrs):
+                  for k,v in attrs:
+                      if k == 'id' and v: self.ids.append(v)
+
+          p = IdParser(); p.feed(html)
+          dup = sorted({x for x in p.ids if p.ids.count(x) > 1})
+          if dup: errors.append(f'duplicate HTML ids: {dup}')
+
+          required_templates = ['tpl-entry','tpl-profile','tpl-control','tpl-priority','tpl-preview','tpl-contact','tpl-consent','tpl-submitted']
+          for item in required_templates:
+              if item not in p.ids: errors.append(f'missing template: {item}')
+
+          forbidden_js = {
+              'fetch(': 'direct fetch call',
+              'XMLHttpRequest': 'XHR call',
+              'sendBeacon': 'beacon call',
+              'WebSocket(': 'websocket call',
+              'api.telegram.org': 'Telegram Bot API literal',
+              'googleapis.com': 'Google API literal',
+              'ghennadi.app.n8n.cloud': 'production n8n host literal',
+              '/webhook/': 'webhook literal'
+          }
+          for needle, label in forbidden_js.items():
+              if needle in js:
+                  errors.append(f'forbidden network surface in JS: {label}')
+
+          forbidden_html = {
+              'sheets.googleapis.com': 'Google Sheets API literal',
+              'api.telegram.org': 'Telegram Bot API literal',
+              'ghennadi.app.n8n.cloud': 'production n8n host literal',
+              '/webhook/': 'webhook literal'
+          }
+          for needle, label in forbidden_html.items():
+              if needle in html:
+                  errors.append(f'forbidden network surface in HTML: {label}')
+
+          if "data-value=\"none\"" not in html:
+              errors.append('missing explicit urgency=none choice')
+          if "state.urgency==='none'" not in js:
+              errors.append('urgency=none semantic guard missing')
+          if 'это не повышает приоритет заявки' not in js:
+              errors.append('non-urgent explanatory output missing')
+
+          for action in ['submit-yes','submit-no']:
+              if f'data-action=\"{action}\"' not in html:
+                  errors.append(f'missing consent action: {action}')
+
+          if 'aria-valuenow' not in js or 'role="progressbar"' not in html:
+              errors.append('progress accessibility contract incomplete')
+          if 'aria-pressed' not in js:
+              errors.append('selection aria-pressed contract missing')
+          if '@media(max-width:390px)' not in css:
+              errors.append('390px responsive rule missing')
+          if 'prefers-reduced-motion:reduce' not in css:
+              errors.append('reduced-motion rule missing')
+          if not re.search(r'\.segmented button\{[^}]*min-height:44px', css):
+              errors.append('segmented tap target <44px or not declared')
+          if not re.search(r'\.choice\{[^}]*min-height:52px', css):
+              errors.append('choice-card tap target contract missing')
+          if not re.search(r'\.btn\{[^}]*min-height:50px', css):
+              errors.append('primary button tap target contract missing')
+
+          if errors:
+              print('\n'.join('FAIL: '+e for e in errors))
+              sys.exit(1)
+          print('PASS: B.2.0 static contracts')
+          PY
+
+      - name: Install browser QA runtime
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install chromium
+
+      - name: Run local Mini App server
+        run: |
+          python3 -m http.server 8000 >/tmp/finmentor-b20-http.log 2>&1 &
+          echo $! > /tmp/finmentor-b20-http.pid
+          sleep 1
+
+      - name: Real Chromium UX / safety QA
+        env:
+          MINIAPP_URL: http://127.0.0.1:8000/app/
+          QA_ARTIFACT_DIR: qa-artifacts
+        run: node qa/miniapp_b20_browser_qa_v2.mjs
+
+      - name: Upload browser QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finmentor-b20-browser-qa
+          path: qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Safety summary
+        run: |
+          echo 'No production backend calls are allowed in B.2.0.'
+          echo 'B.2.1 is the first phase allowed to introduce a validated Gateway.'
