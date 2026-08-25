@@ -51,6 +51,115 @@
     return out;
   }
 
+  // ---------------------------------------------------------------- attribution
+  //
+  // UTM parameters used to be captured only at submit time, and only from the URL of the
+  // page being submitted. A visitor who landed on a campaign link and then navigated before
+  // converting lost their attribution completely. Capture now happens on every page load.
+  //
+  // Both touches are kept, because they answer different questions:
+  //   first_touch - what introduced this lead (never overwritten once set)
+  //   last_touch  - what converted it (overwritten by each new campaign arrival)
+  //
+  // Only campaign metadata is stored. No personal data and no GA identifier is written here,
+  // and GA client/session ids are still attached only after analytics consent.
+  var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+  var FIRST_TOUCH_KEY = 'finmentor_attr_first';
+  var LAST_TOUCH_KEY = 'finmentor_attr_last';
+
+  function readUtmFromUrl() {
+    var out = {};
+    var any = false;
+    try {
+      var params = new URLSearchParams(location.search || '');
+      UTM_KEYS.forEach(function (key) {
+        var value = (params.get(key) || '').trim().slice(0, 120);
+        if (value) { out[key] = value; any = true; }
+      });
+    } catch (e) {
+      return null;
+    }
+    return any ? out : null;
+  }
+
+  function readTouch(key) {
+    try {
+      var raw = localStorage.getItem(key);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return (parsed && typeof parsed === 'object') ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeTouch(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  function captureAttribution() {
+    var current = readUtmFromUrl();
+    if (!current) return;
+    var stamped = {};
+    UTM_KEYS.forEach(function (k) { if (current[k]) stamped[k] = current[k]; });
+    stamped.captured_at = new Date().toISOString();
+    stamped.landing_page = pageSlug();
+    // First touch is written once and never overwritten.
+    if (!readTouch(FIRST_TOUCH_KEY)) writeTouch(FIRST_TOUCH_KEY, stamped);
+    writeTouch(LAST_TOUCH_KEY, stamped);
+  }
+
+  function getAttribution() {
+    var first = readTouch(FIRST_TOUCH_KEY);
+    var last = readTouch(LAST_TOUCH_KEY);
+    // A single-visit lead has one touch, which is both its first and its last.
+    return { first_touch: first || last || null, last_touch: last || first || null };
+  }
+
+  // GA4 must never receive arbitrary URL query. Only this whitelist of non-identifying
+  // parameters survives into page_location/page_path. Everything else is dropped, so a
+  // PII-bearing link cannot turn into a GA dimension after the visitor accepts analytics.
+  var URL_PARAM_ALLOW = {
+    tool: true,
+    utm_source: true, utm_medium: true, utm_campaign: true, utm_content: true, utm_term: true,
+    topic: true, model: true, pain: true, intent: true, source: true,
+    lang: true, debug_ga4: true
+  };
+
+  function scrubbedParamValue(value) {
+    return String(value === undefined || value === null ? '' : value)
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig, '')
+      .replace(/\+?\d[\d\s().-]{6,}\d/g, '')
+      .slice(0, 100);
+  }
+
+  function safeQueryString() {
+    var out = [];
+    try {
+      new URLSearchParams(location.search || '').forEach(function (value, key) {
+        if (!URL_PARAM_ALLOW[key]) return;
+        var clean = scrubbedParamValue(value);
+        // Only plain tokens survive. Free text, encoded payloads and anything left
+        // hollowed out by the scrubbers above are all rejected outright.
+        if (!/^[A-Za-z0-9_.-]{1,64}$/.test(clean)) return;
+        out.push(encodeURIComponent(key) + '=' + encodeURIComponent(clean));
+      });
+    } catch (e) {
+      return '';
+    }
+    return out.length ? '?' + out.join('&') : '';
+  }
+
+  // Path and location are rebuilt from origin + pathname + whitelisted query. The raw
+  // location.href and location.search are never handed to GA, and the fragment is dropped.
+  function safePagePath() {
+    return (location.pathname || '/') + safeQueryString();
+  }
+
+  function safePageLocation() {
+    return location.origin + safePagePath();
+  }
+
   // Before consent we intentionally discard analytics events instead of queuing
   // them for later transmission. Google code itself is not loaded until consent.
   function noopGtag() {}
@@ -81,15 +190,34 @@
     }
   }
 
+  // All three lead tools report the same conversion. mini_scan used to redirect to
+  // thank-you without ever emitting generate_lead, so those leads were never counted.
+  var LEAD_TOOLS = {
+    contact:       { form_name: 'consultation',              lead_type: 'consultation' },
+    xray_extended: { form_name: 'financial_xray',            lead_type: 'financial_xray' },
+    mini_scan:     { form_name: 'working_capital_mini_scan', lead_type: 'working_capital_mini_scan' }
+  };
+
   function emitConfirmedLead() {
     if (!/\/thank-you\.html$/i.test(location.pathname || '')) return;
 
     var tool = '';
-    try { tool = (new URLSearchParams(location.search || '')).get('tool') || ''; } catch (e) {}
-    if (tool !== 'contact' && tool !== 'xray_extended') return;
+    var submissionId = '';
+    try {
+      var params = new URLSearchParams(location.search || '');
+      tool = params.get('tool') || '';
+      submissionId = params.get('sid') || '';
+    } catch (e) {}
+
+    var meta = LEAD_TOOLS[tool];
+    if (!meta) return;
+    // Reaching thank-you only counts when it followed a same-origin submission.
     if (!sameOriginReferrer()) return;
 
-    var dedupeKey = 'finmentor_ga4_generate_lead:' + tool;
+    // Dedupe on the submission id, so a genuine second lead from the same tool in the
+    // same tab is still counted. Keying on the tool alone suppressed it for the whole
+    // session. Falls back to the tool name when no id is present.
+    var dedupeKey = 'finmentor_ga4_generate_lead:' + (submissionId || tool);
     try {
       if (sessionStorage.getItem(dedupeKey) === '1') return;
       sessionStorage.setItem(dedupeKey, '1');
@@ -99,8 +227,8 @@
       source: 'website',
       page_slug: 'thank-you',
       site_language: document.documentElement.lang || '',
-      form_name: tool === 'xray_extended' ? 'financial_xray' : 'consultation',
-      lead_type: tool === 'xray_extended' ? 'financial_xray' : 'consultation'
+      form_name: meta.form_name,
+      lead_type: meta.lead_type
     });
   }
 
@@ -209,9 +337,9 @@
     });
 
     window.gtag('event', 'page_view', {
-      page_location: location.href,
+      page_location: safePageLocation(),
       page_title: document.title,
-      page_path: location.pathname + location.search,
+      page_path: safePagePath(),
       language: document.documentElement.lang || '',
       debug_mode: debug
     });
@@ -311,6 +439,12 @@
     payload = (payload && typeof payload === 'object') ? payload : {};
     payload.meta = (payload.meta && typeof payload.meta === 'object') ? payload.meta : {};
 
+    // Campaign attribution does not depend on analytics consent and is attached either way.
+    // GA client/session identifiers do depend on it and are attached only below.
+    var attribution = getAttribution();
+    payload.meta.attribution_first_touch = attribution.first_touch;
+    payload.meta.attribution_last_touch = attribution.last_touch;
+
     return getAttributionContext(timeoutMs).then(function (context) {
       payload.meta.analytics_consent = !!context.analytics_consent;
       delete payload.meta.ga_client_id;
@@ -363,6 +497,10 @@
     bannerMounted = true;
   }
 
+  // Runs on every page load, before any consent decision, because campaign metadata is not
+  // analytics storage and losing it is unrecoverable once the visitor navigates away.
+  captureAttribution();
+
   initBusinessTracking();
 
   window.FMAnalytics = {
@@ -376,6 +514,10 @@
     getConsent: getChoice,
     getAttributionContext: getAttributionContext,
     enrichLeadPayload: enrichLeadPayload,
+    getAttribution: getAttribution,
+    // Exposed so the regression suite can assert the query scrubber directly.
+    safePagePath: safePagePath,
+    safePageLocation: safePageLocation,
     isLoaded: function () { return loaded; }
   };
 

@@ -66,31 +66,19 @@
     return meta;
   }
 
+  // Success requires HTTP 2xx AND a JSON body with ok === true. That is the only signal
+  // that Lead Intake durably committed the canonical Pipeline row; a bare 2xx is not.
   function postLeadPayload(payload) {
     var url = webhookUrl();
     if (!url) return Promise.reject(new Error('webhook_not_configured'));
-    var controller = window.AbortController ? new AbortController() : null;
-    var timer = controller ? window.setTimeout(function () { controller.abort(); }, 12000) : null;
-    return fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'omit',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: controller ? controller.signal : undefined
-    }).then(function (res) {
-      if (timer) window.clearTimeout(timer);
-      if (!res.ok) throw new Error('webhook_status_' + res.status);
-      return res;
-    }).catch(function (err) {
-      if (timer) window.clearTimeout(timer);
-      throw err;
-    });
+    if (!window.FMLeadTransport) return Promise.reject(new Error('transport_unavailable'));
+    return window.FMLeadTransport.postLead(url, payload, { timeoutMs: 12000 });
   }
 
-  function thankYou(tool) {
-    window.location.href = 'thank-you.html' + (tool ? '?tool=' + encodeURIComponent(tool) : '');
+  function thankYou(tool, requestId) {
+    window.location.href = window.FMLeadTransport
+      ? window.FMLeadTransport.thankYouUrl(tool, requestId)
+      : 'thank-you.html' + (tool ? '?tool=' + encodeURIComponent(tool) : '');
   }
 
   /* ------------------------------------------------------------- INTRO */
@@ -665,15 +653,6 @@
         meta: leadMeta(true)
       };
 
-      if (window.finmentorTrack) {
-        window.finmentorTrack('lead_submit', {
-          source: 'contact_form',
-          page_slug: 'index',
-          tool: 'contact',
-          first_step: 'contact'
-        });
-      }
-
       if (submit) submit.disabled = true;
       var enrichPromise = Promise.resolve(payload);
       if (window.FMAnalytics && typeof window.FMAnalytics.enrichLeadPayload === 'function') {
@@ -684,8 +663,18 @@
       enrichPromise.catch(function () { return payload; }).then(function (enrichedPayload) {
         payload = enrichedPayload || payload;
         return postLeadPayload(payload);
-      }).then(function () {
-        thankYou('contact');
+      }).then(function (result) {
+        // Legacy event, emitted only after a confirmed backend commit. It used to fire
+        // before the POST, which counted abandoned and failed submissions as leads.
+        if (window.finmentorTrack) {
+          window.finmentorTrack('lead_submit', {
+            source: 'contact_form',
+            page_slug: 'index',
+            tool: 'contact',
+            first_step: 'contact'
+          });
+        }
+        thankYou('contact', result && result.requestId);
       }).catch(function () {
         if (submit) submit.disabled = false;
         if (success) {

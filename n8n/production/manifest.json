@@ -1,0 +1,213 @@
+{
+  "generatedAt": "2026-08-25T20:04:03Z",
+  "tenantHost": "ghennadi.app.n8n.cloud",
+  "spreadsheetId": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+  "totalWorkflows": 35,
+  "activeWorkflows": 8,
+  "exported": 9,
+  "workflows": [
+    {
+      "id": "imeJIDeNyaWDyXzh",
+      "name": "FINMENTOR Daily Lead Digest PREMIUM FINAL",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:07",
+      "nodeCount": 9,
+      "structuralHash": "066e34d566d034eff4727878d9dd306b331023a94cd6a8d5781d2b8da93332e2",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.scheduleTrigger",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "imeJIDeNyaWDyXzh.finmentor-daily-lead-digest-premium-final.json",
+      "trackedReason": "Daily Lead Digest - locator repaired, awaiting owner re-activation"
+    },
+    {
+      "id": "RBiFLhVjizMkAzrK",
+      "name": "FINMENTOR Error Monitor PREMIUM",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:45:32",
+      "nodeCount": 5,
+      "structuralHash": "00235edb5047f2a5049afa64a40b8e0daef75c81bef170a6b2d322d5ff8c56ba",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.errorTrigger",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "RBiFLhVjizMkAzrK.finmentor-error-monitor-premium.json",
+      "trackedReason": ""
+    },
+    {
+      "id": "zeLOCuf0K1bkaKl2",
+      "name": "FINMENTOR Followup Sequence PREMIUM v2",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:06",
+      "nodeCount": 15,
+      "structuralHash": "5f794b8f42d3184a619e8c1e329a7b9811b34fca1e30750ed5eb1aa539c70476",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.scheduleTrigger",
+        "n8n-nodes-base.switch",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "zeLOCuf0K1bkaKl2.finmentor-followup-sequence-premium-v2.json",
+      "trackedReason": ""
+    },
+    {
+      "id": "Ukn1cprWiXzBHojl",
+      "name": "FINMENTOR Lead Command Center PREMIUM FINAL",
+      "active": false,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:37:00",
+      "nodeCount": 21,
+      "structuralHash": "bb5c2a060057f5ee2ac598141cf76883d5955dd55b0e4df5040a63d4bc7b7c9e",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.if",
+        "n8n-nodes-base.switch",
+        "n8n-nodes-base.telegram",
+        "n8n-nodes-base.webhook"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "Ukn1cprWiXzBHojl.finmentor-lead-command-center-premium-final.json",
+      "trackedReason": "unsafe original Command Center - retained OFF as the P0 rollback point"
+    },
+    {
+      "id": "qF9tonlHHIxc8MDd",
+      "name": "FINMENTOR Lead Command Center SECURE CANDIDATE",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:08",
+      "nodeCount": 22,
+      "structuralHash": "013584e178f9762c6d9ea0665dd83b8137a9f829b66c920bbdd467bb0e0bdf2f",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.if",
+        "n8n-nodes-base.switch",
+        "n8n-nodes-base.telegram",
+        "n8n-nodes-base.telegramTrigger"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "qF9tonlHHIxc8MDd.finmentor-lead-command-center-secure-candidate.json",
+      "trackedReason": "secure Command Center candidate - awaiting owner publish"
+    },
+    {
+      "id": "QmIyEW2ZEqKregmN",
+      "name": "FINMENTOR Lead Intake PREMIUM FINAL",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 20:02:09",
+      "nodeCount": 57,
+      "structuralHash": "0dfebb810d7ee2e3d97b17b10b4e1d90e36b82739cf6f99bb2bef67ab1308d8e",
+      "nodeTypes": [
+        "@n8n/n8n-nodes-langchain.openAi",
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.if",
+        "n8n-nodes-base.respondToWebhook",
+        "n8n-nodes-base.stopAndError",
+        "n8n-nodes-base.switch",
+        "n8n-nodes-base.telegram",
+        "n8n-nodes-base.webhook"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API",
+        "OpenAI account"
+      ],
+      "export": "QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
+      "trackedReason": ""
+    },
+    {
+      "id": "LZ2mvKXbBikmeVTn",
+      "name": "FINMENTOR SLA Lead Watch PREMIUM FINAL",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:05",
+      "nodeCount": 10,
+      "structuralHash": "14cc5ac7a09716b2f9bbcc54eb24e8a15c35300172e40eedb4318d093c71cf0c",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.scheduleTrigger",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Leads Bot FINAL",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "LZ2mvKXbBikmeVTn.finmentor-sla-lead-watch-premium-final.json",
+      "trackedReason": ""
+    },
+    {
+      "id": "mppzthlkSJFr6Kle",
+      "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:02",
+      "nodeCount": 33,
+      "structuralHash": "a0ce72c3c702be36cf326ca0f8c262953408d5990e72cea0b02f3941747e9e29",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.executeWorkflow",
+        "n8n-nodes-base.googleSheets",
+        "n8n-nodes-base.httpRequest",
+        "n8n-nodes-base.if",
+        "n8n-nodes-base.telegram",
+        "n8n-nodes-base.telegramTrigger"
+      ],
+      "credentialNames": [
+        "FINMENTOR Client Concierge Bot",
+        "Google Sheets OAuth2 API"
+      ],
+      "export": "mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "trackedReason": ""
+    },
+    {
+      "id": "ShcmmJeLSE8LYVBk",
+      "name": "FINMENTOR Telegram Client Transport",
+      "active": true,
+      "archived": false,
+      "updatedAt": "08/25/2026 17:39:03",
+      "nodeCount": 20,
+      "structuralHash": "f7c15622b34f6d45990250e08a1b5e9bd170c34e3cdfd067e67fab63d2e150c6",
+      "nodeTypes": [
+        "n8n-nodes-base.code",
+        "n8n-nodes-base.executeWorkflowTrigger",
+        "n8n-nodes-base.if",
+        "n8n-nodes-base.switch",
+        "n8n-nodes-base.telegram"
+      ],
+      "credentialNames": [
+        "FINMENTOR Client Concierge Bot"
+      ],
+      "export": "ShcmmJeLSE8LYVBk.finmentor-telegram-client-transport.json",
+      "trackedReason": ""
+    }
+  ]
+}
