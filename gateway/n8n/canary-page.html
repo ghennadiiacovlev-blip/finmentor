@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="finmentor-bootstrap-endpoint" content="__BOOTSTRAP_ENDPOINT__">
+  <title>FINMENTOR — Telegram validation canary</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#08111f;--card:#0d1b2e;--gold:#d8b450;--text:#f4f5f7;--muted:rgba(255,255,255,.66);--ok:#75d09a;--bad:#e16b6b}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--bg),#091525);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);display:grid;place-items:center;padding:24px}.card{width:min(100%,430px);padding:24px;border:1px solid rgba(255,255,255,.1);border-radius:22px;background:var(--card);box-shadow:0 18px 48px rgba(0,0,0,.25)}.brand{font-weight:800;letter-spacing:-.03em;margin-bottom:26px}.brand span{color:var(--gold)}.kicker{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}h1{font-size:1.7rem;line-height:1.15;margin:0 0 12px}.status{margin-top:18px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.04);color:var(--muted);line-height:1.5}.status.ok{border:1px solid rgba(117,208,154,.25);color:var(--ok)}.status.bad{border:1px solid rgba(225,107,107,.25);color:var(--bad)}.meta{margin-top:14px;font-size:.78rem;color:var(--muted);line-height:1.55;word-break:break-word}.small{margin-top:20px;font-size:.72rem;color:rgba(255,255,255,.42);line-height:1.5}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">FIN<span>MENTOR</span></div>
+    <div class="kicker">B.2.1-A Security Canary</div>
+    <h1>Проверка Telegram-сессии</h1>
+    <div id="status" class="status">Проверяю защищённое подключение…</div>
+    <div id="meta" class="meta" hidden></div>
+    <div class="small">Страница не сохраняет Telegram initData в URL, storage, cookies или DOM и не выводит его в консоль.</div>
+  </main>
+<script>
+(function(){
+  'use strict';
+  var statusEl=document.getElementById('status');
+  var metaEl=document.getElementById('meta');
+  function show(kind,text,meta){
+    statusEl.className='status '+kind;
+    statusEl.textContent=text;
+    if(meta){metaEl.hidden=false;metaEl.textContent=meta;}else{metaEl.hidden=true;metaEl.textContent='';}
+  }
+  try{
+    var tg=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+    if(!tg){show('bad','Страница открыта вне Telegram Web App.');return;}
+    tg.ready();
+    if(tg.expand)tg.expand();
+    var initData=tg.initData;
+    if(typeof initData!=='string'||!initData.length){show('bad','Telegram initData отсутствует.');return;}
+    var endpoint=document.querySelector('meta[name="finmentor-bootstrap-endpoint"]').content;
+    if(!endpoint||endpoint==='__BOOTSTRAP_ENDPOINT__'){show('bad','Canary endpoint не настроен.');return;}
+    fetch(endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      cache:'no-store',
+      credentials:'omit',
+      referrerPolicy:'no-referrer',
+      body:JSON.stringify({init_data:initData,client_version:'b2.1.0',locale:'ru'})
+    }).then(function(res){return res.json().then(function(body){return{status:res.status,body:body};});})
+      .then(function(result){
+        var b=result.body||{};
+        if(result.status===200&&b.ok===true&&b.safe_user){
+          var label=(b.safe_user.first_name||'Telegram user')+' · ID '+String(b.safe_user.telegram_user_id||'');
+          show('ok','Telegram-подпись подтверждена.',label);
+          return;
+        }
+        show('bad','Проверка не пройдена.',String(b.error_code||'UNKNOWN_ERROR'));
+      })
+      .catch(function(){show('bad','Сетевая ошибка canary.');});
+  }catch(e){show('bad','Canary завершился с ошибкой.');}
+})();
+</script>
+</body>
+</html>
