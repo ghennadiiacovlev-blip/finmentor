@@ -1599,7 +1599,17 @@
     }
 
     setSubmitting(true);
-    postQuestionnairePayload(payload)
+    var enrichPromise = Promise.resolve(payload);
+    if (window.FMAnalytics && typeof window.FMAnalytics.enrichLeadPayload === 'function') {
+      try { enrichPromise = window.FMAnalytics.enrichLeadPayload(payload, 1800); } catch (e) {}
+    } else {
+      payload.meta = payload.meta || {};
+      payload.meta.analytics_consent = false;
+    }
+    enrichPromise.catch(function () { return payload; }).then(function (enrichedPayload) {
+      payload = enrichedPayload || payload;
+      return postQuestionnairePayload(payload);
+    })
       .then(function () {
         setSubmitting(false);
         trackSafe('lead_submit', {
