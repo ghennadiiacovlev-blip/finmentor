@@ -6,6 +6,7 @@
   var loaded = false;
   var configured = false;
   var bannerMounted = false;
+  var businessTrackingMounted = false;
 
   function getChoice() {
     try { return localStorage.getItem(CONSENT_KEY) || ''; } catch (e) { return ''; }
@@ -19,6 +20,37 @@
     return (document.documentElement.lang || '').toLowerCase().indexOf('ro') === 0 || /(^|\/)ro\//.test(location.pathname);
   }
 
+  function pageSlug() {
+    var path = (location.pathname || '/').replace(/\/+$/, '');
+    if (!path || path === '' || path === '/index.html' || path === '/ro' || path === '/ro/index.html') return 'index';
+    var name = path.split('/').pop() || 'index';
+    return name.replace(/\.html$/i, '').replace(/[^a-z0-9_-]+/ig, '-').slice(0, 80) || 'index';
+  }
+
+  function safeBusinessParams(params) {
+    var allow = {
+      source: true,
+      page_slug: true,
+      site_language: true,
+      form_name: true,
+      lead_type: true,
+      contact_method: true,
+      file_extension: true,
+      file_name: true
+    };
+    var out = {};
+    Object.keys(params || {}).forEach(function (key) {
+      if (!allow[key]) return;
+      var value = params[key];
+      if (value === undefined || value === null) return;
+      out[key] = String(value)
+        .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig, '[email]')
+        .replace(/\+?\d[\d\s().-]{6,}\d/g, '[phone]')
+        .slice(0, 100);
+    });
+    return out;
+  }
+
   // Before consent we intentionally discard analytics events instead of queuing
   // them for later transmission. Google code itself is not loaded until consent.
   function noopGtag() {}
@@ -27,6 +59,129 @@
   function realGtag() {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(arguments);
+  }
+
+  function trackBusiness(name, params) {
+    if (getChoice() !== 'accept' || !loaded || !configured || typeof window.gtag !== 'function') return false;
+    try {
+      window.gtag('event', name, safeBusinessParams(params || {}));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function sameOriginReferrer() {
+    if (!document.referrer) return false;
+    try {
+      var ref = new URL(document.referrer);
+      return ref.origin === location.origin && !/\/thank-you\.html$/i.test(ref.pathname || '');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function emitConfirmedLead() {
+    if (!/\/thank-you\.html$/i.test(location.pathname || '')) return;
+
+    var tool = '';
+    try { tool = (new URLSearchParams(location.search || '')).get('tool') || ''; } catch (e) {}
+    if (tool !== 'contact' && tool !== 'xray_extended') return;
+    if (!sameOriginReferrer()) return;
+
+    var dedupeKey = 'finmentor_ga4_generate_lead:' + tool;
+    try {
+      if (sessionStorage.getItem(dedupeKey) === '1') return;
+      sessionStorage.setItem(dedupeKey, '1');
+    } catch (e) {}
+
+    trackBusiness('generate_lead', {
+      source: 'website',
+      page_slug: 'thank-you',
+      site_language: document.documentElement.lang || '',
+      form_name: tool === 'xray_extended' ? 'financial_xray' : 'consultation',
+      lead_type: tool === 'xray_extended' ? 'financial_xray' : 'consultation'
+    });
+  }
+
+  function contactMethod(href) {
+    href = String(href || '');
+    if (/^mailto:/i.test(href)) return 'email';
+    if (/^tel:/i.test(href)) return 'phone';
+    if (/(^|\/\/)(t\.me|telegram\.me)\//i.test(href)) return 'telegram';
+    if (/(^|\/\/)(wa\.me|api\.whatsapp\.com|www\.whatsapp\.com)\//i.test(href)) return 'whatsapp';
+    return '';
+  }
+
+  function downloadMeta(anchor, href) {
+    var raw = String(href || '').split('#')[0].split('?')[0];
+    var match = raw.match(/\.([a-z0-9]{2,8})$/i);
+    var ext = match ? match[1].toLowerCase() : '';
+    var allowed = /^(pdf|csv|xls|xlsx|doc|docx|ppt|pptx|zip)$/;
+    if (!anchor.hasAttribute('download') && !allowed.test(ext)) return null;
+    var name = raw.split('/').pop() || anchor.getAttribute('download') || '';
+    return {
+      file_extension: ext || 'download',
+      file_name: decodeURIComponent(name || '').slice(0, 100)
+    };
+  }
+
+  function formNameForTarget(target) {
+    if (!target || !target.closest) return '';
+    if (target.closest('#consultForm')) return 'consultation';
+    if (target.closest('#qFormV86') || target.closest('#qForm')) return 'financial_xray';
+    return '';
+  }
+
+  function markFormStart(formName) {
+    if (!formName) return;
+    var key = 'finmentor_ga4_form_start:' + formName + ':' + (location.pathname || '/');
+    try {
+      if (sessionStorage.getItem(key) === '1') return;
+      sessionStorage.setItem(key, '1');
+    } catch (e) {}
+    trackBusiness('lead_form_start', {
+      source: 'website',
+      page_slug: pageSlug(),
+      site_language: document.documentElement.lang || '',
+      form_name: formName
+    });
+  }
+
+  function initBusinessTracking() {
+    if (businessTrackingMounted) return;
+    businessTrackingMounted = true;
+
+    document.addEventListener('focusin', function (e) {
+      markFormStart(formNameForTarget(e.target));
+    }, true);
+
+    document.addEventListener('click', function (e) {
+      var anchor = e.target && e.target.closest ? e.target.closest('a') : null;
+      if (!anchor) return;
+
+      var href = anchor.getAttribute('href') || '';
+      var method = contactMethod(href);
+      if (method) {
+        trackBusiness('contact_click', {
+          source: 'website',
+          page_slug: pageSlug(),
+          site_language: document.documentElement.lang || '',
+          contact_method: method
+        });
+      }
+
+      var file = downloadMeta(anchor, href);
+      if (file) {
+        trackBusiness('resource_download', {
+          source: 'website',
+          page_slug: pageSlug(),
+          site_language: document.documentElement.lang || '',
+          file_extension: file.file_extension,
+          file_name: file.file_name
+        });
+      }
+    }, true);
   }
 
   function configure() {
@@ -60,6 +215,8 @@
       language: document.documentElement.lang || '',
       debug_mode: debug
     });
+
+    emitConfirmedLead();
 
     if (debug) {
       window.gtag('event', 'ga4_debug_ping', {
@@ -150,9 +307,12 @@
     bannerMounted = true;
   }
 
+  initBusinessTracking();
+
   window.FMAnalytics = {
     measurementId: GA4_ID,
     load: loadAnalytics,
+    track: trackBusiness,
     initConsentUi: initConsentUi,
     consent: function (choice) {
       choose(choice, document.querySelector('.fm-cookie[data-fm-analytics-consent="1"]'));
