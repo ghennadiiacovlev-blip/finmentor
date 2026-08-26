@@ -431,6 +431,39 @@ one, and the gate asserts that.
 
 ## 8. Bot_Sessions schema package (§7)
 
+> ### CORRECTED BY P6-0 (2026-08-26) — READ THIS FIRST
+>
+> **The premise of this section is wrong, and P6 stopped because of it.**
+>
+> This section states that `cycle_id`, `consent_cycle_id`, `consent_at`, `lead_cycle_id` and
+> `lead_intake_ok` are "present and preserved" in the live sheet, on the evidence that the
+> Concierge Code nodes list them in `COLS`. **They are not in the live header.** P6-0 read
+> the live `Bot_Sessions` header row directly: it has **40 columns** and contains none of
+> them.
+>
+> The mistake was inferring the sheet's schema from what the WRITER emits. Google Sheets
+> silently drops a patch key with no matching header, so a writer emitting a column proves
+> nothing about the sheet having it — which is precisely the failure mode this very section
+> warns about, applied in the wrong direction.
+>
+> Consequences:
+>
+> * the required migration is **ten** columns, not four;
+> * six of those ten (`cycle_id`, `consent_cycle_id`, `consent_at`, `lead_cycle_id`,
+>   `lead_intake_ok`, `previous_lead_id`) are a **pre-existing production defect** — the
+>   Concierge has been writing them and they have never persisted;
+> * adding them is **not inert**: from that moment the live Concierge would begin persisting
+>   cycle and consent-cycle state for real users where it never has, which is a behavioural
+>   change to a customer path and an owner decision;
+> * **P1-L11 is FAIL, not pending** — `Bot_Sessions.submission_key` does not exist.
+>
+> Full evidence: `docs/PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_INTEGRATION.md` §2.3-2.5.
+>
+> The rest of this section is left unedited as the P5 record. Do not act on its column
+> inventory.
+
+
+
 **Verified from live evidence, not assumed.** The canonical live writer column list appears
 verbatim in three Code nodes of the live Concierge export
 (`n8n/production/mppzthlkSJFr6Kle...json` — `Build Session Row`, `Build Intake State Row`,
