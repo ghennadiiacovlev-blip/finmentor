@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 639,
+  "total": 641,
   "gates": {
     "command-center-auth.test.mjs": 43,
     "lead-intake-trust.test.mjs": 43,
@@ -20,6 +20,6 @@
     "miniapp-submit.test.mjs": 132,
     "idempotency-receipt.test.mjs": 72,
     "receipt-integration.test.mjs": 70,
-    "bot-sessions-legacy-cycle.test.mjs": 18
+    "bot-sessions-legacy-cycle.test.mjs": 20
   }
 }

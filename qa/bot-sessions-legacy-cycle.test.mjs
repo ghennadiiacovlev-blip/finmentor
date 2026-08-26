@@ -74,6 +74,22 @@ const LIVE_HEADERS_40 = [
 ];
 const MIGRATED_HEADERS_46 = LIVE_HEADERS_40.concat(LEGACY_REQUIRED);
 
+// P6R-1R — the ACTUAL live schema, observed 2026-08-26 19:2xZ. The grid is 48 columns
+// (proven by the API refusing AW with "Max columns: 48"), laid out as:
+//
+//   A..AN  the original 40
+//   AO     error        <-- duplicate name
+//   AP     error        <-- duplicate name
+//   AQ..AV the six legacy columns
+//
+// The two 'error' headers COLLAPSE into a single key when the n8n Sheets node maps a row,
+// which is why a naive key-order read reports the six one column to the left of where they
+// actually are. Recorded so that positional reasoning about this sheet is never done from
+// n8n's key order again.
+const LIVE_GRID_COLUMNS = 48;
+const LIVE_TAIL_AFTER_40 = ['error', 'error'].concat(LEGACY_REQUIRED);
+const LIVE_DUPLICATE_HEADERS = ['error'];
+
 // ---------------------------------------------------------------- the harness
 
 // Run the BYTE-EXACT gate source. The gate reads exactly two things from the workflow
@@ -353,6 +369,38 @@ check('(step 12) MUTATION — dropping any one legacy column fails the contract'
     } catch (e) { caught = true; }
     eq(caught, true, 'dropping ' + victim + ' did not break the contract');
   });
+});
+
+check('(P6R-1R) the observed live schema is 48 columns with the six legacy present', () => {
+  // 40 leading + 2 duplicate 'error' + 6 legacy = 48, matching the grid limit the Sheets API
+  // reported. This is the live shape the Concierge now writes against.
+  eq(LIVE_HEADERS_40.length + LIVE_TAIL_AFTER_40.length, LIVE_GRID_COLUMNS,
+    'the modelled live schema no longer sums to the observed 48-column grid');
+  LEGACY_REQUIRED.forEach((c) => assert(LIVE_TAIL_AFTER_40.indexOf(c) !== -1,
+    c + ' is missing from the observed live tail'));
+  // The duplicate is recorded, and it is 'error' - not one of the six.
+  LIVE_DUPLICATE_HEADERS.forEach((d) => {
+    assert(LIVE_TAIL_AFTER_40.filter((x) => x === d).length === 2, d + ' is no longer duplicated');
+    assert(LEGACY_REQUIRED.indexOf(d) === -1, 'a LEGACY column is duplicated, which would break its mapping');
+  });
+  // Each of the six appears exactly once, which is what keeps autoMapInputData unambiguous
+  // for them despite the duplicate elsewhere in the row.
+  LEGACY_REQUIRED.forEach((c) => eq(LIVE_TAIL_AFTER_40.filter((x) => x === c).length, 1,
+    c + ' appears more than once in the live tail'));
+});
+
+check('(P6R-1R) the duplicate error header cannot shadow any legacy column', () => {
+  // autoMapInputData resolves a field by its FIRST index in the header row. A duplicate only
+  // shadows itself: the second 'error' is unreachable, every uniquely-named column is not.
+  const full = LIVE_HEADERS_40.concat(LIVE_TAIL_AFTER_40);
+  LEGACY_REQUIRED.forEach((c) => {
+    const first = full.indexOf(c);
+    const last = full.lastIndexOf(c);
+    eq(first, last, c + ' resolves to more than one column, so its writes would be ambiguous');
+  });
+  // ...and the shadowed column really is only 'error'.
+  const shadowed = full.filter((c, i) => full.indexOf(c) !== i);
+  eq(shadowed.join(','), 'error', 'a column other than error is shadowed by a duplicate');
 });
 
 check('(step 12) no B.2.1-C column is falsely marked live by P6R-1', () => {
