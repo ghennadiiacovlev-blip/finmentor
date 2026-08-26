@@ -30,8 +30,12 @@
 //     safety prerequisite (P1-L3) and becomes a liveness property.
 //   * READY is POSITIVE evidence that no Lead Intake handoff began. That is what permits a
 //     submit, and it is evidence rather than an inference from silence.
-//   * the durable key stops being derived from the Telegram identity, so the ledger holds no
-//     personal identifier at all — which retires the P1.3 §3.1 privacy compromise outright.
+//   * the durable LOOKUP KEY stops being derived from the Telegram identity. Stated precisely,
+//     because the broader claim would be false: the submission key is opaque and carries no
+//     user identity, and no contact PII is stored — but a COMMITTED receipt does hold
+//     `canonical_lead_id`, which is a CRM record identifier. So the ledger is not
+//     "identifier-free"; it no longer contains a *Telegram/user* identifier, which is the
+//     P1.3 §3.1 compromise that is actually retired.
 //
 // Every dependency is INJECTED. This file performs no I/O whatsoever.
 
@@ -82,6 +86,11 @@ const SUBMISSION_KEY_MODEL = {
   persisted_in: 'Bot_Sessions.submission_key, alongside the authoritative cycle',
   derived_from_identity: false,
   guessable: false,
+  // Precise rather than flattering: the KEY carries no identity. The ledger as a whole still
+  // holds canonical_lead_id on a COMMITTED receipt, which is a CRM record identifier.
+  ledger_is_identifier_free: false,
+  ledger_holds_user_identity: false,
+  ledger_holds_contact_pii: false,
   crosses_tb1: false,
   browser_may_supply: false,
   collision_model: 'probabilistic: 128-bit random. Not claimed impossible — claimed far less ' +
@@ -135,6 +144,7 @@ const RECEIPT_FIELDS = [
   'created_at',         // when the receipt was PREALLOCATED, at cycle issuance
   'claimed_at',         // when READY -> IN_FLIGHT succeeded
   'settled_at',         // when COMMITTED or ABORTED was recorded
+  'abort_reason',       // constrained vocabulary; empty unless ABORTED
   'correlation_id'      // server-minted; the only field that reaches a log line
 ];
 
@@ -189,6 +199,34 @@ const PREALLOCATION_INVARIANT = {
   data_table_does_not_arbitrate: true
 };
 
+// F7 — THE LEAD INTAKE SERVER-SIDE ORDERING.
+//
+// A gateway submit carrying the submission key is NOT by itself enough. What makes the
+// handoff safe is that Lead Intake claims the receipt BEFORE it writes to Pipeline, and that
+// the claim is a conditional update whose affected-row count is checked. Encoded here as data
+// so the workflow wiring can be checked against it rather than described in prose.
+//
+// The rule that matters most: NO Pipeline write may occur when the READY claim returns 0,
+// more than one, or an unreadable count.
+const LEAD_INTAKE_CLAIM_ORDER = [
+  '1. arrive on the AUTHENTICATED internal route (P1-L10); the public route does none of this',
+  '2. exact-key read of the receipt named by the caller submission_key',
+  '3. conditional update READY -> IN_FLIGHT, matching key AND state',
+  '4. assert updated_rows === 1 — anything else aborts BEFORE any Pipeline write',
+  '5. Pipeline canonical write (Save to Pipeline / Update Pipeline (Merge))',
+  '6. conditional update IN_FLIGHT -> COMMITTED with the canonical lead id',
+  '7. assert updated_rows === 1',
+  '8. only then respond'
+];
+
+const LEAD_INTAKE_CLAIM_RULES = {
+  no_pipeline_write_unless_claim_returned_exactly_one: true,
+  claim_precedes_pipeline_write: true,
+  commit_precedes_response: true,
+  unconditional_update_forbidden: true,
+  node_success_is_not_row_count_evidence: true
+};
+
 // ---------------------------------------------------------------- records
 
 function newCorrelationId() { return crypto.randomUUID(); }
@@ -223,6 +261,7 @@ function buildPreallocation(opts) {
       created_at: now,
       claimed_at: '',
       settled_at: '',
+      abort_reason: '',
       correlation_id: correlationId
     }
   };
@@ -302,12 +341,16 @@ function assertExactlyOneUpdated(result) {
   }
   if (result.ok !== true) { return { ok: false, reason: 'UPDATE_FAILED' }; }
   const n = result.updated_rows;
-  if (typeof n !== 'number' || !isFinite(n)) {
+  // F5 — the rule is simply "the number 1". Anything else at all fails closed, including the
+  // shapes a looser check would wave through: -1, 0.5, NaN, Infinity, the string '1'. A
+  // fractional or negative row count is a store behaving in a way nobody modelled, which is
+  // the last moment to start trusting it.
+  if (typeof n !== 'number' || !Number.isFinite(n) || !Number.isInteger(n)) {
     return { ok: false, reason: 'UPDATED_ROWS_UNREADABLE' };
   }
+  if (n === 1) { return { ok: true, reason: 'EXACTLY_ONE_ROW' }; }
   if (n === 0) { return { ok: false, reason: 'STATE_ALREADY_MOVED' }; }
-  if (n > 1) { return { ok: false, reason: 'MULTIPLE_ROWS_AFFECTED' }; }
-  return { ok: true, reason: 'EXACTLY_ONE_ROW' };
+  return { ok: false, reason: 'MULTIPLE_ROWS_AFFECTED' };
 }
 
 // ---------------------------------------------------------------- classification
@@ -460,6 +503,8 @@ module.exports = {
   ABORT_REASONS,
   RECEIPT_AUTHORITY,
   ISSUANCE_ORDER,
+  LEAD_INTAKE_CLAIM_ORDER,
+  LEAD_INTAKE_CLAIM_RULES,
   PREALLOCATION_INVARIANT,
   RECEIPT_LIFECYCLE_INVARIANT,
   VERDICT,

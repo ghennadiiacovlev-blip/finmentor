@@ -68,6 +68,9 @@ function makeSessions(initial) {
     telegram_user_id: CHAT,
     chat_id: CHAT,
     cycle_id: CYCLE,
+    // P3.1 — the session is bound to (cycle_id AND submission_key). A cycle id alone is not
+    // an identity: two issuers can mint the same one in a millisecond with different keys.
+    submission_key: AUTH_SUBMISSION_KEY,
     submit_state: 'draft',
     lead_id: '',
     expires_at: '2026-08-26T03:00:00.000Z'
@@ -327,16 +330,19 @@ check('caller request_id cannot become the payload request_id', () => {
   eq(p.meta.request_id, r.out.log.correlation_id, 'request_id is not the server correlation id');
 });
 
-check('request_id cannot steer the idempotency key', () => {
+check('request_id cannot steer the submission key', () => {
   const r = run({ request_id: 'miniapp:999:C-OTHER', idempotency_key: 'miniapp:999:C-OTHER' });
-  eq(r.leadIntake.calls[0].idempotency_key, 'miniapp:' + CHAT + ':' + CYCLE, 'key was steered by the caller');
+  eq(r.leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'key was steered by the caller');
 });
 
-check('the idempotency key is built only from server-owned values', () => {
-  eq(C.idempotencyKey(CHAT, CYCLE), 'miniapp:' + CHAT + ':' + CYCLE, 'key shape drifted from §10');
-  eq(C.idempotencyKey('', CYCLE), null, 'key built without a Telegram id');
-  eq(C.idempotencyKey(CHAT, ''), null, 'key built without a cycle');
-  eq(C.idempotencyKey('not-a-number', CYCLE), null, 'non-numeric Telegram id accepted');
+check('the submission key comes only from authority, never from the caller', () => {
+  // P3.1 — the derived generator is RETIRED and throws, so there is no second submission
+  // identity in the codebase for anyone to reach for by accident.
+  let threw = false;
+  try { C.idempotencyKey(CHAT, CYCLE); } catch (e) { threw = true; }
+  assert(threw, 'the retired derived-key generator still produces a key');
+  // The only source is authority, proven on the wire.
+  eq(run({}).leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'the key did not come from authority');
 });
 
 check('browser-supplied cycle, consent and scoring fields are ignored', () => {
@@ -899,7 +905,7 @@ check('consent NO still works with no recovery adapter, because it risks nothing
 check('the recovery adapter contract is declared, not left implicit', () => {
   const k = C.RECOVERY_ADAPTER_CONTRACT;
   eq(k.method, 'leadIntake.lookup', 'the required adapter is not named');
-  eq(k.key_shape, 'miniapp:<telegram_user_id>:<cycle_id>', 'the stable key shape drifted');
+  eq(k.key_shape, 'sub_<32 lowercase hex>', 'the stable key shape drifted');
   assert(k.requirements.length >= 5, 'the adapter requirements were thinned out');
   eq(C.recoveryAdapterStatus(null).available, false, 'a null client was reported as available');
   eq(C.recoveryAdapterStatus({}).available, false, 'a client with no lookup was reported as available');
@@ -1168,7 +1174,7 @@ check('(G3) a throw at the handoff preserves the claim and the submitting state'
   const r = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
   eq(r.sessions.row.submit_state, 'submitting', 'the state was downgraded after a possible lead');
   eq(r.sessions.row.claim_owner, CID, 'the claim owner was cleared by the catch');
-  eq(r.sessions.row.idempotency_key, 'miniapp:' + CHAT + ':' + CYCLE, 'the claim key was lost');
+  eq(r.sessions.row.submission_key, AUTH_SUBMISSION_KEY, 'the claim key was lost');
 });
 
 check('(G3) a throw AFTER the Intake call returns is also unresolved', () => {
@@ -1289,7 +1295,7 @@ check('(G7) the outbound envelope carries no idempotency key at all', () => {
   // can be indexed by the stable key, because the stable key never travels with the payload.
   const r = run({});
   const call = r.leadIntake.calls[0];
-  assert(call.idempotency_key !== undefined, 'the key is not passed beside the envelope any more');
+  assert(call.submission_key !== undefined, 'the key is not passed beside the envelope any more');
   const keys = [];
   (function walk(node) {
     if (!node || typeof node !== 'object') { return; }
@@ -1297,7 +1303,7 @@ check('(G7) the outbound envelope carries no idempotency key at all', () => {
     Object.keys(node).forEach((k) => { keys.push(k); walk(node[k]); });
   }(call.envelope));
   assert(keys.indexOf('idempotency_key') === -1, 'the envelope now carries an idempotency key');
-  assert(keys.indexOf('idempotency-key') === -1, 'the envelope now carries an idempotency key');
+  assert(keys.indexOf('submission_key') === -1, 'the envelope body now carries the submission key');
 });
 
 check('(G7) the request_id semantics are a declared contract, not a comment', () => {
@@ -1306,8 +1312,8 @@ check('(G7) the request_id semantics are a declared contract, not a comment', ()
   eq(d.field, 'meta.request_id', 'the declared field drifted');
   eq(d.is_deduplication_key, false, 'request_id was declared a deduplication key');
   eq(d.stable_across_attempts, false, 'request_id was declared stable across attempts');
-  eq(d.downstream_idempotency_key_present, false,
-    'the declaration claims a downstream key exists -- if that became true, G1 is buildable and this must be revisited');
+  eq(d.is_submission_key, false, 'request_id was declared the submission key');
+  assert(/submission_key/.test(d.submission_identity_is), 'the submission identity is no longer named');
 });
 
 // ------------------------------------- T32 / T25 open test recommendations (N6.2)
@@ -1552,12 +1558,123 @@ check('(P3) the recovery lookup is asked with the AUTHORITATIVE submission key',
   // one millisecond derive the same key, and the ledger cannot arbitrate that.
   const authority = makeAuthority();
   authority.row.submission_key = 'sub_' + 'b'.repeat(32);
-  const sessions = makeSessions({ submit_state: 'submitting' });
+  const sessions = makeSessions({ submit_state: 'submitting', submission_key: 'sub_' + 'b'.repeat(32) });
   const leadIntake = makeIntake({ lookup: { ok: true, known: false } });
   const r = run({}, { sessions, authority, leadIntake });
   eq(r.leadIntake.lookups[0], 'sub_' + 'b'.repeat(32), 'the lookup did not use the authority key');
   assert(String(r.leadIntake.lookups[0]).indexOf('miniapp:') === -1,
     'the retired derived key is still being used for recovery');
+});
+
+console.log('\nP3.1  SUBMISSION KEY IS THE SUBMISSION IDENTITY');
+
+check('(2) the fresh submit carries the AUTHORITATIVE submission key downstream', () => {
+  const r = run({});
+  const call = r.leadIntake.calls[0];
+  eq(call.submission_key, AUTH_SUBMISSION_KEY, 'the fresh call did not carry the authority key');
+  eq(call.idempotency_key, undefined, 'the retired derived key is still being sent');
+  assert(JSON.stringify(call.envelope).indexOf(AUTH_SUBMISSION_KEY) === -1,
+    'the submission key leaked into the envelope body');
+});
+
+check('(3,4) neither the browser nor request_id can supply the submission key', () => {
+  // A browser-supplied value is dropped by the validator and never reaches the call.
+  const r = run({ submission_key: 'sub_' + 'f'.repeat(32), idempotency_key: 'sub_' + 'e'.repeat(32) });
+  eq(r.leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'a browser value steered the submission key');
+  // request_id is a correlation reference and is declared as never being the submission key.
+  eq(C.REQUEST_ID_SEMANTICS.is_submission_key, false, 'request_id was declared a submission key');
+  assert(/submission_key/.test(C.REQUEST_ID_SEMANTICS.submission_identity_is),
+    'the submission identity is no longer named');
+});
+
+check('(1) the canonical recovery contract is MODEL B', () => {
+  const k = C.RECOVERY_ADAPTER_CONTRACT;
+  eq(k.key_shape, 'sub_<32 lowercase hex>', 'the canonical key shape is still MODEL A');
+  eq(k.server_minted, true, 'the key is no longer declared server-minted');
+  eq(k.browser_may_supply, false, 'the browser was declared able to supply the key');
+  eq(k.derived_from_identity, false, 'the key is declared identity-derived');
+  assert(/submissionKey/.test(k.signature), 'the lookup signature still names the old key');
+  assert(/Bot_Sessions/.test(k.key_source), 'the key source is not authority');
+  // The old model survives only as an explicitly historical note.
+  eq(k.superseded_model_a.historical, true, 'MODEL A is not labelled historical');
+  assert(/miniapp:/.test(k.superseded_model_a.key_shape), 'the historical note lost its shape');
+  // And the retired generator refuses to run rather than sitting there usable.
+  let threw = false;
+  try { C.idempotencyKey('551662084', 'C-1'); } catch (e) { threw = true; }
+  assert(threw, 'the retired derived-key generator still produces a key');
+});
+
+check('(5) same cycle, DIFFERENT submission key — the handoff is stopped', () => {
+  // The exact race P3 proved: two issuers mint one cycle_id with different keys, and the
+  // later one wins Bot_Sessions. Execution A must not hand off against its stale key.
+  const authority = makeRacingAuthority(1, { submission_key: 'sub_' + 'b'.repeat(32) });
+  const r = run({}, { authority });
+  eq(r.leadIntake.calls.length, 0, 'a stale submission key reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the key drift was not refused');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_DRIFT_IN_FLIGHT', 'the drift stage was not named');
+  eq(r.authority.row.cycle_id, CYCLE, 'the fixture no longer holds the cycle id constant');
+});
+
+check('(6) same submission key, DIFFERENT cycle — also refused', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const r = run({}, { authority });
+  eq(r.leadIntake.calls.length, 0, 'a superseded cycle reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the cycle drift was not refused');
+});
+
+check('(7) an app session bound to another key is refused before anything happens', () => {
+  const sessions = makeSessions({ submission_key: 'sub_' + 'c'.repeat(32) });
+  const r = run({}, { sessions });
+  eq(r.leadIntake.calls.length, 0, 'a mis-bound session reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the session key drift was not refused');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_DRIFT', 'the session drift stage was not named');
+  eq(r.authority.stats.writes, 0, 'a mis-bound session wrote to authority');
+});
+
+check('(7) a session with no submission key at all is refused', () => {
+  const sessions = makeSessions();
+  delete sessions.row.submission_key;
+  const r = run({}, { sessions });
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'an unbound session was allowed to submit');
+  eq(r.leadIntake.calls.length, 0, 'an unbound session reached Lead Intake');
+});
+
+check('(8) the losing issuer key produces zero Lead Intake calls', () => {
+  // Authority holds the winner's key; the session still carries the loser's.
+  const sessions = makeSessions({ submission_key: 'sub_' + 'a'.repeat(32) });
+  const authority = makeAuthority();      // default carries the winner key
+  const r = run({}, { sessions, authority });
+  eq(r.leadIntake.calls.length, 0, 'the losing key reached Lead Intake');
+  eq(r.authority.stats.writes, 0, 'the losing key wrote a consent stamp');
+});
+
+check('the session claim records the submission key, not the retired one', () => {
+  run({});
+  // The claim patch is asserted through a fresh run so the row reflects the claim.
+  const sessions = makeSessions();
+  run({}, { sessions });
+  eq(sessions.row.submission_key, AUTH_SUBMISSION_KEY, 'the claim overwrote the bound key');
+  eq(sessions.row.idempotency_key, undefined, 'the claim still records the retired key');
+});
+
+check('(7) an app session RE-BOUND to another key mid-request stops the handoff', () => {
+  // The gap the §9.2 check cannot cover: the session passes the initial binding check, then a
+  // concurrent bootstrap re-binds it to a newer key while this request is in flight. Only the
+  // pre-handoff guard re-reads the session, so only the guard can catch this.
+  const sessions = makeSessions();
+  const inner = sessions.read.bind(sessions);
+  let reads = 0;
+  sessions.read = function (id) {
+    reads++;
+    const out = inner(id);
+    // Re-bound between the §9.2 read and the pre-handoff guard read.
+    if (reads === 1) { sessions.row.submission_key = 'sub_' + 'd'.repeat(32); }
+    return out;
+  };
+  const r = run({}, { sessions });
+  eq(r.leadIntake.calls.length, 0, 'a re-bound session handed off anyway');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the re-bind was not refused');
+  eq(r.out.log.stage, 'SESSION_KEY_REBOUND', 'the re-bind stage was not named');
 });
 
 // ---------------------------------------------------------------------- summary

@@ -143,8 +143,12 @@ const RETRYABLE = {
 // `leadIntake.lookup`, and nothing in this repository answers it.
 const RECOVERY_ADAPTER_CONTRACT = {
   method: 'leadIntake.lookup',
-  signature: 'lookup(idempotencyKey) -> { ok: boolean, known: boolean, body?: object }',
-  key_shape: 'miniapp:<telegram_user_id>:<cycle_id>',
+  signature: 'lookup(submissionKey) -> { ok: boolean, known: boolean, body?: object }',
+  key_shape: 'sub_<32 lowercase hex>',
+  key_source: 'Bot_Sessions.submission_key — the AUTHORITATIVE preallocated key',
+  server_minted: true,
+  browser_may_supply: false,
+  derived_from_identity: false,
   // Answers must be distinguishable. `ok:false` means "could not answer" and preserves
   // ambiguity; `ok:true, known:false` is a positive assertion that nothing was created and
   // is the ONLY answer that may release a claim for a fresh attempt.
@@ -155,12 +159,24 @@ const RECOVERY_ADAPTER_CONTRACT = {
   },
   requirements: [
     'durable: survives gateway restart, workflow redeploy and app-session TTL expiry',
-    'written at or before the Lead Intake commit, never after it, or the ambiguous window is not covered',
-    'indexed by the stable key: a scan over Pipeline rows is not a lookup and is not acceptable',
+    'PREALLOCATED: the receipt exists before the cycle becomes authoritative, so the submit ' +
+      'path only ever performs conditional updates (P3)',
+    'indexed by the submission key: a scan over Pipeline rows is not a lookup and is not acceptable',
     'server-side only: no browser-supplied value may select or satisfy a recovery',
-    'the stable key must reach the durable record, which today it does not — the outbound ' +
-      'envelope carries no idempotency key, so no downstream row can be indexed by it'
-  ]
+    'absence is NEVER an answer: a missing receipt for a current cycle is a broken ' +
+      'preallocation invariant and must resolve to CANNOT_ANSWER, never to NOT_COMMITTED'
+  ],
+  // HISTORICAL, kept because it explains why the key shape changed. P1/P2 used a key derived
+  // from telegram_user_id + cycle_id. P2 proved the n8n Data Table has no atomic
+  // insert-if-absent, and P3 proved two issuers can mint the same cycle_id in one millisecond
+  // — so a derived key could collide with nothing able to arbitrate it. MODEL B replaced it
+  // with an opaque random key. See docs/PHASE_B2_1C_G1_P3_PREALLOCATION_DECISION.md.
+  superseded_model_a: {
+    historical: true,
+    key_shape: 'miniapp:<telegram_user_id>:<cycle_id>',
+    retired_because: 'derived-key collision under same-millisecond issuance, unarbitrable ' +
+      'without insert-if-absent (P2 proved absent)'
+  }
 };
 
 // Absence of the adapter is a deployment condition, not a request error. It is reported
@@ -173,22 +189,24 @@ const RECOVERY_ADAPTER_CONTRACT = {
 // Mini App retries, which it cannot:
 //
 //   * two attempts at one submission carry DIFFERENT request_ids while sharing ONE
-//     idempotency key, so no downstream index on request_id can collapse a retry;
-//   * the outbound envelope carries NO idempotency key at all today, so no downstream record
-//     is indexed by one either. This is the same precondition RECOVERY_ADAPTER_CONTRACT
-//     records, and it is why G1 is not merely unimplemented but currently unbuildable;
-//   * therefore ALL retry safety in this slice rests on gateway-side resolution --
-//     `resolvePriorSubmission` -- and none of it on downstream idempotency.
+//     submission key, so no downstream index on request_id can collapse a retry;
+//   * request_id is NEVER the submission key and never a deduplication identity. Under P3 the
+//     submission identity is `submission_key`, minted by the cycle issuer and read from
+//     authority -- request_id has no relationship to it at all;
+//   * retry safety rests on the PREALLOCATED RECEIPT plus gateway-side resolution
+//     (`resolvePriorSubmission`), never on request_id.
 //
-// Read this next to RECOVERY_ADAPTER_CONTRACT. Together they say exactly where the gap is:
-// the gateway can recognise its own retries, and nothing downstream can.
+// Read this next to RECOVERY_ADAPTER_CONTRACT: request_id correlates log lines, and
+// submission_key identifies the submission. Conflating them is the failure this exists to
+// prevent.
 const REQUEST_ID_SEMANTICS = {
   field: 'meta.request_id',
   source: 'server correlation id',
   stable_across_attempts: false,
   is_deduplication_key: false,
-  downstream_idempotency_key_present: false,
-  retry_safety_rests_on: 'gateway-side resolution (resolvePriorSubmission)'
+  is_submission_key: false,
+  submission_identity_is: 'submission_key, from Bot_Sessions',
+  retry_safety_rests_on: 'the preallocated receipt plus gateway-side resolution'
 };
 
 function recoveryAdapterStatus(leadIntake) {
@@ -241,12 +259,12 @@ function canTransition(from, to) {
 
 // §10 — the idempotency key. Derived only from server-owned values. A caller-supplied
 // request_id can never appear here, so it cannot steer which key a submission claims.
-function idempotencyKey(telegramUserId, cycleId) {
-  const u = normValue(telegramUserId);
-  const c = normValue(cycleId);
-  if (u === '' || c === '') { return null; }
-  if (!/^[0-9]+$/.test(u)) { return null; }
-  return 'miniapp:' + u + ':' + c;
+// RETIRED in P3.1. The derived key is gone rather than left available: keeping two competing
+// submission identities in the codebase is exactly how one of them gets used by accident.
+// The submission identity is `Bot_Sessions.submission_key`, minted by the cycle issuer.
+// See RECOVERY_ADAPTER_CONTRACT.superseded_model_a for why it was retired.
+function idempotencyKey() {
+  throw new Error('idempotencyKey is retired (P3.1): use the authoritative submission_key');
 }
 
 // ---------------------------------------------------------------- §11 urgency guard

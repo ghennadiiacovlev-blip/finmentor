@@ -50,7 +50,7 @@ correctness depends on one writer is disqualified before it is compared.
 | Concurrency | Two issuers colliding need arbitration at the store — i.e. insert-if-absent, **which P2 proved absent** | Two issuers simply mint different keys. Nothing to arbitrate |
 | Retry semantics | Same | Same |
 | Authority binding | Implicit — key derivable from the cycle | Explicit — authority *names* the key. Clearer, and makes orphans obvious |
-| Privacy | Embeds the Telegram id in the durable ledger. P1.3 §3.1 accepted this as a compromise | **No identifier at all** in the ledger. The compromise disappears |
+| Privacy | Embeds the Telegram id in the durable ledger. P1.3 §3.1 accepted this as a compromise | **No user identity** in the ledger — §3.1 states exactly what that does and does not mean |
 | Guessability | Guessable by construction (numeric ids, date-shaped cycles) | Unguessable |
 | Public-route poisoning | Targeted attack possible if a body field is ever trusted | Targeted attack impossible — an attacker cannot name a victim's key |
 | Bot_Sessions change | None | **One new column** (§5) |
@@ -70,7 +70,24 @@ receipt by reading `Bot_Sessions.submission_key` first, rather than deriving it.
 
 ---
 
-## 3. Key format and collision model
+## 3. Key format, collision model, and what the privacy change actually is
+
+### 3.1 Precisely what improved (P3.1 F6)
+
+An earlier draft said the ledger holds "no identifier at all". **That is too broad and is
+withdrawn.** What is actually true:
+
+| Claim | Verdict |
+|---|---|
+| The **lookup key** carries no user identity | ✅ opaque, random, not derived from `telegram_user_id` or `cycle_id` |
+| No **contact PII** is stored | ✅ no name, company, phone, email or free text — the ledger resolves an outcome, it does not describe a lead |
+| The ledger is **identifier-free** | ❌ **No.** A `COMMITTED` receipt holds `canonical_lead_id`, a CRM record identifier |
+
+So the compromise retired here is specifically the **P1.3 §3.1 raw-key** one: the durable key
+no longer embeds a Telegram user id. The ledger still points at a CRM record, and access
+control (OD-2) governs it accordingly. The code declares this rather than implying it —
+`SUBMISSION_KEY_MODEL.ledger_is_identifier_free` is `false`, and the gate asserts it.
+
 
 | | |
 |---|---|

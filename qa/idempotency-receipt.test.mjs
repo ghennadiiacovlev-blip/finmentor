@@ -576,6 +576,9 @@ console.log('\nRECORD AND TRANSITION DETAIL');
 check('a preallocated record has exactly the declared shape', () => {
   const rec = R.buildPreallocation({ submissionKey: KEY_1, nowIso: NOW, correlationId: 'fmr_x', provenanceTrusted: true }).record;
   eq(Object.keys(rec).sort().join(','), R.RECEIPT_FIELDS.slice().sort().join(','), 'the record shape drifted from the schema');
+  eq(R.RECEIPT_FIELDS.length, 11, 'the receipt schema is no longer eleven fields');
+  assert(R.RECEIPT_FIELDS.indexOf('abort_reason') !== -1, 'abort_reason is missing from the schema');
+  eq(rec.abort_reason, '', 'a preallocation did not initialise abort_reason');
   eq(rec.commit_state, 'READY', 'a preallocation did not start READY');
   eq(rec.canonical_lead_id, '', 'a preallocation claimed a lead');
   eq(rec.claimed_at, '', 'a preallocation was pre-claimed');
@@ -690,6 +693,7 @@ const CYCLE = 'C-' + CHAT + '-1756171200000';
 function makeSessions(initial) {
   const row = Object.assign({
     app_session_id: SESSION_ID, telegram_user_id: CHAT, chat_id: CHAT, cycle_id: CYCLE,
+    submission_key: KEY_1,
     submit_state: 'draft', lead_id: '', expires_at: '2026-08-26T03:00:00.000Z'
   }, initial || {});
   return {
@@ -934,6 +938,82 @@ check('the P2 evidence document is retained and still records the failure', () =
   assert(/P1-L2/.test(doc), 'the P2 document no longer names P1-L2');
   assert(/FAIL/.test(doc), 'the P2 document no longer records a failure');
   assert(/insert-if-absent/i.test(doc), 'the P2 document no longer names the missing primitive');
+});
+
+console.log('\nP3.1  INTEGRATION CLOSURE');
+
+check('(9,10,11) abort_reason is declared, initialised and written', () => {
+  eq(R.RECEIPT_FIELDS.length, 11, 'the schema is not eleven fields');
+  assert(R.RECEIPT_FIELDS.indexOf('abort_reason') !== -1, 'abort_reason is not in the schema');
+  const rec = R.buildPreallocation({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true }).record;
+  eq(rec.abort_reason, '', 'preallocation did not initialise abort_reason');
+  // And what buildAbort writes must be a field the schema declares.
+  const ab = R.buildAbort({ submissionKey: KEY_1, fromState: 'READY', nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' });
+  Object.keys(ab.spec.set).forEach((k) => {
+    assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildAbort writes an undeclared field: ' + k);
+  });
+  // Same discipline for the other two writers.
+  const cl = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true });
+  Object.keys(cl.spec.set).forEach((k) => assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildClaim writes ' + k));
+  const cm = R.buildCommit({ submissionKey: KEY_1, canonicalLeadId: LEAD_A, nowIso: NOW, provenanceTrusted: true });
+  Object.keys(cm.spec.set).forEach((k) => assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildCommit writes ' + k));
+});
+
+check('(12,13) assertExactlyOneUpdated accepts ONLY the number 1', () => {
+  eq(R.assertExactlyOneUpdated({ ok: true, updated_rows: 1 }).ok, true, 'the number 1 was rejected');
+  [[0, 'STATE_ALREADY_MOVED'], [2, 'MULTIPLE_ROWS_AFFECTED'], [-1, 'MULTIPLE_ROWS_AFFECTED'],
+    [0.5, 'UPDATED_ROWS_UNREADABLE'], [1.5, 'UPDATED_ROWS_UNREADABLE'],
+    [NaN, 'UPDATED_ROWS_UNREADABLE'], [Infinity, 'UPDATED_ROWS_UNREADABLE'],
+    [-Infinity, 'UPDATED_ROWS_UNREADABLE'], ['1', 'UPDATED_ROWS_UNREADABLE'],
+    [null, 'UPDATED_ROWS_UNREADABLE'], [undefined, 'UPDATED_ROWS_UNREADABLE'],
+    [true, 'UPDATED_ROWS_UNREADABLE']
+  ].forEach(([n, reason]) => {
+    const v = R.assertExactlyOneUpdated({ ok: true, updated_rows: n });
+    eq(v.ok, false, JSON.stringify(n) + ' was accepted as exactly one');
+    eq(v.reason, reason, 'wrong reason for ' + JSON.stringify(n));
+  });
+  // -1 is the one a naive n > 1 check would wave through as "not more than one".
+  eq(R.assertExactlyOneUpdated({ ok: true, updated_rows: -1 }).ok, false, 'a negative row count passed');
+});
+
+check('(14) the privacy claim is precise, not flattering', () => {
+  const m = R.SUBMISSION_KEY_MODEL;
+  eq(m.ledger_is_identifier_free, false, 'the ledger is claimed identifier-free');
+  eq(m.ledger_holds_user_identity, false, 'the ledger is declared to hold user identity');
+  eq(m.ledger_holds_contact_pii, false, 'the ledger is declared to hold contact PII');
+  // canonical_lead_id is a CRM record identifier and is still stored, which is why the
+  // broader claim would be false.
+  assert(R.RECEIPT_FIELDS.indexOf('canonical_lead_id') !== -1, 'the schema lost canonical_lead_id');
+});
+
+check('(15) no current document claims the whole ledger is identifier-free', () => {
+  // The phrase may appear ONLY inside a labelled withdrawal — the repository's standing
+  // convention that history stays visible provided it is marked as history. What must not
+  // survive is the phrase used as a live claim.
+  ['docs/PHASE_B2_1C_G1_P3_PREALLOCATION_DECISION.md'].forEach((rel) => {
+    const lines = readFileSync(join(HERE, '..', rel), 'utf8').split(String.fromCharCode(10));
+    lines.forEach((line, i) => {
+      if (!/no identifier at all|identifier-free/i.test(line)) { return; }
+      const context = (lines[i - 1] || '') + line + (lines[i + 1] || '');
+      assert(/withdrawn|too broad|earlier draft|❌/i.test(context),
+        rel + ' line ' + (i + 1) + ' states the claim without labelling it withdrawn');
+    });
+  });
+});
+
+check('(F7) the Lead Intake claim ordering is encoded, not merely described', () => {
+  eq(R.LEAD_INTAKE_CLAIM_ORDER.length, 8, 'a claim-ordering step was dropped');
+  assert(/AUTHENTICATED/i.test(R.LEAD_INTAKE_CLAIM_ORDER[0]), 'step 1 no longer requires the trusted route');
+  assert(/READY -> IN_FLIGHT/.test(R.LEAD_INTAKE_CLAIM_ORDER[2]), 'step 3 is not the conditional claim');
+  assert(/updated_rows === 1/.test(R.LEAD_INTAKE_CLAIM_ORDER[3]), 'step 4 no longer asserts one row');
+  assert(/BEFORE any Pipeline write/i.test(R.LEAD_INTAKE_CLAIM_ORDER[3]), 'step 4 no longer precedes Pipeline');
+  assert(/Pipeline/.test(R.LEAD_INTAKE_CLAIM_ORDER[4]), 'step 5 is not the Pipeline write');
+  const rules = R.LEAD_INTAKE_CLAIM_RULES;
+  eq(rules.no_pipeline_write_unless_claim_returned_exactly_one, true, 'the Pipeline gate rule was removed');
+  eq(rules.claim_precedes_pipeline_write, true, 'the ordering rule was removed');
+  eq(rules.commit_precedes_response, true, 'the commit-before-response rule was removed');
+  eq(rules.unconditional_update_forbidden, true, 'unconditional updates were permitted');
+  eq(rules.node_success_is_not_row_count_evidence, true, 'node success was made evidence again');
 });
 
 // ---------------------------------------------------------------- summary
