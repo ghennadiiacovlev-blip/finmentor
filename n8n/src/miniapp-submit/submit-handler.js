@@ -39,7 +39,7 @@
 //   sessions.update(appSessionId, patch)           -> { ok }
 //   authority.read(chatId)                         -> { ok, row }
 //   authority.write(chatId, patch)                 -> { ok }
-//   leadIntake.submit({ idempotency_key, envelope })-> { ok, ambiguous, body }
+//   leadIntake.submit({ submission_key, envelope })-> { ok, ambiguous, body }
 //   leadIntake.lookup(submissionKey)               -> { ok, known, body }   REQUIRED
 //   mirror(chatId)                                 -> optional; derived read model refresh
 //   clock.now()                                    -> ISO string
@@ -661,9 +661,13 @@ function submitSequence(o, run) {
   const claim = sessions.claim(v.app_session_id, {
     from: fromState,
     to: 'submitting',
-    // G2 -- `claim_owner` is the per-operation ownership token. The idempotency key cannot
-    // serve as one: two concurrent submits for the same (user, cycle) share it by
-    // construction, so it identifies the submission, not the operation holding the claim.
+    // G2 -- `claim_owner` is the per-operation ownership token. The submission key cannot
+    // serve as one: two concurrent submits on the same cycle share it by construction, so it
+    // identifies the submission, not the operation holding the claim.
+    // P5 -- this is the same server correlation id that goes out as envelope.meta.request_id
+    // and that the WINNING Lead Intake receipt claim stamps onto receipt.correlation_id, so
+    // one value ties the session claim, the outbound envelope, the receipt and Pipeline AZ
+    // together for an operator. See P1_L9_CORRELATION_CHAIN.
     // P3.1 -- the claim records OWNERSHIP only. It must NOT write submission_key back onto
     // the session: the binding is set at bootstrap, and re-stamping it here would silently
     // repair a drift that the pre-handoff guard exists to catch. Found by the mid-request

@@ -119,6 +119,67 @@ const RECEIPT_AUTHORITY = {
   unguessable_key_is_not_a_substitute_for_route_auth: true
 };
 
+// P5 §5 — P1-L10 ROUTE DECISION.
+//
+// DECISION: INTERNAL SUBWORKFLOW. Not an authenticated webhook.
+//
+// The deciding fact is deployment topology, checked rather than assumed: the Mini App
+// gateway and Lead Intake both run as workflows in the SAME n8n tenant
+// (n8n/production/manifest.json, tenantHost ghennadi.app.n8n.cloud), so an in-tenant
+// invocation is available. P4 additionally exercised exactly this mechanism live in this
+// tenant — `executeWorkflow` calling an `executeWorkflowTrigger` sub-workflow — so it is a
+// proven capability here, not a hoped-for one.
+//
+// Why it beats a credential-protected webhook, given both were available:
+//
+//   * NO PUBLIC URL. An authenticated webhook is still a network-reachable endpoint that
+//     accepts unauthenticated connections before rejecting them. A sub-workflow has no
+//     address off-instance at all, so the internal receipt path is not merely guarded — it
+//     is unreachable from the internet.
+//   * NO TRANSPORT SECRET LIFECYCLE. No credential to provision, rotate, scope, leak into an
+//     export, or forget to revoke. The audit already has two n8n API keys pending revocation;
+//     adding a third long-lived transport secret to hold that same design open is the wrong
+//     direction.
+//   * PROVENANCE IS STRUCTURAL. The entry node can only be reached by an in-instance caller.
+//     `internalRouteProven()` reads a node that never ran on the public path, so provenance
+//     comes from the workflow graph rather than from anything a caller can assert — which is
+//     the property P1-L10 actually requires.
+//   * THE PUBLIC PATH STAYS PHYSICALLY SEPARATE. The existing public webhook keeps its own
+//     entry node and never reaches the receipt branch.
+//
+// The entry node keeps the name `Internal Auth Entry`, so `internalRouteProven()` in
+// normalize-score-lead.js continues to prove provenance UNCHANGED. That is deliberate: the
+// alternative was renaming the node and the function together, and a rename of a
+// load-bearing provenance check buys nothing here.
+//
+// The condition that would overturn this: if the gateway is ever deployed OUTSIDE this n8n
+// tenant it cannot invoke a sub-workflow, and the fallback is the authenticated webhook with
+// an n8n-managed credential — never a shared secret in Settings or Sheets, never a body
+// marker, never a hand-checked header.
+const INTERNAL_ROUTE_DECISION = {
+  decision: 'INTERNAL_SUBWORKFLOW',
+  rejected_alternative: 'AUTHENTICATED_WEBHOOK',
+  entry_node_name: 'Internal Auth Entry',
+  entry_node_type: 'n8n-nodes-base.executeWorkflowTrigger',
+  invoked_by: 'n8n-nodes-base.executeWorkflow from the Mini App gateway workflow',
+  same_tenant: true,
+  tenant_evidence: 'n8n/production/manifest.json tenantHost',
+  mechanism_proven_live: 'P4 race harness used executeWorkflow -> executeWorkflowTrigger in this tenant',
+  provenance_source: 'workflow graph reachability',
+  public_url_created: false,
+  transport_secret_required: false,
+  proven_by_unchanged_helper: 'internalRouteProven() in normalize-score-lead.js',
+  fallback_if_gateway_leaves_tenant: {
+    decision: 'AUTHENTICATED_WEBHOOK',
+    auth: 'n8n-managed credential on the entry node',
+    forbidden: [
+      'a shared secret stored in the Settings sheet',
+      'a body field used as authentication',
+      'a manually compared caller header treated as provenance'
+    ]
+  }
+};
+
 function resolveReceiptKey(opts) {
   const o = opts || {};
   if (o.provenanceTrusted !== true) {
@@ -145,7 +206,10 @@ const RECEIPT_FIELDS = [
   'claimed_at',         // when READY -> IN_FLIGHT succeeded
   'settled_at',         // when COMMITTED or ABORTED was recorded
   'abort_reason',       // constrained vocabulary; empty unless ABORTED
-  'correlation_id'      // server-minted; the only field that reaches a log line
+  // P5 — EMPTY at preallocation, written exactly once by the WINNING claim, and immutable
+  // thereafter. It is the gateway's server correlation id, which is the same value the
+  // outbound envelope carries as meta.request_id. See P1_L9_CORRELATION_CHAIN.
+  'correlation_id'
 ];
 
 // READY replaces the old submit-time "insert an intent" step. PENDING was renamed IN_FLIGHT
@@ -176,12 +240,19 @@ function canTransition(from, to) {
 
 // The order is the safety property, so it is declared as data rather than left to whoever
 // wires the workflow.
+// P5 tightens step 3. "Confirmed" is now defined rather than left to the implementer: an
+// INSERT that returned success is NOT confirmation, because P2 proved the Data Table has no
+// uniqueness constraint and therefore cannot refuse a second row for the same key. The only
+// admissible confirmation is an exact-key readback whose CARDINALITY and CONTENT are both
+// checked — that is verifyPreallocationReadback().
 const ISSUANCE_ORDER = [
   '1. mint a new submission_key server-side (random, not derived)',
-  '2. create the receipt in state READY',
-  '3. CONFIRM the receipt creation succeeded — not "the node did not error", but confirmed',
-  '4. only then write the new cycle + submission_key to Bot_Sessions (authority)',
-  '5. only after the authority commit may a Mini App session bind to that cycle'
+  '2. INSERT the receipt in state READY',
+  '3. exact-key READBACK of that submission_key',
+  '4. verify EXACTLY ONE row, and that the row is a pristine READY receipt for this key',
+  '5. where an issuance reference is carried, prove it belongs to THIS issuance',
+  '6. only then write the new cycle + submission_key to Bot_Sessions (authority)',
+  '7. only after the authority commit may a Mini App session bind to that cycle'
 ];
 
 const PREALLOCATION_INVARIANT = {
@@ -208,15 +279,47 @@ const PREALLOCATION_INVARIANT = {
 //
 // The rule that matters most: NO Pipeline write may occur when the READY claim returns 0,
 // more than one, or an unreadable count.
+// P5 §3 — VALIDATION MUST PRECEDE THE CLAIM.
+//
+// The receipt must never become IN_FLIGHT because of a request that was never capable of
+// reaching Pipeline. A claim burns the receipt: once it leaves READY it can never be claimed
+// again, so a request rejected AFTER the claim strands the cycle in an unresolved state that
+// only an operator can clear. Every deterministic, non-mutating rejection therefore happens
+// first, and the claim is placed as late as safely possible.
+//
+// Against the LIVE Lead Intake graph (57 nodes, export QmIyEW2ZEqKregmN) the deterministic
+// prefix is:
+//
+//     Webhook -> Validate Payload -> IF Valid          (schema rejection)
+//             -> Read Settings -> Settings to Object   (config load)
+//             -> Normalize + Score Lead                (normalisation, scoring)
+//             -> Read Pipeline (Dedup) -> Dedup Guard  (dedup decision)
+//
+// and the dedup decision then routes to exactly three terminal outcomes, ALL of which return
+// a canonical lead id to the caller:
+//
+//     IF Is New  = true  -> Build Pipeline Row -> Save to Pipeline        (new lead)
+//     IF Is Retry= true  -> Respond Retry                                  (no write, existing id)
+//     otherwise          -> Build Merge Update -> Update Pipeline (Merge)  (merge)
+//
+// The claim therefore belongs at the single choke point AFTER `Dedup Guard` and BEFORE
+// `IF Is New`. That placement is load-bearing in a way that "immediately before Save to
+// Pipeline" is not: the RETRY branch returns a lead id WITHOUT writing to Pipeline, so a
+// claim attached only to the write paths would leave the receipt READY while the caller was
+// told the submission had succeeded. A later recovery would then read READY — "no handoff
+// began" — and invite a duplicate submit for a lead that already exists.
 const LEAD_INTAKE_CLAIM_ORDER = [
-  '1. arrive on the AUTHENTICATED internal route (P1-L10); the public route does none of this',
-  '2. exact-key read of the receipt named by the caller submission_key',
-  '3. conditional update READY -> IN_FLIGHT, matching key AND state',
-  '4. assert updated_rows === 1 — anything else aborts BEFORE any Pipeline write',
-  '5. Pipeline canonical write (Save to Pipeline / Update Pipeline (Merge))',
-  '6. conditional update IN_FLIGHT -> COMMITTED with the canonical lead id',
-  '7. assert updated_rows === 1',
-  '8. only then respond'
+  '1. arrive on the trusted INTERNAL route (P1-L10); the public route does none of this',
+  '2. payload schema validation — reject here, receipt still READY',
+  '3. settings load and normalisation/scoring — reject here, receipt still READY',
+  '4. dedup lookup and dedup decision — the last step that may reject',
+  '5. exact-key read of the receipt named by the trusted submission_key',
+  '6. conditional update READY -> IN_FLIGHT, matching key AND state, setting correlation_id',
+  '7. assert updated_rows === 1 — anything else takes the fail-closed path with NO Pipeline write',
+  '8. Pipeline canonical outcome (Save to Pipeline / Update Pipeline (Merge) / retry replay)',
+  '9. conditional update IN_FLIGHT -> COMMITTED with the canonical lead id',
+  '10. assert updated_rows === 1',
+  '11. only then respond'
 ];
 
 const LEAD_INTAKE_CLAIM_RULES = {
@@ -224,8 +327,126 @@ const LEAD_INTAKE_CLAIM_RULES = {
   claim_precedes_pipeline_write: true,
   commit_precedes_response: true,
   unconditional_update_forbidden: true,
-  node_success_is_not_row_count_evidence: true
+  node_success_is_not_row_count_evidence: true,
+  // P5 §3 additions.
+  all_deterministic_validation_precedes_claim: true,
+  claim_is_after_dedup_decision: true,
+  // The retry branch returns a lead id without a Pipeline write, so it is INSIDE the
+  // critical section even though it writes nothing.
+  claim_covers_retry_branch_with_no_pipeline_write: true,
+  no_ordinary_rejection_after_claim: true,
+  post_claim_failure_is_unresolved_not_ordinary_failure: 'SUBMIT_UNRESOLVED'
 };
+
+// The deterministic stages that MUST complete before the claim, named as they appear in the
+// live export so the candidate wiring can be checked against the real graph rather than
+// against prose.
+const PRE_CLAIM_VALIDATION_STAGES = [
+  'route provenance',
+  'payload schema validation',
+  'contact/consent validation required by Lead Intake',
+  'normalization and scoring',
+  'dedup lookup and dedup decision',
+  'deterministic business-rule rejection'
+];
+
+// ---------------------------------------------------------------- P5 §4 zero-item wiring
+
+// P4 proved that a conditional update matching NOTHING returns `data.main[0] === []` with
+// executionStatus "success". In n8n that means the node emits ZERO ITEMS, and every ordinary
+// downstream node is SKIPPED for that execution.
+//
+// This is the sharpest wiring hazard in the whole design. The natural reading of
+// "Data Table update -> IF updated_rows === 1 -> Pipeline" is that the IF node decides. It
+// does not: on a zero-match the IF never runs at all, so whatever the workflow does next is
+// decided by the graph's fall-through, not by any check that was written. A design that
+// relies on a post-update Code/IF node to catch the zero case catches nothing.
+//
+// Two n8n-native constructions survive that. The candidate uses BOTH, because they fail
+// differently:
+//
+//   1. `alwaysOutputData: true` on the update node. n8n then substitutes a single EMPTY item
+//      `{}` when the node produced none, so a downstream node always runs. The discriminator
+//      is then the SHAPE of the item, not its presence.
+//   2. An explicit output-shape discrimination step that converts item-presence into an
+//      explicit `{ ok, updated_rows }` verdict, and treats anything it does not positively
+//      recognise as a failure.
+//
+// The trap in (1) on its own: the substituted `{}` is indistinguishable from a real row only
+// if the check is sloppy. A truthy test, an `!== undefined`, or a `try { ... } catch` around
+// a field read all turn the synthetic empty item into a fake success. So the discriminator
+// must key on a field that a genuine updated row ALWAYS carries and an empty item NEVER
+// does — the update node returns the full post-update row, so `submission_key` matching the
+// expected key is that field.
+const ZERO_ITEM_UPDATE_CONTRACT = {
+  platform_fact: 'a conditional update matching zero rows returns data.main[0] === [] and succeeds',
+  consequence: 'ordinary downstream nodes are SKIPPED; a post-update IF/Code node does not run',
+  forbidden_patterns: [
+    'assuming a post-update Code or IF node will run on a zero match',
+    'treating node execution success as an affected-row count',
+    'treating the absence of an error as a successful claim',
+    'a pre-read followed by an assumed update',
+    'converting a zero match into a synthetic success item that reaches the Pipeline path'
+  ],
+  required_wiring: [
+    'alwaysOutputData: true on the conditional update node',
+    'an explicit shape discriminator immediately after it',
+    'the discriminator returns { ok, updated_rows } and never throws',
+    'updated_rows === 0 routes to the fail-closed branch, which reaches NO Pipeline node',
+    'updated_rows === 1 is the ONLY value that permits the Pipeline path'
+  ],
+  synthetic_empty_item_is_not_success: true,
+  verdict_shape: '{ ok: boolean, updated_rows: 0 | 1 }'
+};
+
+// Convert the RAW output items of an n8n Data Table conditional-update node into an explicit
+// verdict. This is the discriminator the candidate wiring runs immediately after the update.
+//
+// It must never throw and must never invent a success. `items` is the node's output array,
+// which under `alwaysOutputData: true` is one of:
+//
+//     []                              zero items (only when alwaysOutputData is off)
+//     [{}]                            the SYNTHETIC empty item n8n substitutes -> ZERO rows
+//     [{ submission_key: K, ... }]    one genuinely updated row                -> ONE row
+//
+// Anything else — more than one item, a row for a different key, a non-object — is a store
+// or wiring behaviour nobody modelled, and is failed closed rather than interpreted.
+function interpretUpdateItems(items, expectedKey) {
+  if (!isValidSubmissionKey(expectedKey)) {
+    return { ok: false, updated_rows: 0, reason: 'SUBMISSION_KEY_INVALID' };
+  }
+  if (!Array.isArray(items)) {
+    return { ok: false, updated_rows: 0, reason: 'UPDATE_OUTPUT_UNREADABLE' };
+  }
+  // Genuine zero-match with alwaysOutputData off.
+  if (items.length === 0) {
+    return { ok: false, updated_rows: 0, reason: 'STATE_ALREADY_MOVED' };
+  }
+  if (items.length > 1) {
+    return { ok: false, updated_rows: items.length, reason: 'MULTIPLE_ROWS_AFFECTED' };
+  }
+
+  const raw = items[0];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ok: false, updated_rows: 0, reason: 'UPDATE_OUTPUT_UNREADABLE' };
+  }
+  // n8n wraps node output as { json: {...} }; accept either shape so the discriminator works
+  // both inside a Code node ($input.all()) and against a raw runData capture.
+  const row = (raw.json && typeof raw.json === 'object' && !Array.isArray(raw.json)) ? raw.json : raw;
+
+  const storedKey = normValue(row.submission_key);
+  // THE LOAD-BEARING LINE. The synthetic empty item n8n substitutes under alwaysOutputData
+  // has no submission_key, so it lands here and is reported as ZERO rows updated — not as a
+  // success, and not as an unreadable error that a caller might retry into a duplicate.
+  if (storedKey === '') {
+    return { ok: false, updated_rows: 0, reason: 'STATE_ALREADY_MOVED' };
+  }
+  if (storedKey !== expectedKey) {
+    return { ok: false, updated_rows: 0, reason: 'UPDATE_TOUCHED_WRONG_KEY' };
+  }
+
+  return { ok: true, updated_rows: 1, reason: 'EXACTLY_ONE_ROW' };
+}
 
 // ---------------------------------------------------------------- records
 
@@ -244,9 +465,16 @@ function buildPreallocation(opts) {
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
 
-  const correlationId = normValue(o.correlationId) || newCorrelationId();
-  if (correlationId.indexOf(gate.key) !== -1) {
-    return { ok: false, reason: 'CORRELATION_ID_DERIVED_FROM_KEY' };
+  // P5 / P1-L9. The receipt is preallocated BEFORE any submit attempt exists, so there is no
+  // request to correlate to yet. A correlation id minted here would be a value no log line
+  // downstream ever carries, and would therefore BREAK the operator recovery chain rather
+  // than serve it — it would look like a correlation id while correlating nothing.
+  //
+  // So it is left EMPTY, and the winning claim fills it with the gateway's server
+  // correlation id. Supplying one here is refused outright rather than ignored: silently
+  // dropping it would let a caller believe it had steered a value that it had not.
+  if (normValue(o.correlationId) !== '') {
+    return { ok: false, reason: 'CORRELATION_ID_NOT_ALLOWED_AT_PREALLOCATION' };
   }
 
   return {
@@ -262,8 +490,168 @@ function buildPreallocation(opts) {
       claimed_at: '',
       settled_at: '',
       abort_reason: '',
-      correlation_id: correlationId
+      correlation_id: ''
     }
+  };
+}
+
+// ---------------------------------------------------------------- P5 §1 readback proof
+
+// WHY THIS EXISTS.
+//
+// P2 proved the n8n Data Table INSERT has no uniqueness constraint: two inserts of one key
+// both succeed, and neither errors. MODEL B makes a collision extraordinarily unlikely by
+// minting a 128-bit random key, but "extraordinarily unlikely" is a property of the KEY
+// GENERATOR, not a property the STORE enforces. Authority must therefore never advance on
+// the strength of an insert that merely returned success.
+//
+// The failure this closes is narrow and real: an INSERT that reports success while the row
+// is absent, duplicated, or not the row we think it is. `insertedCount`, a 2xx, and the
+// absence of an exception are all reports about the CALL. None of them is evidence about the
+// STATE, and only state can justify advancing authority.
+//
+// Every non-conforming outcome returns the same posture: advance === false. There is no
+// partial credit and no "probably fine" branch.
+const PREALLOCATION_READBACK_RULES = {
+  confirmation_is: 'an exact-key readback with cardinality and content both verified',
+  not_confirmation: [
+    'insertedCount',
+    'the node did not error',
+    'an HTTP 2xx',
+    'the absence of an exception'
+  ],
+  required_cardinality: 1,
+  required_state: 'READY',
+  required_pristine_fields: ['canonical_lead_id', 'claimed_at', 'settled_at', 'abort_reason'],
+  // P1-L9: a freshly preallocated receipt has NOT been claimed, so it cannot yet carry a
+  // correlation id. A non-empty one means this row is not a pristine preallocation.
+  correlation_id_must_be_empty: true,
+  on_any_failure: 'authority MUST NOT advance; the issuance is an orphan, never a current cycle'
+};
+
+// Step 3-5 of ISSUANCE_ORDER. `rows` is the exact-key readback; `key` is the minted key.
+//
+// `issuanceRef` is optional and covers ordering item 6 of the brief: where an issuance
+// carries a correlation/reference of its own, it must be proven to belong to THIS issuance
+// rather than to a concurrent one. Concurrent issuance is explicitly allowed (each issuer
+// mints its own key), so a reference that belongs to a different issuance is a sign the
+// caller has mixed two issuances together and must not advance authority.
+function verifyPreallocationReadback(opts) {
+  const o = opts || {};
+  const key = o.submissionKey;
+
+  if (!isValidSubmissionKey(key)) {
+    return { ok: false, advance: false, reason: 'SUBMISSION_KEY_INVALID' };
+  }
+  // An unreadable store answer is never a pass. "We could not look" and "it is there" must
+  // not collapse into one outcome.
+  if (o.storeError === true) {
+    return { ok: false, advance: false, reason: 'READBACK_STORE_ERROR' };
+  }
+  if (!Array.isArray(o.rows)) {
+    return { ok: false, advance: false, reason: 'READBACK_UNREADABLE' };
+  }
+
+  // Reuse the exact-key contract check: a store that returns a row for a different key has
+  // broken its lookup contract, and a broken contract proves nothing about our key.
+  for (let i = 0; i < o.rows.length; i++) {
+    const r = o.rows[i];
+    if (!r || typeof r !== 'object' || Array.isArray(r)) {
+      return { ok: false, advance: false, reason: 'READBACK_MALFORMED_ROW' };
+    }
+    if (normValue(r.submission_key) !== key) {
+      return { ok: false, advance: false, reason: 'READBACK_WRONG_KEY' };
+    }
+  }
+
+  if (o.rows.length === 0) { return { ok: false, advance: false, reason: 'READBACK_ABSENT' }; }
+  if (o.rows.length > 1) { return { ok: false, advance: false, reason: 'READBACK_DUPLICATE' }; }
+
+  const row = o.rows[0];
+  if (normValue(row.commit_state) !== 'READY') {
+    return { ok: false, advance: false, reason: 'READBACK_WRONG_STATE' };
+  }
+
+  // A pristine preallocation has no settlement residue. Any of these being populated means
+  // the row already has a history, so it is not the receipt this issuance just created.
+  const dirty = PREALLOCATION_READBACK_RULES.required_pristine_fields
+    .filter((f) => normValue(row[f]) !== '');
+  if (dirty.length) {
+    return { ok: false, advance: false, reason: 'READBACK_NOT_PRISTINE', fields: dirty };
+  }
+  if (normValue(row.correlation_id) !== '') {
+    return { ok: false, advance: false, reason: 'READBACK_ALREADY_CLAIMED' };
+  }
+
+  // Ordering item 6 — an issuance reference, when used, must belong to this issuance.
+  if (o.issuanceRef !== undefined || o.expectedIssuanceRef !== undefined) {
+    const got = normValue(o.issuanceRef);
+    const want = normValue(o.expectedIssuanceRef);
+    if (got === '' || want === '' || got !== want) {
+      return { ok: false, advance: false, reason: 'ISSUANCE_REF_MISMATCH' };
+    }
+  }
+
+  return { ok: true, advance: true, reason: 'PREALLOCATION_CONFIRMED' };
+}
+
+// ---------------------------------------------------------------- P5 §8 issuance decision
+
+// The Concierge's decision at step 6 of ISSUANCE_ORDER, as a function rather than as prose
+// in a Code node. Given the readback verdict it answers ONE question: may the authority row
+// advance to the new cycle, and if so with exactly what patch.
+//
+// The failure posture is the point. When the receipt cannot be confirmed the OLD authoritative
+// cycle stays current — it is not cleared, not superseded, and not replaced with a blank. A
+// half-advanced authority row (new cycle_id, no submission_key) would be worse than no
+// advance at all: every submit on it is PRE_ACTIVATION_BLOCKED, so the user is locked out of
+// a cycle that looks current.
+//
+// Concurrent issuance stays allowed and is NOT arbitrated here. Two issuers each mint their
+// own key, each preallocate their own receipt, and both may confirm. Bot_Sessions
+// appendOrUpdate picks the winner by last-write-wins, and the loser's receipt becomes an
+// orphan that no current authority row names. The ledger never decides who won.
+function planIssuance(opts) {
+  const o = opts || {};
+  const verdict = o.readback || {};
+
+  if (verdict.advance !== true) {
+    return {
+      ok: false,
+      advanceAuthority: false,
+      // Stated explicitly so a caller cannot read this as "clear the cycle".
+      keepCurrentCycle: true,
+      clientMaySeeNewCycle: false,
+      orphanReceipt: true,
+      reason: normValue(verdict.reason) || 'PREALLOCATION_UNCONFIRMED'
+    };
+  }
+
+  const key = o.submissionKey;
+  if (!isValidSubmissionKey(key)) {
+    return {
+      ok: false, advanceAuthority: false, keepCurrentCycle: true,
+      clientMaySeeNewCycle: false, orphanReceipt: true, reason: 'SUBMISSION_KEY_INVALID'
+    };
+  }
+  const cycleId = normValue(o.cycleId);
+  if (cycleId === '') {
+    return {
+      ok: false, advanceAuthority: false, keepCurrentCycle: true,
+      clientMaySeeNewCycle: false, orphanReceipt: true, reason: 'CYCLE_ID_MISSING'
+    };
+  }
+
+  return {
+    ok: true,
+    advanceAuthority: true,
+    keepCurrentCycle: false,
+    clientMaySeeNewCycle: true,
+    orphanReceipt: false,
+    reason: 'ISSUANCE_CONFIRMED',
+    // The authority patch. cycle_id and submission_key are written TOGETHER — the binding is
+    // (cycle_id AND submission_key), so writing one without the other is never valid.
+    authorityPatch: { cycle_id: cycleId, submission_key: key }
   };
 }
 
@@ -273,22 +661,110 @@ function buildPreallocation(opts) {
 // the expected current state, set the new state. The caller must then verify that EXACTLY ONE
 // row was affected. Nothing here is an unconditional write.
 
+// P1-L9 STRUCTURAL GUARD. correlation_id is writable on exactly one transition —
+// READY -> IN_FLIGHT. Enforcing it here rather than by convention means a future edit that
+// adds correlation_id to the commit or abort patch throws at build time instead of silently
+// rewriting the operator recovery chain at the moment it is most needed.
 function updateSpec(key, fromState, toState, patch) {
+  const set = Object.assign({ commit_state: toState }, patch || {});
+  if (Object.prototype.hasOwnProperty.call(set, 'correlation_id')) {
+    const isClaim = fromState === 'READY' && toState === 'IN_FLIGHT';
+    if (!isClaim) {
+      throw new Error(
+        'correlation_id may only be written by the READY -> IN_FLIGHT claim (P1-L9); ' +
+        'attempted on ' + fromState + ' -> ' + toState
+      );
+    }
+  }
   return {
     where: { submission_key: key, commit_state: fromState },
-    set: Object.assign({ commit_state: toState }, patch || {}),
+    set: set,
     expect_updated_rows: 1
   };
 }
 
+// P1-L9 UNDER MODEL B — the operator recovery chain, redefined.
+//
+// The OLD P1-L9 came from the submit-time receipt design, where the receipt was created by
+// the submit attempt and could therefore be stamped at birth with that attempt's request id:
+//
+//     receipt.correlation_id === envelope.meta.request_id === Pipeline.request_id (AZ)
+//
+// Under MODEL B the receipt is PREALLOCATED at cycle issuance, before any submit attempt
+// exists. A correlation id minted at preallocation would be a value that appears in no
+// gateway log line and in no Pipeline row — it would satisfy the letter of "the receipt has
+// a correlation_id" while breaking the chain the rule exists to provide. That is worse than
+// having no value, because it looks correct.
+//
+// So the stamp moves to the moment a submit attempt actually claims the receipt:
+//
+//     PREALLOCATION      correlation_id = ''
+//     READY -> IN_FLIGHT correlation_id = the gateway's SERVER correlation id  <-- written here
+//     IN_FLIGHT -> COMMITTED / ABORTED   correlation_id untouched
+//
+// The gateway already uses that same server correlation id as envelope.meta.request_id
+// (submit-contract buildLeadIntakePayload), and Lead Intake normalisation writes that same
+// value into Pipeline.request_id / column AZ. So from the instant the claim succeeds — and
+// therefore BEFORE the Pipeline write — the chain holds:
+//
+//     receipt.correlation_id === envelope.meta.request_id === Pipeline.request_id candidate
+//
+// and after the Pipeline write it is the actual operator recovery chain.
+//
+// Note what this does NOT change: request_id remains a CORRELATION reference and never a
+// submission identity. Two attempts at one submission carry different request_ids and share
+// one submission_key. Only the attempt that WINS the claim ever writes its request_id onto
+// the receipt, which is what makes the stamped value the one that actually reached Pipeline.
+const P1_L9_CORRELATION_CHAIN = {
+  rule: 'receipt.correlation_id === envelope.meta.request_id === Pipeline.request_id (AZ)',
+  model: 'B — preallocated receipt',
+  written_at: 'the winning READY -> IN_FLIGHT claim',
+  empty_at_preallocation: true,
+  value_source: 'the gateway server correlation id, the same value used as meta.request_id',
+  caller_selectable: false,
+  immutable_once_written: true,
+  commit_preserves_it: true,
+  abort_preserves_it: true,
+  losing_claim_cannot_write_it: true,
+  holds_before_pipeline_write: true,
+  request_id_is_submission_identity: false,
+  submission_identity_is: 'submission_key'
+};
+
 // READY -> IN_FLIGHT, immediately before the irreversible Pipeline handoff.
+//
+// P5 — the claim now writes correlation_id as well as claimed_at. Because this is a
+// CONDITIONAL update matched on commit_state === 'READY', a losing concurrent attempt
+// affects zero rows and therefore cannot overwrite the winner's correlation id. The
+// immutability of the field is a property of the predicate, not of a separate guard.
 function buildClaim(opts) {
   const o = opts || {};
   const gate = resolveReceiptKey(o);
   if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
-  return { ok: true, spec: updateSpec(gate.key, 'READY', 'IN_FLIGHT', { claimed_at: now }) };
+
+  // P1-L9. The claim is the moment the chain is established, so a claim without the server
+  // correlation id is refused rather than defaulted — a generated-here value would correlate
+  // to nothing and would silently break operator recovery.
+  const correlationId = normValue(o.correlationId);
+  if (correlationId === '') { return { ok: false, reason: 'CORRELATION_ID_REQUIRED_AT_CLAIM' }; }
+  if (correlationId.indexOf(gate.key) !== -1) {
+    return { ok: false, reason: 'CORRELATION_ID_DERIVED_FROM_KEY' };
+  }
+  // The value must be the SERVER correlation id. A caller-supplied request_id reaching this
+  // argument would let a caller choose what the operator chain records.
+  if (o.correlationIdIsServerMinted === false) {
+    return { ok: false, reason: 'CORRELATION_ID_NOT_SERVER_MINTED' };
+  }
+
+  return {
+    ok: true,
+    spec: updateSpec(gate.key, 'READY', 'IN_FLIGHT', {
+      claimed_at: now,
+      correlation_id: correlationId
+    })
+  };
 }
 
 // IN_FLIGHT -> COMMITTED, after the Pipeline commit is observed and BEFORE the response.
@@ -502,10 +978,15 @@ module.exports = {
   TRANSITIONS,
   ABORT_REASONS,
   RECEIPT_AUTHORITY,
+  INTERNAL_ROUTE_DECISION,
   ISSUANCE_ORDER,
   LEAD_INTAKE_CLAIM_ORDER,
   LEAD_INTAKE_CLAIM_RULES,
+  PRE_CLAIM_VALIDATION_STAGES,
   PREALLOCATION_INVARIANT,
+  PREALLOCATION_READBACK_RULES,
+  P1_L9_CORRELATION_CHAIN,
+  ZERO_ITEM_UPDATE_CONTRACT,
   RECEIPT_LIFECYCLE_INVARIANT,
   VERDICT,
   REASONS,
@@ -515,6 +996,9 @@ module.exports = {
   resolveReceiptKey,
   canTransition,
   buildPreallocation,
+  verifyPreallocationReadback,
+  planIssuance,
+  interpretUpdateItems,
   buildClaim,
   buildCommit,
   buildAbort,

@@ -578,10 +578,26 @@ const ALLOWED_ZONES = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'UNKNOWN'];
 
 // ------------------------------------------- B.2.1-C deployment precondition (owner, N6.2)
 //
-// These three `Bot_Sessions` columns are a DEPLOYMENT PREREQUISITE. They are not created
+// These `Bot_Sessions` columns are a DEPLOYMENT PREREQUISITE. They are not created
 // here and the live sheet is not touched: what lives in this file is the contract a
 // deployment must satisfy before the G6 classification write can land, plus a preflight that
 // FAILS CLOSED when it is not satisfied.
+//
+// P5 ADDED `submission_key`, on evidence rather than assumption. The canonical live writer
+// column list appears verbatim in three Code nodes of the live Concierge export
+// (n8n/production/mppzthlkSJFr6Kle...json — "Build Session Row", "Build Intake State Row",
+// "Build Confirmation State Row"). That list has 36 columns and DOES include cycle_id,
+// consent_cycle_id, consent_at, lead_cycle_id and lead_intake_ok — all preserved — but it
+// does NOT include submission_key. So the authoritative binding column MODEL B depends on
+// does not exist live yet, and appending it is part of the same migration as the three
+// classification columns rather than something already done.
+//
+// This corrected a fixture that had assumed otherwise. Getting it wrong in the optimistic
+// direction would have been the expensive mistake: persistCanonical patches by key, and a
+// patch key with no header is silently DROPPED by Google Sheets, so a deployment against an
+// unmigrated sheet would appear to bind the submission key while storing nothing — and every
+// later authority read would then see a current cycle with no submission_key, which is
+// PRE_ACTIVATION_BLOCKED for every user on that cycle.
 //
 // Why fail closed rather than default. Google Sheets silently drops a patch key that has no
 // header — the write does not error, it does nothing. The next authority-resolved retry then
@@ -598,7 +614,23 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
   // patches by key and never by column index — but a mistyped header is an absent column as
   // far as the writer is concerned, which is why the preflight compares text, not count.
   header_contract: 'exact lower_snake_case header text in row 1, appended after the existing headers; position not depended upon',
+  // Preserved by the migration, never rewritten: these already exist live and carry cycle
+  // and consent state that B.2.1-C depends on.
+  preserved_existing_columns: [
+    'cycle_id', 'consent_cycle_id', 'consent_at', 'lead_cycle_id', 'lead_intake_ok'
+  ],
   columns: [
+    {
+      name: 'submission_key',
+      semantics: 'The preallocated MODEL B receipt key for this cycle. Half of the authority ' +
+        'binding: authority is (cycle_id AND submission_key), never cycle_id alone.',
+      vocabulary: ['sub_<32 lowercase hex>'],
+      written_by: 'the Concierge at cycle issuance, AFTER verifyPreallocationReadback confirms the receipt',
+      read_by: 'handleSubmit authority read, and the gateway pre-handoff guard',
+      crosses_tb1: false,
+      on_absent: 'a current cycle can never name a receipt, so every submit on it is ' +
+        'PRE_ACTIVATION_BLOCKED and the Mini App cannot hand off at all'
+    },
     {
       name: 'lead_mode',
       semantics: 'Lead Intake mode for this cycle\'s canonical lead: "new" or "merged".',

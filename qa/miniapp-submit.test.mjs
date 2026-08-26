@@ -102,18 +102,29 @@ function makeSessions(initial) {
   };
 }
 
-// The header set the LIVE Bot_Sessions sheet has TODAY. The three N6.2 classification
-// columns are deliberately absent, because a fixture that pretends they exist would hide the
-// deployment prerequisite instead of proving it.
+// The header set the LIVE Bot_Sessions sheet has TODAY. The classification columns are
+// deliberately absent, because a fixture that pretends they exist would hide the deployment
+// prerequisite instead of proving it.
+//
+// P5 CORRECTION — 'submission_key' was removed from this list on evidence. The canonical
+// live writer column list appears verbatim in three Code nodes of the live Concierge export
+// (n8n/production/mppzthlkSJFr6Kle...json: 'Build Session Row', 'Build Intake State Row',
+// 'Build Confirmation State Row'). It has 36 columns, it DOES include cycle_id,
+// consent_cycle_id, consent_at, lead_cycle_id and lead_intake_ok, and it does NOT include
+// submission_key. The fixture had assumed the column already existed; it does not, and the
+// optimistic direction was the dangerous one — Google Sheets silently DROPS a patch key with
+// no header, so a deployment against an unmigrated sheet would appear to bind the submission
+// key while storing nothing, and every later authority read would report a current cycle
+// with no key, i.e. PRE_ACTIVATION_BLOCKED for every user on that cycle.
 const LIVE_AUTHORITY_COLUMNS = [
   'chat_id', 'cycle_id', 'consent', 'consent_cycle_id', 'consent_at', 'consent_source',
-  'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at', 'submission_key'
+  'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at'
 ];
 
 // The header set a deployment that has satisfied AUTHORITY_SCHEMA_PRECONDITION will have.
 // Tests of post-deployment behaviour use this; a dedicated test proves the difference between
 // the two lists is exactly the precondition and nothing else.
-const MIGRATED_AUTHORITY_COLUMNS = LIVE_AUTHORITY_COLUMNS.concat(['lead_mode', 'lead_priority', 'financial_zone']);
+const MIGRATED_AUTHORITY_COLUMNS = LIVE_AUTHORITY_COLUMNS.concat(['submission_key', 'lead_mode', 'lead_priority', 'financial_zone']);
 
 // Bot_Sessions double. Same read/write contract the read-model mirror helper is injected
 // with, so authority behaves identically across both slices.
@@ -1461,7 +1472,7 @@ check('the precondition is a declared contract with fail-closed semantics', () =
   eq(p.store, 'Bot_Sessions', 'the precondition names the wrong store');
   eq(p.fail_mode, 'FAIL_CLOSED', 'the precondition does not declare fail-closed');
   eq(p.silent_default_permitted, false, 'the precondition permits a silent default');
-  eq(p.columns.map((c) => c.name).join(','), 'lead_mode,lead_priority,financial_zone',
+  eq(p.columns.map((c) => c.name).join(','), 'submission_key,lead_mode,lead_priority,financial_zone',
     'the required column set drifted');
   p.columns.forEach((c) => {
     assert(c.semantics && c.semantics.length > 10, c.name + ' has no documented semantics');
@@ -1476,11 +1487,17 @@ check('the preflight fails closed on absent, partial and unreadable headers', ()
   const absent = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS);
   eq(absent.deploy, false, 'the preflight cleared a deployment against the live schema');
   eq(absent.reason, 'COLUMNS_ABSENT', 'the refusal reason drifted');
-  eq(absent.missing.join(','), 'lead_mode,lead_priority,financial_zone', 'the missing set is wrong');
+  eq(absent.missing.join(','), 'submission_key,lead_mode,lead_priority,financial_zone', 'the missing set is wrong');
 
-  const partial = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['lead_mode']));
+  const partial = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['submission_key', 'lead_mode']));
   eq(partial.deploy, false, 'a partial migration cleared the preflight');
   eq(partial.missing.join(','), 'lead_priority,financial_zone', 'the partial missing set is wrong');
+  // A migration that adds only the classification columns and forgets the binding column is
+  // the most likely partial failure, because the three classification columns were specified
+  // first. It must refuse just as loudly.
+  const noKey = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['lead_mode', 'lead_priority', 'financial_zone']));
+  eq(noKey.deploy, false, 'a migration missing submission_key cleared the preflight');
+  eq(noKey.missing.join(','), 'submission_key', 'the missing binding column was not reported');
 
   // "We could not check" and "it is fine" must never be the same answer.
   [null, undefined, 'lead_mode', {}, 42].forEach((bad) => {

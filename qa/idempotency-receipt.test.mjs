@@ -90,18 +90,23 @@ function lookupVia(store) {
   return built.adapter.lookup;
 }
 
-function preallocate(store, key, correlationId) {
-  const p = R.buildPreallocation({
-    submissionKey: key, nowIso: NOW, correlationId: correlationId || 'fmr_' + key.slice(4, 10),
-    provenanceTrusted: true
-  });
+// P5 / P1-L9 — a preallocated receipt has an EMPTY correlation_id. The stamp now happens at
+// the winning claim, so these helpers no longer supply one here.
+function preallocate(store, key) {
+  const p = R.buildPreallocation({ submissionKey: key, nowIso: NOW, provenanceTrusted: true });
   assert(p.ok, 'preallocation failed: ' + p.reason);
   store.preallocate(p.record);
   return p.record;
 }
 
-function applyClaim(store, key) {
-  const c = R.buildClaim({ submissionKey: key, nowIso: NOW, provenanceTrusted: true });
+// The claim carries the gateway's SERVER correlation id — the same value the outbound
+// envelope uses as meta.request_id.
+const REQ = 'req-0000-1111-2222';
+function applyClaim(store, key, correlationId) {
+  const c = R.buildClaim({
+    submissionKey: key, nowIso: NOW, provenanceTrusted: true,
+    correlationId: correlationId || REQ
+  });
   assert(c.ok, 'claim build failed: ' + c.reason);
   return R.assertExactlyOneUpdated(store.conditionalUpdate(c.spec));
 }
@@ -185,8 +190,14 @@ check('(1) the receipt exists before the cycle becomes authoritative', () => {
   eq(store.rows[0].commit_state, 'READY', 'the receipt was not preallocated READY');
   assert(/mint/i.test(R.ISSUANCE_ORDER[0]), 'issuance order step 1 drifted');
   assert(/READY/.test(R.ISSUANCE_ORDER[1]), 'issuance order step 2 drifted');
-  assert(/CONFIRM/i.test(R.ISSUANCE_ORDER[2]), 'the confirm step was removed');
-  assert(/authority|Bot_Sessions/i.test(R.ISSUANCE_ORDER[3]), 'issuance order step 4 drifted');
+  // P5 — 'confirm' is now DEFINED rather than merely asserted: an exact-key readback whose
+  // cardinality and content are both checked. Insert success is explicitly not confirmation.
+  assert(/READBACK/i.test(R.ISSUANCE_ORDER[2]), 'the readback step was removed');
+  assert(/EXACTLY ONE/i.test(R.ISSUANCE_ORDER[3]), 'the cardinality check was removed');
+  assert(/authority|Bot_Sessions/i.test(R.ISSUANCE_ORDER[5]), 'the authority write step drifted');
+  assert(R.ISSUANCE_ORDER.findIndex((x) => /READBACK/i.test(x)) <
+    R.ISSUANCE_ORDER.findIndex((x) => /Bot_Sessions/i.test(x)),
+    'the readback no longer precedes the authority write');
 });
 
 check('(2) a receipt-create failure prevents the cycle from advancing', () => {
@@ -308,7 +319,7 @@ check('(20) a node "succeeding" is not evidence that one row changed', () => {
 });
 
 check('every state change is a conditional spec, never an unconditional write', () => {
-  const claim = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true });
+  const claim = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: REQ });
   eq(claim.spec.where.commit_state, 'READY', 'the claim does not match on the expected state');
   eq(claim.spec.expect_updated_rows, 1, 'the claim does not require exactly one row');
   const commit = R.buildCommit({ submissionKey: KEY_1, canonicalLeadId: LEAD_A, nowIso: NOW, provenanceTrusted: true });
@@ -574,7 +585,7 @@ check('the G1 plan and both canary documents have well-formed tables', () => {
 console.log('\nRECORD AND TRANSITION DETAIL');
 
 check('a preallocated record has exactly the declared shape', () => {
-  const rec = R.buildPreallocation({ submissionKey: KEY_1, nowIso: NOW, correlationId: 'fmr_x', provenanceTrusted: true }).record;
+  const rec = R.buildPreallocation({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true }).record;
   eq(Object.keys(rec).sort().join(','), R.RECEIPT_FIELDS.slice().sort().join(','), 'the record shape drifted from the schema');
   eq(R.RECEIPT_FIELDS.length, 11, 'the receipt schema is no longer eleven fields');
   assert(R.RECEIPT_FIELDS.indexOf('abort_reason') !== -1, 'abort_reason is missing from the schema');
@@ -584,12 +595,19 @@ check('a preallocated record has exactly the declared shape', () => {
   eq(rec.claimed_at, '', 'a preallocation was pre-claimed');
   eq(rec.settled_at, '', 'a preallocation was pre-settled');
   eq(rec.created_at, NOW, 'the creation time was not stamped');
+  // P1-L9 under MODEL B — empty at preallocation, stamped by the winning claim.
+  eq(rec.correlation_id, '', 'a preallocation stamped a correlation id');
 });
 
-check('a correlation id derived from the key is refused at source', () => {
+check('a correlation id is refused at preallocation and required at the claim', () => {
+  // P5 — preallocation precedes any submit attempt, so there is nothing to correlate to.
+  // Supplying one is REFUSED rather than silently ignored.
   const bad = R.buildPreallocation({ submissionKey: KEY_1, nowIso: NOW, correlationId: 'CID-' + KEY_1, provenanceTrusted: true });
-  eq(bad.ok, false, 'a correlation id containing the key was accepted');
-  eq(bad.reason, 'CORRELATION_ID_DERIVED_FROM_KEY', 'the refusal reason drifted');
+  eq(bad.ok, false, 'a correlation id was accepted at preallocation');
+  eq(bad.reason, 'CORRELATION_ID_NOT_ALLOWED_AT_PREALLOCATION', 'the refusal reason drifted');
+  const derived = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: 'CID-' + KEY_1 });
+  eq(derived.ok, false, 'a key-derived correlation id was accepted at the claim');
+  eq(derived.reason, 'CORRELATION_ID_DERIVED_FROM_KEY', 'the claim refusal reason drifted');
   eq(R.buildPreallocation({ submissionKey: KEY_1, nowIso: '', provenanceTrusted: true }).reason, 'CLOCK_MISSING', 'a clockless preallocation was built');
 });
 
@@ -820,7 +838,9 @@ check('the submission key model is declared with its trust properties', () => {
 });
 
 check('the issuance order and preallocation invariant are declared in full', () => {
-  eq(R.ISSUANCE_ORDER.length, 5, 'an issuance step was dropped');
+  // P5 split the old step 3 ('CONFIRM') into an explicit readback plus a cardinality check,
+  // and added the issuance-reference proof, so the declared order is now seven steps.
+  eq(R.ISSUANCE_ORDER.length, 7, 'an issuance step was dropped');
   const inv = R.PREALLOCATION_INVARIANT;
   assert(/never exists without/i.test(inv.rule), 'the invariant rule was softened');
   assert(inv.if_authority_write_fails.length > 20, 'the authority-failure case was thinned');
@@ -953,7 +973,7 @@ check('(9,10,11) abort_reason is declared, initialised and written', () => {
     assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildAbort writes an undeclared field: ' + k);
   });
   // Same discipline for the other two writers.
-  const cl = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true });
+  const cl = R.buildClaim({ submissionKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: REQ });
   Object.keys(cl.spec.set).forEach((k) => assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildClaim writes ' + k));
   const cm = R.buildCommit({ submissionKey: KEY_1, canonicalLeadId: LEAD_A, nowIso: NOW, provenanceTrusted: true });
   Object.keys(cm.spec.set).forEach((k) => assert(R.RECEIPT_FIELDS.indexOf(k) !== -1, 'buildCommit writes ' + k));
@@ -1002,18 +1022,43 @@ check('(15) no current document claims the whole ledger is identifier-free', () 
 });
 
 check('(F7) the Lead Intake claim ordering is encoded, not merely described', () => {
-  eq(R.LEAD_INTAKE_CLAIM_ORDER.length, 8, 'a claim-ordering step was dropped');
-  assert(/AUTHENTICATED/i.test(R.LEAD_INTAKE_CLAIM_ORDER[0]), 'step 1 no longer requires the trusted route');
-  assert(/READY -> IN_FLIGHT/.test(R.LEAD_INTAKE_CLAIM_ORDER[2]), 'step 3 is not the conditional claim');
-  assert(/updated_rows === 1/.test(R.LEAD_INTAKE_CLAIM_ORDER[3]), 'step 4 no longer asserts one row');
-  assert(/BEFORE any Pipeline write/i.test(R.LEAD_INTAKE_CLAIM_ORDER[3]), 'step 4 no longer precedes Pipeline');
-  assert(/Pipeline/.test(R.LEAD_INTAKE_CLAIM_ORDER[4]), 'step 5 is not the Pipeline write');
+  // P5 §3 inserted the deterministic validation stages ahead of the claim, so the order is
+  // now eleven steps. Asserted by CONTENT and RELATIVE POSITION rather than by fixed index,
+  // so inserting a further validation stage cannot silently move the claim past Pipeline.
+  const ORDER = R.LEAD_INTAKE_CLAIM_ORDER;
+  eq(ORDER.length, 11, 'a claim-ordering step was dropped');
+  const idx = (re) => ORDER.findIndex((x) => re.test(x));
+  assert(/INTERNAL route/i.test(ORDER[0]), 'step 1 no longer requires the trusted internal route');
+  const iValidate = idx(/schema validation/i);
+  const iDedup = idx(/dedup decision/i);
+  const iClaim = idx(/READY -> IN_FLIGHT/);
+  const iAssert = idx(/updated_rows === 1/);
+  const iPipeline = idx(/Pipeline canonical outcome/i);
+  const iCommit = idx(/IN_FLIGHT -> COMMITTED/);
+  const iRespond = idx(/only then respond/i);
+  [iValidate, iDedup, iClaim, iAssert, iPipeline, iCommit, iRespond].forEach((i, n) =>
+    assert(i !== -1, 'claim-order stage ' + n + ' is missing'));
+  // THE ordering property, stated as inequalities rather than trusted to prose.
+  assert(iValidate < iClaim, 'schema validation no longer precedes the claim');
+  assert(iDedup < iClaim, 'the dedup decision no longer precedes the claim');
+  assert(iClaim < iPipeline, 'the claim no longer precedes the Pipeline write');
+  assert(iAssert < iPipeline, 'the row-count assertion no longer precedes the Pipeline write');
+  assert(iPipeline < iCommit, 'the commit no longer follows the Pipeline write');
+  assert(iCommit < iRespond, 'the response no longer follows the commit');
   const rules = R.LEAD_INTAKE_CLAIM_RULES;
   eq(rules.no_pipeline_write_unless_claim_returned_exactly_one, true, 'the Pipeline gate rule was removed');
   eq(rules.claim_precedes_pipeline_write, true, 'the ordering rule was removed');
   eq(rules.commit_precedes_response, true, 'the commit-before-response rule was removed');
   eq(rules.unconditional_update_forbidden, true, 'unconditional updates were permitted');
   eq(rules.node_success_is_not_row_count_evidence, true, 'node success was made evidence again');
+  // P5 §3 additions.
+  eq(rules.all_deterministic_validation_precedes_claim, true, 'validation-before-claim was dropped');
+  eq(rules.claim_is_after_dedup_decision, true, 'the dedup-before-claim rule was dropped');
+  eq(rules.claim_covers_retry_branch_with_no_pipeline_write, true,
+    'the retry branch was moved outside the critical section');
+  eq(rules.no_ordinary_rejection_after_claim, true, 'an ordinary rejection after the claim was permitted');
+  eq(rules.post_claim_failure_is_unresolved_not_ordinary_failure, 'SUBMIT_UNRESOLVED',
+    'a post-claim failure was downgraded to an ordinary failure');
 });
 
 // ---------------------------------------------------------------- summary
