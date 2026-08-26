@@ -28,6 +28,7 @@ const require = createRequire(import.meta.url);
 const ROOT = join(HERE, '..');
 const R = require(join(ROOT, 'n8n', 'src', 'lead-intake', 'idempotency-receipt.js'));
 const C = require(join(ROOT, 'n8n', 'src', 'miniapp-submit', 'submit-contract.js'));
+const H = require(join(ROOT, 'n8n', 'src', 'miniapp-submit', 'submit-handler.js'));
 
 let pass = 0;
 const failures = [];
@@ -1295,6 +1296,82 @@ check('the candidate export carries no secret and no identity literal', () => {
     'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json', 'the candidate lost its provenance');
 });
 
+
+console.log('\nF9 RETRY OUTCOME RECOVERY (P5.2)');
+
+check('(3) a COMMITTED retry receipt recovers with mode=retry intact', () => {
+  // The full chain the operator recovery path actually walks: a settled retry receipt ->
+  // classifyRows -> the recovery adapter body -> canonicalResult -> internalMode.
+  const settled = R.buildRetrySettlement({
+    provenanceTrusted: true, submissionKey: KEY, canonicalLeadId: 'FIN-EXISTING-441',
+    leadMode: 'retry', leadPriority: 'WARM', financialZone: 'YELLOW',
+    nowIso: NOW, correlationId: REQ
+  });
+  assert(settled.ok, 'retry settlement build failed: ' + settled.reason);
+  const row = Object.assign(readyRow(), settled.spec.set);
+
+  const verdict = R.classifyRows([row], KEY);
+  eq(verdict.verdict, 'COMMITTED', 'a settled retry receipt does not classify as COMMITTED');
+  eq(verdict.lead_mode, 'retry', 'classifyRows lost the retry mode');
+  eq(verdict.lead_id, 'FIN-EXISTING-441', 'classifyRows lost the canonical lead');
+
+  // The adapter hands the gateway exactly what classifyRows found.
+  const body = {
+    ok: true, lead_id: verdict.lead_id, mode: verdict.lead_mode,
+    priority: verdict.lead_priority, financial_zone: verdict.financial_zone
+  };
+  const canonical = H.canonicalResult(body);
+  assert(canonical, 'canonicalResult rejected a recovered retry outcome');
+  eq(canonical.mode, 'retry', 'canonicalResult dropped the retry mode');
+  eq(canonical.lead_id, 'FIN-EXISTING-441', 'canonicalResult lost the canonical lead');
+
+  // ...and the gateway logs it as a KNOWN mode rather than as vocabulary drift.
+  const observed = C.internalMode(canonical.mode);
+  eq(observed.observed, 'retry', 'the observed mode drifted');
+  eq(observed.known, true, 'a recovered retry was reported as an unknown mode');
+});
+
+check('(9,12) the PUBLIC retry path is untouched by P5.2', () => {
+  // The whole point of admitting retry to the vocabulary is that the live behaviour was
+  // already correct. Nothing about the public graph may have moved.
+  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
+    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+  const respondRetry = prod.nodes.find((n) => n.name === 'Respond Retry');
+  assert(/mode: 'retry'/.test(respondRetry.parameters.responseBody),
+    'the public retry response no longer returns mode retry');
+  assert(/merge_lead_id/.test(respondRetry.parameters.responseBody),
+    'the public retry response no longer returns the dedup-selected lead');
+
+  // Every pre-existing node is still parameter-identical in the candidate — P5.2 changed
+  // repository contracts, not the workflow.
+  const cand = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate',
+    'lead-intake-internal-receipt-candidate.json'), 'utf8'));
+  const C2 = new Map(cand.nodes.map((n) => [n.name, n]));
+  let altered = 0;
+  prod.nodes.forEach((n) => {
+    const c = C2.get(n.name);
+    if (!c) { altered++; return; }
+    if (JSON.stringify(n.parameters) !== JSON.stringify(c.parameters)) { altered++; }
+  });
+  eq(altered, 0, altered + ' production node(s) were altered in the candidate');
+});
+
+check('(10) the internal retry terminal still matches the public retry outcome', () => {
+  const cand = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate',
+    'lead-intake-internal-receipt-candidate.json'), 'utf8'));
+  const N2 = new Map(cand.nodes.map((n) => [n.name, n]));
+  const term = N2.get('Internal Result (Retry)');
+  assert(term, 'Internal Result (Retry) is missing');
+  const js = term.parameters.jsCode;
+  assert(/mode: 'retry'/.test(js), 'the internal retry result no longer returns mode retry');
+  assert(/merge_lead_id/.test(js), 'the internal retry result no longer returns the dedup-selected lead');
+  // The receipt stores the same mode the terminal returns, so a replay is verbatim.
+  const settle = N2.get('Receipt Retry Settlement');
+  eq(settle.parameters.columns.value.lead_mode, 'retry', 'the settled receipt mode drifted');
+  // And that mode is inside the declared vocabulary, which is the defect P5.2 closed.
+  assert(C.ALLOWED_MODES.indexOf(settle.parameters.columns.value.lead_mode) !== -1,
+    'the receipt stores a mode the gateway contract still calls invalid');
+});
 
 console.log('\nRETENTION AND DURABILITY POSTURE (P5 §11, §12)');
 

@@ -572,7 +572,20 @@ function buildLeadIntakePayload(opts) {
 
 // ---------------------------------------------------------------- §9 client response
 
-const ALLOWED_MODES = ['new', 'merged'];
+// F9 — `retry` is a REAL live Lead Intake outcome, not an anomaly.
+//
+// The production graph has returned it all along: `Respond Retry` answers
+// `mode: 'retry'` when `Dedup Guard` sets `dedup_is_retry`. The vocabulary here listed only
+// `new` and `merged`, so a perfectly valid live retry would have been reported by
+// `internalMode` as `known: false` and then written verbatim to `Bot_Sessions.lead_mode` —
+// an out-of-contract value in authority, produced by the system working correctly.
+//
+// The fix is to admit the third outcome, not to coerce it. Clamping `retry` to `new` would
+// tell an authority-resolved replay that a CRM row was created for this cycle when none was.
+//
+// This changes NOTHING about what crosses TB-1: `mode` and `lead_mode` stay on
+// RESPONSE_FORBIDDEN_KEYS and the browser never sees any of the three.
+const ALLOWED_MODES = ['new', 'merged', 'retry'];
 const ALLOWED_PRIORITIES = ['HOT', 'WARM', 'COLD', 'INCOMPLETE'];
 const ALLOWED_ZONES = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'UNKNOWN'];
 
@@ -633,7 +646,12 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
     },
     {
       name: 'lead_mode',
-      semantics: 'Lead Intake mode for this cycle\'s canonical lead: "new" or "merged".',
+      // F9 — describes the INTERNAL LEAD INTAKE OUTCOME for this cycle, not "was a CRM row
+      // created or merged". The looser wording would be wrong for `retry`, which writes no
+      // Pipeline row at all: dedup resolved the submission to a row that already existed.
+      semantics: 'The internal Lead Intake outcome for this cycle: "new" (a Pipeline row was ' +
+        'created), "merged" (an existing row was updated) or "retry" (dedup resolved to an ' +
+        'existing row and NO Pipeline write occurred).',
       vocabulary: ALLOWED_MODES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',
@@ -642,7 +660,16 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
     },
     {
       name: 'lead_priority',
-      semantics: 'Canonical lead priority as Lead Intake scored it.',
+      // F9 — these are the values needed to REPLAY THE MINI APP RESPONSE for this cycle.
+      // That is a weaker and more accurate claim than "the current CRM row priority".
+      // On new/merge they correspond to the write-bearing outcome and the Pipeline row was
+      // written or updated with them. On RETRY they are what Lead Intake scored for THIS
+      // attempt, and the existing Pipeline row is deliberately NOT rewritten — so after a
+      // retry these fields may differ from the persisted CRM row, by design. The public retry
+      // path is unchanged; this only states accurately what it already does.
+      semantics: 'Lead priority as Lead Intake scored it for this cycle, i.e. the value needed ' +
+        'to replay the Mini App response. On "retry" the existing Pipeline row is not rewritten, ' +
+        'so this is the score for that attempt rather than necessarily the persisted CRM value.',
       vocabulary: ALLOWED_PRIORITIES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',
@@ -651,7 +678,9 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
     },
     {
       name: 'financial_zone',
-      semantics: 'Canonical financial zone as Lead Intake scored it.',
+      semantics: 'Financial zone as Lead Intake scored it for this cycle, i.e. the value needed ' +
+        'to replay the Mini App response. On "retry" the existing Pipeline row is not rewritten, ' +
+        'so this is the score for that attempt rather than necessarily the persisted CRM value.',
       vocabulary: ALLOWED_ZONES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',

@@ -17,7 +17,8 @@
 //   * Authority-first: consent and the canonical lead id commit to Bot_Sessions BEFORE the
 //     derived read model is touched. The mirror runs only after an authoritative commit.
 //   * The caller cannot steer identity. lead_id, cycle_id and request_id from the body are
-//     dropped by the validator; the idempotency key is built from server-owned values only.
+//     dropped by the validator; the submission identity is the AUTHORITATIVE submission_key,
+//     minted by the cycle issuer and read from Bot_Sessions, never from the body.
 //   * Exactly one Lead Intake call per (telegram user, cycle). A retry resolves server state
 //     first and returns the prior canonical success rather than submitting again.
 //   * `submitted` is terminal. Nothing moves it back to `draft`.
@@ -227,7 +228,7 @@ function resolvePriorSubmission(ctx, session) {
   }
 
   // An interrupted attempt. The only safe way to learn what happened is to ask the
-  // downstream for the idempotency key -- never to submit again and see.
+  // downstream for the authoritative submission_key -- never to submit again and see.
   if (state === 'submitting' || state === 'submitted') {
     const adapter = C.recoveryAdapterStatus(ctx.leadIntake);
     if (adapter.available) {
@@ -273,7 +274,7 @@ function resolvePriorSubmission(ctx, session) {
     // mechanism exists to prevent. Two safe recoveries remain open and neither needs this
     // code path: an operator writing the canonical binding to Bot_Sessions (resolved by the
     // `authority` branch above on the next attempt), or a Concierge cycle change, which
-    // changes the idempotency key and frees the user without touching the stale claim.
+    // mints a new submission_key and frees the user without touching the stale claim.
     return { resolved: false, unresolved: true, blocked: true, reason: adapter.reason };
   }
 
@@ -351,8 +352,8 @@ function assertHandoffGuard(ctx) {
     return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'HANDOFF_STATE_ILLEGAL' };
   }
 
-  // The claim must still belong to THIS operation. The idempotency key alone cannot prove
-  // that -- two concurrent submits for one (user, cycle) share it by construction -- so the
+  // The claim must still belong to THIS operation. The submission_key alone cannot prove
+  // that -- two concurrent submits on one cycle share it by construction -- so the
   // claim carries a per-operation owner token, which is the server correlation id.
   if (C.normValue(session.claim_owner) !== ctx.correlationId) {
     return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'CLAIM_REASSIGNED' };

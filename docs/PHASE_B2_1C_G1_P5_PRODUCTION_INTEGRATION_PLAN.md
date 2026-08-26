@@ -30,6 +30,7 @@ call, not tidying.
 | **F6** | P1-L9 asserted `receipt.correlation_id === Pipeline.request_id` universally. On the retry branch there is no Pipeline write at all, and the matched row carries an EARLIER attempt's request_id, so the claim was false. | **CLOSED** |
 | **F7** | The readback trimmed the stored key, and a verdict earned for key A could advance authority for key B. | **CLOSED** |
 | **F8** | "Pristine" omitted the classification fields and did not require `created_at`. | **CLOSED** |
+| **F9** | The live graph has always answered `mode: 'retry'`, but the gateway declared `ALLOWED_MODES = ['new','merged']` — so a valid live retry would have been logged as unknown and written out-of-contract into `Bot_Sessions.lead_mode`. | **CLOSED (P5.2)** |
 
 ### F1 — provenance
 
@@ -147,6 +148,51 @@ token, and concurrent issuance means two verdicts and two keys genuinely are in 
 settlement fields, because `classifyRows` replays exactly those on a `COMMITTED` read — a READY
 row already carrying them would arm a replay with a previous submission's classification.
 `created_at` must be present and parseable, checked and never substituted.
+
+### F9 — retry is a real outcome, admitted rather than coerced (P5.2)
+
+`Respond Retry` has returned `mode: 'retry'` since long before this phase, whenever
+`Dedup Guard` sets `dedup_is_retry`. P5.1 correctly made the internal path preserve that
+outcome and store `lead_mode = 'retry'` on the receipt. But the gateway contract still
+declared:
+
+    ALLOWED_MODES = ['new', 'merged']
+
+so `internalMode('retry')` reported `known: false`, and `persistCanonical` — which writes
+`result.mode` straight through — would have put an out-of-contract value into
+`Bot_Sessions.lead_mode`. The system working correctly would have produced a contract
+violation.
+
+**The vocabulary is now `['new', 'merged', 'retry']`.** Admitting the third outcome is the
+fix; clamping it is not. Coercing `retry` to `new` would tell an authority-resolved replay
+that a CRM row was created for this cycle when none was.
+
+Nothing crosses TB-1 that did not before. `mode` and `lead_mode` remain on
+`RESPONSE_FORBIDDEN_KEYS`, `buildSubmitSuccess` is still a whitelist that has no `mode` in
+it, and `responseLeaks` still refuses both spellings at any nesting depth. The browser cannot
+distinguish new, merged, retry or duplicate — which was the owner decision in N6.2 and is
+unchanged.
+
+`lead_mode` is now described as **the internal Lead Intake outcome for this cycle** —
+`new` (a Pipeline row was created), `merged` (an existing row was updated), `retry` (dedup
+resolved to an existing row and **no** Pipeline write occurred). The previous wording,
+"whether the CRM row was newly created or merged", is false for one outcome in three.
+
+#### Retry priority and zone — stated precisely
+
+The public retry path is **unchanged** and this only describes accurately what it already
+does. `Respond Retry` returns the priority and zone Lead Intake scored for **this attempt**,
+while that branch performs **no** Pipeline write.
+
+| Branch | What `lead_priority` / `financial_zone` mean |
+|---|---|
+| new / merge | the write-bearing outcome; the Pipeline row was written or updated with them |
+| retry | the score for **this retry attempt**; the existing Pipeline row is **not** rewritten |
+
+So these `Bot_Sessions` fields are **the values needed to replay the Mini App response for
+this cycle**. That is deliberately weaker than "the current CRM row's classification": after a
+retry they may differ from the persisted Pipeline row, by design. The schema declaration says
+so rather than implying an equality that does not hold.
 
 ### P5.1 limitation worth stating
 
@@ -545,6 +591,30 @@ the next step does not run.
 - **Stop if**: a zero-row claim reaches Pipeline, or `correlation_id` is empty/rewritten, or a
   post-claim failure reports ordinary success.
 
+### Step 7a — synthetic internal RETRY canary (F5/F6/F9)
+
+- **Precondition**: step 7 green.
+- **Why**: retry is the one branch that settles `READY → COMMITTED` directly, writes no
+  Pipeline row, and returns `mode: 'retry'`. None of that is exercised by step 7.
+- **Action**: drive a synthetic internal submission that `Dedup Guard` resolves as a retry —
+  the reliable lever is `requestIdCorroborated`: seed a synthetic Pipeline row carrying both
+  the same `request_id` and a matching server-derived contact identity, then submit again.
+- **Proof**:
+  - the receipt goes `READY → COMMITTED` in ONE update, and is never `IN_FLIGHT`;
+  - `canonical_lead_id` on the receipt equals the **existing** row's lead id — the one
+    `Respond Retry` returns (`merge_lead_id`), NOT the provisional `FIN-<ts>-<rand>` that
+    `Normalize + Score Lead` minted for this attempt;
+  - `lead_mode = 'retry'`, and the gateway logs `lead_mode_known: true`;
+  - **zero** new Pipeline rows and zero updates to the matched row;
+  - the browser response contains no `mode` field;
+  - a repeated retry settlement returns `[]` and does not report ordinary success.
+- **RECORD EXPLICITLY**: whether a `Build Intake Activity` row was written. It is expected
+  **not** to be — that is the known P5.1 audit gap, classified as a quality/audit follow-up
+  before general activation. P6 must state its absence in the evidence rather than pass over it.
+- **Rollback**: abort the synthetic receipt; delete the synthetic Pipeline row.
+- **Stop if**: the receipt passes through `IN_FLIGHT`, or stores the provisional lead id, or
+  any Pipeline write occurs on this branch.
+
 ### Step 8 — gateway candidate canary
 
 - **Precondition**: step 7 green.
@@ -612,10 +682,13 @@ Unchanged from P4 and deliberately not restated as more than it is:
 
 ## 12. Limitations
 
-- **An internal retry writes no intake activity row.** The public retry path continues to
+- **An internal retry writes no intake activity row.** OPEN — classified as a
+  **QUALITY / AUDIT FOLLOW-UP BEFORE GENERAL ACTIVATION**, not a G1 correctness blocker for the
+  controlled P6 synthetic canary. The public retry path continues to
   `Build Intake Activity` → `Save Activity`; the internal retry settles the receipt and
-  returns. That is an audit gap, not a correctness or safety one — the canonical lead and the
-  receipt are both correct — and it is a P6 follow-up rather than something P5.1 papered over.
+  returns. The canonical lead and the receipt are both correct, so no submission is lost or
+  duplicated — what is missing is an audit row. **P6 must exercise the retry path and record
+  this absence explicitly** rather than letting it pass unnoticed. It is not solved in P5.2.
 - **The sub-workflow return contract is asserted, not yet observed.** Closed by P6 step 3a
   before any traffic depends on it.
 

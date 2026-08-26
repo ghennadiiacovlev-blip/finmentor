@@ -1458,6 +1458,103 @@ check('the logged mode is the OBSERVED value, not one clamped into the vocabular
   eq(C.internalMode('merged').known, true, 'a known mode was flagged unknown');
 });
 
+// ------------------------- F9: retry is a real Lead Intake outcome (P5.2)
+//
+// The production graph has answered `mode: 'retry'` all along — `Respond Retry` returns it
+// whenever `Dedup Guard` sets `dedup_is_retry`. The gateway vocabulary listed only
+// `new` and `merged`, so a perfectly valid live retry would have been logged as
+// `lead_mode_known: false` and then written verbatim into `Bot_Sessions.lead_mode` — an
+// out-of-contract value in authority, produced by the system working correctly.
+//
+// P5.2 admits the third outcome rather than coercing it. Clamping `retry` to `new` would
+// tell an authority-resolved replay that a CRM row was created for this cycle when none was.
+
+console.log('\nF9 RETRY OUTCOME CONTRACT');
+
+check('(1) the mode vocabulary is exactly new, merged, retry', () => {
+  eq(C.ALLOWED_MODES.join(','), 'new,merged,retry', 'the mode vocabulary drifted');
+});
+
+check('(2) internalMode reports retry as KNOWN, and a bogus mode as unknown', () => {
+  ['new', 'merged', 'retry'].forEach((m) => {
+    const r = C.internalMode(m);
+    eq(r.observed, m, 'internalMode changed the observed value for ' + m);
+    eq(r.known, true, m + ' is not reported as a known mode');
+  });
+  // The point of `known` is to make a genuine vocabulary drift visible, so it must still
+  // fail for something that really is unknown.
+  const bogus = C.internalMode('teleported');
+  eq(bogus.known, false, 'an unknown mode was reported as known');
+  eq(bogus.observed, 'teleported', 'an unknown mode was coerced instead of observed');
+});
+
+check('(4) the gateway persists lead_mode=retry to authority verbatim', () => {
+  const intake = makeIntake({
+    body: { ok: true, lead_id: 'FIN-EXISTING-441', mode: 'retry', priority: 'WARM', financial_zone: 'YELLOW' }
+  });
+  const r = run({}, { leadIntake: intake });
+  eq(r.out.ok, true, 'a retry outcome was rejected: ' + JSON.stringify(r.out.response));
+  eq(r.authority.row.lead_mode, 'retry', 'lead_mode was not persisted as retry');
+  eq(r.authority.row.lead_id, 'FIN-EXISTING-441', 'the canonical lead id was not persisted');
+  // ...and the log records it as a KNOWN mode, so it is not flagged as drift.
+  eq(r.out.log.lead_mode, 'retry', 'the log did not record the observed mode');
+  eq(r.out.log.lead_mode_known, true, 'a valid retry was logged as an unknown mode');
+});
+
+check('(5,6,7) retry never crosses TB-1 — mode and lead_mode stay refused', () => {
+  // buildSubmitSuccess is a whitelist, so mode simply is not there.
+  const success = C.buildSubmitSuccess({
+    lead_id: 'FIN-EXISTING-441', priority: 'WARM', financial_zone: 'YELLOW', mode: 'retry'
+  });
+  eq(Object.keys(success).sort().join(','), 'financial_zone,lead_id,ok,priority,submit_state',
+    'the client response shape drifted');
+  assert(!Object.prototype.hasOwnProperty.call(success, 'mode'), 'mode reached the client response');
+
+  // ...and responseLeaks REFUSES both spellings rather than merely omitting them, at any
+  // nesting depth and by any route.
+  eq(C.responseLeaks({ mode: 'retry' }).join(','), 'mode', 'mode is no longer a forbidden response key');
+  eq(C.responseLeaks({ lead_mode: 'retry' }).join(','), 'lead_mode', 'lead_mode is no longer forbidden');
+  eq(C.responseLeaks({ a: { b: [{ mode: 'retry' }] } }).join(','), 'mode', 'a nested mode was not caught');
+  ['mode', 'lead_mode'].forEach((k) =>
+    assert(C.RESPONSE_FORBIDDEN_KEYS.indexOf(k) !== -1, k + ' left the response deny list'));
+  assert(C.CLIENT_RESPONSE_FIELDS.indexOf('mode') === -1, 'mode entered the client whitelist');
+});
+
+check('(11) an end-to-end retry exposes no mode and no new browser field', () => {
+  const intake = makeIntake({
+    body: { ok: true, lead_id: 'FIN-EXISTING-441', mode: 'retry', priority: 'WARM', financial_zone: 'YELLOW' }
+  });
+  const r = run({}, { leadIntake: intake });
+  eq(C.responseLeaks(r.out.response).join(','), '', 'the retry response leaked a forbidden key');
+  Object.keys(r.out.response).forEach((k) =>
+    assert(C.CLIENT_RESPONSE_FIELDS.indexOf(k) !== -1, 'retry response gained field ' + k));
+});
+
+check('(8) the authority schema declares lead_mode as the internal outcome, retry included', () => {
+  const col = C.AUTHORITY_SCHEMA_PRECONDITION.columns.find((c) => c.name === 'lead_mode');
+  assert(col, 'lead_mode left the schema precondition');
+  eq(col.vocabulary.join(','), 'new,merged,retry', 'the lead_mode vocabulary drifted');
+  eq(col.crosses_tb1, false, 'lead_mode was declared as crossing TB-1');
+  // The semantics must NOT describe it universally as created-or-merged: retry writes no
+  // Pipeline row at all, so that wording would be false for one outcome in three.
+  assert(/retry/i.test(col.semantics), 'the lead_mode semantics do not mention retry');
+  assert(/NO Pipeline write/i.test(col.semantics),
+    'the lead_mode semantics do not record that retry writes no Pipeline row');
+});
+
+check('priority and zone are declared as replay values, not as the persisted CRM row', () => {
+  // On retry the existing Pipeline row is deliberately NOT rewritten, so these fields are
+  // what is needed to replay the Mini App response — a weaker and accurate claim.
+  ['lead_priority', 'financial_zone'].forEach((name) => {
+    const col = C.AUTHORITY_SCHEMA_PRECONDITION.columns.find((c) => c.name === name);
+    assert(col, name + ' left the schema precondition');
+    assert(/replay the Mini App response/i.test(col.semantics),
+      name + ' is not declared as a replay value');
+    assert(/not rewritten/i.test(col.semantics),
+      name + ' does not record that retry leaves the Pipeline row alone');
+  });
+});
+
 // ------------------------- OWNER DECISION: Bot_Sessions schema precondition (N6.2)
 //
 // Approved as a DEPLOYMENT PREREQUISITE only. Nothing here touches a live sheet. These
