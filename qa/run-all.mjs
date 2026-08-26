@@ -24,7 +24,8 @@ const GATES = [
   ['Mini App read-model consistency', 'miniapp-readmodel.test.mjs'],
   ['Mini App consent and submit', 'miniapp-submit.test.mjs'],
   ['G1 durable idempotency receipt', 'idempotency-receipt.test.mjs'],
-  ['G1 P5 production integration', 'receipt-integration.test.mjs']
+  ['G1 P5 production integration', 'receipt-integration.test.mjs'],
+  ['Bot_Sessions legacy cycle contract', 'bot-sessions-legacy-cycle.test.mjs']
 ];
 
 // Each gate prints its own tally, in one of two shapes: "N passed, 0 failed" or

@@ -266,6 +266,32 @@ and A becomes destructive. See the gate in §6 step 0.
 
 ## 6. P6R-1 deployment design — **DESIGNED, NOT EXECUTED**
 
+> ### UPDATED BY P6R-1 (2026-08-26)
+>
+> Option A was **approved** and its safety premise **re-verified live** — materially affected
+> CUSTOMER rows: 0, genuine leads matching Pipeline: 0, premise **VALID**.
+>
+> **Step 2 (append the six headers) could not be executed.** The Google Sheets *node* has no
+> operation that writes a header cell, and the Sheets `values.update` API is refused by a
+> deliberate credential control: *"This credential is configured to prevent use within an HTTP
+> Request or GraphQL node."* That control was not worked around. It is a capability stop with a
+> safe manual resolution — see
+> `docs/BOT_SESSIONS_LEGACY_CYCLE_STATE_REMEDIATION_LIVE.md` §4.3 for the exact cells.
+>
+> Two things this document could not yet know are now settled:
+>
+> * **The remediation is proven** against the byte-exact production cycle-gate source —
+>   two-event stability, consent guards, lead guards, `/start` and restart, and the
+>   `previous_lead_id` rescue surviving. Gate: `qa/bot-sessions-legacy-cycle.test.mjs`.
+> * **A residual was found:** `/start` and restart mint `'C-' + chat_id + '-' + Date.now()`,
+>   so two resets for one chat inside the same millisecond collide. Pre-existing, not worsened
+>   by this migration, and the same collision P3 cited when choosing MODEL B's random key.
+>
+> The step order below stands unchanged; only step 2's execution method is now known to
+> require the owner.
+
+### Original step design
+
 Scope: **the six legacy columns only.** `submission_key`, `lead_mode`, `lead_priority` and
 `financial_zone` are **not** part of P6R-1 and remain P6.
 
