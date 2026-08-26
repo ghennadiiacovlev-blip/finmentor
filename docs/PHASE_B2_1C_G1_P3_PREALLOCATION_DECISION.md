@@ -250,9 +250,20 @@ constraint becomes necessary. That is a decision for that moment, not this one.
 | **P1-L11** *(new)* | `Bot_Sessions.submission_key` column exists, and issuance writes it in the ordering of §4 |
 | P1-L1, L4, L5, L6, L7, L8, L9, L10 | unchanged |
 
+**Updated 2026-08-26 by P4 (live).** P1-L2′ **PASS**, P1-L3 **PASS**, P1-L4 **PARTIAL**
+(execution boundary and workflow redeploy PASS; tenant restart NOT TESTED). Evidence:
+`docs/PHASE_B2_1C_G1_P4_CONDITIONAL_UPDATE_CANARY.md`.
+
 ---
 
-## 12. Next live canary — designed, **NOT executed**
+## 12. Next live canary — designed here, **EXECUTED in P4 (2026-08-26)**
+
+> **P4 outcome: C1–C7 all PASS.** The gating C7 is satisfied — the Data Table `update` node
+> emits one output item per updated row and an empty array when nothing matched, so
+> `updated_rows` is directly observable. C2 was proven with ten genuinely overlapping race
+> rounds, exactly one winner each. Full evidence and limitations:
+> `docs/PHASE_B2_1C_G1_P4_CONDITIONAL_UPDATE_CANARY.md`. The table below is the original P3
+> design and is left unchanged as the specification P4 was tested against.
 
 For MODEL B, against a `Submission_Receipts_CANARY` table and synthetic keys only:
 
@@ -278,6 +289,10 @@ did — for a different missing primitive.
 the trust boundary, the retry matrix and the retention rule are proven offline and
 mutation-tested. What is unproven is the live behaviour of the one primitive the whole design
 now rests on, and that is C1–C3 above.
+
+**Updated 2026-08-26 by P4.** That primitive is now proven live: C1–C7 all PASS, so MODEL B's
+live substrate assumption holds. **G1 nevertheless remains OPEN** — P4 proved the substrate
+only. It integrated nothing, and P1-L5 through P1-L11 are untouched.
 
 `docs/PHASE_B2_1C_G1_P2_LIVE_STORE_CANARY.md` is retained unchanged as the evidence that
 closed the previous architecture.
