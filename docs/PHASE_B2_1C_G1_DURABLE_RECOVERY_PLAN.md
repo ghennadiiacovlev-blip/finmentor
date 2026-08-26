@@ -6,8 +6,23 @@ Branch: `feat/miniapp-b21c-live-prereqs`
 Base: `main` @ `d69e2e8e9c7156861e94738e3aedd5cf1ae7257e`
 
 **G1 remains OPEN.** This document and the code beside it make G1 *buildable* and
-*deployment-ready*. They do not close it. Nothing live was touched: no n8n, no Sheets, no
-production webhook, no Telegram, no GA4, no DNS or Cloudflare.
+*deployment-ready*. They do not close it.
+
+> ## ⚠ SUBSTRATE ASSUMPTION FAILED LIVE — P2, 2026-08-26
+>
+> **P1-L2 FAILED.** The n8n Data Table **cannot enforce one-receipt-per-key**. There is no
+> atomic insert-if-absent primitive on the `dataTable` node, and a duplicate for one key was
+> created live in two ordinary API calls. Evidence:
+> `docs/PHASE_B2_1C_G1_P2_LIVE_STORE_CANARY.md`.
+>
+> The **decision logic** in this document is unaffected and still holds — including the
+> defence in depth that makes duplicates fail closed. What does not hold is §2.3's choice of
+> **substrate**. Everything below that names the n8n Data Table as the store should be read as
+> *the design as proposed in P1*, pending the owner's substrate decision.
+>
+> The leading candidate that P2 did **not** rule out: pre-create the receipt row at cycle
+> issuance (single-writer, no concurrency), so the submit path only ever does a **conditional
+> UPDATE** — a primitive Phase 10 *did* prove live. That is P3 work, not a change made here.
 
 ---
 
@@ -90,8 +105,16 @@ write can observe its outcome. A gateway-side receipt could never say more than 
 **Substrate: an n8n Data Table**, separate from the read-model mirror. Chosen because Phase 10
 already proved the conditional-update (CAS) primitive live in this tenant, and Sheets provably
 cannot enforce uniqueness. **The atomic insert-if-absent primitive is a distinct capability
-that Phase 10 did NOT prove**, so it is a named live prerequisite (§7) and the code fails
-closed without it rather than assuming it.
+that Phase 10 did NOT prove**, so it was made a named live prerequisite (P1-L2) and the code
+fails closed without it rather than assuming it.
+
+> **P2 outcome, 2026-08-26: that prerequisite FAILED.** The `dataTable` node's row operations are
+> `deleteRows` · `get` · `rowExists` · `rowNotExists` · `insert` · `update` · `upsert` —
+> none of them an atomic insert-if-absent. `insert` is unconditional, `upsert` is
+> match-then-write, and `rowExists`/`rowNotExists` + `insert` is the "broad lookup + create"
+> this design forbids. Confirmed empirically: two inserts of the same key both returned
+> `insertedCount: 1`. **Making the prerequisite explicit is what caught this** — an
+> assumed capability would have shipped. The substrate choice now returns to the owner.
 
 **Why this is not a second authority.** The ledger answers exactly one question — *did the
 submission for this key reach a canonical Pipeline commit, and which lead did it produce* — and
@@ -127,6 +150,11 @@ tokens — never. `request_id` — storing it here would invite exactly the conf
 **Uniqueness:** never more than one receipt row per key, enforced by atomic insert-if-absent.
 Where a store cannot enforce it, duplicates are **detected and fail closed** — never resolved
 to a winner.
+
+> **P2: the n8n Data Table is such a store.** It does not enforce uniqueness, so on that
+> substrate the fail-closed path is not a fallback but the *normal* outcome under concurrency —
+> and a ledger that routinely answers `CANNOT_ANSWER` stops recovering exactly when recovery is
+> needed. Failing safe is not the same as working. See the P2 canary document.
 
 **Lifecycle (P1.3).** "For all time" was withdrawn: it contradicted P1-L8, which requires a
 retention policy precisely because the key contains a personal identifier (§3.1). Leaving both
@@ -504,10 +532,10 @@ Nothing below can be established offline. Each is a canary.
 
 | # | Prerequisite | Why it cannot be proven here |
 |---|---|---|
-| **P1-L1** | The `Submission_Receipts` table exists with the **eleven** fields of §3 | schema creation is a live change |
-| **P1-L2** | **Atomic insert-if-absent** under genuine concurrency | Phase 10 proved conditional *update*, not insert-if-absent |
-| **P1-L3** | **Read-after-write** for a key just written | gates whether absence may ever mean `NOT_COMMITTED` |
-| **P1-L4** | Durability across workflow redeploy and n8n restart | the in-memory double proves nothing about this |
+| **P1-L1** | ~~The `Submission_Receipts` table exists with the **eleven** fields of §3~~ **PASS (P2)** — created and schema verified as `Submission_Receipts_CANARY` | proven live |
+| **P1-L2** | **Atomic insert-if-absent** under genuine concurrency | **FAIL (P2)** — the primitive does not exist on the `dataTable` node, and duplicates for one key were created live. **Blocks the substrate choice, not merely the proof** |
+| **P1-L3** | **Read-after-write** for a key just written | **NOT TESTED (P2)** — the MCP surface has no row-read tool at all, and testing was stopped once P1-L2 failed. Still gates whether absence may ever mean `NOT_COMMITTED` |
+| **P1-L4** | Durability across workflow redeploy and n8n restart | **NOT TESTED (P2)** — no boundary was crossed. The in-memory double proves nothing about this |
 | **P1-L5** | The stable key **reaches Lead Intake** as `payload.meta.idempotency_key` | today the outbound envelope carries no key — **contract change, owner approval (OD-1)** |
 | **P1-L10** | An authenticated `Internal Auth Entry` route exists on Lead Intake, so `internalRouteProven()` can ever be true | the node does not exist today; without it receipts are never written and the public route can never write them either (§7.1) |
 | **P1-L6** | Intent write ordered strictly before `Save to Pipeline` | workflow wiring, observable only live |
@@ -729,5 +757,18 @@ authenticated route at all**. Adding the stable key to the payload without an au
 route would have opened a cheap, targeted denial of service (§7.1), so receipt authority is now
 a property of the route, enforced in code by `resolveReceiptKey` at both ledger writers.
 
-Until P1-L1 … P1-L10 are executed and recorded, **B.2.1-C is NOT CLEARED**, G1 remains the
-activation blocker, and the fifteen B.2.1-C canaries remain unexecuted.
+**P2 (2026-08-26) took the substrate to the tenant and it failed.** P1-L1 passes: the eleven-field
+table exists and works. P1-L2 fails on two independent grounds — the primitive is absent from the
+node, and duplicates for one key were created live in two calls. P1-L3 and P1-L4 were not tested,
+because there is no row-read path on the available surface and because proving secondary
+properties of a store that has already failed its primary one would have spent live mutation to
+no purpose. The full record, including exactly what remains live and needs deleting by hand, is
+in `docs/PHASE_B2_1C_G1_P2_LIVE_STORE_CANARY.md`.
+
+The **decision logic** this document specifies is unaffected: it was built to fail closed on
+duplicates, and it does. What P2 removes is the assumption that the chosen store would make
+duplicates rare. On this substrate they are not rare — they are unenforced.
+
+Until P1-L1 … P1-L10 are executed and recorded — and P1-L2 now needs an **architecture
+decision**, not merely a live proof — **B.2.1-C is NOT CLEARED**, G1 remains the activation
+blocker, and the fifteen B.2.1-C canaries remain unexecuted.
