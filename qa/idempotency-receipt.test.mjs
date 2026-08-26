@@ -152,7 +152,7 @@ check('writer and reader agree on what a key IS — neither repairs a padded one
 });
 
 check('the schema is minimal and carries no PII beyond the key, and no secret material', () => {
-  eq(R.RECEIPT_FIELDS.length, 9, 'the receipt schema changed size');
+  eq(R.RECEIPT_FIELDS.length, 11, 'the receipt schema changed size');
   ['telegram_user_id', 'chat_id', 'cycle_id', 'request_id', 'init_data', 'hash', 'signature',
     'contact', 'name', 'company', 'direct', 'email', 'phone', 'free_text', 'answers'
   ].forEach((f) => {
@@ -216,13 +216,15 @@ check('(7) a store that cannot answer yields CANNOT_ANSWER, never a fresh submit
 });
 
 check('without read-after-write, absence degrades to CANNOT_ANSWER', () => {
-  // The inference that can create a duplicate lead if it is wrong. A store that has not
-  // proven read-after-write may simply not be showing us a row that exists.
+  // Since F2, a store missing read-after-write cannot back an ACTIVATION adapter at all, so
+  // the inference itself is exercised through the diagnostic probe — same resolver, and the
+  // conservative answer must survive there too.
   const store = makeReceiptStore({ read_after_write: false });
-  const built = A.createRecoveryAdapter(store);
-  eq(built.absence_provable, false, 'absence was declared provable without read-after-write');
-  const out = built.adapter.lookup(KEY_1);
-  eq(out.ok, false, 'absence was treated as proof without read-after-write');
+  eq(A.createRecoveryAdapter(store).ok, false, 'an activation adapter was built without read-after-write');
+  const probe = A.createDiagnosticProbe(store);
+  assert(probe.ok, 'the diagnostic probe refused a store it should tolerate');
+  eq(probe.activation_capable, false, 'a partial store was called activation capable');
+  eq(probe.probe(KEY_1).ok, false, 'absence was treated as proof without read-after-write');
 });
 
 check('(8) every malformed receipt shape fails closed', () => {
@@ -265,7 +267,11 @@ check('(4) where the store cannot enforce uniqueness, duplicates fail closed', (
   seedCommitted(store, KEY_1, LEAD_A);
   store.rows.push({ idempotency_key: KEY_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_A });
   eq(store.rows.length, 2, 'the fixture no longer produces duplicates');
-  const out = lookupVia(store)(KEY_1);
+  // Such a store can no longer back an activation adapter (F2); the probe exercises the
+  // duplicate handling itself.
+  eq(A.createRecoveryAdapter(store).reason, 'NO_ATOMIC_INSERT_IF_ABSENT',
+    'a store that cannot enforce uniqueness still built an activation adapter');
+  const out = A.createDiagnosticProbe(store).probe(KEY_1);
   eq(out.ok, false, 'duplicate receipts resolved to a winner instead of failing closed');
   eq(R.classifyRows(store.rows, KEY_1).reason, 'DUPLICATE_RECEIPTS', 'duplicates were not named');
 });
@@ -570,13 +576,17 @@ check('the ledger re-checks key equality itself and does not trust the store fil
     { idempotency_key: KEY_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_A },
     { idempotency_key: 'miniapp:900000001:' + CYCLE_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_B }
   ];
-  eq(R.classifyRows(rows, KEY_2).verdict, R.VERDICT.ABSENT, 'a foreign row answered for cycle 2');
-  eq(R.classifyRows(rows, KEY_1).lead_id, LEAD_A, 'the matching row was not selected');
-  // And through the adapter, against a store that hands back everything it has.
+  // F1: a foreign row is a CONTRACT VIOLATION, not an absence. The old behaviour filtered
+  // it away and answered ABSENT, which with read-after-write became NOT_COMMITTED — the
+  // gateway would release the claim on the word of a store that had just proved it cannot
+  // answer by key.
+  eq(R.classifyRows(rows, KEY_2).verdict, R.VERDICT.CANNOT_ANSWER, 'a foreign row was filtered into an absence');
+  eq(R.classifyRows(rows, KEY_2).reason, 'LOOKUP_CONTRACT_VIOLATION', 'the violation was not named');
+  eq(R.classifyRows([rows[0]], KEY_1).lead_id, LEAD_A, 'the matching row was not selected');
   const sloppy = makeReceiptStore({ sloppy: true });
   seedCommitted(sloppy, KEY_1, LEAD_A);
   const out = lookupVia(sloppy)(KEY_2);
-  assert(!(out.ok === true && out.known === true), 'an over-returning store leaked cycle 1 into cycle 2');
+  eq(out.ok, false, 'an over-returning store produced a definite answer for cycle 2');
 });
 
 check('classifyRows refuses an invalid key on its own, not only via the adapter', () => {
@@ -596,6 +606,180 @@ check('(7) a store that FAILS but returns an empty array is not read as an absen
   const out = lookupVia(store)(KEY_1);
   eq(out.ok, false, 'a failed read with empty rows was treated as a provable absence');
   assert(out.known !== false, 'a failed read was read as proof nothing was created');
+});
+
+console.log('\nF1  EXACT-KEY LOOKUP FAILS CLOSED');
+
+// Every one of these must be CANNOT_ANSWER and must NEVER be NOT_COMMITTED. A store that
+// breaks its own exact-key contract has told us nothing — including nothing about absence.
+const F1_CASES = [
+  ['padded stored key', [{ idempotency_key: KEY_1 + ' ', commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['leading-space stored key', [{ idempotency_key: ' ' + KEY_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['wrong-cycle key', [{ idempotency_key: KEY_2, commit_state: 'COMMITTED', canonical_lead_id: LEAD_B }], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['wrong-user key', [{ idempotency_key: 'miniapp:900000001:' + CYCLE_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_B }], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['mixed correct + wrong key', [
+    { idempotency_key: KEY_1, commit_state: 'COMMITTED', canonical_lead_id: LEAD_A },
+    { idempotency_key: KEY_2, commit_state: 'COMMITTED', canonical_lead_id: LEAD_B }
+  ], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['row missing the key entirely', [{ commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }], 'RECEIPT_KEY_MISSING'],
+  ['row with an empty key', [{ idempotency_key: '', commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }], 'RECEIPT_KEY_MISSING'],
+  ['row with a non-string key', [{ idempotency_key: 12345, commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }], 'RECEIPT_KEY_MISSING'],
+  ['a null row in the set', [null], 'LOOKUP_CONTRACT_VIOLATION'],
+  ['an array masquerading as a row', [[KEY_1]], 'LOOKUP_CONTRACT_VIOLATION']
+];
+
+check('(F1) every contract-violating row set is CANNOT_ANSWER, never an absence', () => {
+  F1_CASES.forEach(([label, rows, reason]) => {
+    const v = R.classifyRows(rows, KEY_1);
+    eq(v.verdict, R.VERDICT.CANNOT_ANSWER, label + ' did not fail closed');
+    eq(v.reason, reason, label + ' reported the wrong reason');
+    assert(v.verdict !== R.VERDICT.ABSENT && v.verdict !== R.VERDICT.NOT_COMMITTED_PROVEN,
+      label + ' was treated as proof nothing was created');
+  });
+});
+
+check('(F1) a violating store never yields NOT_COMMITTED through the adapter', () => {
+  F1_CASES.forEach(([label, rows]) => {
+    const store = makeReceiptStore();
+    store.readByKey = () => ({ ok: true, rows: rows });
+    const out = lookupVia(store)(KEY_1);
+    eq(out.ok, false, label + ' produced a definite answer through the adapter');
+    assert(out.known !== false, label + ' released the claim');
+  });
+});
+
+check('(F1) over-returning with NO correct row still fails closed', () => {
+  // The exact shape the review named: readByKey(K) answers with a row for some other key.
+  // Filtering it away would leave zero rows and manufacture an absence.
+  const store = makeReceiptStore();
+  store.readByKey = () => ({ ok: true, rows: [{ idempotency_key: KEY_2, commit_state: 'PENDING', canonical_lead_id: '' }] });
+  const out = lookupVia(store)(KEY_1);
+  eq(out.ok, false, 'a wrong-key row was filtered into an absence');
+});
+
+check('(F1) a clean empty exact-key result is still a usable absence', () => {
+  // The fix must not make every absence unusable — only the ones that were never proven.
+  const store = makeReceiptStore();
+  const out = lookupVia(store)(KEY_1);
+  eq(out.ok, true, 'a clean empty result stopped being answerable');
+  eq(out.known, false, 'a clean empty result stopped meaning not-committed');
+});
+
+console.log('\nF2  ACTIVATION CAPABILITY GATE');
+
+check('(F2) all three capabilities are required to build an activation adapter', () => {
+  eq(A.REQUIRED_CAPABILITIES.join(','), 'exact_key_lookup,atomic_insert_if_absent,read_after_write',
+    'the required capability set drifted');
+  eq(A.createRecoveryAdapter(makeReceiptStore()).reason, 'READY', 'a fully capable store was refused');
+});
+
+check('(F2) each missing capability keeps the gateway PRE_ACTIVATION_BLOCKED', () => {
+  [['exact_key_lookup', 'NO_EXACT_KEY_LOOKUP'],
+    ['atomic_insert_if_absent', 'NO_ATOMIC_INSERT_IF_ABSENT'],
+    ['read_after_write', 'NO_READ_AFTER_WRITE']
+  ].forEach(([cap, reason]) => {
+    const opts = {}; opts[cap] = false;
+    const built = A.createRecoveryAdapter(makeReceiptStore(opts));
+    eq(built.ok, false, 'an adapter was built without ' + cap);
+    eq(built.reason, reason, 'the refusal reason drifted for ' + cap);
+    eq(built.adapter, null, 'a refused adapter still exposed an object');
+    // The structural blocker: the gateway must see no callable lookup.
+    const wired = { submit: () => ({}), lookup: built.adapter && built.adapter.lookup };
+    eq(C.recoveryAdapterStatus(wired).available, false, 'the gateway was unblocked without ' + cap);
+    eq(C.recoveryAdapterStatus(wired).reason, 'RECOVERY_ADAPTER_MISSING', 'the blocker reason drifted');
+  });
+});
+
+check('(F2) the diagnostic probe can never unblock the gateway', () => {
+  // The safety property is the NAME. recoveryAdapterStatus unblocks on a callable 'lookup',
+  // so a tool that exposes only 'probe' cannot remove the blocker however it is wired.
+  const probe = A.createDiagnosticProbe(makeReceiptStore({ read_after_write: false, atomic_insert_if_absent: false }));
+  assert(probe.ok, 'the probe refused a store it should tolerate');
+  eq(typeof probe.probe, 'function', 'the probe exposes no probe method');
+  eq(probe.lookup, undefined, 'the probe exposes a lookup and can unblock the gateway');
+  eq(C.recoveryAdapterStatus(probe).available, false, 'a diagnostic probe unblocked the gateway');
+  eq(C.recoveryAdapterStatus(Object.assign({ submit: () => ({}) }, probe)).available, false,
+    'a probe spread into a leadIntake object unblocked the gateway');
+  // A probe still refuses a scan-only store: it must not lie about what it inspected.
+  eq(A.createDiagnosticProbe(makeReceiptStore({ exact_key_lookup: false })).ok, false,
+    'the probe accepted a scan-only store');
+});
+
+check('(F2) a capability flag is never claimed as durability', () => {
+  assert(/durab/i.test(A.CAPABILITY_CAVEAT), 'the durability caveat was removed');
+  assert(/live/i.test(A.CAPABILITY_CAVEAT), 'the caveat no longer points at the live canaries');
+});
+
+console.log('\nF4  OPERATOR RESOLUTION AND THE ABORTED STATE');
+
+check('(F4) only a PENDING receipt may be aborted, and ABORTED is terminal', () => {
+  assert(R.canTransition('PENDING', 'ABORTED'), 'a pending receipt cannot be aborted');
+  assert(!R.canTransition('COMMITTED', 'ABORTED'), 'a committed receipt can be aborted');
+  assert(!R.canTransition('ABORTED', 'COMMITTED'), 'an aborted receipt can be promoted');
+  assert(!R.canTransition('ABORTED', 'PENDING'), 'an aborted receipt can be reopened');
+  eq(R.planAbort({ commit_state: 'COMMITTED', canonical_lead_id: LEAD_A }).reason,
+    'CANNOT_ABORT_A_COMMITTED_RECEIPT', 'aborting a committed receipt was allowed');
+  eq(R.planAbort({ commit_state: 'PENDING' }).action, 'ABORT', 'a pending receipt refused an abort');
+  eq(R.planAbort({ commit_state: 'ABORTED' }).action, 'ALREADY_ABORTED', 'a repeat abort was not idempotent');
+  eq(R.planAbort(null).reason, 'NO_RECEIPT_ROW', 'an abort onto nothing was allowed');
+});
+
+check('(F4) an abort carries a constrained reason, never free text', () => {
+  eq(R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' }).ok, true,
+    'the only legal abort reason was refused');
+  ['', 'looked stuck', 'customer Ion asked', 'PROVEN', 'proven_no_pipeline_commit'].forEach((bad) => {
+    eq(R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: bad }).ok, false,
+      'an abort accepted the reason ' + JSON.stringify(bad));
+  });
+  eq(R.ABORT_REASONS.length, 1, 'the abort vocabulary grew without review');
+});
+
+check('(F4) an ABORTED receipt is a POSITIVE not-committed, independent of read-after-write', () => {
+  const store = makeReceiptStore();
+  seedPending(store, KEY_1);
+  const abort = R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' });
+  store.applyCommit(KEY_1, abort.patch);
+  eq(R.classifyRows(store.rows, KEY_1).verdict, R.VERDICT.NOT_COMMITTED_PROVEN, 'an abort was not a proven negative');
+  const out = lookupVia(store)(KEY_1);
+  eq(out.ok, true, 'an aborted receipt could not answer');
+  eq(out.known, false, 'an aborted receipt was not reported as not-committed');
+  // Positive evidence, so it holds even where an ABSENCE would not.
+  const weak = makeReceiptStore({ read_after_write: false });
+  weak.rows = store.rows.slice();
+  eq(A.createDiagnosticProbe(weak).probe(KEY_1).known, false,
+    'a proven abort was downgraded because absence is unprovable here');
+});
+
+check('(F4) aborting does not delete the receipt, and the evidence survives', () => {
+  const store = makeReceiptStore();
+  seedPending(store, KEY_1);
+  const abort = R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' });
+  store.applyCommit(KEY_1, abort.patch);
+  eq(store.rows.length, 1, 'the abort removed the receipt');
+  eq(store.rows[0].commit_state, 'ABORTED', 'the state was not recorded');
+  eq(store.rows[0].aborted_at, NOW, 'the abort time was not recorded');
+  eq(store.rows[0].abort_reason, 'PROVEN_NO_PIPELINE_COMMIT', 'the abort reason was not recorded');
+  eq(store.rows[0].canonical_lead_id, '', 'an aborted receipt claims a lead');
+});
+
+check('(F4) the operator correlation chain is exactly correlation_id -> meta.request_id', () => {
+  // Verified against the real modules, not assumed. The gateway sets meta.request_id from
+  // its server correlation id; Lead Intake reads meta.request_id; build-pipeline-row writes
+  // it to Pipeline AZ. So a receipt seeded with the SAME value is findable — while AZ holds.
+  const built = C.buildLeadIntakePayload({
+    answers: GOOD_ANSWERS, free_text: '', contact: { name: 'Ion', company: 'ACME', direct: '+37360123456' },
+    telegramUserId: CHAT, locale: 'ru', clientVersion: 'b2.1.0', correlationId: 'CID-CHAIN-1', nowIso: NOW
+  });
+  assert(built.ok, 'the envelope did not build');
+  eq(built.envelope.payload.meta.request_id, 'CID-CHAIN-1', 'the correlation id no longer reaches meta.request_id');
+  // A receipt seeded from the same value correlates to the Pipeline row.
+  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-CHAIN-1' });
+  eq(intent.record.correlation_id, built.envelope.payload.meta.request_id,
+    'the receipt correlation id and the Pipeline request_id have diverged');
+  // And the ledger key itself is NOT in the envelope, which is why Pipeline cannot be found
+  // by the stable key — the P1-L5 gap, asserted rather than described.
+  const flat = JSON.stringify(built.envelope);
+  assert(flat.indexOf(KEY_1) === -1, 'the stable key now reaches the envelope; P1-L5 must be revisited');
 });
 
 // ---------------------------------------------------------------- summary

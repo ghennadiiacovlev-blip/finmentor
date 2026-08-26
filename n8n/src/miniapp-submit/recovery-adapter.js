@@ -60,21 +60,45 @@ function readCapabilities(store) {
   };
 }
 
-// Is this store fit to back a recovery adapter at all?
+// Every capability an ACTIVATION store must affirm. Not a preference list: each one gates an
+// inference the gateway will make on the strength of this adapter existing.
+const REQUIRED_CAPABILITIES = ['exact_key_lookup', 'atomic_insert_if_absent', 'read_after_write'];
+
+// Is this store fit to back an ACTIVATION recovery adapter?
 //
-// Deliberately strict. A store without exact-key lookup would have to scan, and a scan over
-// Pipeline or over the ledger is not a lookup — it is the thing RECOVERY_ADAPTER_CONTRACT
-// names as unacceptable. Refusing here keeps the gateway's PRE_ACTIVATION_BLOCKED behaviour
-// in force rather than replacing it with a worse adapter.
+// P1.1 (F2) made this strictly stronger, and the reason is a real hazard rather than
+// tidiness. `recoveryAdapterStatus` in submit-contract.js decides the gateway is unblocked by
+// finding a callable `lookup` — nothing more. So an adapter built over a store that had only
+// proven exact-key lookup would REMOVE PRE_ACTIVATION_BLOCKED while two of the three
+// properties the recovery depends on were still unproven. The blocker would come off early,
+// and it is the blocker that currently guarantees no unrecoverable submission is ever started.
+//
+//   exact_key_lookup        — without it the store must scan, which is not a lookup
+//   atomic_insert_if_absent — without it two receipts can exist for one key, and the ledger
+//                             cannot hold its own uniqueness rule
+//   read_after_write        — without it absence can never mean NOT_COMMITTED, so the adapter
+//                             could never release a claim and is not a recovery at all
+//
+// Each is reported under its own reason so a deployment learns WHICH property it is missing.
 function assessStore(store) {
   if (!store || typeof store.readByKey !== 'function') {
     return { ok: false, reason: 'STORE_MISSING' };
   }
   const caps = readCapabilities(store);
   if (!caps) { return { ok: false, reason: 'CAPABILITIES_UNREADABLE' }; }
-  if (!caps.exact_key_lookup) { return { ok: false, reason: 'NO_EXACT_KEY_LOOKUP' }; }
+  if (!caps.exact_key_lookup) { return { ok: false, reason: 'NO_EXACT_KEY_LOOKUP', capabilities: caps }; }
+  if (!caps.atomic_insert_if_absent) { return { ok: false, reason: 'NO_ATOMIC_INSERT_IF_ABSENT', capabilities: caps }; }
+  if (!caps.read_after_write) { return { ok: false, reason: 'NO_READ_AFTER_WRITE', capabilities: caps }; }
   return { ok: true, capabilities: caps };
 }
+
+// A capability flag is an ASSERTION, not a measurement. Affirming all three does not make a
+// store durable across a workflow redeploy or an n8n restart, and nothing in this file
+// claims otherwise: durability stays a LIVE canary prerequisite (P1-L4). What the gate buys
+// is that a store which has not even claimed the properties can never unblock the gateway.
+const CAPABILITY_CAVEAT =
+  'capabilities are self-declared; durability across redeploy/restart is proven only by the ' +
+  'live canaries, never by this flag';
 
 // Build the adapter, or refuse.
 //
@@ -82,17 +106,12 @@ function assessStore(store) {
 // in submit-contract.js decides the gateway is blocked by looking for a callable `lookup`, so
 // an unusable store must not produce an object that merely fails later. A blocked deployment
 // has to look blocked at the moment it is wired, not at the moment a user submits.
-function createRecoveryAdapter(store, opts) {
-  const assessment = assessStore(store);
-  if (!assessment.ok) {
-    return { ok: false, reason: assessment.reason, adapter: null };
-  }
-  const caps = assessment.capabilities;
-  const onLog = opts && typeof opts.onLog === 'function' ? opts.onLog : null;
-
+// The single resolver both constructors use, so the diagnostic probe can never drift from
+// the adapter it is meant to diagnose.
+function buildLookup(store, caps, onLog) {
   function log(view) { if (onLog) { try { onLog(view); } catch (e) { /* logging never decides */ } } }
 
-  function lookup(idempotencyKey) {
+  return function lookup(idempotencyKey) {
     // Nothing below may throw into the submit handler. The handler has a top-level catch
     // (G3), but a lookup that throws would be classified by throw-site rather than by what
     // the ledger actually said, which loses information the ledger had.
@@ -138,6 +157,16 @@ function createRecoveryAdapter(store, opts) {
         });
       }
 
+      if (verdict.verdict === R.VERDICT.NOT_COMMITTED_PROVEN) {
+        // An ABORTED receipt: an operator proved no canonical commit exists. Positive
+        // evidence, so it does NOT lean on read-after-write the way an absence does.
+        log(R.receiptLogView({
+          idempotencyKey: idempotencyKey, commitState: 'ABORTED',
+          verdict: verdict.verdict, reason: verdict.reason
+        }));
+        return ANSWER.notCommitted();
+      }
+
       if (verdict.verdict === R.VERDICT.ABSENT) {
         // THE ONE INFERENCE THAT CAN CREATE A DUPLICATE LEAD IF IT IS WRONG.
         //
@@ -170,7 +199,17 @@ function createRecoveryAdapter(store, opts) {
       // The thrown value is never read: a message can carry a key, a row or a lead id.
       return ANSWER.cannotAnswer();
     }
+  };
+}
+
+function createRecoveryAdapter(store, opts) {
+  const assessment = assessStore(store);
+  if (!assessment.ok) {
+    return { ok: false, reason: assessment.reason, adapter: null };
   }
+  const caps = assessment.capabilities;
+  const onLog = opts && typeof opts.onLog === 'function' ? opts.onLog : null;
+  const lookup = buildLookup(store, caps, onLog);
 
   return {
     ok: true,
@@ -184,9 +223,43 @@ function createRecoveryAdapter(store, opts) {
   };
 }
 
+// Operator / test tooling ONLY.
+//
+// Deliberately a DIFFERENT constructor returning a method named `probe`, never `lookup`.
+// That naming is the whole safety property: `recoveryAdapterStatus` unblocks the gateway by
+// finding a callable `lookup`, so an object that has no `lookup` cannot satisfy it however
+// it is wired. A probe over a partially-proven store can therefore be used to inspect the
+// ledger during a canary run without silently removing PRE_ACTIVATION_BLOCKED.
+//
+// It needs exact-key lookup — a probe that scanned would be lying about what it inspected —
+// but tolerates the other two being unproven, and answers conservatively when they are:
+// absence still degrades to "cannot answer" unless read-after-write is affirmed.
+function createDiagnosticProbe(store) {
+  if (!store || typeof store.readByKey !== 'function') {
+    return { ok: false, reason: 'STORE_MISSING', probe: null };
+  }
+  const caps = readCapabilities(store);
+  if (!caps) { return { ok: false, reason: 'CAPABILITIES_UNREADABLE', probe: null }; }
+  if (!caps.exact_key_lookup) { return { ok: false, reason: 'NO_EXACT_KEY_LOOKUP', probe: null }; }
+
+  // Built through the same code path, so the probe cannot drift from the real adapter.
+  const inner = buildLookup(store, caps, null);
+  return {
+    ok: true,
+    reason: 'DIAGNOSTIC_ONLY',
+    capabilities: caps,
+    activation_capable: caps.atomic_insert_if_absent && caps.read_after_write,
+    // NOT named `lookup`. See the comment above — this is load-bearing.
+    probe: inner
+  };
+}
+
 module.exports = {
   ANSWER,
+  REQUIRED_CAPABILITIES,
+  CAPABILITY_CAVEAT,
   assessStore,
   readCapabilities,
-  createRecoveryAdapter
+  createRecoveryAdapter,
+  createDiagnosticProbe
 };

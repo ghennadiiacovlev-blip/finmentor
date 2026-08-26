@@ -102,17 +102,34 @@ const RECEIPT_FIELDS = [
   'lead_priority',      // ditto
   'financial_zone',     // ditto
   'created_at',         // when intent was written
-  'committed_at',       // when the Pipeline commit was observed; empty while PENDING
+  'committed_at',       // when the Pipeline commit was observed; empty unless COMMITTED
+  'aborted_at',         // when an operator PROVED no commit happened; empty unless ABORTED
+  'abort_reason',       // constrained vocabulary, never free text — see ABORT_REASONS
   'correlation_id'      // server-minted, for tracing one attempt through the logs
 ];
 
-const COMMIT_STATES = ['PENDING', 'COMMITTED'];
+// ABORTED added in P1.1 (F4). Without it, the only way to clear a receipt an operator has
+// PROVEN did not commit is to delete the row so that absence answers for it — and deleting
+// receipts to manufacture an absence is precisely what the operator runbook forbids, because
+// the same gesture applied to a receipt that DID commit creates a duplicate lead. A positive,
+// terminal "proven not committed" makes the forbidden gesture unnecessary.
+//
+// It is a POSITIVE assertion, not an absence, so unlike a missing row it does not depend on
+// the store's read-after-write behaviour to be meaningful.
+const COMMIT_STATES = ['PENDING', 'COMMITTED', 'ABORTED'];
 
-// COMMITTED is terminal. There is no path back to PENDING and no path to a second lead id:
-// a receipt describes one outcome for one key, permanently.
+// The only reason an abort may carry. A constrained vocabulary rather than free text, because
+// an operator note is exactly where a customer name or a phone number ends up.
+const ABORT_REASONS = ['PROVEN_NO_PIPELINE_COMMIT'];
+
+// Both COMMITTED and ABORTED are terminal. A receipt describes one outcome for one key,
+// permanently. ABORTED cannot be promoted to COMMITTED: if an operator aborts a receipt whose
+// lead did in fact exist, the correct repair is a new cycle — not rewriting history so the
+// ledger agrees with the second opinion.
 const TRANSITIONS = {
-  PENDING: ['COMMITTED'],
-  COMMITTED: []
+  PENDING: ['COMMITTED', 'ABORTED'],
+  COMMITTED: [],
+  ABORTED: []
 };
 
 function canTransition(from, to) {
@@ -168,6 +185,8 @@ function buildIntent(opts) {
       financial_zone: '',
       created_at: now,
       committed_at: '',
+      aborted_at: '',
+      abort_reason: '',
       correlation_id: normValue(o.correlationId) || newCorrelationId()
     }
   };
@@ -232,11 +251,52 @@ function planCommit(existingRow, proposedLeadId) {
   return { ok: false, action: 'REFUSE', reason: 'UNKNOWN_STATE' };
 }
 
+// Operator-only. Written when a canonical Pipeline commit has been PROVEN not to exist for
+// this submission — never merely because a receipt looks stuck, and never to make a lookup
+// return an absence.
+function buildAbort(opts) {
+  const o = opts || {};
+  const key = o.idempotencyKey;
+  if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
+  const now = normValue(o.nowIso);
+  if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
+  const why = normValue(o.abortReason);
+  if (ABORT_REASONS.indexOf(why) === -1) { return { ok: false, reason: 'ABORT_REASON_INVALID' }; }
+  return {
+    ok: true,
+    key: key,
+    patch: { commit_state: 'ABORTED', aborted_at: now, abort_reason: why }
+  };
+}
+
+// May this abort be applied to the row that is actually there?
+//
+// Only a PENDING receipt may be aborted. Aborting a COMMITTED one would discard the only
+// evidence that resolves an ambiguity — the exact opposite of what the ledger is for — and
+// re-aborting an ABORTED one is a no-op that should be visible rather than silent.
+function planAbort(existingRow) {
+  if (!existingRow || typeof existingRow !== 'object') {
+    return { ok: false, action: 'REFUSE', reason: 'NO_RECEIPT_ROW' };
+  }
+  const state = normValue(existingRow.commit_state);
+  if (state === 'COMMITTED') {
+    return { ok: false, action: 'REFUSE', reason: 'CANNOT_ABORT_A_COMMITTED_RECEIPT' };
+  }
+  if (state === 'ABORTED') {
+    return { ok: true, action: 'ALREADY_ABORTED', reason: 'IDEMPOTENT_REPEAT' };
+  }
+  if (state !== 'PENDING') {
+    return { ok: false, action: 'REFUSE', reason: 'UNKNOWN_STATE' };
+  }
+  return { ok: true, action: 'ABORT' };
+}
+
 // ---------------------------------------------------------------- classification
 
 const VERDICT = {
   COMMITTED: 'COMMITTED',
-  ABSENT: 'ABSENT',            // caller decides whether absence is provable
+  ABSENT: 'ABSENT',                          // caller decides whether absence is provable
+  NOT_COMMITTED_PROVEN: 'NOT_COMMITTED_PROVEN', // an ABORTED receipt: positive, not an absence
   CANNOT_ANSWER: 'CANNOT_ANSWER'
 };
 
@@ -254,24 +314,51 @@ function classifyRows(rows, key) {
     return { verdict: VERDICT.CANNOT_ANSWER, reason: 'ROWS_UNREADABLE' };
   }
 
-  // Exact key equality only. A prefix or substring match here would be a scan wearing a
-  // lookup's clothes, and would let one cycle's receipt answer for another.
-  // The stored value is trimmed (a store may pad a cell); the QUERY key is not — it was
-  // already required to be exact above.
-  const mine = rows.filter((r) => r && typeof r === 'object' &&
-    normValue(r.idempotency_key) === key);
+  // F1 — THE STORE'S CONTRACT IS EXACT-KEY LOOKUP, AND A BROKEN CONTRACT PROVES NOTHING.
+  //
+  // The earlier version FILTERED foreign rows away and then judged what was left. That is
+  // unsafe in a specific and severe way: a store that answered readByKey(K) with a row for
+  // some other key would filter down to zero rows, classify as ABSENT, and — with
+  // read-after-write affirmed — become NOT_COMMITTED. The gateway would then release the
+  // claim and submit again, against a store that had just demonstrated it cannot be trusted
+  // to answer by key at all.
+  //
+  // So no filtering. EVERY returned row must be exactly this key, compared as a RAW string
+  // with no trimming: the query key and the writer are both exact-form already, so a padded
+  // stored key is a corrupted record, not a match to be repaired. Any deviation, and the
+  // whole response is discarded as a contract violation.
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || typeof r !== 'object' || Array.isArray(r)) {
+      return { verdict: VERDICT.CANNOT_ANSWER, reason: 'LOOKUP_CONTRACT_VIOLATION' };
+    }
+    const stored = r.idempotency_key;
+    if (typeof stored !== 'string' || stored === '') {
+      return { verdict: VERDICT.CANNOT_ANSWER, reason: 'RECEIPT_KEY_MISSING' };
+    }
+    if (stored !== key) {
+      return { verdict: VERDICT.CANNOT_ANSWER, reason: 'LOOKUP_CONTRACT_VIOLATION' };
+    }
+  }
 
-  if (mine.length === 0) {
+  // Only a clean, genuinely empty exact-key result may become an absence.
+  if (rows.length === 0) {
     return { verdict: VERDICT.ABSENT, reason: 'NO_RECEIPT' };
   }
-  if (mine.length > 1) {
+  if (rows.length > 1) {
     // Two receipts for one key means the uniqueness rule was not enforced. Picking a winner
     // would be guessing about a lead that may already exist.
     return { verdict: VERDICT.CANNOT_ANSWER, reason: 'DUPLICATE_RECEIPTS' };
   }
 
-  const row = mine[0];
+  const row = rows[0];
   const state = normValue(row.commit_state);
+
+  if (state === 'ABORTED') {
+    // An operator PROVED no canonical commit exists. Positive evidence, not an absence, so
+    // it stands on its own without any read-after-write assumption.
+    return { verdict: VERDICT.NOT_COMMITTED_PROVEN, reason: 'RECEIPT_ABORTED' };
+  }
 
   if (state === 'PENDING') {
     // The intent committed; whether the Pipeline write did is exactly what we cannot see.
@@ -331,6 +418,7 @@ module.exports = {
   TRANSITIONS,
   UNIQUENESS_RULE,
   ABSENCE_PROOF_PRECONDITIONS,
+  ABORT_REASONS,
   VERDICT,
   normValue,
   isValidKey,
@@ -339,6 +427,8 @@ module.exports = {
   buildIntent,
   buildCommit,
   planCommit,
+  buildAbort,
+  planAbort,
   classifyRows,
   keyDigest,
   receiptLogView,
