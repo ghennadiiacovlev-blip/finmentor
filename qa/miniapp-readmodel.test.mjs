@@ -597,7 +597,7 @@ check('backfill repairs duplicate rows down to exactly one', () => {
   eq(P.evaluateFastRead({ rows: dt.read('900000001', 2).rows }).decision, 'HIT', 'repaired row is not readable');
 });
 
-check('reconciliation classifies drift and never writes authority', () => {
+check('reconciliation planning classifies drift and writes nothing at all', () => {
   const dt = makeDataTable();
   const auth = makeAuthority({
     '1': Object.assign({}, AUTH_ROW, { chat_id: '1' }),
@@ -608,15 +608,44 @@ check('reconciliation classifies drift and never writes authority', () => {
   dt.rows.push(validStoredRow({ chat_id: '1' }));
   dt.rows.push(Object.assign(validStoredRow({ chat_id: '2' }), { cache_valid: false }));
   dt.rows.push(validStoredRow({ chat_id: '3', session_id: 'S-STALE' }));
-  const r = M.reconcile({ dt, authority: auth, chatIds: ['1', '2', '3', '4'] });
+  const dtWritesBefore = dt.stats.writes;
+  const r = M.planReconciliation({ dt, authority: auth, chatIds: ['1', '2', '3', '4'] });
   const byChat = {};
   r.findings.forEach((f) => { byChat[f.chat_id] = f.class; });
   eq(byChat['1'], 'CURRENT', 'current row misclassified');
   eq(byChat['2'], 'TOMBSTONE', 'tombstone misclassified');
   eq(byChat['3'], 'STALE', 'stale row misclassified');
   eq(byChat['4'], 'MISS', 'miss misclassified');
-  eq(r.authority_writes, 0, 'reconciliation wrote to authority');
+  eq(r.writes.authority_writes, 0, 'reconciliation wrote to authority');
   eq(auth.stats.writes, 0, 'authority mutated');
+  // G4 -- the claim is that it writes NOTHING, so the Data Table is checked too. The old
+  // assertion only covered authority, which is how a "repairs by republishing" comment
+  // survived over a function that never republished anything.
+  eq(r.writes.data_table_writes, 0, 'reconciliation reported a Data Table write');
+  eq(dt.stats.writes - dtWritesBefore, 0, 'reconciliation mutated the Data Table');
+  eq(r.repair_performed, false, 'reconciliation claimed to have repaired something');
+});
+
+check('reconciliation names the repair each class would need without performing it', () => {
+  const dt = makeDataTable();
+  const auth = makeAuthority({
+    '1': Object.assign({}, AUTH_ROW, { chat_id: '1' }),
+    '2': Object.assign({}, AUTH_ROW, { chat_id: '2' })
+  });
+  dt.rows.push(validStoredRow({ chat_id: '1' }));
+  const r = M.planReconciliation({ dt, authority: auth, chatIds: ['1', '2'] });
+  const byChat = {};
+  r.findings.forEach((f) => { byChat[f.chat_id] = f; });
+  eq(byChat['1'].repair_action, 'NONE', 'a current row was given work to do');
+  eq(byChat['2'].repair_action, 'REPUBLISH', 'a missing row was not planned for republish');
+  // Every finding must carry a named action, so a class can never be silently unhandled.
+  r.findings.forEach((f) => {
+    assert(typeof f.repair_action === 'string' && f.repair_action.length > 0,
+      'finding ' + f.class + ' carries no repair_action');
+    assert(!Object.prototype.hasOwnProperty.call(f, 'repaired'),
+      'finding ' + f.class + ' still carries the misleading repaired flag');
+  });
+  eq(M.REPAIR_ACTIONS.DUPLICATE, 'REMOVE_THEN_REPUBLISH', 'duplicate repair action drifted');
 });
 
 // ---------------------------------------------------------------------- summary

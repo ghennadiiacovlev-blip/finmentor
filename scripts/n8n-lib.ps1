@@ -7,6 +7,21 @@ $ErrorActionPreference = 'Stop'
 #   N8N_API_KEY     - read-only scope (every write returns 403)
 #   N8N_FIX_API_KEY - read/write scope, used only for authorised remediation writes
 # Reads default to the read-only key so an accidental verb cannot mutate production.
+#
+# CREDENTIAL STATUS - read before using any script in this directory.
+#
+# Both keys are scheduled for REVOCATION as an owner action once the 2026-08-25 remediation
+# phase is accepted; see docs/FINMENTOR_AUDIT_REMEDIATION_REPORT_2026-08-25.md, OWNER ACTIONS
+# REQUIRED item 6. Every script here therefore assumes credentials that may already be dead.
+#
+# This library does not detect revocation and cannot: a revoked key fails as an ordinary HTTP
+# 401, which is indistinguishable here from a key that was never set correctly. If a script
+# starts returning 401, assume revocation first rather than debugging the script.
+#
+# Any FUTURE live work - the B.2.1-C canaries above all - needs FRESH credentials issued at
+# that time, scoped as narrowly as the task allows, and revoked again afterwards. Do not
+# reinstate an old key to make a script run. No key value is stored in this repository, and
+# none may ever be: keys come from the environment only.
 function Get-N8nContext {
     param([switch]$Write)
     $base = $env:N8N_BASE_URL

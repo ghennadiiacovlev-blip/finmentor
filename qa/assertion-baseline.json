@@ -1,0 +1,22 @@
+{
+  "_comment": [
+    "Per-gate assertion floors, enforced by qa/run-all.mjs. Raise a number deliberately when",
+    "checks are added. Never lower one to make a red build green: a falling tally means",
+    "coverage was removed, which is the only thing this file exists to catch.",
+    "",
+    "The per-gate floors are the point. A total-only floor cannot see one gate losing ten",
+    "checks while another gains ten, which is exactly how coverage quietly moves out of the",
+    "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
+  ],
+  "total": 460,
+  "gates": {
+    "command-center-auth.test.mjs": 43,
+    "lead-intake-trust.test.mjs": 43,
+    "ai-safe-projection.test.mjs": 52,
+    "error-alert.test.mjs": 22,
+    "website-contract.test.mjs": 75,
+    "n8n-manifest-drift.test.mjs": 70,
+    "miniapp-readmodel.test.mjs": 42,
+    "miniapp-submit.test.mjs": 113
+  }
+}

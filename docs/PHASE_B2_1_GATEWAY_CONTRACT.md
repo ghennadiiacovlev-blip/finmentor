@@ -233,9 +233,20 @@ branch, including every fallback class. `qa/miniapp-readmodel.test.mjs` asserts 
 against both the Data Table and the authoritative store on the cache-hit path and on all five
 fallback paths.
 
-Repairing a stale or duplicated derived row is deliberately **not** the read path's job. Repair
-belongs to the mirror helper and to reconciliation, so that serving a Mini App open can never
-become a write.
+Repairing a stale or duplicated derived row is deliberately **not** the read path's job, so that
+serving a Mini App open can never become a write.
+
+**CORRECTED 2026-08-26 (N6.1, gap G4).** This section previously said repair "belongs to the
+mirror helper **and to reconciliation**". Reconciliation has never repaired anything: it
+classifies drift and returns a plan, performing zero writes to either store. The function is
+now named `planReconciliation` accordingly, and each finding carries a `repair_action` naming
+the operation a repair *would* perform without performing it. That is the intended design, not
+an omission — an unattended repairer writing to the derived table on a schedule is what the
+Phase 10 stop conditions prohibit, and it would create a reconciliation/submit race.
+
+The two repair paths that actually exist are the mirror helper's own generation
+(`runMirrorGeneration`, which republishes as part of a real commit) and `runBackfill`, which is
+deliberate, manual and authority-first.
 
 ## 6. App session
 
@@ -353,14 +364,36 @@ Request example:
 {
   "ok": true,
   "lead_id": "<canonical lead id>",
-  "mode": "new|merged",
   "priority": "HOT|WARM|COLD",
   "financial_zone": "RED|YELLOW|GREEN|UNKNOWN",
   "submit_state": "submitted"
 }
 ```
 
-The UI must not tell a client they were a duplicate. `mode: merged` is an internal CRM behavior; client confirmation remains normal.
+**`mode` is not returned. Owner decision, N6.2 (2026-08-26).**
+
+This section previously listed `mode: "new|merged"` in the body *and* stated that the UI must
+not tell a client they were a duplicate. Those two requirements could not both hold: a field
+in the response body is readable in devtools whatever the UI chooses to render, so the rule
+was enforced only by the client's good manners. The contradiction is resolved in favour of
+the rule.
+
+The browser must not be able to determine from the response whether its lead was new, merged,
+a retry or a duplicate. `mode` therefore does not cross TB-1 on **any** branch — success,
+replay, consent-NO or error. It remains available internally, where it is genuinely needed:
+
+| Where | As | For |
+|---|---|---|
+| server log | `lead_mode`, `lead_mode_known` | diagnostics, and canary L7's "real `mode`" evidence |
+| `Bot_Sessions` | `lead_mode` column | recovering the classification on an authority-resolved retry |
+
+The logged value is the **observed** one, deliberately not clamped into `new`/`merged`: a
+canary that has never seen a real Lead Intake `mode` must be able to see an unexpected value
+rather than one coerced into the expected vocabulary. `lead_mode_known: false` flags that case.
+
+Enforcement is structural, not editorial: `mode` and `lead_mode` are in
+`RESPONSE_FORBIDDEN_KEYS`, so `responseLeaks` **refuses** them at any nesting depth rather
+than the response merely omitting them.
 
 ## 10. Idempotency
 

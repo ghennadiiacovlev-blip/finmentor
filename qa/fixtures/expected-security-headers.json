@@ -1,0 +1,77 @@
+{
+  "_comment": [
+    "FINMENTOR — expected HTTP security headers, machine-readable.",
+    "",
+    "Source of truth for two things that must not drift apart: the policy staged in the",
+    "repository `_headers` file, and the policy a future edge layer is expected to deliver.",
+    "",
+    "`delivery` is the honest part of this file. Only Referrer-Policy is actually reaching",
+    "browsers today, and it does so through a meta tag rather than a header, because",
+    "GitHub Pages cannot set response headers at all. Everything marked `staged` is inert",
+    "until an edge layer is in front of the origin.",
+    "",
+    "No offline test can promote a `staged` entry to `live`. That requires a real request",
+    "against the real host — see the curl block in",
+    "docs/FINMENTOR_EDGE_SECURITY_HEADERS_DECISION.md."
+  ],
+  "finding": "INDP2-14",
+  "origin": {
+    "host": "GitHub Pages",
+    "edge": "Fastly",
+    "custom_domain": "www.finmentor.md",
+    "can_set_response_headers": false
+  },
+  "verification_command": "curl -sI https://www.finmentor.md/ | grep -i -E 'content-security|strict-transport|x-frame|referrer|x-content-type|permissions'",
+  "headers": [
+    {
+      "name": "Referrer-Policy",
+      "value": "strict-origin-when-cross-origin",
+      "delivery": "live",
+      "mechanism": "meta name=referrer on every page",
+      "note": "The only one of the six with a browser-honoured HTML equivalent."
+    },
+    {
+      "name": "X-Content-Type-Options",
+      "value": "nosniff",
+      "delivery": "staged",
+      "mechanism": "response header only",
+      "note": "Header-only by specification. No meta equivalent exists."
+    },
+    {
+      "name": "X-Frame-Options",
+      "value": "DENY",
+      "delivery": "staged",
+      "mechanism": "response header only",
+      "note": "Clickjacking control. No meta equivalent exists."
+    },
+    {
+      "name": "Permissions-Policy",
+      "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+      "delivery": "staged",
+      "mechanism": "response header only",
+      "note": "The old Feature-Policy meta form is dead and must not be used."
+    },
+    {
+      "name": "Strict-Transport-Security",
+      "value": "max-age=31536000; includeSubDomains",
+      "delivery": "staged",
+      "mechanism": "response header only",
+      "note": "Do not add preload until the policy has run without incident and the owner accepts that preload is slow to reverse."
+    },
+    {
+      "name": "Content-Security-Policy",
+      "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://ghennadi.app.n8n.cloud; upgrade-insecure-requests",
+      "delivery": "staged",
+      "mechanism": "response header only",
+      "note": "Must be rolled out Report-Only first. As a meta tag it is enforcing with no report-only mode, and frame-ancestors is ignored in meta form. 'unsafe-inline' is currently unavoidable because the pages carry inline scripts and styles."
+    }
+  ],
+  "unresolved_count": 5,
+  "unresolved": [
+    "Content-Security-Policy",
+    "Strict-Transport-Security",
+    "X-Frame-Options",
+    "X-Content-Type-Options",
+    "Permissions-Policy"
+  ]
+}
