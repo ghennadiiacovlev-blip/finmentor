@@ -45,7 +45,7 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | Secret scan | `node scripts/secret-scan.mjs` over every tracked file |
 | Summary | writes the gate table and assertion total to the job summary |
 
-### The eight gates
+### The canonical gates
 
 | # | Gate | File | Assertions |
 |---|---|---|---|
@@ -57,7 +57,8 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | 6 | n8n export hygiene | `qa/n8n-manifest-drift.test.mjs` | 70 |
 | 7 | Mini App read-model consistency | `qa/miniapp-readmodel.test.mjs` | 42 |
 | 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 113 |
-| | **Baseline** | | **460** |
+| 9 | G1 durable idempotency receipt | `qa/idempotency-receipt.test.mjs` | 35 |
+| | **Baseline** | | **495** |
 
 `qa/run-all.mjs` now prints each gate's assertion count and a `TOTAL ASSERTIONS:` line, so
 the number is read from the run rather than transcribed. It also **fails when a gate's tally
