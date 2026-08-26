@@ -679,87 +679,523 @@ check('the zero-item contract names the platform fact and the forbidden patterns
 
 // ================================================================ CANDIDATE WORKFLOW
 
-console.log('\nCANDIDATE WORKFLOW STRUCTURE (P5 §4, §9)');
+console.log('\nF6 RETRY SETTLEMENT (pure logic)');
+
+check('(F6) buildRetrySettlement is READY -> COMMITTED with the canonical values', () => {
+  const s = R.buildRetrySettlement({
+    provenanceTrusted: true, submissionKey: KEY, canonicalLeadId: 'FIN-EXISTING-7',
+    leadMode: 'retry', leadPriority: 'WARM', financialZone: 'YELLOW',
+    nowIso: NOW, correlationId: REQ
+  });
+  assert(s.ok, 'retry settlement build failed: ' + s.reason);
+  eq(s.spec.where.commit_state, 'READY', 'the settlement does not match READY');
+  eq(s.spec.where.submission_key, KEY, 'the settlement does not match the key');
+  eq(s.spec.set.commit_state, 'COMMITTED', 'the settlement target state drifted');
+  eq(s.spec.set.canonical_lead_id, 'FIN-EXISTING-7', 'the settlement lost the canonical lead');
+  eq(s.spec.set.correlation_id, REQ, 'the settlement did not record which attempt settled it');
+  eq(s.spec.expect_updated_rows, 1, 'the settlement does not require exactly one row');
+  // Same refusals as the claim.
+  ['LEAD_ID_MISSING', 'CLOCK_MISSING', 'CORRELATION_ID_REQUIRED_AT_SETTLEMENT'].forEach((r) => assert(r, r));
+  eq(R.buildRetrySettlement({ provenanceTrusted: true, submissionKey: KEY, nowIso: NOW, correlationId: REQ }).reason,
+    'LEAD_ID_MISSING', 'a settlement without a canonical lead was built');
+  eq(R.buildRetrySettlement({ provenanceTrusted: true, submissionKey: KEY, canonicalLeadId: 'L', nowIso: NOW }).reason,
+    'CORRELATION_ID_REQUIRED_AT_SETTLEMENT', 'a settlement without a correlation id was built');
+  eq(R.buildRetrySettlement({ provenanceTrusted: false, submissionKey: KEY, canonicalLeadId: 'L', nowIso: NOW, correlationId: REQ }).reason,
+    'RECEIPT_CONTROLS_REQUIRE_TRUSTED_ROUTE', 'the public route built a settlement');
+});
+
+check('(F6) the retry settlement is crash-safe in both directions', () => {
+  // The claim exists to mark "an irreversible write MAY have happened". On the retry branch
+  // nothing is written, so there is no such uncertainty and no IN_FLIGHT state is created.
+  // Both crash windows resolve safely, which is what makes the direct settlement correct
+  // rather than merely shorter.
+  const settle = R.buildRetrySettlement({
+    provenanceTrusted: true, submissionKey: KEY, canonicalLeadId: 'FIN-EXISTING-7',
+    leadMode: 'retry', leadPriority: 'WARM', financialZone: 'YELLOW', nowIso: NOW, correlationId: REQ
+  });
+
+  // CRASH BEFORE the CAS: the receipt is untouched, so a later attempt re-resolves dedup and
+  // settles again. Nothing was written, so nothing can be duplicated.
+  const beforeCrash = readyRow();
+  eq(beforeCrash.commit_state, 'READY', 'the fixture is wrong');
+  const replay = R.classifyRows([beforeCrash], KEY);
+  eq(replay.verdict, 'READY', 'a pre-crash retry receipt is not replayable as READY');
+  eq(replay.reason, 'NO_HANDOFF_BEGAN', 'a pre-crash retry receipt does not read as no-handoff');
+
+  // CRASH AFTER the CAS: the receipt is COMMITTED with the canonical lead, so a later attempt
+  // replays that success verbatim instead of re-submitting.
+  const afterCrash = Object.assign(readyRow(), settle.spec.set);
+  const settled = R.classifyRows([afterCrash], KEY);
+  eq(settled.verdict, 'COMMITTED', 'a settled retry receipt does not replay as COMMITTED');
+  eq(settled.lead_id, 'FIN-EXISTING-7', 'the replay lost the canonical lead');
+  eq(settled.lead_mode, 'retry', 'the replay lost the retry mode');
+
+  // There is no third state: the settlement never produces IN_FLIGHT, which is the state that
+  // means CANNOT_ANSWER.
+  assert(settle.spec.set.commit_state !== 'IN_FLIGHT', 'the retry settlement created an ambiguous state');
+
+  // A second settlement attempt matches nothing, because the row has left READY.
+  const second = afterCrash.commit_state === settle.spec.where.commit_state ? 1 : 0;
+  eq(second, 0, 'a settled retry receipt could be settled twice');
+});
+
+check('(F6) buildCommit still requires IN_FLIGHT — new and merge cannot skip the claim', () => {
+  const c = R.buildCommit({
+    submissionKey: KEY, canonicalLeadId: LEAD, leadMode: 'new',
+    leadPriority: 'WARM', financialZone: 'YELLOW', nowIso: NOW, provenanceTrusted: true
+  });
+  eq(c.spec.where.commit_state, 'IN_FLIGHT', 'the commit stopped requiring IN_FLIGHT');
+  // ...and correlation_id remains unwritable there.
+  let threw = false;
+  try { R.updateSpec(KEY, 'IN_FLIGHT', 'COMMITTED', { correlation_id: 'x' }); }
+  catch (e) { threw = /P1-L9/.test(e.message); }
+  eq(threw, true, 'the commit was allowed to rewrite correlation_id');
+  // An abort may leave READY but must NOT stamp a correlation id: it closes a receipt that
+  // never corresponded to a submission, and a value there is noise an operator must rule out.
+  let abortThrew = false;
+  try { R.updateSpec(KEY, 'READY', 'ABORTED', { correlation_id: 'x' }); }
+  catch (e) { abortThrew = /P1-L9/.test(e.message); }
+  eq(abortThrew, true, 'an abort was allowed to stamp a correlation id');
+  // The two legal transitions still work.
+  eq(R.updateSpec(KEY, 'READY', 'IN_FLIGHT', { correlation_id: REQ }).set.correlation_id, REQ,
+    'the claim transition was blocked');
+  eq(R.updateSpec(KEY, 'READY', 'COMMITTED', { correlation_id: REQ }).set.correlation_id, REQ,
+    'the retry settlement transition was blocked');
+});
+
+console.log('\nF7 READBACK KEY BINDING');
+
+check('(F7) a verdict earned for key A cannot advance authority for key B', () => {
+  const vA = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow()] });
+  eq(vA.verified_submission_key, KEY, 'the verdict does not name the key it verified');
+  const wrong = R.planIssuance({ readback: vA, submissionKey: KEY_2, cycleId: 'C-1' });
+  eq(wrong.advanceAuthority, false, 'a verdict for key A advanced authority for key B');
+  eq(wrong.reason, 'READBACK_KEY_BINDING_MISMATCH', 'the binding refusal reason drifted');
+  eq(wrong.keepCurrentCycle, true, 'a binding mismatch did not keep the old cycle current');
+  // A verdict with the field stripped is refused too — the binding cannot be opted out of.
+  const stripped = Object.assign({}, vA); delete stripped.verified_submission_key;
+  eq(R.planIssuance({ readback: stripped, submissionKey: KEY, cycleId: 'C-1' }).reason,
+    'READBACK_KEY_BINDING_MISMATCH', 'a verdict with no bound key still advanced');
+  [null, 42, {}, ''].forEach((bad) => {
+    const v = R.planIssuance({ readback: Object.assign({}, vA, { verified_submission_key: bad }), submissionKey: KEY, cycleId: 'C-1' });
+    eq(v.advanceAuthority, false, JSON.stringify(bad) + ' passed as a bound key');
+  });
+});
+
+check('(F7) two concurrent issuance verdicts, swapped, are both refused', () => {
+  // Concurrent issuance is ALLOWED, so two verdicts and two keys genuinely are in flight at
+  // once — which is exactly why the binding has to be structural rather than by convention.
+  const vA = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow()] });
+  const vB = R.verifyPreallocationReadback({ submissionKey: KEY_2, rows: [readyRow({ submission_key: KEY_2 })] });
+  eq(vA.advance && vB.advance, true, 'the concurrent fixture is wrong');
+  eq(R.planIssuance({ readback: vA, submissionKey: KEY_2, cycleId: 'C-A' }).advanceAuthority, false,
+    'swapped verdict A -> key B advanced');
+  eq(R.planIssuance({ readback: vB, submissionKey: KEY, cycleId: 'C-B' }).advanceAuthority, false,
+    'swapped verdict B -> key A advanced');
+  // Correctly paired, both still advance.
+  eq(R.planIssuance({ readback: vA, submissionKey: KEY, cycleId: 'C-A' }).advanceAuthority, true,
+    'correctly paired verdict A was refused');
+  eq(R.planIssuance({ readback: vB, submissionKey: KEY_2, cycleId: 'C-B' }).advanceAuthority, true,
+    'correctly paired verdict B was refused');
+});
+
+check('(F7) a padded or mistyped stored key is refused, never trimmed into a match', () => {
+  // normValue would TRIM, and trimming is a repair. A MODEL B key is opaque and server-minted,
+  // so a stored value that is not byte-identical did not come from the minter.
+  [KEY + ' ', ' ' + KEY, KEY + '\t', KEY.toUpperCase(), KEY.slice(0, -1), KEY + '0']
+    .forEach((bad) => {
+      const v = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ submission_key: bad })] });
+      eq(v.advance, false, JSON.stringify(bad) + ' was accepted as the stored key');
+      eq(v.reason, 'READBACK_WRONG_KEY', 'the wrong-key reason drifted for ' + JSON.stringify(bad));
+    });
+  // A non-string stored key is refused rather than coerced.
+  [null, undefined, 42, {}].forEach((bad) => {
+    const v = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ submission_key: bad })] });
+    eq(v.advance, false, JSON.stringify(bad) + ' was coerced into a key match');
+  });
+});
+
+console.log('\nF8 PRISTINE READBACK');
+
+check('(F8) stale classification on a READY row is not pristine', () => {
+  // classifyRows replays lead_mode / lead_priority / financial_zone on a COMMITTED read, so a
+  // READY row already carrying them would arm a replay with a previous submission's values.
+  ['lead_mode', 'lead_priority', 'financial_zone'].forEach((f) => {
+    const v = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ [f]: 'HOT' })] });
+    eq(v.advance, false, 'a READY row carrying ' + f + ' was treated as pristine');
+    eq(v.reason, 'READBACK_NOT_PRISTINE', 'the residue reason drifted for ' + f);
+    assert(v.fields.indexOf(f) !== -1, 'the refusal does not name the dirty field ' + f);
+  });
+  // The declared rule lists all seven fields.
+  const req = R.PREALLOCATION_READBACK_RULES.required_pristine_fields;
+  ['canonical_lead_id', 'claimed_at', 'settled_at', 'abort_reason',
+    'lead_mode', 'lead_priority', 'financial_zone']
+    .forEach((f) => assert(req.indexOf(f) !== -1, f + ' left the pristine set'));
+});
+
+check('(F8) created_at must be present and parseable, and is never repaired', () => {
+  const missing = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ created_at: '' })] });
+  eq(missing.reason, 'READBACK_CREATED_AT_MISSING', 'an empty created_at was accepted');
+  [undefined, null, 42, {}].forEach((bad) =>
+    eq(R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ created_at: bad })] }).reason,
+      'READBACK_CREATED_AT_MISSING', JSON.stringify(bad) + ' passed as created_at'));
+  ['not-a-date', 'yesterday', '2026-13-45T99:99:99Z'].forEach((bad) =>
+    eq(R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow({ created_at: bad })] }).reason,
+      'READBACK_CREATED_AT_INVALID', JSON.stringify(bad) + ' passed as a timestamp'));
+  eq(R.PREALLOCATION_READBACK_RULES.created_at_must_be_present_and_parseable, true,
+    'the created_at requirement was dropped');
+  // A valid one still passes, and nothing was substituted.
+  const ok = R.verifyPreallocationReadback({ submissionKey: KEY, rows: [readyRow()] });
+  eq(ok.advance, true, 'a valid created_at was refused');
+});
+
+
+console.log('\nCANDIDATE WORKFLOW STRUCTURE (P5.1 F1-F6)');
 
 const CANDIDATE = JSON.parse(readFileSync(
   join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-candidate.json'), 'utf8'));
 const CONN = CANDIDATE.connections;
 const NODE = new Map(CANDIDATE.nodes.map((n) => [n.name, n]));
 
-// Every Google Sheets node that APPENDS or UPDATES — i.e. every canonical write. The
-// zero-row branch must reach none of them.
+// Every Google Sheets node that APPENDS or UPDATES — i.e. every canonical write.
 const SHEET_WRITERS = CANDIDATE.nodes
   .filter((n) => /googleSheets/.test(n.type) && /append|update/i.test((n.parameters && n.parameters.operation) || ''))
   .map((n) => n.name);
+const RESPOND_NODES = CANDIDATE.nodes
+  .filter((n) => n.type === 'n8n-nodes-base.respondToWebhook')
+  .map((n) => n.name);
 
+// Assertions about what a Code node DOES must read its executable body, not the comments
+// explaining it. Without this, a comment saying 'submission_key is deliberately NOT injected'
+// fails a check looking for injected submission_key — the prose would have to be deleted to
+// make the test pass, which is exactly backwards.
+function codeBody(js) {
+  return String(js || '').split(/\r?\n/).filter((l) => !/^\s*\/\//.test(l)).join('\n');
+}
+
+function outputTargets(node, index) {
+  return (((CONN[node] && CONN[node].main) || [])[index] || []).map((t) => t.node);
+}
 function reachableFrom(startNodes) {
   const seen = new Set(startNodes);
   const q = startNodes.slice();
   while (q.length) {
     const n = q.pop();
-    const outs = (CONN[n] && CONN[n].main) || [];
-    outs.forEach((o) => (o || []).forEach((t) => {
+    ((CONN[n] && CONN[n].main) || []).forEach((o) => (o || []).forEach((t) => {
       if (!seen.has(t.node)) { seen.add(t.node); q.push(t.node); }
     }));
   }
   return seen;
 }
 // Reachability that models a CONDITIONAL branch being taken. Plain graph reachability walks
-// both outputs of an IF, so it can never express 'the public path takes the false edge'.
-// falseOnly names the gates whose FALSE branch is the one under test; for those, only
-// output index 1 is followed. Every other node still fans out normally, so nothing else is
-// quietly excluded from the walk.
-function reachableWithGates(startNodes, falseOnly) {
-  const cut = new Set(falseOnly || []);
+// both outputs of an IF, so it can never express "the internal path takes the true edge" or
+// "the public path takes the false edge". forcedIndex maps a gate name to the ONE output
+// index to follow; every other node still fans out normally.
+function reachableWithGates(startNodes, forcedIndex) {
   const seen = new Set(startNodes);
   const q = startNodes.slice();
   while (q.length) {
     const n = q.pop();
-    const outs = (CONN[n] && CONN[n].main) || [];
-    outs.forEach((o, i) => {
-      if (cut.has(n) && i !== 1) { return; }
-      (o || []).forEach((t) => {
-        if (!seen.has(t.node)) { seen.add(t.node); q.push(t.node); }
-      });
+    ((CONN[n] && CONN[n].main) || []).forEach((o, i) => {
+      const forced = forcedIndex[n];
+      if (forced !== undefined && i !== forced) { return; }
+      (o || []).forEach((t) => { if (!seen.has(t.node)) { seen.add(t.node); q.push(t.node); } });
     });
   }
   return seen;
 }
+// Every "is this internal?" gate takes its TRUE edge when we simulate the internal path.
+const INTERNAL_GATES = CANDIDATE.nodes
+  .filter((n) => /^IF Internal \(/.test(n.name)).map((n) => n.name);
+const internalForced = {};
+INTERNAL_GATES.forEach((g) => { internalForced[g] = 0; });
+const INTERNAL_REACH = reachableWithGates(['Internal Subworkflow Trigger'], internalForced);
 
-function outputTargets(node, index) {
-  return (((CONN[node] && CONN[node].main) || [])[index] || []).map((t) => t.node);
-}
-
-check('(27) the candidate exists, is derived from the production export, and is not deployed', () => {
-  eq(CANDIDATE.meta.finmentor_source_export,
-    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json', 'the candidate lost its provenance');
-  eq(CANDIDATE.meta.finmentor_not_deployed, true, 'the candidate is not marked undeployed');
-  assert(SHEET_WRITERS.length >= 8, 'the sheet writer set looks wrong: ' + SHEET_WRITERS.length);
-  ['Internal Auth Entry', 'Receipt Gate', 'IF Receipt Required', 'Receipt Exact Read',
-    'Receipt Claim', 'Claim Verdict', 'IF Claim Won', 'Respond Receipt Unresolved']
-    .forEach((n) => assert(NODE.has(n), 'the candidate is missing node: ' + n));
+check('(F1) the provenance marker is written by the node internalRouteProven() reads', () => {
+  // P5 wrote the marker in the node AFTER Internal Auth Entry while the proof read Internal
+  // Auth Entry's own output, so provenance was false for every internal call unless the
+  // CALLER supplied it — which the design forbids. The marker and the proof must be one node.
+  const entry = NODE.get('Internal Auth Entry');
+  assert(entry, 'Internal Auth Entry is missing');
+  eq(entry.type, 'n8n-nodes-base.code', 'Internal Auth Entry is not the marker-writing Code node');
+  assert(entry.parameters.jsCode.indexOf('__internal_route: true') !== -1,
+    'Internal Auth Entry does not write the marker itself');
+  // The declared proof expression must name this exact node.
+  assert(R.RECEIPT_AUTHORITY.proven_by.indexOf("$('Internal Auth Entry')") !== -1,
+    'the declared proof no longer names Internal Auth Entry');
+  const helper = readFileSync(join(ROOT, 'n8n', 'src', 'lead-intake', 'normalize-score-lead.js'), 'utf8');
+  assert(helper.indexOf("$('Internal Auth Entry').first().json.__internal_route === true") !== -1,
+    'internalRouteProven() no longer reads the marker node');
+  // The trigger is a separate node and does NOT carry the marker.
+  const trig = NODE.get('Internal Subworkflow Trigger');
+  eq(trig.type, 'n8n-nodes-base.executeWorkflowTrigger', 'the internal trigger type drifted');
+  eq(outputTargets('Internal Subworkflow Trigger', 0).join(','), 'Internal Auth Entry',
+    'the trigger does not feed the marker node');
 });
 
-check('(27) a lost claim reaches NO Pipeline node', () => {
-  // THE structural property. IF Claim Won output 1 is the false branch.
-  const lost = reachableFrom(outputTargets('IF Claim Won', 1));
-  const leaked = SHEET_WRITERS.filter((w) => lost.has(w));
-  eq(leaked.join(','), '', 'a lost claim can reach Pipeline nodes: ' + leaked.join(','));
-  assert(lost.has('Respond Receipt Unresolved'), 'a lost claim does not reach the fail-closed responder');
-  // ...and the fail-closed responder itself reaches nothing that writes.
-  const failClosed = reachableFrom(['Respond Receipt Unresolved']);
-  eq(SHEET_WRITERS.filter((w) => failClosed.has(w)).join(','), '',
-    'the fail-closed branch reaches a Pipeline node');
+check('(F1) the public webhook has NO graph path to the marker node', () => {
+  const pub = reachableFrom(['Webhook']);
+  assert(!pub.has('Internal Auth Entry'), 'the public webhook can reach Internal Auth Entry');
+  assert(!pub.has('Internal Subworkflow Trigger'), 'the public webhook can reach the internal trigger');
+  // Exactly one webhook endpoint, the pre-existing public one.
+  const webhooks = CANDIDATE.nodes.filter((n) => n.type === 'n8n-nodes-base.webhook');
+  eq(webhooks.length, 1, 'the candidate introduced an extra webhook endpoint');
+  eq(webhooks[0].name, 'Webhook', 'the public webhook node was renamed or replaced');
 });
 
-check('(27) a won claim DOES reach the Pipeline path', () => {
-  // The complement: a gate that blocks everything is not a gate.
-  const won = reachableFrom(outputTargets('IF Claim Won', 0));
-  assert(won.has('Save to Pipeline'), 'a won claim cannot reach Save to Pipeline');
-  assert(won.has('Update Pipeline (Merge)'), 'a won claim cannot reach the merge path');
+check('(F1) a caller-supplied marker cannot establish provenance', () => {
+  // The entry node reads the wrapper for submission_key and envelope ONLY. None of the
+  // fields a caller might use to assert provenance is consulted anywhere in it.
+  const js = NODE.get('Internal Auth Entry').parameters.jsCode;
+  ['raw.__internal_route', 'raw.provenanceTrusted', 'raw.provenance_trusted',
+    'raw.internal', 'raw.authenticated'].forEach((f) =>
+    assert(js.indexOf(f) === -1, 'Internal Auth Entry reads caller field ' + f));
+  // And the pure-logic layer refuses a truthy-but-not-true provenance value.
+  ['true', 1, {}, [], 'yes', 'TRUE'].forEach((v) =>
+    eq(R.resolveReceiptKey({ provenanceTrusted: v, submissionKey: KEY }).allowed, false,
+      JSON.stringify(v) + ' was coerced into trusted provenance'));
+  // Public-body control fields stay on the untrusted list.
+  ['__internal_route', 'internal_route', 'provenance_trusted', 'request_id']
+    .forEach((k) => assert(C.UNTRUSTED_BODY_KEYS.indexOf(k) !== -1, k + ' left the untrusted body list'));
 });
 
-check('(27) the claim node is wired for the zero-item case', () => {
+check('(F2) the wrapper is proven and unwrapped to { source, payload }', () => {
+  const js = NODE.get('Internal Auth Entry').parameters.jsCode;
+  assert(js.indexOf('^sub_[0-9a-f]{32}$') !== -1, 'the entry lost its exact key check');
+  assert(js.indexOf("raw.submission_key") !== -1, 'the entry does not read submission_key from the wrapper');
+  assert(js.indexOf("'telegram_miniapp'") !== -1, 'the entry does not check envelope.source');
+  assert(js.indexOf('ENVELOPE_PAYLOAD_MISSING') !== -1, 'the entry does not check envelope.payload');
+  // The unwrap emits the envelope shape ALONE.
+  const un = NODE.get('Internal Envelope Unwrap');
+  assert(un, 'Internal Envelope Unwrap is missing');
+  assert(un.parameters.jsCode.indexOf('source: env.source, payload: env.payload') !== -1,
+    'the unwrap does not emit exactly { source, payload }');
+  assert(codeBody(un.parameters.jsCode).indexOf('submission_key') === -1,
+    'the unwrap injects submission_key into the payload');
+  eq(outputTargets('Internal Envelope Unwrap', 0).join(','), 'Validate Payload',
+    'the unwrap does not feed the shared validation path');
+  // The unwrap must be the ONLY internal way into the shared pipeline. Asserting that it
+  // feeds Validate Payload says nothing about a second edge that bypasses it — which is
+  // exactly the mutation that survived the first sweep.
+  const intoValidate = CANDIDATE.nodes
+    .filter((n) => (outputTargets(n.name, 0).concat(outputTargets(n.name, 1))).indexOf('Validate Payload') !== -1)
+    .map((n) => n.name).sort();
+  eq(intoValidate.join(','), 'Internal Envelope Unwrap,Webhook',
+    'something other than the public webhook and the unwrap feeds Validate Payload');
+  // Both entries converge on ONE validation pipeline.
+  eq(outputTargets('Webhook', 0).join(','), 'Validate Payload',
+    'the public webhook no longer enters through Validate Payload');
+});
+
+check('(F2) the correlation id is read from envelope.payload.meta.request_id', () => {
+  const js = NODE.get('Internal Auth Entry').parameters.jsCode;
+  // P5 read e.meta.request_id || e.request_id — neither exists on the wrapper, so it always
+  // resolved empty. The canonical location is payload.meta.request_id.
+  const body = codeBody(js);
+  assert(body.indexOf('payload.meta') !== -1, 'the entry does not read payload.meta');
+  // The ASSIGNMENT must come from meta.request_id. Checking that the string appears somewhere
+  // in the node is not enough: a mutation that reads raw.request_id instead still leaves the
+  // word present in the surrounding code, and that mutation survived the first sweep.
+  const assign = body.split(/\r?\n/).find((l) => /const\s+correlationId\s*=/.test(l)) || '';
+  assert(/meta\.request_id/.test(assign),
+    'the correlation id is not assigned from meta.request_id: ' + assign.trim());
+  assert(!/raw\./.test(assign),
+    'the correlation id is read off the raw wrapper rather than the envelope: ' + assign.trim());
+  assert(js.indexOf('CORRELATION_ID_MISSING') !== -1, 'a missing correlation id is not a fault');
+  // And the declared chain names the same location.
+  assert(/payload\.meta\.request_id/.test(R.P1_L9_CORRELATION_CHAIN.value_source),
+    'the declared value source does not name payload.meta.request_id');
+});
+
+check('(F2) a correlation mismatch fails closed BEFORE the claim', () => {
+  const guard = NODE.get('Correlation Guard');
+  assert(guard, 'Correlation Guard is missing');
+  const js = guard.parameters.jsCode;
+  assert(js.indexOf("$('Normalize + Score Lead').first().json.request_id") !== -1,
+    'the guard does not compare against the normalized request_id');
+  assert(js.indexOf('__correlation_id') !== -1, 'the guard does not read the internal correlation id');
+  // Public traffic has nothing to compare and must pass.
+  assert(js.indexOf('!isInternal ||') !== -1, 'the guard does not exempt public traffic');
+  // The mismatch edge reaches an internal failure and NEVER the claim or a Pipeline node.
+  const bad = reachableFrom(outputTargets('IF Correlation OK', 1));
+  assert(!bad.has('Receipt Claim'), 'a correlation mismatch can still reach the claim');
+  assert(!bad.has('Receipt Retry Settlement'), 'a correlation mismatch can still settle a receipt');
+  eq(SHEET_WRITERS.filter((x) => bad.has(x)).join(','), '', 'a correlation mismatch reaches Pipeline');
+  // ...and the good edge continues to the dedup read.
+  assert(outputTargets('IF Correlation OK', 0).indexOf('Read Pipeline (Dedup)') !== -1,
+    'the guard does not continue to the dedup read');
+});
+
+check('(F3) a trusted call with malformed controls cannot fall through to the public flow', () => {
+  const gate = NODE.get('IF Internal Fault');
+  assert(gate, 'IF Internal Fault is missing');
+  // The fault gate sits BEFORE the shared pipeline, so a bad internal call never reaches it.
+  const faulted = reachableFrom(outputTargets('IF Internal Fault', 0));
+  assert(!faulted.has('Validate Payload'), 'a faulted internal call reaches the shared validation path');
+  assert(!faulted.has('IF Is New'), 'a faulted internal call reaches the ordinary flow');
+  assert(!faulted.has('Receipt Claim'), 'a faulted internal call reaches the claim');
+  assert(!faulted.has('Receipt Retry Settlement'), 'a faulted internal call reaches a settlement');
+  eq(SHEET_WRITERS.filter((x) => faulted.has(x)).join(','), '', 'a faulted internal call reaches Pipeline');
+  eq(RESPOND_NODES.filter((x) => faulted.has(x)).join(','), '', 'a faulted internal call reaches a webhook responder');
+  assert(faulted.has('Internal Result (Fault)'), 'a faulted internal call has no explicit failure terminal');
+  // All four fault classes are detected.
+  const js = NODE.get('Internal Auth Entry').parameters.jsCode;
+  ['SUBMISSION_KEY_INVALID', 'ENVELOPE_MISSING', 'ENVELOPE_SOURCE_INVALID',
+    'ENVELOPE_PAYLOAD_MISSING', 'CORRELATION_ID_MISSING']
+    .forEach((r) => assert(js.indexOf(r) !== -1, 'fault class not detected: ' + r));
+  // Second gate, defence in depth, and it also fails closed rather than going public.
+  const second = reachableFrom(outputTargets('IF Receipt Fault', 0));
+  assert(!second.has('IF Is New'), 'the second fault gate falls through to the ordinary flow');
+  eq(SHEET_WRITERS.filter((x) => second.has(x)).join(','), '', 'the second fault gate reaches Pipeline');
+});
+
+check('(F4) the internal path never reaches a RespondToWebhook', () => {
+  // THE F4 invariant. RespondToWebhook is documented only as "Returns data for Webhook";
+  // nothing establishes it works inside an executeWorkflowTrigger execution, so the internal
+  // path must not depend on one.
+  assert(RESPOND_NODES.length >= 6, 'the responder set looks wrong: ' + RESPOND_NODES.length);
+  const leaked = RESPOND_NODES.filter((r) => INTERNAL_REACH.has(r));
+  eq(leaked.join(','), '', 'the internal path reaches webhook responders: ' + leaked.join(','));
+  // Every internal terminal is a Code node whose output is the sub-workflow return value.
+  const results = CANDIDATE.nodes.filter((n) => /^Internal Result \(/.test(n.name));
+  assert(results.length >= 8, 'too few internal result terminals: ' + results.length);
+  results.forEach((n) => {
+    eq(n.type, 'n8n-nodes-base.code', n.name + ' is not a Code terminal');
+    // A terminal must not fan out, or it would stop being the last executed node.
+    eq(((CONN[n.name] && CONN[n.name].main) || []).length, 0, n.name + ' is not terminal');
+  });
+});
+
+check('(F4) the internal return contract is exact and leaks nothing', () => {
+  const results = CANDIDATE.nodes.filter((n) => /^Internal Result \(/.test(n.name));
+  let okShapes = 0;
+  let failShapes = 0;
+  results.forEach((n) => {
+    const js = codeBody(n.parameters.jsCode);
+    // No stage, no detail, no submission_key in anything returned to the parent.
+    ['stage', 'detail', 'submission_key', '__submission_key'].forEach((bad) =>
+      assert(js.indexOf(bad) === -1, n.name + ' returns forbidden field ' + bad));
+    if (js.indexOf('ok: true') !== -1) {
+      okShapes++;
+      ['lead_id', 'mode', 'priority', 'financial_zone'].forEach((f) =>
+        assert(js.indexOf(f + ':') !== -1, n.name + ' success is missing ' + f));
+    }
+    if (js.indexOf('ok: false') !== -1) {
+      failShapes++;
+      ['error_code', 'retryable'].forEach((f) =>
+        assert(js.indexOf(f + ':') !== -1, n.name + ' failure is missing ' + f));
+    }
+  });
+  assert(okShapes >= 3, 'too few internal success terminals: ' + okShapes);
+  assert(failShapes >= 5, 'too few internal failure terminals: ' + failShapes);
+});
+
+check('(F4) the public path still uses the existing webhook responders unchanged', () => {
+  const publicForced = {};
+  INTERNAL_GATES.forEach((g) => { publicForced[g] = 1; });
+  publicForced['IF Receipt Required'] = 1;
+  publicForced['IF Receipt Fault'] = 1;
+  const pub = reachableWithGates(['Webhook'], publicForced);
+  ['Respond New Lead', 'Respond Retry', 'Respond Merged', 'Respond Invalid']
+    .forEach((r) => assert(pub.has(r), 'the public path can no longer reach ' + r));
+  // ...and touches no receipt node.
+  ['Receipt Exact Read', 'Receipt Claim', 'Claim Verdict', 'Receipt Retry Settlement',
+    'Receipt Commit (New)', 'Receipt Commit (Merge)']
+    .forEach((n) => assert(!pub.has(n), 'the public path reaches receipt node ' + n));
+  // The pre-existing responder bodies are untouched by the splice.
+  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
+    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+  const prodNode = new Map(prod.nodes.map((n) => [n.name, n]));
+  RESPOND_NODES.forEach((r) => {
+    const before = prodNode.get(r);
+    assert(before, 'candidate invented a responder: ' + r);
+    eq(JSON.stringify(NODE.get(r).parameters), JSON.stringify(before.parameters),
+      'the splice modified the public responder ' + r);
+  });
+});
+
+check('(F5) the retry receipt stores the SAME canonical lead id the public retry returns', () => {
+  // Read off the live responder rather than assumed. Respond Retry returns
+  //   $json.merge_lead_id || $json.lead_id   with $json being the Dedup Guard output.
+  // Normalize + Score Lead.lead_id is the NEW submission's provisional server-minted id and
+  // would name a Pipeline row that exists nowhere.
+  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
+    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+  const respondRetry = prod.nodes.find((n) => n.name === 'Respond Retry').parameters.responseBody;
+  assert(/merge_lead_id/.test(respondRetry), 'the public retry response no longer uses merge_lead_id');
+
+  const settle = NODE.get('Receipt Retry Settlement');
+  assert(settle, 'Receipt Retry Settlement is missing');
+  const stored = settle.parameters.columns.value.canonical_lead_id;
+  assert(/merge_lead_id/.test(stored), 'the retry settlement does not store the dedup-selected lead');
+  assert(!/Normalize \+ Score Lead/.test(stored),
+    'the retry settlement stores the provisional Normalize id, which names no Pipeline row');
+  // The internal retry terminal returns the same value.
+  const term = NODE.get('Internal Result (Retry)').parameters.jsCode;
+  assert(/merge_lead_id/.test(term), 'the internal retry result does not return the dedup-selected lead');
+  eq(settle.parameters.columns.value.lead_mode, 'retry', 'the retry receipt mode drifted');
+});
+
+check('(F5) new and merge store the canonical id their own public responders return', () => {
+  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
+    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+  const prodNode = new Map(prod.nodes.map((n) => [n.name, n]));
+  // NEW: Respond New Lead uses $('Dedup Guard').lead_id
+  assert(/Dedup Guard'\)\.first\(\)\.json\.lead_id/.test(prodNode.get('Respond New Lead').parameters.responseBody),
+    'the public new-lead response source drifted');
+  assert(/Dedup Guard'\)\.first\(\)\.json\.lead_id/.test(NODE.get('Receipt Commit (New)').parameters.columns.value.canonical_lead_id),
+    'the new commit does not store the same id the public response returns');
+  // MERGE: Respond Merged uses $('Build Merge Update').lead_id
+  assert(/Build Merge Update'\)\.first\(\)\.json\.lead_id/.test(prodNode.get('Respond Merged').parameters.responseBody),
+    'the public merged response source drifted');
+  assert(/Build Merge Update'\)\.first\(\)\.json\.lead_id/.test(NODE.get('Receipt Commit (Merge)').parameters.columns.value.canonical_lead_id),
+    'the merge commit does not store the same id the public response returns');
+  eq(NODE.get('Receipt Commit (New)').parameters.columns.value.lead_mode, 'new', 'new mode drifted');
+  eq(NODE.get('Receipt Commit (Merge)').parameters.columns.value.lead_mode, 'merged', 'merged mode drifted');
+});
+
+check('(F6) retry settles READY -> COMMITTED directly and is reachable only from the retry branch', () => {
+  const settle = NODE.get('Receipt Retry Settlement');
+  const conds = settle.parameters.filters.conditions.map((c) => c.keyName + '=' + c.keyValue);
+  assert(conds.indexOf('commit_state=READY') !== -1, 'the retry settlement does not match READY');
+  eq(settle.parameters.columns.value.commit_state, 'COMMITTED', 'the retry settlement target state drifted');
+  eq(settle.alwaysOutputData, true, 'the retry settlement is not wired for the zero-item case');
+  // Reachable ONLY from the retry edge: the non-retry edge must never reach it.
+  const notRetry = reachableFrom(outputTargets('IF Receipt Is Retry', 1));
+  assert(!notRetry.has('Receipt Retry Settlement'),
+    'the non-retry branch can reach the retry settlement');
+  assert(notRetry.has('Receipt Claim'), 'the non-retry branch does not reach the claim');
+  // ...and the retry edge never claims.
+  const retryEdge = reachableFrom(outputTargets('IF Receipt Is Retry', 0));
+  assert(!retryEdge.has('Receipt Claim'), 'the retry branch can still claim');
+  eq(SHEET_WRITERS.filter((x) => retryEdge.has(x)).join(','), '',
+    'the retry branch reaches a Pipeline write, which it must not');
+  // A lost settlement CAS fails closed.
+  const lost = reachableFrom(outputTargets('IF Retry Settled', 1));
+  assert(lost.has('Internal Result (Unresolved)'), 'a lost retry settlement does not fail closed');
+  eq(SHEET_WRITERS.filter((x) => lost.has(x)).join(','), '', 'a lost retry settlement reaches Pipeline');
+});
+
+check('(F6) the retry branch does not pretend a Pipeline write happened', () => {
+  const retry = R.P1_L9_CORRELATION_CHAIN.retry;
+  eq(retry.pipeline_write_occurs, false, 'the retry branch claims a Pipeline write');
+  eq(retry.correlation_id_is_in_pipeline, false, 'the retry branch claims its correlation id is in Pipeline');
+  eq(retry.cosmetic_pipeline_write_added_to_satisfy_the_equation, false,
+    'a cosmetic Pipeline write was added to satisfy the correlation equation');
+  assert(/canonical_lead_id/.test(retry.operator_recovers_by),
+    'the retry branch does not say how an operator actually recovers');
+  // The universal wording is gone: the chain is declared per branch.
+  eq(R.P1_L9_CORRELATION_CHAIN.branch_aware, true, 'the chain stopped being branch-aware');
+  assert(R.P1_L9_CORRELATION_CHAIN.rule === undefined,
+    'the universal P1-L9 rule was restored and would be false on the retry branch');
+  // The write-bearing branches still assert the full equation.
+  assert(/Pipeline\.request_id/.test(R.P1_L9_CORRELATION_CHAIN.new_and_merge.rule),
+    'the new/merge branch no longer asserts the Pipeline equality');
+  eq(R.P1_L9_CORRELATION_CHAIN.new_and_merge.pipeline_write_occurs, true,
+    'the new/merge branch stopped claiming a Pipeline write');
+});
+
+check('the claim node is wired for the zero-item case', () => {
   const claim = NODE.get('Receipt Claim');
   eq(claim.type, 'n8n-nodes-base.dataTable', 'the claim node type drifted');
   eq(claim.alwaysOutputData, true,
@@ -769,11 +1205,9 @@ check('(27) the claim node is wired for the zero-item case', () => {
   assert(conds.some((c) => /^submission_key=/.test(c)), 'the claim does not match on the key');
   assert(conds.indexOf('commit_state=READY') !== -1, 'the claim does not match on READY');
   eq(claim.parameters.columns.value.commit_state, 'IN_FLIGHT', 'the claim target state drifted');
-  // P1-L9 — the claim stamps the correlation id.
   assert(/__correlation_id/.test(claim.parameters.columns.value.correlation_id),
     'the claim does not stamp the server correlation id');
-  // Every commit node is wired the same way.
-  ['New', 'Retry', 'Merge'].forEach((tag) => {
+  ['New', 'Merge'].forEach((tag) => {
     const c = NODE.get('Receipt Commit (' + tag + ')');
     assert(c, 'missing commit node for ' + tag);
     eq(c.alwaysOutputData, true, 'commit (' + tag + ') is not wired for the zero-item case');
@@ -784,112 +1218,69 @@ check('(27) the claim node is wired for the zero-item case', () => {
   });
 });
 
-check('(27) validation and the dedup decision precede the claim in the real graph', () => {
-  // Walked on the actual candidate graph, so a future rewiring that moves the claim earlier
-  // fails here rather than in production.
+check('a lost claim reaches NO Pipeline node and no webhook responder', () => {
+  const lost = reachableFrom(outputTargets('IF Claim Won', 1));
+  eq(SHEET_WRITERS.filter((w) => lost.has(w)).join(','), '',
+    'a lost claim can reach Pipeline nodes');
+  eq(RESPOND_NODES.filter((r) => lost.has(r)).join(','), '',
+    'a lost claim reaches a webhook responder');
+  assert(lost.has('Internal Result (Unresolved)'), 'a lost claim does not reach the fail-closed terminal');
+  // A won claim DOES reach Pipeline — a gate that blocks everything is not a gate.
+  const won = reachableFrom(outputTargets('IF Claim Won', 0));
+  assert(won.has('Save to Pipeline'), 'a won claim cannot reach Save to Pipeline');
+  assert(won.has('Update Pipeline (Merge)'), 'a won claim cannot reach the merge path');
+});
+
+check('validation and the dedup decision precede the claim in the real graph', () => {
   const fromValidate = reachableFrom(['Validate Payload']);
   assert(fromValidate.has('Receipt Claim'), 'the claim is not downstream of Validate Payload');
   const fromDedup = reachableFrom(['Dedup Guard']);
   assert(fromDedup.has('Receipt Claim'), 'the claim is not downstream of Dedup Guard');
-  // The claim must NOT be reachable without passing the dedup decision: nothing upstream of
-  // Dedup Guard may reach it except through Dedup Guard.
   assert(!reachableFrom(['Receipt Claim']).has('Dedup Guard'),
     'the graph loops back from the claim to the dedup decision');
-  // The three lead-id-returning outcomes each commit BEFORE responding.
-  [['Respond New Lead', 'New'], ['Respond Retry', 'Retry'], ['Respond Merged', 'Merge']]
-    .forEach(([respond, tag]) => {
-      const gate = 'IF Committed (' + tag + ')';
-      eq(outputTargets(gate, 0).indexOf(respond) !== -1, true,
-        respond + ' is not gated by its commit verdict');
-      assert(outputTargets(gate, 1).indexOf('Respond Receipt Unresolved') !== -1,
-        respond + ' has no unresolved path when the commit CAS fails');
-    });
-});
-
-check('(27) the public path bypasses the entire receipt branch', () => {
-  // §6. The public path is excluded by GATES, so plain reachability cannot express it: the
-  // walk would follow both edges of every IF and report the receipt nodes as reachable.
-  // The property actually being asserted is therefore: WHEN the §6 gates evaluate false —
-  // which is exactly what __receipt_required = 0 means — no receipt node is reached.
-  const GATES = ['IF Receipt Required', 'IF Receipt Active (New)', 'IF Receipt Active (Retry)', 'IF Receipt Active (Merge)'];
-  GATES.forEach((g) => assert(NODE.has(g), 'the §6 gate is missing: ' + g));
-  const pub = reachableWithGates(outputTargets('IF Receipt Required', 1), GATES);
-  assert(pub.has('Save to Pipeline'), 'the public path can no longer create a lead');
-  ['Receipt Exact Read', 'Receipt Claim', 'Claim Verdict', 'IF Claim Won',
-    'Receipt Commit (New)', 'Receipt Commit (Retry)', 'Receipt Commit (Merge)',
-    'Respond Receipt Unresolved']
-    .forEach((n) => assert(!pub.has(n), 'the public path reaches receipt node ' + n));
-  // The gates are only meaningful if they test the right flag and respond directly on false.
-  ['New', 'Retry', 'Merge'].forEach((tag) => {
-    const g = NODE.get('IF Receipt Active (' + tag + ')');
-    const cond = g.parameters.conditions.conditions[0];
-    assert(/__receipt_required/.test(cond.leftValue), 'gate ' + tag + ' does not test the receipt flag');
-    assert(/Receipt Gate/.test(cond.leftValue), 'gate ' + tag + ' does not read the flag from Receipt Gate');
-    eq(cond.rightValue, 1, 'gate ' + tag + ' does not require the flag to be 1');
-    const falseTargets = outputTargets('IF Receipt Active (' + tag + ')', 1);
-    eq(falseTargets.length, 1, 'gate ' + tag + ' false branch is not a single ordinary response');
-    assert(/^Respond /.test(falseTargets[0]), 'gate ' + tag + ' false branch does not respond directly');
+  // Each write-bearing outcome commits before returning.
+  ['New', 'Merge'].forEach((tag) => {
+    const gate = 'IF Committed (' + tag + ')';
+    assert(outputTargets(gate, 0).indexOf('Internal Result (' + tag + ')') !== -1,
+      tag + ' success is not gated by its commit verdict');
+    assert(outputTargets(gate, 1).indexOf('Internal Result (Unresolved)') !== -1,
+      tag + ' has no unresolved path when the commit CAS fails');
   });
-  // ...and the flag itself is 0 unless BOTH internal provenance and an exact key are present.
-  const gateSrc = NODE.get('Receipt Gate').parameters.jsCode;
-  // Substring checks, deliberately: the strings being looked for are themselves regex
-  // literals, so testing them AS regexes would assert something entirely different.
-  assert(gateSrc.indexOf('internalRouteProven()') !== -1, 'the receipt gate no longer proves the route');
-  assert(gateSrc.indexOf('trusted && keyValid') !== -1, 'the receipt gate no longer requires route AND key');
-  assert(gateSrc.indexOf('^sub_[0-9a-f]{32}$') !== -1, 'the receipt gate lost its exact key format check');
-  // The key is read ONLY from the trusted transport, never from the public body.
-  assert(gateSrc.indexOf("$('Internal Auth Entry').first().json.submission_key") !== -1,
-    'the receipt gate does not read the key from the trusted internal entry');
-  assert(gateSrc.indexOf('$json.submission_key') === -1,
-    'the receipt gate reads the key from the request body');
-  // The public webhook and the internal entry share ONE validation pipeline, so the internal
-  // route cannot skip a check the public route performs.
-  eq(outputTargets('Webhook', 0).indexOf('Validate Payload') !== -1, true,
-    'the public webhook no longer enters through Validate Payload');
-  assert(reachableFrom(['Internal Auth Entry']).has('Validate Payload'),
-    'the internal route bypasses Validate Payload');
 });
 
-check('(27) the internal entry is a sub-workflow trigger with no public URL', () => {
-  const entry = NODE.get('Internal Auth Entry');
-  eq(entry.type, 'n8n-nodes-base.executeWorkflowTrigger', 'the internal entry is not a sub-workflow trigger');
-  // No second webhook was introduced: exactly one webhook node, the existing public one.
-  const webhooks = CANDIDATE.nodes.filter((n) => n.type === 'n8n-nodes-base.webhook');
-  eq(webhooks.length, 1, 'the candidate introduced an extra webhook endpoint');
-  eq(webhooks[0].name, 'Webhook', 'the public webhook node was renamed or replaced');
-  // The provenance marker is set by the graph, never read from the caller.
-  const marker = NODE.get('Internal Route Marker');
-  assert(/__internal_route = true/.test(marker.parameters.jsCode), 'the marker is no longer set by the graph');
-  assert(/never read from the caller/i.test(marker.parameters.jsCode) || /never reads it/i.test(marker.notes || ''),
-    'the marker node lost its "never from the caller" statement');
-});
-
-check('(27) the receipt table is referenced by name, not by a placeholder id', () => {
-  ['Receipt Exact Read', 'Receipt Claim', 'Receipt Commit (New)', 'Receipt Commit (Retry)', 'Receipt Commit (Merge)']
+check('the receipt table is referenced by name, not by a placeholder id', () => {
+  ['Receipt Exact Read', 'Receipt Claim', 'Receipt Retry Settlement',
+    'Receipt Commit (New)', 'Receipt Commit (Merge)']
     .forEach((n) => {
       const t = NODE.get(n).parameters.dataTableId;
       eq(t.mode, 'name', n + ' does not reference the table by name');
       eq(t.value, 'Submission_Receipts', n + ' points at the wrong table');
-      assert(!/CANARY/i.test(t.value), n + ' still points at a canary table');
     });
 });
 
-check('(27) the candidate export carries no secret and no identity literal', () => {
-  // The n8n export hygiene gate scopes to n8n/production/ only, so a workflow export living
-  // in n8n/candidate/ would escape it entirely. The candidate is derived from a production
-  // export and is a deployment artefact, so it gets the same scan rather than a weaker one.
+check('no raw submission_key reaches a log, a response or the parent', () => {
+  CANDIDATE.nodes.filter((n) => /^Internal Result \(/.test(n.name)).forEach((n) => {
+    assert(codeBody(n.parameters.jsCode).indexOf('submission_key') === -1,
+      n.name + ' leaks the submission key to the parent');
+  });
+  // The public responder bodies never mention it either.
+  RESPOND_NODES.forEach((r) => {
+    const body = String(NODE.get(r).parameters.responseBody || '');
+    assert(body.indexOf('submission_key') === -1, r + ' leaks the submission key');
+  });
+});
+
+check('the candidate export carries no secret and no identity literal', () => {
+  // The n8n export hygiene gate scopes to n8n/production/ only, so a workflow export in
+  // n8n/candidate/ would escape it. It gets the same scan rather than a weaker one.
   const raw = readFileSync(join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-candidate.json'), 'utf8');
-  const SECRETS = [
+  [
     ['telegram bot token', /\b\d{8,10}:[A-Za-z0-9_-]{30,}\b/],
     ['openai api key', /\bsk-[A-Za-z0-9_-]{20,}\b/],
     ['google api key', /\bAIza[A-Za-z0-9_-]{30,}\b/],
     ['private key block', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
     ['n8n api key (jwt)', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/]
-  ];
-  SECRETS.forEach(([label, re]) => assert(!re.test(raw), 'the candidate contains a ' + label));
-  // The candidate must not have introduced a NEW identity-shaped literal relative to the
-  // production export it derives from. Comparing to the source rather than to an absolute
-  // rule keeps pre-existing canonical sheet gids out of the result.
+  ].forEach(([label, re]) => assert(!re.test(raw), 'the candidate contains a ' + label));
   const prod = readFileSync(join(ROOT, 'n8n', 'production',
     'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8');
   const digitsIn = (s) => new Set((s.match(/\\?["'](\d{6,12})\\?["']/g) || [])
@@ -898,21 +1289,12 @@ check('(27) the candidate export carries no secret and no identity literal', () 
   const introduced = [...digitsIn(raw)].filter((d) => !before.has(d));
   eq(introduced.length, 0, 'the candidate introduced identity-shaped literals: ' +
     introduced.map((d) => d.slice(0, 3) + '***').join(', '));
-  // No canary or synthetic table name survived into the deployment artefact.
   assert(!/CANARY/i.test(raw), 'the candidate references a canary object');
+  eq(CANDIDATE.meta.finmentor_not_deployed, true, 'the candidate is not marked undeployed');
+  eq(CANDIDATE.meta.finmentor_source_export,
+    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json', 'the candidate lost its provenance');
 });
 
-check('(27) no raw submission_key reaches a log or response line', () => {
-  const stop = NODE.get('Stop: Receipt Claim Failed');
-  assert(!/__submission_key/.test(stop.parameters.jsCode), 'the failure log line prints the submission key');
-  assert(/correlation_id/.test(stop.parameters.jsCode), 'the failure log line lost the correlation id');
-  const resp = NODE.get('Respond Receipt Unresolved');
-  assert(!/submission_key/.test(resp.parameters.responseBody), 'the unresolved response leaks the submission key');
-  assert(/SUBMIT_UNRESOLVED/.test(resp.parameters.responseBody), 'the unresolved response lost its error code');
-  eq(resp.parameters.responseCode, 503, 'the unresolved response is not a 503');
-});
-
-// ================================================================ P1-L4 / P1-L8
 
 console.log('\nRETENTION AND DURABILITY POSTURE (P5 §11, §12)');
 

@@ -2591,47 +2591,31 @@
       "parameters": {
         "inputSource": "passthrough"
       },
-      "id": "p5-receipt-01-entry",
-      "name": "Internal Auth Entry",
+      "id": "p51-01-trigger",
+      "name": "Internal Subworkflow Trigger",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.2,
       "position": [
+        -1116,
+        76
+      ],
+      "notes": "P1-L10 internal entry. Invoked in-tenant by the Mini App gateway. No public URL, no transport secret. Receives the wrapper { submission_key, envelope }."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F1 — provenance marker, written by the GRAPH, on THIS node, which is reachable only\n// from the internal sub-workflow trigger. internalRouteProven() reads exactly this node,\n// so the marker and the proof are the same output. The caller cannot supply it: the\n// wrapper is read for submission_key and envelope only, and any __internal_route,\n// provenanceTrusted, internal or authenticated field the caller sends is never consulted.\n//\n// F2 — prove the WRAPPER before anything downstream sees it.\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\nconst raw = $input.first().json || {};\n\nlet fault = 0;\nlet faultReason = '';\n\nconst key = typeof raw.submission_key === 'string' ? raw.submission_key : '';\nif (!KEY_RE.test(key)) { fault = 1; faultReason = faultReason || 'SUBMISSION_KEY_INVALID'; }\n\nconst env = raw.envelope;\nconst envOk = !!env && typeof env === 'object' && !Array.isArray(env);\nif (!envOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_MISSING'; }\nconst src = envOk ? String(env.source || '') : '';\nif (envOk && src !== 'telegram_miniapp') { fault = 1; faultReason = faultReason || 'ENVELOPE_SOURCE_INVALID'; }\nconst payload = envOk ? env.payload : undefined;\nconst payloadOk = !!payload && typeof payload === 'object' && !Array.isArray(payload);\nif (envOk && !payloadOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_PAYLOAD_MISSING'; }\n\n// F2 — the correlation id is read from the CANONICAL location and nowhere else:\n// envelope.payload.meta.request_id. P5 read e.meta.request_id || e.request_id, neither of\n// which exists on this wrapper, so it resolved empty every time.\nconst meta = payloadOk && payload.meta && typeof payload.meta === 'object' ? payload.meta : {};\nconst correlationId = String(meta.request_id || '').trim().slice(0, 80);\nif (correlationId === '') { fault = 1; faultReason = faultReason || 'CORRELATION_ID_MISSING'; }\n\nreturn [{ json: {\n  __internal_route: true,\n  __submission_key: fault ? '' : key,\n  __correlation_id: fault ? '' : correlationId,\n  __internal_fault: fault,\n  __fault_reason: faultReason,\n  __envelope_source: src,\n  __envelope: envOk ? env : null\n} }];"
+      },
+      "id": "p51-02-code",
+      "name": "Internal Auth Entry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
         -896,
-        116
+        76
       ],
-      "notes": "P1-L10 INTERNAL SUBWORKFLOW entry. Invoked in-tenant by the Mini App gateway. No public URL, no transport secret. Provenance = this node ran. Never reachable from the public webhook, where $() throws and provenance is false."
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// The marker is written HERE, by the workflow, and never read from the caller payload.\n// A caller that sends __internal_route on the public path is ignored: that path never\n// reaches this node, and Validate Payload strips caller-asserted control fields.\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal_route = true;\n  out.push({ json: j });\n}\nreturn out;"
-      },
-      "id": "p5-receipt-02-code",
-      "name": "Internal Route Marker",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -716,
-        116
-      ],
-      "notes": "Sets the graph-owned provenance marker. Never reads it from the caller."
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// P5 §3 / §6. Decide whether this execution is inside the receipt critical section.\n//\n// TWO conditions, both required, and both server-side:\n//   1. provenance came from the INTERNAL route (the graph, not the payload)\n//   2. a syntactically exact submission_key arrived over that trusted transport\n//\n// The public path fails (1) and therefore never reads, creates, claims or commits a\n// receipt, and never reveals whether any key exists. A public caller that sends a\n// submission_key gets the ordinary public behaviour with the field ignored — not an\n// error, because an error that fires only for real keys is an existence oracle.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst trusted = internalRouteProven();\n\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\n// Read the key ONLY from the trusted internal transport, never from the public body.\nlet key = '';\nif (trusted) {\n  try { key = String($('Internal Auth Entry').first().json.submission_key || '').trim(); }\n  catch (e) { key = ''; }\n}\nconst keyValid = KEY_RE.test(key);\n\n// The server correlation id that the gateway also used as envelope.meta.request_id.\n// P1-L9: this exact value is what the winning claim stamps onto the receipt.\nlet correlationId = '';\nif (trusted) {\n  try {\n    const e = $('Internal Auth Entry').first().json;\n    correlationId = String((e.meta && e.meta.request_id) || e.request_id || '').trim().slice(0, 80);\n  } catch (e) { correlationId = ''; }\n}\n\nconst receiptRequired = trusted && keyValid && correlationId !== '';\n\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__receipt_required = receiptRequired ? 1 : 0;\n  j.__submission_key = receiptRequired ? key : '';\n  j.__correlation_id = receiptRequired ? correlationId : '';\n  // Trusted route with a malformed key or no correlation id is a WIRING fault, not a\n  // public request. It must fail closed rather than silently degrade to the public path.\n  j.__receipt_fault = (trusted && !receiptRequired) ? 1 : 0;\n  out.push({ json: j });\n}\nreturn out;"
-      },
-      "id": "p5-receipt-03-code",
-      "name": "Receipt Gate",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        240,
-        660
-      ],
-      "notes": "P5 §3/§6. Receipt branch requires INTERNAL provenance + exact key + server correlation id. Public path bypasses the whole branch and reveals nothing about key existence."
+      "notes": "F1 marker + F2 wrapper proof. The marker is on THIS node because internalRouteProven() reads THIS node. Never reads provenance from the caller."
     },
     {
       "parameters": {
@@ -2644,7 +2628,205 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-04-cond",
+              "id": "p51-03-cond",
+              "leftValue": "={{ $json.__internal_fault }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-04-if",
+      "name": "IF Internal Fault",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -676,
+        76
+      ],
+      "notes": "F3. TRUE = trusted internal call with unusable controls -> fail closed, zero Pipeline, zero receipt writes, never the public flow."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.__fault_reason || 'INTERNAL_REQUEST_INVALID'),\n  retryable: false\n} }];"
+      },
+      "id": "p51-05-code",
+      "name": "Internal Result (Fault)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -456,
+        -24
+      ],
+      "notes": "F3/F4 terminal. Reachable only from the internal fault gate."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F2 — Validate Payload expects { source, payload }. The gateway sends\n// { submission_key, envelope }. Unwrap to exactly the envelope shape.\n//\n// submission_key is deliberately NOT injected into the payload. It is a receipt control,\n// not lead data, and putting it in the payload would make it indistinguishable from a\n// caller-supplied field one node later. The receipt nodes read it from\n// $('Internal Auth Entry') by node reference instead.\nconst env = $('Internal Auth Entry').first().json.__envelope || {};\nreturn [{ json: { source: env.source, payload: env.payload } }];"
+      },
+      "id": "p51-06-code",
+      "name": "Internal Envelope Unwrap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -456,
+        76
+      ],
+      "notes": "F2. Emits ONLY { source, payload }. submission_key never enters the payload."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// One safe answer to \"is this the internal route?\", computed with try/catch because\n// $('Internal Auth Entry') THROWS on the public path, where that node never ran.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven() ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = isInternal;\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-07-code",
+      "name": "Internal Flag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        520
+      ],
+      "notes": "Passes Validate Payload output through untouched and adds __internal for the terminal gates."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F2 — prove the correlation id the receipt will stamp is the SAME value the rest of the\n// pipeline uses. Normalize + Score Lead derives request_id from payload.meta.request_id,\n// and that value is what reaches Pipeline column AZ on a write-bearing branch. If the two\n// ever differ, one of them is wrong and there is no safe way to pick — so this fails\n// closed BEFORE the receipt leaves READY rather than silently choosing a winner.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven();\nlet expected = '';\nif (isInternal) {\n  try { expected = String($('Internal Auth Entry').first().json.__correlation_id || ''); }\n  catch (e) { expected = ''; }\n}\nconst observed = String($('Normalize + Score Lead').first().json.request_id || '');\n// Public traffic has nothing to compare, so it always passes.\nconst okFlag = (!isInternal || (expected !== '' && expected === observed)) ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__correlation_ok = okFlag;\n  j.__internal = isInternal ? 1 : 0;\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-08-code",
+      "name": "Correlation Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        560
+      ],
+      "notes": "F2. Internal correlation id must equal Normalize request_id, or fail closed before the claim."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-09-cond",
+              "leftValue": "={{ $json.__correlation_ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-10-if",
+      "name": "IF Correlation OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -324,
+        560
+      ],
+      "notes": "FALSE = the receipt correlation and the pipeline request_id disagree. Never silently pick one."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-11-code",
+      "name": "Internal Result (Correlation)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -104,
+        660
+      ],
+      "notes": "F2 terminal. Correlation mismatch, fail closed before READY -> IN_FLIGHT."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Decide whether this execution is inside the receipt critical section.\n//\n// TWO conditions, both server-side and both re-derived here rather than trusted from\n// upstream: internal provenance proven by the GRAPH, and an exact submission key that\n// arrived over that trusted transport.\n//\n// The public path fails the first and therefore never reads, creates, claims or commits a\n// receipt, and never reveals whether any key exists. A public caller that sends a\n// submission_key gets ordinary public behaviour with the field ignored — not an error,\n// because an error that fires only for real keys is an existence oracle.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst trusted = internalRouteProven();\n\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\n// Read the key ONLY from the trusted internal entry, never from the request body.\nlet key = '';\nlet correlationId = '';\nif (trusted) {\n  try {\n    const e = $('Internal Auth Entry').first().json;\n    key = String(e.__submission_key || '').trim();\n    correlationId = String(e.__correlation_id || '').trim();\n  } catch (e) { key = ''; correlationId = ''; }\n}\nconst keyValid = KEY_RE.test(key);\nconst receiptRequired = trusted && keyValid && correlationId !== '';\n\n// F3 defence in depth. Internal Auth Entry already fails closed on malformed controls, so\n// this should be unreachable — but if a trusted call ever arrives here without usable\n// controls it must NOT quietly become a public request.\nconst fault = (trusted && !receiptRequired) ? 1 : 0;\n\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = trusted ? 1 : 0;\n  j.__receipt_required = receiptRequired ? 1 : 0;\n  j.__receipt_fault = fault;\n  j.__submission_key = receiptRequired ? key : '';\n  j.__correlation_id = receiptRequired ? correlationId : '';\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-12-code",
+      "name": "Receipt Gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        660
+      ],
+      "notes": "Receipt branch requires INTERNAL provenance + exact key + server correlation id. Public path bypasses the whole branch and reveals nothing about key existence."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-13-cond",
+              "leftValue": "={{ $json.__receipt_fault }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-14-if",
+      "name": "IF Receipt Fault",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        780
+      ],
+      "notes": "F3 second gate. TRUE = trusted but receipt controls unusable -> fail closed, never public."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-15-cond",
               "leftValue": "={{ $json.__receipt_required }}",
               "rightValue": 1,
               "operator": {
@@ -2657,15 +2839,15 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-05-if",
+      "id": "p51-16-if",
       "name": "IF Receipt Required",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        460,
+        680,
         660
       ],
-      "notes": "true -> receipt critical section. false -> public/ordinary path, receipt untouched."
+      "notes": "TRUE -> receipt critical section. FALSE -> public/ordinary path, receipt untouched."
     },
     {
       "parameters": {
@@ -2688,12 +2870,12 @@
         },
         "returnAll": true
       },
-      "id": "p5-receipt-06-read",
+      "id": "p51-17-read",
       "name": "Receipt Exact Read",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        680,
+        900,
         580
       ],
       "alwaysOutputData": true,
@@ -2703,14 +2885,14 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// classifyRows, inlined for the n8n sandbox. ABSENCE IS NEVER AN ANSWER: a current\n// cycle is required to have a preallocated receipt, so a missing row is a broken\n// invariant, not permission to proceed.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, { __receipt_read_ok: ok, __receipt_reason: reason }) }];"
+        "jsCode": "// ABSENCE IS NEVER AN ANSWER: a current cycle is required to have a preallocated receipt,\n// so a missing row is a broken invariant, not permission to proceed.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, { __receipt_read_ok: ok, __receipt_reason: reason }) }];"
       },
-      "id": "p5-receipt-07-code",
+      "id": "p51-18-code",
       "name": "Receipt Read Verdict",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        900,
+        1120,
         580
       ],
       "notes": "Absence resolves to a broken invariant, never to \"safe to proceed\"."
@@ -2726,7 +2908,7 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-08-cond",
+              "id": "p51-19-cond",
               "leftValue": "={{ $json.__receipt_read_ok }}",
               "rightValue": 1,
               "operator": {
@@ -2739,15 +2921,49 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-09-if",
+      "id": "p51-20-if",
       "name": "IF Receipt Claimable",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1120,
+        1340,
         580
       ],
-      "notes": "Only a single READY row for the exact key may proceed to the claim."
+      "notes": "Only a single READY row for the exact key may proceed."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-21-cond",
+              "leftValue": "={{ $('Dedup Guard').first().json.dedup_is_retry ? 1 : 0 }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-22-if",
+      "name": "IF Receipt Is Retry",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1560,
+        580
+      ],
+      "notes": "F6. TRUE = dedup already resolved this to an existing Pipeline row and NO write will occur, so the receipt is settled READY -> COMMITTED directly. No IN_FLIGHT window is created for a submission that provably writes nothing."
     },
     {
       "parameters": {
@@ -2764,7 +2980,186 @@
             {
               "keyName": "submission_key",
               "condition": "eq",
-              "keyValue": "={{ $json.__submission_key }}"
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "READY"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id }}",
+            "lead_mode": "retry",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}",
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "p51-23-retry-settle",
+      "name": "Receipt Retry Settlement",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1780,
+        460
+      ],
+      "alwaysOutputData": true,
+      "notes": "F6 READY -> COMMITTED in one CAS. No Pipeline write occurs on this branch, so there is no ambiguous window to protect and no IN_FLIGHT state is created. canonical_lead_id is the DEDUP-SELECTED existing lead, matching Respond Retry exactly."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Same zero-item discriminator as the claim. alwaysOutputData means a zero-match arrives\n// as a synthetic EMPTY item, which must read as ZERO rows and never as success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __retry_updated_rows: updated,\n  __retry_settled: updated === 1 ? 1 : 0\n}) }];"
+      },
+      "id": "p51-24-code",
+      "name": "Retry Settlement Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        460
+      ],
+      "notes": "F6. A lost settlement CAS fails closed; it never reports ordinary success."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-25-cond",
+              "leftValue": "={{ $json.__retry_updated_rows }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-26-if",
+      "name": "IF Retry Settled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2220,
+        460
+      ],
+      "notes": "Only exactly one settled row permits the retry success return."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id),\n  mode: 'retry',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
+      },
+      "id": "p51-27-code",
+      "name": "Internal Result (Retry)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        460
+      ],
+      "notes": "F4/F5 terminal. Returns the SAME canonical lead id that the public Respond Retry returns."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
             },
             {
               "keyName": "commit_state",
@@ -2778,7 +3173,7 @@
           "value": {
             "commit_state": "IN_FLIGHT",
             "claimed_at": "={{ $now.toISO() }}",
-            "correlation_id": "={{ $json.__correlation_id }}"
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
           },
           "schema": [
             {
@@ -2811,32 +3206,32 @@
           ]
         }
       },
-      "id": "p5-receipt-10-claim",
+      "id": "p51-28-claim",
       "name": "Receipt Claim",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1340,
-        580
+        1780,
+        700
       ],
       "alwaysOutputData": true,
-      "notes": "READY -> IN_FLIGHT CAS. alwaysOutputData:true is LOAD-BEARING: P4 proved a zero-match returns main[0]===[] and skips every downstream node, so without it the fail-closed branch could never run. Sets correlation_id (P1-L9)."
+      "notes": "READY -> IN_FLIGHT CAS for the write-bearing branches. alwaysOutputData:true is LOAD-BEARING: P4 proved a zero-match returns main[0]===[] and skips every downstream node, so without it the fail-closed branch could never run. Sets correlation_id (P1-L9)."
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P5 §4 — the zero-item discriminator. Returns { ok, updated_rows } and NEVER throws.\n//\n// Under alwaysOutputData:true n8n substitutes a single EMPTY item {} when the update\n// matched nothing. That synthetic item is the trap: a truthy test or a field read in a\n// try/catch would turn it into a fake success. The discriminator therefore keys on a\n// field a genuinely updated row ALWAYS carries — the node returns the full post-update\n// row — and an empty item NEVER does.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\n\nlet updated = 0;\nlet reason = 'STATE_ALREADY_MOVED';\nif (items.length > 1) {\n  updated = items.length;\n  reason = 'MULTIPLE_ROWS_AFFECTED';\n} else if (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  if (stored === '') { updated = 0; reason = 'STATE_ALREADY_MOVED'; }\n  else if (stored !== key) { updated = 0; reason = 'UPDATE_TOUCHED_WRONG_KEY'; }\n  else { updated = 1; reason = 'EXACTLY_ONE_ROW'; }\n}\n\n// updated_rows === 1 is the ONLY value that permits the Pipeline path.\nreturn [{ json: Object.assign({}, gate, {\n  __updated_rows: updated,\n  __claim_ok: updated === 1 ? 1 : 0,\n  __claim_reason: reason\n}) }];"
+        "jsCode": "// The zero-item discriminator. Returns { updated_rows } and NEVER throws.\n//\n// Under alwaysOutputData:true n8n substitutes a single EMPTY item {} when the update\n// matched nothing. That synthetic item is the trap: a truthy test or a field read in a\n// try/catch would turn it into a fake success. So the discriminator keys on a field a\n// genuinely updated row ALWAYS carries — the node returns the full post-update row — and\n// an empty item NEVER does.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\n\nlet updated = 0;\nlet reason = 'STATE_ALREADY_MOVED';\nif (items.length > 1) {\n  updated = items.length;\n  reason = 'MULTIPLE_ROWS_AFFECTED';\n} else if (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  if (stored === '') { updated = 0; reason = 'STATE_ALREADY_MOVED'; }\n  else if (stored !== key) { updated = 0; reason = 'UPDATE_TOUCHED_WRONG_KEY'; }\n  else { updated = 1; reason = 'EXACTLY_ONE_ROW'; }\n}\n\n// updated_rows === 1 is the ONLY value that permits the Pipeline path.\nreturn [{ json: Object.assign({}, gate, {\n  __updated_rows: updated,\n  __claim_ok: updated === 1 ? 1 : 0,\n  __claim_reason: reason\n}) }];"
       },
-      "id": "p5-receipt-11-code",
+      "id": "p51-29-code",
       "name": "Claim Verdict",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1560,
-        580
+        2000,
+        700
       ],
-      "notes": "P5 §4. Converts item presence into an explicit {ok, updated_rows}. The synthetic empty item from alwaysOutputData is reported as ZERO rows, never as success."
+      "notes": "Converts item presence into an explicit count. The synthetic empty item is ZERO, never success."
     },
     {
       "parameters": {
@@ -2849,7 +3244,7 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-12-cond",
+              "id": "p51-30-cond",
               "leftValue": "={{ $json.__updated_rows }}",
               "rightValue": 1,
               "operator": {
@@ -2862,47 +3257,31 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-13-if",
+      "id": "p51-31-if",
       "name": "IF Claim Won",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1780,
-        580
+        2220,
+        700
       ],
       "notes": "THE gate. Only updated_rows === 1 reaches Pipeline. 0, >1 and unreadable all fail closed."
     },
     {
       "parameters": {
-        "respondWith": "json",
-        "responseCode": 503,
-        "responseBody": "={{ JSON.stringify({ ok: false, error_code: \"SUBMIT_UNRESOLVED\", retryable: true, request_id: $json.__correlation_id }) }}"
-      },
-      "id": "p5-receipt-14-resp-unresolved",
-      "name": "Respond Receipt Unresolved",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [
-        2000,
-        720
-      ],
-      "notes": "Fail-closed. Reached when the claim affected 0 or >1 rows, or the receipt was absent/not READY. NO Pipeline node is reachable from here. Never an ordinary failure that invites a plain retry."
-    },
-    {
-      "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Operator evidence, then stop. The submission key is NEVER logged: it is opaque but\n// capability-shaped, and correlation_id is the field that correlates log lines.\nconst j = $json || {};\nthrow new Error('RECEIPT_CLAIM_FAILED reason=' + String(j.__claim_reason || j.__receipt_reason || 'UNKNOWN') +\n  ' updated_rows=' + String(j.__updated_rows === undefined ? 'n/a' : j.__updated_rows) +\n  ' correlation_id=' + String(j.__correlation_id || ''));"
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
       },
-      "id": "p5-receipt-15-code",
-      "name": "Stop: Receipt Claim Failed",
+      "id": "p51-32-code",
+      "name": "Internal Result (Unresolved)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2220,
-        720
+        2440,
+        860
       ],
-      "notes": "Preserves operator evidence and halts. No raw submission_key in the log line."
+      "notes": "F4 terminal. Reached when a receipt read, claim, settlement or commit CAS did not return exactly one row. NO Pipeline node is reachable from here. Not a RespondToWebhook: the internal path must never depend on one."
     },
     {
       "parameters": {
@@ -2915,8 +3294,8 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-16-cond",
-              "leftValue": "={{ $('Receipt Gate').first().json.__receipt_required }}",
+              "id": "p51-33-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -2928,15 +3307,15 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-17-if",
-      "name": "IF Receipt Active (New)",
+      "id": "p51-34-if",
+      "name": "IF Internal (New)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -684,
-        1036
+        -464,
+        1056
       ],
-      "notes": "§6 gate. false = public/ordinary path: respond WITHOUT touching the receipt table."
+      "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
     },
     {
       "parameters": {
@@ -2966,10 +3345,10 @@
           "mappingMode": "defineBelow",
           "value": {
             "commit_state": "COMMITTED",
-            "canonical_lead_id": "={{ $('Normalize + Score Lead').first().json.lead_id }}",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.lead_id }}",
             "lead_mode": "new",
-            "lead_priority": "={{ $('Normalize + Score Lead').first().json.priority }}",
-            "financial_zone": "={{ $('Normalize + Score Lead').first().json.financial_zone }}",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
             "settled_at": "={{ $now.toISO() }}"
           },
           "schema": [
@@ -3030,30 +3409,30 @@
           ]
         }
       },
-      "id": "p5-receipt-18-commit",
+      "id": "p51-35-commit",
       "name": "Receipt Commit (New)",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -464,
-        1036
+        -244,
+        1056
       ],
       "alwaysOutputData": true,
-      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). alwaysOutputData for the same zero-item reason as the claim."
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means\n// the receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger\n// did not record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
       },
-      "id": "p5-receipt-19-code",
+      "id": "p51-36-code",
       "name": "Commit Verdict (New)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -244,
-        1036
+        -24,
+        1056
       ],
       "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
     },
@@ -3068,7 +3447,7 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-20-cond",
+              "id": "p51-37-cond",
               "leftValue": "={{ $json.__commit_updated_rows }}",
               "rightValue": 1,
               "operator": {
@@ -3081,168 +3460,31 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-21-if",
+      "id": "p51-38-if",
       "name": "IF Committed (New)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -24,
-        1036
+        196,
+        1056
       ],
-      "notes": "Only exactly one committed row permits the success response."
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "p5-receipt-22-cond",
-              "leftValue": "={{ $('Receipt Gate').first().json.__receipt_required }}",
-              "rightValue": 1,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "p5-receipt-23-if",
-      "name": "IF Receipt Active (Retry)",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        380,
-        1220
-      ],
-      "notes": "§6 gate. false = public/ordinary path: respond WITHOUT touching the receipt table."
-    },
-    {
-      "parameters": {
-        "resource": "row",
-        "operation": "update",
-        "dataTableId": {
-          "__rl": true,
-          "mode": "name",
-          "value": "Submission_Receipts"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "submission_key",
-              "condition": "eq",
-              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
-            },
-            {
-              "keyName": "commit_state",
-              "condition": "eq",
-              "keyValue": "IN_FLIGHT"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "commit_state": "COMMITTED",
-            "canonical_lead_id": "={{ $('Normalize + Score Lead').first().json.lead_id }}",
-            "lead_mode": "new",
-            "lead_priority": "={{ $('Normalize + Score Lead').first().json.priority }}",
-            "financial_zone": "={{ $('Normalize + Score Lead').first().json.financial_zone }}",
-            "settled_at": "={{ $now.toISO() }}"
-          },
-          "schema": [
-            {
-              "id": "commit_state",
-              "displayName": "commit_state",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "canonical_lead_id",
-              "displayName": "canonical_lead_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "lead_mode",
-              "displayName": "lead_mode",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "lead_priority",
-              "displayName": "lead_priority",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "financial_zone",
-              "displayName": "financial_zone",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "settled_at",
-              "displayName": "settled_at",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ]
-        }
-      },
-      "id": "p5-receipt-24-commit",
-      "name": "Receipt Commit (Retry)",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        600,
-        1220
-      ],
-      "alwaysOutputData": true,
-      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). alwaysOutputData for the same zero-item reason as the claim."
+      "notes": "Only exactly one committed row permits the success return."
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means\n// the receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger\n// did not record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.lead_id),\n  mode: 'new',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
       },
-      "id": "p5-receipt-25-code",
-      "name": "Commit Verdict (Retry)",
+      "id": "p51-39-code",
+      "name": "Internal Result (New)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        820,
-        1220
+        416,
+        1056
       ],
-      "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
+      "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
     },
     {
       "parameters": {
@@ -3255,8 +3497,8 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-26-cond",
-              "leftValue": "={{ $json.__commit_updated_rows }}",
+              "id": "p51-40-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -3268,49 +3510,15 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-27-if",
-      "name": "IF Committed (Retry)",
+      "id": "p51-41-if",
+      "name": "IF Internal (Merge)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1040,
-        1220
+        912,
+        1424
       ],
-      "notes": "Only exactly one committed row permits the success response."
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "p5-receipt-28-cond",
-              "leftValue": "={{ $('Receipt Gate').first().json.__receipt_required }}",
-              "rightValue": 1,
-              "operator": {
-                "type": "number",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "p5-receipt-29-if",
-      "name": "IF Receipt Active (Merge)",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        692,
-        1404
-      ],
-      "notes": "§6 gate. false = public/ordinary path: respond WITHOUT touching the receipt table."
+      "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
     },
     {
       "parameters": {
@@ -3340,10 +3548,10 @@
           "mappingMode": "defineBelow",
           "value": {
             "commit_state": "COMMITTED",
-            "canonical_lead_id": "={{ $('Normalize + Score Lead').first().json.lead_id }}",
+            "canonical_lead_id": "={{ $('Build Merge Update').first().json.lead_id }}",
             "lead_mode": "merged",
-            "lead_priority": "={{ $('Normalize + Score Lead').first().json.priority }}",
-            "financial_zone": "={{ $('Normalize + Score Lead').first().json.financial_zone }}",
+            "lead_priority": "={{ $('Build Merge Update').first().json.priority }}",
+            "financial_zone": "={{ $('Build Merge Update').first().json.financial_zone }}",
             "settled_at": "={{ $now.toISO() }}"
           },
           "schema": [
@@ -3404,30 +3612,30 @@
           ]
         }
       },
-      "id": "p5-receipt-30-commit",
+      "id": "p51-42-commit",
       "name": "Receipt Commit (Merge)",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        912,
-        1404
+        1132,
+        1424
       ],
       "alwaysOutputData": true,
-      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). alwaysOutputData for the same zero-item reason as the claim."
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means\n// the receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger\n// did not record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
       },
-      "id": "p5-receipt-31-code",
+      "id": "p51-43-code",
       "name": "Commit Verdict (Merge)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1132,
-        1404
+        1352,
+        1424
       ],
       "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
     },
@@ -3442,7 +3650,7 @@
           },
           "conditions": [
             {
-              "id": "p5-receipt-32-cond",
+              "id": "p51-44-cond",
               "leftValue": "={{ $json.__commit_updated_rows }}",
               "rightValue": 1,
               "operator": {
@@ -3455,15 +3663,265 @@
         },
         "options": {}
       },
-      "id": "p5-receipt-33-if",
+      "id": "p51-45-if",
       "name": "IF Committed (Merge)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1352,
-        1404
+        1572,
+        1424
       ],
-      "notes": "Only exactly one committed row permits the success response."
+      "notes": "Only exactly one committed row permits the success return."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Build Merge Update').first().json.lead_id),\n  mode: 'merged',\n  priority: String($('Build Merge Update').first().json.priority),\n  financial_zone: String($('Build Merge Update').first().json.financial_zone)\n} }];"
+      },
+      "id": "p51-46-code",
+      "name": "Internal Result (Merge)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        1424
+      ],
+      "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-47-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-48-if",
+      "name": "IF Internal (Retry)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        1000
+      ],
+      "notes": "F4 structural guarantee. Internal retries are normally diverted at IF Receipt Is Retry; this catches any internal call that still reaches the ordinary retry edge."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-49-cond",
+              "leftValue": "={{ $json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-50-if",
+      "name": "IF Internal (Invalid)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1020,
+        720
+      ],
+      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.error_code || 'INVALID_PAYLOAD'),\n  retryable: false\n} }];"
+      },
+      "id": "p51-51-code",
+      "name": "Internal Result (Invalid)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        720
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-52-cond",
+              "leftValue": "={{ $json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-53-if",
+      "name": "IF Internal (Infra)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -820,
+        940
+      ],
+      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'CRM_UNAVAILABLE',\n  retryable: true\n} }];"
+      },
+      "id": "p51-54-code",
+      "name": "Internal Result (Infra)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        940
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-55-cond",
+              "leftValue": "={{ $json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-56-if",
+      "name": "IF Internal (PipelineFailed)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        620
+      ],
+      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'PIPELINE_WRITE_FAILED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-57-code",
+      "name": "Internal Result (PipelineFailed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        620
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-58-cond",
+              "leftValue": "={{ $json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-59-if",
+      "name": "IF Internal (MergeFailed)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        780,
+        1380
+      ],
+      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'PIPELINE_MERGE_FAILED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-60-code",
+      "name": "Internal Result (MergeFailed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        1380
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
     }
   ],
   "connections": {
@@ -3478,7 +3936,7 @@
         ],
         [
           {
-            "node": "Respond Infra Failed",
+            "node": "IF Internal (Infra)",
             "type": "main",
             "index": 0
           }
@@ -3500,7 +3958,7 @@
       "main": [
         [
           {
-            "node": "Read Pipeline (Dedup)",
+            "node": "Correlation Guard",
             "type": "main",
             "index": 0
           }
@@ -3518,7 +3976,7 @@
         ],
         [
           {
-            "node": "Respond Infra Failed",
+            "node": "IF Internal (Infra)",
             "type": "main",
             "index": 0
           }
@@ -3782,7 +4240,7 @@
       "main": [
         [
           {
-            "node": "IF Valid",
+            "node": "Internal Flag",
             "type": "main",
             "index": 0
           }
@@ -3800,7 +4258,7 @@
         ],
         [
           {
-            "node": "Respond Invalid",
+            "node": "IF Internal (Invalid)",
             "type": "main",
             "index": 0
           }
@@ -3811,14 +4269,14 @@
       "main": [
         [
           {
-            "node": "IF Receipt Active (New)",
+            "node": "IF Internal (New)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Pipeline Failed",
+            "node": "IF Internal (PipelineFailed)",
             "type": "main",
             "index": 0
           }
@@ -3887,7 +4345,7 @@
       "main": [
         [
           {
-            "node": "IF Receipt Active (Retry)",
+            "node": "IF Internal (Retry)",
             "type": "main",
             "index": 0
           }
@@ -3916,14 +4374,14 @@
       "main": [
         [
           {
-            "node": "IF Receipt Active (Merge)",
+            "node": "IF Internal (Merge)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Merge Failed",
+            "node": "IF Internal (MergeFailed)",
             "type": "main",
             "index": 0
           }
@@ -4066,18 +4524,47 @@
         ]
       ]
     },
-    "Internal Auth Entry": {
+    "Internal Subworkflow Trigger": {
       "main": [
         [
           {
-            "node": "Internal Route Marker",
+            "node": "Internal Auth Entry",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Internal Route Marker": {
+    "Internal Auth Entry": {
+      "main": [
+        [
+          {
+            "node": "IF Internal Fault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal Fault": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Fault)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Envelope Unwrap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Envelope Unwrap": {
       "main": [
         [
           {
@@ -4088,8 +4575,102 @@
         ]
       ]
     },
+    "Internal Flag": {
+      "main": [
+        [
+          {
+            "node": "IF Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Invalid)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Invalid)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Infra)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Infra)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Infra Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correlation Guard": {
+      "main": [
+        [
+          {
+            "node": "IF Correlation OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Correlation OK": {
+      "main": [
+        [
+          {
+            "node": "Read Pipeline (Dedup)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Correlation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Receipt Gate": {
       "main": [
+        [
+          {
+            "node": "IF Receipt Fault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Fault": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "IF Receipt Required",
@@ -4143,14 +4724,72 @@
       "main": [
         [
           {
-            "node": "Receipt Claim",
+            "node": "IF Receipt Is Retry",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Receipt Unresolved",
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Is Retry": {
+      "main": [
+        [
+          {
+            "node": "Receipt Retry Settlement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Receipt Claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Retry Settlement": {
+      "main": [
+        [
+          {
+            "node": "Retry Settlement Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Settlement Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Retry Settled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Retry Settled": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
             "type": "main",
             "index": 0
           }
@@ -4190,25 +4829,14 @@
         ],
         [
           {
-            "node": "Respond Receipt Unresolved",
+            "node": "Internal Result (Unresolved)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Respond Receipt Unresolved": {
-      "main": [
-        [
-          {
-            "node": "Stop: Receipt Claim Failed",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Receipt Active (New)": {
+    "IF Internal (New)": {
       "main": [
         [
           {
@@ -4252,79 +4880,39 @@
       "main": [
         [
           {
-            "node": "Respond New Lead",
+            "node": "Internal Result (New)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Receipt Unresolved",
+            "node": "Internal Result (Unresolved)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF Receipt Active (Retry)": {
+    "IF Internal (PipelineFailed)": {
       "main": [
         [
           {
-            "node": "Receipt Commit (Retry)",
+            "node": "Internal Result (PipelineFailed)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Retry",
+            "node": "Respond Pipeline Failed",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Receipt Commit (Retry)": {
-      "main": [
-        [
-          {
-            "node": "Commit Verdict (Retry)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Commit Verdict (Retry)": {
-      "main": [
-        [
-          {
-            "node": "IF Committed (Retry)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Committed (Retry)": {
-      "main": [
-        [
-          {
-            "node": "Respond Retry",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Respond Receipt Unresolved",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Receipt Active (Merge)": {
+    "IF Internal (Merge)": {
       "main": [
         [
           {
@@ -4368,14 +4956,50 @@
       "main": [
         [
           {
-            "node": "Respond Merged",
+            "node": "Internal Result (Merge)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Receipt Unresolved",
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (MergeFailed)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (MergeFailed)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Merge Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Retry)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Retry",
             "type": "main",
             "index": 0
           }
@@ -4394,7 +5018,7 @@
   "meta": {
     "aiBuilderAssisted": true,
     "builderVariant": "mcp",
-    "finmentor_candidate": "B.2.1-C P5 MODEL B receipt critical section",
+    "finmentor_candidate": "B.2.1-C P5.1 MODEL B receipt critical section",
     "finmentor_source_export": "QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
     "finmentor_generated_by": "scripts/build-lead-intake-receipt-candidate.mjs",
     "finmentor_not_deployed": true

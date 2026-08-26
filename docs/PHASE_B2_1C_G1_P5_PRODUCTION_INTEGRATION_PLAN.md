@@ -14,6 +14,148 @@ them.
 
 ---
 
+## 0. P5.1 revision — integration defects closed before P6
+
+P5 was accepted in principle and its architecture is unchanged. P5.1 closed eight integration
+defects found on review. Three were live bugs that would have failed on the first internal
+call, not tidying.
+
+| | Defect | Status |
+|---|---|---|
+| **F1** | The provenance marker was written by the node AFTER `Internal Auth Entry`, while `internalRouteProven()` read `Internal Auth Entry`'s own output — so provenance was **false for every internal call** unless the caller supplied `__internal_route`, which the design forbids. | **CLOSED** |
+| **F2** | The candidate passed the gateway WRAPPER `{submission_key, envelope}` straight into `Validate Payload`, which expects the ENVELOPE `{source, payload}`. The correlation id was read from `e.meta.request_id`, which does not exist on the wrapper, so it resolved empty every time. | **CLOSED** |
+| **F3** | `__receipt_fault` was computed and never consumed, so a TRUSTED internal call with malformed controls degraded into ordinary public processing. | **CLOSED** |
+| **F4** | The internal path terminated at `RespondToWebhook` nodes, whose behaviour inside an `executeWorkflowTrigger` execution is not established. | **CLOSED** |
+| **F5** | `Receipt Commit (Retry)` stored `Normalize + Score Lead.lead_id` — the NEW submission's provisional id, which names no Pipeline row — instead of the dedup-selected existing lead. | **CLOSED** |
+| **F6** | P1-L9 asserted `receipt.correlation_id === Pipeline.request_id` universally. On the retry branch there is no Pipeline write at all, and the matched row carries an EARLIER attempt's request_id, so the claim was false. | **CLOSED** |
+| **F7** | The readback trimmed the stored key, and a verdict earned for key A could advance authority for key B. | **CLOSED** |
+| **F8** | "Pristine" omitted the classification fields and did not require `created_at`. | **CLOSED** |
+
+### F1 — provenance
+
+The marker and the proof are now the same node. `Internal Subworkflow Trigger`
+(`executeWorkflowTrigger`) feeds `Internal Auth Entry` (Code), which writes
+`__internal_route: true` **itself**. `internalRouteProven()` is unchanged and now actually
+resolves true. The public webhook has no graph path to that node — asserted by reachability,
+not by inspection — and the entry never reads `__internal_route`, `provenanceTrusted`,
+`internal` or `authenticated` from the caller.
+
+### F2 — wrapper, unwrap and correlation
+
+`Internal Auth Entry` proves the wrapper before anything downstream sees it: exact
+`sub_<32 hex>` key, `envelope` is an object, `envelope.source === 'telegram_miniapp'`,
+`envelope.payload` present. `Internal Envelope Unwrap` then emits **exactly**
+`{source, payload}` into the shared validation path. `submission_key` is **not** injected into
+the payload — it is a receipt control, not lead data, and inside the payload it would be
+indistinguishable from a caller-supplied field one node later. The receipt nodes read it from
+`$('Internal Auth Entry')` by node reference.
+
+The correlation id is read from the canonical location, `envelope.payload.meta.request_id`,
+and nowhere else. A new `Correlation Guard` then compares it against
+`Normalize + Score Lead.request_id` — the value that actually reaches Pipeline column AZ — and
+**fails closed before the receipt leaves READY** on any mismatch. Public traffic has nothing to
+compare and passes. Two differing values are never silently reconciled by picking one.
+
+### F3 — internal faults never become public requests
+
+`IF Internal Fault` sits **before** the shared validation pipeline, so a trusted call with a
+missing or malformed key, a missing correlation id, or a malformed envelope never reaches
+`Validate Payload` at all — let alone the ordinary flow. It terminates at
+`Internal Result (Fault)` with zero Pipeline writes and zero receipt writes. That is earlier
+than the position the brief sketched, and strictly stronger for the same reason. A second gate
+(`IF Receipt Fault`) remains at the Receipt Gate stage as defence in depth.
+
+### F4 — internal return contract
+
+`RespondToWebhook` is documented only as "Returns data for Webhook". Nothing establishes that
+it returns anything to a parent inside an `executeWorkflowTrigger` execution, so **the internal
+path never reaches one**. Every terminal the internal path can reach is gated, and the internal
+side ends at a Code node whose output is the sub-workflow return value:
+
+    success   { ok: true,  lead_id, mode, priority, financial_zone }
+    failure   { ok: false, error_code, retryable }
+
+No `stage`, no `detail`, no `submission_key`. The public path keeps its existing
+`RespondToWebhook` nodes **byte-identical** — asserted by comparing each responder's parameters
+against the production export.
+
+The one assumption that remains is the fundamental sub-workflow contract: a sub-workflow
+returns the output of its last executed node to the parent. That is what
+`waitForSubWorkflow` exists to control, and it is confirmed live in **P6 step 3a** before any
+traffic depends on it.
+
+### F5 — retry canonical identity, read off the live graph
+
+| Branch | Public responder returns | Receipt now stores |
+|---|---|---|
+| new | `$('Dedup Guard').lead_id` | same |
+| retry | `merge_lead_id \|\| lead_id` (Dedup Guard) | same |
+| merged | `$('Build Merge Update').lead_id` | same |
+
+`Normalize + Score Lead.lead_id` is the **new submission's** provisional server-minted id
+(`FIN-<ts>-<rand>`), not the matched one. `Dedup Guard` exposes the matched row as
+`existing_lead_id` / `merge_lead_id`, and `Build Merge Update` sets
+`lead_id = existing_lead_id || lead_id`. Storing the provisional id would have put a lead id in
+the ledger that exists in **no** Pipeline row, so a replay would hand the client an id nothing
+can be found by. A regression asserts the stored expression matches the public responder's for
+all three branches.
+
+### F6 — retry settlement, and a branch-aware P1-L9
+
+The retry branch settles **READY → COMMITTED in one CAS**, with no `IN_FLIGHT` state.
+
+`IN_FLIGHT` means "an irreversible downstream write may have happened and we do not yet know".
+On retry that is never true: `Dedup Guard` resolves the outcome to an existing Pipeline row
+before the receipt is touched, and nothing downstream writes. Forcing claim-then-commit there
+would **manufacture** an ambiguous window the branch does not have — a crash between the two
+would leave `IN_FLIGHT`, i.e. `CANNOT_ANSWER`, for a submission that provably created nothing.
+
+Crash-safe in both directions, and tested as such:
+
+- crash **before** the CAS → receipt stays `READY`; a later attempt re-resolves dedup and
+  settles again. Nothing was written, so nothing is duplicated.
+- crash **after** the CAS → receipt is `COMMITTED` with the canonical lead; a later attempt
+  replays that success verbatim.
+
+There is no third state, because there is no write to be uncertain about.
+
+P1-L9 is now declared **per branch**:
+
+| Branch | Chain |
+|---|---|
+| new / merge | `receipt.correlation_id === envelope.payload.meta.request_id === Pipeline.request_id (AZ)`. Operator recovers by request_id / column AZ. |
+| retry | `receipt.correlation_id === envelope.payload.meta.request_id` **only**. No Pipeline write occurs and no equality with `Pipeline.request_id` is claimed — the matched row carries an *earlier* attempt's request_id. The stored value records **which attempt settled the receipt**. Operator recovers by `canonical_lead_id`, which names the existing Pipeline row dedup selected. |
+
+A cosmetic Pipeline write to make the equation true everywhere was considered and **rejected**:
+writing to the CRM purely to satisfy a documentation invariant is the wrong trade. The declared
+contract records that decision explicitly.
+
+`correlation_id` is writable on exactly two transitions — the claim and the retry settlement —
+enforced by a throw in `updateSpec`. Abort is excluded even though it also leaves `READY`: it
+closes a receipt that never corresponded to a submission, and a value there is plausible-looking
+noise an operator would have to rule out.
+
+### F7 / F8 — readback exactness
+
+Key comparison is **raw string equality**, never `normValue`. Trimming is a repair, and a
+MODEL B key is opaque and server-minted — a stored value that is not byte-identical did not come
+from the minter. The verdict now carries `verified_submission_key`, and `planIssuance` requires
+it to equal the key being advanced. Without that binding, `advance: true` is a free-floating
+token, and concurrent issuance means two verdicts and two keys genuinely are in flight at once.
+
+"Pristine" now covers `lead_mode`, `lead_priority` and `financial_zone` as well as the
+settlement fields, because `classifyRows` replays exactly those on a `COMMITTED` read — a READY
+row already carrying them would arm a replay with a previous submission's classification.
+`created_at` must be present and parseable, checked and never substituted.
+
+### P5.1 limitation worth stating
+
+An internal **retry** settles the receipt and returns, but does not write the
+`Build Intake Activity` row that the public retry path writes. That is an audit gap, not a
+correctness or safety one, and it is listed as a P6 follow-up rather than silently accepted.
+
+---
+
 ## 1. What P5 produced
 
 | Artefact | What it is |
@@ -342,6 +484,27 @@ the next step does not run.
 - **Rollback**: re-deploy the tracked production export `QmIyEW2ZEqKregmN...json`.
 - **Stop if**: any public behaviour changes, or the receipt table gains a row.
 
+### Step 3a — prove the sub-workflow return contract (F4)
+
+- **Precondition**: step 3 green.
+- **Why this step exists**: the internal path deliberately does not use `RespondToWebhook`,
+  whose behaviour inside an `executeWorkflowTrigger` execution is not established by any
+  documentation we could find. The design instead relies on the sub-workflow returning its
+  LAST EXECUTED NODE's output to the parent. That is the fundamental sub-workflow contract, but
+  P5.1 asserts it rather than having observed it, so it is proven before anything depends on it.
+- **Action**: a disposable two-workflow canary in the personal project — a parent with an
+  `executeWorkflow` node (`waitForSubWorkflow: true`) calling a child whose only nodes are an
+  `executeWorkflowTrigger` and a Code node returning a known sentinel. Synthetic only, no
+  credentials, no Data Table, no Sheets.
+- **Proof**: the parent's `executeWorkflow` node output contains the child's sentinel verbatim.
+  Then the negative: add a `RespondToWebhook` node in the child ahead of the sentinel node and
+  confirm whether it errors, no-ops, or truncates the return — recording whichever it does, so
+  the F4 decision rests on observed behaviour rather than on caution alone.
+- **Rollback**: archive both disposable workflows.
+- **Stop if**: the parent does not receive the child's last-node output. The internal return
+  contract would then be unimplementable as designed, and F4 reopens before any traffic is
+  routed.
+
 ### Step 4 — deploy the receipt helpers
 
 - **Precondition**: step 3 green.
@@ -448,6 +611,13 @@ Unchanged from P4 and deliberately not restated as more than it is:
 ---
 
 ## 12. Limitations
+
+- **An internal retry writes no intake activity row.** The public retry path continues to
+  `Build Intake Activity` → `Save Activity`; the internal retry settles the receipt and
+  returns. That is an audit gap, not a correctness or safety one — the canonical lead and the
+  receipt are both correct — and it is a P6 follow-up rather than something P5.1 papered over.
+- **The sub-workflow return contract is asserted, not yet observed.** Closed by P6 step 3a
+  before any traffic depends on it.
 
 - **Nothing here has run.** The candidate is checked as a graph, not as a running workflow.
   Node parameter validity, expression resolution and credential binding are P6's business.

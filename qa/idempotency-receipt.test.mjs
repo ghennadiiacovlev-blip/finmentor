@@ -641,7 +641,13 @@ check('an IN_FLIGHT receipt can be aborted by an operator', () => {
 
 check('the state vocabulary and transition map are complete and closed', () => {
   eq(R.RECEIPT_STATES.join(','), 'READY,IN_FLIGHT,COMMITTED,ABORTED', 'the state vocabulary drifted');
-  eq(R.TRANSITIONS.READY.join(','), 'IN_FLIGHT,ABORTED', 'READY transitions drifted');
+  // P5.1/F6 — READY -> COMMITTED exists for the RETRY settlement only. That branch has no
+  // Pipeline write to protect, so forcing it through IN_FLIGHT would manufacture an ambiguous
+  // window for a submission that provably writes nothing. buildCommit still requires
+  // IN_FLIGHT, and the candidate graph test proves the settlement node is reachable only from
+  // the retry branch.
+  eq(R.TRANSITIONS.READY.join(','), 'IN_FLIGHT,COMMITTED,ABORTED', 'READY transitions drifted');
+  eq(R.canTransition('READY', 'COMMITTED'), true, 'the retry settlement transition was removed');
   eq(R.TRANSITIONS.IN_FLIGHT.join(','), 'COMMITTED,ABORTED', 'IN_FLIGHT transitions drifted');
   eq(R.TRANSITIONS.COMMITTED.length, 0, 'COMMITTED is no longer terminal');
   eq(R.TRANSITIONS.ABORTED.length, 0, 'ABORTED is no longer terminal');

@@ -193,8 +193,12 @@ function resolveReceiptKey(opts) {
 
 // ---------------------------------------------------------------- schema
 
-// Ten fields. `idempotency_key` is gone, replaced by `submission_key`; the identity fields it
-// used to embed are gone with it, so the ledger now holds NO personal identifier.
+// ELEVEN fields — RECEIPT_FIELDS.length is asserted by the gate. `idempotency_key` is gone,
+// replaced by `submission_key`, and the identity fields it used to embed went with it.
+//
+// Precisely, because the looser claim is false: the ledger holds no TELEGRAM/USER identifier
+// and no contact PII. It is NOT identifier-free — a COMMITTED receipt carries
+// `canonical_lead_id`, which is a CRM record identifier. See SUBMISSION_KEY_MODEL.
 const RECEIPT_FIELDS = [
   'submission_key',     // unique. The ONLY lookup key. Opaque, random, identity-free
   'commit_state',       // READY | IN_FLIGHT | COMMITTED | ABORTED
@@ -222,8 +226,29 @@ const ABORT_REASONS = ['PROVEN_NO_PIPELINE_COMMIT'];
 // COMMITTED and ABORTED are terminal. READY -> ABORTED is permitted: an operator may close a
 // key that was preallocated but never used, and doing so is strictly safer than leaving it
 // claimable for ever.
+// F6 — READY -> COMMITTED is permitted, and ONLY for the retry settlement.
+//
+// It exists because the retry branch has NO Pipeline write to protect. IN_FLIGHT means "an
+// irreversible downstream write may have happened and we do not yet know", and on retry that
+// is never true: `Dedup Guard` has already resolved the canonical outcome to an EXISTING
+// Pipeline row before the receipt is touched, and nothing downstream writes. Forcing
+// claim-then-commit there would manufacture an ambiguous window that the branch does not
+// actually have — a crash between claim and commit would leave IN_FLIGHT, i.e. CANNOT_ANSWER,
+// for a submission that provably created nothing.
+//
+// Direct settlement is crash-safe in both directions:
+//   crash BEFORE the CAS -> receipt stays READY. A later attempt re-runs dedup, resolves the
+//                           same existing lead, and settles again. Nothing was written, so
+//                           nothing is duplicated.
+//   crash AFTER the CAS  -> receipt is COMMITTED with the canonical lead. A later attempt
+//                           reads COMMITTED and replays that success verbatim.
+// There is no third state, because there is no write to be uncertain about.
+//
+// The NEW and MERGE branches still MUST go through IN_FLIGHT — `buildCommit` requires it —
+// and the candidate graph test proves the retry settlement node is reachable only from the
+// retry branch.
 const TRANSITIONS = {
-  READY: ['IN_FLIGHT', 'ABORTED'],
+  READY: ['IN_FLIGHT', 'COMMITTED', 'ABORTED'],
   IN_FLIGHT: ['COMMITTED', 'ABORTED'],
   COMMITTED: [],
   ABORTED: []
@@ -522,7 +547,14 @@ const PREALLOCATION_READBACK_RULES = {
   ],
   required_cardinality: 1,
   required_state: 'READY',
-  required_pristine_fields: ['canonical_lead_id', 'claimed_at', 'settled_at', 'abort_reason'],
+  required_pristine_fields: [
+    'canonical_lead_id', 'claimed_at', 'settled_at', 'abort_reason',
+    // F8 — classification residue is settlement residue. classifyRows replays these on a
+    // COMMITTED read, so a READY row carrying them would arm a replay with a previous
+    // submission's classification.
+    'lead_mode', 'lead_priority', 'financial_zone'
+  ],
+  created_at_must_be_present_and_parseable: true,
   // P1-L9: a freshly preallocated receipt has NOT been claimed, so it cannot yet carry a
   // correlation id. A non-empty one means this row is not a pristine preallocation.
   correlation_id_must_be_empty: true,
@@ -552,14 +584,20 @@ function verifyPreallocationReadback(opts) {
     return { ok: false, advance: false, reason: 'READBACK_UNREADABLE' };
   }
 
-  // Reuse the exact-key contract check: a store that returns a row for a different key has
-  // broken its lookup contract, and a broken contract proves nothing about our key.
+  // F7 — RAW EXACT EQUALITY, deliberately not normValue.
+  //
+  // normValue trims, and trimming is a REPAIR. A MODEL B key is an opaque server-minted
+  // value, so a stored key of `"sub_…abc "` is not "the same key with a stray space" — it is
+  // evidence that something wrote a value the minter never produced, or that the store is
+  // mangling what it holds. Either way the receipt is not the one this issuance created, and
+  // silently trimming it into a match is how a corrupted row gets promoted to authority.
   for (let i = 0; i < o.rows.length; i++) {
     const r = o.rows[i];
     if (!r || typeof r !== 'object' || Array.isArray(r)) {
       return { ok: false, advance: false, reason: 'READBACK_MALFORMED_ROW' };
     }
-    if (normValue(r.submission_key) !== key) {
+    const stored = r.submission_key;
+    if (typeof stored !== 'string' || stored !== key) {
       return { ok: false, advance: false, reason: 'READBACK_WRONG_KEY' };
     }
   }
@@ -572,8 +610,12 @@ function verifyPreallocationReadback(opts) {
     return { ok: false, advance: false, reason: 'READBACK_WRONG_STATE' };
   }
 
-  // A pristine preallocation has no settlement residue. Any of these being populated means
-  // the row already has a history, so it is not the receipt this issuance just created.
+  // F8 — a pristine preallocation has no settlement residue AND no classification residue.
+  //
+  // The classification fields matter as much as the settlement ones: a READY row already
+  // carrying lead_priority or financial_zone is a row that has been through a settlement
+  // before, and `classifyRows` replays exactly those values on a COMMITTED read. Promoting
+  // such a row to authority would arm a replay with a previous submission's classification.
   const dirty = PREALLOCATION_READBACK_RULES.required_pristine_fields
     .filter((f) => normValue(row[f]) !== '');
   if (dirty.length) {
@@ -581,6 +623,18 @@ function verifyPreallocationReadback(opts) {
   }
   if (normValue(row.correlation_id) !== '') {
     return { ok: false, advance: false, reason: 'READBACK_ALREADY_CLAIMED' };
+  }
+
+  // F8 — created_at must be PRESENT and parseable. A receipt with no creation time cannot be
+  // aged for retention and cannot be ordered against anything, and an unparseable one is a
+  // row nobody wrote through buildPreallocation. Checked, never repaired: no default is
+  // substituted, because substituting one would hide the write that produced it.
+  const createdAt = row.created_at;
+  if (typeof createdAt !== 'string' || createdAt.trim() === '') {
+    return { ok: false, advance: false, reason: 'READBACK_CREATED_AT_MISSING' };
+  }
+  if (!Number.isFinite(Date.parse(createdAt))) {
+    return { ok: false, advance: false, reason: 'READBACK_CREATED_AT_INVALID' };
   }
 
   // Ordering item 6 — an issuance reference, when used, must belong to this issuance.
@@ -592,7 +646,14 @@ function verifyPreallocationReadback(opts) {
     }
   }
 
-  return { ok: true, advance: true, reason: 'PREALLOCATION_CONFIRMED' };
+  // F7 — the verdict names the EXACT key it verified, so planIssuance can bind the two
+  // together structurally instead of trusting a caller to pass the matching pair.
+  return {
+    ok: true,
+    advance: true,
+    reason: 'PREALLOCATION_CONFIRMED',
+    verified_submission_key: key
+  };
 }
 
 // ---------------------------------------------------------------- P5 §8 issuance decision
@@ -634,6 +695,21 @@ function planIssuance(opts) {
       clientMaySeeNewCycle: false, orphanReceipt: true, reason: 'SUBMISSION_KEY_INVALID'
     };
   }
+
+  // F7 — THE VERDICT IS BOUND TO THE KEY IT VERIFIED.
+  //
+  // Without this, `advance: true` is a free-floating token: a verdict earned by verifying
+  // key A would advance authority for key B, and the two are trivially transposable because
+  // concurrent issuance means two verdicts and two keys genuinely are in flight at once.
+  // Raw equality, not normValue — the same reason as the readback itself.
+  const verified = verdict.verified_submission_key;
+  if (typeof verified !== 'string' || verified !== key) {
+    return {
+      ok: false, advanceAuthority: false, keepCurrentCycle: true,
+      clientMaySeeNewCycle: false, orphanReceipt: true,
+      reason: 'READBACK_KEY_BINDING_MISMATCH'
+    };
+  }
   const cycleId = normValue(o.cycleId);
   if (cycleId === '') {
     return {
@@ -668,11 +744,22 @@ function planIssuance(opts) {
 function updateSpec(key, fromState, toState, patch) {
   const set = Object.assign({ commit_state: toState }, patch || {});
   if (Object.prototype.hasOwnProperty.call(set, 'correlation_id')) {
+    // P5.1 — correlation_id is writable on EXACTLY TWO transitions: the claim
+    // (READY -> IN_FLIGHT) and the retry settlement (READY -> COMMITTED). Both are
+    // first-writes out of READY, so immutability still follows from the PREDICATE rather than
+    // from a separate guard — once the row has left READY no later update can match it, and
+    // therefore no later update can rewrite the field.
+    //
+    // ABORT is deliberately excluded even though it can also leave READY. An abort records
+    // that a receipt was closed unused; stamping it with the aborting attempt's correlation id
+    // would put a value in the field on a receipt that never corresponded to any submission,
+    // which is the kind of plausible-looking noise an operator would then have to rule out.
     const isClaim = fromState === 'READY' && toState === 'IN_FLIGHT';
-    if (!isClaim) {
+    const isRetrySettlement = fromState === 'READY' && toState === 'COMMITTED';
+    if (!isClaim && !isRetrySettlement) {
       throw new Error(
-        'correlation_id may only be written by the READY -> IN_FLIGHT claim (P1-L9); ' +
-        'attempted on ' + fromState + ' -> ' + toState
+        'correlation_id may only be written by the READY -> IN_FLIGHT claim or the ' +
+        'READY -> COMMITTED retry settlement (P1-L9); attempted on ' + fromState + ' -> ' + toState
       );
     }
   }
@@ -715,20 +802,55 @@ function updateSpec(key, fromState, toState, patch) {
 // submission identity. Two attempts at one submission carry different request_ids and share
 // one submission_key. Only the attempt that WINS the claim ever writes its request_id onto
 // the receipt, which is what makes the stamped value the one that actually reached Pipeline.
+// F6 — P1-L9 IS BRANCH-AWARE. The universal wording was too strong and would have been a lie
+// on one branch in three.
+//
+// The equation `receipt.correlation_id === envelope request_id === Pipeline.request_id (AZ)`
+// only holds where THIS attempt's request_id actually lands in Pipeline. On the RETRY branch
+// there is no Pipeline write at all, and worse, the matched row already carries the request_id
+// of an EARLIER attempt — `Dedup Guard` reaches `dedup_is_retry` partly via
+// `requestIdCorroborated`, which matches a row whose stored request_id equals this one, or via
+// a two-minute window on a row written by a previous submission. Asserting the equation there
+// would point an operator at a Pipeline cell that was written by a different attempt.
+//
+// So the chain is declared per branch, and the retry branch says plainly what it does and does
+// not prove. A cosmetic Pipeline write to make the equation true everywhere was considered and
+// rejected: writing to the CRM purely to satisfy a documentation invariant is the wrong trade.
 const P1_L9_CORRELATION_CHAIN = {
-  rule: 'receipt.correlation_id === envelope.meta.request_id === Pipeline.request_id (AZ)',
   model: 'B — preallocated receipt',
-  written_at: 'the winning READY -> IN_FLIGHT claim',
+  branch_aware: true,
   empty_at_preallocation: true,
-  value_source: 'the gateway server correlation id, the same value used as meta.request_id',
+  value_source: 'the gateway server correlation id, the same value used as payload.meta.request_id',
   caller_selectable: false,
   immutable_once_written: true,
+  writable_only_on_transition_out_of_ready: true,
   commit_preserves_it: true,
   abort_preserves_it: true,
   losing_claim_cannot_write_it: true,
-  holds_before_pipeline_write: true,
   request_id_is_submission_identity: false,
-  submission_identity_is: 'submission_key'
+  submission_identity_is: 'submission_key',
+
+  new_and_merge: {
+    rule: 'receipt.correlation_id === envelope.payload.meta.request_id === Pipeline.request_id (AZ)',
+    written_at: 'the winning READY -> IN_FLIGHT claim',
+    pipeline_write_occurs: true,
+    holds_before_pipeline_write: true,
+    operator_recovers_by: 'request_id / column AZ'
+  },
+
+  retry: {
+    rule: 'receipt.correlation_id === envelope.payload.meta.request_id ONLY. It is NOT equal ' +
+      'to Pipeline.request_id, and no such equality is claimed.',
+    written_at: 'the READY -> COMMITTED retry settlement',
+    pipeline_write_occurs: false,
+    // The honest statement of what the stored value is for.
+    correlation_id_means: 'which attempt settled this receipt',
+    correlation_id_is_in_pipeline: false,
+    matched_row_carries_an_earlier_request_id: true,
+    operator_recovers_by: 'canonical_lead_id on the receipt, which names the existing ' +
+      'Pipeline row that dedup selected',
+    cosmetic_pipeline_write_added_to_satisfy_the_equation: false
+  }
 };
 
 // READY -> IN_FLIGHT, immediately before the irreversible Pipeline handoff.
@@ -784,6 +906,51 @@ function buildCommit(opts) {
       lead_priority: normValue(o.leadPriority),
       financial_zone: normValue(o.financialZone),
       settled_at: now
+    })
+  };
+}
+
+// F6 — RETRY SETTLEMENT. READY -> COMMITTED in ONE conditional update.
+//
+// Used only on the branch where `Dedup Guard` decided `dedup_is_retry`, which means the
+// submission has ALREADY been resolved to an existing Pipeline row and no write will occur.
+//
+// `canonicalLeadId` must be the DEDUP-SELECTED existing lead — `merge_lead_id` on the live
+// graph — never the provisional id that `Normalize + Score Lead` mints for the incoming
+// submission. Storing the provisional id would put a lead id in the ledger that exists in no
+// Pipeline row, so a later replay would hand the client an id nothing can be found by. The
+// helper cannot check that from here, so the candidate graph test asserts the expression the
+// workflow actually uses matches the one `Respond Retry` returns.
+function buildRetrySettlement(opts) {
+  const o = opts || {};
+  const gate = resolveReceiptKey(o);
+  if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
+  const leadId = normValue(o.canonicalLeadId);
+  if (leadId === '') { return { ok: false, reason: 'LEAD_ID_MISSING' }; }
+  const now = normValue(o.nowIso);
+  if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
+
+  // The correlation id records WHICH ATTEMPT settled the receipt. It is explicitly NOT a
+  // claim that this value reached Pipeline — on this branch nothing reaches Pipeline. See
+  // P1_L9_CORRELATION_CHAIN.retry.
+  const correlationId = normValue(o.correlationId);
+  if (correlationId === '') { return { ok: false, reason: 'CORRELATION_ID_REQUIRED_AT_SETTLEMENT' }; }
+  if (correlationId.indexOf(gate.key) !== -1) {
+    return { ok: false, reason: 'CORRELATION_ID_DERIVED_FROM_KEY' };
+  }
+  if (o.correlationIdIsServerMinted === false) {
+    return { ok: false, reason: 'CORRELATION_ID_NOT_SERVER_MINTED' };
+  }
+
+  return {
+    ok: true,
+    spec: updateSpec(gate.key, 'READY', 'COMMITTED', {
+      canonical_lead_id: leadId,
+      lead_mode: normValue(o.leadMode),
+      lead_priority: normValue(o.leadPriority),
+      financial_zone: normValue(o.financialZone),
+      settled_at: now,
+      correlation_id: correlationId
     })
   };
 }
@@ -1001,6 +1168,7 @@ module.exports = {
   interpretUpdateItems,
   buildClaim,
   buildCommit,
+  buildRetrySettlement,
   buildAbort,
   updateSpec,
   assertExactlyOneUpdated,
