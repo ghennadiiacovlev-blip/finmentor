@@ -21,6 +21,10 @@
 //   * Exactly one Lead Intake call per (telegram user, cycle). A retry resolves server state
 //     first and returns the prior canonical success rather than submitting again.
 //   * `submitted` is terminal. Nothing moves it back to `draft`.
+//   * No irreversible handoff without a proven-current context. The cycle that owns the
+//     claim must still be the authoritative cycle at the moment of the Lead Intake call
+//     (G2), and a recovery path for an ambiguous outcome must exist before one is possible
+//     at all (G1).
 //
 // Injected contracts:
 //   sessions.read(appSessionId)                    -> { ok, session }
@@ -29,9 +33,15 @@
 //   authority.read(chatId)                         -> { ok, row }
 //   authority.write(chatId, patch)                 -> { ok }
 //   leadIntake.submit({ idempotency_key, envelope })-> { ok, ambiguous, body }
-//   leadIntake.lookup(idempotencyKey)              -> { ok, known, body }
+//   leadIntake.lookup(idempotencyKey)              -> { ok, known, body }   REQUIRED
 //   mirror(chatId)                                 -> optional; derived read model refresh
 //   clock.now()                                    -> ISO string
+//
+// `leadIntake.lookup` is the one contract that is NOT optional. Its shape and its durability
+// requirements are stated in submit-contract.js as RECOVERY_ADAPTER_CONTRACT, and no
+// implementation of it exists in this repository. Without it this handler refuses to make a
+// fresh Lead Intake call at all -- see the G1 blocker below. That refusal is the closure:
+// a submission that cannot be recovered is a submission that is never started.
 //
 // A `leadIntake.submit` result is a canonical success only when `body.ok === true` and a
 // non-empty lead_id came back (§9.8). `ambiguous: true` means the outcome is unknown -- a
@@ -52,7 +62,10 @@ function counters() {
     lead_intake_lookups: 0,
     authority_writes: 0,
     session_writes: 0,
-    mirror_runs: 0
+    mirror_runs: 0,
+    // G2 — the pre-handoff re-read. Counted so a branch that skipped the guard is visible
+    // in the log rather than merely absent from it.
+    handoff_guards: 0
   };
 }
 
@@ -178,16 +191,25 @@ function resolvePriorSubmission(ctx, session) {
   // An interrupted attempt. The only safe way to learn what happened is to ask the
   // downstream for the idempotency key -- never to submit again and see.
   if (state === 'submitting' || state === 'submitted') {
-    if (ctx.leadIntake && typeof ctx.leadIntake.lookup === 'function') {
+    const adapter = C.recoveryAdapterStatus(ctx.leadIntake);
+    if (adapter.available) {
+      // The lookup is asked with the SERVER-derived key only. Nothing a caller sent -- not
+      // request_id, not lead_id -- reaches this argument, so a caller cannot steer which
+      // submission a recovery resolves to.
       const found = ctx.leadIntake.lookup(ctx.idempotencyKey);
       ctx.counts.lead_intake_lookups++;
       if (found && found.ok && found.known) {
         const result = canonicalResult(found.body);
         if (result) { return { resolved: true, source: 'lookup', result: result }; }
+        // `known: true` is a positive assertion that a record exists. A body that does not
+        // yield a canonical lead id therefore means "something was created and we cannot
+        // name it" -- which is ambiguity, not absence. Releasing the claim here would risk
+        // a duplicate lead, so the claim is preserved and an operator settles it.
+        return { resolved: false, unresolved: true, lookup_answer: 'KNOWN_UNUSABLE_BODY' };
       }
       if (!found || !found.ok) {
         // The downstream could not tell us. Ambiguity is preserved, not gambled on.
-        return { resolved: false, unresolved: true };
+        return { resolved: false, unresolved: true, lookup_answer: 'CANNOT_ANSWER' };
       }
       // Answered, and the key is genuinely unknown downstream: nothing was created, so a
       // fresh attempt is safe. The stale `submitting` claim has to be released first --
@@ -197,13 +219,91 @@ function resolvePriorSubmission(ctx, session) {
       // A `submitted` record with no canonical lead anywhere is a different animal: the
       // state machine forbids leaving `submitted`, so it stays unresolved for an operator
       // rather than being quietly downgraded into a fresh submission.
-      if (state === 'submitted') { return { resolved: false, unresolved: true }; }
-      return { resolved: false, unresolved: false, release: true };
+      if (state === 'submitted') { return { resolved: false, unresolved: true, lookup_answer: 'NOT_COMMITTED' }; }
+      return { resolved: false, unresolved: false, release: true, lookup_answer: 'NOT_COMMITTED' };
     }
-    return { resolved: false, unresolved: true };
+    // G1 -- the recovery adapter is absent. This is a DEPLOYMENT condition, not a request
+    // error, and it is reported under its own code so it can never be mistaken in the log
+    // for a transient downstream failure.
+    //
+    // The claim is deliberately NOT released. Releasing it would permit a fresh Lead Intake
+    // call for a submission whose outcome is unknown, which is the duplicate this whole
+    // mechanism exists to prevent. Two safe recoveries remain open and neither needs this
+    // code path: an operator writing the canonical binding to Bot_Sessions (resolved by the
+    // `authority` branch above on the next attempt), or a Concierge cycle change, which
+    // changes the idempotency key and frees the user without touching the stale claim.
+    return { resolved: false, unresolved: true, blocked: true, reason: adapter.reason };
   }
 
   return { resolved: false, unresolved: false };
+}
+
+// ------------------------------------------------------- G2 pre-handoff cycle guard
+
+// Re-read authority and the app session IMMEDIATELY before the irreversible Lead Intake
+// call and prove the whole context is still the one that owns the claim.
+//
+// The defect this closes: the cycle was read once near handler start and never re-checked,
+// so a Concierge cycle reset landing mid-flight could not be detected and the lead was
+// bound with `lead_cycle_id` from a cycle that no longer existed.
+//
+// The invariant: no irreversible handoff unless the authoritative cycle being submitted is
+// still the same cycle that owns this operation's claim.
+//
+// This narrows the window to (guard read -> Intake call). It does not eliminate it: without
+// a distributed transaction across Bot_Sessions, the session store and Lead Intake, no
+// gateway-side check can. The residual is stated in the threat model rather than papered
+// over here.
+function assertHandoffGuard(ctx) {
+  ctx.counts.handoff_guards++;
+
+  const auth = ctx.authority.read(ctx.chatId);
+  if (!auth || !auth.ok || !auth.row) {
+    return { ok: false, code: 'TEMPORARY_BACKEND_ERROR', stage: 'HANDOFF_AUTHORITY_READ' };
+  }
+  const row = auth.row;
+
+  // Same identity. A row that now belongs to a different chat is an identity failure.
+  const authChatId = C.normValue(row.chat_id);
+  if (authChatId !== '' && authChatId !== ctx.chatId) {
+    return { ok: false, code: 'SESSION_INVALID', stage: 'HANDOFF_CHAT_MISMATCH' };
+  }
+
+  // Same cycle. This is the reset-in-flight check.
+  if (C.normValue(row.cycle_id) !== ctx.cycleId) {
+    return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'CYCLE_RESET_IN_FLIGHT' };
+  }
+
+  // Consent must still be current for THIS cycle. A consent withdrawn or re-stamped onto a
+  // newer cycle between the stamp and the handoff must stop the submit.
+  if (C.normValue(row.consent) !== 'yes' || C.normValue(row.consent_cycle_id) !== ctx.cycleId) {
+    return { ok: false, code: 'CONSENT_STALE_CYCLE', stage: 'CONSENT_INVALID_AT_HANDOFF' };
+  }
+
+  const read = ctx.sessions.read(ctx.appSessionId);
+  if (!read || !read.ok || !read.session) {
+    return { ok: false, code: 'SESSION_INVALID', stage: 'HANDOFF_SESSION_READ' };
+  }
+  const session = read.session;
+
+  // The session must not have been re-bound to a newer cycle underneath us.
+  if (C.normValue(session.cycle_id) !== ctx.cycleId) {
+    return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'SESSION_REBOUND' };
+  }
+
+  // Legal state: only a live claim may hand off.
+  if (C.normValue(session.submit_state) !== 'submitting') {
+    return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'HANDOFF_STATE_ILLEGAL' };
+  }
+
+  // The claim must still belong to THIS operation. The idempotency key alone cannot prove
+  // that -- two concurrent submits for one (user, cycle) share it by construction -- so the
+  // claim carries a per-operation owner token, which is the server correlation id.
+  if (C.normValue(session.claim_owner) !== ctx.correlationId) {
+    return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'CLAIM_REASSIGNED' };
+  }
+
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------- §9 entry point
@@ -287,6 +387,7 @@ function handleSubmit(opts) {
     cycleId: cycleId,
     appSessionId: v.app_session_id,
     idempotencyKey: idempotencyKey,
+    correlationId: correlationId,
     sessions: sessions,
     authority: o.authority,
     authorityRow: authorityRow,
@@ -323,10 +424,18 @@ function handleSubmit(opts) {
       untrusted_fields_ignored: v.ignored_untrusted
     });
   }
+  if (prior.blocked === true) {
+    // G1 -- an interrupted submission exists and the capability that could settle it is not
+    // deployed. Distinct code, zero writes, claim preserved. Recovery is an operator writing
+    // the canonical binding to authority, or a cycle change; never an automatic re-submit.
+    return reject('PRE_ACTIVATION_BLOCKED', prior.reason, correlationId, counts,
+      C.RECOVERY_ADAPTER_CONTRACT.method);
+  }
   if (prior.unresolved) {
     // §10 -- an ambiguous downstream outcome is resolved before another Intake call, and
     // this request is not the place to gamble. The client is told to retry.
-    return reject('SUBMIT_UNRESOLVED', 'AMBIGUOUS_PRIOR_ATTEMPT', correlationId, counts);
+    return reject('SUBMIT_UNRESOLVED', 'AMBIGUOUS_PRIOR_ATTEMPT', correlationId, counts,
+      prior.lookup_answer || null);
   }
 
   // The interrupted attempt provably created nothing. Release the stale claim so the retry
@@ -360,6 +469,24 @@ function handleSubmit(opts) {
       );
     }
     return reject(consent.error_code, 'CONSENT_GATE', correlationId, counts, consent.reason);
+  }
+
+  // ---- G1 structural pre-activation blocker ----------------------------------------
+  //
+  // From here on the request is heading for an IRREVERSIBLE Lead Intake call. If the
+  // recovery adapter is not deployed, an interruption anywhere in the remainder of this
+  // sequence would leave a submission whose outcome can never be established -- exactly the
+  // permanently-stranded state G1 describes.
+  //
+  // So the blocker is enforced rather than documented: with no adapter there is no fresh
+  // handoff, therefore no unrecoverable state can be created in the first place. This is
+  // checked AFTER the consent gate on purpose -- `consent: "no"` is a zero-effect accepted
+  // outcome that needs no recovery path and must keep working -- and BEFORE the consent
+  // stamp, so a blocked deployment performs no writes of any kind.
+  const adapter = C.recoveryAdapterStatus(o.leadIntake);
+  if (!adapter.available) {
+    return reject('PRE_ACTIVATION_BLOCKED', adapter.reason, correlationId, counts,
+      C.RECOVERY_ADAPTER_CONTRACT.method);
   }
 
   // ---- §9.5 stamp current-cycle consent on the AUTHORITY ---------------------------
@@ -404,11 +531,28 @@ function handleSubmit(opts) {
   const claim = sessions.claim(v.app_session_id, {
     from: fromState,
     to: 'submitting',
-    patch: { idempotency_key: idempotencyKey, claimed_at: stamp }
+    // G2 -- `claim_owner` is the per-operation ownership token. The idempotency key cannot
+    // serve as one: two concurrent submits for the same (user, cycle) share it by
+    // construction, so it identifies the submission, not the operation holding the claim.
+    patch: { idempotency_key: idempotencyKey, claimed_at: stamp, claim_owner: correlationId }
   });
   counts.session_writes++;
   if (!claim || !claim.ok || claim.updated_rows === 0) {
     return reject('SUBMIT_IN_PROGRESS', 'CLAIM_LOST', correlationId, counts);
+  }
+
+  // ---- G2 the last check before the point of no return ------------------------------
+  //
+  // On failure this writes NOTHING. Not the session, not authority, and no Intake call.
+  // The temptation is to release our own claim on the way out, but the guard fails
+  // precisely when the context can no longer be trusted -- and one of its failure modes is
+  // that the claim now belongs to a different operation, whose state a stale request must
+  // never touch. A session left at `submitting` on a superseded cycle is already dead: the
+  // §9.2 cycle check refuses every later request on it, so the user re-bootstraps onto the
+  // new cycle and nothing is stranded that was not already gone.
+  const guard = assertHandoffGuard(ctx);
+  if (!guard.ok) {
+    return reject(guard.code, guard.stage, correlationId, counts);
   }
 
   // ---- §9.7 one call, and only one -------------------------------------------------
@@ -457,6 +601,7 @@ module.exports = {
   handleSubmit,
   canonicalResult,
   resolvePriorSubmission,
+  assertHandoffGuard,
   persistCanonical,
   counters
 };

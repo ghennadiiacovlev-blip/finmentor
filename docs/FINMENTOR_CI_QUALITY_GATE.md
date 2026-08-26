@@ -52,9 +52,9 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | 4 | Error Monitor alert | `qa/error-alert.test.mjs` | 22 |
 | 5 | Website contract | `qa/website-contract.test.mjs` | 75 |
 | 6 | n8n export hygiene | `qa/n8n-manifest-drift.test.mjs` | 70 |
-| 7 | Mini App read-model consistency | `qa/miniapp-readmodel.test.mjs` | 41 |
-| 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 59 |
-| | **Baseline** | | **405** |
+| 7 | Mini App read-model consistency | `qa/miniapp-readmodel.test.mjs` | 42 |
+| 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 84 |
+| | **Baseline** | | **431** |
 
 `qa/run-all.mjs` now prints each gate's assertion count and a `TOTAL ASSERTIONS:` line, so
 the number is read from the run rather than transcribed. It also **fails when a gate's tally

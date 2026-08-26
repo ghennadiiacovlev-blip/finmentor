@@ -233,9 +233,20 @@ branch, including every fallback class. `qa/miniapp-readmodel.test.mjs` asserts 
 against both the Data Table and the authoritative store on the cache-hit path and on all five
 fallback paths.
 
-Repairing a stale or duplicated derived row is deliberately **not** the read path's job. Repair
-belongs to the mirror helper and to reconciliation, so that serving a Mini App open can never
-become a write.
+Repairing a stale or duplicated derived row is deliberately **not** the read path's job, so that
+serving a Mini App open can never become a write.
+
+**CORRECTED 2026-08-26 (N6.1, gap G4).** This section previously said repair "belongs to the
+mirror helper **and to reconciliation**". Reconciliation has never repaired anything: it
+classifies drift and returns a plan, performing zero writes to either store. The function is
+now named `planReconciliation` accordingly, and each finding carries a `repair_action` naming
+the operation a repair *would* perform without performing it. That is the intended design, not
+an omission — an unattended repairer writing to the derived table on a schedule is what the
+Phase 10 stop conditions prohibit, and it would create a reconciliation/submit race.
+
+The two repair paths that actually exist are the mirror helper's own generation
+(`runMirrorGeneration`, which republishes as part of a real commit) and `runBackfill`, which is
+deliberate, manual and authority-first.
 
 ## 6. App session
 

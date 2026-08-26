@@ -82,15 +82,80 @@ const STATUS = {
   CONSENT_STALE_CYCLE: 409,
   SUBMIT_IN_PROGRESS: 409,
   SUBMIT_UNRESOLVED: 503,
+  PRE_ACTIVATION_BLOCKED: 503,
   RATE_LIMITED: 429,
   TEMPORARY_BACKEND_ERROR: 503
 };
 const RETRYABLE = {
   SUBMIT_IN_PROGRESS: true,
   SUBMIT_UNRESOLVED: true,
+  // Retryable on purpose: the condition is resolved by an operator or by a cycle change,
+  // not by the client changing anything. Marking it non-retryable would tell a client to
+  // give up on a submission that becomes recoverable the moment the adapter is deployed
+  // or the canonical binding is written to authority by hand.
+  PRE_ACTIVATION_BLOCKED: true,
   RATE_LIMITED: true,
   TEMPORARY_BACKEND_ERROR: true
 };
+
+// ------------------------------------------------- §10 durable recovery adapter (G1)
+
+// The one capability B.2.1-C cannot supply from this repository.
+//
+// After an AMBIGUOUS downstream outcome — a timeout, a dropped connection, a 5xx that
+// arrived after Lead Intake had already accepted the request — the gateway holds no record
+// of whether a lead was created. Three identifiers exist and only one of them is usable:
+//
+//   * `meta.request_id` is regenerated per attempt, so it is a correlation reference and
+//     can never be a retry key;
+//   * a caller-supplied `lead_id` is untrusted by construction (§12) and must never be
+//     able to satisfy a recovery;
+//   * `miniapp:<telegram_user_id>:<cycle_id>` is derived solely from server-owned values
+//     and is therefore stable across every retry of one logical submission.
+//
+// The stable key is the only admissible one. Where it is durably recorded decides whether
+// recovery is possible at all:
+//
+//   * `Bot_Sessions` (authority) proves a commit the gateway LEARNED about — it is written
+//     by persistCanonical AFTER Intake returns. It cannot prove a commit whose response was
+//     lost, because in that case the write never happened.
+//   * The app-session store is a claim record with a TTL, and §6 forbids it becoming a
+//     second CRM. It cannot be the durable record either.
+//
+// So the record that settles an ambiguous outcome necessarily lives DOWNSTREAM of the
+// gateway, and the gateway must be able to ask for it by the stable key. That question is
+// `leadIntake.lookup`, and nothing in this repository answers it.
+const RECOVERY_ADAPTER_CONTRACT = {
+  method: 'leadIntake.lookup',
+  signature: 'lookup(idempotencyKey) -> { ok: boolean, known: boolean, body?: object }',
+  key_shape: 'miniapp:<telegram_user_id>:<cycle_id>',
+  // Answers must be distinguishable. `ok:false` means "could not answer" and preserves
+  // ambiguity; `ok:true, known:false` is a positive assertion that nothing was created and
+  // is the ONLY answer that may release a claim for a fresh attempt.
+  responses: {
+    committed: '{ ok: true, known: true, body: { ok: true, lead_id: "FIN-...", mode, priority, financial_zone } }',
+    not_committed: '{ ok: true, known: false }',
+    cannot_answer: '{ ok: false }'
+  },
+  requirements: [
+    'durable: survives gateway restart, workflow redeploy and app-session TTL expiry',
+    'written at or before the Lead Intake commit, never after it, or the ambiguous window is not covered',
+    'indexed by the stable key: a scan over Pipeline rows is not a lookup and is not acceptable',
+    'server-side only: no browser-supplied value may select or satisfy a recovery',
+    'the stable key must reach the durable record, which today it does not — the outbound ' +
+      'envelope carries no idempotency key, so no downstream row can be indexed by it'
+  ]
+};
+
+// Absence of the adapter is a deployment condition, not a request error. It is reported
+// with its own code so a blocked deployment is never confused in the logs with a
+// transient downstream failure.
+function recoveryAdapterStatus(leadIntake) {
+  if (!leadIntake || typeof leadIntake.lookup !== 'function') {
+    return { available: false, reason: 'RECOVERY_ADAPTER_MISSING' };
+  }
+  return { available: true, reason: 'RECOVERY_ADAPTER_PRESENT' };
+}
 
 // ---------------------------------------------------------------- helpers
 
@@ -512,6 +577,8 @@ module.exports = {
   RESPONSE_FORBIDDEN_KEYS,
   STATUS,
   RETRYABLE,
+  RECOVERY_ADAPTER_CONTRACT,
+  recoveryAdapterStatus,
   SUBMIT_STATES,
   TRANSITIONS,
   URGENCY_RU,

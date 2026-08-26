@@ -697,6 +697,356 @@ check('every branch reports its own side-effect counters', () => {
   eq(guard.out.log.counters.authority_writes, 0, 'a refused request wrote to authority');
 });
 
+// ------------------------------------- G1 durable idempotency recovery (N6.1)
+//
+// The threat model recorded that `leadIntake.lookup` is an injected capability with no
+// backing store in this repository, and that without it an interrupted submit stranded its
+// (user, cycle) at SUBMIT_UNRESOLVED forever. These checks prove the STATE MACHINE around
+// that capability. They do not, and cannot, prove that durable production idempotency
+// exists -- no offline double can establish durability of a store that is not written yet.
+
+console.log('\nG1. RECOVERY ADAPTER STATE MACHINE');
+
+// An Intake double with no lookup at all: the repository's actual situation today.
+function makeIntakeNoLookup() {
+  const i = makeIntake();
+  delete i.lookup;
+  return i;
+}
+
+const INTERRUPTED = { submit_state: 'submitting', idempotency_key: 'miniapp:' + CHAT + ':' + CYCLE };
+const PRIOR_BODY = { ok: true, lead_id: 'FIN-1756000000-777', mode: 'merged', priority: 'HOT', financial_zone: 'RED' };
+
+check('(a) a prior committed submit is found by lookup and returned without a second call', () => {
+  const r = run({}, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: true, known: true, body: PRIOR_BODY } })
+  });
+  assert(r.out.ok, 'a recoverable prior commit was not returned');
+  eq(r.out.response.lead_id, 'FIN-1756000000-777', 'the prior canonical lead was not returned');
+  eq(r.leadIntake.calls.length, 0, 'a second Lead Intake call was made after recovery');
+  eq(r.out.log.resolved_from, 'lookup', 'recovery was not attributed to the lookup');
+  eq(r.out.log.idempotent_replay, true, 'a recovered submit was not marked as a replay');
+});
+
+check('(b) a prior submit the downstream never created permits exactly one fresh attempt', () => {
+  const r = run({}, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: true, known: false } })
+  });
+  assert(r.out.ok, 'a provably-uncommitted attempt was not allowed to retry');
+  eq(r.leadIntake.calls.length, 1, 'the fresh attempt did not make exactly one Intake call');
+  eq(r.sessions.row.submit_state, 'submitted', 'the retry did not reach submitted');
+});
+
+check('(c) an absent recovery adapter blocks rather than stranding the submission', () => {
+  const r = run({}, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntakeNoLookup()
+  });
+  assert(!r.out.ok, 'an unrecoverable interrupted submit was accepted');
+  eq(r.out.response.error_code, 'PRE_ACTIVATION_BLOCKED', 'the deployment fault was reported as something else');
+  eq(r.out.response.retryable, true, 'the client was told to give up on a recoverable submission');
+  eq(r.out.log.stage, 'RECOVERY_ADAPTER_MISSING', 'the blocking reason was not named');
+  // The claim is preserved: releasing it would permit a duplicate for an unknown outcome.
+  eq(r.sessions.row.submit_state, 'submitting', 'the blocked path released the claim');
+  eq(r.leadIntake.calls.length, 0, 'a blocked submission still called Lead Intake');
+  eq(r.authority.stats.writes, 0, 'a blocked submission wrote to authority');
+});
+
+check('(c2) a blocked interrupted submit is still recoverable by an operator authority write', () => {
+  // The documented recovery: an operator writes the canonical binding to Bot_Sessions.
+  // The authority branch then resolves it on the next attempt, with no adapter involved.
+  const sessions = makeSessions(INTERRUPTED);
+  const blocked = run({}, { sessions, leadIntake: makeIntakeNoLookup() });
+  eq(blocked.out.response.error_code, 'PRE_ACTIVATION_BLOCKED', 'precondition: not blocked');
+
+  const authority = makeAuthority({ lead_id: 'FIN-OPERATOR-BOUND', lead_cycle_id: CYCLE });
+  const after = run({}, { sessions, authority, leadIntake: makeIntakeNoLookup() });
+  assert(after.out.ok, 'an operator-bound lead did not recover the submission');
+  eq(after.out.response.lead_id, 'FIN-OPERATOR-BOUND', 'the operator binding was not returned');
+  eq(after.leadIntake.calls.length, 0, 'recovery made a Lead Intake call');
+});
+
+check('(d) a lookup that errors preserves ambiguity and the claim', () => {
+  const r = run({}, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: false } })
+  });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'a lookup error was not reported as unresolved');
+  eq(r.out.log.detail, 'CANNOT_ANSWER', 'the lookup answer was not recorded');
+  eq(r.sessions.row.submit_state, 'submitting', 'an unanswered lookup released the claim');
+  eq(r.leadIntake.calls.length, 0, 'an unanswered lookup was followed by a submit');
+});
+
+check('(d2) a lookup that knows a record but cannot name it never releases the claim', () => {
+  // `known: true` asserts something exists. A body with no canonical lead id therefore means
+  // "created but unnameable" -- ambiguity, not absence. Releasing here would duplicate.
+  const r = run({}, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: true, known: true, body: { ok: true, lead_id: '' } } })
+  });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'an unusable known record was not treated as ambiguous');
+  eq(r.out.log.detail, 'KNOWN_UNUSABLE_BODY', 'the unusable-body answer was not recorded');
+  eq(r.leadIntake.calls.length, 0, 'an unusable known record triggered a duplicate submit');
+  eq(r.sessions.row.submit_state, 'submitting', 'an unusable known record released the claim');
+});
+
+check('(e) an ambiguous downstream outcome leaves the claim in place for the resolver', () => {
+  const r = run({}, { leadIntake: makeIntake({ ambiguous: true }) });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'ambiguity was not reported as unresolved');
+  eq(r.sessions.row.submit_state, 'submitting', 'ambiguity did not leave the claim for the resolver');
+  eq(r.leadIntake.calls.length, 1, 'ambiguity was retried inside the same request');
+});
+
+check('(f) a retry after a known commit makes zero further Intake calls', () => {
+  const sessions = makeSessions();
+  const first = run({}, { sessions });
+  eq(first.leadIntake.calls.length, 1, 'precondition: the first submit did not call Intake once');
+  const retry = run({}, { sessions, leadIntake: makeIntake({ lookup: { ok: false } }) });
+  assert(retry.out.ok, 'the retry after a known commit was refused');
+  eq(retry.out.response.lead_id, first.out.response.lead_id, 'the retry returned a different lead');
+  eq(retry.leadIntake.calls.length, 0, 'the retry called Lead Intake again');
+  eq(retry.leadIntake.lookups.length, 0, 'the retry consulted lookup despite knowing the answer');
+});
+
+check('(g) a retry after a proven non-commit makes exactly one Intake call', () => {
+  const sessions = makeSessions(INTERRUPTED);
+  const r = run({}, { sessions, leadIntake: makeIntake({ lookup: { ok: true, known: false } }) });
+  eq(r.leadIntake.lookups.length, 1, 'the retry did not consult the recovery adapter');
+  eq(r.leadIntake.calls.length, 1, 'a proven non-commit did not produce exactly one attempt');
+});
+
+check('(h) a caller-supplied request_id cannot steer which submission is recovered', () => {
+  const r = run({ request_id: 'miniapp:999999999:C-ATTACKER' }, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: true, known: true, body: PRIOR_BODY } })
+  });
+  eq(r.leadIntake.lookups.length, 1, 'the adapter was not consulted');
+  eq(r.leadIntake.lookups[0], 'miniapp:' + CHAT + ':' + CYCLE, 'the caller steered the lookup key');
+  assert(r.out.log.untrusted_fields_ignored.indexOf('request_id') !== -1,
+    'the hostile request_id was not recorded as ignored');
+});
+
+check('(i) a caller-supplied lead_id cannot satisfy a recovery', () => {
+  const r = run({ lead_id: 'FIN-ATTACKER-0001' }, {
+    sessions: makeSessions(INTERRUPTED),
+    leadIntake: makeIntake({ lookup: { ok: false } })
+  });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'a caller lead_id resolved an ambiguous submit');
+  assert(!Object.prototype.hasOwnProperty.call(r.out.response, 'lead_id'),
+    'an error response carried a lead_id');
+  eq(JSON.stringify(r.out).indexOf('FIN-ATTACKER-0001'), -1, 'the caller lead_id survived anywhere in the result');
+});
+
+check('a fresh submit is refused outright when no recovery adapter is deployed', () => {
+  // The structural half of the blocker: with no way to recover an ambiguous outcome, no
+  // irreversible handoff is started, so an unrecoverable state cannot be created at all.
+  const r = run({}, { leadIntake: makeIntakeNoLookup() });
+  assert(!r.out.ok, 'an irreversible submit was started with no recovery path');
+  eq(r.out.response.error_code, 'PRE_ACTIVATION_BLOCKED', 'the blocker did not fire on a fresh submit');
+  eq(r.authority.stats.writes, 0, 'the blocked submit stamped consent to authority');
+  eq(r.sessions.stats.claims, 0, 'the blocked submit claimed the session');
+  eq(r.out.log.counters.lead_intake_calls, 0, 'the blocked submit called Lead Intake');
+});
+
+check('consent NO still works with no recovery adapter, because it risks nothing', () => {
+  const r = run({ consent: 'no' }, { leadIntake: makeIntakeNoLookup() });
+  assert(r.out.ok, 'a zero-effect consent NO was blocked by the adapter guard');
+  eq(r.out.log.counters.lead_intake_calls, 0, 'consent NO called Lead Intake');
+  eq(r.out.log.counters.authority_writes, 0, 'consent NO wrote to authority');
+});
+
+check('the recovery adapter contract is declared, not left implicit', () => {
+  const k = C.RECOVERY_ADAPTER_CONTRACT;
+  eq(k.method, 'leadIntake.lookup', 'the required adapter is not named');
+  eq(k.key_shape, 'miniapp:<telegram_user_id>:<cycle_id>', 'the stable key shape drifted');
+  assert(k.requirements.length >= 5, 'the adapter requirements were thinned out');
+  eq(C.recoveryAdapterStatus(null).available, false, 'a null client was reported as available');
+  eq(C.recoveryAdapterStatus({}).available, false, 'a client with no lookup was reported as available');
+  eq(C.recoveryAdapterStatus({ lookup: () => ({}) }).available, true, 'a real lookup was not detected');
+  eq(C.STATUS.PRE_ACTIVATION_BLOCKED, 503, 'the blocked status code drifted');
+});
+
+// ------------------------------------- G2 cycle reset racing an in-flight submit (N6.1)
+//
+// The invariant: no irreversible Lead Intake handoff unless the authoritative cycle being
+// submitted is still the cycle that owns this operation's claim.
+
+console.log('\nG2. CYCLE RESET DURING AN IN-FLIGHT SUBMIT');
+
+const NEW_CYCLE = 'C-2026-08-26-02';
+
+// Authority whose row can be mutated between reads, which is how a Concierge cycle reset
+// landing mid-handler is modelled: read 1 is the §9.2 cycle read, read 2 is the guard.
+function makeRacingAuthority(mutateAfterRead, mutation, initial) {
+  const a = makeAuthority(initial);
+  const inner = a.read.bind(a);
+  let n = 0;
+  a.read = function (chatId) {
+    n++;
+    const out = inner(chatId);
+    if (n === mutateAfterRead) { Object.assign(a.row, mutation); }
+    return out;
+  };
+  return a;
+}
+
+check('(1) an unchanged cycle proceeds through the guard to exactly one handoff', () => {
+  const r = run({});
+  assert(r.out.ok, 'an unchanged cycle was refused');
+  eq(r.out.log.counters.handoff_guards, 1, 'the pre-handoff guard did not run');
+  eq(r.leadIntake.calls.length, 1, 'the happy path did not make exactly one Intake call');
+  eq(r.authority.row.lead_cycle_id, CYCLE, 'the lead was bound to the wrong cycle');
+});
+
+check('(2) a cycle reset before the handoff stops the submit with no Intake call', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const r = run({}, { authority });
+  assert(!r.out.ok, 'a submit on a superseded cycle was accepted');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the reset was not reported as superseded');
+  eq(r.out.log.stage, 'CYCLE_RESET_IN_FLIGHT', 'the reset stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'the stale request handed off to Lead Intake');
+  eq(r.out.log.counters.handoff_guards, 1, 'the guard did not run');
+});
+
+check('(2b) a cycle reset binds no lead and leaves the new cycle untouched', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const r = run({}, { authority });
+  eq(authority.row.cycle_id, NEW_CYCLE, 'the stale request mutated the new cycle');
+  eq(C.normValue(authority.row.lead_id), '', 'a lead was bound during a cycle reset');
+  eq(C.normValue(authority.row.lead_cycle_id), '', 'a lead cycle was bound during a cycle reset');
+  // The consent stamp written before the reset belongs to the OLD cycle and must not be
+  // readable as consent for the new one.
+  assert(C.normValue(authority.row.consent_cycle_id) !== NEW_CYCLE,
+    'the stale consent stamp was carried onto the new cycle');
+  eq(r.out.log.counters.mirror_runs, 0, 'the derived read model was refreshed for a refused submit');
+});
+
+check('(3) a session re-bound to the new cycle is refused at the guard', () => {
+  const sessions = makeSessions();
+  const authority = makeAuthority();
+  const inner = sessions.read.bind(sessions);
+  let n = 0;
+  sessions.read = function (id) {
+    n++;
+    // The first read is §9.1. By the guard's read the session has been re-bound, which is
+    // what §6 requires to happen when the authoritative cycle changes.
+    if (n >= 2) { sessions.row.cycle_id = NEW_CYCLE; }
+    return inner(id);
+  };
+  const r = run({}, { sessions, authority });
+  assert(!r.out.ok, 'a re-bound session was allowed to hand off');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'a re-bound session was not reported as superseded');
+  eq(r.out.log.stage, 'SESSION_REBOUND', 'the re-bind stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'a re-bound session handed off to Lead Intake');
+});
+
+check('(4) an operation whose claim was taken over does not hand off', () => {
+  const sessions = makeSessions();
+  const inner = sessions.read.bind(sessions);
+  let n = 0;
+  sessions.read = function (id) {
+    n++;
+    // Between the claim and the guard, another operation takes ownership of the claim.
+    if (n >= 2) { sessions.row.claim_owner = 'other-operation-correlation-id'; }
+    return inner(id);
+  };
+  const r = run({}, { sessions });
+  assert(!r.out.ok, 'an operation handed off using another operation\'s claim');
+  eq(r.out.response.error_code, 'SUBMIT_IN_PROGRESS', 'a reassigned claim was not reported as in progress');
+  eq(r.out.log.stage, 'CLAIM_REASSIGNED', 'the claim takeover stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'a reassigned claim still reached Lead Intake');
+});
+
+check('(4b) an illegal submit_state at the moment of handoff is refused', () => {
+  const sessions = makeSessions();
+  const inner = sessions.read.bind(sessions);
+  let n = 0;
+  sessions.read = function (id) {
+    n++;
+    if (n >= 2) { sessions.row.submit_state = 'submitted'; }
+    return inner(id);
+  };
+  const r = run({}, { sessions });
+  assert(!r.out.ok, 'a handoff proceeded from an illegal state');
+  eq(r.out.log.stage, 'HANDOFF_STATE_ILLEGAL', 'the illegal-state stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'an illegal state still reached Lead Intake');
+});
+
+check('(4c) consent withdrawn between the stamp and the handoff stops the submit', () => {
+  const authority = makeRacingAuthority(1, { consent: 'no', consent_cycle_id: '' });
+  // The consent write lands after read 1, so force the withdrawal to survive it.
+  const innerWrite = authority.write.bind(authority);
+  let wrote = 0;
+  authority.write = function (chatId, patch) {
+    const out = innerWrite(chatId, patch);
+    wrote++;
+    if (wrote === 1) { authority.row.consent = 'no'; authority.row.consent_cycle_id = ''; }
+    return out;
+  };
+  const r = run({}, { authority });
+  assert(!r.out.ok, 'a submit proceeded without current consent at the handoff');
+  eq(r.out.response.error_code, 'CONSENT_STALE_CYCLE', 'withdrawn consent was not reported correctly');
+  eq(r.out.log.stage, 'CONSENT_INVALID_AT_HANDOFF', 'the consent-at-handoff stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'a submit without consent reached Lead Intake');
+});
+
+check('(5) a refused stale request writes nothing at all after the guard fails', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const sessions = makeSessions();
+  const r = run({}, { authority, sessions });
+  // One authority write (the consent stamp, before the reset was observable) and one
+  // session claim. Nothing after the guard: no lead write, no state change, no release.
+  eq(r.out.log.counters.authority_writes, 1, 'the refused request wrote to authority after the guard');
+  eq(sessions.row.submit_state, 'submitting', 'the stale request mutated the claim it no longer owned');
+  eq(sessions.stats.updates, 0, 'the stale request updated the session after the guard failed');
+  eq(r.out.log.counters.lead_intake_calls, 0, 'the refused request called Lead Intake');
+});
+
+check('(6) reversed completion order: the later operation owns the claim and the earlier stands down', () => {
+  // A claims first; B then takes the claim; A reaches its guard last. A must not hand off,
+  // and B's ownership must survive A's refusal.
+  const sessions = makeSessions();
+  const inner = sessions.read.bind(sessions);
+  let n = 0;
+  sessions.read = function (id) {
+    n++;
+    if (n >= 2) { sessions.row.claim_owner = 'operation-B'; }
+    return inner(id);
+  };
+  const a = run({}, { sessions });
+  assert(!a.out.ok, 'the earlier operation handed off after being superseded');
+  eq(sessions.row.claim_owner, 'operation-B', 'the earlier operation clobbered the later claim');
+  eq(sessions.row.submit_state, 'submitting', 'the earlier operation released the later claim');
+  eq(a.leadIntake.calls.length, 0, 'the superseded operation called Lead Intake');
+});
+
+check('(7) a submit on the new cycle still succeeds after the stale one is rejected', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const stale = run({}, { authority });
+  eq(stale.out.response.error_code, 'CYCLE_SUPERSEDED', 'precondition: the stale submit was not rejected');
+
+  // The client re-bootstraps: a fresh session bound to the new cycle, fresh authority state.
+  const fresh = run({}, {
+    sessions: makeSessions({ cycle_id: NEW_CYCLE }),
+    authority: makeAuthority({ cycle_id: NEW_CYCLE })
+  });
+  assert(fresh.out.ok, 'the new-cycle submit was refused after a stale rejection');
+  eq(fresh.leadIntake.calls.length, 1, 'the new-cycle submit did not make exactly one Intake call');
+  eq(fresh.authority.row.lead_cycle_id, NEW_CYCLE, 'the new lead was bound to the wrong cycle');
+  eq(fresh.authority.row.consent_cycle_id, NEW_CYCLE, 'consent was stamped for the wrong cycle');
+});
+
+check('the guard runs on every path that reaches a handoff, and only there', () => {
+  eq(run({}).out.log.counters.handoff_guards, 1, 'the happy path skipped the guard');
+  eq(run({ consent: 'no' }).out.log.counters.handoff_guards, 0, 'consent NO ran a handoff guard');
+  const blocked = run({}, { leadIntake: makeIntakeNoLookup() });
+  eq(blocked.out.log.counters.handoff_guards, 0, 'a blocked submit ran a handoff guard');
+  const replay = run({}, { sessions: makeSessions({ submit_state: 'submitted', lead_id: 'FIN-X' }) });
+  eq(replay.out.log.counters.handoff_guards, 0, 'an idempotent replay ran a handoff guard');
+});
+
 // ---------------------------------------------------------------------- summary
 
 console.log('\n' + (failures.length ? 'FAIL' : 'PASS') + '  ' + pass + ' checks passed, ' + failures.length + ' failed');

@@ -57,6 +57,11 @@ code path, not about a deployment.
 
 Seven cross-cutting gaps (G1–G7) are collected in §3. **G1 is a pre-activation blocker.**
 
+> **Amended 2026-08-26 (N6.1).** The counts above are the state at the time the model was
+> written. G1, G2 and G4 have since been worked; T39 moved from DESIGN-ONLY to
+> OFFLINE-PROVEN. Current state and revised totals are in **§4.1**. G3, G5, G6 and G7 are
+> untouched. The activation verdict has not changed.
+
 ---
 
 ## 1. Trust boundaries
@@ -247,6 +252,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary item 12).
 - **FAIL-SAFE / FALLBACK** — Preserving ambiguity is the fail-safe. Releasing the stale claim is load-bearing: without it, a `submitting` record would block its own retry forever.
 - **ROLLBACK / CONTAINMENT** — See below — currently there is none, because the capability does not exist.
+- **AMENDED (N6.1)** — The adapter is now a declared contract (`RECOVERY_ADAPTER_CONTRACT`), its absence reports as `PRE_ACTIVATION_BLOCKED` rather than as a transient failure, and a fresh submit is refused before any irreversible step when it is missing — so this branch can no longer be reached for a submission that the gateway itself started. A latent defect was fixed alongside: a `known: true` answer whose body yields no canonical lead id used to release the claim and permit a duplicate; it now preserves ambiguity. **The gap itself is not closed** — see §4.1.
 - **STATUS** — **DESIGN-ONLY.** Gap **G1, pre-activation blocker.** `leadIntake.lookup` is an *injected contract with no implementation and no backing store anywhere in the repository*. Nothing persists or indexes `idempotency_key`: it is passed alongside the envelope but never written into the payload, and `meta.request_id` is a fresh UUID per attempt (G7), so the Pipeline `request_id` column cannot serve as the index either. Until a real lookup exists, this branch degrades to the "could not answer" path — see T40 for the consequence.
 
 ### T14 — Ambiguous timeout after authority commit
@@ -338,7 +344,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — Partially satisfied: Phase 10 execution 3400 reproduced the incomplete-publish defect against the real Data Table and showed the old verifier accepting it and the corrected one rejecting it, and `scripts/verify-live-cas-execution.mjs` re-derived the tenant's `projection_version` with the repo's own `projection.js` (22/22).
 - **FAIL-SAFE / FALLBACK** — Authority, always.
 - **ROLLBACK / CONTAINMENT** — Delete and republish. MCP exposure is 0 of 35 workflows after the Phase 10 hardening, which removes the trigger surface that would let an unauthorised caller drive a write.
-- **STATUS** — **OFFLINE-PROVEN**, with an explicit trust-boundary assumption: the hash is an **integrity** check against incomplete or corrupted writes, **not an authenticity** check. It is unkeyed, so a writer who legitimately holds Data Table credentials can author a *self-consistent* poisoned row that the read path would serve as a HIT. Detecting that requires comparison against authority, which only `reconcile` does — and see T37. Anyone with tenant write credentials is inside TB-5 by definition; this is a stated assumption, not a defended boundary.
+- **STATUS** — **OFFLINE-PROVEN**, with an explicit trust-boundary assumption: the hash is an **integrity** check against incomplete or corrupted writes, **not an authenticity** check. It is unkeyed, so a writer who legitimately holds Data Table credentials can author a *self-consistent* poisoned row that the read path would serve as a HIT. Detecting that requires comparison against authority, which only `planReconciliation` does — and see T37. Anyone with tenant write credentials is inside TB-5 by definition; this is a stated assumption, not a defended boundary.
 
 ### T21 — Stale mirror generation / CAS conflict
 
@@ -560,6 +566,7 @@ the browser is never either.**
 - **FAIL-SAFE / FALLBACK** — Read-only by construction.
 - **ROLLBACK / CONTAINMENT** — Nothing to roll back.
 - **STATUS** — **NOT-APPLICABLE** as implemented. Gap **G4**, a documentation defect worth fixing before it misleads someone: the module header claims reconciliation "repairs by republishing" and gateway contract §5.1 says "repair belongs to the mirror helper **and to reconciliation**" — both describe behaviour the code does not have. Backfill (`runBackfill`) is the only repair path that actually exists, and it is manual.
+- **AMENDED (N6.1)** — G4 closed by correcting the documentation rather than by adding writes. `reconcile` is now `planReconciliation`, `repaired: false` is gone in favour of a named `repair_action` per finding, and the return states `repair_performed: false` with an explicit zero-write block for **both** stores. The threat stays NOT-APPLICABLE and would re-open the moment a repair mode is added. See §4.1.
 
 ### T38 — Replay across cycle boundary
 
@@ -585,7 +592,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary item 13, extended to cover a reset injected mid-flight).
 - **FAIL-SAFE / FALLBACK** — Harm is bounded, which is why this is a gap and not a blocker: exactly **one** lead is created, correctly attributed to the right person, carrying a `lead_cycle_id` for a superseded cycle. The next Mini App open sees `lead_current = false` (`evaluateCycle` requires `lead_cycle_id === cycle_id`) and the user proceeds in the new cycle; Dedup Guard merges on contact identity downstream. Nothing is misattributed and no second customer record appears.
 - **ROLLBACK / CONTAINMENT** — Pipeline retains the lead; rebinding is a manual CRM edit.
-- **STATUS** — **DESIGN-ONLY.** Gap **G2**. Named fix, in preference order: include `cycle_id` in the claim predicate so a reset invalidates the claim; or re-read the authority cycle immediately before `persistCanonical` and refuse to bind a superseded cycle.
+- **STATUS** — ~~DESIGN-ONLY~~ → **OFFLINE-PROVEN (amended N6.1).** Gap **G2** is closed in the repository. `assertHandoffGuard` re-reads authority and the session immediately before the irreversible call and proves identity, cycle, current-cycle consent, session binding, legal state and per-operation claim ownership (`claim_owner`, since the idempotency key cannot distinguish two concurrent operations on one `(user, cycle)`). On failure it writes nothing at all — no Intake call, no lead binding, no session mutation, and no release of a claim that may now belong to another operation. 11 checks, mutation-verified. **Residual, stated rather than closed:** the window is narrowed to (guard read → Intake call), not eliminated; no gateway-side check can eliminate it without a distributed transaction across `Bot_Sessions`, the session store and Lead Intake. Live proof of real conditional-update semantics under genuine overlap remains canary L13. See §4.1.
 
 ### T40 — Client closes Mini App during submit
 
@@ -598,6 +605,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary item 12).
 - **FAIL-SAFE / FALLBACK** — In the offline model, sound. **In the repository as it stands, not sound** — see below.
 - **ROLLBACK / CONTAINMENT** — Session TTL expiry, or a Concierge cycle reset, both of which change the idempotency key and free the user.
+- **AMENDED (N6.1)** — The permanent-stranding outcome below is **no longer reachable for a submission this gateway started**: with no adapter deployed, no fresh Lead Intake call is made at all, so there is nothing to be interrupted. For a session already left at `submitting`, the claim is preserved (correctly — releasing it would risk a duplicate) and recovery is a named operator action: write the canonical binding to `Bot_Sessions`, which the authority branch resolves on the next attempt with no adapter involved. A Concierge cycle change also frees the user, since it changes the idempotency key.
 - **STATUS** — **DESIGN-ONLY**, and the sharpest practical consequence of **G1**. `resolvePriorSubmission` falls through to `return { resolved: false, unresolved: true }` whenever `leadIntake.lookup` is not a function. With no lookup implementation in the repository, an interrupted submit leaves `submitting` behind, the claim is **never released**, and **every** subsequent attempt returns `SUBMIT_UNRESOLVED` — for that `(telegram user, cycle)`, permanently, until the TTL expires or the cycle rolls. The logic is correct; the capability it depends on does not exist yet.
 
 ---
@@ -606,6 +614,10 @@ the browser is never either.**
 
 Collected so they are not lost among forty rows. None of these is fixed in this commit — this
 document identifies them; closing them is separate, approved work.
+
+Rows are kept as originally written. **N6.1 worked G1, G2 and G4 — their current state is in
+§4.1, and it supersedes the severity column below for those three rows.** G3, G5, G6 and G7
+are untouched and the rows below are current for them.
 
 | ID | Gap | Threats | Severity |
 |---|---|---|---|
@@ -666,6 +678,59 @@ verdict node.
 
 ---
 
+## 4.1 PRE-ACTIVATION BLOCKERS AFTER N6.1
+
+Amendment, 2026-08-26. G1, G2 and G4 were worked in commit-scope N6.1. G3, G5, G6 and G7 were
+**not** touched and remain exactly as recorded in §3.
+
+### G1 — durable idempotency recovery → **PRE-ACTIVATION-BLOCKED-LIVE-ADAPTER**
+
+- **IMPLEMENTATION** — State machine closed; durability not, and not closable here. The adapter is now declared (`RECOVERY_ADAPTER_CONTRACT`) instead of implied, its absence reports as `PRE_ACTIVATION_BLOCKED` (503, retryable) rather than as a transient `SUBMIT_UNRESOLVED`, and the blocker is **structural**: with no adapter, a fresh submit is refused before the consent stamp, before the claim and before any Lead Intake call. An unrecoverable submission can no longer be started. One latent defect was fixed on the way: a `known: true` lookup returning a body with no canonical lead id used to fall through and **release the claim**, permitting a duplicate for an outcome that had asserted a record exists; it now preserves ambiguity.
+- **OFFLINE PROOF** — 14 checks (cases a–i, structural blocker, consent-NO exemption, operator recovery, declared contract). Mutation-verified: removing the blocker fails exactly 4.
+- **LIVE PROOF REQUIRED** — **YES, plus an implementation that does not exist.** Recorded as a contract requirement because it was not previously visible: the stable key reaches no downstream record today — the outbound envelope carries no idempotency key, so nothing can be indexed by it. That must be solved before an adapter is buildable, and it touches the frozen Lead Intake contract (§2).
+- **ACTIVATION BLOCKING?** — **YES.**
+- **OWNER ACTION REQUIRED?** — **YES.** Where the durable record lives, and how the stable key reaches it, is an approval decision.
+
+T13, T14, T32 and T40 keep their statuses. What changed is the **consequence** of the gap:
+T40's permanent stranding is no longer reachable, because a submission with no recovery path
+is never started. The residual for an *already* interrupted session is a preserved claim plus
+a named operator recovery — writing the canonical binding to `Bot_Sessions`, which the
+authority branch then resolves with no adapter involved — rather than an indefinite 503.
+
+### G2 — cycle reset racing an in-flight submit → **repository logic CLOSED, LIVE PROOF REQUIRED**
+
+- **IMPLEMENTATION** — Closed. `assertHandoffGuard` runs immediately before the irreversible call and proves eight conditions: authority readable, same chat identity, same `cycle_id`, consent still `yes` for this cycle, session readable, session not re-bound, `submit_state` still `submitting`, claim still owned by **this operation** via the new `claim_owner` token (the idempotency key cannot prove operation ownership — concurrent submits for one `(user, cycle)` share it). On failure: no Intake call, no lead binding, no session mutation, and no release of a claim that may belong to another operation.
+- **OFFLINE PROOF** — 11 checks covering all seven required scenarios plus illegal state and consent-withdrawn-at-handoff. Mutation-verified: replacing the guard with an unconditional pass fails exactly those 11 and nothing else.
+- **LIVE PROOF REQUIRED** — **YES.** The guard narrows the window to (guard read → Intake call) and cannot eliminate it; no gateway-side check can, absent a distributed transaction. Canary L13.
+- **ACTIVATION BLOCKING?** — No.
+- **OWNER ACTION REQUIRED?** — No.
+
+**T39 is amended from DESIGN-ONLY to OFFLINE-PROVEN**, with the residual window stated above.
+
+### G4 — reconciliation semantics → **OFFLINE-CLOSED**
+
+- **IMPLEMENTATION** — Documentation corrected to match behaviour; no writes added. `reconcile` → `planReconciliation`; `repaired: false` removed; each finding carries `repair_action` naming what a repair would do; the return states `repair_performed: false` and `writes: { authority_writes: 0, data_table_writes: 0 }`. Option B (real repair) was rejected: an unattended repairer writing to the derived table is what Phase 10's stop conditions prohibit, and it would re-open T37. `runBackfill` stays the only repair path, manual and authority-first.
+- **OFFLINE PROOF** — The existing check was strengthened to assert the Data Table is untouched as well as authority (checking only authority is how the false comment survived), plus one new check on the named actions.
+- **LIVE PROOF REQUIRED** — **NO** while read-only; **YES** if a repair mode is ever added, at which point T37 re-opens.
+- **ACTIVATION BLOCKING?** — No.
+- **OWNER ACTION REQUIRED?** — No.
+
+**T37 remains NOT-APPLICABLE**, now because the code says so as plainly as the comment does.
+
+### Status totals after N6.1
+
+| Status | Before | After |
+|---|---|---|
+| OFFLINE-PROVEN | 29 | 30 (T39 moved in) |
+| LIVE-PROOF-REQUIRED | 5 | 5 |
+| DESIGN-ONLY | 5 | 4 |
+| NOT-APPLICABLE | 1 | 1 |
+
+**Activation verdict is unchanged: B.2.1-C is NOT cleared.** G1 blocks, and the fifteen live
+canary items in §4 remain unexecuted.
+
+---
+
 ## 5. Standing stop conditions
 
 Unchanged from Phase 10 and the B.2.1-C closure. Still prohibited without separate, explicit
@@ -683,5 +748,5 @@ Producing this document touched no runtime surface: no n8n, Sheets, Telegram, GA
 Cloudflare or production system was contacted, and no workflow was read for mutation,
 modified, activated or deactivated.
 
-**B.2.1-C is not cleared for activation.** G1 is a blocker, G2 is an open window, and fifteen
+**B.2.1-C is not cleared for activation.** G1 still blocks (see §4.1), and fifteen
 live canary items remain unexecuted.

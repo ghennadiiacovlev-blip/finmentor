@@ -6,12 +6,16 @@ Implements: `docs/PHASE_B2_1_GATEWAY_CONTRACT.md` §14 "B.2.1-C — Consent + Su
 §8 (consent), §9 (submit sequence), §10 (idempotency), §11 (urgency semantic guard),
 §12 (HTTP/security controls) and the §13 QA matrix.
 
-Status: **implementation CLOSED, offline-proven. Deployment NOT done. Live canary OPEN.**
+Status: **implementation CLOSED, offline-proven. Deployment NOT done. Live canary OPEN.
+ACTIVATION BLOCKED on G1 — see §8.1.**
+
+Amended 2026-08-26 (N6.1) to record the closure of gaps G1, G2 and G4 raised by
+`docs/PHASE_B2_1C_THREAT_MODEL.md`. §8.1 carries their exact state.
 
 B.2.1-C is the first slice in the whole Mini App programme that creates a real lead-side
 effect. §14 requires a separate live canary gate for exactly that reason, and this document
 does not claim one. What is closed here is the logic and its proof; what is open is stated
-in §7 and must not be summarised away.
+in §7 and §8.1 and must not be summarised away.
 
 ---
 
@@ -254,7 +258,8 @@ unnoticed.
 ## 7. Executable proof — and what it does NOT prove
 
 `qa/miniapp-submit.test.mjs`, registered as the **eighth** gate in `qa/run-all.mjs`.
-**59 checks, 59 PASS, 0 failed.** Offline: no tenant, no credential, no webhook, no network.
+**84 checks, 84 PASS, 0 failed** (59 at the original closure, plus 25 added by N6.1 for G1/G2).
+Offline: no tenant, no credential, no webhook, no network.
 Paths resolve from the test file, not from cwd.
 
 | Group | Contract | Covers | Checks |
@@ -269,7 +274,9 @@ Paths resolve from the test file, not from cwd.
 | H | §10 | idempotency and state: monotonicity, new lead, merge, retry after known success, resolve-from-authority, older-cycle lead rejected, ambiguity not retried, retry-after-ambiguity, lookup-unknown permits one attempt, lookup-cannot-answer preserves ambiguity, concurrent claim, lost claim | 12 |
 | I | §9 | error recovery: no `ok:true`, `ok:true` without lead id, failed persist, retryable_error retry | 4 |
 | J | §9.9 | authority-first ordering: commit precedes mirror, full happy-path effect order, per-branch counters | 3 |
-| | | **Total** | **59** |
+| K | G1 | recovery adapter state machine: cases (a)-(i), structural blocker, consent-NO exemption, declared contract | 14 |
+| L | G2 | cycle-reset guard: unchanged cycle, reset, re-bind, claim takeover, illegal state, consent withdrawn, no-write-on-refusal, reversed order, new-cycle recovery, guard coverage | 11 |
+| | | **Total** | **84** |
 
 The doubles implement the same conditional-update and canonical-response semantics as the
 live components, and the clients are injected rather than imported — so the code under test
@@ -304,7 +311,7 @@ The canonical workflow now runs **eight** gates:
 | Change | Value |
 |---|---|
 | `qa/run-all.mjs` | gate 8, "Mini App consent and submit" |
-| `ASSERTION_BASELINE` | 346 → **405** (+59) |
+| `ASSERTION_BASELINE` | 346 → 405 (+59) → **431** after N6.1 (+26) |
 | cwd-independence check | requires `8/8 gates passed` |
 | syntax check | now covers **14** `n8n/src` modules (was 12) |
 | `docs/FINMENTOR_CI_QUALITY_GATE.md` | gate table and prose updated to eight |
@@ -312,6 +319,52 @@ The canonical workflow now runs **eight** gates:
 The baseline is a floor, not a target: it fails when the total **falls**, because a falling
 count means coverage was removed. `run-all.mjs` also fails when a single gate's tally drops,
 so the eight gates cannot silently trade assertions between them.
+
+---
+
+## 8.1 PRE-ACTIVATION BLOCKERS AFTER N6.1
+
+Three gaps from the threat model were addressed on 2026-08-26. Their state is recorded here
+in full, because the distinction between "the logic is closed" and "the system is safe to
+activate" is the whole point of this document.
+
+### G1 — durable idempotency recovery
+
+| Field | State |
+|---|---|
+| **IMPLEMENTATION** | Closed at the state-machine level, not at the durability level. The adapter is now a **declared contract** (`RECOVERY_ADAPTER_CONTRACT` in `submit-contract.js`) rather than an implicit injected function. Its absence is a distinct condition, `PRE_ACTIVATION_BLOCKED` (503, retryable), never confused with a transient downstream failure. Two behaviours changed: (1) a fresh submit is **refused outright** when no adapter is deployed — no consent stamp, no claim, no Lead Intake call — so an unrecoverable submission can no longer be *started*; (2) a `known: true` lookup whose body yields no canonical lead id is now treated as ambiguity and **never releases the claim**, where it previously fell through to a fresh attempt. |
+| **OFFLINE PROOF** | 25 new checks in `qa/miniapp-submit.test.mjs`, covering all nine required cases (a–i) plus the structural blocker, the consent-NO exemption and the contract declaration. Mutation-verified: removing the blocker fails exactly 4 checks. |
+| **LIVE PROOF REQUIRED** | **YES — and more than proof: an implementation.** No durable store keyed by the stable idempotency key exists anywhere in the repository or the tenant. A precondition nobody had noticed is now recorded in the contract: **the stable key does not currently reach any downstream record at all** — the outbound envelope carries no idempotency key, so no row can be indexed by it. Building the adapter requires solving that first. |
+| **ACTIVATION BLOCKING?** | **YES. This is the blocker.** |
+| **OWNER ACTION REQUIRED?** | **YES.** Decide where the durable record lives and how the stable key reaches it. That decision touches the frozen Lead Intake contract (§2) and is therefore an approval, not an implementation detail. |
+
+**Status: PRE-ACTIVATION-BLOCKED-LIVE-ADAPTER.** The handler's behaviour around the missing
+capability is deterministic, fail-safe and proven. The capability itself does not exist, and
+no offline test can make it exist.
+
+### G2 — cycle reset racing an in-flight submit
+
+| Field | State |
+|---|---|
+| **IMPLEMENTATION** | **Closed in the repository.** `assertHandoffGuard` re-reads authority and the app session immediately before the irreversible Lead Intake call and proves eight conditions: authority readable, same chat identity, same `cycle_id`, consent still `yes` for **this** cycle, session readable, session not re-bound to a newer cycle, `submit_state` still `submitting`, and the claim still owned by **this operation**. Ownership needed a new token: the idempotency key cannot serve, because two concurrent submits for one `(user, cycle)` share it by construction — so the claim now carries `claim_owner`, the server correlation id. On failure the guard writes **nothing at all**: no Intake call, no lead binding, no session mutation, and specifically no release of a claim that may now belong to someone else. |
+| **OFFLINE PROOF** | 11 new checks covering all seven required scenarios plus illegal-state and consent-withdrawn-at-handoff. Mutation-verified: replacing the guard with an unconditional pass fails exactly those 11 checks and nothing else. |
+| **LIVE PROOF REQUIRED** | **YES.** The guard narrows the window to (guard read → Intake call); it does not eliminate it. Without a distributed transaction across `Bot_Sessions`, the session store and Lead Intake, no gateway-side check can. Real conditional-update semantics under genuine overlap remain canary item L13. |
+| **ACTIVATION BLOCKING?** | No — but it does not clear activation on its own either, since G1 still blocks. |
+| **OWNER ACTION REQUIRED?** | No. |
+
+**Status: repository logic CLOSED, LIVE PROOF REQUIRED.**
+
+### G4 — reconciliation semantics
+
+| Field | State |
+|---|---|
+| **IMPLEMENTATION** | **Closed by correcting the documentation to match the code, not by adding writes.** `reconcile` is renamed `planReconciliation`; the misleading `repaired: false` flag is gone; each finding now carries `repair_action` naming the operation a repair *would* perform (`REPUBLISH`, `REMOVE_THEN_REPUBLISH`, `NONE`, …); the return value states `repair_performed: false` and `writes: { authority_writes: 0, data_table_writes: 0 }` explicitly. Option B — implementing real repair — was rejected deliberately: an unattended repairer writing to the derived table is exactly what Phase 10's stop conditions prohibit, and it would re-open the reconciliation/submit race (T37). `runBackfill` remains the only repair path, and it is manual and authority-first. |
+| **OFFLINE PROOF** | The existing check was strengthened (it asserted only that authority was untouched; it now asserts the Data Table is untouched too — which is how the false "repairs by republishing" comment survived) and one check added for the named actions. |
+| **LIVE PROOF REQUIRED** | **NO** while the function stays read-only. **YES** the moment any repair mode is added, at which point T37 re-opens. |
+| **ACTIVATION BLOCKING?** | No. |
+| **OWNER ACTION REQUIRED?** | No. |
+
+**Status: OFFLINE-CLOSED.**
 
 ---
 

@@ -236,10 +236,42 @@ function runBackfill(opts) {
   return result;
 }
 
-// Defence-in-depth reconciliation. Classifies drift between authority and the read model
-// and repairs by republishing. It never promotes the read model to authority, and it never
-// writes to Bot_Sessions.
-function reconcile(opts) {
+// Reconciliation PLANNING. This function classifies drift between authority and the read
+// model and returns a plan. It performs no writes of any kind -- not to Bot_Sessions, not
+// to the Data Table -- and it never promotes the read model to authority.
+//
+// It was previously named `reconcile` and its comment claimed it "repairs by republishing".
+// It never did: every branch returned `repaired: false` and no write client was ever called.
+// The name and the prose were corrected rather than the behaviour, because classification
+// is the behaviour that is actually wanted here -- an unattended repairer that writes to the
+// derived table on a schedule is precisely what Phase 10's stop conditions prohibit, and it
+// would re-open the reconciliation/submit race (threat T37).
+//
+// Each finding carries `repair_action`: the operation a human or an explicitly-approved
+// repair pass WOULD perform. Naming the action without performing it is the point.
+//
+// The only repair path that exists in this module is `runBackfill`, which is deliberate,
+// manual and authority-first.
+// The repair each drift class WOULD require. Named here, executed nowhere.
+const REPAIR_ACTIONS = {
+  NO_AUTHORITY: 'NONE_INVESTIGATE',   // no authoritative row: a data question, not a cache one
+  READ_ERROR: 'NONE_RETRY_LATER',     // transient; classifying again later is the whole fix
+  MISS: 'REPUBLISH',                  // runBackfill would publish the absent row
+  DUPLICATE: 'REMOVE_THEN_REPUBLISH', // runBackfill removes every row, then publishes one
+  TOMBSTONE: 'REPUBLISH',             // an invalidated row awaiting its next generation
+  MALFORMED: 'REMOVE_THEN_REPUBLISH',
+  VERSION_MISMATCH: 'REMOVE_THEN_REPUBLISH',
+  STALE: 'REPUBLISH',
+  CURRENT: 'NONE'                     // nothing to do, and saying so is a finding
+};
+
+function finding(chatId, cls, fields) {
+  const out = { chat_id: chatId, class: cls, repair_action: REPAIR_ACTIONS[cls] || 'NONE' };
+  if (fields && fields.length) { out.fields = fields; }
+  return out;
+}
+
+function planReconciliation(opts) {
   const o = opts || {};
   const dt = o.dt;
   const authority = o.authority;
@@ -251,33 +283,38 @@ function reconcile(opts) {
     const auth = authority.read(chatId);
     const current = dt.read(chatId, READ_LIMIT);
     if (!auth || !auth.ok || !auth.row) {
-      findings.push({ chat_id: chatId, class: 'NO_AUTHORITY', repaired: false });
+      findings.push(finding(chatId, 'NO_AUTHORITY'));
       continue;
     }
     const expected = P.buildSafeProjection(auth.row);
 
-    if (current.error) { findings.push({ chat_id: chatId, class: 'READ_ERROR', repaired: false }); continue; }
-    if (current.rows.length === 0) { findings.push({ chat_id: chatId, class: 'MISS', repaired: false }); continue; }
-    if (current.rows.length > 1) { findings.push({ chat_id: chatId, class: 'DUPLICATE', repaired: false }); continue; }
+    if (current.error) { findings.push(finding(chatId, 'READ_ERROR')); continue; }
+    if (current.rows.length === 0) { findings.push(finding(chatId, 'MISS')); continue; }
+    if (current.rows.length > 1) { findings.push(finding(chatId, 'DUPLICATE')); continue; }
 
     const row = current.rows[0];
     if (P.normValue(row.cache_valid) !== 'true') {
-      findings.push({ chat_id: chatId, class: 'TOMBSTONE', repaired: false });
+      findings.push(finding(chatId, 'TOMBSTONE'));
       continue;
     }
     const defects = P.storedRowDefects(row);
-    if (defects.length) { findings.push({ chat_id: chatId, class: 'MALFORMED', repaired: false }); continue; }
+    if (defects.length) { findings.push(finding(chatId, 'MALFORMED')); continue; }
 
     const stored = P.stripStoredRow(row);
     if (P.projectionVersion(stored) !== P.normValue(row.projection_version)) {
-      findings.push({ chat_id: chatId, class: 'VERSION_MISMATCH', repaired: false });
+      findings.push(finding(chatId, 'VERSION_MISMATCH'));
       continue;
     }
     const diff = P.diffProjections(expected, stored);
-    if (diff.length) { findings.push({ chat_id: chatId, class: 'STALE', fields: diff, repaired: false }); continue; }
-    findings.push({ chat_id: chatId, class: 'CURRENT', repaired: false });
+    if (diff.length) { findings.push(finding(chatId, 'STALE', diff)); continue; }
+    findings.push(finding(chatId, 'CURRENT'));
   }
-  return { findings: findings, authority_writes: 0 };
+  // Stated in the return value rather than left to be inferred from an absence of calls.
+  return {
+    findings: findings,
+    repair_performed: false,
+    writes: { authority_writes: 0, data_table_writes: 0 }
+  };
 }
 
 module.exports = {
@@ -285,5 +322,6 @@ module.exports = {
   runMirrorGeneration,
   resolveResume,
   runBackfill,
-  reconcile
+  REPAIR_ACTIONS,
+  planReconciliation
 };
