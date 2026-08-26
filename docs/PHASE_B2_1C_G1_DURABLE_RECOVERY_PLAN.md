@@ -124,9 +124,28 @@ so the identity is stored once rather than twice. Contact details, answers and f
 ledger resolves an outcome, it does not describe a lead. `init_data`, hashes, signatures,
 tokens — never. `request_id` — storing it here would invite exactly the confusion G7 records.
 
-**Uniqueness:** exactly one receipt per key, for all time, enforced by atomic
-insert-if-absent. Where a store cannot enforce it, duplicates are **detected and fail closed** —
-never resolved to a winner.
+**Uniqueness:** never more than one receipt row per key, enforced by atomic insert-if-absent.
+Where a store cannot enforce it, duplicates are **detected and fail closed** — never resolved
+to a winner.
+
+**Lifecycle (P1.3).** "For all time" was withdrawn: it contradicted P1-L8, which requires a
+retention policy precisely because the key contains a personal identifier (§3.1). Leaving both
+in place would have let whoever implements retention pick either reading. The precise invariant:
+
+| Rule | |
+|---|---|
+| **Must exist while** | the key can still be presented — i.e. its cycle can still pass the authority and session guards |
+| **Never expires while** | the cycle is current or still recoverable |
+| **May be deleted only when** | the receipt is terminal (`COMMITTED` / `ABORTED`) **and** the cycle is irreversibly superseded **and** the approved retention period has elapsed — all three |
+| **Never** | a deletion that turns a still-acceptable key into an ABSENCE; a deletion used to reopen a key; a deletion of a `PENDING` receipt to make a lookup answer |
+
+**Why retention and recovery do not actually conflict.** A submit arriving on a superseded
+cycle is refused at §9.2 with `CYCLE_SUPERSEDED` **before the ledger is consulted at all**. So
+an old key becomes structurally unreachable the moment its cycle is superseded, and a receipt
+that can never be looked up again is safe to delete. Deleting one whose cycle can still be
+presented is not: the lookup would find nothing, read the absence as `NOT_COMMITTED`, release
+the claim and authorise a fresh submit for a key that may already have a lead. **The ordering
+is the invariant; the duration is an owner input.**
 
 **Transitions:** `PENDING → COMMITTED` or `PENDING → ABORTED`. Both end states are terminal:
 no path back, no path to a second `lead_id`, and no promotion of an `ABORTED` receipt.
@@ -303,7 +322,7 @@ contradictory**, and the contradiction is worth stating precisely because it is 
 
 The stable key is derived from `(telegram_user_id, cycle_id)`. A "fresh" attempt after an
 abort is still the same user on the same cycle, so it carries **the same key**. But the ledger
-holds exactly one receipt per key for all time and `ABORTED` is terminal — so the new intent
+holds at most one receipt per key and `ABORTED` is terminal — so the new intent
 could not satisfy insert-if-absent. Every escape route was already forbidden: deleting the
 row, overwriting `ABORTED`, weakening uniqueness, or writing a second receipt for one key.
 
@@ -468,10 +487,14 @@ same-key retry. Its semantics are provable offline, which is the condition for a
 | `ABORTED → COMMITTED` | ❌ | if an abort was wrong, the repair is a new cycle, not rewriting history |
 | `ABORTED → PENDING` | ❌ | terminal |
 
-`ABORTED` resolves to `NOT_COMMITTED` as **positive evidence**, so — unlike an absence — it
-does **not** depend on the store's read-after-write behaviour. `abort_reason` is a constrained
-vocabulary (`PROVEN_NO_PIPELINE_COMMIT`) rather than free text, because an operator note is
-exactly where a customer name or a phone number ends up.
+**Canonical resolution (P1.2, §5.1.1):** an `ABORTED` receipt resolves to **`CANNOT_ANSWER`**
+for that key, with the server-log reason `ABORTED_REQUIRES_NEW_CYCLE`. Same-cycle retry is
+**REFUSED**; a new authoritative cycle is **REQUIRED**. An earlier draft of this section said it
+resolved to `NOT_COMMITTED` as positive evidence — that was the P1.1 reading and it is
+withdrawn, because it authorised a resubmit under a key whose terminal receipt already exists.
+
+`abort_reason` is a constrained vocabulary (`PROVEN_NO_PIPELINE_COMMIT`) rather than free
+text, because an operator note is exactly where a customer name or a phone number ends up.
 
 ---
 
@@ -481,11 +504,12 @@ Nothing below can be established offline. Each is a canary.
 
 | # | Prerequisite | Why it cannot be proven here |
 |---|---|---|
-| **P1-L1** | The `Submission_Receipts` table exists with the nine fields | schema creation is a live change |
+| **P1-L1** | The `Submission_Receipts` table exists with the **eleven** fields of §3 | schema creation is a live change |
 | **P1-L2** | **Atomic insert-if-absent** under genuine concurrency | Phase 10 proved conditional *update*, not insert-if-absent |
 | **P1-L3** | **Read-after-write** for a key just written | gates whether absence may ever mean `NOT_COMMITTED` |
 | **P1-L4** | Durability across workflow redeploy and n8n restart | the in-memory double proves nothing about this |
-| **P1-L5** | The stable key **reaches Lead Intake** in the payload | today the outbound envelope carries no key — **contract change, owner approval** |
+| **P1-L5** | The stable key **reaches Lead Intake** as `payload.meta.idempotency_key` | today the outbound envelope carries no key — **contract change, owner approval (OD-1)** |
+| **P1-L10** | An authenticated `Internal Auth Entry` route exists on Lead Intake, so `internalRouteProven()` can ever be true | the node does not exist today; without it receipts are never written and the public route can never write them either (§7.1) |
 | **P1-L6** | Intent write ordered strictly before `Save to Pipeline` | workflow wiring, observable only live |
 | **P1-L7** | Commit write ordered before the respond node | ditto |
 | **P1-L8** | Retention **and access control** for receipts across many cycles — the ledger holds a personal identifier (§3.1), so this is not merely a housekeeping question | live data-retention and access decision |
@@ -495,6 +519,63 @@ Nothing below can be established offline. Each is a canary.
 Lead Intake can write it, and gateway contract §2 freezes the Lead Intake contract. The
 gateway side of that (`meta.idempotency_key`, or a dedicated envelope field) is **not**
 implemented here, because implementing it would be changing a frozen contract without approval.
+
+### 7.1 P1-L5 trust boundary — the stable key must not become caller-authoritative
+
+Inspected against the actual export, not assumed.
+
+**A. Entry routes that exist today.** Exactly one: a single **unauthenticated public** webhook,
+`POST /finmentor-lead-intake`, with **no credentials attached** and no authentication option
+set. There is no second entry node of any kind. The string `Internal Auth Entry` does appear in
+the export — but only as embedded Code-node source inside `internalRouteProven()`, **not as a
+node**. Zero nodes are named `Internal Auth*`.
+
+**B. Can the Mini App gateway use an authenticated internal path today? NO.** The mechanism is
+designed and coded, and it is the right one — `internalRouteProven()` reads
+`$('Internal Auth Entry').first().json.__internal_route === true`, which is safe *by
+construction* rather than by checking: on the public path that node never ran, `$()` throws,
+and provenance is false. It is never read from a body or a header, so no caller can assert it.
+But **the node it depends on does not exist**, which is why the audit report records
+`provenance_trusted` as having always been false and the branch as dead code.
+
+**C. If `payload.meta.idempotency_key` were added, could a direct caller submit it? YES** —
+the public webhook accepts any JSON. That is the whole problem, and the attack is cheap:
+
+> The stable key is **guessable by construction**. Telegram ids are numeric and cycle ids are
+> date-shaped, so an attacker can POST the public webhook with
+> `miniapp:<victim id>:<cycle id>` and plant a **`PENDING`** receipt. The victim's real Mini
+> App submission then finds a foreign `PENDING` row, answers `CANNOT_ANSWER` for ever, and can
+> never submit — with no session, no credential and no contact with the Mini App at all. A
+> denial of service against a specific person, mounted from a browser.
+
+**The structural answer: receipt authority is a property of the ROUTE.** Encoded as
+`RECEIPT_AUTHORITY` and enforced by `resolveReceiptKey`, which both ledger writers
+(`buildIntent`, `buildCommit`) call before they will construct anything. `provenanceTrusted`
+must be the literal boolean `true`; `'true'`, `1`, `{}`, `{ __internal_route: true }` and every
+other body-producible shape are refused. **It is not possible to build an intent record without
+a trusted route**, so a public-path execution cannot construct one even by mistake — the check
+cannot be forgotten by a caller because there is no path that skips it.
+
+**Status: SAFE DESIGN READY, P1-L5 BLOCKED.** The decision layer is proven offline: a
+public-path execution creates nothing, and no body marker simulates the route. The end-to-end
+guarantee additionally needs the authenticated route to **exist**, which is a live change and
+is recorded as **P1-L10**. Public-route poisoning is therefore *proven impossible at the
+decision layer* and **not yet proven end-to-end** — and this document does not claim otherwise.
+
+**Recommended transport**, smallest change that is safe:
+
+| | |
+|---|---|
+| Field | `payload.meta.idempotency_key` |
+| Who derives it | the **gateway**, from the server-resolved `telegram_user_id` and the authoritative `cycle_id`. The browser never supplies it and cannot influence it — the validator already drops a caller `idempotency_key`, `request_id`, `cycle_id` and `lead_id` |
+| Trusted route | a dedicated authenticated **`Internal Auth Entry`** node on Lead Intake, credential enforced by n8n itself, reusing the mechanism commit `a224aa2` established for lead identity |
+| Who may consume it | Lead Intake, **only** when `internalRouteProven()` is true |
+| Public route | the field is **ignored entirely**: no receipt read, no receipt created, no receipt updated. Not rejected with an error that would confirm a guess — simply not acted upon |
+| Rollback | remove the `Internal Auth Entry` node. Provenance returns to false everywhere, receipts stop being written, and the gateway returns to `PRE_ACTIVATION_BLOCKED` — its current safe state |
+
+**Can an existing authenticated route be reused? No — there is none.** The smallest dedicated
+addition is the `Internal Auth Entry` node the code already expects, which is why no new
+mechanism is proposed here.
 
 ### Rollback
 
@@ -509,23 +590,29 @@ never writes to any of them.
 
 | Path | Role |
 |---|---|
-| `n8n/src/lead-intake/idempotency-receipt.js` | Lead Intake side: key validation, intent/commit record building, transitions, conflict detection, row classification, PII-free log view |
+| `n8n/src/lead-intake/idempotency-receipt.js` | Lead Intake side: route-provenance gate, key validation, intent/commit/abort record building, transitions, conflict detection, row classification, retention rule, and a log view carrying only `commit_state` / `has_lead_id` / `verdict` / `reason` / `correlation_id` |
 | `n8n/src/miniapp-submit/recovery-adapter.js` | Gateway side: `lookup(key)` implementing the declared `RECOVERY_ADAPTER_CONTRACT` over an injected store; capability gating; fail-closed everywhere |
-| `qa/idempotency-receipt.test.mjs` | 35 checks, gate 9 |
+| `qa/idempotency-receipt.test.mjs` | **66 checks**, gate 9 |
 
 Both modules are pure and perform **no I/O**. The gate's in-memory store is a **double** and is
 labelled as one in the file header: it models the contract so the decision logic can be proven
 with no tenant, and it proves nothing about durability, atomicity or read-after-write.
 
-Ten mutations were run against the load-bearing controls; each failed exactly the checks that
-exist to catch it: absence answered without read-after-write, duplicate receipts resolved to a
-winner, `PENDING` read as negative, conflicting lead id accepted, exact match weakened to a
-prefix, key-shape validation removed, a scan-only store accepted, the raw key leaked into the
-log, `COMMITTED`-without-lead accepted, and a store error read as absence.
+Mutation testing has run in every phase, and each mutation fails exactly the checks that exist
+to catch it: **P1** ten (absence without read-after-write, duplicate receipts resolved to a
+winner, `PENDING` read as negative, conflicting lead id, exact match weakened to a prefix,
+key-shape validation removed, scan-only store accepted, raw key in the log,
+`COMMITTED`-without-lead, store error read as absence); **P1.1** ten more (stored-key trim,
+wrong-key row as absence, each of the three capabilities ignored, probe exposing `lookup`,
+`ABORTED` promotable, `COMMITTED` abortable, free-text abort reason, missing receipt key);
+**P1.2** eight (the `ABORTED` release control itself, plus digest return, key-derived
+correlation id, lookup-failure as abort reason, and document corruption); **P1.3** the
+route-provenance controls in §7.1.
 
-Two coverage gaps were found by that harness and closed rather than explained away: the store
-double's own correct filtering was masking the ledger's independent key re-check, and a store
-reporting failure while returning an empty array was not covered.
+Coverage gaps found by those harnesses were closed rather than explained away — the store
+double's own correct filtering masking the ledger's independent key re-check, a store reporting
+failure while returning an empty array, and a fixture that derived `correlation_id` from the
+key and put the identifier back into the logs.
 
 ---
 
@@ -556,7 +643,62 @@ live, in a **separate table with its own schema**. It must not reuse this table.
 
 ---
 
-## 10. Status
+## 10. OWNER DECISIONS FOR LIVE P1
+
+Four decisions. Each states the recommendation, not merely the options.
+
+### OD-1 — P1-L5 transport → **APPROVE WITH CONDITIONS**
+
+Carry the stable key to Lead Intake as `payload.meta.idempotency_key`, **on an authenticated
+route only**.
+
+| | |
+|---|---|
+| **Exact field** | `payload.meta.idempotency_key` |
+| **Exact trusted route** | a dedicated authenticated `Internal Auth Entry` node on Lead Intake (P1-L10) |
+| **Who derives the key** | the gateway, from server-resolved `telegram_user_id` + authoritative `cycle_id`. Never the browser |
+| **Who may consume it** | Lead Intake, only when `internalRouteProven()` is true |
+| **Public-route behaviour** | ignored entirely — no receipt read, created or updated; no error that would confirm a guessed key |
+| **Rollback** | remove the `Internal Auth Entry` node; provenance falls to false, receipts stop, gateway returns to `PRE_ACTIVATION_BLOCKED` |
+
+**The conditions are not optional.** Approving the field without P1-L10 would open the denial
+of service in §7.1: a guessable key plus a public writer is a way to lock a named person out
+of submitting. The field and the authenticated route must ship together, or neither ships.
+
+### OD-2 — P1-L8 access → **LEAST PRIVILEGE, as listed**
+
+The ledger holds a personal identifier (§3.1), so access is enumerated rather than assumed.
+
+| Access | Who / what |
+|---|---|
+| **May read/write** | Lead Intake (write, trusted route only) · the gateway recovery adapter (read only) · named operators performing G1 recovery |
+| **Must NEVER reach** | the browser · public webhook responses · the Mini App read model / mirror · analytics or GA4 · Telegram messages · any log line as a raw key or as anything derived from one |
+
+No raw key in logs is already enforced in code, not policy: the log view is exactly
+`commit_state`, `has_lead_id`, `verdict`, `reason`, `correlation_id`, asserted per branch.
+
+### OD-3 — Retention → **INVARIANT RECOMMENDED, ONE INPUT OUTSTANDING**
+
+The ordering invariant is in §3 and needs no owner input: terminal **and** irreversibly
+superseded **and** retention elapsed, all three, and never a deletion that manufactures an
+absence.
+
+**No canonical FINMENTOR retention policy defines a duration**, and none is invented here. The
+single outstanding owner input is: *how long after a cycle is irreversibly superseded may a
+terminal receipt be kept before deletion.* Until that is set, receipts are simply retained —
+which is the safe default, because over-retention costs storage while under-retention costs
+recovery.
+
+### OD-4 — Abort operational coupling → **CONFIRM**
+
+**`ABORTED` closes the key; it does not restore the ability to submit.** Per §5.1.1 the same
+cycle can never submit again, so an abort must be followed by the Concierge issuing a **new
+authoritative cycle**. An abort on its own leaves the user unable to submit until the cycle
+changes anyway — so the two actions are one operational step, and the runbook (§6.2) states it.
+
+---
+
+## 10.1 Status
 
 **G1: DESIGN-READY, STILL BLOCKED FOR ACTIVATION.**
 
@@ -580,5 +722,12 @@ key-digest privacy overclaim, removed rather than softened (F6); three Markdown 
 this document acquired in P1.1, now repaired and guarded by a table-integrity check (F7); and
 the operator-recovery wording, held at PARTIAL with its failure modes stated as rules (F8).
 
-Until P1-L1 … P1-L9 are executed and recorded, **B.2.1-C is NOT CLEARED**, G1 remains the
+P1.3 made this document consistent with the code, replaced the contradictory "for all time"
+uniqueness claim with a precise lifecycle invariant, and — the substantial part — inspected the
+real Lead Intake entry surface and found **one unauthenticated public webhook and no
+authenticated route at all**. Adding the stable key to the payload without an authenticated
+route would have opened a cheap, targeted denial of service (§7.1), so receipt authority is now
+a property of the route, enforced in code by `resolveReceiptKey` at both ledger writers.
+
+Until P1-L1 … P1-L10 are executed and recorded, **B.2.1-C is NOT CLEARED**, G1 remains the
 activation blocker, and the fifteen B.2.1-C canaries remain unexecuted.

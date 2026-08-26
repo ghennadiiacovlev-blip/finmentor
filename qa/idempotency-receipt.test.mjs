@@ -103,19 +103,19 @@ function lookupVia(store) {
 function seedCommitted(store, key, leadId, mode) {
   // A realistic server request id — NOT derived from the key. buildIntent now refuses the
   // latter, which is how the leak this fixture originally caused is prevented at source.
-  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'fmr_' + (key === KEY_1 ? 'a1' : 'b2') });
+  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'fmr_' + (key === KEY_1 ? 'a1' : 'b2'), provenanceTrusted: true });
   assert(intent.ok, 'intent build failed: ' + intent.reason);
   store.insertIfAbsent(intent.record);
   const commit = R.buildCommit({
     idempotencyKey: key, canonicalLeadId: leadId, leadMode: mode || 'new',
-    leadPriority: 'WARM', financialZone: 'YELLOW', nowIso: NOW
+    leadPriority: 'WARM', financialZone: 'YELLOW', nowIso: NOW, provenanceTrusted: true
   });
   assert(commit.ok, 'commit build failed: ' + commit.reason);
   store.applyCommit(key, commit.patch);
 }
 
 function seedPending(store, key) {
-  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'CID-P' });
+  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'CID-P', provenanceTrusted: true });
   store.insertIfAbsent(intent.record);
 }
 
@@ -148,8 +148,8 @@ check('writer and reader agree on what a key IS — neither repairs a padded one
   // reader never looks up in that form. Both must refuse identically.
   const padded = KEY_1 + ' ';
   eq(R.isValidKey(padded), false, 'the reader accepted a padded key');
-  eq(R.buildIntent({ idempotencyKey: padded, nowIso: NOW }).ok, false, 'the intent writer repaired a padded key');
-  eq(R.buildCommit({ idempotencyKey: padded, canonicalLeadId: LEAD_A, nowIso: NOW }).ok, false,
+  eq(R.buildIntent({ idempotencyKey: padded, nowIso: NOW, provenanceTrusted: true }).ok, false, 'the intent writer repaired a padded key');
+  eq(R.buildCommit({ idempotencyKey: padded, canonicalLeadId: LEAD_A, nowIso: NOW, provenanceTrusted: true }).ok, false,
     'the commit writer repaired a padded key');
   eq(R.parseKey(padded).ok, false, 'the parser accepted a padded key');
 });
@@ -254,8 +254,8 @@ console.log('\nUNIQUENESS, CONCURRENCY AND CONFLICT');
 
 check('(4) two concurrent creates for one key leave exactly one receipt', () => {
   const store = makeReceiptStore();
-  const a = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-A' });
-  const b = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-B' });
+  const a = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: 'CID-A' });
+  const b = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: 'CID-B' });
   const first = store.insertIfAbsent(a.record);
   const second = store.insertIfAbsent(b.record);
   eq(first.inserted, true, 'the first create did not win');
@@ -291,13 +291,13 @@ check('(3) one receipt can never point at two lead ids', () => {
 });
 
 check('(3) a commit with no lead id, or onto no intent row, is refused', () => {
-  eq(R.buildCommit({ idempotencyKey: KEY_1, canonicalLeadId: '', nowIso: NOW }).ok, false,
+  eq(R.buildCommit({ idempotencyKey: KEY_1, canonicalLeadId: '', nowIso: NOW, provenanceTrusted: true }).ok, false,
     'a commit without a lead id was built');
   eq(R.planCommit(null, LEAD_A).reason, 'NO_INTENT_ROW', 'a commit onto nothing was allowed');
   eq(R.planCommit({ commit_state: 'PENDING', canonical_lead_id: LEAD_B }, LEAD_A).ok, false,
     'a pending row already naming another lead accepted a different one');
-  eq(R.buildIntent({ idempotencyKey: 'not-a-key', nowIso: NOW }).ok, false, 'intent built on a bad key');
-  eq(R.buildIntent({ idempotencyKey: KEY_1, nowIso: '' }).ok, false, 'intent built with no clock');
+  eq(R.buildIntent({ idempotencyKey: 'not-a-key', nowIso: NOW, provenanceTrusted: true }).ok, false, 'intent built on a bad key');
+  eq(R.buildIntent({ idempotencyKey: KEY_1, nowIso: '', provenanceTrusted: true }).ok, false, 'intent built with no clock');
 });
 
 // ---------------------------------------------------------------- caller cannot steer
@@ -402,7 +402,7 @@ check('(F6) no deterministic digest of the key is produced or claimed anonymous'
   });
   eq(keys.join(','), 'commit_state,has_lead_id,verdict,reason,correlation_id', 'the log view shape drifted');
   // The replacement is a server-minted id that contains no Telegram identifier at all.
-  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW });
+  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, provenanceTrusted: true });
   assert(intent.record.correlation_id.indexOf(CHAT) === -1, 'the minted correlation id embeds the identity');
   assert(intent.record.correlation_id.length >= 16, 'the minted correlation id is too weak to correlate');
 });
@@ -410,10 +410,10 @@ check('(F6) no deterministic digest of the key is produced or claimed anonymous'
 check('(F6) a correlation id derived from the key is refused at source', () => {
   // Found by this gate: a fixture built the id as CID- + key and the leak assertion fired.
   // Fixing the fixture alone would have left the trap open for the live wiring.
-  const bad = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-' + KEY_1 });
+  const bad = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-' + KEY_1, provenanceTrusted: true });
   eq(bad.ok, false, 'a correlation id containing the key was accepted');
   eq(bad.reason, 'CORRELATION_ID_DERIVED_FROM_KEY', 'the refusal reason drifted');
-  eq(R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'fmr_ok' }).ok, true,
+  eq(R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'fmr_ok', provenanceTrusted: true }).ok, true,
     'a clean correlation id was refused');
 });
 
@@ -821,7 +821,7 @@ check('(F4) the operator correlation chain is exactly correlation_id -> meta.req
   assert(built.ok, 'the envelope did not build');
   eq(built.envelope.payload.meta.request_id, 'CID-CHAIN-1', 'the correlation id no longer reaches meta.request_id');
   // A receipt seeded from the same value correlates to the Pipeline row.
-  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-CHAIN-1' });
+  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, provenanceTrusted: true, correlationId: 'CID-CHAIN-1' });
   eq(intent.record.correlation_id, built.envelope.payload.meta.request_id,
     'the receipt correlation id and the Pipeline request_id have diverged');
   // And the ledger key itself is NOT in the envelope, which is why Pipeline cannot be found
@@ -880,7 +880,7 @@ check('(3,4) a NEW cycle mints a distinct key and submits normally', () => {
       eq(req.idempotency_key, KEY_2, 'the submit carried the OLD key');
       // Lead Intake writes its intent under the NEW key — insert-if-absent succeeds because
       // the terminal receipt belongs to a different key entirely.
-      const intent = R.buildIntent({ idempotencyKey: KEY_2, nowIso: NOW, correlationId: 'fmr_new' });
+      const intent = R.buildIntent({ idempotencyKey: KEY_2, nowIso: NOW, correlationId: 'fmr_new', provenanceTrusted: true });
       eq(store.insertIfAbsent(intent.record).inserted, true, 'the new-cycle intent was rejected');
       return { ok: true, body: { ok: true, lead_id: LEAD_B, mode: 'new', priority: 'WARM', financial_zone: 'YELLOW' } };
     },
@@ -979,6 +979,122 @@ check('(F7) the G1 plan document has no malformed markdown tables', () => {
   }
   assert(tables >= 8, 'the plan document lost its tables: only ' + tables + ' found');
   eq(bad.length, 0, 'malformed table rows: ' + bad.join('; '));
+});
+
+console.log('\nP1.3  TRUST BOUNDARY: WHO MAY TOUCH THE LEDGER');
+
+// The threat, stated once: the stable key is GUESSABLE by construction. If Lead Intake wrote
+// receipts from a body field, anyone could POST the public webhook with
+// miniapp:<victim id>:<cycle id> and plant a PENDING receipt. The victim's real Mini App
+// submission would then find a foreign PENDING row, answer CANNOT_ANSWER for ever, and never
+// submit — with no session, no credential and no contact with the Mini App at all.
+
+const GUESSED_VICTIM_KEY = 'miniapp:' + CHAT + ':' + CYCLE_1;
+
+check('(3) a public caller cannot create a PENDING receipt for a guessed key', () => {
+  // No provenance asserted — which is what a public-webhook execution looks like, because
+  // the Internal Auth Entry node never ran and $() threw.
+  const out = R.buildIntent({ idempotencyKey: GUESSED_VICTIM_KEY, nowIso: NOW, correlationId: 'fmr_attacker' });
+  eq(out.ok, false, 'a public-path execution created an intent for a guessed key');
+  eq(out.reason, 'RECEIPT_CONTROLS_REQUIRE_TRUSTED_ROUTE', 'the refusal reason drifted');
+  eq(out.record, undefined, 'a refused intent still produced a record');
+  // And the same for a commit: no ledger write of any kind from an untrusted route.
+  eq(R.buildCommit({ idempotencyKey: GUESSED_VICTIM_KEY, canonicalLeadId: LEAD_B, nowIso: NOW }).ok, false,
+    'a public-path execution bound a lead id to a receipt');
+});
+
+check('(5) a body provenance marker cannot simulate the authenticated route', () => {
+  // Every shape a JSON body can produce. provenanceTrusted must be the literal boolean true;
+  // a caller who can influence it at all has already lost, so the check is the strictest
+  // available rather than a truthiness test.
+  const spoofs = ['true', 'TRUE', 1, '1', {}, [], { __internal_route: true }, 'yes', -1, Infinity];
+  spoofs.forEach((v) => {
+    const out = R.buildIntent({ idempotencyKey: GUESSED_VICTIM_KEY, nowIso: NOW, provenanceTrusted: v });
+    eq(out.ok, false, 'a body-shaped provenance value was accepted: ' + JSON.stringify(v));
+    eq(out.reason, 'RECEIPT_CONTROLS_REQUIRE_TRUSTED_ROUTE', 'wrong refusal for ' + JSON.stringify(v));
+  });
+  // The declared contract says the same thing, so a deployment cannot satisfy it elsewhere.
+  eq(R.RECEIPT_AUTHORITY.marker_in_body_is_not_provenance, true, 'the body-marker rule was removed');
+  eq(R.RECEIPT_AUTHORITY.source, 'route provenance only', 'the authority source drifted');
+  R.RECEIPT_AUTHORITY.never_from.forEach((n) => assert(n.length > 5, 'the never_from list was thinned'));
+});
+
+check('(2,4) only a proven route may select a receipt key, and then only an exact one', () => {
+  eq(R.resolveReceiptKey({ idempotencyKey: KEY_1 }).allowed, false, 'no provenance still selected a key');
+  eq(R.resolveReceiptKey({ idempotencyKey: KEY_1, provenanceTrusted: true }).allowed, true,
+    'a trusted route could not select its own key');
+  eq(R.resolveReceiptKey({ idempotencyKey: KEY_1, provenanceTrusted: true }).key, KEY_1, 'the key was altered in transit');
+  // Trusted route, malformed key: still refused. Provenance is not a licence for any string.
+  ['fmr_abc', LEAD_A, KEY_1 + ' ', '', 'miniapp:abc:' + CYCLE_1].forEach((bad) => {
+    eq(R.resolveReceiptKey({ idempotencyKey: bad, provenanceTrusted: true }).allowed, false,
+      'a trusted route selected a malformed key: ' + JSON.stringify(bad));
+  });
+});
+
+check('(1,6,7) the browser cannot supply, steer or become the stable key', () => {
+  // Dropped by the validator before anything downstream sees it.
+  ['idempotency_key', 'request_id', 'cycle_id', 'lead_id', 'telegram_user_id'].forEach((k) => {
+    assert(C.UNTRUSTED_BODY_KEYS.indexOf(k) !== -1, k + ' is no longer an untrusted body key');
+  });
+  // A caller request_id cannot become the idempotency key: they have different shapes and
+  // the key is minted from server-owned values only.
+  assert(!R.isValidKey('fmr_abc123'), 'a client request id has the shape of a stable key');
+  eq(C.REQUEST_ID_SEMANTICS.is_deduplication_key, false, 'request_id was declared a dedup key');
+  // A caller cycle_id cannot steer the key: the key is built from the AUTHORITATIVE cycle.
+  eq(C.idempotencyKey(CHAT, CYCLE_1), KEY_1, 'the minted key shape drifted');
+  assert(C.idempotencyKey(CHAT, 'C-ATTACKER-CHOSEN') !== KEY_1, 'a chosen cycle produced the same key');
+});
+
+check('(8) the server-derived key shape is exact and unchanged', () => {
+  eq(C.idempotencyKey(CHAT, CYCLE_1), 'miniapp:' + CHAT + ':' + CYCLE_1, 'the key shape changed');
+  eq(C.RECOVERY_ADAPTER_CONTRACT.key_shape, 'miniapp:<telegram_user_id>:<cycle_id>',
+    'the declared key shape drifted from the minted one');
+  assert(R.isValidKey(C.idempotencyKey(CHAT, CYCLE_1)), 'the gateway mints a key the ledger rejects');
+});
+
+console.log('\nP1.3  RETENTION MUST NOT MANUFACTURE AN ABSENCE');
+
+check('(9) a receipt may not be deleted while its cycle is still acceptable', () => {
+  // The dangerous deletion: the lookup would find nothing, read it as NOT_COMMITTED, release
+  // the claim and authorise a submit for a key that may already have a lead.
+  eq(R.mayDeleteReceipt({ commitState: 'COMMITTED', cycleIrreversiblySuperseded: false, retentionPeriodElapsed: true }).reason,
+    'CYCLE_STILL_ACCEPTABLE', 'a live cycle receipt was deletable');
+  eq(R.mayDeleteReceipt({ commitState: 'ABORTED', cycleIrreversiblySuperseded: false, retentionPeriodElapsed: true }).ok,
+    false, 'an aborted receipt on a live cycle was deletable');
+  // Never a PENDING one, whatever the clock says.
+  eq(R.mayDeleteReceipt({ commitState: 'PENDING', cycleIrreversiblySuperseded: true, retentionPeriodElapsed: true }).reason,
+    'RECEIPT_NOT_TERMINAL', 'a pending receipt was deletable');
+  // Retention alone is not a licence either.
+  eq(R.mayDeleteReceipt({ commitState: 'COMMITTED', cycleIrreversiblySuperseded: true, retentionPeriodElapsed: false }).reason,
+    'RETENTION_PERIOD_NOT_ELAPSED', 'the retention period was ignored');
+  // All three conditions together, and only then.
+  eq(R.mayDeleteReceipt({ commitState: 'COMMITTED', cycleIrreversiblySuperseded: true, retentionPeriodElapsed: true }).ok,
+    true, 'a fully-superseded expired receipt could not be deleted');
+});
+
+check('(9) deletion is safe only because a superseded cycle never reaches the ledger', () => {
+  // This is what makes retention and recovery compatible rather than contradictory: the
+  // handler refuses a superseded binding BEFORE the ledger is consulted, so a deleted old
+  // receipt can never be looked up and its absence can never be read as an answer.
+  const store = makeReceiptStore();                       // the old receipt has been purged
+  const built = A.createRecoveryAdapter(store);
+  const sessions = makeSessions({ cycle_id: CYCLE_1, submit_state: 'submitting' });
+  const authority = makeAuthority({ cycle_id: CYCLE_2 }); // cycle irreversibly moved on
+  let calls = 0;
+  const out = submitWith({ submit: () => { calls++; return { ok: true, body: {} }; }, lookup: built.adapter.lookup }, sessions, authority);
+  eq(out.response.error_code, 'CYCLE_SUPERSEDED', 'a purged old cycle was not refused at the cycle guard');
+  eq(calls, 0, 'a purged old cycle reached Lead Intake');
+  eq(store.rows.length, 0, 'the fixture no longer models a purged ledger');
+});
+
+check('the lifecycle invariant is declared, and names retention as an owner input', () => {
+  const inv = R.RECEIPT_LIFECYCLE_INVARIANT;
+  assert(inv && typeof inv === 'object', 'RECEIPT_LIFECYCLE_INVARIANT is not exported');
+  eq(inv.deletion_preconditions.length, 3, 'a deletion precondition was dropped');
+  assert(/OWNER INPUT/.test(inv.retention_duration), 'a retention duration was invented');
+  assert(inv.forbidden.length >= 3, 'the forbidden list was thinned');
+  // "for all time" is withdrawn: the cardinality rule is about concurrent rows.
+  assert(!/for all time/.test(R.UNIQUENESS_RULE.cardinality), 'the withdrawn for-all-time claim is back');
 });
 
 // ---------------------------------------------------------------- summary

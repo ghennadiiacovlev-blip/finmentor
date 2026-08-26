@@ -155,15 +155,116 @@ function canTransition(from, to) {
   return (TRANSITIONS[f] || []).indexOf(t) !== -1;
 }
 
+// WHO MAY TOUCH THE LEDGER AT ALL (P1.3).
+//
+// The threat this closes is a denial of service, and it is cheap to mount. The stable key is
+// GUESSABLE by construction — `miniapp:<telegram_user_id>:<cycle_id>`, where Telegram ids are
+// numeric and cycle ids are date-shaped. If Lead Intake wrote receipts from a body field,
+// anyone could POST the public webhook with a guessed key and plant a PENDING receipt for a
+// victim. The real Mini App submission would then find a foreign PENDING row, answer
+// CANNOT_ANSWER for ever, and never be able to submit — without the attacker touching the
+// Mini App, a session or a credential.
+//
+// So receipt authority is a property of the ROUTE. It is never read from the body, never from
+// a header, and never from anything a caller can assert. This reuses the mechanism commit
+// a224aa2 deployed for lead identity, which is safe by construction rather than by checking:
+// on the public path the `Internal Auth Entry` node never ran, `$()` throws, and provenance
+// is false. There is nothing to forge because there is nothing to present.
+const RECEIPT_AUTHORITY = {
+  source: 'route provenance only',
+  proven_by: "$('Internal Auth Entry').first().json.__internal_route === true",
+  never_from: [
+    'a payload body field',
+    'an HTTP header',
+    'a query parameter',
+    'any caller assertion of any kind'
+  ],
+  public_route_behaviour: 'receipt controls are IGNORED: no receipt is read, created or updated',
+  // Stated so a deployment cannot satisfy this by adding a marker somewhere else.
+  marker_in_body_is_not_provenance: true
+};
+
+// May this execution touch the ledger, and with which key?
+//
+// `provenanceTrusted` must be the literal boolean `true`. The string 'true', the number 1, a
+// truthy object — all are shapes a JSON body can produce, and all are refused. A caller who
+// can influence this value at all has already lost the argument, so the check is deliberately
+// the strictest one available rather than a truthiness test.
+function resolveReceiptKey(opts) {
+  const o = opts || {};
+  if (o.provenanceTrusted !== true) {
+    return { allowed: false, reason: 'RECEIPT_CONTROLS_REQUIRE_TRUSTED_ROUTE', key: '' };
+  }
+  if (!isValidKey(o.idempotencyKey)) {
+    return { allowed: false, reason: 'KEY_INVALID', key: '' };
+  }
+  return { allowed: true, reason: 'TRUSTED_ROUTE', key: o.idempotencyKey };
+}
+
 // The uniqueness rule, stated as data so a deployment can be checked against it.
 const UNIQUENESS_RULE = {
   unique_on: 'idempotency_key',
-  cardinality: 'exactly one receipt row per key, for all time',
+  // P1.3 — "for all time" was withdrawn: it contradicted P1-L8, which requires a retention
+  // policy because the key contains a personal identifier. The precise invariant is in
+  // RECEIPT_LIFECYCLE_INVARIANT; the cardinality rule is about CONCURRENT rows.
+  cardinality: 'never more than one receipt row per key, for as long as any row exists',
   enforced_by: 'atomic insert-if-absent in the store',
   // Defence in depth: even where the store cannot enforce it, two rows for one key are
   // DETECTED and fail closed rather than one being picked arbitrarily.
   if_unenforceable: 'duplicate rows for a key resolve to CANNOT_ANSWER, never to a winner'
 };
+
+// HOW LONG A RECEIPT MUST LIVE (P1.3).
+//
+// "One receipt per key, for all time" and "P1-L8 requires a retention policy" cannot both be
+// requirements, and leaving the contradiction in place would have let whoever implements
+// retention pick either reading. The resolution turns on a property the gateway already has:
+//
+//   a submit arriving on a SUPERSEDED cycle is refused at §9.2 with CYCLE_SUPERSEDED,
+//   BEFORE the ledger is consulted at all.
+//
+// So an old key becomes structurally unreachable the moment its cycle is superseded — and a
+// receipt that can never be looked up again is safe to delete. Deleting one whose cycle can
+// still be presented is NOT safe: the lookup would find nothing, read the absence as
+// NOT_COMMITTED, release the claim and authorise a fresh submit for a key that may already
+// have a lead.
+//
+// Retention therefore does not conflict with recovery, provided deletion follows supersession
+// rather than a clock alone. The duration remains an OWNER input; the ordering does not.
+const RECEIPT_LIFECYCLE_INVARIANT = {
+  must_exist_while: 'the key can still be presented — i.e. its cycle can still pass the ' +
+    'authority and session guards',
+  never_expires_while: 'the cycle is current or still recoverable',
+  deletion_preconditions: [
+    'the receipt is terminal (COMMITTED or ABORTED) — never PENDING',
+    'the cycle is IRREVERSIBLY superseded, so the key can no longer reach the ledger',
+    'the approved retention period has elapsed'
+  ],
+  forbidden: [
+    'deletion that turns a still-acceptable key into an ABSENCE',
+    'deletion used to reopen a key for a fresh submit',
+    'deletion of a PENDING receipt to make a lookup answer'
+  ],
+  retention_duration: 'OWNER INPUT — no canonical FINMENTOR retention policy defines one'
+};
+
+// Is deleting this receipt safe? Every condition must hold; there is no "usually fine".
+function mayDeleteReceipt(opts) {
+  const o = opts || {};
+  const state = normValue(o.commitState);
+  if (state !== 'COMMITTED' && state !== 'ABORTED') {
+    return { ok: false, reason: 'RECEIPT_NOT_TERMINAL' };
+  }
+  if (o.cycleIrreversiblySuperseded !== true) {
+    // The load-bearing one. While the cycle can still be presented, deleting the receipt
+    // manufactures an absence that reads as "nothing was created".
+    return { ok: false, reason: 'CYCLE_STILL_ACCEPTABLE' };
+  }
+  if (o.retentionPeriodElapsed !== true) {
+    return { ok: false, reason: 'RETENTION_PERIOD_NOT_ELAPSED' };
+  }
+  return { ok: true, reason: 'SAFE_TO_DELETE' };
+}
 
 // The preconditions under which "no row" is a PROOF of "did not commit" rather than merely
 // an absence. Enforced by recovery-adapter.js; each one that cannot be shown to hold
@@ -181,8 +282,15 @@ const ABSENCE_PROOF_PRECONDITIONS = [
 function newCorrelationId() { return crypto.randomUUID(); }
 
 // Phase 1. Written BEFORE the Pipeline write. Claims nothing about a lead.
+//
+// P1.3 — creating an intent is the poisoning vector, so provenance is REQUIRED here rather
+// than checked by a caller who might forget. It is not possible to build an intent record
+// without asserting a trusted route, which means a public-path execution cannot construct one
+// even by accident.
 function buildIntent(opts) {
   const o = opts || {};
+  const gate = resolveReceiptKey(o);
+  if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
   // Validate the RAW value, not a trimmed copy: the reader refuses a padded key, so a
   // writer that quietly repaired one would create a receipt under a key the reader would
   // never look up in that form. Writer and reader must agree on what a key IS.
@@ -223,9 +331,10 @@ function buildIntent(opts) {
 // what we created" must never be the same record.
 function buildCommit(opts) {
   const o = opts || {};
-  // Validate the RAW value, not a trimmed copy: the reader refuses a padded key, so a
-  // writer that quietly repaired one would create a receipt under a key the reader would
-  // never look up in that form. Writer and reader must agree on what a key IS.
+  // Same gate as the intent: binding a canonical lead id to a receipt is a ledger write, and
+  // a public-path execution must not be able to construct one.
+  const gate = resolveReceiptKey(o);
+  if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
   const key = o.idempotencyKey;
   if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
   const leadId = normValue(o.canonicalLeadId);
@@ -464,6 +573,8 @@ module.exports = {
   COMMIT_STATES,
   TRANSITIONS,
   UNIQUENESS_RULE,
+  RECEIPT_AUTHORITY,
+  RECEIPT_LIFECYCLE_INVARIANT,
   ABSENCE_PROOF_PRECONDITIONS,
   ABORT_REASONS,
   VERDICT,
@@ -472,6 +583,8 @@ module.exports = {
   isValidKey,
   parseKey,
   canTransition,
+  resolveReceiptKey,
+  mayDeleteReceipt,
   buildIntent,
   buildCommit,
   planCommit,
