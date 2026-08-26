@@ -37,7 +37,7 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 |---|---|
 | Syntax check | `node --check` over every gate, `qa/run-all.mjs`, `scripts/*.mjs`, all 14 `n8n/src` modules and the gateway sources. A Code-node source that does not parse cannot be deployed to n8n |
 | Canonical quality gates | `node qa/run-all.mjs` — the exact command used locally |
-| Assertion baseline | fails if the total **falls** below `ASSERTION_BASELINE` |
+| Assertion baseline | fails if the total **falls** below `ASSERTION_BASELINE` (a second net; the per-gate floors in `qa/assertion-baseline.json` are the primary one and run locally too) |
 | cwd independence | runs the suite again from `/` and requires 8/8 |
 | Secret scan | `node scripts/secret-scan.mjs` over every tracked file |
 | Summary | writes the gate table and assertion total to the job summary |
@@ -53,8 +53,8 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | 5 | Website contract | `qa/website-contract.test.mjs` | 75 |
 | 6 | n8n export hygiene | `qa/n8n-manifest-drift.test.mjs` | 70 |
 | 7 | Mini App read-model consistency | `qa/miniapp-readmodel.test.mjs` | 42 |
-| 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 84 |
-| | **Baseline** | | **431** |
+| 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 101 |
+| | **Baseline** | | **448** |
 
 `qa/run-all.mjs` now prints each gate's assertion count and a `TOTAL ASSERTIONS:` line, so
 the number is read from the run rather than transcribed. It also **fails when a gate's tally
@@ -66,6 +66,30 @@ cannot be parsed**, so a gate that silently stops asserting cannot pass as green
 asking you to raise it. Lowering the baseline to make a red build green is the one edit that
 defeats the point of having it — if coverage genuinely moved, say so in the commit message
 and raise the number in the same change.
+
+### Per-gate floors — `qa/assertion-baseline.json`
+
+Added in N6.2, and added because the claim already existed in prose while the code did not
+have it. The B.2.1-C closure stated that the runner "fails when a single gate's tally drops,
+so the eight gates cannot silently trade assertions between them". Only the **total** floor
+was ever implemented, and only in CI. A total floor cannot see one gate losing ten checks
+while another gains ten — which is exactly how coverage drifts out of the place that needed
+it, with the number that is supposed to notice staying perfectly still.
+
+`qa/run-all.mjs` now reads `qa/assertion-baseline.json` and fails when:
+
+- any gate's tally falls below its recorded floor — **even if the total is unchanged**;
+- a gate listed in the baseline has disappeared from the runner (an empty gate and a deleted
+  gate must be equally loud);
+- a gate in the runner has no floor recorded, so a new gate cannot be added unratcheted;
+- the file itself is missing or unparseable.
+
+Growth is one-directional here too: it prints the numbers to raise and passes. Because the
+check lives in the runner rather than in the workflow, it now fails **locally**, before a
+push, which is where a coverage regression is cheapest to notice.
+
+The CI `ASSERTION_BASELINE` on the total is kept as a second net rather than deleted: it
+guards the case where the baseline file and the gates are edited together in one change.
 
 ---
 

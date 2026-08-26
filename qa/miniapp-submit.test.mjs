@@ -182,9 +182,16 @@ function run(over, wiring) {
     sessions,
     authority,
     leadIntake,
-    mirror: w.noMirror ? undefined : (id) => { EVENTS.push('mirror'); mirrored.push(id); },
+    mirror: w.noMirror ? undefined : (id) => {
+      EVENTS.push('mirror');
+      // G3 -- the derived refresh raising, as a closed Data Table or a quota error would.
+      if (w.mirrorThrows) { throw new Error('data table unavailable'); }
+      mirrored.push(id);
+    },
     clock: CLOCK,
     locale: 'ru',
+    // A fixed correlation id where a test asserts on it; server-minted otherwise.
+    correlationId: w.correlationId,
     rateLimited: w.rateLimited === true
   });
   return { out, sessions, authority, leadIntake, mirrored, events: EVENTS.slice() };
@@ -1045,6 +1052,253 @@ check('the guard runs on every path that reaches a handoff, and only there', () 
   eq(blocked.out.log.counters.handoff_guards, 0, 'a blocked submit ran a handoff guard');
   const replay = run({}, { sessions: makeSessions({ submit_state: 'submitted', lead_id: 'FIN-X' }) });
   eq(replay.out.log.counters.handoff_guards, 0, 'an idempotent replay ran a handoff guard');
+});
+
+
+// ------------------------------------- G3 no throw leaves the handler (N6.2)
+//
+// Every client is injected, so every client can throw: an HTTP node raising on a 5xx, a
+// Sheets client raising on a quota error, a Data Table client raising on a closed table.
+// The defect was that any of them turned an in-flight submit into an unhandled node error.
+// The fix is not "catch everything and return 503" -- that would be worse than the throw,
+// because a throw from inside the Lead Intake call and a throw before it need OPPOSITE
+// answers. These checks pin that distinction.
+
+const CID = 'CID-N62-FIXED';
+const COUNTER_KEYS = [
+  'lead_intake_calls', 'lead_intake_lookups', 'authority_writes',
+  'session_writes', 'mirror_runs', 'handoff_guards', 'mirror_failures'
+];
+
+function makeThrowingSessionRead() {
+  const sessions = makeSessions();
+  // The message deliberately carries the chat id, so a leak into the response or the log
+  // is detectable rather than theoretical.
+  sessions.read = () => { throw new Error('sheets quota exceeded for chat ' + CHAT); };
+  return sessions;
+}
+
+function makeThrowingIntakeSubmit() {
+  const intake = makeIntake();
+  intake.submit = () => { throw new Error('ECONNRESET https://n8n.invalid/webhook/lead-intake'); };
+  return intake;
+}
+
+function makeThrowingLeadWrite() {
+  const authority = makeAuthority();
+  const original = authority.write;
+  authority.write = function (chatId, patch) {
+    if (patch.lead_id !== undefined) { throw new Error('authority write exploded'); }
+    return original.call(this, chatId, patch);
+  };
+  return authority;
+}
+
+check('(G3) a mirror that throws leaves the submit successful, not unresolved', () => {
+  const r = run({}, { mirrorThrows: true });
+  eq(r.out.ok, true, 'a derived-refresh failure was allowed to fail the submit');
+  eq(r.out.status_code, 200, 'status downgraded by a derived failure');
+  eq(r.out.response.ok, true, 'the client was told a committed submit had failed');
+  assert(r.out.response.lead_id !== '', 'the canonical lead id was withheld');
+  eq(r.out.log.counters.mirror_failures, 1, 'the mirror failure was not recorded');
+  eq(r.out.log.counters.mirror_runs, 0, 'a throwing mirror was counted as a run');
+});
+
+check('(G3) the authoritative commit survives a throwing mirror intact', () => {
+  const r = run({}, { mirrorThrows: true });
+  eq(r.authority.row.lead_id, 'FIN-1756171200-042', 'the authority binding was lost');
+  eq(r.authority.row.lead_cycle_id, CYCLE, 'the cycle binding was lost');
+  eq(r.sessions.row.submit_state, 'submitted', 'the session was not moved to submitted');
+  eq(r.leadIntake.calls.length, 1, 'the mirror failure changed the Intake call count');
+});
+
+check('(G3) a throw BEFORE the handoff is a plain retryable backend error', () => {
+  const r = run({}, { sessions: makeThrowingSessionRead(), correlationId: CID });
+  eq(r.out.ok, false, 'a thrown client produced a success');
+  eq(r.out.status_code, 503, 'wrong transport status for an uncaught throw');
+  eq(r.out.response.error_code, 'TEMPORARY_BACKEND_ERROR', 'wrong code before the handoff');
+  eq(r.out.response.retryable, true, 'a safely retryable condition was marked final');
+  eq(r.out.log.stage, 'UNCAUGHT_BEFORE_HANDOFF', 'the throw site was not classified');
+  eq(r.leadIntake.calls.length, 0, 'a Lead Intake call happened on a pre-handoff throw');
+  eq(r.authority.stats.writes, 0, 'a pre-handoff throw wrote to authority');
+});
+
+check('(G3) a throw AT the handoff is SUBMIT_UNRESOLVED, never a retryable error', () => {
+  const r = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'a possible lead was reported as retryable');
+  eq(r.out.log.stage, 'UNCAUGHT_AFTER_HANDOFF', 'the throw site was not classified');
+  // The whole reason the marker exists: the counter is incremented only once the call has
+  // RETURNED, so on a throw from inside submit() it still reads zero and cannot classify.
+  eq(r.out.log.counters.lead_intake_calls, 0, 'the fixture no longer exercises the marker');
+});
+
+check('(G3) a throw at the handoff preserves the claim and the submitting state', () => {
+  const r = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
+  eq(r.sessions.row.submit_state, 'submitting', 'the state was downgraded after a possible lead');
+  eq(r.sessions.row.claim_owner, CID, 'the claim owner was cleared by the catch');
+  eq(r.sessions.row.idempotency_key, 'miniapp:' + CHAT + ':' + CYCLE, 'the claim key was lost');
+});
+
+check('(G3) a throw AFTER the Intake call returns is also unresolved', () => {
+  const r = run({}, { authority: makeThrowingLeadWrite(), correlationId: CID });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'a committed lead was reported as retryable');
+  eq(r.out.log.stage, 'UNCAUGHT_AFTER_HANDOFF', 'the throw site was not classified');
+  eq(r.leadIntake.calls.length, 1, 'the lead was never actually created in this fixture');
+  eq(r.sessions.row.submit_state, 'submitting', 'the state was downgraded after a real lead');
+});
+
+check('(G3) the two throw sites get opposite answers, which is the point', () => {
+  const before = run({}, { sessions: makeThrowingSessionRead(), correlationId: CID });
+  const after = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
+  assert(before.out.response.error_code !== after.out.response.error_code,
+    'a blanket catch would collapse both throw sites into one answer');
+  eq(before.out.response.error_code, 'TEMPORARY_BACKEND_ERROR', 'pre-handoff answer drifted');
+  eq(after.out.response.error_code, 'SUBMIT_UNRESOLVED', 'post-handoff answer drifted');
+});
+
+check('(G3) a thrown value never reaches the response or the log', () => {
+  const r = run({}, { sessions: makeThrowingSessionRead(), correlationId: CID });
+  const serialised = JSON.stringify(r.out);
+  assert(serialised.indexOf(CHAT) === -1, 'the thrown message leaked the chat id');
+  assert(serialised.indexOf('quota') === -1, 'the thrown message reached the caller or the log');
+  const r2 = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
+  const serialised2 = JSON.stringify(r2.out);
+  assert(serialised2.indexOf('n8n.invalid') === -1, 'the thrown message leaked an internal URL');
+  assert(serialised2.indexOf('ECONNRESET') === -1, 'a downstream diagnostic reached the caller');
+});
+
+check('(G3) a caught throw still returns the full accounting block', () => {
+  const r = run({}, { sessions: makeThrowingSessionRead(), correlationId: CID });
+  eq(r.out.log.correlation_id, CID, 'the correlation id was lost on the thrown path');
+  COUNTER_KEYS.forEach((k) => {
+    assert(Object.prototype.hasOwnProperty.call(r.out.log.counters, k),
+      'counter ' + k + ' is missing from a caught-throw response');
+  });
+});
+
+// ------------------------------------- G6 the classification survives a retry (N6.2)
+
+const MERGED_BODY = { ok: true, lead_id: 'FIN-G6-0001', mode: 'merged', priority: 'HOT', financial_zone: 'RED' };
+
+check('(G6) a successful submit persists the classification to AUTHORITY', () => {
+  const authority = makeAuthority();
+  const r = run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY }) });
+  eq(r.out.response.mode, 'merged', 'the live classification was not returned');
+  eq(authority.row.lead_mode, 'merged', 'authority never learned the mode');
+  eq(authority.row.lead_priority, 'HOT', 'authority never learned the priority');
+  eq(authority.row.financial_zone, 'RED', 'authority never learned the financial zone');
+});
+
+check('(G6) a retry resolved from authority returns the REAL classification', () => {
+  const authority = makeAuthority();
+  run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY }) });
+  // The session lagged behind the authoritative commit -- a crash between the two writes.
+  const r = run({}, { authority, sessions: makeSessions(), leadIntake: makeIntake({ body: MERGED_BODY }) });
+  eq(r.out.log.resolved_from, 'authority', 'the fixture no longer exercises the authority branch');
+  eq(r.leadIntake.calls.length, 0, 'a replay called Lead Intake again');
+  eq(r.out.response.mode, 'merged', 'a merged lead was replayed to the client as new');
+  eq(r.out.response.priority, 'HOT', 'the priority was replaced by the clamp default');
+  eq(r.out.response.financial_zone, 'RED', 'the financial zone was replaced by the clamp default');
+  eq(r.out.log.classification_recovered, true, 'a recovered classification was reported as absent');
+});
+
+check('(G6) an authority row with no classification says so instead of guessing', () => {
+  const authority = makeAuthority({ lead_id: 'FIN-LEGACY-0001', lead_cycle_id: CYCLE });
+  const r = run({}, { authority, sessions: makeSessions() });
+  eq(r.out.log.resolved_from, 'authority', 'the fixture no longer exercises the authority branch');
+  eq(r.out.log.classification_recovered, false, 'a clamp default was reported as a recovered value');
+  // The response still carries the defaults, because the contract's mode vocabulary has no
+  // unknown member. What changed is that the log no longer presents them as recovered.
+  eq(r.out.response.lead_id, 'FIN-LEGACY-0001', 'the canonical lead id was not recovered');
+  eq(r.out.response.mode, 'new', 'the clamp default drifted');
+  eq(r.out.response.priority, 'COLD', 'the clamp default drifted');
+  eq(r.out.response.financial_zone, 'UNKNOWN', 'the clamp default drifted');
+});
+
+// ------------------------------------- G7 request_id is not a dedup key (N6.2)
+
+function makeFlakyIntake() {
+  let n = 0;
+  const intake = makeIntake();
+  intake.submit = function (req) {
+    this.calls.push(req);
+    EVENTS.push('intake_submit');
+    n++;
+    // First attempt fails recoverably, so a second attempt genuinely reaches the call and
+    // two real envelopes can be compared.
+    if (n === 1) { return { ok: true, body: { ok: false } }; }
+    return { ok: true, body: { ok: true, lead_id: 'FIN-G7-0001', mode: 'new', priority: 'WARM', financial_zone: 'YELLOW' } };
+  };
+  return intake;
+}
+
+check('(G7) two attempts share one idempotency key and carry different request_ids', () => {
+  const sessions = makeSessions();
+  const authority = makeAuthority();
+  const leadIntake = makeFlakyIntake();
+  const first = run({}, { sessions, authority, leadIntake });
+  eq(first.out.response.error_code, 'TEMPORARY_BACKEND_ERROR', 'the fixture no longer fails first');
+  const second = run({}, { sessions, authority, leadIntake });
+  eq(second.out.response.ok, true, 'the retry did not succeed');
+  eq(leadIntake.calls.length, 2, 'the fixture no longer produces two real attempts');
+  eq(leadIntake.calls[0].idempotency_key, leadIntake.calls[1].idempotency_key,
+    'the idempotency key is not stable across attempts');
+  const a = leadIntake.calls[0].envelope.payload.meta.request_id;
+  const b = leadIntake.calls[1].envelope.payload.meta.request_id;
+  assert(a !== b, 'request_id was stable across attempts, which would invite it to be read as a dedup key');
+});
+
+check('(G7) the outbound envelope carries no idempotency key at all', () => {
+  // This is the G1 precondition stated as a test rather than as prose: nothing downstream
+  // can be indexed by the stable key, because the stable key never travels with the payload.
+  const r = run({});
+  const call = r.leadIntake.calls[0];
+  assert(call.idempotency_key !== undefined, 'the key is not passed beside the envelope any more');
+  const keys = [];
+  (function walk(node) {
+    if (!node || typeof node !== 'object') { return; }
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    Object.keys(node).forEach((k) => { keys.push(k); walk(node[k]); });
+  }(call.envelope));
+  assert(keys.indexOf('idempotency_key') === -1, 'the envelope now carries an idempotency key');
+  assert(keys.indexOf('idempotency-key') === -1, 'the envelope now carries an idempotency key');
+});
+
+check('(G7) the request_id semantics are a declared contract, not a comment', () => {
+  const d = C.REQUEST_ID_SEMANTICS;
+  assert(d && typeof d === 'object', 'REQUEST_ID_SEMANTICS is not exported');
+  eq(d.field, 'meta.request_id', 'the declared field drifted');
+  eq(d.is_deduplication_key, false, 'request_id was declared a deduplication key');
+  eq(d.stable_across_attempts, false, 'request_id was declared stable across attempts');
+  eq(d.downstream_idempotency_key_present, false,
+    'the declaration claims a downstream key exists -- if that became true, G1 is buildable and this must be revisited');
+});
+
+// ------------------------------------- T32 / T25 open test recommendations (N6.2)
+
+check('(T32) submitted with no canonical lead anywhere is never downgraded', () => {
+  const sessions = makeSessions({ submit_state: 'submitted', lead_id: '' });
+  const leadIntake = makeIntake({ lookup: { ok: true, known: false } });
+  const r = run({}, { sessions, leadIntake });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'an illegal state was resolved rather than reported');
+  eq(r.out.log.detail, 'NOT_COMMITTED', 'the lookup answer was not recorded');
+  eq(r.sessions.row.submit_state, 'submitted', 'a terminal state was moved backwards');
+  eq(r.leadIntake.calls.length, 0, 'a lead was created for a session already claiming submitted');
+  eq(r.out.log.counters.authority_writes, 0, 'an illegal state wrote to authority');
+  eq(r.out.log.counters.session_writes, 0, 'an illegal state wrote to the session store');
+});
+
+check('(T25) no analytics identifier ever reaches the Lead Intake envelope', () => {
+  const r = run({});
+  const keys = [];
+  (function walk(node) {
+    if (!node || typeof node !== 'object') { return; }
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    Object.keys(node).forEach((k) => { keys.push(k); walk(node[k]); });
+  }(r.leadIntake.calls[0].envelope));
+  const analytics = keys.filter((k) => /^ga_/.test(k) || k === 'analytics_consent' ||
+    k === 'client_id' || k === 'session_id' || k === 'measurement_id');
+  eq(analytics.length, 0, 'analytics identifiers reached the envelope: ' + analytics.join(', '));
 });
 
 // ---------------------------------------------------------------------- summary

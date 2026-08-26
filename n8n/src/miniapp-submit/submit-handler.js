@@ -25,6 +25,9 @@
 //     claim must still be the authoritative cycle at the moment of the Lead Intake call
 //     (G2), and a recovery path for an ambiguous outcome must exist before one is possible
 //     at all (G1).
+//   * No throw ever leaves this handler. Every client is injected and any of them may
+//     throw; what the caller is told depends on whether the irreversible call was reached,
+//     never on the thrown value, which is not read at all (G3).
 //
 // Injected contracts:
 //   sessions.read(appSessionId)                    -> { ok, session }
@@ -65,7 +68,11 @@ function counters() {
     mirror_runs: 0,
     // G2 — the pre-handoff re-read. Counted so a branch that skipped the guard is visible
     // in the log rather than merely absent from it.
-    handoff_guards: 0
+    handoff_guards: 0,
+    // G3 — a derived-mirror refresh that threw. The submit still succeeded; this is how a
+    // deployment that quietly stopped refreshing the read model shows up in the log instead
+    // of nowhere.
+    mirror_failures: 0
   };
 }
 
@@ -121,10 +128,20 @@ function canonicalResult(body) {
 // runs before the authoritative commit would publish a projection of state that does not
 // exist yet, which is the defect class INDP2-09 closed in the read model.
 function persistCanonical(ctx, result) {
+  // G6 -- the classification is persisted to AUTHORITY, not only to the app session. The
+  // resolver's authority branch reads these three fields, and until now nothing wrote them:
+  // a retry resolved from authority (the crash between the authoritative commit and the
+  // session update) reported the clamp defaults `new` / `COLD` / `UNKNOWN` as though they
+  // were the real values. Persisting is the option T34 names first. The other half of G6 --
+  // whether `mode` should cross to the browser at all -- changes the response shape the
+  // gateway contract §9 defines and is recorded as an open decision, not taken here.
   const wrote = ctx.authority.write(ctx.chatId, {
     lead_id: result.lead_id,
     lead_cycle_id: ctx.cycleId,
     lead_intake_ok: 'true',
+    lead_mode: result.mode,
+    lead_priority: result.priority,
+    financial_zone: result.financial_zone,
     updated_at: ctx.nowIso
   });
   ctx.counts.authority_writes++;
@@ -143,9 +160,20 @@ function persistCanonical(ctx, result) {
   });
   ctx.counts.session_writes++;
 
+  // G3 -- the mirror is DERIVED, and it runs after the authoritative commit. A mirror that
+  // throws cannot unmake the commit that already happened, so the correct answer to a failed
+  // refresh is a successful submit plus a recorded failure. Not an unhandled node error --
+  // that was the defect -- and deliberately not SUBMIT_UNRESOLVED either, which would tell a
+  // client to retry a submission that is complete and canonical. Phase 10 proved the read
+  // model falls back to authority whenever the derived row is missing or stale, and canary
+  // L11 states the same criterion: submit still succeeds, the next open is correct.
   if (typeof ctx.mirror === 'function') {
-    ctx.mirror(ctx.chatId);
-    ctx.counts.mirror_runs++;
+    try {
+      ctx.mirror(ctx.chatId);
+      ctx.counts.mirror_runs++;
+    } catch (e) {
+      ctx.counts.mirror_failures++;
+    }
   }
   return { ok: true };
 }
@@ -179,6 +207,12 @@ function resolvePriorSubmission(ctx, session) {
     return {
       resolved: true,
       source: 'authority',
+      // G6 -- a row written before the classification fields existed, or by an older
+      // deployment, resolves the lead id but not what the lead was classified as. Say so in
+      // the log: the response still carries the clamp defaults, because the contract's
+      // `mode` vocabulary has no unknown member, and a clamp default indistinguishable from
+      // a real value is precisely the defect T34 recorded.
+      classification_recovered: C.normValue(ctx.authorityRow.lead_mode) !== '',
       result: {
         lead_id: authLeadId,
         mode: C.normValue(ctx.authorityRow.lead_mode),
@@ -306,12 +340,60 @@ function assertHandoffGuard(ctx) {
   return { ok: true };
 }
 
+// ------------------------------------------------------- G3 uncaught-throw classifier
+
+// Classify a thrown injected client by WHERE it threw, because the two cases have opposite
+// safe answers and nothing else in the request can tell them apart.
+//
+// Before the handoff marker is set, no Lead Intake call can have been made. Nothing
+// irreversible exists, a retry is free, and TEMPORARY_BACKEND_ERROR says exactly that.
+//
+// At or after the marker, a lead may or may not exist. The marker is set immediately BEFORE
+// the call precisely so that a throw from inside `leadIntake.submit` is not mistaken for one
+// just before it -- `lead_intake_calls` cannot make that distinction, because it is only
+// incremented once the call has RETURNED. Answering "retryable backend error" here would
+// invite the duplicate this whole slice exists to prevent, so the answer is
+// SUBMIT_UNRESOLVED: the claim and the `submitting` state are left untouched for the
+// resolver to settle on the next attempt.
+//
+// The thrown value is never read. `detail` is a fixed label rather than the error's message,
+// because a message can carry a URL, a row or a contact field (T23, T24, T35), and `reject`
+// keeps detail out of the browser response but not out of the log.
+function catchToResponse(run) {
+  if (run.handoffAttempted === true) {
+    return reject('SUBMIT_UNRESOLVED', 'UNCAUGHT_AFTER_HANDOFF', run.correlationId, run.counts,
+      'injected client threw at or after the Lead Intake call');
+  }
+  return reject('TEMPORARY_BACKEND_ERROR', 'UNCAUGHT_BEFORE_HANDOFF', run.correlationId, run.counts,
+    'injected client threw before any irreversible call');
+}
+
 // ---------------------------------------------------------------------- §9 entry point
 
+// G3 -- the whole sequence runs inside the one try in the slice. Every dependency is
+// injected, so every dependency may throw: an n8n HTTP node raising on a 5xx, a Sheets
+// client raising on a quota error, a mirror client raising on a closed Data Table. Before
+// this, any of those turned an in-flight submit into an unhandled node error with no
+// response shape, no counters and no correlation id -- and, after the Intake call, no record
+// that a lead might exist.
 function handleSubmit(opts) {
   const o = opts || {};
-  const counts = counters();
-  const correlationId = C.normValue(o.correlationId) || C.newCorrelationId();
+  // Minted before the try so the catch always has one, even for a throw on the first line.
+  const run = {
+    counts: counters(),
+    correlationId: C.normValue(o.correlationId) || C.newCorrelationId(),
+    handoffAttempted: false
+  };
+  try {
+    return submitSequence(o, run);
+  } catch (e) {
+    return catchToResponse(run);
+  }
+}
+
+function submitSequence(o, run) {
+  const counts = run.counts;
+  const correlationId = run.correlationId;
   const clock = o.clock;
   const stamp = nowIso(clock);
 
@@ -421,6 +503,9 @@ function handleSubmit(opts) {
     return accept(success, correlationId, counts, {
       idempotent_replay: true,
       resolved_from: prior.source,
+      // G6 -- false means the lead id is canonical but mode/priority/zone in the response
+      // are clamp defaults, not recovered values. Only the authority branch can report it.
+      classification_recovered: prior.classification_recovered !== false,
       untrusted_fields_ignored: v.ignored_untrusted
     });
   }
@@ -556,6 +641,11 @@ function handleSubmit(opts) {
   }
 
   // ---- §9.7 one call, and only one -------------------------------------------------
+  //
+  // G3 -- set BEFORE the call and never cleared. From here on an uncaught throw means "a
+  // lead may exist", and the top-level catch answers SUBMIT_UNRESOLVED instead of inviting a
+  // retry into a duplicate.
+  run.handoffAttempted = true;
   const called = o.leadIntake.submit({
     idempotency_key: idempotencyKey,
     envelope: built.envelope
@@ -599,6 +689,7 @@ function handleSubmit(opts) {
 
 module.exports = {
   handleSubmit,
+  catchToResponse,
   canonicalResult,
   resolvePriorSubmission,
   assertHandoffGuard,

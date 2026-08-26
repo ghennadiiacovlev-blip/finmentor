@@ -10,6 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -64,3 +65,59 @@ if (unreadable.length) {
 const total = results.reduce((n, r) => n + r.assertions, 0);
 console.log(`\n${results.length}/${results.length} gates passed`);
 console.log(`TOTAL ASSERTIONS: ${total}`);
+
+// PER-GATE assertion floors, from qa/assertion-baseline.json.
+//
+// This existed as a documented property before it existed as code: the B.2.1-C closure said
+// the runner "fails when a single gate's tally drops, so the eight gates cannot silently
+// trade assertions between them", and only a total floor was ever implemented, in the CI
+// workflow. A total floor cannot see one gate losing ten checks while another gains ten --
+// which is precisely how coverage moves out of the place that needed it. N6.2 makes the
+// documented claim true rather than deleting it.
+//
+// One-directional, like the CI total: a fall fails the run, growth only prints what to
+// raise. Lowering a floor to turn a red run green is the one edit that defeats the file.
+let baseline = null;
+try {
+  baseline = JSON.parse(readFileSync(join(HERE, 'assertion-baseline.json'), 'utf8'));
+} catch (e) {
+  console.error('\nassertion-baseline.json missing or unparseable — the per-gate floor cannot be checked');
+  process.exit(1);
+}
+
+const drops = [];
+const grew = [];
+for (const r of results) {
+  const floor = baseline.gates ? baseline.gates[r.file] : undefined;
+  if (floor === undefined) {
+    console.error(`\nno assertion floor recorded for ${r.file} — add one to qa/assertion-baseline.json`);
+    process.exit(1);
+  }
+  if (r.assertions < floor) { drops.push(`${r.file}: ${r.assertions} < ${floor}`); }
+  if (r.assertions > floor) { grew.push(`${r.file}: ${floor} -> ${r.assertions}`); }
+}
+
+// A gate deleted from GATES cannot be caught by a per-gate floor, because its row is simply
+// absent from the results. The recorded gate list is checked too, so removing a gate is as
+// loud as emptying one.
+const removed = Object.keys(baseline.gates || {}).filter((f) => !results.some((r) => r.file === f));
+if (removed.length) {
+  console.error('\nFAIL: gate removed from the runner: ' + removed.join(', '));
+  process.exit(1);
+}
+
+if (drops.length) {
+  console.error('\nFAIL: per-gate assertion floor breached — coverage was removed');
+  drops.forEach((d) => console.error('  - ' + d));
+  process.exit(1);
+}
+if (total < (baseline.total || 0)) {
+  console.error(`\nFAIL: total assertions fell from ${baseline.total} to ${total}`);
+  process.exit(1);
+}
+if (grew.length || total > (baseline.total || 0)) {
+  console.log('\nNOTE: assertions grew; raise qa/assertion-baseline.json');
+  grew.forEach((g) => console.log('  - ' + g));
+  if (total > (baseline.total || 0)) { console.log(`  - total: ${baseline.total} -> ${total}`); }
+}
+console.log('assertion floors: PASS');

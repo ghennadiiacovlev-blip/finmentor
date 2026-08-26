@@ -135,7 +135,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES**, and design work first.
 - **FAIL-SAFE / FALLBACK** — Blast radius is bounded by what a replayed session can *do*: it is still the same Telegram user, so it cannot reach another identity. It can open a parallel session for that user, which the per-`(user, cycle)` idempotency key (T11) then collapses to at most one lead.
 - **ROLLBACK / CONTAINMENT** — Shorten `max_auth_age_seconds`; revoke app sessions by TTL.
-- **STATUS** — **DESIGN-ONLY.** Gap **G5**. Not a lead-integrity risk — the idempotency key contains no session id — but it is an unclosed identity-surface item and must not be described as handled.
+- **STATUS** — **DESIGN-ONLY.** Gap **G5**, assessed in N6.2 and deliberately **not** closed there; see §4.2 for why it is not closable offline. Not a lead-integrity risk — the idempotency key contains no session id — but it is an unclosed identity-surface item and must not be described as handled.
 
 ### T5 — Cross-user session access
 
@@ -279,7 +279,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary item 11), including the ~6–7 s Sheets fallback latency the Phase 10 measurement recorded.
 - **FAIL-SAFE / FALLBACK** — Invalidate-on-doubt; authority always answers.
 - **ROLLBACK / CONTAINMENT** — Delete the derived row; the read model is rebuildable by backfill.
-- **STATUS** — **OFFLINE-PROVEN.** Residual **G3**: `persistCanonical` calls `ctx.mirror(ctx.chatId)` **without a try/catch**, and `handleSubmit` has no top-level catch. A mirror client that *throws* (rather than returning a failure) would propagate out of a submit whose authority commit already succeeded, turning a completed submission into an unhandled node error. Recovery is still sound — the next attempt resolves from authority — but the immediate response is a 500 rather than a clean `SUBMIT_UNRESOLVED`.
+- **STATUS** — **OFFLINE-PROVEN. Residual G3 CLOSED in N6.2.** `persistCanonical` now wraps `ctx.mirror` in a try/catch and `handleSubmit` runs inside a top-level catch. One correction to the gap as originally written: it proposed "a clean `SUBMIT_UNRESOLVED`" for a throwing mirror, and that would have been wrong. The mirror runs **after** the authoritative commit, so a failed refresh cannot unmake a submission that is already complete and canonical; answering `SUBMIT_UNRESOLVED` would tell a client to retry something that succeeded. The implemented behaviour is a **successful submit plus a counted failure** (`mirror_failures`), which is what this row's own EXPECTED BEHAVIOUR says and what canary L11 requires. `SUBMIT_UNRESOLVED` is reserved for a throw at or after the Lead Intake call, where a lead may genuinely exist.
 
 ### T16 — Mirror update succeeds but HTTP response fails
 
@@ -526,7 +526,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary items 7–8) — a real Lead Intake `mode` has never been observed by this code.
 - **FAIL-SAFE / FALLBACK** — Clamp to a safe known value rather than echo.
 - **ROLLBACK / CONTAINMENT** — Pipeline retains the merge history.
-- **STATUS** — **OFFLINE-PROVEN**, with two honest residuals (**G6**): (1) `mode` is in the client whitelist, so merge status **is** disclosed in the response body even if the UI hides it — §9 cares about this, and whether `mode` should cross TB-1 at all is an open design question; (2) on a retry resolved from **authority**, `mode` is read from `authorityRow.lead_mode`, which the submit path never writes — so a merged lead can be reported as `new` on replay. Harmless under §9's own rule, but inconsistent, and it should be either persisted or dropped rather than left to the clamp default.
+- **STATUS** — **OFFLINE-PROVEN.** Of the two **G6** residuals, N6.2 closed the second and left the first open on purpose. (1) `mode` is still in the client whitelist, so merge status **is** disclosed in the response body even if the UI hides it. Closing that means removing `mode` from the response shape the gateway contract §9 defines, which is a contract change and therefore a decision, not an implementation detail — carried as an **open design decision** in §4.2. (2) **Closed.** `persistCanonical` now writes `lead_mode`, `lead_priority` and `financial_zone` to authority, so a retry resolved from the authority branch returns the real classification instead of the clamp defaults. The scope was wider than the row recorded: `priority` and `financial_zone` were fabricated as `COLD` / `UNKNOWN` on that path too, not only `mode` as `new`. Where an older row carries no classification, the resolver reports `classification_recovered: false` rather than presenting a clamp default as a recovered value.
 
 ### T35 — Client response exposing authority/internal metadata
 
@@ -615,9 +615,11 @@ the browser is never either.**
 Collected so they are not lost among forty rows. None of these is fixed in this commit — this
 document identifies them; closing them is separate, approved work.
 
-Rows are kept as originally written. **N6.1 worked G1, G2 and G4 — their current state is in
-§4.1, and it supersedes the severity column below for those three rows.** G3, G5, G6 and G7
-are untouched and the rows below are current for them.
+Rows are kept as originally written, and **every one of them is now superseded by a later
+amendment.** N6.1 worked G1, G2 and G4 — current state in **§4.1**. N6.2 worked G3, G6 and
+G7 and assessed G5 — current state in **§4.2**, which also records the two test-coverage
+recommendations at the end of this section as closed. The severity column below is the
+original assessment and should be read as history, not as status.
 
 | ID | Gap | Threats | Severity |
 |---|---|---|---|
@@ -728,6 +730,89 @@ authority branch then resolves with no adapter involved — rather than an indef
 
 **Activation verdict is unchanged: B.2.1-C is NOT cleared.** G1 blocks, and the fifteen live
 canary items in §4 remain unexecuted.
+
+---
+
+## 4.2 GAP STATE AFTER N6.2
+
+Amendment, 2026-08-26, second commit-scope of the day. N6.1 worked G1, G2 and G4. **N6.2
+worked G3, G6 and G7, assessed G5, and closed the two test-coverage recommendations at the
+end of §3.** G1's blocker is untouched and still governs activation.
+
+### G3 — mirror and top-level throw handling → **OFFLINE-CLOSED**
+
+- **IMPLEMENTATION** — Two changes, and the second is the one that mattered. `persistCanonical` wraps `ctx.mirror` in a try/catch that counts `mirror_failures` and still returns success. `handleSubmit` became a wrapper around `submitSequence` with the slice's only top-level catch.
+- **The correction this made necessary.** The gap said an uncaught throw should have produced "a clean `SUBMIT_UNRESOLVED`". Applied literally that is two separate mistakes. For a **mirror** throw it is wrong because the mirror is derived and runs after the authoritative commit — the submission is complete, and telling the client to retry a completed submit contradicts this document's own T15 EXPECTED BEHAVIOUR and canary L11. For a throw **before** the Lead Intake call it is also wrong, in the opposite direction: nothing irreversible exists, so the honest answer is `TEMPORARY_BACKEND_ERROR` and a free retry. A single blanket answer for every throw site would have been a **new defect**, not a fix.
+- **What the catch actually does** — it classifies by **where** the throw happened. A `handoffAttempted` marker is set immediately **before** `leadIntake.submit` and never cleared. Before it: `TEMPORARY_BACKEND_ERROR`, retryable, nothing written. At or after it: `SUBMIT_UNRESOLVED`, with the claim, the `claim_owner` and the `submitting` state left exactly as they are for the resolver to settle. The marker is necessary because `lead_intake_calls` cannot do the job — it is incremented only once the call has **returned**, so it still reads zero when `submit` itself throws.
+- **PII** — the thrown value is never read. `detail` is a fixed label, because a thrown message can carry a URL, a row or a contact field (T23, T24, T35). A gate check asserts that a message containing the chat id and an internal URL reaches neither the response nor the log.
+- **OFFLINE PROOF** — 9 checks. Mutation-verified three ways: removing the mirror try/catch fails exactly 1; removing the top-level catch fails exactly 7; making the catch **blanket** — one answer for both throw sites — fails exactly 3, which is the check set that exists to catch precisely that shortcut.
+- **LIVE PROOF REQUIRED?** — No for the classification logic, which is deterministic and injected. The **latency** of a mirror failure remains part of canary L11.
+- **ACTIVATION BLOCKING?** — No.
+
+### G6 — `mode` across TB-1 and the unpersisted classification → **HALF CLOSED, one OPEN DESIGN DECISION**
+
+- **CLOSED** — `persistCanonical` writes `lead_mode`, `lead_priority` and `financial_zone` to authority alongside the lead binding. A retry resolved from the **authority** branch now returns the real classification. The gap under-stated its own scope: that path fabricated `priority: COLD` and `financial_zone: UNKNOWN` as well as `mode: new`, and all three came from the response clamp, which cannot distinguish a default from a real value. Where the fields are absent — a row written before this change — the resolver reports `classification_recovered: false` in the log instead of letting a clamp default pass as recovered.
+- **OPEN, and an owner decision** — whether `mode` should cross TB-1 to the browser at all. The gateway contract §9 defines it in the success response **and** states that "the UI must not tell a client they were a duplicate". Both cannot be fully true: a field in the response body is readable in devtools whatever the UI renders. **Recommendation: remove `mode` from `CLIENT_RESPONSE_FIELDS` and keep it in the server log**, where canary L7 needs it. It was not done here because it changes the response shape the contract defines, and this programme does not change contracts silently.
+- **DEPLOYMENT PRECONDITION** — `lead_mode`, `lead_priority` and `financial_zone` must exist as `Bot_Sessions` columns before the write can land. This is the same class of owner action as the Pipeline `AZ:BG` columns, and it joins the existing precondition for `lead_id` / `lead_cycle_id`. It is **not** new activation surface: the slice is not deployed, and a missing column is a write failure the handler already reports as `SUBMIT_UNRESOLVED` rather than a silent loss. None of the three is in `PROJECTION_FIELDS`, so the read-model `projection_version` is unaffected.
+- **ACTIVATION BLOCKING?** — No.
+
+### G7 — `request_id` is not a deduplication key → **OFFLINE-CLOSED AS A DECLARATION**
+
+- **IMPLEMENTATION** — G7 was never a code defect; per-attempt `request_id` is the intended design. The risk is that someone downstream later reads it as a dedup key. So it is now a declared contract, `REQUEST_ID_SEMANTICS` in `submit-contract.js`, sitting next to `RECOVERY_ADAPTER_CONTRACT` because together they state exactly where the gap is: **the gateway can recognise its own retries, and nothing downstream can.**
+- **OFFLINE PROOF** — 3 checks: two real attempts at one submission carry different `request_id`s while sharing one idempotency key; the outbound envelope carries **no** idempotency key at any depth; the declaration itself is asserted, including `downstream_idempotency_key_present: false`. That last one is deliberately a tripwire — the day it becomes true, G1 is buildable and the check fails until someone revisits this.
+- **ACTIVATION BLOCKING?** — No.
+
+### G5 — `initData` replay → **ASSESSED, NOT CLOSABLE OFFLINE**
+
+Examined in N6.2 and left open, with the reason recorded rather than the row simply
+re-listed. Two blockers, and neither is a matter of effort:
+
+1. **There is no module to close it in.** `initData` validation exists as a specification —
+   `docs/PHASE_B2_1_INITDATA_VALIDATOR.md` — and not as a source file. `n8n/src` contains no
+   bootstrap or validator module, so there is no code path where a nonce ledger could be
+   added or a gate check anchored.
+2. **It needs durable state, which is the G1 problem again.** A single-use `query_id` ledger
+   must persist across requests and survive a restart, and it must answer "have I seen this
+   before" atomically. That is the same missing capability G1 blocks on, applied to a
+   different key. Implementing it against an injected fake would prove the state machine and
+   nothing about the durability — the exact distinction §4.1 draws for G1.
+
+The blast radius is unchanged and remains bounded: a replayed `initData` is still the same
+Telegram user, so it reaches no other identity, and the per-`(user, cycle)` idempotency key
+collapses any parallel session to at most one lead. **G5 stays DESIGN-ONLY and must not be
+described as handled.** It is not activation-blocking on its own, and it should be designed
+together with G1's durable store rather than separately — they want the same thing.
+
+### Two test-coverage recommendations from §3 → **BOTH CLOSED**
+
+- **T32** — `submitted` with no canonical lead anywhere is now a dedicated check: the state is never moved backwards, the lookup answer `NOT_COMMITTED` is recorded, and zero Intake calls, authority writes and session writes are asserted.
+- **T25** — the envelope is now walked recursively for any `ga_*` key, `analytics_consent`, `client_id`, `session_id` or `measurement_id`. The property is defended by a gate rather than by the current shape of a literal, which was the point of the recommendation.
+
+### Status totals after N6.2
+
+| Status | After N6.1 | After N6.2 |
+|---|---|---|
+| OFFLINE-PROVEN | 30 | 30 |
+| LIVE-PROOF-REQUIRED | 5 | 5 |
+| DESIGN-ONLY | 4 | 4 |
+| NOT-APPLICABLE | 1 | 1 |
+
+Threat statuses are unchanged: N6.2 closed **residuals inside** rows that were already
+OFFLINE-PROVEN (T15, T34) and hardened the gate around them. Gap statuses moved:
+
+| Gap | After N6.1 | After N6.2 |
+|---|---|---|
+| G1 | PRE-ACTIVATION-BLOCKED-LIVE-ADAPTER | unchanged — **still the blocker** |
+| G2 | repository logic CLOSED, LIVE PROOF REQUIRED | unchanged |
+| G3 | open, MEDIUM | **OFFLINE-CLOSED** |
+| G4 | OFFLINE-CLOSED | unchanged |
+| G5 | open, MEDIUM | **ASSESSED — DESIGN-ONLY, not closable offline** |
+| G6 | open, LOW | **HALF CLOSED** + one open design decision |
+| G7 | open, LOW | **OFFLINE-CLOSED as a declaration** |
+
+**Activation verdict is unchanged: B.2.1-C is NOT cleared.** G1 blocks, and the fifteen live
+canary items in §4 remain unexecuted. Nothing in N6.2 moves that line — it removes reasons a
+deployment would misbehave *once* it is cleared, which is not the same thing.
 
 ---
 

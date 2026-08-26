@@ -150,6 +150,31 @@ const RECOVERY_ADAPTER_CONTRACT = {
 // Absence of the adapter is a deployment condition, not a request error. It is reported
 // with its own code so a blocked deployment is never confused in the logs with a
 // transient downstream failure.
+// G7 — `meta.request_id` in the outbound envelope is the SERVER correlation id, and a fresh
+// one is minted per attempt. It is a correlation reference, never a deduplication key. That
+// is by design, and it is stated here as a declared contract rather than left in a comment
+// because the failure mode is somebody downstream reading `request_id` as if it deduplicated
+// Mini App retries, which it cannot:
+//
+//   * two attempts at one submission carry DIFFERENT request_ids while sharing ONE
+//     idempotency key, so no downstream index on request_id can collapse a retry;
+//   * the outbound envelope carries NO idempotency key at all today, so no downstream record
+//     is indexed by one either. This is the same precondition RECOVERY_ADAPTER_CONTRACT
+//     records, and it is why G1 is not merely unimplemented but currently unbuildable;
+//   * therefore ALL retry safety in this slice rests on gateway-side resolution --
+//     `resolvePriorSubmission` -- and none of it on downstream idempotency.
+//
+// Read this next to RECOVERY_ADAPTER_CONTRACT. Together they say exactly where the gap is:
+// the gateway can recognise its own retries, and nothing downstream can.
+const REQUEST_ID_SEMANTICS = {
+  field: 'meta.request_id',
+  source: 'server correlation id',
+  stable_across_attempts: false,
+  is_deduplication_key: false,
+  downstream_idempotency_key_present: false,
+  retry_safety_rests_on: 'gateway-side resolution (resolvePriorSubmission)'
+};
+
 function recoveryAdapterStatus(leadIntake) {
   if (!leadIntake || typeof leadIntake.lookup !== 'function') {
     return { available: false, reason: 'RECOVERY_ADAPTER_MISSING' };
@@ -578,6 +603,7 @@ module.exports = {
   STATUS,
   RETRYABLE,
   RECOVERY_ADAPTER_CONTRACT,
+  REQUEST_ID_SEMANTICS,
   recoveryAdapterStatus,
   SUBMIT_STATES,
   TRANSITIONS,

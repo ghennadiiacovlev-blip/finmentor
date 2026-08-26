@@ -311,14 +311,24 @@ The canonical workflow now runs **eight** gates:
 | Change | Value |
 |---|---|
 | `qa/run-all.mjs` | gate 8, "Mini App consent and submit" |
-| `ASSERTION_BASELINE` | 346 → 405 (+59) → **431** after N6.1 (+26) |
+| `ASSERTION_BASELINE` | 346 → 405 (+59) → **431** after N6.1 (+26) → **448** after N6.2 (+17) |
 | cwd-independence check | requires `8/8 gates passed` |
 | syntax check | now covers **14** `n8n/src` modules (was 12) |
 | `docs/FINMENTOR_CI_QUALITY_GATE.md` | gate table and prose updated to eight |
 
 The baseline is a floor, not a target: it fails when the total **falls**, because a falling
-count means coverage was removed. `run-all.mjs` also fails when a single gate's tally drops,
-so the eight gates cannot silently trade assertions between them.
+count means coverage was removed.
+
+**Correction, N6.2.** This paragraph used to continue: "`run-all.mjs` also fails when a
+single gate's tally drops, so the eight gates cannot silently trade assertions between them."
+That was not true when it was written. Only the **total** floor existed, and only in the CI
+workflow — a gate could lose ten checks while another gained ten and the number meant to
+notice would not move. It is the same defect class as G4: a document describing behaviour the
+code did not have. Rather than delete the claim, N6.2 implemented it. `qa/assertion-baseline.json`
+records a **per-gate** floor, `qa/run-all.mjs` enforces it — locally as well as in CI — and it
+also fails when a gate listed in the baseline has vanished from the runner, or when a gate in
+the runner has no floor recorded. The sentence is now accurate, and it is mutation-verified:
+trading one assertion between two gates with the total unchanged fails the run.
 
 ---
 
@@ -387,3 +397,78 @@ gate is synthetic.
 The next step is **not** more implementation. It is the live canary gate §7 requires, scoped
 and approved on its own terms — because the first real lead this slice creates is the first
 thing in the programme that cannot be rolled back by deleting a file.
+
+---
+
+## 8.2 GAP CLOSURE AFTER N6.2
+
+Second commit-scope of 2026-08-26. N6.1 took the three gaps the threat model rated highest.
+N6.2 takes the four that were left — G3, G5, G6, G7 — plus the two test-coverage
+recommendations §3 of the threat model ended with. Full detail is in **threat model §4.2**;
+this is the summary and, more usefully, the parts where the work disagreed with the plan.
+
+| Gap | Rated | Outcome |
+|---|---|---|
+| **G3** | MEDIUM | **OFFLINE-CLOSED** — mirror try/catch, and a top-level catch that classifies by throw site |
+| **G5** | MEDIUM | **ASSESSED, NOT CLOSABLE OFFLINE** — no module to close it in, and it needs G1's missing durable store |
+| **G6** | LOW | **HALF CLOSED** — classification persisted to authority; `mode` across TB-1 left as an owner decision |
+| **G7** | LOW | **OFFLINE-CLOSED as a declaration** — `REQUEST_ID_SEMANTICS`, with a tripwire check |
+| **T32 / T25** | recommendations | **BOTH CLOSED** as gate checks |
+
+### Where the work disagreed with the gap as written
+
+Three of the four rows turned out to be inaccurate once the code was in front of us. Recorded
+here because a gap list that is silently "fixed as specified" teaches nothing.
+
+1. **G3 prescribed the wrong remedy.** It said an uncaught throw should yield "a clean
+   `SUBMIT_UNRESOLVED`". Applied literally that is two mistakes in opposite directions. A
+   **mirror** throw happens *after* the authoritative commit, so the submission is complete
+   and canonical — answering `SUBMIT_UNRESOLVED` tells a client to retry something that
+   succeeded, and contradicts both T15's own EXPECTED BEHAVIOUR and canary L11. A throw
+   **before** the Lead Intake call is the reverse: nothing irreversible exists, so the honest
+   answer is `TEMPORARY_BACKEND_ERROR` and a free retry. A blanket catch returning one code
+   for every throw site would have been a new defect wearing a fix's clothes. The implemented
+   catch classifies by **where** the throw happened, using a `handoffAttempted` marker set
+   immediately before the irreversible call — necessary because `lead_intake_calls` is
+   incremented only after the call *returns*, so it still reads zero when `submit` throws.
+   The gate has a dedicated check for exactly this shortcut: making the catch blanket fails 3
+   checks and nothing else.
+
+2. **G6 under-stated its own scope.** It named `mode` falling back to `new`. On the
+   authority-resolved path `priority` and `financial_zone` were fabricated too, as `COLD`
+   and `UNKNOWN`, because all three came from the response clamp — which by construction
+   cannot tell a default from a real value. All three are now persisted to authority.
+
+3. **A defect the gap list did not contain.** The CI ratchet documented in §8 above did not
+   exist as described. See the correction there; `run-all.mjs` now enforces per-gate floors,
+   which is what the sentence had been claiming.
+
+### What did NOT change
+
+- **G1 is untouched and still blocks activation.** Nothing in N6.2 makes a durable
+  idempotency store exist, and G5 turned out to need the same missing capability — a
+  single-use `query_id` ledger is the same durability problem applied to a different key.
+  They should be designed together, not separately.
+- **No threat status moved.** N6.2 closed residuals *inside* rows already OFFLINE-PROVEN
+  (T15, T34). The totals in §4.2 are deliberately identical to N6.1's.
+- **No deployment, no live call, no tenant access.** Same stop conditions as §9, all still
+  in force.
+
+### Owner decisions this raises
+
+1. **Should `mode` cross TB-1 at all?** The gateway contract §9 puts it in the success
+   response *and* says the UI must not tell a client they were a duplicate. A field in the
+   response body is readable in devtools whatever the UI renders, so both cannot be fully
+   true. Recommendation: drop `mode` from `CLIENT_RESPONSE_FIELDS`, keep it in the server
+   log where canary L7 needs it. Not done here because it changes a contract.
+2. **Three `Bot_Sessions` columns** — `lead_mode`, `lead_priority`, `financial_zone` — are a
+   deployment precondition for the G6 fix, in the same class as the Pipeline `AZ:BG` columns
+   and alongside the existing precondition for `lead_id` / `lead_cycle_id`. Not urgent: the
+   slice is not deployed, and a missing column is a write failure the handler already reports
+   as `SUBMIT_UNRESOLVED` rather than a silent loss.
+
+### Gate
+
+**101 checks** in `qa/miniapp-submit.test.mjs` (was 84), **448** total across eight gates
+(was 431). Every fix is mutation-verified: six mutations, each failing exactly the checks that
+exist to catch it and nothing else.
