@@ -17,7 +17,7 @@ their own Mini App phase:
 | `miniapp-b21-gateway-qa.yml` | `gateway/**` and the gateway contract |
 | `miniapp-b21a-bootstrap-qa.yml` | `gateway/n8n/**` and the bootstrap canary doc |
 
-None of them runs the seven gates that guard the remediated production behaviour. The
+None of them runs the eight gates that guard the remediated production behaviour. The
 consequence was concrete: the remediation merge to `main` — which reshaped Lead Intake
 identity handling, the CRM write path and the Mini App read model — carried **no mandatory
 status check over any of it**. Every one of those 340 assertions was run by hand.
@@ -35,14 +35,14 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 
 | Step | Purpose |
 |---|---|
-| Syntax check | `node --check` over every gate, `qa/run-all.mjs`, `scripts/*.mjs`, all 12 `n8n/src` modules and the gateway sources. A Code-node source that does not parse cannot be deployed to n8n |
+| Syntax check | `node --check` over every gate, `qa/run-all.mjs`, `scripts/*.mjs`, all 14 `n8n/src` modules and the gateway sources. A Code-node source that does not parse cannot be deployed to n8n |
 | Canonical quality gates | `node qa/run-all.mjs` — the exact command used locally |
 | Assertion baseline | fails if the total **falls** below `ASSERTION_BASELINE` |
-| cwd independence | runs the suite again from `/` and requires 7/7 |
+| cwd independence | runs the suite again from `/` and requires 8/8 |
 | Secret scan | `node scripts/secret-scan.mjs` over every tracked file |
 | Summary | writes the gate table and assertion total to the job summary |
 
-### The seven gates
+### The eight gates
 
 | # | Gate | File | Assertions |
 |---|---|---|---|
@@ -53,7 +53,8 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | 5 | Website contract | `qa/website-contract.test.mjs` | 75 |
 | 6 | n8n export hygiene | `qa/n8n-manifest-drift.test.mjs` | 70 |
 | 7 | Mini App read-model consistency | `qa/miniapp-readmodel.test.mjs` | 41 |
-| | **Baseline** | | **346** |
+| 8 | Mini App consent and submit | `qa/miniapp-submit.test.mjs` | 59 |
+| | **Baseline** | | **405** |
 
 `qa/run-all.mjs` now prints each gate's assertion count and a `TOTAL ASSERTIONS:` line, so
 the number is read from the run rather than transcribed. It also **fails when a gate's tally

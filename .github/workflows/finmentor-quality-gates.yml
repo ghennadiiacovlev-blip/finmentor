@@ -1,7 +1,7 @@
 name: FINMENTOR Quality Gates
 
 # The canonical repository CI. The three Mini App workflows beside this one are
-# path-scoped to their own phase; none of them covers the seven gates that guard the
+# path-scoped to their own phase; none of them covers the eight gates that guard the
 # remediated production behaviour, so before this workflow existed a merge to main had no
 # mandatory status check over them at all.
 #
@@ -26,7 +26,7 @@ env:
   # Raise this deliberately when gates are added. It must never be lowered to make a red
   # build green: a falling count means coverage was removed, which is the thing worth
   # catching.
-  ASSERTION_BASELINE: '346'
+  ASSERTION_BASELINE: '405'
 
 jobs:
   quality-gates:
@@ -92,7 +92,7 @@ jobs:
           repo="$PWD"
           cd /
           node "$repo/qa/run-all.mjs" > /tmp/cwd.out
-          grep -qE '^7/7 gates passed' /tmp/cwd.out
+          grep -qE '^8/8 gates passed' /tmp/cwd.out
           echo "cwd independence: PASS"
 
       - name: Secret scan over tracked files
