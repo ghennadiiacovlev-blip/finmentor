@@ -96,9 +96,27 @@ function makeSessions(initial) {
   };
 }
 
+// The header set the LIVE Bot_Sessions sheet has TODAY. The three N6.2 classification
+// columns are deliberately absent, because a fixture that pretends they exist would hide the
+// deployment prerequisite instead of proving it.
+const LIVE_AUTHORITY_COLUMNS = [
+  'chat_id', 'cycle_id', 'consent', 'consent_cycle_id', 'consent_at', 'consent_source',
+  'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at'
+];
+
+// The header set a deployment that has satisfied AUTHORITY_SCHEMA_PRECONDITION will have.
+// Tests of post-deployment behaviour use this; a dedicated test proves the difference between
+// the two lists is exactly the precondition and nothing else.
+const MIGRATED_AUTHORITY_COLUMNS = LIVE_AUTHORITY_COLUMNS.concat(['lead_mode', 'lead_priority', 'financial_zone']);
+
 // Bot_Sessions double. Same read/write contract the read-model mirror helper is injected
 // with, so authority behaves identically across both slices.
-function makeAuthority(initial) {
+//
+// `columns` models the sheet's header row. A patch key with no header is DROPPED, not
+// rejected — which is what Google Sheets actually does, and precisely why the deployment
+// precondition has to fail closed: an unmigrated sheet accepts the classification write and
+// silently keeps none of it.
+function makeAuthority(initial, columns) {
   const row = Object.assign({
     chat_id: CHAT,
     cycle_id: CYCLE,
@@ -110,6 +128,8 @@ function makeAuthority(initial) {
   }, initial || {});
   return {
     row,
+    columns: (columns || MIGRATED_AUTHORITY_COLUMNS).slice(),
+    dropped: [],
     stats: { reads: 0, writes: 0 },
     failWrite: null,
     missing: false,
@@ -123,7 +143,11 @@ function makeAuthority(initial) {
       const kind = patch.lead_id !== undefined ? 'lead' : 'consent';
       EVENTS.push('authority_write:' + kind);
       if (this.failWrite === kind) { return { ok: false }; }
-      Object.assign(row, patch);
+      Object.keys(patch).forEach((k) => {
+        // No header, no write, no error. See the comment above makeAuthority.
+        if (this.columns.indexOf(k) === -1) { this.dropped.push(k); return; }
+        row[k] = patch[k];
+      });
       return { ok: true };
     }
   };
@@ -524,7 +548,9 @@ check('a new lead makes exactly one Intake call and one canonical result', () =>
   const r = run({});
   eq(r.leadIntake.calls.length, 1, 'Intake call count');
   eq(r.out.response.lead_id, 'FIN-1756171200-042', 'canonical lead id not returned');
-  eq(r.out.response.mode, 'new', 'mode drifted');
+  // N6.2 -- mode is internal now. It is asserted on the LOG, which is where it lives.
+  eq(r.out.log.lead_mode, 'new', 'mode drifted');
+  eq(r.out.response.mode, undefined, 'mode crossed TB-1 on a fresh success');
   eq(r.out.response.submit_state, 'submitted', 'submit state not terminal');
   eq(r.sessions.row.submit_state, 'submitted', 'session state not terminal');
   eq(r.authority.row.lead_id, 'FIN-1756171200-042', 'canonical lead not persisted to authority');
@@ -536,7 +562,8 @@ check('a merge makes exactly one Intake call and returns the existing canonical 
   const r = run({}, { leadIntake: intake });
   eq(r.leadIntake.calls.length, 1, 'Intake call count');
   eq(r.out.response.lead_id, 'FIN-EXISTING-007', 'existing canonical lead not returned');
-  eq(r.out.response.mode, 'merged', 'merge mode lost');
+  eq(r.out.log.lead_mode, 'merged', 'merge mode lost from the log');
+  eq(r.out.response.mode, undefined, 'a merge was disclosed to the browser');
   eq(r.out.response.ok, true, 'merge not reported as a normal success');
 });
 
@@ -1179,11 +1206,13 @@ check('(G3) a caught throw still returns the full accounting block', () => {
 // ------------------------------------- G6 the classification survives a retry (N6.2)
 
 const MERGED_BODY = { ok: true, lead_id: 'FIN-G6-0001', mode: 'merged', priority: 'HOT', financial_zone: 'RED' };
+const MERGED_BODY_TB1 = { ok: true, lead_id: 'FIN-G6-TB1', mode: 'merged', priority: 'HOT', financial_zone: 'RED' };
 
 check('(G6) a successful submit persists the classification to AUTHORITY', () => {
   const authority = makeAuthority();
   const r = run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY }) });
-  eq(r.out.response.mode, 'merged', 'the live classification was not returned');
+  eq(r.out.log.lead_mode, 'merged', 'the live classification was not recorded');
+  eq(r.out.response.mode, undefined, 'a merge was disclosed to the browser');
   eq(authority.row.lead_mode, 'merged', 'authority never learned the mode');
   eq(authority.row.lead_priority, 'HOT', 'authority never learned the priority');
   eq(authority.row.financial_zone, 'RED', 'authority never learned the financial zone');
@@ -1196,7 +1225,8 @@ check('(G6) a retry resolved from authority returns the REAL classification', ()
   const r = run({}, { authority, sessions: makeSessions(), leadIntake: makeIntake({ body: MERGED_BODY }) });
   eq(r.out.log.resolved_from, 'authority', 'the fixture no longer exercises the authority branch');
   eq(r.leadIntake.calls.length, 0, 'a replay called Lead Intake again');
-  eq(r.out.response.mode, 'merged', 'a merged lead was replayed to the client as new');
+  eq(r.out.log.lead_mode, 'merged', 'the recovered mode was not recorded on the replay');
+  eq(r.out.response.mode, undefined, 'a merge was disclosed to the browser on replay');
   eq(r.out.response.priority, 'HOT', 'the priority was replaced by the clamp default');
   eq(r.out.response.financial_zone, 'RED', 'the financial zone was replaced by the clamp default');
   eq(r.out.log.classification_recovered, true, 'a recovered classification was reported as absent');
@@ -1210,7 +1240,8 @@ check('(G6) an authority row with no classification says so instead of guessing'
   // The response still carries the defaults, because the contract's mode vocabulary has no
   // unknown member. What changed is that the log no longer presents them as recovered.
   eq(r.out.response.lead_id, 'FIN-LEGACY-0001', 'the canonical lead id was not recovered');
-  eq(r.out.response.mode, 'new', 'the clamp default drifted');
+  eq(r.out.log.lead_mode, '', 'an absent mode was reported as a value');
+  eq(r.out.log.lead_mode_known, false, 'an absent mode was reported as a known vocabulary value');
   eq(r.out.response.priority, 'COLD', 'the clamp default drifted');
   eq(r.out.response.financial_zone, 'UNKNOWN', 'the clamp default drifted');
 });
@@ -1299,6 +1330,202 @@ check('(T25) no analytics identifier ever reaches the Lead Intake envelope', () 
   const analytics = keys.filter((k) => /^ga_/.test(k) || k === 'analytics_consent' ||
     k === 'client_id' || k === 'session_id' || k === 'measurement_id');
   eq(analytics.length, 0, 'analytics identifiers reached the envelope: ' + analytics.join(', '));
+});
+
+
+// ------------------------------- OWNER DECISION: mode must not cross TB-1 (N6.2)
+//
+// The rule: the browser must not be able to determine from the response whether its lead was
+// new, merged, a retry or a duplicate. Gateway contract §9 used to define `mode` in the
+// success body while also requiring that the UI not disclose duplication -- a field in the
+// body is readable in devtools whatever the UI renders, so the two could not both hold.
+//
+// These checks cover every branch that returns a body, because "not in the happy path" is
+// not the same guarantee as "not anywhere".
+
+console.log('\nMODE CLIENT EXPOSURE');
+
+function responseKeysDeep(obj) {
+  const keys = [];
+  (function walk(node) {
+    if (!node || typeof node !== 'object') { return; }
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    Object.keys(node).forEach((k) => { keys.push(k); walk(node[k]); });
+  }(obj));
+  return keys;
+}
+
+function assertNoModeAnywhere(response, where) {
+  const keys = responseKeysDeep(response);
+  assert(keys.indexOf('mode') === -1, 'mode reached the browser in ' + where);
+  assert(keys.indexOf('lead_mode') === -1, 'lead_mode reached the browser in ' + where);
+  eq(C.responseLeaks(response).length, 0, where + ' leaked ' + C.responseLeaks(response).join(','));
+}
+
+check('mode is not in the client whitelist, and is actively refused', () => {
+  eq(C.CLIENT_RESPONSE_FIELDS.indexOf('mode'), -1, 'mode is still a client response field');
+  eq(C.CLIENT_RESPONSE_FIELDS.length, 5, 'the client whitelist is not the expected five fields');
+  // Omission and refusal are different guarantees. This is the refusal.
+  assert(C.RESPONSE_FORBIDDEN_KEYS.indexOf('mode') !== -1, 'mode is not a forbidden response key');
+  assert(C.RESPONSE_FORBIDDEN_KEYS.indexOf('lead_mode') !== -1, 'lead_mode is not a forbidden response key');
+  eq(C.responseLeaks({ ok: true, mode: 'merged' }).join(','), 'mode', 'a response carrying mode was not flagged');
+  eq(C.responseLeaks({ ok: true, meta: { detail: { lead_mode: 'merged' } } }).join(','), 'lead_mode',
+    'a NESTED lead_mode was not flagged');
+});
+
+check('buildSubmitSuccess cannot emit mode even when handed one', () => {
+  const out = C.buildSubmitSuccess({ lead_id: 'FIN-X', mode: 'merged', priority: 'HOT', financial_zone: 'RED' });
+  eq(out.mode, undefined, 'buildSubmitSuccess still emits mode');
+  eq(Object.keys(out).sort().join(','), C.CLIENT_RESPONSE_FIELDS.slice().sort().join(','),
+    'the success body is not exactly the whitelist');
+  // The rest of the classification is unaffected -- this decision is about mode only.
+  eq(out.priority, 'HOT', 'priority was lost with mode');
+  eq(out.financial_zone, 'RED', 'financial zone was lost with mode');
+});
+
+check('no branch that returns a body discloses mode', () => {
+  assertNoModeAnywhere(run({}).out.response, 'a fresh success');
+  assertNoModeAnywhere(run({}, { leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) }).out.response, 'a merged success');
+  assertNoModeAnywhere(run({ consent: 'no' }).out.response, 'a consent-NO accept');
+  assertNoModeAnywhere(run({ answers: Object.assign({}, GOOD_ANSWERS, { sector: 'banking' }) }).out.response, 'a validation error');
+  assertNoModeAnywhere(run({}, { leadIntake: makeIntake({ ambiguous: true }) }).out.response, 'an ambiguous outcome');
+});
+
+check('no REPLAY branch discloses mode, whichever source resolved it', () => {
+  // session
+  const fromSession = run({}, { sessions: makeSessions({ submit_state: 'submitted', lead_id: 'FIN-S', mode: 'merged' }) });
+  eq(fromSession.out.log.resolved_from, 'session', 'fixture drifted off the session branch');
+  assertNoModeAnywhere(fromSession.out.response, 'a session-resolved replay');
+
+  // authority
+  const authority = makeAuthority();
+  run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) });
+  const fromAuthority = run({}, { authority, sessions: makeSessions(), leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) });
+  eq(fromAuthority.out.log.resolved_from, 'authority', 'fixture drifted off the authority branch');
+  assertNoModeAnywhere(fromAuthority.out.response, 'an authority-resolved replay');
+
+  // lookup
+  const fromLookup = run({}, {
+    sessions: makeSessions({ submit_state: 'submitting' }),
+    leadIntake: makeIntake({ lookup: { ok: true, known: true, body: MERGED_BODY_TB1 } })
+  });
+  eq(fromLookup.out.log.resolved_from, 'lookup', 'fixture drifted off the lookup branch');
+  assertNoModeAnywhere(fromLookup.out.response, 'a lookup-resolved replay');
+});
+
+check('internal observability is not weakened: every resolved path logs mode', () => {
+  eq(run({}, { leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) }).out.log.lead_mode, 'merged',
+    'a fresh success stopped logging mode');
+  const fromSession = run({}, { sessions: makeSessions({ submit_state: 'submitted', lead_id: 'FIN-S', mode: 'merged' }) });
+  eq(fromSession.out.log.lead_mode, 'merged', 'a session-resolved replay stopped logging mode');
+  const fromLookup = run({}, {
+    sessions: makeSessions({ submit_state: 'submitting' }),
+    leadIntake: makeIntake({ lookup: { ok: true, known: true, body: MERGED_BODY_TB1 } })
+  });
+  eq(fromLookup.out.log.lead_mode, 'merged', 'a lookup-resolved replay stopped logging mode');
+});
+
+check('the logged mode is the OBSERVED value, not one clamped into the vocabulary', () => {
+  // Canary L7 has to see what Lead Intake actually said. A value coerced to 'new' would
+  // destroy exactly the evidence the canary exists to collect.
+  const odd = { ok: true, lead_id: 'FIN-ODD-1', mode: 'reopened', priority: 'HOT', financial_zone: 'RED' };
+  const r = run({}, { leadIntake: makeIntake({ body: odd }) });
+  eq(r.out.log.lead_mode, 'reopened', 'an unexpected downstream mode was clamped in the log');
+  eq(r.out.log.lead_mode_known, false, 'a vocabulary drift was not flagged');
+  assertNoModeAnywhere(r.out.response, 'a success with an unexpected mode');
+  eq(C.internalMode('merged').known, true, 'a known mode was flagged unknown');
+});
+
+// ------------------------- OWNER DECISION: Bot_Sessions schema precondition (N6.2)
+//
+// Approved as a DEPLOYMENT PREREQUISITE only. Nothing here touches a live sheet. These
+// checks pin the declared contract and prove the preflight fails closed -- and, deliberately,
+// that the fixture does NOT paper over the fact that the live sheet lacks the columns today.
+
+console.log('\nBOT_SESSIONS SCHEMA PRECONDITION');
+
+check('the precondition is a declared contract with fail-closed semantics', () => {
+  const p = C.AUTHORITY_SCHEMA_PRECONDITION;
+  assert(p && typeof p === 'object', 'AUTHORITY_SCHEMA_PRECONDITION is not exported');
+  eq(p.store, 'Bot_Sessions', 'the precondition names the wrong store');
+  eq(p.fail_mode, 'FAIL_CLOSED', 'the precondition does not declare fail-closed');
+  eq(p.silent_default_permitted, false, 'the precondition permits a silent default');
+  eq(p.columns.map((c) => c.name).join(','), 'lead_mode,lead_priority,financial_zone',
+    'the required column set drifted');
+  p.columns.forEach((c) => {
+    assert(c.semantics && c.semantics.length > 10, c.name + ' has no documented semantics');
+    assert(Array.isArray(c.vocabulary) && c.vocabulary.length, c.name + ' has no declared vocabulary');
+    assert(c.on_absent && c.on_absent.length > 10, c.name + ' does not say what absence costs');
+  });
+  eq(C.AUTHORITY_SCHEMA_PRECONDITION.columns.find((c) => c.name === 'lead_mode').crosses_tb1, false,
+    'lead_mode is declared as crossing TB-1, which the owner decision forbids');
+});
+
+check('the preflight fails closed on absent, partial and unreadable headers', () => {
+  const absent = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS);
+  eq(absent.deploy, false, 'the preflight cleared a deployment against the live schema');
+  eq(absent.reason, 'COLUMNS_ABSENT', 'the refusal reason drifted');
+  eq(absent.missing.join(','), 'lead_mode,lead_priority,financial_zone', 'the missing set is wrong');
+
+  const partial = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['lead_mode']));
+  eq(partial.deploy, false, 'a partial migration cleared the preflight');
+  eq(partial.missing.join(','), 'lead_priority,financial_zone', 'the partial missing set is wrong');
+
+  // "We could not check" and "it is fine" must never be the same answer.
+  [null, undefined, 'lead_mode', {}, 42].forEach((bad) => {
+    const r = C.authoritySchemaPreflight(bad);
+    eq(r.deploy, false, 'an unreadable header list (' + JSON.stringify(bad) + ') cleared the preflight');
+    eq(r.reason, 'HEADERS_UNREADABLE', 'an unreadable header list was misreported');
+  });
+});
+
+check('the preflight clears only a fully migrated sheet', () => {
+  const ok = C.authoritySchemaPreflight(MIGRATED_AUTHORITY_COLUMNS);
+  eq(ok.deploy, true, 'a fully migrated sheet was refused');
+  eq(ok.reason, 'SATISFIED', 'the pass reason drifted');
+  eq(ok.missing.length, 0, 'a satisfied preflight still reported missing columns');
+  // Header text is compared, not column count: a mistyped header is an absent column.
+  const typo = LIVE_AUTHORITY_COLUMNS.concat(['leadmode', 'lead_priority', 'financial_zone']);
+  eq(C.authoritySchemaPreflight(typo).deploy, false, 'a mistyped header passed as present');
+});
+
+check('the fixtures do not hide the live prerequisite', () => {
+  // The optimistic fixture is exactly the live schema plus the precondition columns, and
+  // nothing else. If someone widens the fixture to make a test pass, this fails.
+  const extra = MIGRATED_AUTHORITY_COLUMNS.filter((c) => LIVE_AUTHORITY_COLUMNS.indexOf(c) === -1);
+  eq(extra.join(','), C.AUTHORITY_SCHEMA_PRECONDITION.columns.map((c) => c.name).join(','),
+    'the migrated fixture differs from the live schema by something other than the precondition');
+  C.AUTHORITY_SCHEMA_PRECONDITION.columns.forEach((c) => {
+    eq(LIVE_AUTHORITY_COLUMNS.indexOf(c.name), -1,
+      c.name + ' is modelled as already present in the live schema, which hides the prerequisite');
+  });
+});
+
+check('against TODAY live schema the classification write is silently dropped', () => {
+  // This is the failure the precondition exists to prevent, demonstrated rather than
+  // asserted in prose: the write succeeds, the sheet keeps none of it, nothing errors.
+  const authority = makeAuthority(undefined, LIVE_AUTHORITY_COLUMNS);
+  const r = run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) });
+  eq(r.out.response.ok, true, 'the submit itself failed, which is not what an unmigrated sheet does');
+  eq(authority.row.lead_id, 'FIN-G6-TB1', 'the lead binding was lost, so the fixture is wrong');
+  eq(authority.row.lead_mode, undefined, 'the fixture stored a column the live sheet does not have');
+  eq(authority.dropped.sort().join(','), 'financial_zone,lead_mode,lead_priority',
+    'the dropped-column set drifted');
+  eq(C.authoritySchemaPreflight(authority.columns).deploy, false,
+    'the preflight would have cleared this deployment');
+});
+
+check('an unmigrated sheet cannot recover the classification on a retry', () => {
+  // The consequence of the drop above, one request later: this is why the preflight refuses
+  // rather than letting a deployment proceed and fall back.
+  const authority = makeAuthority(undefined, LIVE_AUTHORITY_COLUMNS);
+  run({}, { authority, leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) });
+  const retry = run({}, { authority, sessions: makeSessions(), leadIntake: makeIntake({ body: MERGED_BODY_TB1 }) });
+  eq(retry.out.log.resolved_from, 'authority', 'fixture drifted off the authority branch');
+  eq(retry.out.log.classification_recovered, false, 'an unmigrated sheet claimed a recovered classification');
+  eq(retry.out.log.lead_mode, '', 'a dropped column produced a value from nowhere');
+  // And still nothing crosses TB-1.
+  assertNoModeAnywhere(retry.out.response, 'an unmigrated authority replay');
 });
 
 // ---------------------------------------------------------------------- summary

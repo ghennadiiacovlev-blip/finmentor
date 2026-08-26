@@ -58,11 +58,27 @@ const UNTRUSTED_BODY_KEYS = [
 
 // §9 success response + §12 "redact/restrict error details". Everything the browser is
 // allowed to see. lead_id is deliberately present: §9 returns the canonical lead id.
-const CLIENT_RESPONSE_FIELDS = ['ok', 'lead_id', 'mode', 'priority', 'financial_zone', 'submit_state'];
+// OWNER DECISION, N6.2: `mode` is NOT in this list, and must never return to it.
+//
+// The browser must not be able to determine from the response whether its lead was new,
+// merged, a retry or a duplicate. Gateway contract §9 previously did two contradictory
+// things at once -- it defined `mode` in the success body and required that "the UI must not
+// tell a client they were a duplicate" -- and a field in the response body is readable in
+// devtools whatever the UI chooses to render. The contradiction is resolved in favour of the
+// rule, not the field.
+//
+// `mode` is not lost, only reclassified as internal: it is written to authority as
+// `lead_mode` and recorded in the server log (see `internalMode`), which is where canary L7
+// needs it. See RESPONSE_FORBIDDEN_KEYS -- it is now actively refused, not merely omitted.
+const CLIENT_RESPONSE_FIELDS = ['ok', 'lead_id', 'priority', 'financial_zone', 'submit_state'];
 
 // Never returned to the browser under any branch. Distinct from the read-model leak list
 // because submit legitimately returns lead_id.
 const RESPONSE_FORBIDDEN_KEYS = [
+  // N6.2 -- omitting a field and refusing it are different guarantees. `mode` and its
+  // authority spelling are listed so that reintroducing either, at any nesting depth and by
+  // any route, is caught by `responseLeaks` rather than by someone noticing.
+  'mode', 'lead_mode',
   'init_data', 'hash', 'signature', 'bot_token', 'token', 'credential',
   'chat_id', 'telegram_user_id', 'session_id', 'app_session_id', 'cycle_id',
   'consent_cycle_id', 'lead_cycle_id', 'consent_at', 'idempotency_key',
@@ -542,22 +558,102 @@ const ALLOWED_MODES = ['new', 'merged'];
 const ALLOWED_PRIORITIES = ['HOT', 'WARM', 'COLD', 'INCOMPLETE'];
 const ALLOWED_ZONES = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'UNKNOWN'];
 
+// ------------------------------------------- B.2.1-C deployment precondition (owner, N6.2)
+//
+// These three `Bot_Sessions` columns are a DEPLOYMENT PREREQUISITE. They are not created
+// here and the live sheet is not touched: what lives in this file is the contract a
+// deployment must satisfy before the G6 classification write can land, plus a preflight that
+// FAILS CLOSED when it is not satisfied.
+//
+// Why fail closed rather than default. Google Sheets silently drops a patch key that has no
+// header — the write does not error, it does nothing. The next authority-resolved retry then
+// reads a blank and clamps it to a value indistinguishable from a real one, which is exactly
+// the defect G6 closed. A silent default would therefore re-open G6 at deployment time,
+// invisibly. So an absent column means REFUSE TO DEPLOY, never "deploy and fall back".
+const AUTHORITY_SCHEMA_PRECONDITION = {
+  store: 'Bot_Sessions',
+  required_before: 'B.2.1-C live deployment',
+  applies_to: 'the canonical lead binding written by persistCanonical',
+  fail_mode: 'FAIL_CLOSED',
+  silent_default_permitted: false,
+  // Header text must match exactly. Position is deliberately NOT depended on — the writer
+  // patches by key and never by column index — but a mistyped header is an absent column as
+  // far as the writer is concerned, which is why the preflight compares text, not count.
+  header_contract: 'exact lower_snake_case header text in row 1, appended after the existing headers; position not depended upon',
+  columns: [
+    {
+      name: 'lead_mode',
+      semantics: 'Lead Intake mode for this cycle\'s canonical lead: "new" or "merged".',
+      vocabulary: ALLOWED_MODES,
+      written_by: 'persistCanonical, at the authoritative commit',
+      read_by: 'resolvePriorSubmission, authority branch',
+      crosses_tb1: false,
+      on_absent: 'an authority-resolved retry cannot recover the classification'
+    },
+    {
+      name: 'lead_priority',
+      semantics: 'Canonical lead priority as Lead Intake scored it.',
+      vocabulary: ALLOWED_PRIORITIES,
+      written_by: 'persistCanonical, at the authoritative commit',
+      read_by: 'resolvePriorSubmission, authority branch',
+      crosses_tb1: true,
+      on_absent: 'an authority-resolved retry reports the clamp default COLD'
+    },
+    {
+      name: 'financial_zone',
+      semantics: 'Canonical financial zone as Lead Intake scored it.',
+      vocabulary: ALLOWED_ZONES,
+      written_by: 'persistCanonical, at the authoritative commit',
+      read_by: 'resolvePriorSubmission, authority branch',
+      crosses_tb1: true,
+      on_absent: 'an authority-resolved retry reports the clamp default UNKNOWN'
+    }
+  ]
+};
+
+// Preflight for a deployment script. Takes the OBSERVED header row of the live Bot_Sessions
+// sheet and answers whether the classification write may be deployed.
+//
+// Every ambiguous case is a refusal. An unreadable header list is not a pass: "we could not
+// check" and "it is fine" are the two answers a preflight must never confuse.
+function authoritySchemaPreflight(observedHeaders) {
+  const required = AUTHORITY_SCHEMA_PRECONDITION.columns.map((c) => c.name);
+  if (!Array.isArray(observedHeaders)) {
+    return { ok: false, deploy: false, reason: 'HEADERS_UNREADABLE', missing: required.slice() };
+  }
+  const seen = observedHeaders.map((h) => normValue(h));
+  const missing = required.filter((c) => seen.indexOf(c) === -1);
+  if (missing.length) {
+    return { ok: false, deploy: false, reason: 'COLUMNS_ABSENT', missing: missing };
+  }
+  return { ok: true, deploy: true, reason: 'SATISFIED', missing: [] };
+}
+
+// Internal observability only — the one place `mode` survives now that it does not cross
+// TB-1. Deliberately NOT clamped: canary L7 has to observe what Lead Intake actually said,
+// and coercing an unexpected value into the allowed vocabulary would destroy the evidence.
+// `known` records whether the observed value was in the vocabulary, so a drift downstream is
+// visible in the log instead of being smoothed away.
+function internalMode(value) {
+  const observed = normValue(value);
+  return { observed: observed, known: ALLOWED_MODES.indexOf(observed) !== -1 };
+}
+
 // Build the browser response from the canonical Lead Intake result. Whitelist only, and the
 // values are re-checked against the allowed vocabulary so a surprising downstream value is
 // reported as UNKNOWN rather than passed through verbatim.
 //
-// §9 — "The UI must not tell a client they were a duplicate." `mode` is returned because the
-// contract defines it; the presentation rule lives in the Mini App spec, and nothing in the
-// confirmation copy differs between new and merged.
+// §9 — "The UI must not tell a client they were a duplicate." N6.2 makes that structural:
+// `mode` is not in the returned object at all, so there is nothing for a client to read and
+// nothing for a UI to be trusted to hide. The value still reaches the log through
+// `internalMode` and authority through `lead_mode`.
 function buildSubmitSuccess(opts) {
   const o = opts || {};
-  const mode = ALLOWED_MODES.indexOf(normValue(o.mode)) !== -1 ? normValue(o.mode) : 'new';
   const priority = ALLOWED_PRIORITIES.indexOf(normValue(o.priority)) !== -1 ? normValue(o.priority) : 'COLD';
   const zone = ALLOWED_ZONES.indexOf(normValue(o.financial_zone)) !== -1 ? normValue(o.financial_zone) : 'UNKNOWN';
   return {
     ok: true,
     lead_id: normValue(o.lead_id),
-    mode: mode,
     priority: priority,
     financial_zone: zone,
     submit_state: 'submitted'
@@ -604,6 +700,8 @@ module.exports = {
   RETRYABLE,
   RECOVERY_ADAPTER_CONTRACT,
   REQUEST_ID_SEMANTICS,
+  AUTHORITY_SCHEMA_PRECONDITION,
+  authoritySchemaPreflight,
   recoveryAdapterStatus,
   SUBMIT_STATES,
   TRANSITIONS,
@@ -622,6 +720,7 @@ module.exports = {
   evaluateConsent,
   buildLeadIntakePayload,
   buildSubmitSuccess,
+  internalMode,
   responseLeaks,
   newCorrelationId,
   fail

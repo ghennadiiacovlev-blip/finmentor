@@ -311,7 +311,7 @@ The canonical workflow now runs **eight** gates:
 | Change | Value |
 |---|---|
 | `qa/run-all.mjs` | gate 8, "Mini App consent and submit" |
-| `ASSERTION_BASELINE` | 346 → 405 (+59) → **431** after N6.1 (+26) → **448** after N6.2 (+17) |
+| `ASSERTION_BASELINE` | 346 → 405 (+59) → **431** after N6.1 (+26) → **460** after N6.2 (+29) |
 | cwd-independence check | requires `8/8 gates passed` |
 | syntax check | now covers **14** `n8n/src` modules (was 12) |
 | `docs/FINMENTOR_CI_QUALITY_GATE.md` | gate table and prose updated to eight |
@@ -411,7 +411,7 @@ this is the summary and, more usefully, the parts where the work disagreed with 
 |---|---|---|
 | **G3** | MEDIUM | **OFFLINE-CLOSED** — mirror try/catch, and a top-level catch that classifies by throw site |
 | **G5** | MEDIUM | **ASSESSED, NOT CLOSABLE OFFLINE** — no module to close it in, and it needs G1's missing durable store |
-| **G6** | LOW | **HALF CLOSED** — classification persisted to authority; `mode` across TB-1 left as an owner decision |
+| **G6** | LOW | **CLOSED** — classification persisted to authority; `mode` removed from TB-1 by owner decision (§8.3) |
 | **G7** | LOW | **OFFLINE-CLOSED as a declaration** — `REQUEST_ID_SEMANTICS`, with a tripwire check |
 | **T32 / T25** | recommendations | **BOTH CLOSED** as gate checks |
 
@@ -454,21 +454,105 @@ here because a gap list that is silently "fixed as specified" teaches nothing.
 - **No deployment, no live call, no tenant access.** Same stop conditions as §9, all still
   in force.
 
-### Owner decisions this raises
+### Owner decisions this raised
 
-1. **Should `mode` cross TB-1 at all?** The gateway contract §9 puts it in the success
-   response *and* says the UI must not tell a client they were a duplicate. A field in the
-   response body is readable in devtools whatever the UI renders, so both cannot be fully
-   true. Recommendation: drop `mode` from `CLIENT_RESPONSE_FIELDS`, keep it in the server
-   log where canary L7 needs it. Not done here because it changes a contract.
-2. **Three `Bot_Sessions` columns** — `lead_mode`, `lead_priority`, `financial_zone` — are a
-   deployment precondition for the G6 fix, in the same class as the Pipeline `AZ:BG` columns
-   and alongside the existing precondition for `lead_id` / `lead_cycle_id`. Not urgent: the
-   slice is not deployed, and a missing column is a write failure the handler already reports
-   as `SUBMIT_UNRESOLVED` rather than a silent loss.
+Both were returned and applied the same night. See **§8.3**.
+
+1. **Should `mode` cross TB-1 at all?** — **APPROVED for removal.** Implemented.
+2. **Three `Bot_Sessions` columns** — **APPROVED as a deployment precondition only**, with
+   the live sheet untouched. Implemented as a declared contract plus a fail-closed preflight.
 
 ### Gate
 
 **101 checks** in `qa/miniapp-submit.test.mjs` (was 84), **448** total across eight gates
-(was 431). Every fix is mutation-verified: six mutations, each failing exactly the checks that
-exist to catch it and nothing else.
+(was 431), before the owner decisions were applied. Every fix is mutation-verified: six
+mutations, each failing exactly the checks that exist to catch it and nothing else. The
+figures after the owner decisions are in §8.3.
+
+---
+
+## 8.3 OWNER DECISIONS APPLIED
+
+The three decisions returned on the N6.2 findings, and what each cost in code. Full detail is
+in **threat model §4.3**; the parts worth reading twice are here.
+
+### 1. `mode` must not cross TB-1 — APPROVED, IMPLEMENTED
+
+The browser must not be able to determine from the response whether its lead was new, merged,
+a retry or a duplicate. `mode` is out of `CLIENT_RESPONSE_FIELDS`, out of
+`buildSubmitSuccess`, and out of every branch that returns a body — success, merge,
+consent-NO, validation error, ambiguous outcome, and all three replay sources.
+
+Three things about how it was done:
+
+- **Omission is not refusal.** `mode` and `lead_mode` were added to
+  `RESPONSE_FORBIDDEN_KEYS`, so `responseLeaks` rejects them at any nesting depth. A future
+  change that reintroduces the field by any route fails the gate instead of waiting to be
+  spotted in review.
+- **Observability came out stronger, not weaker.** The instruction was not to weaken it, and
+  taking the field out of the response would have done exactly that if nothing replaced it:
+  the **replay paths logged no `mode` at all** before this change, and the fresh-success path
+  logged the clamped value. Every resolved path now logs `lead_mode` and `lead_mode_known`.
+- **The logged value is unclamped, deliberately.** Canary L7's whole purpose is to observe a
+  real Lead Intake `mode` for the first time. Coercing an unexpected value into
+  `new`/`merged` would destroy that evidence, so the observed string is logged as-is and
+  `lead_mode_known: false` flags a vocabulary drift.
+
+The canonical contract §9 was rewritten rather than patched: the field is gone from the JSON
+block, and the reason now stands where the contradiction used to. It had said `mode` was in
+the body *and* that the UI must not disclose duplication — which made the rule depend on the
+client's good manners.
+
+**Consequence for the canaries:** L14's criterion drops from six whitelisted response fields
+to five, and gains `mode` to its explicit must-not-appear list.
+
+### 2. `Bot_Sessions` columns — APPROVED AS DEPLOYMENT PRECONDITION ONLY
+
+**The live sheet was not touched.** `lead_mode`, `lead_priority` and `financial_zone` are
+recorded as a prerequisite for live deployment, with semantics, vocabulary, writer, reader,
+TB-1 status and the cost of absence declared per column in `AUTHORITY_SCHEMA_PRECONDITION`.
+The header contract is exact lower_snake_case text in row 1, appended after the existing
+headers; position is not depended upon, because the writer patches by key, never by index.
+
+`authoritySchemaPreflight()` refuses on absent columns, **partial** migration, a mistyped
+header, and an unreadable header list — `fail_mode: FAIL_CLOSED`,
+`silent_default_permitted: false`. "We could not check" and "it is fine" are never the same
+answer.
+
+**Why refusing beats falling back, concretely.** Google Sheets silently drops a patch key with
+no header: the write does not error, it does nothing. The retry one request later reads a
+blank and clamps it to a value indistinguishable from a real one — the exact defect G6 closed.
+A fallback would therefore re-open G6 at deployment time and do it invisibly.
+
+**The fixtures were made to show the prerequisite, not hide it.** The authority double now
+models a column-constrained sheet and drops headerless keys the way Sheets does. Two checks
+demonstrate the failure against **today's** schema — the classification write succeeds and
+stores nothing; the retry cannot recover the classification — and two more pin the optimistic
+fixture to exactly the live schema plus the three precondition columns. Both attempts to widen
+a fixture to make a test pass were run as mutations, and both fail the gate.
+
+### 3. G5 replay — DOCUMENTED, NOT CLOSED
+
+No standalone replay-store module was invented. Durable `initData` single-use protection is
+recorded as requiring a durable backing capability, in the **same pre-activation
+live-infrastructure family as G1**, unless the canonical architecture defines a separate
+store. It is **not** marked CLOSED, and spec-only validation is explicitly not accepted as
+closure.
+
+### Gate after the decisions
+
+**113 checks** in `qa/miniapp-submit.test.mjs`, **460** total across eight gates. Nine further
+mutations, each failing exactly the checks meant to catch it: restoring `mode` to the
+whitelist; re-emitting it from `buildSubmitSuccess`; dropping it from
+`RESPONSE_FORBIDDEN_KEYS`; passing an unreadable header list; ignoring missing columns;
+dropping `mode` from the replay log; clamping the logged value; and the two fixture-widening
+attempts.
+
+### What still blocks activation
+
+Unchanged, and none of it moved tonight:
+
+- **G1** — no durable idempotency store. Still the blocker.
+- **G5** — replay, now formally in G1's infrastructure family.
+- **The three `Bot_Sessions` columns** — an unmet deployment precondition, by design.
+- **The fifteen live canary items** — all unexecuted.

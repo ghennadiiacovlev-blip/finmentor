@@ -28,6 +28,10 @@
 //   * No throw ever leaves this handler. Every client is injected and any of them may
 //     throw; what the caller is told depends on whether the irreversible call was reached,
 //     never on the thrown value, which is not read at all (G3).
+//   * The browser cannot learn whether its lead was new, merged or a duplicate. `mode` does
+//     not appear in any client response on any branch; it lives in the server log and in
+//     the authority row, and `responseLeaks` refuses it rather than merely omitting it
+//     (owner decision, N6.2).
 //
 // Injected contracts:
 //   sessions.read(appSessionId)                    -> { ok, session }
@@ -500,9 +504,16 @@ function submitSequence(o, run) {
       });
       counts.session_writes++;
     }
+    const replayMode = C.internalMode(prior.result.mode);
     return accept(success, correlationId, counts, {
       idempotent_replay: true,
       resolved_from: prior.source,
+      // N6.2 -- `mode` no longer crosses TB-1, so the log is the ONLY place it survives.
+      // It is recorded on the replay paths too, not just on a fresh success: without this,
+      // removing the field from the response would have quietly cost the observability that
+      // canary L7 and L8 depend on, which the owner decision explicitly forbids.
+      lead_mode: replayMode.observed,
+      lead_mode_known: replayMode.known,
       // G6 -- false means the lead id is canonical but mode/priority/zone in the response
       // are clamp defaults, not recovered values. Only the authority branch can report it.
       classification_recovered: prior.classification_recovered !== false,
@@ -677,9 +688,14 @@ function submitSequence(o, run) {
   }
 
   // ---- §9.10 one clean success -----------------------------------------------------
+  const observedMode = C.internalMode(result.mode);
   return accept(C.buildSubmitSuccess(result), correlationId, counts, {
     idempotent_replay: false,
-    mode: result.mode,
+    // Unclamped on purpose: canary L7 must observe what Lead Intake actually returned, and
+    // `lead_mode_known: false` is how a vocabulary drift becomes visible rather than smoothed
+    // into `new` by the response clamp -- which no longer exists for mode in any case.
+    lead_mode: observedMode.observed,
+    lead_mode_known: observedMode.known,
     payload_bytes: built.payload_bytes,
     untrusted_fields_ignored: v.ignored_untrusted,
     // §12 -- init_data, signatures, contact details and credentials are never logged.

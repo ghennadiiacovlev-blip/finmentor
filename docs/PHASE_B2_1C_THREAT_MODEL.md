@@ -526,7 +526,7 @@ the browser is never either.**
 - **LIVE PROOF REQUIRED?** — **YES** (canary items 7–8) — a real Lead Intake `mode` has never been observed by this code.
 - **FAIL-SAFE / FALLBACK** — Clamp to a safe known value rather than echo.
 - **ROLLBACK / CONTAINMENT** — Pipeline retains the merge history.
-- **STATUS** — **OFFLINE-PROVEN.** Of the two **G6** residuals, N6.2 closed the second and left the first open on purpose. (1) `mode` is still in the client whitelist, so merge status **is** disclosed in the response body even if the UI hides it. Closing that means removing `mode` from the response shape the gateway contract §9 defines, which is a contract change and therefore a decision, not an implementation detail — carried as an **open design decision** in §4.2. (2) **Closed.** `persistCanonical` now writes `lead_mode`, `lead_priority` and `financial_zone` to authority, so a retry resolved from the authority branch returns the real classification instead of the clamp defaults. The scope was wider than the row recorded: `priority` and `financial_zone` were fabricated as `COLD` / `UNKNOWN` on that path too, not only `mode` as `new`. Where an older row carries no classification, the resolver reports `classification_recovered: false` rather than presenting a clamp default as a recovered value.
+- **STATUS** — **OFFLINE-PROVEN. G6 fully closed.** (1) `mode` no longer crosses TB-1 at all: the owner approved removing it from the client whitelist, and §4.3 records the change. The response cannot disclose new/merged/retry/duplicate on any branch, and `responseLeaks` refuses the key rather than the body merely omitting it. (2) **Closed.** `persistCanonical` now writes `lead_mode`, `lead_priority` and `financial_zone` to authority, so a retry resolved from the authority branch returns the real classification instead of the clamp defaults. The scope was wider than the row recorded: `priority` and `financial_zone` were fabricated as `COLD` / `UNKNOWN` on that path too, not only `mode` as `new`. Where an older row carries no classification, the resolver reports `classification_recovered: false` rather than presenting a clamp default as a recovered value.
 
 ### T35 — Client response exposing authority/internal metadata
 
@@ -668,7 +668,7 @@ been run.** No live execution took place tonight.
 | **L11** | Mirror failure fallback | T15, T18 — force a Data Table failure after a good commit | Submit still succeeds; next open falls back to authority and is correct; fallback latency recorded against Phase 10's 6–7 s Sheets figure |
 | **L12** | Ambiguous timeout recovery | T13, T14, T40 — a real downstream timeout, then a retry | First: `SUBMIT_UNRESOLVED`, state stays `submitting`. Retry: resolves via lookup; **exactly one** lead exists |
 | **L13** | Concurrent submit ordering | T12, T39 — two genuinely overlapping submits for one session; extend with a cycle reset injected mid-flight | Exactly one reaches Intake; the other gets `SUBMIT_IN_PROGRESS`; **one** Pipeline row. Cycle-reset variant records observed behaviour against G2 |
-| **L14** | No PII in client response | T23, T35 — capture the raw response bytes on success **and** on error | Only the six whitelisted fields; no `chat_id`, `init_data`, cycle field or n8n envelope; verified as raw bytes, not through a client that re-serialises |
+| **L14** | No PII in client response | T23, T35 — capture the raw response bytes on success **and** on error | Only the **five** whitelisted fields (`mode` was removed by owner decision in N6.2 — see §4.3); no `mode`, `chat_id`, `init_data`, cycle field or n8n envelope; verified as raw bytes, not through a client that re-serialises |
 | **L15** | Zero unrelated CRM mutations | T5, T36, T38 — full-tenant before/after comparison | Pipeline row count changes by exactly the number of canary leads; no `Bot_Sessions` row other than the canary identity is modified |
 
 **Verification discipline, carried over from Phase 10 §9.2 because it caught a real trap:**
@@ -752,7 +752,7 @@ end of §3.** G1's blocker is untouched and still governs activation.
 ### G6 — `mode` across TB-1 and the unpersisted classification → **HALF CLOSED, one OPEN DESIGN DECISION**
 
 - **CLOSED** — `persistCanonical` writes `lead_mode`, `lead_priority` and `financial_zone` to authority alongside the lead binding. A retry resolved from the **authority** branch now returns the real classification. The gap under-stated its own scope: that path fabricated `priority: COLD` and `financial_zone: UNKNOWN` as well as `mode: new`, and all three came from the response clamp, which cannot distinguish a default from a real value. Where the fields are absent — a row written before this change — the resolver reports `classification_recovered: false` in the log instead of letting a clamp default pass as recovered.
-- **OPEN, and an owner decision** — whether `mode` should cross TB-1 to the browser at all. The gateway contract §9 defines it in the success response **and** states that "the UI must not tell a client they were a duplicate". Both cannot be fully true: a field in the response body is readable in devtools whatever the UI renders. **Recommendation: remove `mode` from `CLIENT_RESPONSE_FIELDS` and keep it in the server log**, where canary L7 needs it. It was not done here because it changes the response shape the contract defines, and this programme does not change contracts silently.
+- **CLOSED, by owner decision** — the recommendation to remove `mode` from `CLIENT_RESPONSE_FIELDS` was **approved and implemented**; see §4.3. G6 has no open half remaining.
 - **DEPLOYMENT PRECONDITION** — `lead_mode`, `lead_priority` and `financial_zone` must exist as `Bot_Sessions` columns before the write can land. This is the same class of owner action as the Pipeline `AZ:BG` columns, and it joins the existing precondition for `lead_id` / `lead_cycle_id`. It is **not** new activation surface: the slice is not deployed, and a missing column is a write failure the handler already reports as `SUBMIT_UNRESOLVED` rather than a silent loss. None of the three is in `PROJECTION_FIELDS`, so the read-model `projection_version` is unaffected.
 - **ACTIVATION BLOCKING?** — No.
 
@@ -762,7 +762,7 @@ end of §3.** G1's blocker is untouched and still governs activation.
 - **OFFLINE PROOF** — 3 checks: two real attempts at one submission carry different `request_id`s while sharing one idempotency key; the outbound envelope carries **no** idempotency key at any depth; the declaration itself is asserted, including `downstream_idempotency_key_present: false`. That last one is deliberately a tripwire — the day it becomes true, G1 is buildable and the check fails until someone revisits this.
 - **ACTIVATION BLOCKING?** — No.
 
-### G5 — `initData` replay → **ASSESSED, NOT CLOSABLE OFFLINE**
+### G5 — `initData` replay → **ASSESSED, NOT CLOSABLE OFFLINE; PRE-ACTIVATION INFRASTRUCTURE FAMILY**
 
 Examined in N6.2 and left open, with the reason recorded rather than the row simply
 re-listed. Two blockers, and neither is a matter of effort:
@@ -777,11 +777,21 @@ re-listed. Two blockers, and neither is a matter of effort:
    different key. Implementing it against an injected fake would prove the state machine and
    nothing about the durability — the exact distinction §4.1 draws for G1.
 
+**Owner ruling, N6.2:** do not invent a standalone replay-store module. Durable `initData`
+single-use / replay protection **requires a durable backing capability**, and it therefore
+belongs to the **same pre-activation live-infrastructure family as G1** unless and until the
+canonical architecture defines a separate store for it. It is to be documented as such, not
+built tonight.
+
+Consequently: **replay must not be marked CLOSED on the strength of spec-only validation.**
+A specification that describes a nonce ledger is not a nonce ledger, and a gate check written
+against an injected fake would prove the state machine while proving nothing about the
+durability that is the entire difficulty — the identical distinction §4.1 draws for G1.
+
 The blast radius is unchanged and remains bounded: a replayed `initData` is still the same
 Telegram user, so it reaches no other identity, and the per-`(user, cycle)` idempotency key
 collapses any parallel session to at most one lead. **G5 stays DESIGN-ONLY and must not be
-described as handled.** It is not activation-blocking on its own, and it should be designed
-together with G1's durable store rather than separately — they want the same thing.
+described as handled.** It is not activation-blocking on its own.
 
 ### Two test-coverage recommendations from §3 → **BOTH CLOSED**
 
@@ -806,13 +816,95 @@ OFFLINE-PROVEN (T15, T34) and hardened the gate around them. Gap statuses moved:
 | G2 | repository logic CLOSED, LIVE PROOF REQUIRED | unchanged |
 | G3 | open, MEDIUM | **OFFLINE-CLOSED** |
 | G4 | OFFLINE-CLOSED | unchanged |
-| G5 | open, MEDIUM | **ASSESSED — DESIGN-ONLY, not closable offline** |
-| G6 | open, LOW | **HALF CLOSED** + one open design decision |
+| G5 | open, MEDIUM | **ASSESSED — DESIGN-ONLY**, ruled into G1's pre-activation infrastructure family (§4.3) |
+| G6 | open, LOW | **CLOSED** — classification persisted, and `mode` removed from TB-1 by owner decision (§4.3) |
 | G7 | open, LOW | **OFFLINE-CLOSED as a declaration** |
 
 **Activation verdict is unchanged: B.2.1-C is NOT cleared.** G1 blocks, and the fifteen live
 canary items in §4 remain unexecuted. Nothing in N6.2 moves that line — it removes reasons a
 deployment would misbehave *once* it is cleared, which is not the same thing.
+
+---
+
+## 4.3 OWNER DECISIONS APPLIED — N6.2
+
+Three decisions were returned on the N6.2 findings and are applied here. Recorded in full,
+because two of them change a canonical contract and the third closes a question rather than a
+gap.
+
+### Decision 1 — `mode` must not cross TB-1 → **APPROVED AND IMPLEMENTED**
+
+**Rule.** The client/browser must not be able to determine from the response body whether the
+lead was new, merged, a retry or a duplicate.
+
+| Requirement | How it is met |
+|---|---|
+| `mode` must not cross TB-1 | removed from `CLIENT_RESPONSE_FIELDS`; `buildSubmitSuccess` no longer emits it on any branch |
+| internal `mode` kept where required | server log `lead_mode` / `lead_mode_known` on **every** resolved path, and the `Bot_Sessions.lead_mode` column |
+| canonical contract no longer self-contradictory | gateway contract §9 rewritten: the field is gone from the JSON block and the reason is stated where the contradiction used to be |
+| tests prove the client cannot expose it | 6 dedicated checks, covering fresh success, merge, consent-NO, validation error, ambiguous outcome, and all three replay sources |
+| internal observability not weakened | it was **strengthened**: the replay paths previously logged no `mode` at all, and the fresh-success path logged it clamped |
+
+Two details worth keeping. First, **omission and refusal are different guarantees**: `mode`
+and `lead_mode` are now in `RESPONSE_FORBIDDEN_KEYS`, so `responseLeaks` rejects them at any
+nesting depth — reintroducing the field by any route fails the gate rather than waiting to be
+noticed. Second, the logged value is **unclamped**. Clamping into `new`/`merged` would destroy
+exactly the evidence canary L7 exists to collect, since no real Lead Intake `mode` has ever
+been observed by this code; `lead_mode_known: false` surfaces a vocabulary drift instead.
+
+**Effect on T34: G6 is now fully closed.** L14's pass criterion drops from six whitelisted
+response fields to five.
+
+### Decision 2 — `Bot_Sessions` columns → **APPROVED AS DEPLOYMENT PRECONDITION ONLY**
+
+`lead_mode`, `lead_priority` and `financial_zone` are required **before** B.2.1-C live
+deployment. **The live sheet was not touched.** What exists now is the contract a deployment
+must satisfy, plus a preflight that refuses rather than defaults:
+
+- `AUTHORITY_SCHEMA_PRECONDITION` in `submit-contract.js` declares all three columns with
+  their semantics, vocabulary, writer, reader, whether they cross TB-1, and what their absence
+  costs. It declares `fail_mode: FAIL_CLOSED` and `silent_default_permitted: false`.
+- The **header contract** is exact lower_snake_case text in row 1, appended after the existing
+  headers. Position is deliberately not depended upon — the writer patches by key, never by
+  column index — but a mistyped header is an absent column, which is why the preflight
+  compares header text rather than counting columns.
+- `authoritySchemaPreflight(observedHeaders)` returns `deploy: false` for absent columns,
+  **partial** migration, a mistyped header, and an unreadable header list. "We could not
+  check" and "it is fine" are never the same answer.
+
+**Why fail closed rather than fall back.** Google Sheets silently drops a patch key that has
+no header: the write does not error, it does nothing. The next authority-resolved retry then
+reads a blank and clamps it to a value indistinguishable from a real one — which is precisely
+the defect G6 closed. A silent default would therefore re-open G6 at deployment time, and do
+it invisibly.
+
+**The fixtures do not hide the prerequisite**, which was an explicit instruction. The
+authority double now models a column-constrained sheet: a patch key with no header is dropped
+exactly as Sheets drops it. Two checks demonstrate the consequence against **today's** live
+schema — the classification write succeeds and stores nothing, and the retry one request
+later cannot recover the classification — and two more assert that the optimistic fixture
+differs from the live one by exactly the three precondition columns and nothing else. Widening
+either fixture to make a test pass fails the gate.
+
+### Decision 3 — G5 replay → **DOCUMENTED, NOT CLOSED**
+
+No standalone replay-store module was invented. G5 is recorded as requiring a durable backing
+capability and belonging to the same pre-activation live-infrastructure family as G1, unless
+the canonical architecture defines a separate store. It is **not** marked CLOSED, and
+spec-only validation is explicitly not accepted as closure. See §4.2, G5.
+
+### Gate after the owner decisions
+
+**113 checks** in `qa/miniapp-submit.test.mjs` (101 before these decisions, 84 before N6.2),
+**460** total across eight gates. Nine further mutations were run, each failing exactly the
+checks that exist to catch it: restoring `mode` to the whitelist, re-emitting it from
+`buildSubmitSuccess`, dropping it from `RESPONSE_FORBIDDEN_KEYS`, letting the preflight pass
+an unreadable or incomplete header list, dropping `mode` from the replay log, clamping the
+logged value, and the two attempts to hide the prerequisite by widening a fixture.
+
+**Activation verdict is unchanged: B.2.1-C is NOT cleared.** G1 blocks, G5 is open, the three
+`Bot_Sessions` columns are an unmet deployment precondition, and the fifteen live canary items
+in §4 remain unexecuted.
 
 ---
 
