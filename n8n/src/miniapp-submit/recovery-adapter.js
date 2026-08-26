@@ -1,52 +1,71 @@
-// FINMENTOR — G1 recovery adapter (gateway side).
+// FINMENTOR — G1 recovery adapter (gateway side, P3 preallocation architecture).
 //
-// The implementation of `leadIntake.lookup` that `submit-contract.js`'s
-// RECOVERY_ADAPTER_CONTRACT has declared and required since N6.1, and that nothing in the
-// repository has provided until now. Built on the durable submission receipt ledger
-// (`n8n/src/lead-intake/idempotency-receipt.js`), never on Pipeline, Bot_Sessions or the
-// read-model Data Table.
+// The implementation of `leadIntake.lookup` that RECOVERY_ADAPTER_CONTRACT requires, built on
+// the preallocated submission receipt (`n8n/src/lead-intake/idempotency-receipt.js`).
 //
-// Its whole job is to turn "what does the ledger say about this key" into the three answers
-// the submit handler already knows how to act on, and to be relentlessly conservative about
-// which of the three it picks:
+// WHAT CHANGED IN P3, and it is the safety model rather than the plumbing.
+//
+// The three answers the submit handler acts on are unchanged:
 //
 //   { ok: true,  known: true,  body }  COMMITTED      — a lead exists; replay it verbatim
-//   { ok: true,  known: false }        NOT_COMMITTED  — provably nothing was created
+//   { ok: true,  known: false }        NOT_COMMITTED  — no handoff began; one attempt allowed
 //   { ok: false }                      CANNOT_ANSWER  — ambiguity preserved
 //
-// NOT_COMMITTED is the only answer that may release a claim and permit a fresh Lead Intake
-// call, so it is the only one that can create a duplicate lead if it is wrong. It is
-// therefore the answer this module works hardest to withhold: absence of a receipt is
-// reported as NOT_COMMITTED **only** when the store affirms it can support that inference,
-// and as CANNOT_ANSWER otherwise. An adapter that guesses here is worse than no adapter,
-// because the gateway's structural blocker at least fails safe.
+// What changed is WHERE `known: false` comes from. It used to come from ABSENCE — no row
+// found, therefore nothing was created — an inference that could authorise a duplicate lead
+// if the store was merely slow to show a row that existed. It now comes from a READY receipt:
+// a row that is positively there and positively unclaimed.
+//
+// So absence is no longer an answer at all. A missing receipt for a current authoritative
+// cycle means the preallocation invariant is broken, and the only safe response is
+// CANNOT_ANSWER. There is no code path from "I saw nothing" to "go ahead and submit".
+//
+// CAPABILITY CONSEQUENCE. `read_after_write` was a SAFETY prerequisite under the old model,
+// because the absence inference depended on it. It is not any more: a stale read can only
+// show READY when the state has already moved, and the conditional claim then fails with
+// updated_rows = 0 rather than handing out a second handoff. Read-after-write is therefore
+// demoted to a LIVENESS property — it affects whether recovery works promptly, not whether it
+// is safe. `conditional_update` takes its place as required, because it is now the primitive
+// the entire design rests on.
 //
 // STORE CONTRACT (injected — this module performs no I/O):
 //
-//   store.capabilities()   -> { exact_key_lookup, atomic_insert_if_absent, read_after_write }
-//   store.readByKey(key)   -> { ok, rows }        exact key equality; never a scan
-//
-// `capabilities()` is not decoration. Each flag gates a specific inference, so a store that
-// has not proven a property cannot accidentally be trusted for it:
-//
-//   exact_key_lookup     false -> the adapter refuses to exist at all
-//   read_after_write     false -> absence can never mean NOT_COMMITTED
-//   atomic_insert_if_absent    -> reported for the writer's benefit; duplicates still fail
-//                                 closed here regardless
+//   store.capabilities()   -> { exact_key_lookup, conditional_update, read_after_write }
+//   store.readByKey(key)   -> { ok, rows }   exact key equality; never a scan
 //
 // The offline gate injects an in-memory double. THAT DOUBLE IS NOT THE STORE. It models the
-// contract so the decision logic can be proven with no tenant; it proves nothing about
-// durability, atomicity or read-after-write in the live n8n Data Table, which is exactly why
-// G1 stays open until the live canaries in the plan document run.
+// contract so the decision logic can be proven with no tenant; it proves nothing about the
+// live conditional-update semantics, which is the P3 canary.
 
 const R = require('../lead-intake/idempotency-receipt.js');
 
-// Answers, as data, so a test asserts against the contract rather than against a literal.
 const ANSWER = {
   committed: (body) => ({ ok: true, known: true, body: body }),
   notCommitted: () => ({ ok: true, known: false }),
   cannotAnswer: () => ({ ok: false })
 };
+
+// Required for an ACTIVATION adapter. `atomic_insert_if_absent` is GONE from this list — P2
+// proved the platform does not have it, and the preallocation design no longer needs it:
+// uniqueness moved from the store to the key generator.
+const REQUIRED_CAPABILITIES = ['exact_key_lookup', 'conditional_update'];
+
+// Declared so nobody re-adds read-after-write as a safety gate without reading why it moved.
+const CAPABILITY_NOTES = {
+  exact_key_lookup: 'required — a scan is not a lookup',
+  conditional_update: 'required — the load-bearing primitive: claim and commit are both ' +
+    'conditional updates that must affect exactly one row',
+  read_after_write: 'LIVENESS ONLY since P3 — absence never authorises a submit, so a stale ' +
+    'read cannot cause a duplicate; it can only delay recovery',
+  atomic_insert_if_absent: 'NOT REQUIRED since P3 — proved absent in P2, and designed out by ' +
+    'preallocating under a random key'
+};
+
+// A capability flag is an ASSERTION, not a measurement. Affirming them does not make a store
+// durable across a redeploy or restart: that stays a live canary and nothing here claims it.
+const CAPABILITY_CAVEAT =
+  'capabilities are self-declared; durability across redeploy/restart, and the real semantics ' +
+  'of conditional update under concurrency, are proven only by the live canaries';
 
 function readCapabilities(store) {
   if (!store || typeof store.capabilities !== 'function') { return null; }
@@ -55,31 +74,11 @@ function readCapabilities(store) {
   if (!caps || typeof caps !== 'object') { return null; }
   return {
     exact_key_lookup: caps.exact_key_lookup === true,
-    atomic_insert_if_absent: caps.atomic_insert_if_absent === true,
+    conditional_update: caps.conditional_update === true,
     read_after_write: caps.read_after_write === true
   };
 }
 
-// Every capability an ACTIVATION store must affirm. Not a preference list: each one gates an
-// inference the gateway will make on the strength of this adapter existing.
-const REQUIRED_CAPABILITIES = ['exact_key_lookup', 'atomic_insert_if_absent', 'read_after_write'];
-
-// Is this store fit to back an ACTIVATION recovery adapter?
-//
-// P1.1 (F2) made this strictly stronger, and the reason is a real hazard rather than
-// tidiness. `recoveryAdapterStatus` in submit-contract.js decides the gateway is unblocked by
-// finding a callable `lookup` — nothing more. So an adapter built over a store that had only
-// proven exact-key lookup would REMOVE PRE_ACTIVATION_BLOCKED while two of the three
-// properties the recovery depends on were still unproven. The blocker would come off early,
-// and it is the blocker that currently guarantees no unrecoverable submission is ever started.
-//
-//   exact_key_lookup        — without it the store must scan, which is not a lookup
-//   atomic_insert_if_absent — without it two receipts can exist for one key, and the ledger
-//                             cannot hold its own uniqueness rule
-//   read_after_write        — without it absence can never mean NOT_COMMITTED, so the adapter
-//                             could never release a claim and is not a recovery at all
-//
-// Each is reported under its own reason so a deployment learns WHICH property it is missing.
 function assessStore(store) {
   if (!store || typeof store.readByKey !== 'function') {
     return { ok: false, reason: 'STORE_MISSING' };
@@ -87,56 +86,34 @@ function assessStore(store) {
   const caps = readCapabilities(store);
   if (!caps) { return { ok: false, reason: 'CAPABILITIES_UNREADABLE' }; }
   if (!caps.exact_key_lookup) { return { ok: false, reason: 'NO_EXACT_KEY_LOOKUP', capabilities: caps }; }
-  if (!caps.atomic_insert_if_absent) { return { ok: false, reason: 'NO_ATOMIC_INSERT_IF_ABSENT', capabilities: caps }; }
-  if (!caps.read_after_write) { return { ok: false, reason: 'NO_READ_AFTER_WRITE', capabilities: caps }; }
+  if (!caps.conditional_update) { return { ok: false, reason: 'NO_CONDITIONAL_UPDATE', capabilities: caps }; }
   return { ok: true, capabilities: caps };
 }
 
-// A capability flag is an ASSERTION, not a measurement. Affirming all three does not make a
-// store durable across a workflow redeploy or an n8n restart, and nothing in this file
-// claims otherwise: durability stays a LIVE canary prerequisite (P1-L4). What the gate buys
-// is that a store which has not even claimed the properties can never unblock the gateway.
-const CAPABILITY_CAVEAT =
-  'capabilities are self-declared; durability across redeploy/restart is proven only by the ' +
-  'live canaries, never by this flag';
-
-// Build the adapter, or refuse.
-//
-// Refusing returns `{ ok: false }` and NO `lookup` function, on purpose: `recoveryAdapterStatus`
-// in submit-contract.js decides the gateway is blocked by looking for a callable `lookup`, so
-// an unusable store must not produce an object that merely fails later. A blocked deployment
-// has to look blocked at the moment it is wired, not at the moment a user submits.
-// The single resolver both constructors use, so the diagnostic probe can never drift from
-// the adapter it is meant to diagnose.
+// The single resolver both constructors use, so the diagnostic probe can never drift from the
+// adapter it is meant to diagnose.
 function buildLookup(store, caps, onLog) {
   function log(view) { if (onLog) { try { onLog(view); } catch (e) { /* logging never decides */ } } }
 
-  return function lookup(idempotencyKey) {
-    // Nothing below may throw into the submit handler. The handler has a top-level catch
-    // (G3), but a lookup that throws would be classified by throw-site rather than by what
-    // the ledger actually said, which loses information the ledger had.
+  return function lookup(submissionKey) {
     try {
-      // The caller cannot steer this. The key is minted server-side by the handler from the
-      // app session's telegram_user_id and the authoritative cycle_id; a value that does not
-      // have the exact server key shape did not come from there, and is refused rather than
-      // looked up. This is the last line of defence for T9/T10 — the validator already drops
-      // caller idempotency_key, lead_id, request_id and cycle_id before this point.
-      if (!R.isValidKey(idempotencyKey)) {
-        log(R.receiptLogView({ verdict: 'CANNOT_ANSWER', reason: 'KEY_INVALID' }));
+      // The caller cannot steer this. The key is read by the gateway from the AUTHORITATIVE
+      // Bot_Sessions row; a value that is not the exact minted shape did not come from there.
+      if (!R.isValidSubmissionKey(submissionKey)) {
+        log(R.receiptLogView({ verdict: 'CANNOT_ANSWER', reason: 'SUBMISSION_KEY_INVALID' }));
         return ANSWER.cannotAnswer();
       }
 
       let read;
-      try { read = store.readByKey(idempotencyKey); } catch (e) { read = null; }
+      try { read = store.readByKey(submissionKey); } catch (e) { read = null; }
       if (!read || read.ok !== true) {
-        // The store could not tell us. Ambiguity is preserved, never gambled on.
-        log(R.receiptLogView({
-          verdict: 'CANNOT_ANSWER', reason: 'STORE_UNAVAILABLE'
-        }));
+        // The store's verdict is judged BEFORE its rows: ok:false with rows:[] must never be
+        // read as "nothing is there".
+        log(R.receiptLogView({ verdict: 'CANNOT_ANSWER', reason: 'STORE_UNAVAILABLE' }));
         return ANSWER.cannotAnswer();
       }
 
-      const verdict = R.classifyRows(read.rows, idempotencyKey);
+      const verdict = R.classifyRows(read.rows, submissionKey);
 
       if (verdict.verdict === R.VERDICT.COMMITTED) {
         log(R.receiptLogView({
@@ -146,8 +123,6 @@ function buildLookup(store, caps, onLog) {
           reason: verdict.reason,
           correlationId: verdict.correlation_id
         }));
-        // Exactly the canonical-success shape `canonicalResult` parses. `mode` is carried
-        // because the handler logs it; it does not cross TB-1 (owner decision, N6.2).
         return ANSWER.committed({
           ok: true,
           lead_id: verdict.lead_id,
@@ -157,31 +132,25 @@ function buildLookup(store, caps, onLog) {
         });
       }
 
-      if (verdict.verdict === R.VERDICT.ABSENT) {
-        // THE ONE INFERENCE THAT CAN CREATE A DUPLICATE LEAD IF IT IS WRONG.
-        //
-        // No receipt means no Pipeline write happened for this key — but ONLY because the
-        // intent row is written before the Pipeline write, and only if this store makes a
-        // committed intent visible to the very next read. Without read-after-write, "no
-        // row" may simply be a row not visible yet, and answering NOT_COMMITTED would
-        // release the claim and submit again into a lead that already exists.
-        if (!caps.read_after_write) {
-          log(R.receiptLogView({
-            verdict: 'CANNOT_ANSWER',
-            reason: 'ABSENCE_NOT_PROVABLE_WITHOUT_READ_AFTER_WRITE'
-          }));
-          return ANSWER.cannotAnswer();
-        }
+      if (verdict.verdict === R.VERDICT.READY) {
+        // The only answer that releases a claim — and it is now POSITIVE evidence: the
+        // receipt is there and nothing has claimed it. Note what this is not: it is not an
+        // inference from an empty result set, so it does not depend on read-after-write.
         log(R.receiptLogView({
-          verdict: 'NOT_COMMITTED', reason: verdict.reason
+          commitState: 'READY',
+          verdict: verdict.verdict,
+          reason: verdict.reason,
+          correlationId: verdict.correlation_id
         }));
         return ANSWER.notCommitted();
       }
 
-      // DUPLICATE_RECEIPTS, PENDING_UNRESOLVED, COMMITTED_WITHOUT_LEAD, UNKNOWN_STATE,
-      // ROWS_UNREADABLE — every one of them preserves ambiguity.
+      // IN_FLIGHT, ABORTED, ABSENT (broken invariant), duplicates, malformed rows, unreadable
+      // rows — every one preserves ambiguity.
       log(R.receiptLogView({
-        verdict: 'CANNOT_ANSWER', reason: verdict.reason
+        verdict: 'CANNOT_ANSWER',
+        reason: verdict.reason,
+        correlationId: verdict.correlation_id
       }));
       return ANSWER.cannotAnswer();
     } catch (e) {
@@ -204,25 +173,14 @@ function createRecoveryAdapter(store, opts) {
     ok: true,
     reason: 'READY',
     capabilities: caps,
-    // Absence is only a usable answer when the store supports the inference. Surfaced so a
-    // deployment can see, without reading code, whether it bought recovery or merely
-    // bought the ability to recognise a success.
-    absence_provable: caps.read_after_write,
+    // Kept as a reported property rather than a gate: under P3 it is a liveness signal.
+    read_after_write_liveness: caps.read_after_write,
     adapter: { lookup: lookup }
   };
 }
 
-// Operator / test tooling ONLY.
-//
-// Deliberately a DIFFERENT constructor returning a method named `probe`, never `lookup`.
-// That naming is the whole safety property: `recoveryAdapterStatus` unblocks the gateway by
-// finding a callable `lookup`, so an object that has no `lookup` cannot satisfy it however
-// it is wired. A probe over a partially-proven store can therefore be used to inspect the
-// ledger during a canary run without silently removing PRE_ACTIVATION_BLOCKED.
-//
-// It needs exact-key lookup — a probe that scanned would be lying about what it inspected —
-// but tolerates the other two being unproven, and answers conservatively when they are:
-// absence still degrades to "cannot answer" unless read-after-write is affirmed.
+// Operator / test tooling ONLY. Exposes `probe`, never `lookup`, so it can never satisfy
+// `recoveryAdapterStatus` and can never remove PRE_ACTIVATION_BLOCKED however it is wired.
 function createDiagnosticProbe(store) {
   if (!store || typeof store.readByKey !== 'function') {
     return { ok: false, reason: 'STORE_MISSING', probe: null };
@@ -231,14 +189,12 @@ function createDiagnosticProbe(store) {
   if (!caps) { return { ok: false, reason: 'CAPABILITIES_UNREADABLE', probe: null }; }
   if (!caps.exact_key_lookup) { return { ok: false, reason: 'NO_EXACT_KEY_LOOKUP', probe: null }; }
 
-  // Built through the same code path, so the probe cannot drift from the real adapter.
   const inner = buildLookup(store, caps, null);
   return {
     ok: true,
     reason: 'DIAGNOSTIC_ONLY',
     capabilities: caps,
-    activation_capable: caps.atomic_insert_if_absent && caps.read_after_write,
-    // NOT named `lookup`. See the comment above — this is load-bearing.
+    activation_capable: caps.conditional_update === true,
     probe: inner
   };
 }
@@ -246,6 +202,7 @@ function createDiagnosticProbe(store) {
 module.exports = {
   ANSWER,
   REQUIRED_CAPABILITIES,
+  CAPABILITY_NOTES,
   CAPABILITY_CAVEAT,
   assessStore,
   readCapabilities,

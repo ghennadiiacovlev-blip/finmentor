@@ -1,175 +1,100 @@
-// FINMENTOR — durable submission receipt (G1).
+// FINMENTOR — preallocated submission receipt (G1, P3 architecture).
 //
-// Canonical scope: docs/PHASE_B2_1C_G1_DURABLE_RECOVERY_PLAN.md. This is the LEAD INTAKE
-// side of G1: the pure logic that decides what a receipt record contains, when it may move
-// state, and what a set of rows read back for a key actually proves.
+// Canonical scope: docs/PHASE_B2_1C_G1_P3_PREALLOCATION_DECISION.md.
 //
-// WHAT PROBLEM THIS SOLVES, precisely.
+// WHY THIS WAS REDESIGNED.
 //
-// The Lead Intake graph commits canonically at `Save to Pipeline` (new) or
-// `Update Pipeline (Merge)` (merged), and `Respond New Lead` / `Respond Merged` fire
-// IMMEDIATELY afterwards — before the CRM sheet, Telegram, the AI plan and the dashboard.
-// So the dangerous window is narrow and real: the Pipeline row exists, and the caller may
-// never learn its `lead_id`. Nothing in the tenant is indexed by the gateway's stable key,
-// so a retry cannot ask "did my submission commit?" — it can only submit again and risk a
-// duplicate. That is G1.
+// P2 took the original design to the tenant and it failed: the n8n Data Table has NO atomic
+// insert-if-absent. The `dataTable` node's row operations are deleteRows / get / rowExists /
+// rowNotExists / insert / update / upsert — `insert` is unconditional, `upsert` is
+// match-then-write, and rowExists+insert is the "broad lookup + create" race this design
+// forbids. Confirmed live: two inserts of the same key both succeeded. Evidence in
+// docs/PHASE_B2_1C_G1_P2_LIVE_STORE_CANARY.md.
 //
-// WHY TWO PHASES, and why one phase cannot work.
+// So the submit path can no longer CREATE its receipt. The receipt must already exist.
 //
-// A receipt written only after the Pipeline commit leaves absence ambiguous forever: no row
-// could mean "never submitted" or "committed, then died before the receipt". Neither answer
-// is safe to guess, so a one-phase receipt can never prove NOT_COMMITTED — it only ever
-// proves COMMITTED, and G1's whole difficulty is the other half.
+// THE PREALLOCATION INVARIANT — the one sentence this file exists to hold:
 //
-// So the receipt is written TWICE:
+//     A CURRENT AUTHORITATIVE CYCLE NEVER EXISTS WITHOUT ITS PREALLOCATED RECEIPT.
 //
-//   1. INTENT  — `commit_state: PENDING`, written BEFORE the Pipeline write.
-//   2. COMMIT  — `commit_state: COMMITTED` + `canonical_lead_id`, written AFTER the Pipeline
-//                write returns success and BEFORE the respond node.
+// The receipt is created at cycle issuance, BEFORE the cycle becomes authoritative. The
+// submit path then only ever performs CONDITIONAL UPDATES — the one primitive Phase 10 did
+// prove live in this tenant.
 //
-// That ordering is what makes absence provable. If the intent write strictly precedes every
-// Pipeline write for a key, then no row for that key means no Pipeline write happened for
-// it. The preconditions this rests on are stated in `ABSENCE_PROOF_PRECONDITIONS` and are
-// enforced in code, not assumed — see `recovery-adapter.js`, which downgrades absence to
-// "cannot answer" whenever they are not proven.
+// WHAT THAT BUYS, and it is the whole point:
 //
-// WHAT THIS IS NOT.
-//
-// Not a second CRM. The ledger answers exactly one question — "did the submission for this
-// key reach a canonical Pipeline commit, and which lead did it produce" — and is never
-// consulted for lead state, never written by the gateway, never read by the Mini App and
-// never mirrored into the read model. `Pipeline` remains canonical for lead state and
-// `Bot_Sessions` remains authority for cycle, consent and the canonical lead binding.
+//   * absence stops being an answer. Under the old design "no row" meant "nothing was
+//     created, go ahead and submit" — an inference that could create a duplicate lead if the
+//     store was merely slow. Now a missing receipt for a current cycle is a BROKEN INVARIANT,
+//     and the only safe response is CANNOT_ANSWER. Read-after-write therefore stops being a
+//     safety prerequisite (P1-L3) and becomes a liveness property.
+//   * READY is POSITIVE evidence that no Lead Intake handoff began. That is what permits a
+//     submit, and it is evidence rather than an inference from silence.
+//   * the durable key stops being derived from the Telegram identity, so the ledger holds no
+//     personal identifier at all — which retires the P1.3 §3.1 privacy compromise outright.
 //
 // Every dependency is INJECTED. This file performs no I/O whatsoever.
 
 const crypto = require('crypto');
-
-// ---------------------------------------------------------------- key
-
-// The stable key, server-derived, exactly as submit-contract.js mints it. Validated here as
-// well as there because this module must never accept a key that reached it by any other
-// route — a caller-supplied string must fail the shape check, not merely be untrusted.
-const KEY_PREFIX = 'miniapp:';
-const KEY_RE = /^miniapp:[0-9]{1,20}:[A-Za-z0-9._-]{1,64}$/;
 
 function normValue(v) {
   if (v === null || v === undefined) { return ''; }
   return String(v).trim();
 }
 
-// EXACT form only. Deliberately no trimming: normalising the query key would let
-// 'miniapp:1:C ' and 'miniapp:1:C' both resolve to one receipt, which is two distinct
-// strings mapping to one durable record — the precise ambiguity a keyed ledger exists to
-// remove. A padded key did not come from the server minter, so it is refused, not repaired.
-function isValidKey(key) {
+// ---------------------------------------------------------------- the submission key
+
+// MODEL B. An opaque, server-minted, cryptographically random key — NOT derived from the
+// Telegram user id or the cycle id.
+//
+// Model A (keep `miniapp:<telegram_user_id>:<cycle_id>` with a strengthened cycle generator)
+// was rejected on evidence, not preference. The decisive problem is that the current cycle id
+// is `C-<chat_id>-<Date.now()>`: two issuances for one chat in the same millisecond produce
+// the IDENTICAL cycle id, and therefore the identical derived receipt key — at which point
+// preallocation needs insert-if-absent to arbitrate, which P2 proved does not exist. A
+// derived key cannot escape that, because its uniqueness is only ever as good as the cycle
+// id's. A random key is unique by construction regardless of what the cycle generator does.
+//
+// 128 bits from crypto.randomBytes. Stated honestly: this is a PROBABILISTIC guarantee, not
+// a mathematical impossibility. At 128 bits the collision probability across any realistic
+// number of cycles this business will ever issue is far below the probability of the store
+// itself losing a row, which is the correct comparison to make.
+const SUBMISSION_KEY_BYTES = 16;
+const SUBMISSION_KEY_PREFIX = 'sub_';
+const SUBMISSION_KEY_RE = /^sub_[0-9a-f]{32}$/;
+
+function mintSubmissionKey() {
+  return SUBMISSION_KEY_PREFIX + crypto.randomBytes(SUBMISSION_KEY_BYTES).toString('hex');
+}
+
+// EXACT form only. No trimming, no repair: the key is server-minted, so anything that is not
+// exactly the minted shape did not come from the minter.
+function isValidSubmissionKey(key) {
   if (typeof key !== 'string') { return false; }
-  if (key.length === 0 || key.length > 128) { return false; }
-  return KEY_RE.test(key);
+  return SUBMISSION_KEY_RE.test(key);
 }
 
-// The key embeds the Telegram user id and the cycle id, which is deliberate: it means the
-// ledger needs NO separate identity column, so those values are stored once rather than
-// twice. Callers that need the parts derive them; the ledger does not duplicate them.
-function parseKey(key) {
-  if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
-  const rest = key.slice(KEY_PREFIX.length);
-  const cut = rest.indexOf(':');
-  return {
-    ok: true,
-    telegram_user_id: rest.slice(0, cut),
-    cycle_id: rest.slice(cut + 1)
-  };
-}
-
-// ---------------------------------------------------------------- schema
-
-// Minimal by construction. Every field is here because a named requirement needs it, and
-// the ones a reader might expect are deliberately ABSENT:
-//
-//   telegram_user_id / cycle_id — derivable from the key; storing them again would
-//                                 duplicate an identifier for no gain.
-//   contact / answers / free text — the ledger resolves an outcome, it does not describe a
-//                                   lead. Pipeline already holds the lead.
-//   init_data / hash / tokens     — never, anywhere, under any circumstance.
-//   request_id                    — NOT a deduplication key (REQUEST_ID_SEMANTICS). Storing
-//                                   it here would invite exactly the confusion G7 records.
-const RECEIPT_FIELDS = [
-  'idempotency_key',    // unique. The ONLY lookup key. Exact match, never a prefix or scan.
-  'commit_state',       // PENDING | COMMITTED
-  'canonical_lead_id',  // empty while PENDING; written exactly once, at COMMITTED
-  'lead_mode',          // new | merged — needed to replay the canonical success verbatim
-  'lead_priority',      // ditto
-  'financial_zone',     // ditto
-  'created_at',         // when intent was written
-  'committed_at',       // when the Pipeline commit was observed; empty unless COMMITTED
-  'aborted_at',         // when an operator PROVED no commit happened; empty unless ABORTED
-  'abort_reason',       // constrained vocabulary, never free text — see ABORT_REASONS
-  'correlation_id'      // server-minted, for tracing one attempt through the logs
-];
-
-// ABORTED added in P1.1 (F4), and its MEANING was corrected in P1.2 (F5).
-//
-// P1.1 had it authorise a same-key retry, and that was internally contradictory. The stable
-// key is derived from (telegram_user_id, cycle_id), so a "fresh" attempt after an abort
-// carries THE SAME key. But the ledger holds exactly one receipt per key for all time and
-// ABORTED is terminal, so the new intent could not satisfy insert-if-absent. Every way out of
-// that was forbidden: deleting the row, overwriting ABORTED, weakening uniqueness, or writing
-// a second receipt for one key.
-//
-// The resolution is that ABORTED is a property of the KEY, not of one attempt:
-//
-//     "this submission was proven not to have committed, AND this key is now closed."
-//
-// So an abort does NOT license another submit under the same key. Recovery is a NEW
-// authoritative cycle — which mints a new key — and that is the mechanism the Concierge
-// already provides and Phase B.2.1 already proves. Nothing new is invented: an aborted cycle
-// is simply a superseded one.
-//
-// What ABORTED still earns, now that it no longer authorises retry:
-//   * an immutable record that an operator investigated and PROVED no commit, which a
-//     deletion would destroy;
-//   * an explicit terminal state, so a stuck key stops looking like a PENDING row that
-//     someone will eventually be tempted to delete;
-//   * a defined end for the runbook that is not "remove the evidence".
-const COMMIT_STATES = ['PENDING', 'COMMITTED', 'ABORTED'];
-
-// The only reason an abort may carry. A constrained vocabulary rather than free text, because
-// an operator note is exactly where a customer name or a phone number ends up.
-const ABORT_REASONS = ['PROVEN_NO_PIPELINE_COMMIT'];
-
-// Both COMMITTED and ABORTED are terminal. A receipt describes one outcome for one key,
-// permanently. ABORTED cannot be promoted to COMMITTED: if an operator aborts a receipt whose
-// lead did in fact exist, the correct repair is a new cycle — not rewriting history so the
-// ledger agrees with the second opinion.
-const TRANSITIONS = {
-  PENDING: ['COMMITTED', 'ABORTED'],
-  COMMITTED: [],
-  ABORTED: []
+const SUBMISSION_KEY_MODEL = {
+  model: 'B — opaque server-minted random key',
+  format: 'sub_<32 lowercase hex>',
+  entropy_bits: SUBMISSION_KEY_BYTES * 8,
+  minted_by: 'the cycle issuer (Concierge), server-side, at cycle issuance',
+  persisted_in: 'Bot_Sessions.submission_key, alongside the authoritative cycle',
+  derived_from_identity: false,
+  guessable: false,
+  crosses_tb1: false,
+  browser_may_supply: false,
+  collision_model: 'probabilistic: 128-bit random. Not claimed impossible — claimed far less ' +
+    'likely than the store losing a row'
 };
 
-function canTransition(from, to) {
-  const f = normValue(from);
-  const t = normValue(to);
-  if (COMMIT_STATES.indexOf(f) === -1 || COMMIT_STATES.indexOf(t) === -1) { return false; }
-  return (TRANSITIONS[f] || []).indexOf(t) !== -1;
-}
+// ---------------------------------------------------------------- receipt authority
 
-// WHO MAY TOUCH THE LEDGER AT ALL (P1.3).
-//
-// The threat this closes is a denial of service, and it is cheap to mount. The stable key is
-// GUESSABLE by construction — `miniapp:<telegram_user_id>:<cycle_id>`, where Telegram ids are
-// numeric and cycle ids are date-shaped. If Lead Intake wrote receipts from a body field,
-// anyone could POST the public webhook with a guessed key and plant a PENDING receipt for a
-// victim. The real Mini App submission would then find a foreign PENDING row, answer
-// CANNOT_ANSWER for ever, and never be able to submit — without the attacker touching the
-// Mini App, a session or a credential.
-//
-// So receipt authority is a property of the ROUTE. It is never read from the body, never from
-// a header, and never from anything a caller can assert. This reuses the mechanism commit
-// a224aa2 deployed for lead identity, which is safe by construction rather than by checking:
-// on the public path the `Internal Auth Entry` node never ran, `$()` throws, and provenance
-// is false. There is nothing to forge because there is nothing to present.
+// Unchanged from P1.3 and still binding. An unguessable key is NOT a substitute for route
+// authentication: P1-L10 remains required. A random key removes the *targeted* poisoning
+// threat (an attacker cannot guess a victim's key) but it does not stop an authenticated-
+// looking public caller from mutating a key it has somehow learned, and provenance must never
+// come from anything a caller can assert.
 const RECEIPT_AUTHORITY = {
   source: 'route provenance only',
   proven_by: "$('Internal Auth Entry').first().json.__internal_route === true",
@@ -180,299 +105,245 @@ const RECEIPT_AUTHORITY = {
     'any caller assertion of any kind'
   ],
   public_route_behaviour: 'receipt controls are IGNORED: no receipt is read, created or updated',
-  // Stated so a deployment cannot satisfy this by adding a marker somewhere else.
-  marker_in_body_is_not_provenance: true
+  marker_in_body_is_not_provenance: true,
+  // Explicit, because "the key is random now" is exactly the argument someone will make.
+  unguessable_key_is_not_a_substitute_for_route_auth: true
 };
 
-// May this execution touch the ledger, and with which key?
-//
-// `provenanceTrusted` must be the literal boolean `true`. The string 'true', the number 1, a
-// truthy object — all are shapes a JSON body can produce, and all are refused. A caller who
-// can influence this value at all has already lost the argument, so the check is deliberately
-// the strictest one available rather than a truthiness test.
 function resolveReceiptKey(opts) {
   const o = opts || {};
   if (o.provenanceTrusted !== true) {
     return { allowed: false, reason: 'RECEIPT_CONTROLS_REQUIRE_TRUSTED_ROUTE', key: '' };
   }
-  if (!isValidKey(o.idempotencyKey)) {
-    return { allowed: false, reason: 'KEY_INVALID', key: '' };
+  if (!isValidSubmissionKey(o.submissionKey)) {
+    return { allowed: false, reason: 'SUBMISSION_KEY_INVALID', key: '' };
   }
-  return { allowed: true, reason: 'TRUSTED_ROUTE', key: o.idempotencyKey };
+  return { allowed: true, reason: 'TRUSTED_ROUTE', key: o.submissionKey };
 }
 
-// The uniqueness rule, stated as data so a deployment can be checked against it.
-const UNIQUENESS_RULE = {
-  unique_on: 'idempotency_key',
-  // P1.3 — "for all time" was withdrawn: it contradicted P1-L8, which requires a retention
-  // policy because the key contains a personal identifier. The precise invariant is in
-  // RECEIPT_LIFECYCLE_INVARIANT; the cardinality rule is about CONCURRENT rows.
-  cardinality: 'never more than one receipt row per key, for as long as any row exists',
-  enforced_by: 'atomic insert-if-absent in the store',
-  // Defence in depth: even where the store cannot enforce it, two rows for one key are
-  // DETECTED and fail closed rather than one being picked arbitrarily.
-  if_unenforceable: 'duplicate rows for a key resolve to CANNOT_ANSWER, never to a winner'
-};
+// ---------------------------------------------------------------- schema
 
-// HOW LONG A RECEIPT MUST LIVE (P1.3).
-//
-// "One receipt per key, for all time" and "P1-L8 requires a retention policy" cannot both be
-// requirements, and leaving the contradiction in place would have let whoever implements
-// retention pick either reading. The resolution turns on a property the gateway already has:
-//
-//   a submit arriving on a SUPERSEDED cycle is refused at §9.2 with CYCLE_SUPERSEDED,
-//   BEFORE the ledger is consulted at all.
-//
-// So an old key becomes structurally unreachable the moment its cycle is superseded — and a
-// receipt that can never be looked up again is safe to delete. Deleting one whose cycle can
-// still be presented is NOT safe: the lookup would find nothing, read the absence as
-// NOT_COMMITTED, release the claim and authorise a fresh submit for a key that may already
-// have a lead.
-//
-// Retention therefore does not conflict with recovery, provided deletion follows supersession
-// rather than a clock alone. The duration remains an OWNER input; the ordering does not.
-const RECEIPT_LIFECYCLE_INVARIANT = {
-  must_exist_while: 'the key can still be presented — i.e. its cycle can still pass the ' +
-    'authority and session guards',
-  never_expires_while: 'the cycle is current or still recoverable',
-  deletion_preconditions: [
-    'the receipt is terminal (COMMITTED or ABORTED) — never PENDING',
-    'the cycle is IRREVERSIBLY superseded, so the key can no longer reach the ledger',
-    'the approved retention period has elapsed'
-  ],
-  forbidden: [
-    'deletion that turns a still-acceptable key into an ABSENCE',
-    'deletion used to reopen a key for a fresh submit',
-    'deletion of a PENDING receipt to make a lookup answer'
-  ],
-  retention_duration: 'OWNER INPUT — no canonical FINMENTOR retention policy defines one'
-};
-
-// Is deleting this receipt safe? Every condition must hold; there is no "usually fine".
-function mayDeleteReceipt(opts) {
-  const o = opts || {};
-  const state = normValue(o.commitState);
-  if (state !== 'COMMITTED' && state !== 'ABORTED') {
-    return { ok: false, reason: 'RECEIPT_NOT_TERMINAL' };
-  }
-  if (o.cycleIrreversiblySuperseded !== true) {
-    // The load-bearing one. While the cycle can still be presented, deleting the receipt
-    // manufactures an absence that reads as "nothing was created".
-    return { ok: false, reason: 'CYCLE_STILL_ACCEPTABLE' };
-  }
-  if (o.retentionPeriodElapsed !== true) {
-    return { ok: false, reason: 'RETENTION_PERIOD_NOT_ELAPSED' };
-  }
-  return { ok: true, reason: 'SAFE_TO_DELETE' };
-}
-
-// The preconditions under which "no row" is a PROOF of "did not commit" rather than merely
-// an absence. Enforced by recovery-adapter.js; each one that cannot be shown to hold
-// downgrades absence to CANNOT_ANSWER.
-const ABSENCE_PROOF_PRECONDITIONS = [
-  'intent-before-commit: the PENDING receipt is written before the Pipeline write, always',
-  'no pre-ledger submissions: the gateway refuses to submit at all without a recovery ' +
-    'adapter (PRE_ACTIVATION_BLOCKED), so no key can predate the ledger',
-  'read-after-write: a committed intent row is visible to the next read of that key',
-  'exact-key lookup: the read selects by key equality, never by scan or prefix'
+// Ten fields. `idempotency_key` is gone, replaced by `submission_key`; the identity fields it
+// used to embed are gone with it, so the ledger now holds NO personal identifier.
+const RECEIPT_FIELDS = [
+  'submission_key',     // unique. The ONLY lookup key. Opaque, random, identity-free
+  'commit_state',       // READY | IN_FLIGHT | COMMITTED | ABORTED
+  'canonical_lead_id',  // empty until COMMITTED; written exactly once
+  'lead_mode',          // needed to replay the canonical success verbatim
+  'lead_priority',      // ditto
+  'financial_zone',     // ditto
+  'created_at',         // when the receipt was PREALLOCATED, at cycle issuance
+  'claimed_at',         // when READY -> IN_FLIGHT succeeded
+  'settled_at',         // when COMMITTED or ABORTED was recorded
+  'correlation_id'      // server-minted; the only field that reaches a log line
 ];
+
+// READY replaces the old submit-time "insert an intent" step. PENDING was renamed IN_FLIGHT
+// because under preallocation both READY and the old PENDING would have been "a row exists
+// and no lead is recorded" — two very different situations that must never share a name.
+const RECEIPT_STATES = ['READY', 'IN_FLIGHT', 'COMMITTED', 'ABORTED'];
+
+const ABORT_REASONS = ['PROVEN_NO_PIPELINE_COMMIT'];
+
+// COMMITTED and ABORTED are terminal. READY -> ABORTED is permitted: an operator may close a
+// key that was preallocated but never used, and doing so is strictly safer than leaving it
+// claimable for ever.
+const TRANSITIONS = {
+  READY: ['IN_FLIGHT', 'ABORTED'],
+  IN_FLIGHT: ['COMMITTED', 'ABORTED'],
+  COMMITTED: [],
+  ABORTED: []
+};
+
+function canTransition(from, to) {
+  const f = normValue(from);
+  const t = normValue(to);
+  if (RECEIPT_STATES.indexOf(f) === -1 || RECEIPT_STATES.indexOf(t) === -1) { return false; }
+  return (TRANSITIONS[f] || []).indexOf(t) !== -1;
+}
+
+// ---------------------------------------------------------------- issuance ordering
+
+// The order is the safety property, so it is declared as data rather than left to whoever
+// wires the workflow.
+const ISSUANCE_ORDER = [
+  '1. mint a new submission_key server-side (random, not derived)',
+  '2. create the receipt in state READY',
+  '3. CONFIRM the receipt creation succeeded — not "the node did not error", but confirmed',
+  '4. only then write the new cycle + submission_key to Bot_Sessions (authority)',
+  '5. only after the authority commit may a Mini App session bind to that cycle'
+];
+
+const PREALLOCATION_INVARIANT = {
+  rule: 'a current authoritative cycle never exists without its preallocated receipt',
+  if_receipt_create_fails: 'the authority cycle MUST NOT advance — the old cycle stays current',
+  if_authority_write_fails: 'an orphan receipt remains, but no current cycle points to it; ' +
+    'harmless, and cleaned up later',
+  orphan_receipt_is_never_authority: 'a receipt cannot make itself current — only Bot_Sessions ' +
+    'names the authoritative submission_key',
+  // The concurrency answer, stated up front because P2/P3 proved issuance is NOT single-writer.
+  concurrent_issuance: 'each issuer mints its OWN random key and preallocates its OWN receipt. ' +
+    'Both may persist. Bot_Sessions appendOrUpdate decides the winner by last-write-wins, and ' +
+    'the gateway only ever uses the key named by the CURRENT authority row. The loser is an ' +
+    'orphan that can never satisfy the winner, because the winner reads a different key.',
+  data_table_does_not_arbitrate: true
+};
 
 // ---------------------------------------------------------------- records
 
 function newCorrelationId() { return crypto.randomUUID(); }
 
-// Phase 1. Written BEFORE the Pipeline write. Claims nothing about a lead.
+// Step 2 of ISSUANCE_ORDER. Creates the receipt in READY, before the cycle is authoritative.
 //
-// P1.3 — creating an intent is the poisoning vector, so provenance is REQUIRED here rather
-// than checked by a caller who might forget. It is not possible to build an intent record
-// without asserting a trusted route, which means a public-path execution cannot construct one
-// even by accident.
-function buildIntent(opts) {
+// This is an unconditional INSERT — which is all the platform offers, and which is now SAFE
+// precisely because the key is random and minted once. Nothing else will ever try to insert
+// this key, so there is nothing for insert-if-absent to arbitrate. That is the trick the whole
+// redesign turns on: uniqueness moved from the store to the key generator.
+function buildPreallocation(opts) {
   const o = opts || {};
   const gate = resolveReceiptKey(o);
   if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
-  // Validate the RAW value, not a trimmed copy: the reader refuses a padded key, so a
-  // writer that quietly repaired one would create a receipt under a key the reader would
-  // never look up in that form. Writer and reader must agree on what a key IS.
-  const key = o.idempotencyKey;
-  if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
 
-  // F6 — the correlation id is the ONLY receipt field that reaches a log line, so it must not
-  // be derived from the key. Seeding it with anything containing the key would put the
-  // Telegram identifier straight back into the logs the digest was just removed from. Caught
-  // in practice: a test fixture built it as 'CID-' + key and the leak assertion fired.
   const correlationId = normValue(o.correlationId) || newCorrelationId();
-  if (correlationId.indexOf(key) !== -1) {
+  if (correlationId.indexOf(gate.key) !== -1) {
     return { ok: false, reason: 'CORRELATION_ID_DERIVED_FROM_KEY' };
   }
 
   return {
     ok: true,
     record: {
-      idempotency_key: key,
-      commit_state: 'PENDING',
+      submission_key: gate.key,
+      commit_state: 'READY',
       canonical_lead_id: '',
       lead_mode: '',
       lead_priority: '',
       financial_zone: '',
       created_at: now,
-      committed_at: '',
-      aborted_at: '',
-      abort_reason: '',
+      claimed_at: '',
+      settled_at: '',
       correlation_id: correlationId
     }
   };
 }
 
-// Phase 2. Written AFTER the Pipeline write returns success, BEFORE the respond node.
-// A commit patch without a canonical lead id is refused: "committed" and "we do not know
-// what we created" must never be the same record.
-function buildCommit(opts) {
+// ---------------------------------------------------------------- conditional updates
+//
+// Every state change below is expressed as a CONDITIONAL UPDATE SPEC: match on the key AND
+// the expected current state, set the new state. The caller must then verify that EXACTLY ONE
+// row was affected. Nothing here is an unconditional write.
+
+function updateSpec(key, fromState, toState, patch) {
+  return {
+    where: { submission_key: key, commit_state: fromState },
+    set: Object.assign({ commit_state: toState }, patch || {}),
+    expect_updated_rows: 1
+  };
+}
+
+// READY -> IN_FLIGHT, immediately before the irreversible Pipeline handoff.
+function buildClaim(opts) {
   const o = opts || {};
-  // Same gate as the intent: binding a canonical lead id to a receipt is a ledger write, and
-  // a public-path execution must not be able to construct one.
   const gate = resolveReceiptKey(o);
   if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
-  const key = o.idempotencyKey;
-  if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
+  const now = normValue(o.nowIso);
+  if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
+  return { ok: true, spec: updateSpec(gate.key, 'READY', 'IN_FLIGHT', { claimed_at: now }) };
+}
+
+// IN_FLIGHT -> COMMITTED, after the Pipeline commit is observed and BEFORE the response.
+function buildCommit(opts) {
+  const o = opts || {};
+  const gate = resolveReceiptKey(o);
+  if (!gate.allowed) { return { ok: false, reason: gate.reason }; }
   const leadId = normValue(o.canonicalLeadId);
   if (leadId === '') { return { ok: false, reason: 'LEAD_ID_MISSING' }; }
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
   return {
     ok: true,
-    key: key,
-    patch: {
-      commit_state: 'COMMITTED',
+    spec: updateSpec(gate.key, 'IN_FLIGHT', 'COMMITTED', {
       canonical_lead_id: leadId,
       lead_mode: normValue(o.leadMode),
       lead_priority: normValue(o.leadPriority),
       financial_zone: normValue(o.financialZone),
-      committed_at: now
-    }
+      settled_at: now
+    })
   };
 }
 
-// May this commit be applied to the row that is actually there?
-//
-// The case this exists for: a receipt already COMMITTED to lead A, and something now tries
-// to commit it to lead B. That is one receipt pointing at two leads, and it must fail
-// closed — writing it would destroy the only evidence that resolves the earlier ambiguity.
-// A repeat commit to the SAME lead is not a conflict; it is a retry of the second phase and
-// is safely idempotent.
-function planCommit(existingRow, proposedLeadId) {
-  const proposed = normValue(proposedLeadId);
-  if (proposed === '') { return { ok: false, action: 'REFUSE', reason: 'LEAD_ID_MISSING' }; }
-  if (!existingRow || typeof existingRow !== 'object') {
-    return { ok: false, action: 'REFUSE', reason: 'NO_INTENT_ROW' };
-  }
-  const state = normValue(existingRow.commit_state);
-  const existingLead = normValue(existingRow.canonical_lead_id);
-
-  if (state === 'PENDING') {
-    if (existingLead !== '' && existingLead !== proposed) {
-      return { ok: false, action: 'REFUSE', reason: 'PENDING_ROW_ALREADY_NAMES_ANOTHER_LEAD' };
-    }
-    return { ok: true, action: 'COMMIT' };
-  }
-  if (state === 'COMMITTED') {
-    if (existingLead === proposed) {
-      return { ok: true, action: 'ALREADY_COMMITTED_SAME', reason: 'IDEMPOTENT_REPEAT' };
-    }
-    return { ok: false, action: 'REFUSE', reason: 'CONFLICTING_LEAD_ID' };
-  }
-  return { ok: false, action: 'REFUSE', reason: 'UNKNOWN_STATE' };
-}
-
-// Operator-only. Written when a canonical Pipeline commit has been PROVEN not to exist for
-// this submission — never merely because a receipt looks stuck, and never to make a lookup
-// return an absence.
+// Operator-only. READY or IN_FLIGHT -> ABORTED.
 function buildAbort(opts) {
   const o = opts || {};
-  const key = o.idempotencyKey;
-  if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
+  const key = o.submissionKey;
+  if (!isValidSubmissionKey(key)) { return { ok: false, reason: 'SUBMISSION_KEY_INVALID' }; }
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
   const why = normValue(o.abortReason);
   if (ABORT_REASONS.indexOf(why) === -1) { return { ok: false, reason: 'ABORT_REASON_INVALID' }; }
-  return {
-    ok: true,
-    key: key,
-    patch: { commit_state: 'ABORTED', aborted_at: now, abort_reason: why }
-  };
+  const from = normValue(o.fromState);
+  if (from !== 'READY' && from !== 'IN_FLIGHT') {
+    return { ok: false, reason: 'ABORT_REQUIRES_READY_OR_IN_FLIGHT' };
+  }
+  return { ok: true, spec: updateSpec(key, from, 'ABORTED', { settled_at: now, abort_reason: why }) };
 }
 
-// May this abort be applied to the row that is actually there?
+// THE LOAD-BEARING CHECK.
 //
-// Only a PENDING receipt may be aborted. Aborting a COMMITTED one would discard the only
-// evidence that resolves an ambiguity — the exact opposite of what the ledger is for — and
-// re-aborting an ABORTED one is a no-op that should be visible rather than silent.
-function planAbort(existingRow) {
-  if (!existingRow || typeof existingRow !== 'object') {
-    return { ok: false, action: 'REFUSE', reason: 'NO_RECEIPT_ROW' };
+// A conditional update that affected zero rows means somebody else already moved the state.
+// One that affected more than one means the key is not unique and nothing can be trusted.
+// Neither is a success, and — critically — neither is what a node's own "did not error"
+// signal reports. "The HTTP call succeeded" is not evidence that exactly one row changed, and
+// treating it as such is how a claim gets handed to two operations at once.
+function assertExactlyOneUpdated(result) {
+  if (!result || typeof result !== 'object') {
+    return { ok: false, reason: 'UPDATE_RESULT_UNREADABLE' };
   }
-  const state = normValue(existingRow.commit_state);
-  if (state === 'COMMITTED') {
-    return { ok: false, action: 'REFUSE', reason: 'CANNOT_ABORT_A_COMMITTED_RECEIPT' };
+  if (result.ok !== true) { return { ok: false, reason: 'UPDATE_FAILED' }; }
+  const n = result.updated_rows;
+  if (typeof n !== 'number' || !isFinite(n)) {
+    return { ok: false, reason: 'UPDATED_ROWS_UNREADABLE' };
   }
-  if (state === 'ABORTED') {
-    return { ok: true, action: 'ALREADY_ABORTED', reason: 'IDEMPOTENT_REPEAT' };
-  }
-  if (state !== 'PENDING') {
-    return { ok: false, action: 'REFUSE', reason: 'UNKNOWN_STATE' };
-  }
-  return { ok: true, action: 'ABORT' };
+  if (n === 0) { return { ok: false, reason: 'STATE_ALREADY_MOVED' }; }
+  if (n > 1) { return { ok: false, reason: 'MULTIPLE_ROWS_AFFECTED' }; }
+  return { ok: true, reason: 'EXACTLY_ONE_ROW' };
 }
 
 // ---------------------------------------------------------------- classification
 
 const VERDICT = {
   COMMITTED: 'COMMITTED',
-  ABSENT: 'ABSENT',            // caller decides whether absence is provable
+  READY: 'READY',                 // positive evidence that no handoff began
   CANNOT_ANSWER: 'CANNOT_ANSWER'
 };
 
-// F5 — the reason an ABORTED key fails closed. Named rather than folded into a generic
-// refusal, because the operator action it implies is specific and different: not "wait and
-// retry", but "issue a new cycle". It is a SERVER LOG reason; the browser still sees only the
-// existing three-state adapter contract, so no fourth client-visible outcome was invented.
-const ABORTED_REASON = 'ABORTED_REQUIRES_NEW_CYCLE';
+const REASONS = {
+  ABORTED: 'ABORTED_REQUIRES_NEW_CYCLE',
+  // The preallocation invariant is broken. This is never "nothing was created".
+  ABSENT: 'RECEIPT_ABSENT_INVARIANT_BROKEN'
+};
 
 // What does this set of rows, read back for this key, actually prove?
 //
-// Every ambiguous shape resolves to CANNOT_ANSWER. That is the whole discipline: the only
-// answer permitted to release a claim for a fresh attempt is a positive, provable absence,
-// and this function never produces one on its own — it reports ABSENT and lets the adapter,
-// which knows whether the preconditions hold, decide what absence is worth.
+// Note what is NOT here: there is no ABSENT verdict that a caller can turn into "safe to
+// submit". Absence is a broken invariant and resolves to CANNOT_ANSWER, full stop.
 function classifyRows(rows, key) {
-  if (!isValidKey(key)) {
-    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'KEY_INVALID' };
+  if (!isValidSubmissionKey(key)) {
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'SUBMISSION_KEY_INVALID' };
   }
   if (!Array.isArray(rows)) {
     return { verdict: VERDICT.CANNOT_ANSWER, reason: 'ROWS_UNREADABLE' };
   }
 
-  // F1 — THE STORE'S CONTRACT IS EXACT-KEY LOOKUP, AND A BROKEN CONTRACT PROVES NOTHING.
-  //
-  // The earlier version FILTERED foreign rows away and then judged what was left. That is
-  // unsafe in a specific and severe way: a store that answered readByKey(K) with a row for
-  // some other key would filter down to zero rows, classify as ABSENT, and — with
-  // read-after-write affirmed — become NOT_COMMITTED. The gateway would then release the
-  // claim and submit again, against a store that had just demonstrated it cannot be trusted
-  // to answer by key at all.
-  //
-  // So no filtering. EVERY returned row must be exactly this key, compared as a RAW string
-  // with no trimming: the query key and the writer are both exact-form already, so a padded
-  // stored key is a corrupted record, not a match to be repaired. Any deviation, and the
-  // whole response is discarded as a contract violation.
+  // The store's contract is exact-key lookup, and a broken contract proves nothing — so no
+  // filtering. Every returned row must be exactly this key, compared as a raw string.
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     if (!r || typeof r !== 'object' || Array.isArray(r)) {
       return { verdict: VERDICT.CANNOT_ANSWER, reason: 'LOOKUP_CONTRACT_VIOLATION' };
     }
-    const stored = r.idempotency_key;
+    const stored = r.submission_key;
     if (typeof stored !== 'string' || stored === '') {
       return { verdict: VERDICT.CANNOT_ANSWER, reason: 'RECEIPT_KEY_MISSING' };
     }
@@ -481,53 +352,42 @@ function classifyRows(rows, key) {
     }
   }
 
-  // Only a clean, genuinely empty exact-key result may become an absence.
   if (rows.length === 0) {
-    return { verdict: VERDICT.ABSENT, reason: 'NO_RECEIPT' };
+    // A current authoritative cycle is REQUIRED to have a receipt. Its absence means the
+    // preallocation invariant was violated somewhere — never that nothing was created.
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: REASONS.ABSENT };
   }
   if (rows.length > 1) {
-    // Two receipts for one key means the uniqueness rule was not enforced. Picking a winner
-    // would be guessing about a lead that may already exist.
     return { verdict: VERDICT.CANNOT_ANSWER, reason: 'DUPLICATE_RECEIPTS' };
   }
 
   const row = rows[0];
   const state = normValue(row.commit_state);
+  const correlationId = normValue(row.correlation_id);
 
-  if (state === 'ABORTED') {
-    // F5 — an operator proved no canonical commit exists AND closed this key. That is NOT a
-    // licence to submit again under the same key: the receipt is terminal and unique, so a
-    // fresh intent for this key could not be written even if the gateway tried. Fail closed
-    // and name the operator action, which is a new authoritative cycle.
-    return {
-      verdict: VERDICT.CANNOT_ANSWER,
-      reason: ABORTED_REASON,
-      correlation_id: normValue(row.correlation_id)
-    };
+  if (state === 'READY') {
+    // POSITIVE evidence: the receipt exists and no handoff has been claimed against it.
+    return { verdict: VERDICT.READY, reason: 'NO_HANDOFF_BEGAN', correlation_id: correlationId };
   }
-
-  if (state === 'PENDING') {
-    // The intent committed; whether the Pipeline write did is exactly what we cannot see.
-    // This is the residual ambiguous window, and it is resolved by an operator, never by
-    // guessing and never by submitting again.
-    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'PENDING_UNRESOLVED' };
+  if (state === 'IN_FLIGHT') {
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'IN_FLIGHT_UNRESOLVED', correlation_id: correlationId };
+  }
+  if (state === 'ABORTED') {
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: REASONS.ABORTED, correlation_id: correlationId };
   }
   if (state !== 'COMMITTED') {
-    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'UNKNOWN_STATE' };
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'UNKNOWN_STATE', correlation_id: correlationId };
   }
 
   const leadId = normValue(row.canonical_lead_id);
   if (leadId === '') {
-    // "Committed" asserting no lead is a malformed receipt, not a negative answer.
-    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'COMMITTED_WITHOUT_LEAD' };
+    return { verdict: VERDICT.CANNOT_ANSWER, reason: 'COMMITTED_WITHOUT_LEAD', correlation_id: correlationId };
   }
 
   return {
     verdict: VERDICT.COMMITTED,
     reason: 'RECEIPT_COMMITTED',
-    // The receipt's own server-minted id, so a log line can be correlated without deriving
-    // anything from the key (F6).
-    correlation_id: normValue(row.correlation_id),
+    correlation_id: correlationId,
     lead_id: leadId,
     lead_mode: normValue(row.lead_mode),
     lead_priority: normValue(row.lead_priority),
@@ -535,26 +395,49 @@ function classifyRows(rows, key) {
   };
 }
 
+// ---------------------------------------------------------------- retention
+
+const RECEIPT_LIFECYCLE_INVARIANT = {
+  must_exist_while: 'the submission_key is named by a Bot_Sessions row that can still pass the ' +
+    'authority and session guards',
+  never_expires_while: 'the cycle naming it is current or still recoverable',
+  deletion_preconditions: [
+    'the receipt is terminal (COMMITTED or ABORTED) or a proven orphan',
+    'no current authority row names this submission_key',
+    'the approved retention period has elapsed'
+  ],
+  forbidden: [
+    'deletion of a receipt whose key is still named by a current authority row',
+    'deletion of a READY or IN_FLIGHT receipt that is still reachable',
+    'deletion used to reopen a key'
+  ],
+  // Materially safer than before: deleting a receipt can no longer manufacture a usable
+  // absence, because absence never authorises a submit.
+  deletion_cannot_authorise_a_submit: true,
+  retention_duration: 'OWNER INPUT — no canonical FINMENTOR retention policy defines one'
+};
+
+function mayDeleteReceipt(opts) {
+  const o = opts || {};
+  const state = normValue(o.commitState);
+  const terminal = state === 'COMMITTED' || state === 'ABORTED';
+  if (!terminal && o.provenOrphan !== true) {
+    return { ok: false, reason: 'RECEIPT_NOT_TERMINAL_AND_NOT_ORPHAN' };
+  }
+  if (o.namedByCurrentAuthority === true) {
+    return { ok: false, reason: 'STILL_NAMED_BY_CURRENT_AUTHORITY' };
+  }
+  if (o.retentionPeriodElapsed !== true) {
+    return { ok: false, reason: 'RETENTION_PERIOD_NOT_ELAPSED' };
+  }
+  return { ok: true, reason: 'SAFE_TO_DELETE' };
+}
+
 // ---------------------------------------------------------------- logging
 
-// F6 — THE KEY DIGEST IS GONE, and the claim that went with it is withdrawn.
-//
-// P1.1 logged a truncated SHA-256 of the stable key and called it "not reversible into an
-// identity". That contradicted this design's own §3.1, which rejects plain SHA-256 as
-// meaningful pseudonymisation precisely because the input space is enumerable: Telegram ids
-// are numeric and cycle ids are date-shaped, so the whole space is brute-forced in seconds.
-// Both claims could not stand. A deterministic, unsalted digest of an identifier is a
-// PSEUDONYMOUS IDENTIFIER, not anonymised data, and calling it otherwise is the kind of
-// overclaim that ends up quoted in a privacy review.
-//
-// So the digest is not softened, it is REMOVED — and nothing replaced it, because nothing
-// needed to. `correlation_id` is already server-minted (crypto.randomUUID), already stored on
-// the receipt, and contains no Telegram identifier of any kind. It correlates log lines about
-// one submission perfectly well, which was the digest's only job. No new field, no new
-// secret, no HMAC introduced for logging.
-//
-// The only shape permitted in a log line: no key, no digest of the key, no identity, no lead
-// id, no contact data.
+// The submission key is opaque and identity-free, so it is no longer a personal identifier —
+// but it is still a capability-shaped secret-ish value, and there is no operational reason to
+// print it. correlation_id remains the field that correlates log lines.
 function receiptLogView(opts) {
   const o = opts || {};
   return {
@@ -567,30 +450,33 @@ function receiptLogView(opts) {
 }
 
 module.exports = {
-  KEY_PREFIX,
-  KEY_RE,
+  SUBMISSION_KEY_PREFIX,
+  SUBMISSION_KEY_RE,
+  SUBMISSION_KEY_BYTES,
+  SUBMISSION_KEY_MODEL,
   RECEIPT_FIELDS,
-  COMMIT_STATES,
+  RECEIPT_STATES,
   TRANSITIONS,
-  UNIQUENESS_RULE,
-  RECEIPT_AUTHORITY,
-  RECEIPT_LIFECYCLE_INVARIANT,
-  ABSENCE_PROOF_PRECONDITIONS,
   ABORT_REASONS,
+  RECEIPT_AUTHORITY,
+  ISSUANCE_ORDER,
+  PREALLOCATION_INVARIANT,
+  RECEIPT_LIFECYCLE_INVARIANT,
   VERDICT,
-  ABORTED_REASON,
+  REASONS,
   normValue,
-  isValidKey,
-  parseKey,
-  canTransition,
+  mintSubmissionKey,
+  isValidSubmissionKey,
   resolveReceiptKey,
-  mayDeleteReceipt,
-  buildIntent,
+  canTransition,
+  buildPreallocation,
+  buildClaim,
   buildCommit,
-  planCommit,
   buildAbort,
-  planAbort,
+  updateSpec,
+  assertExactlyOneUpdated,
   classifyRows,
+  mayDeleteReceipt,
   receiptLogView,
   newCorrelationId
 };

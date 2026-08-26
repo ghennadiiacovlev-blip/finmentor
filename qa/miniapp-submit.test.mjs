@@ -51,6 +51,9 @@ const CLOCK = { now: () => NOW };
 const SESSION_ID = 'AS-0123456789abcdef0123';
 const CHAT = '551662084';
 const CYCLE = 'C-2026-08-26-01';
+// P3 — the recovery key is the AUTHORITATIVE preallocated submission_key, not a value
+// derived from identity. The caller still cannot steer it; it just comes from a safer place.
+const AUTH_SUBMISSION_KEY = 'sub_' + '1'.repeat(32);
 
 // Shared ordered event log, so a test can assert that the authoritative commit happened
 // BEFORE the derived mirror ran rather than merely that both happened.
@@ -101,7 +104,7 @@ function makeSessions(initial) {
 // deployment prerequisite instead of proving it.
 const LIVE_AUTHORITY_COLUMNS = [
   'chat_id', 'cycle_id', 'consent', 'consent_cycle_id', 'consent_at', 'consent_source',
-  'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at'
+  'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at', 'submission_key'
 ];
 
 // The header set a deployment that has satisfied AUTHORITY_SCHEMA_PRECONDITION will have.
@@ -120,6 +123,8 @@ function makeAuthority(initial, columns) {
   const row = Object.assign({
     chat_id: CHAT,
     cycle_id: CYCLE,
+    // P3 — preallocated at cycle issuance by the Concierge. A current cycle always has one.
+    submission_key: 'sub_' + '1'.repeat(32),
     consent: '',
     consent_cycle_id: '',
     consent_at: '',
@@ -620,7 +625,7 @@ check('the retry after ambiguity resolves state first and makes zero extra Intak
   });
   const r = run({}, { sessions, leadIntake: intake });
   eq(r.leadIntake.calls.length, 0, 'a duplicate Intake call followed an ambiguous attempt');
-  eq(r.leadIntake.lookups[0], 'miniapp:' + CHAT + ':' + CYCLE, 'lookup used the wrong key');
+  eq(r.leadIntake.lookups[0], AUTH_SUBMISSION_KEY, 'lookup used the wrong key');
   eq(r.out.response.lead_id, 'FIN-RECOVERED-9', 'the recovered lead was not returned');
   eq(r.out.log.resolved_from, 'lookup', 'not resolved via lookup');
 });
@@ -857,7 +862,7 @@ check('(h) a caller-supplied request_id cannot steer which submission is recover
     leadIntake: makeIntake({ lookup: { ok: true, known: true, body: PRIOR_BODY } })
   });
   eq(r.leadIntake.lookups.length, 1, 'the adapter was not consulted');
-  eq(r.leadIntake.lookups[0], 'miniapp:' + CHAT + ':' + CYCLE, 'the caller steered the lookup key');
+  eq(r.leadIntake.lookups[0], AUTH_SUBMISSION_KEY, 'the caller steered the lookup key');
   assert(r.out.log.untrusted_fields_ignored.indexOf('request_id') !== -1,
     'the hostile request_id was not recorded as ignored');
 });
@@ -1526,6 +1531,33 @@ check('an unmigrated sheet cannot recover the classification on a retry', () => 
   eq(retry.out.log.lead_mode, '', 'a dropped column produced a value from nowhere');
   // And still nothing crosses TB-1.
   assertNoModeAnywhere(retry.out.response, 'an unmigrated authority replay');
+});
+
+check('(P3) a current cycle with no preallocated submission_key fails closed', () => {
+  // The preallocation invariant, enforced at the gateway: a current authoritative cycle is
+  // REQUIRED to have a receipt key. Its absence is a broken invariant, and must never be read
+  // as an empty ledger that permits a fresh submit — that was the duplicate-lead path.
+  const authority = makeAuthority();
+  delete authority.row.submission_key;
+  const r = run({}, { authority });
+  eq(r.out.ok, false, 'a cycle with no submission key was allowed to submit');
+  eq(r.out.response.error_code, 'PRE_ACTIVATION_BLOCKED', 'the missing key was not reported as blocked');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_MISSING_ON_AUTHORITY', 'the stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'a broken invariant reached Lead Intake');
+  eq(r.authority.stats.writes, 0, 'a broken invariant wrote to authority');
+});
+
+check('(P3) the recovery lookup is asked with the AUTHORITATIVE submission key', () => {
+  // Not the derived miniapp:<user>:<cycle> value, which P2/P3 retired: two issuers minting in
+  // one millisecond derive the same key, and the ledger cannot arbitrate that.
+  const authority = makeAuthority();
+  authority.row.submission_key = 'sub_' + 'b'.repeat(32);
+  const sessions = makeSessions({ submit_state: 'submitting' });
+  const leadIntake = makeIntake({ lookup: { ok: true, known: false } });
+  const r = run({}, { sessions, authority, leadIntake });
+  eq(r.leadIntake.lookups[0], 'sub_' + 'b'.repeat(32), 'the lookup did not use the authority key');
+  assert(String(r.leadIntake.lookups[0]).indexOf('miniapp:') === -1,
+    'the retired derived key is still being used for recovery');
 });
 
 // ---------------------------------------------------------------------- summary

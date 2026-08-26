@@ -234,7 +234,11 @@ function resolvePriorSubmission(ctx, session) {
       // The lookup is asked with the SERVER-derived key only. Nothing a caller sent -- not
       // request_id, not lead_id -- reaches this argument, so a caller cannot steer which
       // submission a recovery resolves to.
-      const found = ctx.leadIntake.lookup(ctx.idempotencyKey);
+      // P3 — the recovery lookup uses the AUTHORITATIVE submission_key, minted by the cycle
+      // issuer and preallocated with the receipt. It is NOT derived from identity: the old
+      // derived key could collide when two issuers minted in the same millisecond, and the
+      // ledger has no insert-if-absent to arbitrate that (P2).
+      const found = ctx.leadIntake.lookup(ctx.submissionKey);
       ctx.counts.lead_intake_lookups++;
       if (found && found.ok && found.known) {
         const result = canonicalResult(found.body);
@@ -468,9 +472,18 @@ function submitSequence(o, run) {
     return reject('TEMPORARY_BACKEND_ERROR', 'IDEMPOTENCY_KEY', correlationId, counts);
   }
 
+  // P3 — read the preallocated submission key from AUTHORITY. A current cycle is required to
+  // have one (the preallocation invariant), so its absence is a broken invariant: it must fail
+  // closed, never be read as an empty ledger that permits a fresh submit.
+  const submissionKey = C.normValue(authorityRow.submission_key);
+  if (submissionKey === '') {
+    return reject('PRE_ACTIVATION_BLOCKED', 'SUBMISSION_KEY_MISSING_ON_AUTHORITY', correlationId, counts);
+  }
+
   const ctx = {
     chatId: chatId,
     cycleId: cycleId,
+    submissionKey: submissionKey,
     appSessionId: v.app_session_id,
     idempotencyKey: idempotencyKey,
     correlationId: correlationId,
