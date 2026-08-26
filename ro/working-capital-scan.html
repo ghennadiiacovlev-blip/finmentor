@@ -426,7 +426,10 @@
     var P = PROFILES[profKey];
     var risk = riskLevel(sc);
 
-    document.getElementById('scanBand').textContent = risk + ' risc · zonă preliminară de atenție';
+    // Romanian puts the adjective after the noun: "Risc scăzut", not "Scăzut risc". The RU
+    // page concatenates level-first because that is correct Russian; porting that order
+    // produced a calque on every RO result.
+    document.getElementById('scanBand').textContent = 'Risc ' + risk.toLowerCase() + ' · zonă preliminară de atenție';
     document.getElementById('scanTitle').textContent = P.title;
     document.getElementById('scanText').textContent = P.diagnosis;
     document.getElementById('scanWhy').textContent = P.why;

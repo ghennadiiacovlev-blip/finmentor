@@ -557,6 +557,23 @@ check('the mini-scan result strings are actually Romanian now', () => {
     assert(src.includes(expected), 'missing translated string: ' + expected);
   }
 });
+check('the RO risk band reads as Romanian, not as a Russian word order calque', () => {
+  // "Низкий риск" is correct Russian; porting the level-first concatenation produced
+  // "Scăzut risc" on every RO result. Romanian puts the adjective after the noun.
+  const src = read('ro/working-capital-scan.html');
+  assert(!/risk\s*\+\s*'\s*risc/.test(src), 'level-first concatenation is back: renders "Scăzut risc"');
+  assert(/'Risc\s*'\s*\+\s*risk\.toLowerCase\(\)/.test(src), 'RO risk band no longer builds "Risc <nivel>"');
+});
+
+check('RO structured data does not describe the page in Russian', () => {
+  // knowsAbout on the RO page was an untranslated copy of the RU array, so the Romanian
+  // page declared its expertise topics in Russian to every crawler that read it.
+  const src = read('ro/index.html');
+  const block = /"knowsAbout"\s*:\s*\[([\s\S]*?)\]/.exec(src);
+  assert(block, 'ro/index.html has no knowsAbout block');
+  assert(!/[Ѐ-ӿ]/.test(block[1]), 'Cyrillic in the RO knowsAbout array: ' + block[1].replace(/\s+/g, ' ').slice(0, 90));
+});
+
 check('RO pages declare lang="ro"', () => {
   for (const f of ['ro/questionnaire.html', 'ro/working-capital-scan.html']) {
     assert(/<html[^>]*\blang="ro"/i.test(read(f)), f + ' does not declare lang="ro"');
