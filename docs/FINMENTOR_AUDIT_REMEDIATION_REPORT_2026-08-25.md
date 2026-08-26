@@ -1,5 +1,27 @@
 # FINMENTOR — Audit Remediation Report
 
+> ## HISTORICAL EVIDENCE — point-in-time, 2026-08-25. Do not act on its GO/NO-GO lines.
+>
+> This report is the record of the 2026-08-25 remediation **as it stood that night**, and it
+> is deliberately left unedited below this banner. Its findings, closures and live-verified
+> evidence remain valid as history. Two things in it are **stale as guidance** and must not be
+> used to make a decision today:
+>
+> - **"7/7 gates, 340 assertions"** (§ final verdict, and the merge recommendation table).
+>   The suite is now **8 gates / 460 assertions**, with per-gate floors in
+>   `qa/assertion-baseline.json`. Current state: `docs/FINMENTOR_CI_QUALITY_GATE.md`.
+> - **"Merge remediation branch to `main` — CONDITIONAL GO"**. That recommendation was made
+>   against the tree as it was on 2026-08-25 and predates all of B.2.1-C. It is **not** a
+>   standing approval. B.2.1-C is **NOT CLEARED** for activation — G1 and G5 are open, three
+>   `Bot_Sessions` columns are an unmet deployment precondition, and fifteen live canary
+>   items are unexecuted. See `docs/PHASE_B2_1C_THREAT_MODEL.md` §4.1–§4.3.
+>
+> The **OWNER ACTIONS REQUIRED** section near the end is still live; item 6 (revoke
+> `N8N_API_KEY` / `N8N_FIX_API_KEY`) remains outstanding.
+>
+> Hygiene classification for this file: **KEEP — historical evidence.** See
+> `docs/FINMENTOR_POST_REMEDIATION_HYGIENE.md`.
+
 Date: 2026-08-25
 Branch: `fix/finmentor-audit-remediation-2026-08-25`
 Base: `6b8fefcf4d4b809bf2fb431f7f18b9fb5bfae010` (production main)

@@ -85,6 +85,22 @@ the browser is never either.**
 
 ## 2. Threats
 
+> **How to read these rows.** Each row is kept broadly as first written, and several describe
+> code that has since changed. Where a row has been overtaken, the correction is either
+> folded into its own `STATUS` line or carried as an inline `AMENDED` bullet — and the
+> authoritative gap state is always **§4.1 (N6.1)**, **§4.2 (N6.2)** and **§4.3 (owner
+> decisions)**, which supersede anything below them. Rows are deliberately not rewritten to
+> read as though they always knew the final answer; that would destroy the audit trail
+> explaining why each correction was needed. Where a row's prose and the code disagree, the
+> code is authoritative and the §4.x amendment says so.
+>
+> Two rows worth flagging for that reason: **T40**'s `STATUS` still quotes the pre-N6.1
+> fall-through `return { resolved: false, unresolved: true }`, which is now a distinct
+> `blocked: true` / `PRE_ACTIVATION_BLOCKED` branch (see its `AMENDED (N6.1)` bullet and
+> §4.1); and **T37**'s `CURRENT CONTROL` still names `reconcile()` and `repaired: false`,
+> both renamed in N6.1 to `planReconciliation` and `repair_action` (see its
+> `AMENDED (N6.1)` bullet and §4.1). Neither changes the row's verdict.
+
 ### T1 — Forged Telegram initData
 
 - **THREAT** — A caller fabricates `initData` claiming another Telegram user, or crafts one from `initDataUnsafe`.

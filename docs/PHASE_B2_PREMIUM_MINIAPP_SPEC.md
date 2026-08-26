@@ -237,6 +237,14 @@ Show:
 
 If backend returns merge mode, client experience should still be one clean confirmation — never say “duplicate”.
 
+> **Superseded in part, N6.2 (2026-08-26).** The backend no longer returns `mode` to the
+> client at all. This requirement was written when `mode` was in the success body and the
+> rule depended on the UI choosing not to render it — which a reader could defeat with
+> devtools. `mode` is now absent from `CLIENT_RESPONSE_FIELDS` and actively refused by
+> `responseLeaks`, so the guarantee is structural rather than editorial. The requirement
+> above still holds; there is simply nothing left for the client to disclose. See gateway
+> contract §9 and threat model §4.3.
+
 ### Screen 8 — Error / recovery
 
 Separate recoverable from terminal failures.

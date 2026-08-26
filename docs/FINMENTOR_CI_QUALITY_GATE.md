@@ -20,7 +20,10 @@ their own Mini App phase:
 None of them runs the eight gates that guard the remediated production behaviour. The
 consequence was concrete: the remediation merge to `main` — which reshaped Lead Intake
 identity handling, the CRM write path and the Mini App read model — carried **no mandatory
-status check over any of it**. Every one of those 340 assertions was run by hand.
+status check over any of it**. All 340 assertions *that existed at the time of that merge*
+were run by hand. (The suite has since grown to **460** across eight gates; 340 is the
+historical figure for the merge described here, not a current total. Current counts live in
+the gate table below and in `qa/assertion-baseline.json`.)
 
 This workflow closes that. It is the repository's general CI; the three above stay as they
 are, scoped to their phases.
