@@ -1,13 +1,29 @@
 name: FINMENTOR Quality Gates
 
 # The canonical repository CI. The three Mini App workflows beside this one are
-# path-scoped to their own phase; none of them covers the eight gates that guard the
+# path-scoped to their own phase; none of them covers the behavioural gates that guard the
 # remediated production behaviour, so before this workflow existed a merge to main had no
 # mandatory status check over them at all.
 #
-# Everything here is offline: no secrets, no network, no n8n, no Google, no browser. The
-# gates are run through the same entry point used locally, `node qa/run-all.mjs`, so a green
-# CI and a green laptop mean the same thing.
+# Everything here is offline: no secrets, no network, no n8n, no Google, no browser.
+#
+# WHAT A GREEN RUN HERE DOES AND DOES NOT MEAN.
+#
+# It means the CANONICAL CHECKS pass, and those are now the same set a full local
+# verification runs: JavaScript syntax over every tracked source, PowerShell parse over
+# every script, the behavioural gates through the same entry point used locally
+# (`node qa/run-all.mjs`), the assertion baseline, cwd-independence, and the secret scan
+# together with its self-test. For that set, a green CI and a green laptop mean the same
+# thing — which is the point of running the gates through the identical entry point rather
+# than a CI-only variant.
+#
+# It does NOT mean every check in the programme has run. The security MUTATION harness —
+# deliberately breaking a control to prove the gate notices — is a SEPARATE, MANUAL
+# regression. It temporarily edits tracked sources and restores them, which is not
+# something an automatic status check should do, so it is not run here and no claim about
+# it should be read into a green tick. It is executed and recorded per night-shift phase;
+# see `docs/FINMENTOR_NIGHT_SHIFT_FINAL_REGRESSION_2026-08-26.md` §3 for the most recent
+# run and the controls it covers.
 
 on:
   pull_request:
@@ -44,21 +60,52 @@ jobs:
           node --version
           echo "no package.json and no dependencies by design; the gates are plain Node"
 
-      - name: Syntax check every gate and the sources they exercise
+      - name: Syntax check every tracked JavaScript source
         shell: bash
         run: |
           set -euo pipefail
+          # Driven by `git ls-files` rather than a hand-maintained glob list, so a new source
+          # is covered the moment it is tracked. This also widens coverage to the root and
+          # app/ browser scripts, which the previous glob list omitted entirely — and it
+          # removes a latent trap: `n8n/src/**/*.js` only matched because bash without
+          # globstar expands `**` like `*`, which happens to fit the current two-level
+          # layout and would silently stop matching if that layout changed.
           fail=0
-          for f in qa/*.test.mjs qa/run-all.mjs scripts/*.mjs n8n/src/**/*.js gateway/*.mjs gateway/n8n/*.js; do
+          count=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
             [ -e "$f" ] || continue
+            count=$((count+1))
             if ! node --check "$f" >/dev/null 2>&1; then
               echo "SYNTAX FAIL: $f"
               node --check "$f" || true
               fail=1
             fi
-          done
+          done < <(git ls-files '*.js' '*.mjs')
           [ "$fail" -eq 0 ] || exit 1
-          echo "syntax: all sources parse"
+          echo "syntax: $count tracked JavaScript sources parse"
+
+      - name: PowerShell parse check
+        shell: pwsh
+        run: |
+          # The scripts/ PowerShell helpers are the live-operations surface. They are never
+          # executed here — no tenant, no credentials, no network — but a script that does
+          # not parse is a defect that would only surface at the moment someone needs it.
+          # ParseFile is static analysis: it reads the file and builds an AST, it does not
+          # run anything.
+          $files = Get-ChildItem -Path scripts -Filter *.ps1 -File
+          $bad = @()
+          foreach ($f in $files) {
+            $errs = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$null, [ref]$errs) > $null
+            if ($errs -and $errs.Count -gt 0) {
+              Write-Output ("PARSE FAIL: " + $f.Name)
+              $errs | ForEach-Object { Write-Output ("  " + $_.Message) }
+              $bad += $f.Name
+            }
+          }
+          if ($bad.Count -gt 0) { exit 1 }
+          Write-Output ("powershell: " + $files.Count + " scripts parse")
 
       - name: Canonical quality gates
         id: gates
@@ -95,6 +142,15 @@ jobs:
           grep -qE '^8/8 gates passed' /tmp/cwd.out
           echo "cwd independence: PASS"
 
+      - name: Secret scan self-test
+        shell: bash
+        run: |
+          # Proves the MATCHER before trusting its verdict on the repository. The case that
+          # matters: an allowlisted test fixture and a genuine credential-shaped token on
+          # the same line must still be detected. An earlier line-level allowlist skipped
+          # the whole line and would have missed it.
+          node scripts/secret-scan.mjs --self-test
+
       - name: Secret scan over tracked files
         shell: bash
         run: node scripts/secret-scan.mjs
@@ -113,6 +169,9 @@ jobs:
               echo 'gates did not run'
             fi
             echo
+            echo 'Ran: JS syntax (all tracked sources), PowerShell parse, behavioural gates,'
+            echo 'assertion baseline, cwd-independence, secret scan + self-test.'
+            echo 'NOT run here: the security mutation harness (separate, manual regression).'
             echo 'Offline: no secrets, no network, no n8n, no Google, no browser.'
             echo 'This workflow changes nothing in production.'
           } >> "$GITHUB_STEP_SUMMARY"
