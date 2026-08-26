@@ -16,6 +16,7 @@
 // docs/PHASE_B2_1C_G1_DURABLE_RECOVERY_PLAN.md. A green run here means the logic is right,
 // not that the capability exists.
 
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -100,7 +101,9 @@ function lookupVia(store) {
 
 // Write intent then commit, the way Lead Intake must.
 function seedCommitted(store, key, leadId, mode) {
-  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'CID-' + key });
+  // A realistic server request id — NOT derived from the key. buildIntent now refuses the
+  // latter, which is how the leak this fixture originally caused is prevented at source.
+  const intent = R.buildIntent({ idempotencyKey: key, nowIso: NOW, correlationId: 'fmr_' + (key === KEY_1 ? 'a1' : 'b2') });
   assert(intent.ok, 'intent build failed: ' + intent.reason);
   store.insertIfAbsent(intent.record);
   const commit = R.buildCommit({
@@ -374,7 +377,7 @@ console.log('\nLOGGING');
 check('(15) the receipt log view exposes no identity and no raw key', () => {
   const view = R.receiptLogView({
     idempotencyKey: KEY_1, commitState: 'COMMITTED', canonicalLeadId: LEAD_A,
-    verdict: 'COMMITTED', reason: 'RECEIPT_COMMITTED', correlationId: 'CID-1'
+    verdict: 'COMMITTED', reason: 'RECEIPT_COMMITTED', correlationId: 'fmr_a1'
   });
   const s = JSON.stringify(view);
   assert(s.indexOf(CHAT) === -1, 'the telegram id reached the log');
@@ -382,10 +385,36 @@ check('(15) the receipt log view exposes no identity and no raw key', () => {
   assert(s.indexOf(CYCLE_1) === -1, 'the cycle id reached the log');
   assert(s.indexOf(LEAD_A) === -1, 'the canonical lead id reached the log');
   eq(view.has_lead_id, true, 'the log lost the fact that a lead exists');
-  eq(view.key_digest.length, 16, 'the key digest shape drifted');
-  // The digest must still correlate two entries about the same submission.
-  eq(R.keyDigest(KEY_1), view.key_digest, 'the digest is not stable');
-  assert(R.keyDigest(KEY_1) !== R.keyDigest(KEY_2), 'two keys share a digest');
+  // F6: even when a key is handed in, nothing derived from it comes out.
+  eq(view.key_digest, undefined, 'a key digest is back in the log view');
+  eq(view.correlation_id, 'fmr_a1', 'the server correlation id was lost from the log');
+});
+
+check('(F6) no deterministic digest of the key is produced or claimed anonymous', () => {
+  // P1.1 logged a truncated SHA-256 of the key and called it "not reversible into an
+  // identity", while §3.1 of the same design rejects plain SHA-256 as meaningful
+  // pseudonymisation because the input space is enumerable. Both could not stand, so the
+  // digest was removed rather than re-worded.
+  eq(typeof R.keyDigest, 'undefined', 'a key digest helper is exported again');
+  const keys = Object.keys(R.receiptLogView({ idempotencyKey: KEY_1, commitState: 'PENDING' }));
+  keys.forEach((k) => {
+    assert(!/digest|hash|fingerprint|pseudonym/i.test(k), 'the log view carries a derived key field: ' + k);
+  });
+  eq(keys.join(','), 'commit_state,has_lead_id,verdict,reason,correlation_id', 'the log view shape drifted');
+  // The replacement is a server-minted id that contains no Telegram identifier at all.
+  const intent = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW });
+  assert(intent.record.correlation_id.indexOf(CHAT) === -1, 'the minted correlation id embeds the identity');
+  assert(intent.record.correlation_id.length >= 16, 'the minted correlation id is too weak to correlate');
+});
+
+check('(F6) a correlation id derived from the key is refused at source', () => {
+  // Found by this gate: a fixture built the id as CID- + key and the leak assertion fired.
+  // Fixing the fixture alone would have left the trap open for the live wiring.
+  const bad = R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'CID-' + KEY_1 });
+  eq(bad.ok, false, 'a correlation id containing the key was accepted');
+  eq(bad.reason, 'CORRELATION_ID_DERIVED_FROM_KEY', 'the refusal reason drifted');
+  eq(R.buildIntent({ idempotencyKey: KEY_1, nowIso: NOW, correlationId: 'fmr_ok' }).ok, true,
+    'a clean correlation id was refused');
 });
 
 check('(15) an adapter log line carries no identity either', () => {
@@ -399,6 +428,19 @@ check('(15) an adapter log line carries no identity either', () => {
   assert(s.indexOf(CHAT) === -1, 'the adapter log leaked the telegram id');
   assert(s.indexOf(KEY_1) === -1, 'the adapter log leaked the raw key');
   assert(s.indexOf(LEAD_A) === -1, 'the adapter log leaked the canonical lead id');
+  assert(!/digest/i.test(s), 'the adapter log carries a key digest');
+  // Every branch, not just the happy one.
+  const branches = [];
+  const probe = (st) => { const seen2 = []; const b = A.createRecoveryAdapter(st, { onLog: (v) => seen2.push(v) }); b.adapter.lookup(KEY_1); return seen2; };
+  branches.push(probe(makeReceiptStore()));                       // absence
+  branches.push(probe(makeReceiptStore({ unavailable: true })));   // store error
+  const pend = makeReceiptStore(); seedPending(pend, KEY_1);
+  branches.push(probe(pend));                                      // pending
+  branches.forEach((b) => {
+    const t = JSON.stringify(b);
+    assert(t.indexOf(CHAT) === -1, 'a log branch leaked the telegram id: ' + t);
+    assert(t.indexOf(KEY_1) === -1, 'a log branch leaked the raw key: ' + t);
+  });
 });
 
 check('a throwing logger can never change a verdict', () => {
@@ -734,20 +776,26 @@ check('(F4) an abort carries a constrained reason, never free text', () => {
   eq(R.ABORT_REASONS.length, 1, 'the abort vocabulary grew without review');
 });
 
-check('(F4) an ABORTED receipt is a POSITIVE not-committed, independent of read-after-write', () => {
+check('(F5) an ABORTED receipt closes the KEY and never licenses a same-key retry', () => {
+  // P1.1 had ABORTED answer known:false, which released the claim into a fresh Intake call
+  // carrying THE SAME key — a key whose terminal receipt already exists and which
+  // insert-if-absent could not accept. Every escape from that was forbidden: delete the row,
+  // overwrite ABORTED, weaken uniqueness, or write a second receipt. So ABORTED closes the
+  // key instead, and retry needs a new cycle.
   const store = makeReceiptStore();
   seedPending(store, KEY_1);
   const abort = R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' });
   store.applyCommit(KEY_1, abort.patch);
-  eq(R.classifyRows(store.rows, KEY_1).verdict, R.VERDICT.NOT_COMMITTED_PROVEN, 'an abort was not a proven negative');
+  const v = R.classifyRows(store.rows, KEY_1);
+  eq(v.verdict, R.VERDICT.CANNOT_ANSWER, 'an abort still authorises a same-key submit');
+  eq(v.reason, R.ABORTED_REASON, 'the abort reason does not name the operator action');
+  eq(R.ABORTED_REASON, 'ABORTED_REQUIRES_NEW_CYCLE', 'the named reason drifted');
   const out = lookupVia(store)(KEY_1);
-  eq(out.ok, true, 'an aborted receipt could not answer');
-  eq(out.known, false, 'an aborted receipt was not reported as not-committed');
-  // Positive evidence, so it holds even where an ABSENCE would not.
-  const weak = makeReceiptStore({ read_after_write: false });
-  weak.rows = store.rows.slice();
-  eq(A.createDiagnosticProbe(weak).probe(KEY_1).known, false,
-    'a proven abort was downgraded because absence is unprovable here');
+  eq(out.ok, false, 'an aborted key produced a definite answer');
+  assert(out.known !== false, 'an aborted key released the claim');
+  // No fourth client-visible outcome was invented: the adapter contract is still three-state.
+  eq(Object.keys(out).join(','), 'ok', 'the adapter grew a new client-visible field');
+  eq(R.VERDICT.NOT_COMMITTED_PROVEN, undefined, 'the retired verdict is back');
 });
 
 check('(F4) aborting does not delete the receipt, and the evidence survives', () => {
@@ -780,6 +828,157 @@ check('(F4) the operator correlation chain is exactly correlation_id -> meta.req
   // by the stable key — the P1-L5 gap, asserted rather than described.
   const flat = JSON.stringify(built.envelope);
   assert(flat.indexOf(KEY_1) === -1, 'the stable key now reaches the envelope; P1-L5 must be revisited');
+});
+
+console.log('\nF5  ABORTED REQUIRES A NEW CYCLE');
+
+function abortedStore(key) {
+  const store = makeReceiptStore();
+  seedPending(store, key);
+  const abort = R.buildAbort({ idempotencyKey: key, nowIso: NOW, abortReason: 'PROVEN_NO_PIPELINE_COMMIT' });
+  store.applyCommit(key, abort.patch);
+  return store;
+}
+
+check('(1,2) an ABORTED receipt + a submitting session makes NO same-key Intake call', () => {
+  const store = abortedStore(KEY_1);
+  const sessions = makeSessions({ submit_state: 'submitting' });
+  const authority = makeAuthority();
+  const built = A.createRecoveryAdapter(store);
+  let calls = 0;
+  const intake = { submit: () => { calls++; return { ok: true, body: { ok: true, lead_id: LEAD_B } }; }, lookup: built.adapter.lookup };
+  const out = submitWith(intake, sessions, authority);
+  eq(calls, 0, 'the handler submitted again under a key whose receipt is terminal');
+  eq(out.ok, false, 'an aborted key produced a success');
+  eq(out.response.error_code, 'SUBMIT_UNRESOLVED', 'the aborted key was not reported as unresolved');
+  eq(sessions.row.submit_state, 'submitting', 'the claim was released for a terminal key');
+});
+
+check('(5) the old ABORTED row is untouched by the refused retry', () => {
+  const store = abortedStore(KEY_1);
+  const before = JSON.stringify(store.rows);
+  const sessions = makeSessions({ submit_state: 'submitting' });
+  const built = A.createRecoveryAdapter(store);
+  submitWith({ submit: () => ({ ok: true, body: {} }), lookup: built.adapter.lookup }, sessions, makeAuthority());
+  eq(store.rows.length, 1, 'a second receipt appeared for the aborted key');
+  eq(JSON.stringify(store.rows), before, 'the terminal receipt was mutated');
+  eq(store.rows[0].commit_state, 'ABORTED', 'the terminal state changed');
+});
+
+check('(3,4) a NEW cycle mints a distinct key and submits normally', () => {
+  const store = abortedStore(KEY_1);
+  // The Concierge issues a new authoritative cycle; the app session re-binds to it.
+  const sessions = makeSessions({ cycle_id: CYCLE_2 });
+  const authority = makeAuthority({ cycle_id: CYCLE_2 });
+  const built = A.createRecoveryAdapter(store);
+  eq(C.idempotencyKey(CHAT, CYCLE_2), KEY_2, 'the new cycle did not mint a new key');
+  assert(KEY_2 !== KEY_1, 'the new cycle reused the aborted key');
+  let calls = 0;
+  const intake = {
+    submit: (req) => {
+      calls++;
+      eq(req.idempotency_key, KEY_2, 'the submit carried the OLD key');
+      // Lead Intake writes its intent under the NEW key — insert-if-absent succeeds because
+      // the terminal receipt belongs to a different key entirely.
+      const intent = R.buildIntent({ idempotencyKey: KEY_2, nowIso: NOW, correlationId: 'fmr_new' });
+      eq(store.insertIfAbsent(intent.record).inserted, true, 'the new-cycle intent was rejected');
+      return { ok: true, body: { ok: true, lead_id: LEAD_B, mode: 'new', priority: 'WARM', financial_zone: 'YELLOW' } };
+    },
+    lookup: built.adapter.lookup
+  };
+  const out = submitWith(intake, sessions, authority);
+  eq(out.ok, true, 'a new cycle could not submit after an abort');
+  eq(calls, 1, 'the new cycle did not make exactly one Intake call');
+  eq(out.response.lead_id, LEAD_B, 'the new cycle did not return its lead');
+  eq(store.rows.length, 2, 'the new cycle did not get its own receipt');
+});
+
+check('(6) the old cycle cannot consume the new-cycle receipt', () => {
+  const store = abortedStore(KEY_1);
+  seedCommitted(store, KEY_2, LEAD_B, 'new');
+  const lookup = lookupVia(store);
+  // The aborted key still fails closed; it does not borrow the newer cycle's success.
+  const old = lookup(KEY_1);
+  eq(old.ok, false, 'the aborted key resolved via the new cycle receipt');
+  // And the new key resolves only to its own lead.
+  eq(lookup(KEY_2).body.lead_id, LEAD_B, 'the new cycle lost its own receipt');
+});
+
+check('(F5) an aborted cycle cannot be reused: a stale binding is refused before lookup', () => {
+  // Belt and braces on top of the terminal key: the handler's own cycle check refuses a
+  // submit arriving on a superseded binding, so an old cycle cannot even reach the ledger.
+  const store = abortedStore(KEY_1);
+  const built = A.createRecoveryAdapter(store);
+  const sessions = makeSessions({ cycle_id: CYCLE_1 });      // still bound to the aborted cycle
+  const authority = makeAuthority({ cycle_id: CYCLE_2 });    // Concierge has moved on
+  let calls = 0;
+  const out = submitWith({ submit: () => { calls++; return { ok: true, body: {} }; }, lookup: built.adapter.lookup }, sessions, authority);
+  eq(out.response.error_code, 'CYCLE_SUPERSEDED', 'a stale binding was not refused');
+  eq(calls, 0, 'a stale binding reached Lead Intake');
+});
+
+console.log('\nF8  CORRELATION RECOVERY IS BEST-EFFORT');
+
+check('(9) a failed correlation lookup can never itself produce an ABORTED receipt', () => {
+  // The dangerous shortcut: "I could not find a Pipeline row, therefore nothing committed."
+  // Pipeline AZ is overwritten by a later merge, so absence there proves nothing. Nothing in
+  // this module can mint an abort without an explicit, named operator reason.
+  eq(R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW }).ok, false, 'an abort was built with no reason');
+  eq(R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'CORRELATION_LOOKUP_FAILED' }).ok, false,
+    'a failed correlation lookup was accepted as an abort reason');
+  eq(R.buildAbort({ idempotencyKey: KEY_1, nowIso: NOW, abortReason: 'NOT_FOUND_IN_PIPELINE' }).ok, false,
+    'a Pipeline miss was accepted as an abort reason');
+  eq(R.ABORT_REASONS.join(','), 'PROVEN_NO_PIPELINE_COMMIT', 'the abort vocabulary changed');
+  // And a PENDING receipt stays ambiguous rather than drifting toward a negative.
+  const store = makeReceiptStore();
+  seedPending(store, KEY_1);
+  eq(lookupVia(store)(KEY_1).ok, false, 'a pending receipt produced a definite answer');
+});
+
+check('(F8) the idempotency key does not locate a Pipeline row, and the plan says so', () => {
+  // Asserted against the envelope rather than trusted to prose: the key never travels, so it
+  // can never index anything downstream. This is the P1-L5 gap.
+  const built = C.buildLeadIntakePayload({
+    answers: GOOD_ANSWERS, free_text: '', contact: { name: 'Ion', company: 'ACME', direct: '+37360123456' },
+    telegramUserId: CHAT, locale: 'ru', clientVersion: 'b2.1.0', correlationId: 'fmr_chain', nowIso: NOW
+  });
+  assert(JSON.stringify(built.envelope).indexOf(KEY_1) === -1, 'the stable key now reaches the envelope');
+  eq(built.envelope.payload.meta.request_id, 'fmr_chain', 'the correlation chain broke');
+});
+
+console.log('\nF7  PLAN DOCUMENT INTEGRITY');
+
+check('(F7) the G1 plan document has no malformed markdown tables', () => {
+  // P1.1 corrupted three rows here with a sed pattern whose \\| behaved as GNU sed
+  // alternation. Small, deterministic guard: every row of a table must have the same cell
+  // count as its header separator, counting escaped pipes as content.
+  const doc = readFileSync(join(HERE, '..', 'docs', 'PHASE_B2_1C_G1_DURABLE_RECOVERY_PLAN.md'), 'utf8');
+  const lines = doc.split('\r\n').join('\n').split('\n');
+  const cells = (line) => {
+    const out = []; let cur = '';
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '\\' && line[i + 1] === '|') { cur += '|'; i++; continue; }
+      if (line[i] === '|') { out.push(cur); cur = ''; continue; }
+      cur += line[i];
+    }
+    out.push(cur); return out;
+  };
+  let tables = 0; const bad = [];
+  let fenced = false;
+  for (let i = 0; i < lines.length; i++) {
+    if (/^```/.test(lines[i])) { fenced = !fenced; continue; }
+    if (fenced) { continue; }
+    if (!/^\s*\|[\s:|-]+\|\s*$/.test(lines[i])) { continue; }
+    tables++;
+    const width = cells(lines[i]).length;
+    for (let j = i - 1; j < lines.length; j++) {
+      if (j < 0) { continue; }
+      if (!/^\s*\|/.test(lines[j])) { if (j > i) { break; } continue; }
+      if (cells(lines[j]).length !== width) { bad.push('line ' + (j + 1) + ': ' + cells(lines[j]).length + ' cells, expected ' + width); }
+    }
+  }
+  assert(tables >= 8, 'the plan document lost its tables: only ' + tables + ' found');
+  eq(bad.length, 0, 'malformed table rows: ' + bad.join('; '));
 });
 
 // ---------------------------------------------------------------- summary

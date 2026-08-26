@@ -109,7 +109,7 @@ Eleven fields. Each justified; the notable ones are those deliberately **absent*
 |---|---|
 | `idempotency_key` | unique. The only lookup key. Exact match, never prefix or scan |
 | `commit_state` | `PENDING` \| `COMMITTED` \| `ABORTED` |
-| `canonical_lead_id` | empty while `PENDING`; written exactly once at| `commit_state` | `PENDING` | `COMMITTED` | `ABORTED` |
+| `canonical_lead_id` | empty while `PENDING`; written exactly once at `COMMITTED` |
 | `lead_mode` | needed to replay the canonical success verbatim |
 | `lead_priority` | ditto |
 | `financial_zone` | ditto |
@@ -157,8 +157,7 @@ brief is explicit that a secret must not be introduced casually.
 - the ledger is classified as **containing a personal identifier**, not as identifier-free;
 - it enters the retention and access-control scope of **P1-L8**, which is upgraded from a
   retention question to a retention **and access-control** requirement;
-- **no raw key in any log line** — already enforced: `receiptLogView` emits a truncated
-  SHA-256 digest of the key and never the key, the identity or the lead id;
+- **no raw key in any log line, and nothing derived from it either** — see §3.2;
 - if the owner later prefers B2, the change is contained — one derivation function at the
   write and read boundary — but the secret lifecycle must be designed first, not after.
 
@@ -209,8 +208,8 @@ window is a safe one**:
 | before ① | no row | no row | `NOT_COMMITTED` → one fresh attempt | ✅ |
 | between ① and the Pipeline write | `PENDING` | no row | `CANNOT_ANSWER` | ⚠️ safe, operator-resolved |
 | between the Pipeline write and ② | `PENDING` | **row exists** | `CANNOT_ANSWER` | ⚠️ safe, operator-resolved |
-| between ② and respond || `commit_state` | `PENDING` | `COMMITTED` | `ABORTED` | row exists | `COMMITTED` → replays the lead | ✅ **G1's target case** |
-| after respond || `commit_state` | `PENDING` | `COMMITTED` | `ABORTED` | row exists | `COMMITTED` | ✅ |
+| between ② and respond | `COMMITTED` | row exists | `COMMITTED` → replays the lead | ✅ **G1 target case** |
+| after respond | `COMMITTED` | row exists | `COMMITTED` | ✅ |
 
 The two `PENDING` rows are the irreducible residual. Both are **fail-safe**: they never permit
 a fresh submit and never invent a lead. Neither is silently stranded — the operator resolution
@@ -233,7 +232,36 @@ is named in §6.
 | key not the exact server shape | `{ ok: false }` | ambiguity preserved |
 | **any returned row whose stored key is not exactly the queried key** | `{ ok: false }` | ambiguity preserved (F1) |
 | **any returned row with a missing / non-string / empty key** | `{ ok: false }` | ambiguity preserved (F1) |
-| receipt `ABORTED` | `{ ok: true, known: false }` | **proven** not-committed; one fresh attempt |
+| receipt `ABORTED` | `{ ok: false }` | key is closed; server log names `ABORTED_REQUIRES_NEW_CYCLE` (F5) |
+
+### 3.2 The key digest is removed, and its claim withdrawn (F6)
+
+P1.1 logged a truncated SHA-256 of the stable key and described it as *"not reversible into an
+identity"*. That could not stand beside §3.1, which rejects plain SHA-256 as meaningful
+pseudonymisation **for exactly the same reason**: the input space is enumerable — Telegram ids
+are numeric, cycle ids are date-shaped — so the whole space is brute-forced in seconds. One
+document cannot call the same construction worthless in one section and anonymising in another.
+
+A deterministic, unsalted digest of an identifier is a **pseudonymous identifier**, not
+anonymised data. It carries the same obligations as the identifier it is derived from, and
+calling it otherwise is the kind of overclaim that gets quoted back in a privacy review.
+
+**So the digest was removed, not re-worded** — and nothing replaced it, because nothing needed
+to. `correlation_id` is already server-minted (`crypto.randomUUID`), already on the receipt,
+and contains no Telegram identifier at all. It correlates log lines about one submission
+perfectly well, which was the digest's only job. **No new field, no new secret, no HMAC
+introduced for logging.**
+
+The log view is now exactly: `commit_state`, `has_lead_id`, `verdict`, `reason`,
+`correlation_id`. A gate check asserts that shape, that no field name matches
+digest/hash/fingerprint/pseudonym, and that no log branch — success, absence, pending, store
+error — emits the key.
+
+One consequence found while proving it: **`correlation_id` must not be derived from the key**.
+A fixture built it as `CID-<key>` and put the identifier straight back into the logs the
+digest had just been removed from. `buildIntent` now refuses a correlation id containing the
+key (`CORRELATION_ID_DERIVED_FROM_KEY`), so the trap is closed at source rather than in a
+fixture.
 
 ### 5.0 A broken exact-key contract proves nothing (F1)
 
@@ -266,6 +294,49 @@ This is the single inference that can create a duplicate lead if it is wrong.
 `createRecoveryAdapter` reads it from `store.capabilities()` and, when it is not affirmed,
 **downgrades absence to `CANNOT_ANSWER`**. An adapter that guesses here is worse than no
 adapter, because the existing structural blocker at least fails safe.
+
+### 5.1.1 ABORTED closes the key — it does not license a retry (F5)
+
+P1.1 had `ABORTED` answer `{ ok: true, known: false }`, which the submit handler reads as
+"release the claim and make one fresh Lead Intake call". That was **internally
+contradictory**, and the contradiction is worth stating precisely because it is not obvious:
+
+The stable key is derived from `(telegram_user_id, cycle_id)`. A "fresh" attempt after an
+abort is still the same user on the same cycle, so it carries **the same key**. But the ledger
+holds exactly one receipt per key for all time and `ABORTED` is terminal — so the new intent
+could not satisfy insert-if-absent. Every escape route was already forbidden: deleting the
+row, overwriting `ABORTED`, weakening uniqueness, or writing a second receipt for one key.
+
+**Resolution: `ABORTED` is a property of the KEY, not of one attempt.**
+
+> *this submission was proven not to have committed, **and this key is now closed**.*
+
+So the adapter returns `{ ok: false }` for an aborted key and the server log names
+`ABORTED_REQUIRES_NEW_CYCLE`. **No fourth client-visible outcome was invented** — the
+three-state adapter contract is unchanged, and the browser still sees only the existing
+`SUBMIT_UNRESOLVED`.
+
+**Same-cycle retry after an abort: REFUSED. A new cycle is REQUIRED.**
+
+Recovery is therefore the mechanism the Concierge already provides and B.2.1 already proves:
+
+```
+operator proves no commit  →  receipt ABORTED (terminal, immutable)
+Concierge issues a NEW authoritative cycle
+      →  app session re-binds to it
+      →  a NEW stable key is minted
+      →  normal submit, normal intent, normal receipt
+```
+
+An aborted cycle is simply a superseded one, and **the old cycle cannot be reused by
+accident**: a submit arriving on the stale binding is refused with `CYCLE_SUPERSEDED` at §9.2,
+before the ledger is consulted at all. Two independent controls, tested separately.
+
+**What `ABORTED` still earns**, now that it no longer authorises retry: an immutable record
+that an operator investigated and proved no commit — which a deletion would destroy; an
+explicit terminal state, so a closed key stops looking like a `PENDING` row somebody will
+eventually be tempted to delete; and a defined end for the runbook that is not "remove the
+evidence".
 
 ### 5.2 Activation requires all three capabilities (F2)
 
@@ -336,10 +407,25 @@ on the Lead Intake side (**P1-L9**, new), not something the current export does.
 older receipt's `correlation_id` stops matching. The correlation therefore holds only until
 the first subsequent merge.
 
-**Status: operator recovery is PARTIAL.** It works for a recently-created lead that has not
-yet been merged onto, it requires P1-L9 wiring, and it degrades silently over time. Nothing in
-this design should be read as promising a durable operator path from a receipt to a Pipeline
-row. The alternative remains, unchanged and unaffected: writing the canonical binding to
+**Status: operator recovery is PARTIAL, and stays PARTIAL.** It is not upgraded to PROVEN and
+must not be described as such. Stated as rules rather than caveats, because each one is a way
+somebody could get this wrong:
+
+- **`idempotency_key` does NOT locate a Pipeline row.** Pipeline does not store it and never
+  has. Only the `correlation_id` → `meta.request_id` → AZ chain correlates, and only under
+  the two conditions above. A gate check asserts the key never even reaches the envelope.
+- **Correlation recovery is best-effort and TIME-SENSITIVE, not immutable.** AZ is overwritten
+  by the next merge onto that lead.
+- **A `PENDING` receipt that can be proven neither committed nor non-committed stays
+  `CANNOT_ANSWER`.** Indefinitely, if that is the truth. An ambiguous receipt is a correct
+  outcome, not a task to be closed.
+- **Never mark `ABORTED` because a correlation lookup failed.** Absence of a matching
+  Pipeline `request_id` is **not** proof of non-commit once overwrite is possible — the row
+  may exist with a newer `request_id`. `buildAbort` accepts exactly one reason,
+  `PROVEN_NO_PIPELINE_COMMIT`, and refuses `CORRELATION_LOOKUP_FAILED` and
+  `NOT_FOUND_IN_PIPELINE`, so this shortcut is refused in code and not only in prose.
+
+The alternative remains, unchanged and unaffected: writing the canonical binding to
 `Bot_Sessions`, which the authority branch resolves with no adapter involved.
 
 ### 6.2 Operator runbook — what may and may not be done
@@ -357,7 +443,10 @@ The order is fixed:
    `canonical_lead_id`. `planCommit` refuses a second, different lead id, so a mistake here
    fails closed rather than overwriting evidence.
 3. **Only a PROVEN non-commit** may be cleared — and it is cleared by moving the receipt to
-   `ABORTED`, never by deleting it.
+   `ABORTED`, never by deleting it. **Aborting closes the key; it does not free the user.**
+   Per §5.1.1 the same cycle can never submit again, so an abort must be followed by the
+   Concierge issuing a **new authoritative cycle**, which mints a new key. An abort without
+   that follow-up leaves the user unable to submit until the cycle changes anyway.
 4. **If it remains ambiguous, leave it ambiguous.** `CANNOT_ANSWER` is a correct, safe
    outcome. A user on a stuck cycle is freed by a Concierge cycle change, which mints a new
    key and touches nothing.
@@ -369,7 +458,8 @@ implementation: the only way to clear a proven non-commit would be deleting the 
 absence answers for it — precisely the gesture the runbook forbids. Adding a positive terminal
 state makes the forbidden gesture unnecessary.
 
-Its semantics are provable offline, which is the condition for adding it:
+Its meaning was corrected in P1.2 (§5.1.1): it closes the KEY, and does **not** authorise a
+same-key retry. Its semantics are provable offline, which is the condition for adding it:
 
 | Transition | Legal | Why |
 |---|---|---|
@@ -483,6 +573,12 @@ withdrawn and the raw-key decision is made explicitly, with the ledger classifie
 identifier (F3); and the operator-recovery claim is corrected — Pipeline does not store the
 key, the real correlation chain is documented with its merge-overwrite limit, and a provable
 `ABORTED` terminal state replaces the forbidden delete-to-clear gesture (F4).
+
+P1.2 closed four more: the `ABORTED` retry contradiction, which was real — an abort licensed a
+same-key resubmit that the ledger's own uniqueness rule could never have accepted (F5); the
+key-digest privacy overclaim, removed rather than softened (F6); three Markdown corruptions
+this document acquired in P1.1, now repaired and guarded by a table-integrity check (F7); and
+the operator-recovery wording, held at PARTIAL with its failure modes stated as rules (F8).
 
 Until P1-L1 … P1-L9 are executed and recorded, **B.2.1-C is NOT CLEARED**, G1 remains the
 activation blocker, and the fifteen B.2.1-C canaries remain unexecuted.

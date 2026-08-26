@@ -108,14 +108,30 @@ const RECEIPT_FIELDS = [
   'correlation_id'      // server-minted, for tracing one attempt through the logs
 ];
 
-// ABORTED added in P1.1 (F4). Without it, the only way to clear a receipt an operator has
-// PROVEN did not commit is to delete the row so that absence answers for it — and deleting
-// receipts to manufacture an absence is precisely what the operator runbook forbids, because
-// the same gesture applied to a receipt that DID commit creates a duplicate lead. A positive,
-// terminal "proven not committed" makes the forbidden gesture unnecessary.
+// ABORTED added in P1.1 (F4), and its MEANING was corrected in P1.2 (F5).
 //
-// It is a POSITIVE assertion, not an absence, so unlike a missing row it does not depend on
-// the store's read-after-write behaviour to be meaningful.
+// P1.1 had it authorise a same-key retry, and that was internally contradictory. The stable
+// key is derived from (telegram_user_id, cycle_id), so a "fresh" attempt after an abort
+// carries THE SAME key. But the ledger holds exactly one receipt per key for all time and
+// ABORTED is terminal, so the new intent could not satisfy insert-if-absent. Every way out of
+// that was forbidden: deleting the row, overwriting ABORTED, weakening uniqueness, or writing
+// a second receipt for one key.
+//
+// The resolution is that ABORTED is a property of the KEY, not of one attempt:
+//
+//     "this submission was proven not to have committed, AND this key is now closed."
+//
+// So an abort does NOT license another submit under the same key. Recovery is a NEW
+// authoritative cycle — which mints a new key — and that is the mechanism the Concierge
+// already provides and Phase B.2.1 already proves. Nothing new is invented: an aborted cycle
+// is simply a superseded one.
+//
+// What ABORTED still earns, now that it no longer authorises retry:
+//   * an immutable record that an operator investigated and PROVED no commit, which a
+//     deletion would destroy;
+//   * an explicit terminal state, so a stuck key stops looking like a PENDING row that
+//     someone will eventually be tempted to delete;
+//   * a defined end for the runbook that is not "remove the evidence".
 const COMMIT_STATES = ['PENDING', 'COMMITTED', 'ABORTED'];
 
 // The only reason an abort may carry. A constrained vocabulary rather than free text, because
@@ -174,6 +190,16 @@ function buildIntent(opts) {
   if (!isValidKey(key)) { return { ok: false, reason: 'KEY_INVALID' }; }
   const now = normValue(o.nowIso);
   if (now === '') { return { ok: false, reason: 'CLOCK_MISSING' }; }
+
+  // F6 — the correlation id is the ONLY receipt field that reaches a log line, so it must not
+  // be derived from the key. Seeding it with anything containing the key would put the
+  // Telegram identifier straight back into the logs the digest was just removed from. Caught
+  // in practice: a test fixture built it as 'CID-' + key and the leak assertion fired.
+  const correlationId = normValue(o.correlationId) || newCorrelationId();
+  if (correlationId.indexOf(key) !== -1) {
+    return { ok: false, reason: 'CORRELATION_ID_DERIVED_FROM_KEY' };
+  }
+
   return {
     ok: true,
     record: {
@@ -187,7 +213,7 @@ function buildIntent(opts) {
       committed_at: '',
       aborted_at: '',
       abort_reason: '',
-      correlation_id: normValue(o.correlationId) || newCorrelationId()
+      correlation_id: correlationId
     }
   };
 }
@@ -295,10 +321,15 @@ function planAbort(existingRow) {
 
 const VERDICT = {
   COMMITTED: 'COMMITTED',
-  ABSENT: 'ABSENT',                          // caller decides whether absence is provable
-  NOT_COMMITTED_PROVEN: 'NOT_COMMITTED_PROVEN', // an ABORTED receipt: positive, not an absence
+  ABSENT: 'ABSENT',            // caller decides whether absence is provable
   CANNOT_ANSWER: 'CANNOT_ANSWER'
 };
+
+// F5 — the reason an ABORTED key fails closed. Named rather than folded into a generic
+// refusal, because the operator action it implies is specific and different: not "wait and
+// retry", but "issue a new cycle". It is a SERVER LOG reason; the browser still sees only the
+// existing three-state adapter contract, so no fourth client-visible outcome was invented.
+const ABORTED_REASON = 'ABORTED_REQUIRES_NEW_CYCLE';
 
 // What does this set of rows, read back for this key, actually prove?
 //
@@ -355,9 +386,15 @@ function classifyRows(rows, key) {
   const state = normValue(row.commit_state);
 
   if (state === 'ABORTED') {
-    // An operator PROVED no canonical commit exists. Positive evidence, not an absence, so
-    // it stands on its own without any read-after-write assumption.
-    return { verdict: VERDICT.NOT_COMMITTED_PROVEN, reason: 'RECEIPT_ABORTED' };
+    // F5 — an operator proved no canonical commit exists AND closed this key. That is NOT a
+    // licence to submit again under the same key: the receipt is terminal and unique, so a
+    // fresh intent for this key could not be written even if the gateway tried. Fail closed
+    // and name the operator action, which is a new authoritative cycle.
+    return {
+      verdict: VERDICT.CANNOT_ANSWER,
+      reason: ABORTED_REASON,
+      correlation_id: normValue(row.correlation_id)
+    };
   }
 
   if (state === 'PENDING') {
@@ -379,6 +416,9 @@ function classifyRows(rows, key) {
   return {
     verdict: VERDICT.COMMITTED,
     reason: 'RECEIPT_COMMITTED',
+    // The receipt's own server-minted id, so a log line can be correlated without deriving
+    // anything from the key (F6).
+    correlation_id: normValue(row.correlation_id),
     lead_id: leadId,
     lead_mode: normValue(row.lead_mode),
     lead_priority: normValue(row.lead_priority),
@@ -388,20 +428,27 @@ function classifyRows(rows, key) {
 
 // ---------------------------------------------------------------- logging
 
-// The key embeds a real Telegram user id, so the raw key must not reach a log line. A
-// truncated digest is enough to correlate two log entries about the same submission and is
-// not reversible into an identity.
-function keyDigest(key) {
-  const k = normValue(key);
-  if (k === '') { return ''; }
-  return crypto.createHash('sha256').update(k, 'utf8').digest('hex').slice(0, 16);
-}
-
-// The only shape permitted in a log line. No key, no identity, no lead contact data.
+// F6 — THE KEY DIGEST IS GONE, and the claim that went with it is withdrawn.
+//
+// P1.1 logged a truncated SHA-256 of the stable key and called it "not reversible into an
+// identity". That contradicted this design's own §3.1, which rejects plain SHA-256 as
+// meaningful pseudonymisation precisely because the input space is enumerable: Telegram ids
+// are numeric and cycle ids are date-shaped, so the whole space is brute-forced in seconds.
+// Both claims could not stand. A deterministic, unsalted digest of an identifier is a
+// PSEUDONYMOUS IDENTIFIER, not anonymised data, and calling it otherwise is the kind of
+// overclaim that ends up quoted in a privacy review.
+//
+// So the digest is not softened, it is REMOVED — and nothing replaced it, because nothing
+// needed to. `correlation_id` is already server-minted (crypto.randomUUID), already stored on
+// the receipt, and contains no Telegram identifier of any kind. It correlates log lines about
+// one submission perfectly well, which was the digest's only job. No new field, no new
+// secret, no HMAC introduced for logging.
+//
+// The only shape permitted in a log line: no key, no digest of the key, no identity, no lead
+// id, no contact data.
 function receiptLogView(opts) {
   const o = opts || {};
   return {
-    key_digest: keyDigest(o.idempotencyKey),
     commit_state: normValue(o.commitState),
     has_lead_id: normValue(o.canonicalLeadId) !== '',
     verdict: normValue(o.verdict),
@@ -420,6 +467,7 @@ module.exports = {
   ABSENCE_PROOF_PRECONDITIONS,
   ABORT_REASONS,
   VERDICT,
+  ABORTED_REASON,
   normValue,
   isValidKey,
   parseKey,
@@ -430,7 +478,6 @@ module.exports = {
   buildAbort,
   planAbort,
   classifyRows,
-  keyDigest,
   receiptLogView,
   newCorrelationId
 };

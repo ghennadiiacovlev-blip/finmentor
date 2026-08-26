@@ -131,7 +131,7 @@ function buildLookup(store, caps, onLog) {
       if (!read || read.ok !== true) {
         // The store could not tell us. Ambiguity is preserved, never gambled on.
         log(R.receiptLogView({
-          idempotencyKey: idempotencyKey, verdict: 'CANNOT_ANSWER', reason: 'STORE_UNAVAILABLE'
+          verdict: 'CANNOT_ANSWER', reason: 'STORE_UNAVAILABLE'
         }));
         return ANSWER.cannotAnswer();
       }
@@ -140,11 +140,11 @@ function buildLookup(store, caps, onLog) {
 
       if (verdict.verdict === R.VERDICT.COMMITTED) {
         log(R.receiptLogView({
-          idempotencyKey: idempotencyKey,
           commitState: 'COMMITTED',
           canonicalLeadId: verdict.lead_id,
           verdict: verdict.verdict,
-          reason: verdict.reason
+          reason: verdict.reason,
+          correlationId: verdict.correlation_id
         }));
         // Exactly the canonical-success shape `canonicalResult` parses. `mode` is carried
         // because the handler logs it; it does not cross TB-1 (owner decision, N6.2).
@@ -157,16 +157,6 @@ function buildLookup(store, caps, onLog) {
         });
       }
 
-      if (verdict.verdict === R.VERDICT.NOT_COMMITTED_PROVEN) {
-        // An ABORTED receipt: an operator proved no canonical commit exists. Positive
-        // evidence, so it does NOT lean on read-after-write the way an absence does.
-        log(R.receiptLogView({
-          idempotencyKey: idempotencyKey, commitState: 'ABORTED',
-          verdict: verdict.verdict, reason: verdict.reason
-        }));
-        return ANSWER.notCommitted();
-      }
-
       if (verdict.verdict === R.VERDICT.ABSENT) {
         // THE ONE INFERENCE THAT CAN CREATE A DUPLICATE LEAD IF IT IS WRONG.
         //
@@ -177,14 +167,13 @@ function buildLookup(store, caps, onLog) {
         // release the claim and submit again into a lead that already exists.
         if (!caps.read_after_write) {
           log(R.receiptLogView({
-            idempotencyKey: idempotencyKey,
             verdict: 'CANNOT_ANSWER',
             reason: 'ABSENCE_NOT_PROVABLE_WITHOUT_READ_AFTER_WRITE'
           }));
           return ANSWER.cannotAnswer();
         }
         log(R.receiptLogView({
-          idempotencyKey: idempotencyKey, verdict: 'NOT_COMMITTED', reason: verdict.reason
+          verdict: 'NOT_COMMITTED', reason: verdict.reason
         }));
         return ANSWER.notCommitted();
       }
@@ -192,7 +181,7 @@ function buildLookup(store, caps, onLog) {
       // DUPLICATE_RECEIPTS, PENDING_UNRESOLVED, COMMITTED_WITHOUT_LEAD, UNKNOWN_STATE,
       // ROWS_UNREADABLE — every one of them preserves ambiguity.
       log(R.receiptLogView({
-        idempotencyKey: idempotencyKey, verdict: 'CANNOT_ANSWER', reason: verdict.reason
+        verdict: 'CANNOT_ANSWER', reason: verdict.reason
       }));
       return ANSWER.cannotAnswer();
     } catch (e) {
