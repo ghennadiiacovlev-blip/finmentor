@@ -256,10 +256,18 @@ The P7.0 §5 list is now two steps shorter. What remains:
 
 | Workflow | id | State |
 |---|---|---|
-| `[TEMP] P71 sheet probe driver` | `ZV9l4u3CCVrKxbep` | live, disarmed to `PREFLIGHT` — tear down or reuse |
-| `[TEMP] P71 Bot_Sessions AW column probe` | `YXkiiwCoq0hUrM8l` | live, MCP-invisible, inactive |
-| `[TEMP] P71b column sweep driver` | `c4OyUDcItEto1Kb8` | live, blocked by F17 |
-| `[TEMP] P71b Bot_Sessions trailing column sweep` | `DtrlDGUC9FLptEdr` | live, MCP-invisible, never executed a mutation |
+| `[TEMP] P71 sheet probe driver` | `ZV9l4u3CCVrKxbep` | **archived** |
+| `[TEMP] P71 Bot_Sessions AW column probe` | `YXkiiwCoq0hUrM8l` | **archived** |
+| `[TEMP] P71b column sweep driver` | `c4OyUDcItEto1Kb8` | live, armed `AUDIT` (read-only), inert under F17 |
+| `[TEMP] P71b Bot_Sessions trailing column sweep` | `DtrlDGUC9FLptEdr` | live, MCP-invisible, inactive, never executed a mutation |
+
+The P7.1 pair was torn down **after** the record above was written, and the reason is worth
+keeping: `-Show` reported it still armed to **`CLEANUP`**, not `PREFLIGHT`. Nothing was at risk —
+the mode's own guard requires exactly one probe row and there are none, so a stray Execute
+throws before reaching the delete — but a credential-bearing workflow left armed to a delete
+mode is not a state to leave behind once its questions are answered. The `p71b` pair is left in
+place because it is the artifact option **(a)** in §8 would run, it is armed to the read-only
+mode, and F17 makes it incapable of touching anything.
 
 No production workflow was created, modified, activated or executed. No Telegram message was
 sent. No Data Table was touched. `Bot_Sessions` gained one column (`p71_absent_column`, `BE`)
