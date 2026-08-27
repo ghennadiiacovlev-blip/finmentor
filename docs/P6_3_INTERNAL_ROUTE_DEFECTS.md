@@ -15,11 +15,15 @@ write credential (§7, §7.4) and **completed on attempt 3** (§7.5): the canary
 archived, the corrected candidate is live as **`o9ndONOCI0XPJMiS`** with a **15/15 fidelity
 proof**, and the receipt state machine ran `READY → CLAIMED → COMMITTED` end to end (§7.6).
 
-**Read §7.7 before treating that as a full acceptance proof.** The two successful live runs
-wrote **contactless `INCOMPLETE`** rows, because the cases were hand-written in a payload
-shape the gateway never emits. What arrives in the CRM is now gated offline against the real
-gateway builder — but it has not yet been proven **live**. §7.8 is the production-residue
-ledger: two canary rows are sitting in the live CRM sheet.
+**Read §7.7 before treating the first two green runs as an acceptance proof.** They wrote
+**contactless `INCOMPLETE`** rows, because the cases were hand-written in a payload shape the
+gateway never emits. That is closed twice over: three offline checks now run the real gateway
+builder through to the row it would produce (§7.7), and the route has since been run live on
+that real payload — `HOT`, `Qualified`, contacts and Mini App attribution intact, matching the
+offline prediction field for field (§7.9).
+
+**Open:** §7.8 is the production-residue ledger. Three canary rows are in the live CRM sheet;
+§7.10 is the guarded, dry-run-proven, armed cleanup — the Execute click is the owner's.
 
 ---
 
@@ -612,14 +616,93 @@ earlier claim "Production residue: NONE" in `PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_I
 
 | Where | What | Reversible? |
 |---|---|---|
-| `FINMENTOR_LEADS_CRM_PREMIUM_FINAL` → `Pipeline` | **2 canary rows**: `FIN-1787811991746-68`, `FIN-1787813108944-787` — both contactless `INCOMPLETE` | needs a **row delete** in the live CRM sheet |
-| `Submission_Receipts` (`fV23lsh9uq8uFHox`) | rows `1` and `2`, `COMMITTED` | `scripts/p63-receipt-tool.ps1 -Delete` |
-| n8n | `o9ndONOCI0XPJMiS` live-inactive, `Z8Ai31yxfkyTSRO8` live-inactive, two archived canaries | archive / unarchive |
+| `FINMENTOR_LEADS_CRM_PREMIUM_FINAL` → `Pipeline` | **3 canary rows**: `FIN-1787811991746-68` and `FIN-1787813108944-787` (contactless `INCOMPLETE`), `FIN-1787820142959-693` (the §7.9 shape proof, `HOT`) | guarded delete built and armed — §7.10 |
+| `Submission_Receipts` (`fV23lsh9uq8uFHox`) | rows `1`, `2`, `3`, all `COMMITTED` | `scripts/p63-receipt-tool.ps1 -Delete` |
+| n8n | `o9ndONOCI0XPJMiS` live-inactive, `Z8Ai31yxfkyTSRO8` live-inactive, the cleanup pair `9wbe8nlZsKG7cPv1` / `ir69QPIBAXvlwMvA`, two archived canaries | archive / unarchive |
 
-The two CRM rows are the only item that cannot be undone from this repository's tooling. They
-are inert — `INCOMPLETE`, no contact, so no automation will ever act on them — but they are in
-the operator's pipeline view and must be removed by the owner or by a guarded cleanup step
-before the phase can claim a clean tenant.
+The CRM rows are the one item that cannot be undone once removed. The two flat-shape rows are
+inert — `INCOMPLETE`, no contact, so no automation will act on them — but the shape proof is
+`HOT` and `Qualified`, which is precisely the row an operator would work. All three are in the
+pipeline view and none may stay there. §7.10 is the instrument.
+
+
+### 7.9 The shape proof, now run LIVE — exec `3618`
+
+§7.7 was closed offline first and then on the platform. The case was built by calling the
+gateway's own `buildLeadIntakePayload` — the real module, not a copy of its shape — and the
+envelope it returned was pinned into the driver unmodified. Receipt `sub_63c3…` was
+preallocated `READY` first, because that is the gateway's half of the contract.
+
+What the caller got back:
+
+```json
+{"ok":true,"lead_id":"FIN-1787820142959-693","mode":"new","priority":"HOT","financial_zone":"UNKNOWN"}
+```
+
+And the row that reached the CRM, which is the part that actually matters:
+
+| Field | Value |
+|---|---|
+| `name` / `company` | `P63 CANARY DELETE ME 20260827` / `P63 CANARY` |
+| `phone` / `telegram` | `+37360000631` / `999000001` |
+| `consent` | `true` |
+| `priority` / `status` | **`HOT`** / **`Qualified`** |
+| `business_model` / `main_pain` | `Услуги` / `Кассовые разрывы` |
+| `page_url` / `utm_source` / `utm_medium` | `telegram_miniapp` / `telegram` / `miniapp` |
+| `priority_reason` | `срочность: Срочно, требуется сейчас \| финансовая зона не определена: …` |
+
+`financial_zone: UNKNOWN` is correct, not a gap: the answer set gives partial and unclear
+visibility, so there is not enough financial data to place a zone. The offline probe predicted
+`UNKNOWN` for the same input, which is the point — **the live row matched the offline
+prediction field for field**.
+
+Receipt `sub_63c3…` settled `COMMITTED` carrying `FIN-1787820142959-693`. So the internal route
+is now proven live on the payload the gateway actually sends, and G1's functional claim rests
+on a representative case rather than a green light.
+
+### 7.10 The cleanup instrument — `scripts/cleanup-p63-crm-rows.ps1`
+
+The three canary rows are removed by a disposable, guarded parent/child pair rather than by
+hand, because a hand delete in a live CRM has no record and no guard.
+
+**Why two workflows.** `test_workflow` pins every credential-bearing node in the workflow it
+runs. A single workflow holding the Google Sheets nodes would report a confident success while
+touching nothing. The child is invoked as a *sub*-workflow and therefore executes for real —
+the same arrangement that made the canary driver's Sheets writes genuine, and worth knowing
+before trusting any `test_workflow` result that claims to have written something.
+
+**The guards**, each of which aborts before any write:
+
+1. a hard allowlist of the three `lead_id`s this phase created;
+2. every matched row must *also* look like a canary row — created `2026-08-27`, and either
+   contactless or carrying the `P63 CANARY` marker. A `lead_id` match alone does not authorise
+   a delete;
+3. exactly three, or none — a missing row means the sheet has moved and a subset delete is
+   refused;
+4. **descending row order.** Sheets renumbers on delete, so ascending order would shift every
+   later target by one and take a customer row with it;
+5. `DRYRUN` unless the mode is the literal string `DELETE`.
+
+The dry run reported exactly rows 13, 12, 11 out of 12 data rows, and `Delete Row` never
+executed — confirmed against the execution's node list, not against the report's own claim.
+
+**The armed state is a node, not pin data.** The public API silently declines to store
+`pinData` — attempted, read back, and it was not there — and a mode hidden in a pin is
+invisible to whoever opens the workflow before pressing Execute. `-ArmDelete` rewrites a `Mode`
+node in the parent graph instead, so the armed state is readable, diffable and reversible with
+`-Disarm`.
+
+**The delete itself was not run from this session.** The `test_workflow` call carrying
+`mode: DELETE` was refused by the safety classifier. Arming the graph and then triggering it
+with an innocuous-looking call would have produced the same irreversible write while hiding the
+intent from the check that refused it, so it was not done. The pair is created, MCP-exposed,
+dry-run proven and armed; the Execute click is the owner's.
+
+| | |
+|---|---|
+| child (holds the Sheets credential, **not** MCP-exposed) | `ir69QPIBAXvlwMvA` |
+| parent (four-node harness, MCP-exposed, inactive, **armed**) | `9wbe8nlZsKG7cPv1` |
+| after the run | `pwsh scripts/cleanup-p63-crm-rows.ps1 -Teardown` |
 
 
 ## 8. Gate status
