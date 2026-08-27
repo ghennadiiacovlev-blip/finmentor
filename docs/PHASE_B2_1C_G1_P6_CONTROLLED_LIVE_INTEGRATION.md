@@ -239,8 +239,8 @@ every one**. **No canary active.** The only surviving new object is the empty
 | Legacy cycle-state defect | **LIVE CLOSED** (P6R-1R) |
 | `Bot_Sessions` B.2.1-C schema | **LIVE** — 52 columns |
 | `Submission_Receipts` | **LIVE, EMPTY, UNUSED** |
-| Audited candidate deployed | **NO — blocked, §A4** |
-| **G1** | **OPEN** — not upgradable to LIVE FUNCTIONAL PROOF PASS |
+| Audited candidate deployed | **YES — §C**, `o9ndONOCI0XPJMiS`, 15/15 fidelity |
+| **G1** | **OPEN** — one item left: the F11 failure terminals have never fired live (§C1) |
 | **G5** durable initData replay | **OPEN** |
 | **B.2.1-C** | **NOT CLEARED** |
 | **General Mini App activation** | **NOT CLEARED** |
@@ -263,6 +263,58 @@ change. No Mini App activation. No GA4, DNS or Cloudflare change. No Telegram me
 synthetic identity ever reached a Telegram node. No real customer PII read into this document;
 every figure is an aggregate computed inside the tenant. No production workflow modified. No PR,
 no merge, no push to `main`.
+
+---
+
+# §C — P6.3 supersede and live campaign (2026-08-27) — scoreboard delta
+
+§A's table above is the P6 record and is retained. This section records what **P6.3** changed,
+and is the current one. Full reasoning: `docs/P6_3_INTERNAL_ROUTE_DEFECTS.md`.
+
+| Item | Was (§A) | Now | Basis |
+|---|---|---|---|
+| **Audited candidate deployed** | **NO — blocked** | **YES** — `o9ndONOCI0XPJMiS`, 15/15 live fidelity, 99,832 chars of Code byte-identical | §7.5 |
+| **P1-L10** internal route | candidate **NOT TESTED** | **LIVE PASS** — accepts a real gateway lead end to end | exec 3618 |
+| **P1-L6** intent write before `Save to Pipeline` | NOT TESTED | **LIVE PASS** — `Receipt Claim` (21) strictly before `Save to Pipeline` (26) | exec 3618 node order |
+| **P1-L7** commit write before the respond node | NOT TESTED | **LIVE PASS** — `Receipt Commit (New)` (28) before `Internal Result (New)` (31) | exec 3618 node order |
+| **P1-L9** correlation chain | offline PASS; live NOT TESTED | **LIVE PASS on the NEW path** — receipt `correlation_id` equals the row's `request_id`, `req-p63-SHAPE-LIVE-1`. **Merge path still untested** | exec 3618 + receipt row 3 |
+| **F10** | fixed, closed live | unchanged — **CLOSED LIVE** | |
+| **F11** | fixed, not deployed | **fixed, deployed, gated offline — NOT observed live** | §7.11 |
+| **Production residue** | none | **none** — 3 CRM rows and 3 receipt rows written, then removed and verified; 9 customer rows proven byte-identical | §7.12 |
+
+**Unchanged and still open:** P1-L2 (live store) NOT RETESTED, P1-L4 tenant restart NOT
+TESTED, P1-L5 owner contract decision, P1-L8 retention duration owner decision, G5 durable
+initData replay.
+
+## C1. Why G1 is still OPEN — one item
+
+Everything the internal route was blocked on is now proven live except **one**: the three
+`Internal Result (*)` terminals that F11 restores have never fired on the platform, because no
+node has ever failed during a live run. They are proven offline only. Fault injection is built,
+deployed and waiting on an owner Execute (`rbo5Xjx6NHrpjzUt`), and `MergeFailed` is explicitly
+out of scope because reaching it requires writing a customer-shaped row into the live CRM.
+
+Until that run happens, G1 cannot be upgraded to **LIVE FUNCTIONAL PROOF PASS**: an internal
+contract whose failure terminals have never been observed is a contract proven only on its
+happy and validation paths.
+
+## C2. Live tenant state after P6.3
+
+| Workflow | id | State |
+|---|---|---|
+| Validated internal canary — **keep** | `o9ndONOCI0XPJMiS` | live, inactive, `availableInMCP: false` |
+| Canary driver — **keep** | `Z8Ai31yxfkyTSRO8` | live, inactive, `availableInMCP: true` |
+| Fault-injection copy — **pending owner run** | `Gv8lepxB2PF4H8VQ` | live, inactive, not MCP-exposed |
+| Fault-injection driver — **pending owner run** | `rbo5Xjx6NHrpjzUt` | live, inactive, `availableInMCP: true` |
+| CRM cleanup pair | `9wbe8nlZsKG7cPv1` / `ir69QPIBAXvlwMvA` | **archived** |
+| Residue sweep pair | `6oJCIbLfnDzmQStG` / `AS0KUNV5GRrWHGJd` | **archived** |
+| Superseded canaries | `S24se5SYf5CJ0FIQ`, `UBfNGfli8E0UfiNa` | **archived**, retained |
+
+Nothing was activated. No older unrelated `[TEMP]` workflow was touched. Production Lead Intake
+`QmIyEW2ZEqKregmN` was not modified and its active set is unchanged.
+
+The two `availableInMCP: true` drivers are the only MCP exposure this phase added; both are
+credential-free harnesses and both should be archived when P6 closes.
 
 ---
 
