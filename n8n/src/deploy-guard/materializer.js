@@ -175,8 +175,19 @@ function validateDelta(ops, policy) {
     if (o.op === 'addNode') {
       if (added.indexOf(o.node) === -1) { rejected.push('unapproved node added: ' + o.node); }
     } else if (o.op === 'removeNode') {
-      // Never approvable by default. Removing a production node is not a patch, it is a rewrite.
-      rejected.push('node removal is never approved by policy: ' + o.node);
+      // Removal is approvable ONLY through an exact, fully-specified allowlist entry. Until
+      // P8.3A it was refused outright, which was safe but left dead nodes in production
+      // forever. The bar below is high enough that an accidental removal cannot clear it.
+      const rule = (p.approvedRemovals || []).find((r) => r && r.name === o.node);
+      if (!rule) {
+        rejected.push('node removal is not on the approved-removals allowlist: ' + o.node);
+      } else if (!rule.id || !rule.name) {
+        rejected.push('removal rule for ' + o.node + ' must name BOTH the exact node id and name');
+      } else if (!rule.klass) {
+        rejected.push('removal rule for ' + o.node + ' has no approved removal class');
+      } else if (!Array.isArray(rule.inbound) || !Array.isArray(rule.outbound)) {
+        rejected.push('removal rule for ' + o.node + ' must account for its inbound and outbound edges explicitly');
+      }
     } else if (o.op === 'setNodeField') {
       if (!Object.prototype.hasOwnProperty.call(modified, o.node)) {
         rejected.push('unapproved node modified: ' + o.node + '.' + o.field);
@@ -201,7 +212,7 @@ function validateDelta(ops, policy) {
 // C_live = apply(delta, L). Values come from B ONLY for the paths the delta names. Everything
 // else — every untouched node, every field of a touched node the delta did not name, the whole
 // of `name` and `settings` unless explicitly approved — comes from L.
-function applyDelta(L, B, ops) {
+function applyDelta(L, B, ops, policy) {
   const out = clone(L);
   const bn = nodeMap(B);
   const idx = {};
@@ -211,6 +222,44 @@ function applyDelta(L, B, ops) {
     if (o.op === 'addNode') {
       out.nodes.push(clone(bn[o.node]));
       idx[o.node] = out.nodes.length - 1;
+    } else if (o.op === 'removeNode') {
+      // The removal is verified against LIVE, not against the reference: the identity that
+      // matters is the one being deleted from production. Both id and name must match, and the
+      // edges around it must be exactly what the rule declared — a node whose wiring has
+      // changed since the rule was written is not the node the rule approved.
+      const rule = ((policy || {}).approvedRemovals || []).find((r) => r.name === o.node);
+      const live = out.nodes.find((n) => n.name === o.node);
+      if (!live) { throw new Error('removal names a node the live workflow does not have: ' + o.node); }
+      if (live.id !== rule.id) {
+        throw new Error('removal id mismatch for ' + o.node + ': live id is not the approved one');
+      }
+      const inbound = [];
+      Object.keys(out.connections || {}).forEach((src) => {
+        ((out.connections[src] || {}).main || []).forEach((br) => (br || []).forEach((l) => {
+          if (l && l.node === o.node && inbound.indexOf(src) === -1) { inbound.push(src); }
+        }));
+      });
+      const outbound = [...new Set((((out.connections || {})[o.node] || {}).main || [])
+        .flat().map((l) => l.node))];
+      const same = (a, b) => JSON.stringify(a.slice().sort()) === JSON.stringify(b.slice().sort());
+      if (!same(inbound, rule.inbound)) {
+        throw new Error('removal of ' + o.node + ': live inbound edges ' + JSON.stringify(inbound)
+          + ' do not match the approved ' + JSON.stringify(rule.inbound));
+      }
+      if (!same(outbound, rule.outbound)) {
+        throw new Error('removal of ' + o.node + ': live outbound edges ' + JSON.stringify(outbound)
+          + ' do not match the approved ' + JSON.stringify(rule.outbound));
+      }
+      // Drop the node and every edge that mentioned it. Leaving a dangling reference would be a
+      // graph n8n cannot load.
+      out.nodes = out.nodes.filter((n) => n.name !== o.node);
+      delete out.connections[o.node];
+      Object.keys(out.connections).forEach((src) => {
+        out.connections[src].main = (out.connections[src].main || [])
+          .map((br) => (br || []).filter((l) => l.node !== o.node));
+      });
+      Object.keys(idx).forEach((k) => { delete idx[k]; });
+      out.nodes.forEach((n, i) => { idx[n.name] = i; });
     } else if (o.op === 'setNodeField') {
       const i = idx[o.node];
       if (i === undefined) { throw new Error('delta names a node the live workflow does not have: ' + o.node); }
@@ -245,8 +294,11 @@ function verifyAppliedDelta(L, C, ops) {
   if (JSON.stringify(expectedAdded) !== JSON.stringify(actualAdded)) {
     problems.push('added nodes are ' + JSON.stringify(actualAdded) + ', delta says ' + JSON.stringify(expectedAdded));
   }
-  const removed = Object.keys(ln).filter((n) => !cn[n]);
-  if (removed.length) { problems.push('nodes lost from the live workflow: ' + removed.join(', ')); }
+  const expectedRemoved = ops.filter((o) => o.op === 'removeNode').map((o) => o.node).sort();
+  const removed = Object.keys(ln).filter((n) => !cn[n]).sort();
+  if (JSON.stringify(removed) !== JSON.stringify(expectedRemoved)) {
+    problems.push('removed nodes are ' + JSON.stringify(removed) + ', delta says ' + JSON.stringify(expectedRemoved));
+  }
 
   const expectedFields = {};
   ops.filter((o) => o.op === 'setNodeField').forEach((o) => {
@@ -357,6 +409,33 @@ function absoluteInvariants(C, L, policy) {
     }
   });
 
+  // 4b. Removals may never touch a trigger, a credential-bearing node, or anything the policy
+  //     has not separately authorised. A removal that takes a credential with it is not a
+  //     cleanup, it is an outage.
+  const removedNames = Object.keys(ln).filter((n) => !cn[n]);
+  removedNames.forEach((name) => {
+    const l = ln[name];
+    const rule = (p.approvedRemovals || []).find((r) => r.name === name);
+    if (!rule) { fail('node ' + name + ' was removed without an approved-removals entry'); return; }
+    const isTrigger = /trigger$/i.test(String(l.type)) || String(l.type) === 'n8n-nodes-base.webhook';
+    if (isTrigger && rule.allowTrigger !== true) {
+      fail('removal of TRIGGER node ' + name + ' requires explicit separate authorisation');
+    }
+    if (l.credentials && rule.allowCredentialBearing !== true) {
+      fail('removal of credential-bearing node ' + name + ' requires explicit separate authorisation');
+    }
+  });
+
+  // 4c. No dangling connection may survive a removal — a reference to a node that is gone is a
+  //     graph n8n cannot load.
+  const names = new Set((C.nodes || []).map((n) => n.name));
+  Object.keys(C.connections || {}).forEach((src) => {
+    if (!names.has(src)) { fail('connections reference a removed source node: ' + src); }
+    ((C.connections[src] || {}).main || []).forEach((br) => (br || []).forEach((l) => {
+      if (l && !names.has(l.node)) { fail('connection from ' + src + ' targets a removed node: ' + l.node); }
+    }));
+  });
+
   // 5. Settings.
   if (!C.settings || C.settings.availableInMCP !== false) { fail('settings.availableInMCP must be exactly false'); }
 
@@ -441,7 +520,7 @@ function materializeDeployment(input) {
   }
 
   let C;
-  try { C = applyDelta(L, B, ops); }
+  try { C = applyDelta(L, B, ops, policy); }
   catch (e) { return { ok: false, stage: 'APPLY', failures: [e.message], evidence: evidence, delta: ops }; }
   evidence.materializedSha = sha(C);
 

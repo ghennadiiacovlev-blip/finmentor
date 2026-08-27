@@ -1,0 +1,4 @@
+
+# Local MCP server config: not a secret, but it pins a Supabase project_ref.
+# Tool configuration, not project source.
+.mcp.json

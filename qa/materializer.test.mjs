@@ -312,7 +312,7 @@ mustRefuse('(11) a tracked redacted artifact supplied as the LIVE workflow', {
 // A node removal is never approvable.
 mustRefuse('a node removal, which no policy may approve', {
   desiredReference: (() => { const m = clone(B); m.nodes = m.nodes.filter((n) => n.name !== 'Answer Callback Query'); return m; })()
-}, 'POLICY', 'never approved by policy');
+}, 'POLICY', 'not on the approved-removals allowlist');
 
 // An unapproved credential on an added node.
 mustRefuse('an added node carrying an unapproved credential type', {
@@ -341,6 +341,153 @@ check('an introduced literal chat identity is refused', () => {
   byName(m, 'Issuance Gate').parameters.chat_id = '987654321';
   const v = run({ desiredReference: m });
   assert(!v.ok, 'an introduced literal identity was accepted');
+});
+
+// ================================================================ 4. §3 allowlisted removal
+
+console.log('\n-- §3 allowlisted node removal --');
+
+const RS = {
+  name: 'Read Settings',
+  id: '9b55cfcc-b422-4147-a79f-04bd42386f4c',
+  klass: 'HOT_PATH_CONFIG',
+  inbound: ['Telegram Client Trigger'],
+  outbound: ['Settings to Object'],
+  allowCredentialBearing: true
+};
+// Removing a node inherently rewires its neighbours, so the fixture policy approves those two
+// sources as well. That is not a loosening: the removal rule still has to match id and edges
+// exactly, which is what these mutations exercise.
+const withRemoval = (rule) => Object.assign({}, POLICY, {
+  approvedRemovals: [rule || RS],
+  approvedRewiredSources: (POLICY.approvedRewiredSources || []).concat(['Telegram Client Trigger', 'Read Settings'])
+});
+
+// A desired reference with Read Settings gone, so computeDelta emits removeNode.
+const B_NO_RS = (() => {
+  const m = clone(B);
+  m.nodes = m.nodes.filter((n) => n.name !== RS.name);
+  delete m.connections[RS.name];
+  m.connections['Telegram Client Trigger'] = {
+    main: (m.connections['Telegram Client Trigger'].main || [])
+      .map((br) => (br || []).filter((l) => l.node !== RS.name))
+  };
+  return m;
+})();
+
+check('MUTATION: an UNAPPROVED removal is refused', () => {
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: Object.assign({}, POLICY, { approvedRewiredSources: (POLICY.approvedRewiredSources || []).concat(['Telegram Client Trigger', 'Read Settings']) }) });
+  assert(!v.ok, 'an unapproved removal was accepted');
+  eq(v.stage, 'POLICY', 'wrong stage');
+  assert(v.failures.some((f) => /not on the approved-removals allowlist/.test(f)),
+    'wrong reason: ' + v.failures.join(' | '));
+});
+
+check('MUTATION: a removal rule with the WRONG node id is refused', () => {
+  const bad = Object.assign({}, RS, { id: '00000000-0000-0000-0000-000000000000' });
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: withRemoval(bad) });
+  assert(!v.ok, 'a wrong-id removal was accepted');
+  assert(v.failures.some((f) => /id mismatch/.test(f)), 'wrong reason: ' + v.failures.join(' | '));
+});
+
+check('MUTATION: a removal rule with the WRONG node name matches nothing', () => {
+  const bad = Object.assign({}, RS, { name: 'Read Settingz' });
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: withRemoval(bad) });
+  assert(!v.ok, 'a wrong-name rule authorised a removal');
+});
+
+check('MUTATION: a removal whose declared EDGES do not match live is refused', () => {
+  const bad = Object.assign({}, RS, { outbound: ['Some Other Node'] });
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: withRemoval(bad) });
+  assert(!v.ok, 'a removal with unaccounted edges was accepted');
+  assert(v.failures.some((f) => /outbound edges/.test(f)), 'wrong reason: ' + v.failures.join(' | '));
+});
+
+check('MUTATION: removing a CREDENTIAL-BEARING node without authorisation is refused', () => {
+  const bad = Object.assign({}, RS, { allowCredentialBearing: false });
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: withRemoval(bad) });
+  assert(!v.ok, 'a credential-bearing node was removed without authorisation');
+  assert(v.failures.some((f) => /credential-bearing/.test(f)), 'wrong reason: ' + v.failures.join(' | '));
+});
+
+check('CONTROL: the approved removal SUCCEEDS and leaves no dangling edge', () => {
+  const v = run({ desiredReference: B_NO_RS, approvedDiffPolicy: withRemoval() });
+  assert(v.ok, v.stage + ': ' + v.failures.join(' | '));
+  assert(!v.cLive.nodes.some((n) => n.name === RS.name), 'the node survived');
+  const names = new Set(v.cLive.nodes.map((n) => n.name));
+  Object.keys(v.cLive.connections).forEach((src) => {
+    assert(names.has(src), 'dangling source ' + src);
+    (v.cLive.connections[src].main || []).forEach((br) => (br || []).forEach((l) => {
+      assert(names.has(l.node), 'dangling target ' + l.node);
+    }));
+  });
+});
+
+// ================================================================ 5. §8 baseline sealing
+
+console.log('\n-- §8 baseline sealing: a cutover invalidates its own reference --');
+
+const SEALM = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'baseline-seal.js'));
+const SEALFILE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
+
+check('MUTATION: a cutover that was never sealed REFUSES the next deploy', () => {
+  const v = SEALM.preflightSealCheck(SEALFILE, 'mppzthlkSJFr6Kle');
+  assert(!v.ok, 'an unsealed prior cutover allowed the next deploy');
+  assert(/BASELINE_UNSEALED/.test(v.reason), 'wrong reason: ' + v.reason);
+});
+
+check('a workflow with no cutover history is allowed', () => {
+  assert(SEALM.preflightSealCheck(SEALFILE, 'QmIyEW2ZEqKregmN').ok, 'a first deployment was refused');
+});
+
+check('a SEALED record allows the next deploy', () => {
+  const f = { records: [{ workflowId: 'X', phase: 'P0', status: SEALM.SEALED }] };
+  assert(SEALM.preflightSealCheck(f, 'X').ok, 'a sealed record still refused');
+});
+
+check('MUTATION: arbitrary live drift cannot be rebaselined', () => {
+  // The whole point: A_next is accepted because live matches the APPROVED target, never
+  // because it is whatever live happens to be.
+  const v = run();
+  assert(v.ok, 'setup failed: ' + v.failures.join(' | '));
+  const drifted = clone(L);
+  byName(drifted, 'Build Bot Response').parameters.jsCode += '// someone edited production';
+  const s = SEALM.sealBaseline({ cLive: v.cLive, lPost: drifted });
+  assert(!s.ok, 'arbitrary live drift was sealed as the new baseline');
+  assert(s.failures.some((f) => /does NOT match the approved target/.test(f)),
+    'wrong reason: ' + s.failures.join(' | '));
+});
+
+check('CONTROL: the approved target, read back from live, seals', () => {
+  const v = run();
+  const lPost = Object.assign({}, L, {
+    name: v.cLive.name, nodes: v.cLive.nodes, connections: v.cLive.connections,
+    settings: v.cLive.settings, versionId: 'post-1'
+  });
+  const s = SEALM.sealBaseline({ cLive: v.cLive, lPost: lPost });
+  assert(s.ok, 'the approved target failed to seal: ' + (s.failures || []).join(' | '));
+  assert(s.aNext, 'no next baseline produced');
+  eq(s.evidence.versionId, 'post-1', 'the seal did not record the post versionId');
+});
+
+check('MUTATION: a REDACTED document supplied as post-deploy live is refused', () => {
+  const v = run();
+  const s = SEALM.sealBaseline({ cLive: v.cLive, lPost: A });
+  assert(!s.ok, 'a redacted document was accepted as live');
+  assert(s.failures.some((f) => /not a live export/.test(f)), 'wrong reason: ' + s.failures.join(' | '));
+});
+
+check('the seal record carries hashes and metadata only, never a workflow body', () => {
+  const v = run();
+  const lPost = Object.assign({}, L, {
+    name: v.cLive.name, nodes: v.cLive.nodes, connections: v.cLive.connections,
+    settings: v.cLive.settings, versionId: 'post-2'
+  });
+  const s = SEALM.sealBaseline({ cLive: v.cLive, lPost: lPost });
+  const rec = SEALM.buildSealRecord({ workflowId: 'W', phase: 'P8.3A', status: SEALM.SEALED, evidence: s.evidence });
+  const blob = JSON.stringify(rec);
+  assert(!/jsCode|parameters|credentials/.test(blob), 'the seal record carries workflow content');
+  assert(blob.indexOf(SYNTHETIC_ID) === -1, 'a live literal reached the seal record');
 });
 
 // ================================================================ summary

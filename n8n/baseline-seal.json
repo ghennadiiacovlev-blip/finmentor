@@ -1,0 +1,33 @@
+{
+  "_policy": [
+    "POST-CUTOVER BASELINE SEALING. Every successful cutover invalidates the tracked reference it",
+    "used, because R(L) == A can only hold while A describes current production.",
+    "A_next = R(L_post) is accepted for ONE reason: L_post matched the materialized target that",
+    "was just approved. Never because it is live, never because it is newer.",
+    "FAIL CLOSED: if the most recent record for a workflow is not SEALED, the next deployment of",
+    "that workflow is refused until it is."
+  ],
+  "records": [
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P7.5R",
+      "status": "BASELINE_UNSEALED",
+      "sealedAt": "",
+      "preVersionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
+      "postVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
+      "deployedTargetSha": "a6d2f8aac394f0d9efd2c7817e5fd6824bac8345354cf9a44cf9b253bbbaac0e",
+      "postLiveRedactedSha": "",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 45,
+      "_note": [
+        "Recorded UNSEALED because that is the truth. P7.5R deployed 45 nodes; the tracked",
+        "reference is still the 33-node pre-Model-B export, so R(L) == A cannot hold today.",
+        "This record is what makes the next deployment fail closed instead of comparing against",
+        "a reference that describes neither the old production nor the new one.",
+        "SEALING IT NEEDS A LIVE READ. The acceptance test is offline-computable: the approved",
+        "P7.5R target redacts to applyDelta(delta(A,B), A), because R(L_pre) == A held at the",
+        "time. So R(L_current) must equal that, and sealing is a proof rather than a rubber stamp."
+      ]
+    }
+  ]
+}

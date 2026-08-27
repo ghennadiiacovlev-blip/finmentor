@@ -41,8 +41,9 @@
 // So the cheapest correct change is not to edit any of them: it is to feed `Settings to Object`
 // from a LOCAL Code node instead of from Google Sheets. Its body is untouched, every
 // `$('Settings to Object')` reference keeps resolving, and the Sheets round trip disappears.
-// `Read Settings` is left in the graph but becomes unreachable — the materializer never approves
-// a node removal, and an unreachable node costs nothing.
+// `Read Settings` is then PHYSICALLY REMOVED. P8.3 had to leave it unreachable because the
+// materializer refused every removal; P8.3A upgraded it to accept an exactly specified,
+// explicitly allowlisted one, so the dead node goes instead of becoming permanent cleanup debt.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -70,10 +71,25 @@ export const ADDED_NODES = [
 export const MODIFIED_NODES = {
   'Read Bot Sessions': { field: 'waitBetweenTries', klass: 'SESSION_READ_LATENCY' },
   'Save Bot Session': { field: 'onError', klass: 'AUTHORITY_FAILURE_CLASSIFICATION' },
-  'Save Bot Event': { field: 'onError', klass: 'BOT_EVENT_RESILIENCE' }
+  'Save Bot Event': { field: 'onError', klass: 'BOT_EVENT_RESILIENCE' },
+  'Send Lead to Intake': { field: 'parameters', klass: 'HYGIENE_FAKE_AUTH_REMOVAL' }
 };
 
 export const REWIRED_SOURCES = ['Telegram Client Trigger', 'Save Bot Session'];
+
+// The one approved removal, specified exactly as the upgraded materializer demands.
+export const READ_SETTINGS = {
+  name: 'Read Settings',
+  id: '9b55cfcc-b422-4147-a79f-04bd42386f4c',
+  klass: 'HOT_PATH_CONFIG',
+  inbound: ['Telegram Client Trigger'],
+  outbound: ['Settings to Object'],
+  // It carries the Google Sheets credential, so removal needs explicit separate
+  // authorisation -- given by P8.3A §2/§3. The CREDENTIAL is untouched; three other Sheets
+  // nodes still use it.
+  allowCredentialBearing: true,
+  allowTrigger: false
+};
 
 // The live, non-dead settings. DEAD keys are simply not emitted — that is the removal.
 const LIVE_KEYS = Object.keys(H.SETTINGS_CLASSIFICATION)
@@ -288,6 +304,23 @@ export function buildP83(base) {
     ]
   };
 
+  // ---- P8.3A: physically remove Read Settings ------------------------------------------
+  // P8.3 left it unreachable because the materializer refused every removal. P8.3A upgraded
+  // the materializer to accept an EXACTLY specified, explicitly allowlisted removal, so the
+  // dead node goes rather than lingering as permanent cleanup debt.
+  wf.nodes = wf.nodes.filter((n) => n.name !== READ_SETTINGS.name);
+  delete wf.connections[READ_SETTINGS.name];
+
+  // ---- P8.3A HYGIENE_FAKE_AUTH_REMOVAL -------------------------------------------------
+  // x-finmentor-internal-key is inert three ways: the value is never emitted, the consumer
+  // expression is malformed, and Lead Intake never reads the header. Removing it has ZERO
+  // runtime effect and removes a control that LOOKS like authentication and is not. It is not
+  // replaced by another shared secret: on a public endpoint that is not authentication.
+  const intake = wf.nodes.find((n) => n.name === 'Send Lead to Intake');
+  intake.parameters = JSON.parse(JSON.stringify(intake.parameters));
+  intake.parameters.headerParameters = { parameters: [] };
+  intake.parameters.sendHeaders = false;
+
   wf.name = 'FINMENTOR Telegram Client Concierge B21C P83 HARDENING CANDIDATE';
   return wf;
 }
@@ -307,8 +340,10 @@ export function verifyP83(base, cand) {
   if (JSON.stringify(added) !== JSON.stringify(ADDED_NODES.slice().sort())) {
     fail('added nodes are ' + JSON.stringify(added) + ', expected ' + JSON.stringify(ADDED_NODES.slice().sort()));
   }
-  const removed = Object.keys(bn).filter((n) => !cn[n]);
-  if (removed.length) { fail('nodes REMOVED (never approved): ' + removed.join(', ')); }
+  const removed = Object.keys(bn).filter((n) => !cn[n]).sort();
+  if (JSON.stringify(removed) !== JSON.stringify([READ_SETTINGS.name])) {
+    fail('removed nodes are ' + JSON.stringify(removed) + ', expected exactly ' + JSON.stringify([READ_SETTINGS.name]));
+  }
 
   // --- exactly the declared field changes -------------------------------------------------
   const EXEC = ['type', 'typeVersion', 'parameters', 'credentials', 'disabled', 'onError',
@@ -344,7 +379,7 @@ export function verifyP83(base, cand) {
     return order;
   };
   const all = reach('Telegram Client Trigger', {});
-  if (all.indexOf('Read Settings') !== -1) { fail('Read Settings is still reachable from the trigger'); }
+  if (cn[READ_SETTINGS.name]) { fail('Read Settings is still present; P8.3A removes it physically'); }
   if (all.indexOf('Hot Path Config') === -1) { fail('Hot Path Config is not reachable'); }
   if (all.indexOf('Settings to Object') === -1) { fail('Settings to Object became unreachable'); }
 
@@ -386,6 +421,14 @@ export function verifyP83(base, cand) {
     if (!new RegExp('^\\s*' + k + ':', 'm').test(hcode)) { fail('live key missing from Hot Path Config: ' + k); }
   });
 
+  // HYGIENE_FAKE_AUTH_REMOVAL: the inert header is gone and nothing replaced it.
+  const intake = cn['Send Lead to Intake'];
+  const hdrs = ((intake.parameters || {}).headerParameters || {}).parameters || [];
+  if (hdrs.length !== 0) { fail('Send Lead to Intake still sends header(s): ' + hdrs.map((h) => h.name).join(', ')); }
+  if (/internal_intake_key|x-finmentor-internal-key/.test(JSON.stringify(intake))) { fail('the fake auth reference survives'); }
+  if (intake.parameters.url !== bn['Send Lead to Intake'].parameters.url) { fail('the intake URL changed; the route is not in scope for P8.3A'); }
+  if (intake.parameters.jsonBody !== bn['Send Lead to Intake'].parameters.jsonBody) { fail('the intake body changed'); }
+
   return { ok: failures.length === 0, failures: failures };
 }
 
@@ -404,10 +447,10 @@ if (isMain) {
   if (readFileSync(IN, 'utf8') !== baseRaw) { console.error('FATAL: the base candidate changed on disk.'); process.exit(1); }
 
   console.log('P8.3 candidate: n8n/candidate/concierge-p83-candidate.json');
-  console.log('  nodes         : ' + cand.nodes.length + '  (base ' + base.nodes.length + ' + ' + ADDED_NODES.length + ')');
+  console.log('  nodes         : ' + cand.nodes.length + '  (base ' + base.nodes.length + ' + ' + ADDED_NODES.length + ' - 1 removed)');
   console.log('  added         : ' + ADDED_NODES.join(', '));
   console.log('  field changes : ' + Object.keys(MODIFIED_NODES).map((n) => n + '.' + MODIFIED_NODES[n].field).join(', '));
-  console.log('  Read Settings : unreachable (kept; removals are never approved)');
+  console.log('  Read Settings : PHYSICALLY REMOVED (allowlisted removal, id-and-edge exact)');
   console.log('  pre-reply I/O : 2  (was 3)');
   console.log('  INTERNAL_HANDOFF: NOT BUILT — the internal Lead Intake entry is not deployed');
   console.log('  verification  : PASS');

@@ -126,8 +126,8 @@
       "marked_nodes": [
         "Settings to Object"
       ],
-      "sha256": "2d97fb2475c6632c55231ba6fc8adfe7822047d97b68c9a6f8b23492fedfe298",
-      "nodes": 51
+      "sha256": "79b0fdbc0ecaab741ae072b7d343c917a9e2586d7d123a2c17acb1b3b6c8ab3f",
+      "nodes": 50
     },
     {
       "path": "n8n/candidate/lead-intake-internal-receipt-API-IMPORT.json",

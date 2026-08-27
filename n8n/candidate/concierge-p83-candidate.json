@@ -37,39 +37,6 @@
     },
     {
       "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
-          "mode": "list",
-          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1871239368,
-          "mode": "list",
-          "cachedResultName": "Settings",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        -1488,
-        160
-      ],
-      "id": "9b55cfcc-b422-4147-a79f-04bd42386f4c",
-      "name": "Read Settings",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "PzVCuEPa9YF3YSaD",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
         "jsCode": "// Settings -> object (client concierge bot, AI-guarded defaults).\n// The Telegram bot secret is no longer read from Settings at all: transport runs entirely through n8n Credentials.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def){ if (v === undefined || v === '') return def; return String(v).toLowerCase() === 'true' || v === '1'; }\nfunction num(v, def){ const n = Number(v); return Number.isFinite(n) ? n : def; }\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  timezone: settings.timezone || 'Europe/Chisinau',\n  lead_intake_webhook_url: settings.lead_intake_webhook_url || 'https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake',\n  website_url: settings.website_url || 'https://finmentor.md',\n  default_language: (settings.default_language || 'ru').toLowerCase(),\n  bot_enabled: bool(settings.bot_enabled, true),\n  client_ai_enabled: bool(settings.client_ai_enabled, false),\n  client_ai_model: settings.client_ai_model || 'PASTE_AI_MODEL_PLACEHOLDER_HERE',\n  client_ai_temperature: num(settings.client_ai_temperature, 0.2)\n};\nreturn [{ json: { settings: cfg } }];"
       },
       "id": "a7fdbb04-c2b4-4ab6-924f-09b669ed0aed",
@@ -615,14 +582,9 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Build Bot Response').first().json.lead_payload, { audit: { cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_at: $('Get Bot Session').first().json.consent_at || $now.toISO() } })) }}",
         "options": {},
-        "sendHeaders": true,
+        "sendHeaders": false,
         "headerParameters": {
-          "parameters": [
-            {
-              "name": "x-finmentor-internal-key",
-              "value": "={{ \\Settings to Object.first().json.settings.internal_intake_key || '' }}"
-            }
-          ]
+          "parameters": []
         }
       },
       "id": "b43d5227-8eaa-4e98-94d7-f901fc5c3255",
@@ -1809,17 +1771,6 @@
           },
           {
             "node": "IF Has Callback Query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Settings": {
-      "main": [
-        [
-          {
-            "node": "Settings to Object",
             "type": "main",
             "index": 0
           }
