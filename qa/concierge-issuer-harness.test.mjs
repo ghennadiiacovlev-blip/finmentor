@@ -280,6 +280,109 @@ check('CONTROL: the unmutated harness is accepted', () => {
   assert(v.ok, 'the verifier rejects the real harness: ' + v.failures.join(' | '));
 });
 
+// ================================================================ 6. the drift variant
+
+console.log('\n-- the P7.4 drift variant: one edge, two nodes, nothing else --');
+
+const driftRaw = readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-HARNESS-DRIFT.json'), 'utf8');
+const DRIFT = JSON.parse(driftRaw);
+
+check('the drift variant is not stale: regeneration is byte-identical', () => {
+  eq(M.serializeHarness(M.buildDriftHarness(WRAPPER)), driftRaw,
+    'the tracked drift harness differs from a fresh build -- re-run the generator');
+});
+
+check('the on-disk drift variant verifies against the base harness', () => {
+  const v = M.verifyDriftHarness(HARNESS, DRIFT);
+  assert(v.ok, 'verification failed: ' + v.failures.join(' | '));
+});
+
+check('every base node survives the splice byte-identically', () => {
+  HARNESS.nodes.forEach((n) => {
+    const d = byName(DRIFT, n.name);
+    assert(d, 'base node missing from the drift variant: ' + n.name);
+    deepEq(d, n, 'the splice MODIFIED a base node: ' + n.name);
+  });
+  eq(DRIFT.nodes.length, HARNESS.nodes.length + 2, 'the drift variant is not base + exactly two nodes');
+});
+
+check('the injection sits between the authority write and the reread', () => {
+  // That interval is the ONLY one in which the reread can observe anything other than what this
+  // turn just wrote, which is why a real concurrent winner's write lands exactly there.
+  const after = DRIFT.connections['Save Bot Session'].main[0];
+  eq(after.length, 1, 'Save Bot Session fans out');
+  eq(after[0].node, 'HARNESS Drift Compose', 'Save Bot Session does not feed the injection');
+  eq(DRIFT.connections['HARNESS Drift Write'].main[0][0].node, 'IF Lead Ready',
+    'the injection does not hand back to IF Lead Ready');
+  eq(HARNESS.connections['Save Bot Session'].main[0][0].node, 'IF Lead Ready',
+    'the BASE harness no longer goes straight to IF Lead Ready; the comparison is meaningless');
+});
+
+check('the competing write uses the audited mapping, not a hand-rolled one', () => {
+  const save = byName(DRIFT, 'Save Bot Session');
+  const dw = byName(DRIFT, 'HARNESS Drift Write');
+  deepEq(dw.parameters, save.parameters, 'the drift write parameters diverge from Save Bot Session');
+  deepEq(dw.credentials, save.credentials, 'the drift write credentials diverge from Save Bot Session');
+});
+
+check('the drift variant refuses to run without a competing pair', () => {
+  // A drift harness that quietly failed to drift would report a clean AUTHORITY_CURRENT and be
+  // read as a PASSING stale-context test. That is the worst failure available to this artifact,
+  // so the body throws rather than passing the row through.
+  const code = byName(DRIFT, 'HARNESS Drift Compose').parameters.jsCode;
+  assert(/DRIFT REFUSED/.test(code), 'the compose body has no refusal path');
+  assert(/\^C-\\d\+-\\d\+\$/.test(code), 'the competing cycle shape is not validated');
+  assert(/\^sub_\[0-9a-f\]\{32\}\$/.test(code), 'the competing key shape is not validated');
+  assert(/nothing would drift/.test(code), 'a no-op drift is not refused');
+});
+
+check('the drift variant is still a containment-clean harness', () => {
+  eq(DRIFT.nodes.filter((n) => /telegram/i.test(String(n.type))).length, 0, 'Telegram node present');
+  assert(!/telegramApi/.test(JSON.stringify(DRIFT)), 'a telegramApi reference survives');
+  eq(DRIFT.nodes.filter((n) => n.type === 'n8n-nodes-base.httpRequest').length, 0, 'httpRequest present');
+  eq(DRIFT.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow').length, 0, 'executeWorkflow present');
+  eq(DRIFT.nodes.filter((n) => /trigger$/i.test(String(n.type))).length, 1, 'not exactly one trigger');
+  assert(DRIFT.name !== HARNESS.name, 'the drift variant is indistinguishable by name');
+  assert(/NON-ACTIVATABLE/.test(DRIFT.name), 'the name does not say what it is');
+});
+
+function mustRejectDrift(label, mutate, expectSubstring) {
+  check('REJECTS: ' + label, () => {
+    const m = clone(DRIFT);
+    mutate(m);
+    const v = M.verifyDriftHarness(HARNESS, m);
+    assert(!v.ok, 'the verifier ACCEPTED a drift harness with: ' + label);
+    if (expectSubstring) {
+      assert(v.failures.some((f) => f.includes(expectSubstring)),
+        'rejected, but not for the expected reason (' + expectSubstring + '): ' + v.failures.join(' | '));
+    }
+  });
+}
+
+mustRejectDrift('the splice bypassed, so nothing ever drifts', (m) => {
+  m.connections['Save Bot Session'] = { main: [[{ node: 'IF Lead Ready', type: 'main', index: 0 }]] };
+}, 'connections differ at');
+mustRejectDrift('the injection moved AFTER the reread, where it cannot be observed', (m) => {
+  m.connections['HARNESS Drift Write'] = { main: [[{ node: 'Authority Verdict', type: 'main', index: 0 }]] };
+}, 'does not hand back to IF Lead Ready');
+mustRejectDrift('a base node edited by the splice', (m) => {
+  byName(m, 'Authority Verdict').parameters.jsCode += ' ';
+}, 'was MODIFIED by the splice');
+mustRejectDrift('the drift write given a different mapping', (m) => {
+  byName(m, 'HARNESS Drift Write').parameters.columns = { mappingMode: 'defineBelow', value: {} };
+}, 'not byte-identical to Save Bot Session');
+mustRejectDrift('a third injection node smuggled in', (m) => {
+  m.nodes.push({ parameters: {}, id: 'x', name: 'HARNESS Drift Extra', type: 'n8n-nodes-base.code', typeVersion: 2, position: [0, 0] });
+}, 'expected exactly the two injection nodes');
+mustRejectDrift('the drift variant renamed to look like the base harness', (m) => {
+  m.name = HARNESS.name;
+}, 'not distinguishable by name');
+
+check('CONTROL: the unmutated drift variant is accepted', () => {
+  const v = M.verifyDriftHarness(HARNESS, clone(DRIFT));
+  assert(v.ok, 'the verifier rejects the real drift harness: ' + v.failures.join(' | '));
+});
+
 // ================================================================ summary
 
 console.log('\n' + (failures.length ? 'FAIL' : 'PASS') + '  ' + pass + ' checks passed, ' + failures.length + ' failed');

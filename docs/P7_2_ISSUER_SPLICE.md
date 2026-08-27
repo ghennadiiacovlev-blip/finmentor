@@ -1,5 +1,36 @@
 # FINMENTOR — P7.2: the issuer, built
 
+> ### ⚠ CONTRACT WORDING SUPERSEDED BY P7.4 §1 — the placement is unchanged
+>
+> This document describes the reread as a **post-authority** step, which reads as
+> *"write authority → reread immediately → only the winner may continue."* That sentence is
+> **wrong about the boundary**, and P7.4 §1 proved it from the graph rather than re-litigating it
+> in prose.
+>
+> **The correct contract:**
+>
+> > Write authority after a verified `READY` preallocation. Before any later safety-relevant
+> > lead-ready or irreversible handoff, reread current authority and require `cycle_id` **and**
+> > `submission_key` to still match the execution's context.
+>
+> **Why the immediate form was never required.** On a minting turn, the only nodes reachable
+> after `Save Bot Session` are `IF Lead Ready` → `Build Bot Event` → `Save Bot Event`. No Lead
+> Intake call, no canonical lead identity, no CRM handoff, no Mini App binding, no second
+> `Bot_Sessions` write, and no Telegram payload whose correctness depends on the minted key —
+> the transport call happens *upstream* of the mint gate. `Build Bot Event` emits exactly twelve
+> columns and the key is not among them. A mint turn also **cannot** be lead-ready: all three
+> reset paths clear consent, and the independent cycle guard clears any consent whose
+> `consent_cycle_id` does not match the new cycle.
+>
+> **Why the placement it actually has is correct.** Removing `Authority Reread` from the graph
+> makes **all ten** irreversible nodes unreachable — it is a cut vertex on every path to the CRM
+> handoff. The reread already sits exactly at the boundary that matters, and it was proven live
+> at P7.4 §4 (`AUTHORITY_CURRENT`, order 16→17→18→19) and §5 (`AUTHORITY_CYCLE_SUPERSEDED`,
+> `lead_handoff_suppressed`).
+>
+> **The invariant is not weakened:** a stale context may never perform Lead Intake. Everything
+> below stands except the implied timing. See `docs/P7_4_AUTHORITY_DRIFT_PROOF.md` §1.
+
 **Phase:** B.2.1-C P7 — the issuer half.
 **Status:** **CANDIDATE BUILT AND GATED. NOT DEPLOYED.** The three steps P7.1 left standing are
 done, and a **fourth was added that the plan did not ask for** — a post-authority reread — because

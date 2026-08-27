@@ -85,8 +85,10 @@ const ROOT = join(HERE, '..');
 
 const IN = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-IMPORT-SAFE.json');
 const OUT = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-HARNESS.json');
+const OUT_DRIFT = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-HARNESS-DRIFT.json');
 
 export const HARNESS_NAME = 'FINMENTOR P73S2 HARNESS Concierge issuer (NON-ACTIVATABLE)';
+export const DRIFT_NAME = 'FINMENTOR P74 HARNESS authority drift injection (NON-ACTIVATABLE)';
 
 // Inherited byte-for-byte from the wrapper, by name. Order here is the deploy order on canvas
 // only; wiring is declared separately below.
@@ -331,6 +333,174 @@ export function buildHarness(wrapper) {
 
 export function serializeHarness(wf) { return JSON.stringify(wf, null, 2) + '\n'; }
 
+// ---------------------------------------------------------------- the drift variant
+//
+// P7.4 §5 needs a turn that HOLDS C1/K1 while the authority row already says C2/K2. That state
+// cannot be staged by seeding the row before the run: `Get Bot Session` derives what the turn
+// holds FROM the row it reads, so seeding C2/K2 would make the turn hold C2/K2 and there would
+// be no stale context to refuse. And `Save Bot Session` writes the held pair back, so by the
+// time `Authority Reread` runs the row says C1/K1 again.
+//
+// The drift therefore has to land in exactly one place: BETWEEN the authority write and the
+// reread. That is not a contrivance -- it is precisely where a real concurrent winner's write
+// lands, and it is the only interval in which the reread can observe anything other than what
+// this turn just wrote.
+//
+// So two HARNESS nodes are spliced onto that one edge. Every audited node stays byte-identical,
+// including both endpoints; only the edge `Save Bot Session -> IF Lead Ready` is rerouted, and
+// the gate asserts that it is the ONLY edge that differs from the base harness.
+//
+//   HARNESS Drift Compose   takes the row `Build Session Row` produced -- all of it -- and
+//                           replaces cycle_id and submission_key with the C2/K2 handed in.
+//                           Composing from that row rather than from a hand-built object means
+//                           the competing write carries the same 40 columns the real one does,
+//                           so it overwrites the authority pair without blanking the session.
+//   HARNESS Drift Write     `Save Bot Session`'s parameters, VERBATIM. The competing winner
+//                           writes through the same mapping the issuer writes through, because
+//                           a drift staged by a different mapping would be staging a state
+//                           production cannot reach.
+//
+// This is fault injection, the pattern P6.3 used to close F11 live. It is a SEPARATE artifact:
+// the base harness is not modified, and neither is the deployable candidate.
+
+const DRIFT_COMPOSE_CODE = [
+  '// HARNESS DRIFT INJECTION -- see scripts/build-concierge-issuer-harness.mjs.',
+  '//',
+  '// Stands in for a concurrent winner writing the authority row after THIS turn saved it. It',
+  '// runs on the one edge where that write would land: after Save Bot Session, before the',
+  '// reread. The turn upstream of here still holds C1/K1; the row is about to say C2/K2.',
+  '//',
+  '// The competing pair is supplied by the driver, not invented here, so the test states its own',
+  '// inputs. If it is absent this node REFUSES rather than silently passing the row through --',
+  '// a drift harness that quietly failed to drift would report a clean AUTHORITY_CURRENT and be',
+  '// read as a passing stale-context test.',
+  "const inbound = $('Telegram Client Trigger').first().json || {};",
+  'const drift = inbound.__drift || {};',
+  "const c2 = String(drift.cycle_id == null ? '' : drift.cycle_id).trim();",
+  "const k2 = String(drift.submission_key == null ? '' : drift.submission_key).trim();",
+  "if (!/^C-\\d+-\\d+$/.test(c2)) { throw new Error('DRIFT REFUSED: __drift.cycle_id is not a minted cycle shape: ' + JSON.stringify(c2)); }",
+  "if (!/^sub_[0-9a-f]{32}$/.test(k2)) { throw new Error('DRIFT REFUSED: __drift.submission_key is not a well-formed key'); }",
+  '',
+  "const row = Object.assign({}, $('Build Session Row').first().json || {});",
+  "const held = String(row.cycle_id == null ? '' : row.cycle_id).trim();",
+  "if (held === c2) { throw new Error('DRIFT REFUSED: the competing cycle equals the held cycle; nothing would drift'); }",
+  '',
+  'row.cycle_id = c2;',
+  'row.submission_key = k2;',
+  'return [{ json: row }];'
+].join('\n');
+
+export function buildDriftHarness(wrapper) {
+  const wf = buildHarness(wrapper);
+  wf.name = DRIFT_NAME;
+
+  const save = (wrapper.nodes || []).find((n) => n.name === 'Save Bot Session');
+  if (!save) { throw new Error('the wrapper has no Save Bot Session to copy the write mapping from'); }
+
+  wf.nodes.push({
+    parameters: { jsCode: DRIFT_COMPOSE_CODE },
+    id: 'p74-drift-compose',
+    name: 'HARNESS Drift Compose',
+    type: 'n8n-nodes-base.code',
+    typeVersion: 2,
+    position: [1500, 700],
+    notes: 'HARNESS FAULT INJECTION. Composes the competing winner row from Build Session Row.'
+  });
+  wf.nodes.push({
+    parameters: JSON.parse(JSON.stringify(save.parameters)),
+    credentials: JSON.parse(JSON.stringify(save.credentials)),
+    id: 'p74-drift-write',
+    name: 'HARNESS Drift Write',
+    type: 'n8n-nodes-base.googleSheets',
+    typeVersion: save.typeVersion,
+    position: [1700, 700],
+    notes: 'HARNESS FAULT INJECTION. Save Bot Session parameters VERBATIM, so the competing '
+      + 'write goes through the same mapping the issuer uses.'
+  });
+
+  // Reroute exactly one edge: Save Bot Session -> IF Lead Ready becomes
+  // Save Bot Session -> Drift Compose -> Drift Write -> IF Lead Ready.
+  wf.connections['Save Bot Session'] = { main: [[{ node: 'HARNESS Drift Compose', type: 'main', index: 0 }]] };
+  wf.connections['HARNESS Drift Compose'] = { main: [[{ node: 'HARNESS Drift Write', type: 'main', index: 0 }]] };
+  wf.connections['HARNESS Drift Write'] = { main: [[{ node: 'IF Lead Ready', type: 'main', index: 0 }]] };
+
+  return wf;
+}
+
+// Proves the drift variant differs from the base harness ONLY by the declared splice.
+export function verifyDriftHarness(base, drift) {
+  const failures = [];
+  const fail = (m) => failures.push(m);
+  const bByName = {}; (base.nodes || []).forEach((n) => { bByName[n.name] = n; });
+  const dByName = {}; (drift.nodes || []).forEach((n) => { dByName[n.name] = n; });
+
+  // Every base node survives byte-identically. The injection adds; it never edits.
+  (base.nodes || []).forEach((n) => {
+    const d = dByName[n.name];
+    if (!d) { fail('base node missing from the drift harness: ' + n.name); return; }
+    if (JSON.stringify(n) !== JSON.stringify(d)) { fail('base node was MODIFIED by the splice: ' + n.name); }
+  });
+
+  const added = (drift.nodes || []).filter((n) => !bByName[n.name]).map((n) => n.name).sort();
+  if (JSON.stringify(added) !== JSON.stringify(['HARNESS Drift Compose', 'HARNESS Drift Write'])) {
+    fail('the drift harness adds ' + JSON.stringify(added) + ', expected exactly the two injection nodes');
+  }
+
+  // Exactly one rerouted edge.
+  const changed = Object.keys(Object.assign({}, base.connections, drift.connections))
+    .filter((k) => JSON.stringify(base.connections[k]) !== JSON.stringify(drift.connections[k])).sort();
+  const expected = ['HARNESS Drift Compose', 'HARNESS Drift Write', 'Save Bot Session'];
+  if (JSON.stringify(changed) !== JSON.stringify(expected)) {
+    fail('connections differ at ' + JSON.stringify(changed) + ', expected exactly ' + JSON.stringify(expected));
+  }
+
+  // The injection must sit BETWEEN the write and the reread, which is the only interval where a
+  // competing write can be observed by the reread.
+  const afterSave = ((drift.connections['Save Bot Session'] || {}).main || [[]])[0] || [];
+  if (afterSave.length !== 1 || afterSave[0].node !== 'HARNESS Drift Compose') {
+    fail('Save Bot Session no longer feeds the drift injection first');
+  }
+  const afterWrite = ((drift.connections['HARNESS Drift Write'] || {}).main || [[]])[0] || [];
+  if (afterWrite.length !== 1 || afterWrite[0].node !== 'IF Lead Ready') {
+    fail('the drift write does not hand back to IF Lead Ready');
+  }
+
+  // The competing write must use the audited mapping, not a hand-rolled one.
+  const save = dByName['Save Bot Session'];
+  const dw = dByName['HARNESS Drift Write'];
+  if (!dw || JSON.stringify(dw.parameters) !== JSON.stringify(save.parameters)) {
+    fail('the drift write parameters are not byte-identical to Save Bot Session');
+  }
+  if (!dw || JSON.stringify(dw.credentials) !== JSON.stringify(save.credentials)) {
+    fail('the drift write credentials are not byte-identical to Save Bot Session');
+  }
+
+  // And it must still be a containment-clean harness. The splice is removed from BOTH the node
+  // list and the connections before re-running the base contract -- stripping only the nodes
+  // would leave the rerouted edge pointing at names that no longer exist, and the base verifier
+  // would report dangling references that are an artifact of this check rather than a defect.
+  const stripped = Object.assign({}, drift, {
+    nodes: (drift.nodes || []).filter((n) => !/^HARNESS Drift/.test(n.name)),
+    connections: Object.assign({}, drift.connections, {
+      'Save Bot Session': (base.connections || {})['Save Bot Session']
+    })
+  });
+  delete stripped.connections['HARNESS Drift Compose'];
+  delete stripped.connections['HARNESS Drift Write'];
+  const inner = verifyHarness(base, stripped);
+  if (!inner.ok) { inner.failures.forEach((f) => fail('base contract: ' + f)); }
+
+  // Telegram containment is checked the way the base checks it -- by node TYPE and by credential
+  // reference. A blunt search for the word would fire on the injection body's legitimate
+  // $('Telegram Client Trigger') reference, which is the Code substitute, not a Telegram node.
+  const tg = (drift.nodes || []).filter((n) => /telegram/i.test(String(n.type)));
+  if (tg.length) { fail('the drift harness contains Telegram node(s): ' + tg.map((n) => n.name).join(', ')); }
+  if (/telegramApi/.test(JSON.stringify(drift))) { fail('a telegramApi credential reference survives in the drift harness'); }
+  if (drift.name === base.name) { fail('the drift harness is not distinguishable by name'); }
+
+  return { ok: failures.length === 0, failures: failures };
+}
+
 // ---------------------------------------------------------------- verification
 
 export function verifyHarness(wrapper, harness) {
@@ -440,7 +610,16 @@ if (isMain) {
     process.exit(1);
   }
 
+  const drift = buildDriftHarness(wrapper);
+  const dv = verifyDriftHarness(harness, drift);
+  if (!dv.ok) {
+    console.error('REFUSING TO WRITE: the drift variant failed verification.');
+    dv.failures.forEach((f) => console.error('  - ' + f));
+    process.exit(1);
+  }
+
   writeFileSync(OUT, serializeHarness(harness), 'utf8');
+  writeFileSync(OUT_DRIFT, serializeHarness(drift), 'utf8');
 
   if (readFileSync(IN, 'utf8') !== wrapperRaw) {
     console.error('FATAL: the IMPORT-SAFE wrapper changed on disk during this run.');
@@ -459,5 +638,9 @@ if (isMain) {
   console.log('  sheets:          ' + harness.nodes.filter((n) => n.type === 'n8n-nodes-base.googleSheets').length);
   console.log('  availableInMCP:  ' + harness.settings.availableInMCP);
   console.log('  wrapper:         UNCHANGED');
+  console.log('  verification:    PASS');
+  console.log('drift variant:   n8n/candidate/concierge-issuer-HARNESS-DRIFT.json');
+  console.log('  nodes:           ' + drift.nodes.length + '  (base + 2 injection nodes)');
+  console.log('  rerouted edges:  1  (Save Bot Session -> IF Lead Ready)');
   console.log('  verification:    PASS');
 }
