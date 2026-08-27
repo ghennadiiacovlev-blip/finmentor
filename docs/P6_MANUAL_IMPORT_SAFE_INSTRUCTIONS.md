@@ -4,6 +4,13 @@
 **Audience:** the repository owner, performing one manual import in the n8n UI
 **Status:** repo-only. Nothing in this document has been executed against live n8n.
 
+> **There are now two deployment routes.** This document is the **UI route** — no credential
+> needed, five eyeball checks, you click Import. The **API route**
+> (`docs/P6_2_API_IMPORT_DEPLOY.md`) posts the graph verbatim from disk over the n8n REST API
+> and asserts the same properties mechanically, before *and* after the write, instead of by
+> eye; it needs a freshly issued write-scoped key. Either is valid — do **one** of them, not
+> both, since each refuses to create a second workflow under the canary name.
+
 ---
 
 ## ⚠️ Import the WRAPPER, not the candidate
