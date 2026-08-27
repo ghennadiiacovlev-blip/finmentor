@@ -40,6 +40,7 @@ const GATES = [
   ['P7.5 cutover + Bot_Sessions writes', 'cutover.test.mjs'],
   ['P7.5R redactor + materializer', 'materializer.test.mjs'],
   ['Telegram initData validator', 'gateway/telegram-initdata.test.mjs'],
+  ['P8.2 Concierge hot path', 'hot-path.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
 
