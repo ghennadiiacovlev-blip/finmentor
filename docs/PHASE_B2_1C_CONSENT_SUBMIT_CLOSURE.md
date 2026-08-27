@@ -42,7 +42,7 @@ Not built, on purpose:
   > `Internal Envelope Unwrap` translates it. Believing otherwise made the internal route
   > reject every lead as `INVALID_PAYLOAD` until P6.2 exposed it live (exec 3583). The
   > claim in the first sentence still holds — the production writer was and is untouched.
-  > See `docs/P6_3_F10_INTERNAL_ROUTE_SHAPE.md`.
+  > See `docs/P6_3_INTERNAL_ROUTE_DEFECTS.md`.
 - **No deployment.** No workflow was created, modified, activated or deactivated. The
   modules are repository sources awaiting the canary gate §7 describes.
 

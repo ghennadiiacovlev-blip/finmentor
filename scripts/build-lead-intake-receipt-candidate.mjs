@@ -693,10 +693,38 @@ commitChain('Merge', "$('Build Merge Update').first().json.lead_id", 'merged',
 
 // ---------------------------------------------------------------- simple terminal gates
 
+// F11 — the internal-ness flag is read BY NODE REFERENCE, never off $json.
+//
+// Three of these four gates are fed EXCLUSIVELY from an n8n ERROR OUTPUT (Read Settings,
+// Read Pipeline (Dedup), Save to Pipeline, Update Pipeline (Merge)). An error output does not
+// carry the failing node's INPUT json -- it emits an error item. So `$json.__internal` was
+// `undefined`, `undefined === 1` is false, and every internal failure took the FALSE branch:
+// the PUBLIC branch, into a RespondToWebhook that has nothing to respond to inside a
+// sub-workflow, and then into a Stop node that THROWS at the internal caller.
+//
+// The consequence was that Internal Result (Infra), (PipelineFailed) and (MergeFailed) were
+// UNREACHABLE -- three declared terminals of the internal contract that could never fire --
+// and the internal caller received a raw thrown error instead of the structured
+// { ok: false, error_code, retryable } this route promises. Observed live in P6.3 (driver
+// exec 3585, case F): a valid lead cleared Validate Payload, the CRM read was genuinely
+// unavailable, and the run terminated at Stop: CRM Unavailable on the public branch.
+//
+// `Internal Flag` is the single authority on internal-ness -- that is what it exists for --
+// and it runs on BOTH routes before all four of these gates:
+//
+//   public  : Webhook -> Validate Payload -> Internal Flag -> IF Valid -> ...
+//   internal: Internal Subworkflow Trigger -> Internal Auth Entry -> ... -> Internal Flag -> ...
+//
+// so the reference can never throw. The success-path gates already read their flag by node
+// reference (`$('Receipt Gate')`); this makes the failure paths hold to the same rule, which
+// is the rule that survives an error output.
+const INTERNAL_FLAG_EXPR = "={{ $('Internal Flag').first().json.__internal }}";
+
 function terminalGate(tag, anchor, dx, dy, errorCodeExpr, retryable) {
   const gate = ifNum('IF Internal (' + tag + ')', at(anchor, dx, dy),
-    '={{ $json.__internal }}', 1,
-    'F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response.');
+    INTERNAL_FLAG_EXPR, 1,
+    'F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook ' +
+    'response. The flag is read by node reference so it survives an error-output feed.');
   const result = internalResult('Internal Result (' + tag + ')', at(anchor, dx + 220, dy),
     RESULT_FAIL(errorCodeExpr, retryable),
     'F4 terminal for the internal path. Never a RespondToWebhook.');

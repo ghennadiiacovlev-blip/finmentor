@@ -3735,7 +3735,7 @@
           "conditions": [
             {
               "id": "p51-49-cond",
-              "leftValue": "={{ $json.__internal }}",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -3755,7 +3755,7 @@
         -1020,
         720
       ],
-      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
     },
     {
       "parameters": {
@@ -3785,7 +3785,7 @@
           "conditions": [
             {
               "id": "p51-52-cond",
-              "leftValue": "={{ $json.__internal }}",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -3805,7 +3805,7 @@
         -820,
         940
       ],
-      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
     },
     {
       "parameters": {
@@ -3835,7 +3835,7 @@
           "conditions": [
             {
               "id": "p51-55-cond",
-              "leftValue": "={{ $json.__internal }}",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -3855,7 +3855,7 @@
         580,
         620
       ],
-      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
     },
     {
       "parameters": {
@@ -3885,7 +3885,7 @@
           "conditions": [
             {
               "id": "p51-58-cond",
-              "leftValue": "={{ $json.__internal }}",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
               "rightValue": 1,
               "operator": {
                 "type": "number",
@@ -3905,7 +3905,7 @@
         780,
         1380
       ],
-      "notes": "F4. TRUE = internal: return the internal contract. FALSE = public: existing webhook response."
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
     },
     {
       "parameters": {
