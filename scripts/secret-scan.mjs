@@ -23,12 +23,24 @@
 //     secrets in a secret store.
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+const require = createRequire(import.meta.url);
+
+// The tracked MCP configuration is checked by a SECOND control, in the same step as this scan.
+//
+// The pattern scan above finds credential-SHAPED literals anywhere. It cannot see the hazard
+// that matters in `.mcp.json`, which is structural: a `headers` block, an extra query parameter,
+// a repointed project_ref, a widened feature scope. None of those need to look like a secret to
+// be one, so the guard permits an exact closed shape and refuses everything else. Kept as a
+// separate module rather than more regexes here, because the two answer different questions.
+const { evaluateMcpConfig } = require(join(ROOT, 'scripts', 'mcp-config-guard.js'));
+const MCP_CONFIG = '.mcp.json';
 
 // Identical to SECRET_PATTERNS in qa/n8n-manifest-drift.test.mjs. Keep them in step.
 const SECRET_PATTERNS = [
@@ -176,6 +188,46 @@ function selfTest() {
     console.log('  PASS  svg is scanned, not skipped');
   }
 
+  // ---------------------------------------------------------------- MCP config guard
+  //
+  // The MCP check is proven the same way the matcher is: on synthetic configs, never on the
+  // repository. The safe fixture is BUILT from the guard's own pinned constants, so a deliberate
+  // repoint changes both sides at once and this self-test cannot go stale against it silently.
+  const G = require(join(ROOT, 'scripts', 'mcp-config-guard.js'));
+  const safeUrl = 'https://mcp.supabase.com/mcp?project_ref=' + G.PINNED_PROJECT_REF +
+    '&features=' + G.PINNED_FEATURES.join(',');
+  const safeCfg = { mcpServers: { supabase: { type: 'http', url: safeUrl } } };
+  const cfgText = (o) => JSON.stringify(o, null, 2);
+  const mutate = (fn) => { const o = JSON.parse(JSON.stringify(safeCfg)); fn(o); return cfgText(o); };
+
+  const mcpCases = [
+    ['safe project-scoped config passes', cfgText(safeCfg), false],
+    ['a credential-bearing header is refused',
+      mutate((o) => { o.mcpServers.supabase.headers = { Authorization: 'Bearer x' }; }), true],
+    ['an env block is refused',
+      mutate((o) => { o.mcpServers.supabase.env = { DB_PASSWORD: 'x' }; }), true],
+    ['a credential query parameter is refused',
+      mutate((o) => { o.mcpServers.supabase.url = safeUrl + '&access_token=' + 'A'.repeat(32); }), true],
+    ['a repointed project_ref is refused',
+      mutate((o) => { o.mcpServers.supabase.url = safeUrl.replace(G.PINNED_PROJECT_REF, 'a'.repeat(20)); }), true],
+    ['a widened feature scope is refused',
+      mutate((o) => { o.mcpServers.supabase.url = safeUrl + ',account'; }), true],
+    ['a second MCP server is refused',
+      mutate((o) => { o.mcpServers.other = { type: 'http', url: safeUrl }; }), true]
+  ];
+
+  for (const [name, text, shouldRefuse] of mcpCases) {
+    const refused = !evaluateMcpConfig(text).ok;
+    if (refused === shouldRefuse) {
+      pass++;
+      console.log('  PASS  mcp-config: ' + name);
+    } else {
+      failures.push('mcp-config: ' + name + ': expected ' + (shouldRefuse ? 'REFUSAL' : 'acceptance') +
+        ', got ' + (refused ? 'REFUSAL' : 'acceptance'));
+      console.log('  FAIL  mcp-config: ' + name);
+    }
+  }
+
   console.log('\n' + (failures.length ? 'FAIL' : 'PASS') + '  self-test: ' + pass +
     ' checks passed, ' + failures.length + ' failed');
   if (failures.length) {
@@ -221,4 +273,21 @@ if (process.argv.includes('--self-test')) {
     process.exit(1);
   }
   console.log('PASS: no credential-shaped literals in tracked files');
+
+  // ---- the MCP configuration guard, over the same repository.
+  //
+  // Absence is not a failure here: a checkout without the file has nothing to leak, and it is
+  // qa/mcp-config.test.mjs that holds the file to being TRACKED. Presence, tracked or not, is
+  // always checked — the untracked state is exactly the moment before someone commits it.
+  if (!existsSync(join(ROOT, MCP_CONFIG))) {
+    console.log(`mcp-config: ${MCP_CONFIG} absent, nothing to check`);
+  } else {
+    const verdict = evaluateMcpConfig(readFileSync(join(ROOT, MCP_CONFIG), 'utf8'));
+    if (!verdict.ok) {
+      console.error(`\nFAIL: ${MCP_CONFIG} is not a safe project-scoped configuration`);
+      verdict.failures.forEach((f) => console.error('  - ' + f));
+      process.exit(1);
+    }
+    console.log(`PASS: ${MCP_CONFIG} is project-scoped, credential-free, and pinned`);
+  }
 }

@@ -149,7 +149,19 @@ jobs:
           repo="$PWD"
           cd /
           node "$repo/qa/run-all.mjs" > /tmp/cwd.out
-          grep -qE '^9/9 gates passed' /tmp/cwd.out
+          # Assert "N/N", not a hardcoded N. This line carried a literal gate count that was last
+          # updated at 9 gates and had silently gone stale as the suite grew -- the same
+          # duplicated-number failure mode that the ASSERTION_BASELINE copy hit, and it was
+          # failing this step for the count rather than for cwd dependence. The runner is the one
+          # authority on how many gates there are; this step only checks that all of them passed
+          # from a foreign working directory.
+          node -e "
+            const t = require('fs').readFileSync('/tmp/cwd.out','utf8');
+            const m = t.match(/^(\d+)\/(\d+) gates passed$/m);
+            if (!m) { console.error('no gate tally in the cwd-independent run'); process.exit(1); }
+            if (m[1] !== m[2]) { console.error('cwd-independent run: only ' + m[1] + '/' + m[2] + ' gates passed'); process.exit(1); }
+            console.log('cwd-independent run: ' + m[1] + '/' + m[2] + ' gates passed');
+          "
           echo "cwd independence: PASS"
 
       - name: Secret scan self-test
