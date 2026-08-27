@@ -220,12 +220,136 @@ check('MUTATION 3+4: blind retryOnFail on Save Bot Session is NOT present', () =
   deepEq(s.parameters.columns.matchingColumns, ['chat_id'], 'the match column changed');
 });
 
-check('the design records CASE C as UNSAFE and reuses the audited comparison', () => {
+check('P8.2R: verify-then-retry is WITHDRAWN, and both forms are marked unsafe', () => {
   assert(/UNSAFE/.test(H.AUTHORITY_RETRY_DESIGN.blindRetry), 'blind retry is no longer marked unsafe');
-  assert(H.AUTHORITY_RETRY_DESIGN.procedure.some((s) => /Authority Verdict uses/.test(s)),
-    'the retry verdict no longer reuses the audited stamp comparison');
-  assert(/never worse/i.test(H.AUTHORITY_RETRY_DESIGN.fallbackIsNeverWorse) || /EXACTLY what happens today/.test(H.AUTHORITY_RETRY_DESIGN.fallbackIsNeverWorse),
-    'the argument that the fallback is never worse than today is gone');
+  assert(/UNSAFE/.test(H.AUTHORITY_RETRY_DESIGN.verifyThenRetry),
+    'verify-then-retry is not marked unsafe — the TOCTOU window between the reread and the write '
+    + 'means a pre-write check does not make the write conditional');
+  assert(/TOCTOU/.test(H.AUTHORITY_RETRY_DESIGN.verifyThenRetry), 'the TOCTOU reason is not recorded');
+  assert(/NEVER/.test(H.AUTHORITY_RETRY_DESIGN.secondWrite), 'a second authority write is not forbidden outright');
+  assert(/CAS/.test(H.AUTHORITY_RETRY_DESIGN.secondWrite), 'the only condition that would change this (real CAS) is not stated');
+});
+
+check('the readback is CLASSIFY-ONLY on every branch of the procedure', () => {
+  const proc = H.AUTHORITY_RETRY_DESIGN.procedure.join(' | ');
+  assert(/CLASSIFY ONLY/.test(proc), 'the reread is no longer marked classify-only');
+  assert(/NO WRITE/.test(proc), 'the procedure does not state that no branch writes');
+  assert(!/Save Bot Session \(retry\)/.test(proc), 'a retry write survived in the procedure');
+});
+
+console.log('\n-- §1 the three ambiguous-failure classes, and ZERO writes --');
+
+const C1 = { cycle_id: 'C-900000999-1000', submission_key: 'sub_' + 'a'.repeat(32) };
+const C2 = { cycle_id: 'C-900000999-2000', submission_key: 'sub_' + 'b'.repeat(32) };
+
+check('CASE A: row already holds the intended pair -> ACK_LOST_BUT_COMMITTED', () => {
+  const v = H.classifyAuthorityWriteOutcome(C1, { ...C1 });
+  eq(v.outcome, 'ACK_LOST_BUT_COMMITTED', 'wrong outcome');
+  eq(v.writeAllowed, false, 'a write was authorised');
+});
+
+check('CASE B: row holds a different valid pair -> SUPERSEDED', () => {
+  const v = H.classifyAuthorityWriteOutcome(C1, { ...C2 });
+  eq(v.outcome, 'SUPERSEDED', 'wrong outcome');
+  eq(v.writeAllowed, false, 'a write was authorised');
+});
+
+check('CASE C: absent, unreadable, or previous authority -> AUTHORITY_WRITE_UNRESOLVED', () => {
+  [null, undefined,
+    { cycle_id: 'C-900000999-500', submission_key: '' },
+    { cycle_id: '', submission_key: '' },
+    { cycle_id: 'C-900', submission_key: 'sub_notvalid' }
+  ].forEach((observed) => {
+    const v = H.classifyAuthorityWriteOutcome(C1, observed);
+    eq(v.outcome, 'AUTHORITY_WRITE_UNRESOLVED', 'wrong outcome for ' + JSON.stringify(observed));
+    eq(v.writeAllowed, false, 'a write was authorised for ' + JSON.stringify(observed));
+  });
+});
+
+check('THE REQUIRED MUTATION: reread sees C1/K1, then C2/K2 lands -> ZERO writes of C1/K1', () => {
+  // The exact TOCTOU sequence §1 names. Under the withdrawn design the first classification
+  // ("still current") would have authorised a write that then landed on top of C2/K2.
+  const atRereadTime = H.classifyAuthorityWriteOutcome(C1, { ...C1 });
+  eq(atRereadTime.writeAllowed, false,
+    'the reread authorised a write — that is the TOCTOU hole, and it is back');
+
+  const afterC2Lands = H.classifyAuthorityWriteOutcome(C1, { ...C2 });
+  eq(afterC2Lands.writeAllowed, false, 'the post-drift classification authorised a write');
+
+  // The property stated generally: NO input can produce writeAllowed true.
+  const inputs = [null, {}, { ...C1 }, { ...C2 },
+    { cycle_id: C1.cycle_id, submission_key: C2.submission_key },
+    { cycle_id: C2.cycle_id, submission_key: C1.submission_key },
+    { cycle_id: 'C-1-1', submission_key: 'sub_' + 'f'.repeat(32) }];
+  inputs.forEach((o) => {
+    eq(H.classifyAuthorityWriteOutcome(C1, o).writeAllowed, false,
+      'writeAllowed became true for ' + JSON.stringify(o));
+  });
+});
+
+check('the classifier deliberately does NOT rank cycles', () => {
+  // Refusing to decide who is newer is what keeps a stale classification harmless: a
+  // comparison would invite someone to act on it.
+  const src = readFileSync(join(ROOT, 'n8n', 'src', 'concierge-config', 'hot-path-config.js'), 'utf8');
+  const fn = src.slice(src.indexOf('function classifyAuthorityWriteOutcome'));
+  const body = fn.slice(0, fn.indexOf('\n}\n'));
+  assert(!/stamp|>\s*heldStamp|currentStamp/.test(body),
+    'the classifier started ranking cycles; it must only label, never order');
+});
+
+check('CASE C preserves the READY receipt as recoverable evidence', () => {
+  assert(/PRESERVED/.test(H.AUTHORITY_RETRY_DESIGN.unresolvedPosture), 'the receipt is no longer preserved');
+  assert(/IN_FLIGHT/.test(H.AUTHORITY_RETRY_DESIGN.unresolvedPosture),
+    'the parallel with the undeletable IN_FLIGHT retention rule is gone');
+});
+
+console.log('\n-- §2 the Concierge -> Lead Intake trust route --');
+
+check('provenance today is caller-asserted on a PUBLIC endpoint', () => {
+  const vp = byName(INTAKE, 'Validate Payload').parameters.jsCode;
+  assert(/toolKey === 'telegram_client_concierge' \|\| hdrSource === 'telegram_client_concierge'/.test(vp),
+    'the source derivation changed; re-run this analysis');
+  // The Concierge sends NO source header at all, so its provenance comes from the BODY.
+  const n = byName(CONCIERGE, 'Send Lead to Intake');
+  const names = n.parameters.headerParameters.parameters.map((p) => p.name);
+  assert(names.indexOf('x-finmentor-source') === -1,
+    'the Concierge now sends a source header; the body-provenance finding has changed');
+});
+
+check('`source` NEVER gates a decision — it is attribution, not trust', () => {
+  // The check that makes "delete the header" safe: nothing downstream branches on source.
+  const deciding = (INTAKE.nodes || []).filter((n) => {
+    if (n.type !== 'n8n-nodes-base.code' || n.name === 'Validate Payload') { return false; }
+    const c = n.parameters.jsCode || '';
+    return /source\s*===|source\s*!==|if\s*\(\s*source/.test(c);
+  }).map((n) => n.name);
+  eq(deciding.length, 0, 'source now gates a decision in: ' + deciding.join(', '));
+  assert(/NONE/.test(H.LEAD_INTAKE_ROUTE.privilegeGranted), 'the module no longer records that no privilege is granted');
+});
+
+check('the route is recorded as PUBLIC today with STRUCTURAL INTERNAL as the target', () => {
+  assert(/^PUBLIC/.test(H.LEAD_INTAKE_ROUTE.today), 'the current route is not recorded as public');
+  assert(/^B —/.test(H.LEAD_INTAKE_ROUTE.canonicalTarget), 'the canonical target is not B');
+  eq(H.LEAD_INTAKE_ROUTE.targetIsSeparatePhase, true, 'the migration is being folded into this delta');
+  assert(/not an authentication mechanism/.test(H.LEAD_INTAKE_ROUTE.p82rAction),
+    'the refusal to invent a shared-secret header is no longer stated');
+});
+
+check('the duplicate-submit exposure is recorded as the reason B is canonical', () => {
+  const n = byName(CONCIERGE, 'Send Lead to Intake');
+  eq(n.retryOnFail, true, 'the intake call no longer retries');
+  eq(n.maxTries, 2, 'maxTries changed');
+  eq(n.continueOnFail, true, 'continueOnFail changed');
+  assert(/no receipt/.test(H.LEAD_INTAKE_ROUTE.duplicateExposure),
+    'the module no longer records that the retried public submit has no idempotency record');
+});
+
+check('the Concierge mints a key it does not use on its own handoff', () => {
+  // Stated in the module because it is the clearest argument for the migration.
+  const body = byName(CONCIERGE, 'Send Lead to Intake').parameters.jsonBody || '';
+  assert(!/submission_key/.test(body), 'the Concierge now sends submission_key on the public route');
+  assert(/mints a submission_key/i.test(readFileSync(join(ROOT, 'n8n', 'src', 'concierge-config', 'hot-path-config.js'), 'utf8')),
+    'the observation is no longer recorded');
 });
 
 check('MUTATION 4 semantics: the stale-authority predicate already exists and refuses', () => {

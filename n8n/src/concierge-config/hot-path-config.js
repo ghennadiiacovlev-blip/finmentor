@@ -175,22 +175,113 @@ const LATENCY_SLO = {
 //
 // So: NO blind retry. The safe procedure re-reads and re-decides, and it reuses the comparison
 // `Authority Verdict` already makes rather than inventing a second one:
+// CORRECTED AT P8.2R. The first version of this design proposed verify-then-retry: re-read, and
+// if C1/K1 still looks current, write it again. That is NOT safe, and the reason is a TOCTOU
+// window I described and then failed to weigh:
+//
+//     reread sees C1/K1  ->  a concurrent execution writes C2/K2  ->  the retry writes C1/K1
+//
+// The earlier "the fallback is never worse than today" argument covered only the branch where
+// the verdict REFUSES. The branch where it PROCEEDS is the dangerous one, and that is the branch
+// the argument said nothing about. A pre-write reread does not make a subsequent unconditional
+// write conditional; it only makes it feel conditional.
+//
+// THE RULE, therefore: there is NO SECOND AUTHORITY WRITE. Not conditionally, not after a
+// verified reread, not ever -- unless a real atomic compare-and-set primitive exists, which the
+// Sheets node does not offer.
+//
+// The readback survives, but ONLY to classify what happened. Classification is safe because it
+// never leads to a write; the worst a stale classification can do is mislabel an event.
 const AUTHORITY_RETRY_DESIGN = {
   blindRetry: 'UNSAFE — appendOrUpdate cannot express "only if still current"',
+  verifyThenRetry: 'ALSO UNSAFE — TOCTOU between the reread and the write. Withdrawn at P8.2R.',
+  secondWrite: 'NEVER, without a real atomic CAS primitive',
   procedure: [
     'Save Bot Session: onError continueRegularOutput (do not abort the turn)',
     'IF the write reported failure ->',
-    '  Authority Retry Reread   : re-read Bot_Sessions for this chat',
-    '  Authority Retry Verdict  : the SAME stamp comparison Authority Verdict uses --',
-    '                             proceed only if the stored cycle is absent, equal, or OLDER',
-    '  Save Bot Session (retry) : only on that verdict',
-    'ELSE -> Build Authority Abandoned Event, and stop'
+    '  Authority Outcome Reread : re-read Bot_Sessions for this chat  [CLASSIFY ONLY]',
+    '  Authority Outcome Verdict: classifyAuthorityWriteOutcome(intended, observed)',
+    '      A  ACK_LOST_BUT_COMMITTED     the row already holds C1/K1 -> treat as success',
+    '      B  SUPERSEDED                 the row holds a different valid pair -> stand down',
+    '      C  AUTHORITY_WRITE_UNRESOLVED previous / absent / unreadable -> stand down',
+    '  In A, B and C alike: NO WRITE. Emit the operational signal and stop the post-reply path.'
   ],
-  fallbackIsNeverWorse:
-    'If the verdict refuses, the outcome is an orphan READY receipt and an unadvanced authority '
-    + 'row -- which is EXACTLY what happens today when the write fails. So verify-then-retry is '
-    + 'strictly better than no retry and strictly safer than blind retry.',
+  unresolvedPosture:
+    'In case C the READY receipt is deliberately PRESERVED as recoverable orphan evidence. It is '
+    + 'the only record that a cycle was issued whose authority never landed, and destroying it '
+    + 'would destroy the ability to reconcile. This is the same reasoning that keeps IN_FLIGHT '
+    + 'receipts undeletable in the P1-L8 retention policy.',
   cost: 'all of it runs AFTER the reply; zero customer latency'
+};
+
+// Classifies an ambiguous `Save Bot Session` outcome from a readback. It returns a label and
+// NOTHING ELSE: `writeAllowed` is hard-coded false on every branch, because the whole point of
+// P8.2R is that no classification result may authorise a second write.
+//
+//   intended  { cycle_id, submission_key }  what this turn tried to persist
+//   observed  { cycle_id, submission_key } | null   what the readback found (null = absent/unreadable)
+function classifyAuthorityWriteOutcome(intended, observed) {
+  const str = (v) => String(v === undefined || v === null ? '' : v).trim();
+  const iC = str((intended || {}).cycle_id);
+  const iK = str((intended || {}).submission_key);
+
+  if (!observed) {
+    return { outcome: 'AUTHORITY_WRITE_UNRESOLVED', reason: 'ROW_ABSENT_OR_UNREADABLE', writeAllowed: false };
+  }
+  const oC = str(observed.cycle_id);
+  const oK = str(observed.submission_key);
+
+  if (oC === iC && oK === iK) {
+    return { outcome: 'ACK_LOST_BUT_COMMITTED', reason: 'ROW_MATCHES_INTENT', writeAllowed: false };
+  }
+  // A different, well-formed pair means somebody else's turn owns the row now. Note this does
+  // NOT try to decide who is newer: it does not need to, because no branch writes. Refusing to
+  // rank them is what keeps a stale classification harmless.
+  if (/^C-\d+-\d+$/.test(oC) && /^sub_[0-9a-f]{32}$/.test(oK) && (oC !== iC || oK !== iK)) {
+    return { outcome: 'SUPERSEDED', reason: 'ROW_HOLDS_A_DIFFERENT_VALID_PAIR', writeAllowed: false };
+  }
+  return { outcome: 'AUTHORITY_WRITE_UNRESOLVED', reason: 'ROW_NOT_INTERPRETABLE_AS_CURRENT', writeAllowed: false };
+}
+
+// ================================================================================
+// Concierge -> Lead Intake: which route is canonical
+// ================================================================================
+//
+// MEASURED, from the live exports:
+//
+//   * the Concierge calls the PUBLIC Lead Intake webhook over httpRequest;
+//   * the only header it sends is the broken `x-finmentor-internal-key`;
+//   * Lead Intake derives `source` from `payload.tool` (a BODY field) or an
+//     `x-finmentor-source` header the Concierge never sends — so provenance is
+//     caller-asserted on a public endpoint;
+//   * `source` is referenced in exactly ONE node, `Validate Payload`, and only in its own
+//     derivation. It never gates a decision anywhere. It is ATTRIBUTION, not trust;
+//   * a caller-supplied `lead_id` is sanitised to /^[A-Za-z0-9_\-]{4,80}$/ and RETAINED.
+//
+// So today the path is PUBLIC-SEMANTICS (option A) with an authentication-shaped decoration on
+// top. Nothing privileged is granted by the fake header or by `source` — which is why deleting
+// the header changes no behaviour at all.
+//
+// WHY THE CANONICAL TARGET IS NEVERTHELESS B. The public path has no receipt behind it. The
+// httpRequest carries retryOnFail with maxTries 2 and continueOnFail, so a retried submit can
+// create a SECOND lead with no idempotency record to deduplicate it. That is precisely the
+// Model-A weakness G1 was built to remove, and the Telegram funnel still has it.
+//
+// And there is an irony worth stating plainly: the Concierge now MINTS a submission_key on every
+// new cycle and then submits its own leads WITHOUT it. The key exists solely for a Mini App that
+// is not deployed. Moving this handoff to the structural internal route would make the key the
+// Concierge already mints do work on the path the Concierge already has.
+const LEAD_INTAKE_ROUTE = {
+  today: 'PUBLIC — httpRequest to the public webhook, provenance caller-asserted, no receipt',
+  privilegeGranted: 'NONE — source never gates a decision; the internal-key header is inert',
+  canonicalTarget: 'B — STRUCTURALLY TRUSTED INTERNAL route, for receipt-backed once-only semantics',
+  targetIsSeparatePhase: true,
+  p82rAction: 'DELETE the header and the dead key. Keep lead_intake_webhook_url while the public '
+    + 'call remains. Do NOT invent a shared-secret header: on a public endpoint it is not an '
+    + 'authentication mechanism, it is a password in a request anyone can send.',
+  duplicateExposure: 'httpRequest retryOnFail maxTries 2 + continueOnFail, with no receipt — a '
+    + 'retried Concierge submit can create a second lead. Unchanged by P8.2R and recorded here '
+    + 'as the reason B is the target.'
 };
 
 // ================================================================================
@@ -248,6 +339,8 @@ module.exports = {
   PRE_REPLY_ROUND_TRIPS_AFTER,
   LATENCY_SLO,
   AUTHORITY_RETRY_DESIGN,
+  classifyAuthorityWriteOutcome,
+  LEAD_INTAKE_ROUTE,
   BOT_EVENT_DESIGN,
   SESSION_READ_RETRY,
   validateStaticConfig,
