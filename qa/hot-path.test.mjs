@@ -454,6 +454,112 @@ check('MUTATION 2: the bot_enabled design fails safe when Sheets is down', () =>
     'the rejection of the remote flag no longer cites the failure that proved it');
 });
 
+// ================================================================ 9. P8.3 candidate
+
+console.log('\n-- P8.3 the hardening candidate --');
+
+const P83M = await import('file://' + join(ROOT, 'scripts', 'build-concierge-p83-candidate.mjs').split('\\').join('/'));
+const p83Raw = readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-p83-candidate.json'), 'utf8');
+const P83 = JSON.parse(p83Raw);
+
+check('the candidate is not stale and verifies against its base', () => {
+  eq(P83M.serializeP83(P83M.buildP83(CAND)), p83Raw, 're-run scripts/build-concierge-p83-candidate.mjs');
+  const v = P83M.verifyP83(CAND, P83);
+  assert(v.ok, v.failures.join(' | '));
+});
+
+check('only the four approved classes changed anything', () => {
+  const bn = {}; CAND.nodes.forEach((n) => { bn[n.name] = n; });
+  const cn = {}; P83.nodes.forEach((n) => { cn[n.name] = n; });
+  const EXEC = ['type', 'typeVersion', 'parameters', 'credentials', 'disabled', 'onError',
+    'retryOnFail', 'maxTries', 'waitBetweenTries', 'alwaysOutputData', 'continueOnFail'];
+  const drifted = Object.keys(bn).filter((n) => cn[n]
+    && EXEC.some((k) => JSON.stringify(bn[n][k]) !== JSON.stringify(cn[n][k]))).sort();
+  deepEq(drifted, Object.keys(P83M.MODIFIED_NODES).sort(), 'undeclared node changes: ' + drifted.join(', '));
+});
+
+check('THE INVARIANT: zero graph edges into Save Bot Session except the row builder', () => {
+  // Graph-level, not a Code-body assertion. A second authority write would have to be an edge,
+  // and there is exactly one.
+  const into = [];
+  Object.keys(P83.connections).forEach((src) => {
+    (P83.connections[src].main || []).forEach((br) => (br || []).forEach((l) => {
+      if (l && l.node === 'Save Bot Session') { into.push(src); }
+    }));
+  });
+  deepEq(into.sort(), ['Build Session Row'], 'edges into Save Bot Session: ' + into.join(', '));
+});
+
+check('the deployed verdict body AGREES with the module classifier, case for case', () => {
+  // Same discipline P7.2 used for the mint: the module is the gated statement, the node is the
+  // deployed form, and one table drives both so they cannot drift apart silently.
+  const node = P83.nodes.find((n) => n.name === 'Authority Outcome Verdict');
+  const K1 = 'sub_' + 'a'.repeat(32);
+  const K2 = 'sub_' + 'b'.repeat(32);
+  const intended = { chat_id: '900000999', cycle_id: 'C-900000999-1000', submission_key: K1 };
+  const cases = [
+    { observed: { chat_id: '900000999', cycle_id: 'C-900000999-1000', submission_key: K1 } },
+    { observed: { chat_id: '900000999', cycle_id: 'C-900000999-2000', submission_key: K2 } },
+    { observed: null },
+    { observed: { chat_id: '900000999', cycle_id: 'C-900000999-500', submission_key: '' } },
+    { observed: { chat_id: '900000999', cycle_id: 'C-900', submission_key: 'sub_bad' } }
+  ];
+  cases.forEach((c) => {
+    const rows = c.observed ? [{ json: c.observed }] : [];
+    const $ = (n) => ({ first: () => ({ json: n === 'Build Session Row' ? intended : {} }), all: () => [] });
+    const out = new Function('$', '$input', node.parameters.jsCode)($, { all: () => rows });
+    const deployed = out[0].json;
+    const module_ = H.classifyAuthorityWriteOutcome(intended, c.observed);
+    eq(deployed.__authority_outcome, module_.outcome,
+      'deployed and module disagree for ' + JSON.stringify(c.observed));
+    eq(deployed.__write_allowed, false, 'the deployed node authorised a write');
+    eq(module_.writeAllowed, false, 'the module authorised a write');
+  });
+});
+
+check('MUTATION §8: the deployed verdict does not rank cycles', () => {
+  const code = P83.nodes.find((n) => n.name === 'Authority Outcome Verdict').parameters.jsCode;
+  assert(!/currentStamp|heldStamp|>\s*stamp|localeCompare/.test(code), 'the verdict ranks cycles');
+  assert(/oC === iC && oK === iK/.test(code), 'the verdict no longer compares exact pair identity');
+});
+
+check('§6 user-facing behaviour is untouched', () => {
+  const bn = {}; CAND.nodes.forEach((n) => { bn[n.name] = n; });
+  const cn = {}; P83.nodes.forEach((n) => { cn[n.name] = n; });
+  ['Build Bot Response', 'Build Transport Request', 'Parse Telegram Update', 'Get Bot Session',
+    'Build Session Row', 'Settings to Object', 'Send Client Message', 'IF Layout Mapped']
+    .forEach((n) => deepEq(cn[n].parameters, bn[n].parameters, 'user-facing node changed: ' + n));
+});
+
+check('the Telegram trigger and its identity are untouched', () => {
+  const b = CAND.nodes.find((n) => n.name === 'Telegram Client Trigger');
+  const c = P83.nodes.find((n) => n.name === 'Telegram Client Trigger');
+  deepEq(c, b, 'the Telegram trigger changed');
+  eq(P83.nodes.filter((n) => /trigger$/i.test(n.type)).length, 1, 'trigger count changed');
+});
+
+check('submission_key never reaches a client-facing node', () => {
+  const added = P83M.ADDED_NODES.map((n) => P83.nodes.find((x) => x.name === n));
+  added.forEach((n) => {
+    const b = JSON.stringify(n.parameters);
+    assert(!/reply_text|tg_body|reply_markup/.test(b), n.name + ' touches client-facing fields');
+  });
+  // the unresolved signal records PRESENCE, never a key value
+  const u = P83.nodes.find((n) => n.name === 'Build Authority Unresolved Event').parameters.jsCode;
+  assert(/held_key_present/.test(u), 'the signal no longer records key presence');
+  assert(!/submission_key:\s*[^!=]/.test(u.replace(/held_key_present[^\n]*/g, '')), 'the signal emits a key value');
+});
+
+check('INTERNAL_HANDOFF is NOT in this candidate, and the reason is recorded', () => {
+  // The Concierge still calls the public webhook, because the internal entry is not deployed.
+  const n = P83.nodes.find((x) => x.name === 'Send Lead to Intake');
+  eq(n.type, 'n8n-nodes-base.httpRequest', 'the handoff changed without the internal route existing');
+  const live = (INTAKE.nodes || []).some((x) => x.type === 'n8n-nodes-base.executeWorkflowTrigger');
+  assert(!live, 'the internal Lead Intake entry IS now live — INTERNAL_HANDOFF can and should be built');
+  const src = readFileSync(join(ROOT, 'scripts', 'build-concierge-p83-candidate.mjs'), 'utf8');
+  assert(/43 nodes to add/.test(src), 'the exact mismatch is no longer recorded in the generator');
+});
+
 // ================================================================ summary
 
 console.log('\n' + (failures.length ? 'FAIL' : 'PASS') + '  ' + pass + ' checks passed, ' + failures.length + ' failed');
@@ -461,3 +567,4 @@ if (failures.length) {
   failures.forEach((f) => console.error('  - ' + f));
   process.exit(1);
 }
+

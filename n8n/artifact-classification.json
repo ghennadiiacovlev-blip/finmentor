@@ -14,8 +14,8 @@
     "INSTRUMENT": "disposable harness/tool; deployable as its own disposable workflow only"
   },
   "counts": {
-    "total": 20,
-    "REDACTED_REFERENCE_ONLY": 17,
+    "total": 21,
+    "REDACTED_REFERENCE_ONLY": 18,
     "REVIEW_REFERENCE": 0,
     "INSTRUMENT": 3,
     "production_deployable": 0
@@ -110,6 +110,24 @@
       ],
       "sha256": "2a2185069a1f7c6613f2b2c29bdbbc356f702581bb10e86a9ad1d65db5a9c721",
       "nodes": 45
+    },
+    {
+      "path": "n8n/candidate/concierge-p83-candidate.json",
+      "class": "REDACTED_REFERENCE_ONLY",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [
+        {
+          "marker": "<REDACTED_CHAT_ID>",
+          "count": 1
+        }
+      ],
+      "marker_total": 1,
+      "marked_nodes": [
+        "Settings to Object"
+      ],
+      "sha256": "2d97fb2475c6632c55231ba6fc8adfe7822047d97b68c9a6f8b23492fedfe298",
+      "nodes": 51
     },
     {
       "path": "n8n/candidate/lead-intake-internal-receipt-API-IMPORT.json",
