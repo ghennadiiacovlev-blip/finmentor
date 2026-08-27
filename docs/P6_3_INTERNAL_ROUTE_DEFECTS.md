@@ -280,7 +280,7 @@ Because the mechanism is a property of n8n's error output rather than of any one
 result covers `Infra`, `PipelineFailed` and `MergeFailed` identically — they differ only in
 which node feeds them.
 
-### 6.4 The F11 gate — 8 checks added to `qa/internal-route-contract.test.mjs`
+### 6.4 The F11 gate — 10 checks added to `qa/internal-route-contract.test.mjs`
 
 Verified by mutation: reverting the four gates to `$json.__internal` fails this gate with
 three named failures.
@@ -295,6 +295,20 @@ three named failures.
 | the routing | TRUE → an internal terminal, FALSE → the public responder, for all four |
 | F4 restated | no internal terminal is a `RespondToWebhook` |
 | the regression | an error item carries no `__internal`, so the `$json` form provably cannot take the internal branch |
+| **domination** | the referenced node **dominates** every path to its gate from **both** entries |
+| **no public change** | `Internal Flag` executed the public way still scores `__internal = 0`, so a public caller still reaches the public responder |
+
+The last two exist because **the fix introduces a risk the defect did not have.** `$('X')`
+*throws* when X did not run, whereas the old `$json` form could only read `undefined`. If any
+path could reach a gate without passing the referenced node, F11's fix would trade a wrong
+branch for a hard failure — and on the **public** route that would be a new customer-facing
+defect introduced by a fix to the internal one. Reachability does not settle it: a node can be
+reachable and still bypassable on some other path. The check deletes the referenced node from
+the graph and requires the gate to become unreachable. Result: **0 bypassable paths**, across
+all seven gates and both entries.
+
+Both are mutation-proven: adding a bypass edge `Webhook → IF Internal (Infra)` fails the
+first; making `Internal Flag` always emit `1` fails the second.
 
 ---
 
@@ -390,7 +404,7 @@ failure.
 
 ```
 14/14 gates passed
-TOTAL ASSERTIONS: 753        (732 + 21)
+TOTAL ASSERTIONS: 755        (732 + 23)
 assertion floors: PASS
 ```
 

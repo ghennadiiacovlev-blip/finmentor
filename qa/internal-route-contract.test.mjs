@@ -366,6 +366,69 @@ check('no internal terminal is a RespondToWebhook, and no responder is reachable
   });
 });
 
+check('the referenced node DOMINATES every path to its gate, from both entries', () => {
+  // Strictly stronger than reachability, and it closes a risk the FIX itself introduces.
+  //
+  // `$('X')` THROWS when X did not run. The old `$json` form could not throw -- it merely read
+  // undefined. So if any path could reach a gate WITHOUT passing through the referenced node,
+  // the F11 fix would trade a wrong branch for a hard failure, and on the PUBLIC route that
+  // would be a new customer-facing defect introduced by a fix.
+  //
+  // Reachability alone does not settle this: the node can be reachable and still be bypassable
+  // on some other path. This deletes the referenced node from the graph and asserts the gate
+  // becomes unreachable -- which is what "dominates" means.
+  const succ = (n) => ((CONN[n] || {}).main || []).flatMap((br) => (br || []).map((e) => e.node));
+  const reachesWithout = (entry, target, via) => {
+    const seen = new Set([entry]);
+    const q = [entry];
+    while (q.length) {
+      const n = q.shift();
+      if (n === target) return true;
+      for (const m of succ(n)) {
+        if (m === via) continue;
+        if (!seen.has(m)) { seen.add(m); q.push(m); }
+      }
+    }
+    return false;
+  };
+  const bad = [];
+  ALL_GATES.forEach((g) => {
+    const ref = /\$\('([^']+)'\)/.exec(flagExprOf(g))[1];
+    [['public', PUBLIC_ENTRY], ['internal', INTERNAL_ENTRY]].forEach(([label, entry]) => {
+      if (reachesWithout(entry, g, ref)) {
+        bad.push(g + ' is reachable from the ' + label + ' entry WITHOUT passing ' + ref
+          + ' — the expression would THROW there');
+      }
+    });
+  });
+  assert(!bad.length, bad.join('; '));
+});
+
+check('the F11 fix changes NOTHING on the public route', () => {
+  // A fix to the internal route must be invisible to the public one. Proven by EXECUTING
+  // Internal Flag the way the public path reaches it -- with Internal Auth Entry absent, which
+  // is why that body is written with a try/catch in the first place.
+  const flagBody = body(WF, 'Internal Flag');
+  const out = runCode(flagBody, {
+    input: { valid: true, payload: { name: 'public caller' } },
+    nodes: {}   // Internal Auth Entry did NOT run: this is the public path
+  });
+  assert(Array.isArray(out) && out.length === 1, 'Internal Flag did not return one item');
+  eq(out[0].json.__internal, 0, 'the public path no longer scores __internal = 0');
+
+  // Every gate compares against 1, so 0 sends the public caller to the public responder --
+  // exactly where the pre-F11 `$json` form sent it (undefined, or 0, both !== 1).
+  assert(out[0].json.__internal !== 1, 'a public caller would now take the INTERNAL branch');
+  FAILURE_GATES.forEach((g) => {
+    const rightValue = NODES[g].parameters.conditions.conditions[0].rightValue;
+    eq(rightValue, 1, g + ' no longer compares the flag against 1');
+  });
+
+  // And the public payload is passed through untouched, as it was before.
+  eq(out[0].json.valid, true, 'Internal Flag altered the public payload');
+  eq(out[0].json.payload.name, 'public caller', 'Internal Flag altered the public payload');
+});
+
 check('REGRESSION: a $json-fed gate is provably broken by an error output', () => {
   // Demonstrate the consequence rather than assert the string. An n8n error item carries the
   // error, not the failing node's input, so the flag is simply absent.
