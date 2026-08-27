@@ -10,9 +10,11 @@ disabled canary; production was never touched.
 | **F10** | `Internal Envelope Unwrap` emitted a shape `Validate Payload` cannot read, so **no lead could be accepted at all** | live, exec `3583` | **fixed, and CLOSED LIVE** — proven by driver exec `3585` case F (§6) |
 | **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed and gated offline — NOT yet deployed** (§7) |
 
-**Status:** the candidate is corrected for both and gated offline. The live canary
-`S24se5SYf5CJ0FIQ` carries F10's fix but **not** F11's, so it must be superseded once more —
-runbook in §7.
+**Status:** the candidate is corrected for both and gated offline. F11's platform premise is
+**proven live** (§6.3). The live canary `S24se5SYf5CJ0FIQ` carries F10's fix but **not**
+F11's, so it must be superseded once more. The supersede was **attempted and is BLOCKED**: the
+write-scoped REST credential is not reachable from the automation's processes — see §7, which
+also records why the block was not routed around via MCP.
 
 ---
 
@@ -248,7 +250,37 @@ internal: Internal Subworkflow Trigger -> Internal Auth Entry -> … -> Validate
 survived there — but it is moved to the same form. One rule, uniformly applied, is worth more
 than three correct gates and one that happens to be fed differently.
 
-### 6.3 The F11 gate — 8 checks added to `qa/internal-route-contract.test.mjs`
+### 6.3 The F11 premise, proven LIVE on the platform
+
+F11's diagnosis rests on one platform claim: **an n8n error output does not carry the failing
+node's input json.** That was inferred from the symptom — case F reached `Stop: CRM
+Unavailable`, so the IF must have taken the false branch. Strong, but indirect. Inference is
+what produced F10 in the first place, so it was verified directly.
+
+A disposable probe was built for it (`jHYxPsQEN6Pap5ai`, since archived): a manual trigger, a
+`Seed` node standing in for `Internal Flag`, a `Boom` node standing in for `Read Settings`
+with `onError: continueErrorOutput`, and an observer wired to **Boom's error output**. No
+credentials, no CRM, no external system — `Boom` simply throws.
+
+Execution **3596**, item arriving via `previousNodeOutput: 1`:
+
+| Observation | Value |
+|---|---|
+| keys on the error item | **`error`** — and nothing else |
+| `seed_marker_survived` | `false` — the upstream json is gone |
+| `$json.__internal` | **`(undefined)`** |
+| would `$json` take the internal branch? | **`false`** ← the F11 defect, exactly |
+| `$('Seed').first().json.__internal` | **`1`** |
+| would the reference take the internal branch? | **`true`** ← the F11 fix, exactly |
+
+One run proves both halves: the old form provably cannot reach the internal terminal, and the
+node-reference form provably does. The premise is no longer an inference.
+
+Because the mechanism is a property of n8n's error output rather than of any one node, this
+result covers `Infra`, `PipelineFailed` and `MergeFailed` identically — they differ only in
+which node feeds them.
+
+### 6.4 The F11 gate — 8 checks added to `qa/internal-route-contract.test.mjs`
 
 Verified by mutation: reverting the four gates to `$json.__internal` fails this gate with
 three named failures.
@@ -266,9 +298,55 @@ three named failures.
 
 ---
 
-## 7. What the owner has to do now
+## 7. Redeployment — attempted, and BLOCKED on the write credential
 
-The canary must be redeployed **again** — `S24se5SYf5CJ0FIQ` carries F10's fix but not F11's.
+The supersede was authorised and attempted. It could not be completed, for one reason:
+
+```
+== PREFLIGHT ==============================================
+  PASS  offline gate qa/api-import.test.mjs passed
+  PASS  artifact carries neither the production id nor the production webhook path
+  PASS  artifact carries exactly the four API-accepted fields
+  PASS  artifact: 100 nodes, availableInMCP false, name 'FINMENTOR ... B21C RECEIPT CANARY'
+
+ABORTED: N8N_BASE_URL is not set.  (a FRESH write-scoped key is required)
+```
+
+`N8N_BASE_URL` and `N8N_FIX_API_KEY` are not visible to the automation's processes — not in
+the process environment, not in the User scope, not in the Machine scope, and there is no
+dotenv file for the scripts to read. A key exported inside an interactive terminal session
+lives only in that session's process; it does not reach a subprocess started elsewhere. To
+make the run possible, the key has to be set where a new process inherits it — a User-scope
+environment variable for the duration of the work — or the two `deploy-b21c-canary.ps1`
+commands have to be run in the shell that already holds it.
+
+### 7.1 Why the deployment was not routed around
+
+The MCP surface is available and does have write capability, so the block is worth being
+precise about. It was **not** used to create the canary, on purpose:
+
+| Route | Why it was refused |
+|---|---|
+| `update_workflow` on `S24se5SYf5CJ0FIQ` | `availableInMCP: false` — correctly — so MCP cannot address it. It would also be an **ad-hoc live patch of a change that belongs in the generator**, which the deterministic pipeline exists to prevent. |
+| `create_workflow_from_code` | takes **SDK source**, so all **99,832 characters** of Code bodies would pass through a transcription step. That is precisely the fidelity risk the REST route was chosen to eliminate, and a single silent character difference is undetectable offline. |
+| `update_workflow` + `addNode` | no bulk-JSON operation, a hard cap of 100 operations against the ~210 this graph needs, and the same transcription problem. |
+
+Deploying by any of these would trade a credential blocker for an **executable-drift** risk —
+one of the standing stop conditions. The graph must reach the tenant byte-for-byte from disk
+or not at all.
+
+### 7.2 Why the driver was not re-run against `S24se5SYf5CJ0FIQ`
+
+Re-running the battery was considered and rejected. It cannot prove F11 — `S24` carries the
+defect by construction, so case F throwing is the **already-known** state, not new evidence.
+And it carries a real risk: at 04:49Z the CRM was unavailable, which is the only reason case F
+stopped before any write. If the CRM has since recovered, case F would run on to
+`Save to Pipeline` and **add a synthetic row to the production CRM** — a side effect with no
+clean removal path, against a cleanup requirement of zero synthetic Pipeline rows.
+
+Nothing was gained by running it and something real was risked, so it was not run.
+
+### 7.3 The runbook, unchanged
 
 ```powershell
 # 1. Archive S24se5SYf5CJ0FIQ in the n8n UI (archive, do NOT delete).

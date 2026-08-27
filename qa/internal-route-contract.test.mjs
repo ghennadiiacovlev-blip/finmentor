@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// FINMENTOR — F10 internal-route DATA CONTRACT gate.
+// FINMENTOR — F10/F11 internal-route DATA CONTRACT gate.
 //
 //   node qa/internal-route-contract.test.mjs
 //
@@ -244,6 +244,17 @@ check('CONTROL: the harness executes the real bodies, not a paraphrase', () => {
 //
 // The rule this pins: on the internal route, internal-ness is read BY NODE REFERENCE, never
 // off `$json`. A node reference survives an error output; `$json` does not.
+//
+// THAT PREMISE IS PROVEN LIVE, not assumed. A disposable probe (jHYxPsQEN6Pap5ai, archived)
+// fed a Code node's error output into an observer, on the real tenant. Execution 3596:
+//
+//   keys on the error item ............... "error"        <- and nothing else
+//   the seeded upstream marker ........... gone
+//   $json.__internal ..................... undefined      -> would take the PUBLIC branch
+//   $('Seed').first().json.__internal .... 1              -> takes the INTERNAL branch
+//
+// One run, both halves. The mechanism belongs to n8n's error output rather than to any one
+// node, so it covers Infra, PipelineFailed and MergeFailed identically.
 
 console.log('\n-- F11: internal-ness survives an error-output feed --');
 
