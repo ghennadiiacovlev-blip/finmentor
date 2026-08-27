@@ -103,15 +103,29 @@ if ($Issue) {
 }
 
 if ($Delete) {
-    if ($existing.Count -eq 0) { Write-Host ''; Write-Host 'nothing to delete for this key.'; exit 0 }
+    # THIS PATH CANNOT WORK, and it is left here saying so rather than removed.
+    #
+    # It was written alongside -Issue and never exercised until the day the rows had to go, at
+    # which point the tenant answered `DELETE /data-tables/{id}/rows` with
+    # {"message":"DELETE method not allowed"} -- three times, once per key. An untested cleanup
+    # path is worse than no cleanup path: it reads as available right up to the moment it is
+    # needed, which is always the moment something has to be undone.
+    #
+    # Deleting a data-table row is possible only from inside a workflow, through the `dataTable`
+    # node's row/deleteRows operation. The MCP surface has no delete-rows tool either. So the
+    # delete has to be a graph, and it is one: scripts/p63-residue-sweep.ps1.
     Write-Host ''
-    Write-Host '== deleting =='
-    Show-Rows $existing
-    $filter = @{ type = 'and'; filters = @(@{ columnName = 'submission_key'; condition = 'eq'; value = $Key }) } | ConvertTo-Json -Depth 10 -Compress
-    $enc = [uri]::EscapeDataString($filter)
-    Invoke-RestMethod -Method Delete -Uri "$rowsUri`?filter=$enc" -Headers $writeH | Out-Null
-    $after = @(Get-Rows | Where-Object { $_.submission_key -eq $Key })
-    if ($after.Count -ne 0) { Fail "after delete there are still $($after.Count) rows for this key." }
-    Write-Host '  deleted, verified absent'
-    exit 0
+    Write-Host 'NOT SUPPORTED: the n8n public API refuses DELETE on data-table rows'
+    Write-Host '  ({"message":"DELETE method not allowed"} -- confirmed live 2026-08-27).'
+    Write-Host ''
+    Write-Host '  Row deletion is only possible from inside a workflow, via the dataTable node.'
+    Write-Host '  Use the guarded sweep instead:'
+    Write-Host ''
+    Write-Host '    pwsh scripts/p63-residue-sweep.ps1 -Create'
+    Write-Host '    pwsh scripts/p63-residue-sweep.ps1 -EnableParentMcp'
+    Write-Host '    # run the parent once (DRYRUN), then -ArmDelete and run it again'
+    Write-Host '    pwsh scripts/p63-residue-sweep.ps1 -Teardown'
+    Write-Host ''
+    Write-Host '  -List still works and is the readback for either path.'
+    exit 1
 }

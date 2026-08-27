@@ -8,12 +8,16 @@ disabled canary; production was never touched.
 | | Defect | Found | State |
 |---|---|---|---|
 | **F10** | `Internal Envelope Unwrap` emitted a shape `Validate Payload` cannot read, so **no lead could be accepted at all** | live, exec `3583` | **fixed, and CLOSED LIVE** — proven by driver exec `3585` case F (§6) |
-| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed, deployed, and CLOSED LIVE** — six of six negative cases returned a structured envelope at the caller, exec `3600` (§7.6) |
+| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed, deployed, gated offline — NOT yet observed live.** No node failed in any live run, so no error output fired. Fault injection is deployed and waiting on the owner (§7.11) |
 
-**Status:** both defects are closed on the platform. The supersede was blocked twice on the
-write credential (§7, §7.4) and **completed on attempt 3** (§7.5): the canary carrying F11 is
-archived, the corrected candidate is live as **`o9ndONOCI0XPJMiS`** with a **15/15 fidelity
-proof**, and the receipt state machine ran `READY → CLAIMED → COMMITTED` end to end (§7.6).
+**Status:** F10 is closed live. The supersede was blocked twice on the write credential (§7,
+§7.4) and **completed on attempt 3** (§7.5): the canary carrying F11 is archived, the corrected
+candidate is live as **`o9ndONOCI0XPJMiS`** with a **15/15 fidelity proof**, and the receipt
+state machine ran `READY → CLAIMED → COMMITTED` end to end (§7.6).
+
+**F11 is fixed and gated offline but NOT yet proven live — see §7.11 for the correction to an
+earlier claim here that it was.** The six live negative cases all terminated at a
+*normally-fed* gate; the three error-output-fed terminals F11 restores have still never fired.
 
 **Read §7.7 before treating the first two green runs as an acceptance proof.** They wrote
 **contactless `INCOMPLETE`** rows, because the cases were hand-written in a payload shape the
@@ -22,8 +26,13 @@ builder through to the row it would produce (§7.7), and the route has since bee
 that real payload — `HOT`, `Qualified`, contacts and Mini App attribution intact, matching the
 offline prediction field for field (§7.9).
 
-**Open:** §7.8 is the production-residue ledger. Three canary rows are in the live CRM sheet;
-§7.10 is the guarded, dry-run-proven, armed cleanup — the Execute click is the owner's.
+**Residue: NONE.** All three CRM rows and all three receipt rows were removed through guarded
+instruments and verified against every surface the route can reach, with the nine surviving
+customer rows proven byte-identical (§7.12). Seven unrelated `2026-08-25` QA rows remain in the
+Pipeline and are reported, not touched.
+
+**Open:** F11 needs one fault-injection run to be proven live (§7.11). It is deployed and
+waiting on an owner Execute.
 
 ---
 
@@ -541,7 +550,7 @@ unauthorized`. Nothing in the scripts was changed to make it pass.
 The old canaries `UBfNGfli8E0UfiNa` and `S24se5SYf5CJ0FIQ` are both archived and both still
 exist. Unarchiving either restores it exactly.
 
-### 7.6 The live campaign — **F11 is CLOSED LIVE**
+### 7.6 The live campaign — the internal contract holds, and **F11 is NOT yet closed live**
 
 Six negative cases through the repointed driver, one execution, `Z8Ai31yxfkyTSRO8` exec 3600:
 
@@ -554,9 +563,14 @@ Six negative cases through the repointed driver, one execution, `Z8Ai31yxfkyTSRO
 | E — envelope source invalid | `{ok:false, error_code:'ENVELOPE_SOURCE_INVALID', retryable:false}` |
 | G — forged trust flags | `{ok:false, error_code:'SUBMISSION_KEY_INVALID', retryable:false}` |
 
-**Six of six returned a structured envelope at the caller.** Before the fix, case F died inside
-the workflow and the caller saw a raw n8n error — that is exactly what F11 was. It is closed on
-the platform, not in a model of it.
+**Six of six returned a structured envelope at the caller** — the internal return contract
+holds live on every validation path.
+
+**This was first recorded here as “F11 CLOSED LIVE”. That was wrong, and the correction is
+§7.11.** All six terminated at `Internal Result (Fault)` after FOUR nodes, through
+`IF Internal Fault` — a normally-fed gate that F11 never affected. F11 was about three gates
+fed from ERROR OUTPUTS, and no node failed in any of these runs, so not one of them exercised
+the fix.
 
 Three more executions exercised the receipt state machine:
 
@@ -609,6 +623,10 @@ the real gateway builder through to the row — §5 of the gate — so a case wr
 offline instead of in the production CRM.
 
 ### 7.8 Production residue — the phase now has some
+
+> **CLOSED — see §7.12.** All three CRM rows and all three receipt rows were removed and the
+> removal was verified against every surface the route can reach. This section is retained as
+> the record of what was written.
 
 This is the first live work in B.2.1-C that wrote **customer-facing production data**, and the
 earlier claim "Production residue: NONE" in `PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_INTEGRATION.md`
@@ -705,6 +723,148 @@ dry-run proven and armed; the Execute click is the owner's.
 | after the run | `pwsh scripts/cleanup-p63-crm-rows.ps1 -Teardown` |
 
 
+### 7.11 The correction — what the live batch proved, and what it did not
+
+The six-case batch was recorded as closing F11. It does not, and the difference is the whole
+point of F11.
+
+Every one of the six took this path, four nodes long:
+
+```
+Internal Subworkflow Trigger -> Internal Auth Entry -> IF Internal Fault -> Internal Result (Fault)
+```
+
+`IF Internal Fault` is fed **normally**, from `Internal Auth Entry`'s ordinary output. F11 was
+never about that gate. It was about three gates fed from **error outputs**:
+
+| Gate | Fed from the error output of | Terminal it must reach |
+|---|---|---|
+| `IF Internal (Infra)` | `Read Settings`, `Read Pipeline (Dedup)` | `Internal Result (Infra)` |
+| `IF Internal (PipelineFailed)` | `Save to Pipeline` | `Internal Result (PipelineFailed)` |
+| `IF Internal (MergeFailed)` | `Update Pipeline (Merge)` | `Internal Result (MergeFailed)` |
+
+An n8n error item does not carry the failing node's input json, so the old `$json.__internal`
+form read `undefined`, took the **public** branch into a `RespondToWebhook` that has nothing to
+respond to inside a sub-workflow, and threw at the internal caller. **No node failed in any of
+the ten live runs.** Not one error output fired. The three terminals were unreachable before the
+fix and remain **unobserved** after it.
+
+So the live evidence, stated precisely:
+
+| Claim | Status |
+|---|---|
+| The internal return contract holds on every **validation** path | **LIVE PASS** — exec 3600, six of six |
+| The route accepts a real gateway lead end to end | **LIVE PASS** — exec 3618, §7.9 |
+| The receipt machine runs `READY → CLAIMED → COMMITTED` | **LIVE PASS** — exec 3610, 3612, 3618 |
+| A missing receipt is refused rather than invented | **LIVE PASS** — exec 3608 |
+| The F11 fix routes an **error-output** failure to its internal terminal | **PROVEN OFFLINE ONLY** — §6.4 |
+
+The offline proof is not weak: §6.4 executes the real gate bodies, asserts every gate reads the
+flag by node reference, and proves the referenced node **dominates** every path to its gate from
+both entries. But it is a proof about the graph, and F10 and F11 were both cases where a proof
+about the graph missed what the platform does.
+
+**Why it stayed unobserved.** The terminals only fire when a Google Sheets node genuinely
+fails. At 04:49Z the CRM was genuinely unavailable, which is how case F found F11 in the first
+place — by accident. Waiting for that to recur is not a test.
+
+**The instrument** is `scripts/p63-fault-injection.ps1`: it deploys a disposable copy of the
+audited artifact with exactly one Sheets node pointed at a document id that does not exist, so
+that node fails for real and its error output fires for real. The copy is asserted to differ
+from the tracked artifact in **exactly one node and only in its `documentId`**, computed rather
+than trusted, and it is deployed under a `[TEMP]` name that can never be confused with the
+canary.
+
+`Read Settings` is the injection point for the `Infra` terminal because it is the **first**
+credentialed node on the route: failing it means nothing downstream reads or writes anything, so
+the proof leaves **zero residue**. `Save to Pipeline` is the injection point for
+`PipelineFailed`; it fails *at* the write, so no CRM row is created, and the only residue is a
+`CLAIMED` receipt row that `p63-residue-sweep.ps1` removes.
+
+`MergeFailed` is **not** covered: reaching it requires an existing Pipeline row for the
+submission to merge into, which means writing a customer-shaped row into the live CRM first.
+That is a worse trade than leaving one terminal proven offline only, and it is recorded here
+rather than quietly skipped.
+
+**Deployed and waiting.** The `Read Settings` pair is live and ready:
+
+| | |
+|---|---|
+| injected copy (100 nodes, inactive, not MCP-exposed) | `Gv8lepxB2PF4H8VQ` |
+| driver (credential-free, MCP-exposed, inactive) | `rbo5Xjx6NHrpjzUt` |
+
+Running it from this session was **refused by the safety classifier**, as the receipt delete and
+the CRM row delete were. Pressing Execute on `rbo5Xjx6NHrpjzUt` is the owner's action, and the
+expected result is
+
+```json
+{ "ok": false, "error_code": "CRM_UNAVAILABLE", "retryable": true }
+```
+
+with the execution reaching `Internal Result (Infra)` and **never** `Respond Infra Failed`. If
+it instead throws, or reaches the `Respond*` node, F11 is not fixed and the fix has to be
+reopened. Teardown afterwards is `pwsh scripts/p63-fault-injection.ps1 -Teardown`.
+
+
+### 7.12 Residue — swept, and verified against every surface the route can reach
+
+The ledger in §7.8 is closed. Before removing anything, every write surface the canary can
+reach was enumerated from the artifact and then checked against **all ten** live executions,
+because "what did it write" is a question about what ran, not about what is wired:
+
+| Surface the graph can reach | Nodes | Ever executed live? |
+|---|---|---|
+| `Pipeline` | `Save to Pipeline`, `Update Pipeline (Merge)`, `Update Pipeline AI Ready` | `Save to Pipeline` only — 3 rows, execs 3610/3612/3618 |
+| `Lead_Answers`, `Leads`, `AI_Plans`, `Activities`, `Dashboard_Feed` | 6 append/update nodes | **never** |
+| `Submission_Receipts` | `Receipt Claim`, `Receipt Commit (New)`, `Receipt Commit (Merge)`, `Receipt Retry Settlement` | `Claim` + `Commit (New)` only — 3 rows |
+| Telegram | 4 alert nodes, **not disabled** | **never** — no message was sent, on any run |
+| `Bot_Sessions` | none — the graph does not reference it | structurally impossible |
+
+The six negative runs executed four nodes each and wrote nothing at all.
+
+**What was removed, and how it was verified.**
+
+| Surface | Before | After | Verified by |
+|---|---|---|---|
+| `Pipeline` canary rows | 3 | **0** | independent re-read, exec 3628 |
+| `Pipeline` customer rows | 9 | **9, byte-identical** | full-record SHA-256 per row against the 08:42Z snapshot, same row numbers |
+| `Submission_Receipts` | 3 | **0** | sweep census + independent REST readback |
+| `Bot_Sessions` | 27 | **27, 0 synthetic** | sweep census |
+
+The customer-row check is the one that matters. The delete node reported a single batched
+`{success: true}` for three input items, which does not say how many rows went — so the sheet
+was re-read and each surviving row hashed over its whole record and compared to the pre-delete
+snapshot. Nine of nine unchanged, same row numbers, no gaps, no new rows. The batch also
+vindicated the descending-order guard: Google applies a batched `deleteDimension` in order, so
+ascending row numbers would have shifted each later target onto its neighbour.
+
+**A separate finding, not this phase's, and deliberately not touched.** Seven Pipeline rows
+carry the synthetic email domain `finmentor-qa.invalid` and are dated **2026-08-25** — test
+leads from an earlier phase, sitting in the operator's live pipeline view:
+
+```
+FIN-1787678806037-388  FIN-1787678964034-677  FIN-1787678982297-787  FIN-1787686944609-617
+FIN-1787687287706-955  FIN-1787687294297-852  FIN-1787688155997-629
+```
+
+The first census counted them as residue, which was a false positive worth fixing rather than
+tolerating: the sweep now classifies P6.3's own identifiers separately from the legacy QA
+domain. Folding somebody else's rows into a delete allowlist is exactly the mistake the
+allowlist exists to prevent. They are reported for the owner and left alone.
+
+**Two defects of my own surfaced during the sweep and are fixed in place.**
+
+1. `p63-receipt-tool.ps1 -Delete` **never worked**. The public API answers
+   `DELETE /data-tables/{id}/rows` with `DELETE method not allowed`; the path had been written
+   beside `-Issue` and never exercised until the day the rows had to go. An untested cleanup
+   path is worse than none — it reads as available right up to the moment something has to be
+   undone. It now fails loudly and points at the sweep.
+2. `cleanup-p63-crm-rows.ps1 -Teardown` reported the child "already archived" while the live
+   child stayed **live**. Re-creating the pair had left an archived namesake, and a plain name
+   match returned the dead one. Both scripts now sort archived last, so every caller operates on
+   the workflow that can still do something.
+
+
 ## 8. Gate status
 
 ```
@@ -718,7 +878,7 @@ and reproduce byte-for-byte on rebuild.
 
 ---
 
-## 9. The lesson, three times
+## 9. The lesson, four times
 
 **Wiring is not a contract.** F10 was an assumption about the *shape* crossing a seam. F11 was
 an assumption about what survives an *error output* — the same mistake one layer down, and it
@@ -731,7 +891,14 @@ proof passed, and the row that reached the CRM was useless. Nothing in the run w
 case had simply been written in a shape the gateway never emits, and every check in the path
 was happy to carry it. A live run only tests the payload you actually send it.
 
-All three were found by **executing** the route, not by reading it. Presence is not reachability,
+**A passing test can be testing something else.** The six-case batch was green, the terminals
+were structured, and the record said “F11 CLOSED LIVE”. Every case had stopped at a gate F11
+never touched. Nothing lied: the runs were real, the envelopes were real, the count was real.
+The batch simply never made a node fail, and F11 only exists when a node fails. Before writing
+down that a fix is proven, check that the evidence reached the code the fix changed — which,
+for an error path, means something has to have gone wrong on purpose (§7.11).
+
+All three defects were found by **executing** the route, not by reading it. Presence is not reachability,
 reachability is not reached, and reached is not correct. Every seam where generated code meets inherited production
 behaviour now has to be proven by execution offline — because the alternative, as P6.2 and
 P6.3 both demonstrated, is that a live run discovers it.

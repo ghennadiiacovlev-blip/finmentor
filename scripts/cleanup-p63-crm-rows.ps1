@@ -215,10 +215,20 @@ function New-ParentWorkflow {
 }
 
 function Get-Existing {
+    # LIVE FIRST, and it matters. Re-creating the pair leaves an ARCHIVED namesake behind, so a
+    # plain name match can return the dead one -- which is exactly what happened on the first
+    # teardown: it reported the child "already archived" while the live child stayed live. Sort
+    # archived last so every caller here operates on the workflow that can still do something.
     $all = Get-N8nWorkflowList
+    $pick = {
+        param($name)
+        $all | Where-Object { $_.name -eq $name } |
+            Sort-Object -Property @{ Expression = { [bool]$_.isArchived } }, @{ Expression = { $_.createdAt }; Descending = $true } |
+            Select-Object -First 1
+    }
     [pscustomobject]@{
-        Parent = $all | Where-Object { $_.name -eq $ParentName } | Select-Object -First 1
-        Child  = $all | Where-Object { $_.name -eq $ChildName } | Select-Object -First 1
+        Parent = & $pick $ParentName
+        Child  = & $pick $ChildName
     }
 }
 
