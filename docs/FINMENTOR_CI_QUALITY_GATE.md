@@ -41,8 +41,8 @@ third-party code, which is deliberate — a supply chain is a thing that can bre
 | Syntax check | `node --check` over every gate, `qa/run-all.mjs`, `scripts/*.mjs`, all 14 `n8n/src` modules and the gateway sources. A Code-node source that does not parse cannot be deployed to n8n |
 | Canonical quality gates | `node qa/run-all.mjs` — the exact command used locally |
 | Assertion baseline | fails if the total **falls** below `ASSERTION_BASELINE` (a second net; the per-gate floors in `qa/assertion-baseline.json` are the primary one and run locally too) |
-| cwd independence | runs the suite again from `/` and requires 8/8 |
-| Secret scan | `node scripts/secret-scan.mjs` over every tracked file |
+| cwd independence | runs the suite again from `/` and requires **N/N** — the runner is the only authority on how many gates there are. This step used to carry a literal count, which went stale at 9 gates and failed the step for the number rather than for cwd dependence |
+| Secret scan | `node scripts/secret-scan.mjs` over every tracked file, **plus** the `.mcp.json` project-scope guard (`scripts/mcp-config-guard.js`) in the same step. The scan finds credential-shaped *literals*; the guard refuses a *structure* — a `headers`/`env` block, an extra query parameter, a repointed `project_ref`, a widened feature scope — none of which has to look like a secret to be one |
 | Summary | writes the gate table and assertion total to the job summary |
 
 ### The canonical gates
