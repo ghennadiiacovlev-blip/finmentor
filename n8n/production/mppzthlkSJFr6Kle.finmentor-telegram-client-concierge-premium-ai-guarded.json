@@ -3,12 +3,12 @@
   "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
   "description": null,
   "active": true,
-  "activeVersionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
+  "activeVersionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
   "createdAt": "2026-07-01T11:59:03.293Z",
-  "updatedAt": "2026-08-25T17:39:02.486Z",
+  "updatedAt": "2026-08-27T19:01:03.004Z",
   "isArchived": false,
-  "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-  "versionCounter": 35,
+  "versionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
+  "versionCounter": 37,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -735,7 +735,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -962,7 +962,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -1105,7 +1105,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -1585,6 +1585,7 @@
     "errorWorkflow": "RBiFLhVjizMkAzrK"
   },
   "staticData": null,
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "aiBuilderAssisted": true,
@@ -1612,7 +1613,7 @@
     }
   ],
   "activeVersion": {
-    "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
+    "versionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
     "workflowId": "mppzthlkSJFr6Kle",
     "nodes": [
       {
@@ -2338,7 +2339,7 @@
             "matchingColumns": [],
             "schema": [],
             "value": {
-              "chat_id": "<REDACTED_CHAT_ID>",
+              "chat_id": "={{ $json.chat_id }}",
               "correlation_id": "={{ $json.correlation_id }}",
               "disable_preview": "={{ $json.disable_preview }}",
               "keyboard_data": "={{ $json.keyboard_data }}",
@@ -2565,7 +2566,7 @@
             "matchingColumns": [],
             "schema": [],
             "value": {
-              "chat_id": "<REDACTED_CHAT_ID>",
+              "chat_id": "={{ $json.chat_id }}",
               "correlation_id": "={{ $json.correlation_id }}",
               "disable_preview": "={{ $json.disable_preview }}",
               "keyboard_data": "={{ $json.keyboard_data }}",
@@ -2708,7 +2709,7 @@
             "matchingColumns": [],
             "schema": [],
             "value": {
-              "chat_id": "<REDACTED_CHAT_ID>",
+              "chat_id": "={{ $json.chat_id }}",
               "correlation_id": "={{ $json.correlation_id }}",
               "disable_preview": "={{ $json.disable_preview }}",
               "keyboard_data": "={{ $json.keyboard_data }}",
@@ -3185,48 +3186,16 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "createdAt": "2026-08-25T17:05:51.665Z",
-    "updatedAt": "2026-08-25T17:05:51.665Z",
+    "createdAt": "2026-08-27T19:01:03.008Z",
+    "updatedAt": "2026-08-27T19:01:03.008Z",
     "workflowPublishHistory": [
       {
-        "id": 61,
+        "id": 102,
         "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
+        "versionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T17:05:51.775Z"
-      },
-      {
-        "id": 68,
-        "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-        "event": "activated",
-        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T17:36:53.604Z"
-      },
-      {
-        "id": 80,
-        "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-        "event": "activated",
-        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T17:39:02.563Z"
-      },
-      {
-        "id": 67,
-        "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-        "event": "deactivated",
-        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T17:36:53.603Z"
-      },
-      {
-        "id": 79,
-        "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-        "event": "deactivated",
-        "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T17:39:02.562Z"
+        "createdAt": "2026-08-27T19:01:03.138Z"
       }
     ]
   }

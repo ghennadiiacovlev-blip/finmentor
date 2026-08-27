@@ -28,6 +28,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const M = await import('file://' + join(ROOT, 'scripts', 'build-concierge-cutover.mjs').replace(/\\/g, '/'));
 const S = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'bot-sessions-schema.js'));
+const F = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'schema-footprint.js'));
 
 let pass = 0;
 const failures = [];
@@ -63,18 +64,34 @@ const byName = (wf, n) => (wf.nodes || []).find((x) => x.name === n);
 
 console.log('\n-- the production cutover artifact --');
 
-check('THE DEFECT: the artifact built from the tracked export is REFUSED', () => {
-  // This is the finding that failed the first P7.5 cutover attempt and rolled it back. The
-  // tracked production export is redacted; every generator inherits the marker; and a
-  // comparative diff cannot see a marker present on both sides.
-  const v = M.classifyCutover(PROD, CUT_RAW);
-  assert(!v.ok, 'the classifier ACCEPTED an artifact carrying redaction markers');
-  const m = M.findRedactionMarkers(CUT_RAW);
-  assert(m.length > 0, 'the tracked export stopped being redacted; re-read this test');
-  const nodes = M.redactedNodes(CUT_RAW);
+check('P7.5R: the redactor fix landed — transport expressions survive redaction', () => {
+  // The three nodes P7.5 destroyed. The corrected redactor preserves n8n expressions, so the
+  // tracked reference and everything derived from it now carry the real expression.
   ['Send Client Message', 'Send Intake Confirmation', 'Send Recovery Message'].forEach((n) => {
-    assert(nodes.indexOf(n) !== -1, 'expected the transport node ' + n + ' to carry the marker');
+    const node = byName(PROD, n);
+    assert(node, 'production node missing: ' + n);
+    eq(node.parameters.workflowInputs.value.chat_id, '={{ $json.chat_id }}',
+      'the tracked reference no longer carries the real transport expression for ' + n);
+    eq(byName(CUT_RAW, n).parameters.workflowInputs.value.chat_id, '={{ $json.chat_id }}',
+      'the derived artifact lost the transport expression for ' + n);
   });
+});
+
+check('AND IT IS STILL REFUSED: a disk-built artifact remains non-deployable', () => {
+  // The fix removed the transport defect. It did NOT make the artifact deployable, and that
+  // distinction is the whole of P7.5R. `Settings to Object` carries a hardcoded Telegram id in
+  // its Code body — a CONCRETE identity, correctly still redacted — so an artifact assembled
+  // offline still carries a marker.
+  //
+  // More importantly the ban does not depend on that: no tracked artifact is production
+  // deployable, whether or not it happens to be clean. Narrowing the rule to "the ones we know
+  // are bad" is what let P7.5 through.
+  const v = M.classifyCutover(PROD, CUT_RAW);
+  assert(!v.ok, 'the classifier ACCEPTED a disk-built artifact');
+  const m = M.findRedactionMarkers(CUT_RAW);
+  assert(m.length > 0, 'no marker left; the refusal must then rest on the classification policy alone');
+  assert(M.redactedNodes(CUT_RAW).indexOf('Settings to Object') !== -1,
+    'expected the hardcoded id in Settings to Object to remain redacted');
 });
 
 check('no deployable artifact is left on disk carrying a redaction marker', () => {
@@ -284,12 +301,110 @@ check('a row builder that lost its COLS whitelist is rejected', () => {
   assert(v.failures.some((f) => /no COLS whitelist/.test(f)), 'wrong reason: ' + v.failures.join(' | '));
 });
 
+check('§10 RUNTIME: an injected __debug key cannot reach the writer', () => {
+  // Static scanning is not enough, and §10 says so. This EXECUTES the deployed Build Session Row
+  // body with `__debug` planted on the session object and requires the emitted row to be a
+  // projection over the declared columns — not the session with extra keys along for the ride.
+  //
+  // The body already works this way (`for (const c of COLS) row[c] = ...`), which is why the
+  // production writers have never widened the sheet. What widened it was P7.4's state tool,
+  // whose feeder had no COLS at all — the case the structural guard above rejects.
+  const node = byName(CUT, 'Build Session Row');
+  const session = {
+    session_id: 'S-1', chat_id: '900000999', consent: 'yes', state: 'MENU', status: 'active',
+    __debug: 'SHOULD-NOT-REACH-THE-SHEET', __do_write: true, key: 'stray', p71_absent_column: 'x'
+  };
+  const named = {
+    'Build Bot Response': { session: session, lead_ready: false },
+    'Get Bot Session': { cycle_id: 'C-900000999-1', submission_key: 'sub_' + 'a'.repeat(32), consent: 'yes', consent_cycle_id: 'C-900000999-1' },
+    'Issuance Verdict': { __advance: true, __verified_submission_key: 'sub_' + 'a'.repeat(32) }
+  };
+  const $ = (n) => ({ first: () => ({ json: named[n] || {} }), all: () => [{ json: named[n] || {} }] });
+  const fn = new Function('$', '$input', '$now', node.parameters.jsCode);
+  const out = fn($, { first: () => ({ json: {} }), all: () => [] }, new Date());
+  const row = out[0].json;
+
+  const stray = Object.keys(row).filter((k) => k.indexOf('__') === 0
+    || ['key', 'p71_absent_column'].indexOf(k) !== -1);
+  eq(stray.length, 0, 'stray key(s) reached the writer input: ' + stray.join(', '));
+  assert(JSON.stringify(row).indexOf('SHOULD-NOT-REACH-THE-SHEET') === -1, 'the injected value reached the row');
+
+  const cols = S.declaredCols(node);
+  deepEq(Object.keys(row).sort(), cols.slice().sort(),
+    'the emitted row is not exactly the declared column set');
+});
+
 check('a row builder that would write a known-dead column is rejected', () => {
   const m = clone(CUT);
   const n = byName(m, 'Build Confirmation State Row');
   n.parameters.jsCode = n.parameters.jsCode.replace(/COLS\s*=\s*\[/, "COLS = ['p71_absent_column',");
   const v = S.evaluateBotSessionsWrites(m, { label: 'mutated' });
   assert(!v.ok, 'a known-dead column write was accepted');
+});
+
+// ================================================================ 3. §9 schema footprint
+
+console.log('\n-- §9 schema footprint: an empty column is residue --');
+
+// The nine dead columns as measured live on 2026-08-27, in physical order.
+const LIVE_TAIL = ['submission_key','lead_mode','lead_priority','financial_zone','key','__rows_seen','__advance','__reason','__verified_submission_key','p71_absent_column','__do_write','__mode','__before'];
+const HEAD = ['session_id','chat_id','state'];
+const echo = (cols) => { const o = {}; cols.forEach((c) => { o[c] = c; }); o.row_number = 1; return o; };
+
+check('a footprint is built from the header row AS DATA', () => {
+  const fp = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  eq(fp.count, HEAD.length + LIVE_TAIL.length, 'wrong column count');
+  assert(fp.headers.indexOf('row_number') === -1, 'row_number is a sheet coordinate, not a column');
+  assert(/^[0-9a-f]{64}$/.test(fp.sha256), 'no fingerprint');
+});
+
+check('inferring a schema from ROW OBJECTS is refused outright', () => {
+  // The shortcut that made P7.5 report six present columns as absent.
+  let threw = false;
+  try { F.footprintFromRows([{ chat_id: 1 }]); } catch (e) { threw = /invisible/.test(e.message); }
+  assert(threw, 'row-object inference was allowed');
+});
+
+check('CONTROL: an unchanged footprint passes', () => {
+  const a = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  const b = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  assert(F.compareFootprint(a, b).ok, 'an identical footprint was rejected');
+});
+
+check('THE P7.4 CASE: instrumentation appending an EMPTY __debug column FAILS cleanup', () => {
+  // Every customer row is blank in that column, which is exactly why a row-based check misses
+  // it and exactly why this one does not.
+  const before = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  const after = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL).concat(['__debug'])));
+  const v = F.compareFootprint(before, after);
+  assert(!v.ok, 'an appended empty column passed cleanup');
+  eq(v.added.join(','), '__debug', 'wrong added set');
+  assert(v.failures.some((f) => /SCHEMA RESIDUE/.test(f)), 'wrong reason: ' + v.failures.join(' | '));
+});
+
+check('the three columns P7.4 actually left behind would have failed this guard', () => {
+  const before = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL.slice(0, 10))));
+  const after = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  const v = F.compareFootprint(before, after);
+  assert(!v.ok, 'the real P7.4 residue passed');
+  deepEq(v.added.sort(), ['__before','__do_write','__mode'], 'wrong added set: ' + v.added.join(','));
+});
+
+check('a column DISAPPEARING is also a failure unless authorised', () => {
+  const before = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  const after = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL.slice(0, 4))));
+  const v = F.compareFootprint(before, after);
+  assert(!v.ok, 'nine columns vanished silently');
+  assert(v.failures.some((f) => /SCHEMA LOSS/.test(f)), 'wrong reason');
+});
+
+check('an AUTHORISED schema mutation passes -- which is how F17 will close', () => {
+  // The F17 sweep will remove AZ:BH deliberately. Authorised removals are permitted, so the
+  // guard does not become a reason never to clean the sheet.
+  const before = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL)));
+  const after = F.footprintFromHeaderEcho(echo(HEAD.concat(LIVE_TAIL.slice(0, 4))));
+  const v = F.compareFootprint(before, after, { authorisedRemovals: LIVE_TAIL.slice(4) });
+  assert(v.ok, 'an authorised removal was rejected: ' + v.failures.join(' | '));
 });
 
 // ================================================================ summary

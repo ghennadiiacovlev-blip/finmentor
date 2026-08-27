@@ -3,12 +3,12 @@
   "name": "FINMENTOR Telegram Client Concierge B21C ISSUER CANDIDATE",
   "description": null,
   "active": true,
-  "activeVersionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
+  "activeVersionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
   "createdAt": "2026-07-01T11:59:03.293Z",
-  "updatedAt": "2026-08-25T17:39:02.486Z",
+  "updatedAt": "2026-08-27T19:01:03.004Z",
   "isArchived": false,
-  "versionId": "f560f7f3-ffb3-4877-9b2b-fa9b25364e35",
-  "versionCounter": 35,
+  "versionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
+  "versionCounter": 37,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -735,7 +735,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -962,7 +962,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -1105,7 +1105,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -2185,6 +2185,7 @@
     "errorWorkflow": "RBiFLhVjizMkAzrK"
   },
   "staticData": null,
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "aiBuilderAssisted": true,

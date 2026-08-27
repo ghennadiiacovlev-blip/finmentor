@@ -22,7 +22,7 @@
 //   2. The tracked IMPORT-SAFE file on disk is import-safe, and is not stale relative to the
 //      generator.
 //   3. The wrapper differs from the canonical ONLY by the approved transformation -- proven by
-//      an exhaustive residual diff pinned to an exact 19-path list, not by re-running the
+//      an exhaustive residual diff pinned to an exact 20-path list, not by re-running the
 //      transform.
 //   4. The ISSUER SURVIVED the wrapper. A canary that lost the mint on the way through would
 //      run green and prove nothing about P7.2.
@@ -93,6 +93,7 @@ const EXPECTED_DIFF = [
   'name',
   'nodes[0].disabled',
   'nodes[0].webhookId',
+  'pinData',
   'shared',
   'sourceWorkflowId',
   'triggerCount',
@@ -375,7 +376,7 @@ check('the live-effect surfaces are deliberately NOT neutralised', () => {
 
 console.log('\n-- the exhaustive residual diff --');
 
-check('the wrapper differs from the candidate at EXACTLY nineteen paths', () => {
+check('the wrapper differs from the candidate at EXACTLY twenty paths', () => {
   const actual = S.diffPaths(CANON, SAFE).sort();
   deepEq(actual, EXPECTED_DIFF, 'the residual diff is not the pinned set: ' + actual.join(', '));
 });

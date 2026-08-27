@@ -121,7 +121,12 @@ const STRIPPED_BRIEF = [
 // generator already strips it (meta.finmentor_active_version_stripped records that), so
 // deleting it here is a no-op today. It stays in the list because a future re-export that
 // reintroduced it must not become a hazard through this module's silence.
-const STRIPPED_DISCOVERED = ['shared', 'activeVersion'];
+// `pinData` joined this list in P7.5R. It arrived when the tracked reference was re-baselined
+// from a live API read, which reports it where the older export did not. It is empty, and it is
+// TEST-RUN state: pinned node outputs belong to someone's manual execution, never to a
+// deployment. (The public API declines to store it on write in any case, so carrying it would be
+// a field that silently does nothing -- the worst kind to leave in an artifact.)
+const STRIPPED_DISCOVERED = ['shared', 'activeVersion', 'pinData'];
 
 const STRIPPED_TOP_LEVEL = STRIPPED_BRIEF.concat(STRIPPED_DISCOVERED);
 

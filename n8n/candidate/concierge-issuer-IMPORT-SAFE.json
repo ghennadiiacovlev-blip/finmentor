@@ -727,7 +727,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -954,7 +954,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",
@@ -1097,7 +1097,7 @@
           "matchingColumns": [],
           "schema": [],
           "value": {
-            "chat_id": "<REDACTED_CHAT_ID>",
+            "chat_id": "={{ $json.chat_id }}",
             "correlation_id": "={{ $json.correlation_id }}",
             "disable_preview": "={{ $json.disable_preview }}",
             "keyboard_data": "={{ $json.keyboard_data }}",

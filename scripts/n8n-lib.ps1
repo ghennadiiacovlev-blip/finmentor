@@ -121,7 +121,23 @@ function ConvertTo-Redacted {
     $out = [regex]::Replace($out, '\bAIza[A-Za-z0-9_-]{30,}\b', '<REDACTED_API_KEY>')
 
     # Structured chat-id fields.
-    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId|owner_chat_id|manager_chat_id|allowed_chat_ids)"\s*:\s*")[^"]*', '<REDACTED_CHAT_ID>')
+    #
+    # CORRECTED IN P7.5R. The previous form of the first rule was:
+    #
+    #     (?<="(?:chat_?[Ii]d|...)"\s*:\s*")[^"]*   ->  <REDACTED_CHAT_ID>
+    #
+    # which redacted by FIELD NAME and therefore replaced the value whatever it was. An n8n
+    # EXPRESSION such as `={{ $json.chat_id }}` contains no identity -- it is code that computes
+    # one at runtime -- and it became <REDACTED_CHAT_ID> in every tracked export. P7.5 deployed
+    # an artifact generated from such an export; the live bot could not have replied to anyone
+    # because every reply was addressed to a literal string.
+    #
+    # The rule now matches only a CONCRETE value: a run of 6-12 digits, optionally in a
+    # delimited list. A value starting with '=' or containing '{{' is left byte-for-byte alone.
+    # The canonical redactor is n8n/src/deploy-guard/redactor.js, which works on the parsed
+    # object and is the implementation the deployment materializer uses; this one is kept in
+    # step for the snapshots that are committed from PowerShell.
+    $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId|owner_chat_id|manager_chat_id|allowed_chat_ids)"\s*:\s*")(\d{6,12}(?:\s*[,;]\s*\d{6,12})*)(?=")', '<REDACTED_CHAT_ID>')
     $out = [regex]::Replace($out, '(?<="(?:chat_?[Ii]d|chatId)"\s*:\s*)\d{6,}', '"<REDACTED_CHAT_ID>"')
 
     # Telegram ids also appear as bare quoted literals inside node jsCode, most often as a
