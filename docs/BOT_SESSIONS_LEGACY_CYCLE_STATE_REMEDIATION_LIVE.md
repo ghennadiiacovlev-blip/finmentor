@@ -4,6 +4,13 @@
 > live sheet already migrated, validated it, and closed the defect live. §B below is the
 > original P6R-1 record, kept unedited because it explains why the phase stopped and what was
 > proven offline. **Read §A first — it supersedes §B's "BLOCKED" status.**
+>
+> **⚠ CORRECTED BY P7.1 (2026-08-27), finding F16.** §B states that `autoMapInputData`
+> silently **drops** a key with no matching header. Measured live against this sheet with the
+> production node configuration, that is **false**: the write **appends a new column** for the
+> unrecognised key. P7.1 carried a deliberate control property through the round trip and read
+> it back off a column the sheet had grown. This is also where the six dead `AZ:BE` columns came
+> from — including two named in §B. See `docs/P7_1_LIVE_COLUMN_PROOF.md` §4.
 
 ---
 

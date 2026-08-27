@@ -149,6 +149,27 @@ rather than an accident.
 
 ## 3. §4 — TWO STRUCTURAL BLOCKERS, found by tracing the live Concierge
 
+> ### ⚠ CORRECTED BY P7.1 (2026-08-27) — read `docs/P7_1_LIVE_COLUMN_PROOF.md` first
+>
+> Both blockers below were measured against the real sheet in P7.1, executions `3659`/`3660`,
+> and **neither survived contact**:
+>
+> - **F14 is REFUTED.** The column arithmetic in this section is off by one — `submission_key`
+>   is `AV` (48), the **last column inside** `A:AV`, not `AW` (49). And the range does not
+>   truncate the read in any case: both `A:AV` and `A:AZ` returned **58 fields** from the same
+>   row at the same moment. The Concierge can read the key today. **Do not widen the range.**
+> - **F15 is CLOSED, positively.** `autoMapInputData` persisted **all four** B.2.1-C columns.
+>
+> The `A:AV` and `autoMapInputData` pins in gate checks (5.1)/(5.2) are still there, but their
+> titles and reasons were rewritten by P7.1: they now guard a *correct* production node against
+> an unnecessary edit.
+>
+> P7.1 also found **F16** — `autoMapInputData` does not drop an unknown key, it **appends a
+> column** — which overturns the P6R-1 belief cited in F15 below.
+>
+> The text of §3 is **kept unedited** because the reasoning was sound and the refusal to settle
+> either question offline is exactly why both were caught before an issuer was deployed.
+
 Neither was known before P7.0. Both are pinned by the gate **in their current, known-bad state**
 against the production export, so closing either one is a deliberate act that must come back to
 this document and say so.
@@ -199,6 +220,12 @@ is claimed. Gate check (5.2) pins the mapping mode and the production schema.
 | General Mini App activation | **NOT CLEARED** — unchanged |
 
 ## 5. P7.1, in order
+
+> **⚠ SUPERSEDED — do not execute steps 1 and 2.** P7.1 ran and both are resolved: step 1 is
+> **unnecessary** (F14 refuted — the production range already covers the column; widening it
+> would be an avoidable edit to a node on the path of every Telegram update) and step 2 is
+> **done** (F15 closed — all four columns persist). Steps 3–5 stand and are now P7.2. The live
+> list is `docs/P7_1_LIVE_COLUMN_PROOF.md` §8.
 
 1. Widen `Read Bot Sessions` to `A:AZ` **in a candidate**, and prove a live read returns the
    column (F14).

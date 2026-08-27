@@ -29,7 +29,7 @@ const GATES = [
   ['P6.1 safe manual-import artifact', 'import-safe.test.mjs'],
   ['P6.2 REST-API import projection', 'api-import.test.mjs'],
   ['F10/F11 internal-route data contract', 'internal-route-contract.test.mjs'],
-  ['P7.0 Concierge issuer half', 'concierge-issuer.test.mjs']
+  ['P7.0-P7.1 Concierge issuer half', 'concierge-issuer.test.mjs']
 ];
 
 // Each gate prints its own tally, in one of two shapes: "N passed, 0 failed" or

@@ -392,35 +392,57 @@ check('(4.6) the SOURCE module still carries a crypto-global call that must neve
 
 // ================================================================ 5. the structural blockers
 
-// F14. The live Concierge CANNOT READ submission_key. `Read Bot Sessions` pins an explicit
-// range of A:AV — 48 columns — and the four B.2.1-C columns are AW..AZ, columns 49..52. Every
-// row the Concierge loads today is truncated before the key. This is not a preference: an
-// issuer that carries an existing key forward is reading a field that never arrives, so CARRY
-// would silently degrade into LEGACY_NO_KEY on every message and the key would be reminted or
-// lost. P7.1 must widen the range in the CANDIDATE.
-check('(5.1) F14 — Read Bot Sessions is pinned to A:AV and cannot see submission_key', () => {
+// F14 — REFUTED BY P7.1, execution 3660. Read the correction before touching this node.
+//
+// P7.0 asserted that `Read Bot Sessions`, pinned to A:AV, is truncated before submission_key
+// and so structurally cannot read it. That was wrong twice over, and both errors were found by
+// measuring rather than by re-reading the export:
+//
+//   1. THE ARITHMETIC WAS OFF BY ONE. The live header tail is AV 48 submission_key,
+//      AW 49 lead_mode, AX 50 lead_priority, AY 51 financial_zone — not AW..AZ / 49..52.
+//      submission_key is the LAST column INSIDE A:AV, not the first outside it.
+//   2. THE RANGE DOES NOT TRUNCATE ANYWAY. If A:AV bounded the read at 48 columns it would
+//      return 49 fields (48 + row_number). It returned 58 — the full 57-column row plus
+//      row_number — the identical count the widened A:AZ read returned, on the SAME row at the
+//      SAME moment through nodes differing in exactly one field.
+//
+// So the range is pinned here for the OPPOSITE reason it used to be: production is already
+// correct, and P7.0 §5 step 1 (widen it in a candidate) is unnecessary work on a node that sits
+// on the path of every Telegram update. The safest change to that graph is the one not made.
+// If this check ever fails, someone widened a range that never needed widening.
+check('(5.1) F14 refuted — Read Bot Sessions still pins A:AV, which already covers submission_key', () => {
   const opts = nodeByName('Read Bot Sessions').parameters.options || {};
   const loc = (opts.dataLocationOnSheet || {}).values || {};
   eq(loc.rangeDefinition, 'specifyRange', 'the read is no longer an explicit range — re-derive F14');
-  eq(loc.range, 'A:AV', 'the Concierge read range changed; if it now covers AW, close F14 deliberately');
-  // The column arithmetic, stated so nobody has to redo it: A=1 .. AV=48, AW=49.
+  eq(loc.range, 'A:AV', 'the Concierge read range changed — P7.1 proved it did not need to. Re-read P7_1 §2');
+  // The corrected arithmetic, stated so nobody re-derives the off-by-one: A=1 .. AV=48.
   const colIndex = (name) => name.split('').reduce((n, c) => n * 26 + (c.charCodeAt(0) - 64), 0);
   eq(colIndex('AV'), 48, 'column arithmetic is wrong');
-  eq(colIndex('AW'), 49, 'column arithmetic is wrong');
-  assert(colIndex('AW') > colIndex('AV'), 'submission_key would be inside the read range');
+  eq(colIndex('AY'), 51, 'column arithmetic is wrong');
+  // submission_key is at AV — inside the range — and the three B.2.1-C columns that follow it
+  // are AW..AY. This is the live layout measured at exec 3660, not the P7.0 derivation. The
+  // range's own end is parsed rather than assumed, so the containment is derived from the
+  // pinned value above and cannot drift away from it.
+  const rangeEnd = String(loc.range).split(':')[1];
+  assert(colIndex('AV') <= colIndex(rangeEnd),
+    'submission_key (AV, 48) is no longer inside the read range ' + loc.range);
+  eq(colIndex('AY') - colIndex('AV'), 3, 'the B.2.1-C tail is four columns AV..AY');
 });
 
-// F15. `Save Bot Session` maps with autoMapInputData, which the P6R-1 defect proved silently
-// DROPS any key with no matching header — and the AW..AZ headers exist with zero data on every
-// row, which is precisely the condition under which the Sheets node has already been observed
-// reporting a column as missing. So the write landing is a LIVE question, not an offline one.
-check('(5.2) F15 — Save Bot Session auto-maps, so the write must be proven live', () => {
+// F15 — CLOSED LIVE BY P7.1, execution 3660. autoMapInputData, carrying this exact 40-entry
+// schema, persisted ALL FOUR B.2.1-C columns into headers that had zero data on every row —
+// the precise condition P7.0 flagged as the hazard. Read back byte-identical, with
+// OTHER_ROWS_WITH_B21C = 0. No explicit column mapping is needed.
+//
+// The mapping mode is still pinned, but for a NEW reason — see (5.5), F16.
+check('(5.2) F15 closed — Save Bot Session auto-maps, and P7.1 proved the write lands', () => {
   const cols = nodeByName('Save Bot Session').parameters.columns || {};
-  eq(cols.mappingMode, 'autoMapInputData', 'the mapping mode changed; re-derive the F15 drop hazard');
+  eq(cols.mappingMode, 'autoMapInputData', 'the mapping mode changed; re-derive F15 and F16 together');
   eq(JSON.stringify(cols.matchingColumns), JSON.stringify(['chat_id']), 'the match column changed');
   const schemaIds = (cols.schema || []).map((s) => s.id);
+  eq(schemaIds.length, 40, 'the stored schema is no longer the 40 entries P7.1 proved the write against');
   assert(schemaIds.indexOf('submission_key') === -1,
-    'the production Save Bot Session schema now lists submission_key — F15 may be closable, do it deliberately');
+    'the production Save Bot Session schema now lists submission_key — production was modified; that must be deliberate');
 });
 
 check('(5.3) the production Concierge still contains ZERO submission_key references', () => {
@@ -460,6 +482,31 @@ check('(5.5) the mint site is the cycle gate, and it is still a single well-know
   // Exactly three reset triggers, matching decideIssuance.
   ['start', 'restart', 'bootstrap'].forEach((r) => assert(js.indexOf("reset = '" + r + "'") !== -1,
     'the ' + r + ' trigger left the cycle gate'));
+});
+
+// F16 — NEW, P7.1. autoMapInputData does NOT drop an unrecognised key. It APPENDS A COLUMN.
+//
+// P6R-1 recorded that a key with no matching header is "silently dropped". Against this sheet,
+// with this node configuration, that is false: P7.1 carried a deliberate control property
+// (p71_absent_column) through the write and read it back — the sheet had grown a new column BE.
+// That is also where the six dead AZ:BE columns came from: each was created, one at a time, by
+// a canary putting one stray property on a row object.
+//
+// The consequence is a SAFETY rule, not a hygiene preference. Save Bot Session is on the write
+// path of every session turn. A stray property does not vanish — it permanently widens a live
+// customer sheet. Losing a value is recoverable; mutating a shared schema is not. So the three
+// row builders must emit EXACTLY their declared COLS, and (5.4) pins which three they are.
+check('(5.6) F16 — the row builders emit exactly their declared COLS and nothing else', () => {
+  const BUILDERS = ['Build Session Row', 'Build Intake State Row', 'Build Confirmation State Row'];
+  for (const name of BUILDERS) {
+    const js = nodeByName(name).parameters.jsCode;
+    const m = js.match(/const COLS = \[([\s\S]*?)\]/);
+    assert(m, 'COLS not found in ' + name + ' — F16 cannot be enforced on a builder with no declared column list');
+    // The builder must construct its row FROM the declared list, not by spreading an upstream
+    // object. A spread is the exact shape that carried p71_absent_column onto the sheet.
+    assert(!/\.\.\.\s*\$?(json|input|item)/.test(js),
+      name + ' spreads an upstream object into the row — under F16 that appends columns to Bot_Sessions');
+  }
 });
 
 // ---------------------------------------------------------------- summary
