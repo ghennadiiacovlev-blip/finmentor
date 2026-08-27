@@ -12,9 +12,11 @@ disabled canary; production was never touched.
 
 **Status:** the candidate is corrected for both and gated offline. F11's platform premise is
 **proven live** (§6.3). The live canary `S24se5SYf5CJ0FIQ` carries F10's fix but **not**
-F11's, so it must be superseded once more. The supersede was **attempted and is BLOCKED**: the
-write-scoped REST credential is not reachable from the automation's processes — see §7, which
-also records why the block was not routed around via MCP.
+F11's, so it must be superseded once more. The supersede has been **attempted twice and is
+still BLOCKED**, one layer lower each time. Attempt 1: the write credential was not reachable
+from the automation's processes (§7). Attempt 2: it is now reachable, and the tenant **rejects
+it as unauthorized — identically to sending no credential at all** (§7.4). §7.1 records why the
+block was not routed around via MCP.
 
 ---
 
@@ -312,9 +314,13 @@ first; making `Internal Flag` always emit `1` fails the second.
 
 ---
 
-## 7. Redeployment — attempted, and BLOCKED on the write credential
+## 7. Redeployment — attempted twice, and BLOCKED on the write credential
 
-The supersede was authorised and attempted. It could not be completed, for one reason:
+**Attempt 1** is §7 – §7.3. The supersede was authorised and attempted; it could not be
+completed, for one reason. **Attempt 2 is §7.4**, where the credential is reachable and the
+tenant refuses it.
+
+The attempt-1 preflight:
 
 ```
 == PREFLIGHT ==============================================
@@ -360,14 +366,26 @@ clean removal path, against a cleanup requirement of zero synthetic Pipeline row
 
 Nothing was gained by running it and something real was risked, so it was not run.
 
-### 7.3 The runbook, unchanged
+### 7.3 The runbook
+
+Order and content are unchanged. §7.4 adds one requirement — a read-only key is needed too —
+and confirms that step 1 really does come first, and is reversible.
 
 ```powershell
 # 1. Archive S24se5SYf5CJ0FIQ in the n8n UI (archive, do NOT delete).
+#    This MUST precede the deploy: the script aborts on a LIVE same-name workflow.
+#    It is reversible - unarchive restores it if the replacement fails fidelity.
 
-# 2. Fresh, narrowly scoped key; this session only; revoked afterwards.
+# 2. Fresh, narrowly scoped keys; this session only; revoked afterwards.
+#    BOTH are needed: the deploy script's duplicate check takes the READ path.
 $env:N8N_BASE_URL    = 'https://ghennadi.app.n8n.cloud'
-$env:N8N_FIX_API_KEY = '<the fresh key>'
+$env:N8N_FIX_API_KEY = '<the fresh WRITE key>'
+$env:N8N_API_KEY     = '<the fresh READ key>'
+
+# 2b. Confirm the key is ACCEPTED, not merely present - attempt 2 died on exactly that gap.
+#     Expect 200. A 401 means the key is invalid/expired/revoked, not that the script is wrong.
+(Invoke-WebRequest "$env:N8N_BASE_URL/api/v1/workflows?limit=1" `
+   -Headers @{'X-N8N-API-KEY'=$env:N8N_FIX_API_KEY}).StatusCode
 
 # 3. Dry run — writes nothing. It should report BOTH archived canaries as retained
 #    and pass the "no LIVE workflow with the canary name" check.
@@ -399,6 +417,98 @@ success and unblocks P6 step 4. Either outcome is a pass for F11; only a **throw
 failure.
 
 ---
+### 7.4 Attempt 2 — the credential is now REACHABLE, and it is UNAUTHORIZED
+
+The environment blocker in §7 is **resolved**. `N8N_BASE_URL` and `N8N_FIX_API_KEY` were placed
+in the **User** scope, and a new blocker took its place one layer down.
+
+Note on plumbing, so it is not rediscovered: a process started *before* the variables were set
+does not inherit them, so both were hydrated per-invocation from the User scope. Presence was
+established without reading either value.
+
+| Probe | Result |
+|---|---|
+| `N8N_BASE_URL`, `N8N_FIX_API_KEY` — User scope | **PRESENT** (Process scope: absent, as expected) |
+| `GET /healthz` | **200** — the tenant is up and reachable |
+| `GET /api/v1/workflows?limit=1`, header `X-N8N-API-KEY`, value as stored | **401** `{"message":"unauthorized"}` |
+| same, value trimmed of whitespace and stray quotes | **401** |
+| same, as `Authorization: Bearer` | **401** |
+| same, **with no credential at all** | **401** |
+
+The last row is the finding. **The supplied key is rejected identically to sending no
+credential.** This is not a transport, header-name, base-URL or encoding problem — the tenant
+answers, and it does not recognise the key. Per the standing rule in the header of
+`scripts/n8n-lib.ps1`, *"if a script starts returning 401, assume revocation first rather than
+debugging the script"*, so the key is treated as invalid, expired or revoked.
+
+The guarded deployer reaches the same verdict, which is where it belongs — the block is
+recorded by the tool that would have done the write, not by an ad-hoc call:
+
+```
+== PREFLIGHT ==============================================
+  PASS  offline gate qa/api-import.test.mjs passed
+  PASS  artifact carries neither the production id nor the production webhook path
+  PASS  artifact carries exactly the four API-accepted fields
+  PASS  artifact: 100 nodes, availableInMCP false, name 'FINMENTOR ... B21C RECEIPT CANARY'
+  PASS  write credentials present for https://ghennadi.app.n8n.cloud
+  {"message":"unauthorized"}          <- first authenticated call, HTTP 401
+```
+
+Note the fifth line: `Get-N8nContext` proves a credential is **present**, never that it is
+**valid**. Those are different claims and the script now visibly distinguishes them.
+
+**Corroboration that the fault is the key and not the tenant.** The MCP surface authenticates
+by a different path, and it read the workflow list successfully in the same window. So the
+public API, the tenant and the network are all fine.
+
+**A second, unrelated gap surfaced:** `N8N_API_KEY` (the read-only key) is absent in every
+scope. `Get-N8nWorkflowList` takes the read path, so even a valid write key leaves the deploy
+script's duplicate check unable to run. The next attempt needs **both** keys present, or the
+read-only key reissued alongside the write key.
+
+#### Live state, re-confirmed — nothing moved
+
+| Workflow | id | State |
+|---|---|---|
+| Current canary — F10 fixed, **F11 still present** | `S24se5SYf5CJ0FIQ` | live, `active: false`, `availableInMCP: false`, `updatedAt` **equals** `createdAt` (04:48:54.524Z) |
+| `[TEMP] P6.2 canary driver` | `Z8Ai31yxfkyTSRO8` | live, inactive; description still names `UBfNGfli8E0UfiNa` and is stale |
+
+`updatedAt == createdAt` is the load-bearing observation: `S24` has **never been modified since
+creation**, so it still carries F11 exactly as diagnosed. No supersede has occurred.
+
+#### An ordering conflict in the runbook, and its resolution
+
+The instruction for this attempt was to archive `S24se5SYf5CJ0FIQ` **only after** the
+replacement passes fidelity — sound intent: do not give up the working canary until the new one
+is proven. It is, however, **incompatible with the deployer as written**: §5.5 item 3 allows
+*archived* same-name workflows but still aborts on a **live** one, and `S24` is live. The deploy
+would abort in preflight.
+
+The conflict is not real, and the runbook order is correct, because **archiving in n8n is
+reversible**. `S24` is already inert (`active: false`), archiving removes no capability that
+`unarchive` cannot restore, and §5.5 item 3 exists precisely so the superseded canary is
+**retained rather than deleted**. Archiving first therefore preserves the whole safety property
+the "archive last" instruction was protecting. If the replacement fails fidelity, `S24` is
+unarchived and nothing has been lost.
+
+The alternative — deploying under a suffixed name to dodge the guard — was rejected: it would
+require editing the name pin in the artifact, the deployer and `qa/api-import.test.mjs`, and it
+would leave two live workflows with near-identical names, which is the exact confusion the
+duplicate guard exists to prevent.
+
+#### What was completed on this attempt
+
+| Step | Result |
+|---|---|
+| branch / tree / push state | clean, `0/0` against `origin/feat/miniapp-b21c-live-prereqs` |
+| canonical → IMPORT-SAFE → API-DEPLOY regenerated | **byte-for-byte identical**, all three SHA-256 unchanged, tree still clean |
+| full offline QA | **14/14 gates, 755 assertions, floors PASS** |
+| deployment onward (P6 steps 4–13) | **NOT RUN** — blocked here |
+
+No key was printed, inspected, stored or committed. `S24se5SYf5CJ0FIQ` was **not** archived,
+because archiving it without a deployable replacement would leave the phase with no canary at
+all. The driver was **not** repointed and was **not** re-run, for the reason in §7.2 unchanged.
+
 
 ## 8. Gate status
 

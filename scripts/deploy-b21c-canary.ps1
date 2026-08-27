@@ -92,6 +92,39 @@ Ok "artifact: $ExpectedNodeCount nodes, availableInMCP false, name '$CanaryName'
 try { $ctx = Get-N8nContext -Write } catch { Fail "$($_.Exception.Message)  (a FRESH write-scoped key is required)" }
 Ok "write credentials present for $($ctx.Base)"
 
+# --- 3b. credentials ACCEPTED -- present and valid are different claims -----------
+#
+# Get-N8nContext proves only that a non-empty string is in the environment. On the second
+# supersede attempt the key was present and the tenant rejected it, and this script died four
+# lines later inside Invoke-RestMethod with a raw PowerShell exception in the middle of
+# preflight -- which reads like a script bug and is not one. A rejected credential is a
+# first-class preflight outcome and is reported as one.
+#
+# Per the header of scripts/n8n-lib.ps1: a 401 means assume REVOCATION first, not a bug here.
+try {
+    Invoke-RestMethod -Method Get -Uri "$($ctx.Base)/api/v1/workflows?limit=1" -Headers $ctx.Headers | Out-Null
+} catch {
+    $status = $null
+    try { $status = $_.Exception.Response.StatusCode.value__ } catch { }
+    if ($status -eq 401) {
+        Bad 'the write key is PRESENT but the tenant returned 401 unauthorized'
+        Say ''
+        Say 'The key is rejected exactly as no credential would be. This is not a base-URL,'
+        Say 'header or encoding fault -- assume the key is invalid, expired or REVOKED and'
+        Say 'have a fresh write-scoped key issued. Nothing was written.'
+        Fail 'write credential REJECTED (HTTP 401).'
+    }
+    Fail "the tenant could not be reached for credential validation$(if ($status) { " (HTTP $status)" }): $($_.Exception.Message)"
+}
+Ok 'write credentials ACCEPTED by the tenant (verified, not assumed)'
+
+# The duplicate check below takes the READ path, which uses N8N_API_KEY -- a different key.
+# Fail on it here, with the reason, rather than deep inside the library.
+try { Get-N8nContext | Out-Null } catch {
+    Fail "$($_.Exception.Message)  (the duplicate-name check reads, so the READ key is required too)"
+}
+Ok 'read credentials present'
+
 # --- 4. no canary already exists — refuse to create a duplicate ---------------
 # ARCHIVED workflows do not count as duplicates. They cannot run, cannot serve, and cannot be
 # confused for the live canary; refusing on their account would mean the only way to redeploy
