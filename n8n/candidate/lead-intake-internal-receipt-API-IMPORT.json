@@ -3850,7 +3850,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'PIPELINE_WRITE_FAILED',\n  retryable: true\n} }];"
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
       },
       "id": "p51-57-code",
       "name": "Internal Result (PipelineFailed)",
@@ -3900,7 +3900,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'PIPELINE_MERGE_FAILED',\n  retryable: true\n} }];"
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
       },
       "id": "p51-60-code",
       "name": "Internal Result (MergeFailed)",

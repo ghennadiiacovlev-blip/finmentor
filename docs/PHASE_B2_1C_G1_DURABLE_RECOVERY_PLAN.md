@@ -5,8 +5,14 @@ Date: 2026-08-26
 Branch: `feat/miniapp-b21c-live-prereqs`
 Base: `main` @ `d69e2e8e9c7156861e94738e3aedd5cf1ae7257e`
 
-**G1 remains OPEN.** This document and the code beside it make G1 *buildable* and
-*deployment-ready*. They do not close it.
+> **STATUS SUPERSEDED, 2026-08-27 (P6.4).** G1 is now **LIVE FUNCTIONAL PROOF PASS**. This
+> document is the P1 architecture and its status verdicts are historical — including the P2
+> substrate finding below, which stands as evidence but no longer as a blocker: **P1-L2 is
+> RETIRED**, replaced by **P1-L2′** at Model B P3 and proven live at P4. The current register is
+> `docs/PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_INTEGRATION.md` §D.
+
+**G1 remains OPEN.** *(as of P1, 2026-08-26 — see the banner above.)* This document and the code
+beside it make G1 *buildable* and *deployment-ready*. They do not close it.
 
 > ## ⚠ SUBSTRATE ASSUMPTION FAILED LIVE — P2, 2026-08-26
 >
@@ -527,6 +533,14 @@ text, because an operator note is exactly where a customer name or a phone numbe
 ---
 
 ## 7. Live prerequisites — why G1 is still OPEN
+
+> **SUPERSEDED AS STATUS — retained as the original P1 definitions.** This table is the
+> Model A / early Model B framing and its verdicts are historical. G1 reached **LIVE FUNCTIONAL
+> PROOF PASS** at P6.4. In particular **P1-L2 is RETIRED** (replaced by L2′ at P3) and **P1-L5
+> is SUPERSEDED** — under Model B the stable key must NOT travel in the payload, which is the
+> opposite of what P1-L5 asks for. The current register is
+> `docs/PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_INTEGRATION.md` §D, and the reasoning is
+> `docs/P6_4_POST_CLAIM_AMBIGUITY_CLOSURE.md`.
 
 Nothing below can be established offline. Each is a canary.
 

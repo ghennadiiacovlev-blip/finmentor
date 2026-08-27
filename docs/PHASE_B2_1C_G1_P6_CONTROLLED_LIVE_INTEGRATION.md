@@ -240,7 +240,7 @@ every one**. **No canary active.** The only surviving new object is the empty
 | `Bot_Sessions` B.2.1-C schema | **LIVE** — 52 columns |
 | `Submission_Receipts` | **LIVE, EMPTY, UNUSED** |
 | Audited candidate deployed | **YES — §C**, `o9ndONOCI0XPJMiS`, 15/15 fidelity |
-| **G1** | **OPEN** — F11 is closed live; the remaining blocker is F13, a contract decision (§C1) |
+| **G1** | **LIVE FUNCTIONAL PROOF PASS** — F13 closed live at P6.4; residuals are liveness/ops only (§D2) |
 | **G5** durable initData replay | **OPEN** |
 | **B.2.1-C** | **NOT CLEARED** |
 | **General Mini App activation** | **NOT CLEARED** |
@@ -295,9 +295,9 @@ were never P6.3's to close.
 | Blocker | Kind | Status |
 |---|---|---|
 | **F13** — post-claim terminals report an ordinary retryable failure where the design reserves `SUBMIT_UNRESOLVED`, and leave the receipt `IN_FLIGHT` unsettled | **contract / owner decision** | **OPEN**, pinned by gate §6 |
-| **P1-L2** live-store atomic insert-if-absent | live proof | **NOT RETESTED** — P4 proved L2′ on a synthetic table |
+| ~~**P1-L2** live-store atomic insert-if-absent~~ | — | **RETIRED** — a Model A requirement, replaced by L2′ at Model B P3. Listing it here was stale; corrected in §D1 |
 | **P1-L4** durability across a **tenant restart** | live proof | **NOT TESTED** — no boundary crossed |
-| **P1-L5** stable key reaching Lead Intake | frozen-contract change | **OWNER DECISION** |
+| **P1-L5** stable key reaching Lead Intake | — | **SUPERSEDED** — reassessed at P6.4 §6; the Model A wording asks for a payload field Model B forbids |
 | **P1-L8** receipt retention duration | policy | **OWNER DECISION** |
 | **P1-L9** correlation on the **MERGE** path | live proof | NEW path PASS; merge path untested |
 | **G5** durable initData replay | live proof | **OPEN**, outside P6 |
@@ -314,7 +314,7 @@ should *say* when the write fails after the claim, and that is the owner's call,
 
 | Workflow | id | State |
 |---|---|---|
-| Validated internal canary — **keep** | `o9ndONOCI0XPJMiS` | live, inactive, `availableInMCP: false` |
+| Validated internal canary (P6.3) — superseded by `QaxZhxsiaSoOI5bu` at P6.4 | `o9ndONOCI0XPJMiS` | archived, retained |
 | Canary driver — **keep** | `Z8Ai31yxfkyTSRO8` | live, inactive, `availableInMCP: true` |
 | Fault-injection pair — **run once, F11 proven, torn down** | `Gv8lepxB2PF4H8VQ` / `rbo5Xjx6NHrpjzUt` | **archived** |
 | CRM cleanup pair | `9wbe8nlZsKG7cPv1` / `ir69QPIBAXvlwMvA` | **archived** |
@@ -326,6 +326,81 @@ Nothing was activated. No older unrelated `[TEMP]` workflow was touched. Product
 
 The two `availableInMCP: true` drivers are the only MCP exposure this phase added; both are
 credential-free harnesses and both should be archived when P6 closes.
+
+---
+
+# §D — P6.4 F13 closure (2026-08-27) — current status register
+
+This is the CURRENT register. §A and §C are retained as the record of their own windows.
+Full reasoning: `docs/P6_4_POST_CLAIM_AMBIGUITY_CLOSURE.md`.
+
+## D1. Model B prerequisites — current, not historical
+
+| Item | Status | Basis |
+|---|---|---|
+| **P1-L2** atomic insert-if-absent | **RETIRED** | a Model A requirement; Model B P3 replaced it with L2′. Carrying it as OPEN was stale and is corrected here |
+| **P1-L2′** conditional update atomic, `updated_rows` faithful under concurrency | **PASS** | P4 |
+| **P1-L3** read-after-write exact-key visibility | **PASS** | P4 |
+| **P1-L4** durability | **PARTIAL** — execution PASS, redeploy PASS, **tenant restart NOT TESTED** | unchanged |
+| **P1-L5** stable key reaches Lead Intake | **SUPERSEDED** — Model A wording asks for a payload field Model B forbids | P6.4 §6 |
+| **P1-L6** intent write before the Pipeline write | **LIVE PASS** | exec 3618, and again 3640 |
+| **P1-L7** commit write before the response | **LIVE PASS** | exec 3618 |
+| **P1-L8** receipt retention duration | **OWNER DURATION OPEN** — no duration invented | unchanged |
+| **P1-L9** correlation chain | **LIVE PASS on NEW**; merge path untested | exec 3618, 3640 |
+| **P1-L10** authenticated internal route | **LIVE PASS** | exec 3618 |
+| **P1-L11** `Bot_Sessions.submission_key` | **PASS on the substrate**; the **issuer half is not built** — the live Concierge has zero nodes referencing it | P6.4 §6 |
+| **F10** | **CLOSED LIVE** | P6.3 |
+| **F11** | **CLOSED LIVE** — two of three terminals observed, on two different gates | exec 3636, 3640 |
+| **F13** | **CLOSED LIVE** | exec 3640, 3642 |
+
+## D2. G1 verdict
+
+**G1 — LIVE FUNCTIONAL PROOF PASS.**
+
+No G1 **safety** prerequisite remains open. The receipt exists to prevent a duplicate lead when
+the outcome of a canonical write is unknown, and every step of that is now proven on the
+platform rather than argued:
+
+- the route accepts a real gateway payload end to end and writes a correct CRM row;
+- the claim strictly precedes the Pipeline write and the commit strictly precedes the response;
+- a post-claim write failure returns `SUBMIT_UNRESOLVED` and leaves the receipt `IN_FLIGHT`;
+- a same-key retry makes **zero** new Pipeline writes and returns the ambiguity again;
+- no ordinary retry mints a fresh key, mutation-proven;
+- every internal failure terminal that has been exercised returns its declared envelope, and
+  none collapses onto the public route.
+
+**Residuals — liveness and operations, not safety:**
+
+| Residual | Why it is not a safety blocker |
+|---|---|
+| **P1-L4** tenant restart NOT TESTED | durability across execution and redeploy is proven; a restart has never been crossed. Untested, and not claimed |
+| **P1-L8** retention duration OPEN | an owner policy decision; the ledger works without it |
+| **`IN_FLIGHT` reconciliation is operator-only** | automatic settlement is unsafe by three independent findings (P6.4 §5). The conservative answer is the correct one, so this costs liveness, never safety |
+| **`MergeFailed` not injected live** | structurally identical to `PipelineFailed`, which was; proving it live would require writing a customer-shaped production row first |
+| **P1-L9 merge-path correlation untested** | the NEW path is proven; the merge path shares the mechanism |
+
+**G5** durable initData replay: **OPEN**, and separate — it is not a G1 prerequisite and G1 is
+not blocked on it.
+
+**General Mini App activation: NOT CLEARED.** Independently of G1, the issuer half of Model B
+is not built (the Concierge does not mint `submission_key`) and no submit gateway is deployed.
+
+## D3. Live tenant state after P6.4
+
+| Workflow | id | State |
+|---|---|---|
+| Validated canary — **F13-fixed**, keep | `QaxZhxsiaSoOI5bu` | live, inactive, `availableInMCP: false` |
+| Canary driver — keep | `Z8Ai31yxfkyTSRO8` | live, inactive, `availableInMCP: true` |
+| Superseded canaries | `S24se5SYf5CJ0FIQ`, `UBfNGfli8E0UfiNa`, `o9ndONOCI0XPJMiS` | **archived**, retained |
+| P6.4 fault-injection pair | `TSyLwFSCgzBw20US` / `YDIQkYcESpRIYSGg` | **archived** |
+| P6.4 residue sweep pair | `FdiXFD9JDNtSBIXU` / `UI7ly1ZYTElRVcJc` | **archived** |
+
+Synthetic residue: **none.** `Submission_Receipts` 0 rows, Pipeline 0 P6.x rows, `Bot_Sessions`
+0 synthetic. The seven `finmentor-qa.invalid` Pipeline rows dated **2026-08-25** are a separate
+owner cleanup decision and were **not touched**.
+
+Nothing activated. Production Lead Intake `QmIyEW2ZEqKregmN` not modified — fingerprinted before
+and after the deploy. Mini App inactive.
 
 ---
 

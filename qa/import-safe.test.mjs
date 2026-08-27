@@ -204,7 +204,7 @@ check('every Code node body is byte-identical', () => {
   });
   eq(inheritedCount, 24, 'the inherited Code node count drifted');
   eq(inheritedBytes, 85602, 'inherited production Code body size drifted — this is production drift');
-  eq(generatedBytes, 14230, 'generated receipt Code body size drifted; update deliberately');
+  eq(generatedBytes, 14222, 'generated receipt Code body size drifted; update deliberately (14230 -> 14222 at P6.4: two post-claim terminals moved to SUBMIT_UNRESOLVED, F13)');
   eq(bytes, inheritedBytes + generatedBytes, 'the split does not account for every Code body');
 });
 

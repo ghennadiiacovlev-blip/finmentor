@@ -533,94 +533,139 @@ check('REGRESSION: a FLAT contact payload validates but arrives CONTACTLESS', ()
   eq(row.lead_priority, 'INCOMPLETE', 'the flat shape no longer scores INCOMPLETE');
 });
 
-// ================================================================ 6. F13 -- post-claim
+// ================================================================ 6. F13 -- post-claim, CLOSED
 //
-// The receipt design freezes a rule about what a failure AFTER the claim may report:
+// P6.4 owner decision. Once the receipt has moved READY -> IN_FLIGHT, any subsequent Pipeline
+// INSERT/UPDATE failure is AMBIGUOUS: the append may have landed and the failure be in the
+// acknowledgement. The system does not know that the canonical write did not happen.
 //
-//   LEAD_INTAKE_CLAIM_RULES.no_ordinary_rejection_after_claim                = true
+//   LEAD_INTAKE_CLAIM_RULES.no_ordinary_rejection_after_claim                     = true
 //   LEAD_INTAKE_CLAIM_RULES.post_claim_failure_is_unresolved_not_ordinary_failure = 'SUBMIT_UNRESOLVED'
 //
-// The reason is the whole of G1. Once the receipt is claimed, a failed Pipeline write does NOT
-// establish that the row is absent -- the write may have landed and the failure be in the
-// acknowledgement. That is ambiguity, and the design reserves exactly one code for it.
-//
-// Two internal terminals sit downstream of the claim and report an ORDINARY RETRYABLE failure
-// instead. No gate checked them against the rule, which is why it survived P5 and P6.
-//
-// These checks PIN THE CONFLICT rather than assert one side of it. They fail if the terminals
-// change AND if the rule changes, so the two cannot drift apart silently, and whoever closes
-// F13 has to update this block and the doc together.
+// Both post-claim terminals now return exactly that. `retryable: true` is not a licence to
+// resubmit -- a retry RECOVERS the same submission, proven in qa/miniapp-submit.test.mjs
+// (P6.4-R1..R5). Ambiguity is preserved on purpose: no abort, no rollback to READY, no claim
+// release, no second write.
 
 const CLAIM = 'Receipt Claim';
-const postClaimTerminals = (() => {
-  // Reachability from the claim, walking main outputs only -- the same traversal the F11
-  // section uses, so "post-claim" is computed from the graph, not asserted from memory.
+const reachableFrom = (root) => {
   const seen = new Set();
   const walk = (n) => {
     if (seen.has(n)) return;
     seen.add(n);
-    const c = (WF.connections[n] || {}).main || [];
-    c.forEach((arr) => (arr || []).forEach((e) => walk(e.node)));
+    ((WF.connections[n] || {}).main || []).forEach((arr) => (arr || []).forEach((e) => walk(e.node)));
   };
-  walk(CLAIM);
-  return Object.keys(NODES).filter((n) => /^Internal Result \(/.test(n) && seen.has(n));
+  walk(root);
+  return seen;
+};
+const postClaim = reachableFrom(CLAIM);
+
+// The post-claim FAILURE terminals, derived rather than listed: the Internal Result nodes
+// reachable from the ERROR OUTPUT of a Pipeline write. Everything reachable from the claim is
+// post-claim, but most of that is the success path -- Internal Result (New) returns a lead id
+// and a mode BY DESIGN, and folding it in here would make the leak check meaningless.
+const PIPELINE_WRITERS = ['Save to Pipeline', 'Update Pipeline (Merge)'];
+const postClaimTerminals = (() => {
+  const out = new Set();
+  PIPELINE_WRITERS.forEach((w) => {
+    (((WF.connections[w] || {}).main || [])[1] || []).forEach((e) => {
+      reachableFrom(e.node).forEach((n) => { if (/^Internal Result \(/.test(n)) out.add(n); });
+    });
+  });
+  return [...out];
 })();
 
-const codeOf = (terminal) => {
-  const js = NODES[terminal].parameters.jsCode || '';
-  const m = /error_code:\s*'([A-Z_]+)'/.exec(js);
-  assert(m, terminal + ' has no literal error_code');
+const codeOf = (t) => {
+  const m = /error_code:\s*'([A-Z_]+)'/.exec(NODES[t].parameters.jsCode || '');
+  assert(m, t + ' has no literal error_code');
   return m[1];
 };
-const retryableOf = (terminal) => {
-  const js = NODES[terminal].parameters.jsCode || '';
-  const m = /retryable:\s*(true|false)/.exec(js);
-  assert(m, terminal + ' has no literal retryable');
+const retryableOf = (t) => {
+  const m = /retryable:\s*(true|false)/.exec(NODES[t].parameters.jsCode || '');
+  assert(m, t + ' has no literal retryable');
   return m[1] === 'true';
 };
 
-check('the claim reaches the two write-failure terminals, so they ARE post-claim', () => {
-  assert(postClaimTerminals.indexOf('Internal Result (PipelineFailed)') !== -1,
-    'PipelineFailed is no longer reachable from the claim -- re-derive F13');
-  assert(postClaimTerminals.indexOf('Internal Result (MergeFailed)') !== -1,
-    'MergeFailed is no longer reachable from the claim -- re-derive F13');
-  // Infra is NOT post-claim: Read Settings runs long before the receipt is touched. That is
-  // why CRM_UNAVAILABLE being an ordinary retryable failure is correct, and why the live
-  // fault-injection proof (exec 3636) did not have to settle a receipt.
-  assert(postClaimTerminals.indexOf('Internal Result (Infra)') === -1,
-    'Infra became post-claim -- its retryable contract must then be reconsidered');
-});
-
-check('F13 OPEN: post-claim terminals report an ORDINARY failure, against the frozen rule', () => {
-  const rules = RECEIPT.LEAD_INTAKE_CLAIM_RULES;
-  // The rule, unchanged.
-  eq(rules.no_ordinary_rejection_after_claim, true, 'the no-ordinary-rejection rule was dropped');
-  eq(rules.post_claim_failure_is_unresolved_not_ordinary_failure, 'SUBMIT_UNRESOLVED',
-    'the post-claim rule was dropped');
-
-  // The graph, as it stands. If either of these changes to SUBMIT_UNRESOLVED, F13 has been
-  // FIXED -- update this check and docs/P6_3_INTERNAL_ROUTE_DEFECTS.md together.
-  eq(codeOf('Internal Result (PipelineFailed)'), 'PIPELINE_WRITE_FAILED',
-    'PipelineFailed changed -- if this is the F13 fix, close F13 in the doc and rewrite this check');
-  eq(codeOf('Internal Result (MergeFailed)'), 'PIPELINE_MERGE_FAILED',
-    'MergeFailed changed -- if this is the F13 fix, close F13 in the doc and rewrite this check');
-  eq(retryableOf('Internal Result (PipelineFailed)'), true, 'PipelineFailed retryable changed');
-  eq(retryableOf('Internal Result (MergeFailed)'), true, 'MergeFailed retryable changed');
-
-  // And the terminal that DOES carry the reserved code still carries it.
-  eq(codeOf('Internal Result (Unresolved)'), 'SUBMIT_UNRESOLVED',
-    'the reserved ambiguity code left the Unresolved terminal');
-});
-
-check('F13: neither post-claim terminal settles the receipt it leaves claimed', () => {
-  // Both are dead ends, so a post-claim write failure leaves the receipt IN_FLIGHT with no
-  // settlement -- while the graph does contain settlement machinery for the retry branch.
-  ['Internal Result (PipelineFailed)', 'Internal Result (MergeFailed)'].forEach((t) => {
-    const outgoing = (WF.connections[t] || {}).main || [];
-    const targets = outgoing.flatMap((arr) => (arr || []).map((e) => e.node));
-    eq(targets.length, 0, t + ' now has outgoing edges -- if it settles the receipt, close F13');
+check('the two write-failure terminals ARE post-claim, and Infra is NOT', () => {
+  PIPELINE_WRITERS.forEach((w) => {
+    assert(postClaim.has(w), w + ' is no longer reachable from the claim -- re-derive F13');
   });
-  assert(NODES['Receipt Retry Settlement'], 'the settlement node vanished');
+  assert(postClaimTerminals.indexOf('Internal Result (PipelineFailed)') !== -1,
+    'PipelineFailed is no longer fed by the Save to Pipeline error output -- re-derive F13');
+  assert(postClaimTerminals.indexOf('Internal Result (MergeFailed)') !== -1,
+    'MergeFailed is no longer fed by the Update Pipeline (Merge) error output -- re-derive F13');
+  // Read Settings fails long before the receipt is touched, so CRM_UNAVAILABLE stays an honest
+  // ordinary failure. Converting it would destroy information, not preserve it.
+  assert(postClaimTerminals.indexOf('Internal Result (Infra)') === -1,
+    'Infra became post-claim -- its ordinary-failure contract must then be reconsidered');
+});
+
+check('F13 CLOSED: both post-claim terminals return the reserved ambiguity code', () => {
+  const rules = RECEIPT.LEAD_INTAKE_CLAIM_RULES;
+  const reserved = rules.post_claim_failure_is_unresolved_not_ordinary_failure;
+  eq(reserved, 'SUBMIT_UNRESOLVED', 'the reserved code changed');
+  eq(rules.no_ordinary_rejection_after_claim, true, 'the no-ordinary-rejection rule was dropped');
+
+  // The terminals are compared against the RULE, not against a copied literal, so the two
+  // cannot drift apart in either direction.
+  postClaimTerminals.forEach((t) => {
+    eq(codeOf(t), reserved, t + ' does not report the reserved post-claim code');
+    eq(retryableOf(t), true, t + ' must stay retryable: a retry RECOVERS the same submission');
+  });
+  assert(postClaimTerminals.length >= 2, 'fewer post-claim terminals than expected');
+});
+
+check('F13: the post-claim terminals leak no stage, detail, key, receipt state or mode', () => {
+  postClaimTerminals.forEach((t) => {
+    const js = NODES[t].parameters.jsCode || '';
+    ['stage', 'detail', 'submission_key', 'commit_state', 'mode', 'lead_id'].forEach((f) => {
+      assert(!new RegExp('\\b' + f + '\\s*:').test(js), t + ' exposes ' + f);
+    });
+    const fields = (js.match(/^\s*([a-z_]+):/gm) || []).map((x) => x.trim().replace(':', ''));
+    eq(fields.sort().join(','), 'error_code,ok,retryable', t + ' returns fields beyond the failure contract');
+  });
+});
+
+check('F13 §4: neither post-claim terminal settles, aborts or rolls back the receipt', () => {
+  // Ambiguity preservation is STRUCTURAL: both are dead ends, so nothing downstream can move
+  // the receipt out of IN_FLIGHT on a post-claim failure.
+  ['Internal Result (PipelineFailed)', 'Internal Result (MergeFailed)'].forEach((t) => {
+    const targets = ((WF.connections[t] || {}).main || []).flatMap((arr) => (arr || []).map((e) => e.node));
+    eq(targets.length, 0, t + ' now has outgoing edges: it could settle a receipt it must leave IN_FLIGHT');
+  });
+  // And no receipt-writing node is reachable from the failing writes' error outputs at all.
+  const RECEIPT_WRITERS = ['Receipt Claim', 'Receipt Commit (New)', 'Receipt Commit (Merge)', 'Receipt Retry Settlement'];
+  ['Save to Pipeline', 'Update Pipeline (Merge)'].forEach((writer) => {
+    const errEdges = (((WF.connections[writer] || {}).main || [])[1] || []).map((e) => e.node);
+    assert(errEdges.length > 0, writer + ' lost its error output');
+    errEdges.forEach((entry) => {
+      const seen = reachableFrom(entry);
+      RECEIPT_WRITERS.forEach((w) => {
+        assert(!seen.has(w), 'a post-claim failure from ' + writer + ' can reach ' + w + ' -- ambiguity would be discarded');
+      });
+    });
+  });
+});
+
+check('F13: the PUBLIC path is unchanged', () => {
+  // The decision is about the internal contract only. The webhook responders keep the codes a
+  // browser client already understands.
+  const bodyOf = (n) => String(NODES[n].parameters.responseBody || '');
+  assert(/PIPELINE_WRITE_FAILED/.test(bodyOf('Respond Pipeline Failed')), 'the public pipeline responder changed');
+  assert(/PIPELINE_MERGE_FAILED/.test(bodyOf('Respond Merge Failed')), 'the public merge responder changed');
+  assert(/CRM_UNAVAILABLE/.test(bodyOf('Respond Infra Failed')), 'the public infra responder changed');
+  eq(codeOf('Internal Result (Infra)'), 'CRM_UNAVAILABLE', 'Infra was wrongly converted to SUBMIT_UNRESOLVED');
+});
+
+check('F13 MUTATION: an ordinary post-claim code would be DETECTED', () => {
+  // The closure check is only worth having if it fails when the defect returns. Rebuild the
+  // comparison against a mutated terminal body and prove it throws.
+  const reserved = RECEIPT.LEAD_INTAKE_CLAIM_RULES.post_claim_failure_is_unresolved_not_ordinary_failure;
+  const mutated = "return [{ json: { ok: false, error_code: 'PIPELINE_WRITE_FAILED', retryable: true } }];";
+  const mutatedCode = /error_code:\s*'([A-Z_]+)'/.exec(mutated)[1];
+  let caught = false;
+  try { eq(mutatedCode, reserved, 'mutated'); } catch (e) { caught = true; }
+  assert(caught, 'the F13 comparison does not detect a reverted terminal -- the check is vacuous');
 });
 
 // ================================================================ summary

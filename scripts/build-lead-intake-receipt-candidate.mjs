@@ -747,8 +747,32 @@ add(ifNum('IF Internal (Retry)', at('Respond Retry', -220, 200),
 
 terminalGate('Invalid', 'Respond Invalid', -220, 200, "String($json.error_code || 'INVALID_PAYLOAD')", false);
 terminalGate('Infra', 'Respond Infra Failed', -220, 200, "'CRM_UNAVAILABLE'", true);
-terminalGate('PipelineFailed', 'Respond Pipeline Failed', -220, 200, "'PIPELINE_WRITE_FAILED'", true);
-terminalGate('MergeFailed', 'Respond Merge Failed', -220, 200, "'PIPELINE_MERGE_FAILED'", true);
+// F13 / P6.4 OWNER DECISION — the two POST-CLAIM terminals.
+//
+// These two are reached only from the error output of `Save to Pipeline` and
+// `Update Pipeline (Merge)`, both of which run AFTER the receipt has moved READY -> IN_FLIGHT.
+// At that point a write failure is AMBIGUOUS: the append may have landed and the failure be in
+// the acknowledgement. The system does not know that the canonical write did not happen.
+//
+// They used to return PIPELINE_WRITE_FAILED / PIPELINE_MERGE_FAILED with retryable:true — an
+// ORDINARY retryable failure, which contradicts the frozen rule the receipt design is built on:
+//
+//   LEAD_INTAKE_CLAIM_RULES.no_ordinary_rejection_after_claim                     = true
+//   LEAD_INTAKE_CLAIM_RULES.post_claim_failure_is_unresolved_not_ordinary_failure = 'SUBMIT_UNRESOLVED'
+//
+// Both now resolve to the one code the design reserves for ambiguity. `retryable: true` is
+// correct and is NOT a licence to resubmit: a retry means RECOVER THE SAME SUBMISSION. The same
+// (cycle_id, submission_key) stays bound, the receipt stays IN_FLIGHT, and the next same-key
+// attempt is answered by the resolver — never by a second Pipeline write.
+//
+// Deliberately NOT done here: no abort, no rollback to READY, no claim release, no second
+// write, no replacement key. Ambiguity is preserved on purpose; discarding it is what creates
+// duplicate leads.
+//
+// `Infra` above is NOT part of this: `Read Settings` fails long before the receipt is touched,
+// so CRM_UNAVAILABLE is an honest ordinary failure and must stay one.
+terminalGate('PipelineFailed', 'Respond Pipeline Failed', -220, 200, "'SUBMIT_UNRESOLVED'", true);
+terminalGate('MergeFailed', 'Respond Merge Failed', -220, 200, "'SUBMIT_UNRESOLVED'", true);
 
 // ---------------------------------------------------------------- rewire
 

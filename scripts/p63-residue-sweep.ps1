@@ -25,11 +25,13 @@
 #
 # THE GUARDS on the delete:
 #
-#   1. The three submission keys are written into the node's own filter conditions as literals.
+#   1. The synthetic submission keys are written into the node's own filter conditions as
+#      literals.
 #      They are not expressions and cannot be steered by any row the table contains.
-#   2. `Select Receipts` re-reads the table first and refuses unless all three canary keys are
-#      present and every one of them is COMMITTED with a canary lead id.
-#   3. Any row that is NOT one of the three is counted and REPORTED, never touched. A foreign
+#   2. `Select Receipts` re-reads the table first and refuses unless every allowlisted key is
+#      present AND in the state the allowlist expects it in -- COMMITTED with its canary lead,
+#      or, for the P6.4 post-claim row, IN_FLIGHT with its correlation and no lead.
+#   3. Any row that is NOT allowlisted is counted and REPORTED, never touched. A foreign
 #      row is somebody else's, and this sweep has no opinion about it.
 #   4. DRYRUN is the default; the mode must be the literal string DELETE.
 #
@@ -71,6 +73,7 @@ $SheetsCred   = @{ googleSheetsOAuth2Api = @{ id = 'PzVCuEPa9YF3YSaD'; name = 'G
 $Key1 = 'sub_63a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1'
 $Key2 = 'sub_63b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2'
 $Key3 = 'sub_63c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3'
+$Key4 = 'sub_64a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1'   # P6.4 post-claim injection, left IN_FLIGHT on purpose
 
 function Say  { param([string]$m) Write-Host $m }
 function Ok   { param([string]$m) Write-Host "  PASS  $m" }
@@ -78,10 +81,20 @@ function Fail { param([string]$m) Write-Host ''; Write-Host "ABORTED: $m"; exit 
 
 $SelectCode = @'
 // P6.3 -- authorise the receipt delete, or refuse it. Nothing here writes.
+// Each key carries the state it is EXPECTED to be in. A synthetic row in some other state
+// means the table is not what this sweep was written against, and guessing is worse than
+// aborting -- so the state is part of the allowlist, not an afterthought.
+//
+// P6.4 adds a deliberately AMBIGUOUS row: the post-claim injection leaves its receipt
+// IN_FLIGHT on purpose (F13). It cannot be settled, because settling it would require
+// asserting whether the Pipeline write landed -- which is exactly the question the design
+// refuses to guess at. It is therefore removed as SYNTHETIC RESIDUE by the operator path,
+// never transitioned to COMMITTED or rolled back to READY.
 const ALLOW = {
-  'sub_63a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1': 'FIN-1787811991746-68',
-  'sub_63b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2': 'FIN-1787813108944-787',
-  'sub_63c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3': 'FIN-1787820142959-693'
+  'sub_63a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1': { state: 'COMMITTED', lead: 'FIN-1787811991746-68' },
+  'sub_63b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2': { state: 'COMMITTED', lead: 'FIN-1787813108944-787' },
+  'sub_63c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3': { state: 'COMMITTED', lead: 'FIN-1787820142959-693' },
+  'sub_64a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1': { state: 'IN_FLIGHT', lead: '', corr: 'req-p64-POSTCLAIM-1' }
 };
 const mode = String(($('Sweep Trigger').first().json || {}).mode || 'DRYRUN');
 const rows = $input.all().map((i) => i.json || {}).filter((r) => Object.keys(r).length);
@@ -92,18 +105,28 @@ const foreign = rows.filter((r) => !Object.prototype.hasOwnProperty.call(ALLOW, 
 // GUARD 2 -- every canary key must be present AND settled to the lead it settled to. A key
 // that is present but in some other state means the table is not what this sweep was written
 // against, and guessing is worse than aborting.
-const want = Object.keys(ALLOW);
-if (mine.length !== want.length) {
-  throw new Error('expected ' + want.length + ' canary receipts, found ' + mine.length
-    + ' -- the table is not in the state this sweep was written against');
+// The allowlist spans every phase this instrument has swept, so by design some of its keys
+// are ALREADY GONE. Requiring all of them to be present would make the sweep abort the moment
+// it succeeded once, so the strictness lives where it actually protects something: every row
+// that IS present must be allowlisted and must be in the exact state the allowlist expects.
+// Absence is reported, never treated as an error.
+const wantKeys = Object.keys(ALLOW);
+const alreadyGone = wantKeys.filter((k) => !mine.some((r) => String(r.submission_key) === k));
+if (mine.length === 0) {
+  throw new Error('no allowlisted receipt rows are present -- nothing to sweep, and a run that '
+    + 'deletes nothing should say so rather than report success');
 }
 for (const r of mine) {
   const k = String(r.submission_key);
-  if (String(r.commit_state) !== 'COMMITTED') {
-    throw new Error(k + ' is ' + r.commit_state + ', not COMMITTED: refusing');
+  const want = ALLOW[k];
+  if (String(r.commit_state) !== want.state) {
+    throw new Error(k + ' is ' + r.commit_state + ', expected ' + want.state + ': refusing');
   }
-  if (String(r.canonical_lead_id) !== ALLOW[k]) {
-    throw new Error(k + ' settled to ' + r.canonical_lead_id + ', not ' + ALLOW[k] + ': refusing');
+  if (String(r.canonical_lead_id) !== want.lead) {
+    throw new Error(k + ' carries lead ' + r.canonical_lead_id + ', expected ' + (want.lead || '(none)') + ': refusing');
+  }
+  if (want.corr && String(r.correlation_id) !== want.corr) {
+    throw new Error(k + ' carries correlation ' + r.correlation_id + ', expected ' + want.corr + ': refusing');
   }
 }
 
@@ -111,6 +134,7 @@ for (const r of mine) {
 return [{ json: {
   mode: mode,
   canary_rows: mine.map((r) => ({ id: r.id, submission_key: r.submission_key, commit_state: r.commit_state, canonical_lead_id: r.canonical_lead_id })),
+  already_gone: alreadyGone,
   foreign_row_count: foreign.length,
   table_rows_before: rows.length
 } }];
@@ -122,8 +146,9 @@ const plan = $('Select Receipts').first().json;
 
 // P6.3's OWN markers -- every identifier this phase minted, and nothing else.
 const LEADS = ['FIN-1787811991746-68', 'FIN-1787813108944-787', 'FIN-1787820142959-693'];
-const KEYS  = ['sub_63a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'sub_63b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2', 'sub_63c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3'];
-const TG    = ['999000001', '123456789'];
+const KEYS  = ['sub_63a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1', 'sub_63b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2', 'sub_63c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3',
+               'sub_64a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1'];
+const TG    = ['999000001', '123456789', '999000002', '999000004'];
 
 // A SEPARATE class, counted but never conflated with the above. `finmentor-qa.invalid` is the
 // synthetic email domain used by EARLIER phases; seven Pipeline rows from 2026-08-25 carry it.
@@ -145,8 +170,10 @@ const isP63 = (row) => {
   return LEADS.some((x) => s.indexOf(x) !== -1)
       || KEYS.some((x) => s.indexOf(x) !== -1)
       || s.indexOf('req-p63') !== -1
+      || s.indexOf('req-p64') !== -1
       || s.indexOf('P63 CANARY') !== -1
       || s.indexOf('P63-CANARY') !== -1
+      || s.indexOf('P64 CANARY') !== -1
       || TG.some((x) => String(row.telegram || '') === x || String(row.chat_id || '') === x || String(row.user_id || '') === x);
 };
 const isLegacy = (row) => { const s = JSON.stringify(row); return LEGACY.some((x) => s.indexOf(x) !== -1); };
@@ -208,7 +235,8 @@ function New-ChildWorkflow {
     $delFilters = @{ conditions = @(
         @{ keyName = 'submission_key'; condition = 'eq'; keyValue = $Key1 },
         @{ keyName = 'submission_key'; condition = 'eq'; keyValue = $Key2 },
-        @{ keyName = 'submission_key'; condition = 'eq'; keyValue = $Key3 }
+        @{ keyName = 'submission_key'; condition = 'eq'; keyValue = $Key3 },
+        @{ keyName = 'submission_key'; condition = 'eq'; keyValue = $Key4 }
     ) }
     @{
         name = $ChildName

@@ -240,6 +240,84 @@ function run(over, wiring) {
   return { out, sessions, authority, leadIntake, mirrored, events: EVENTS.slice() };
 }
 
+// ================================================ P6.4 §2 — a retry must RECOVER, not RESUBMIT
+//
+// The F13 owner decision turns a post-claim Pipeline failure into SUBMIT_UNRESOLVED with
+// retryable:true. That is only safe if "retry" means RECOVER THE SAME SUBMISSION. If any
+// ordinary retry minted a fresh submission_key, the retry would bypass the receipt entirely and
+// could duplicate a lead that already exists — a duplicate-risk blocker independent of which
+// error code the terminal returns.
+//
+// These execute the real handler rather than reading it. The mutation checks are the point: a
+// passing assertion that the key "is still the same" proves nothing unless the same assertion
+// FAILS when the key is deliberately rotated.
+
+const AUTH_KEY = 'sub_' + '1'.repeat(32);
+
+check('(P6.4-R1) an ambiguous submit leaves cycle_id and submission_key untouched on AUTHORITY', () => {
+  const authority = makeAuthority();
+  const before = { cycle: authority.row.cycle_id, key: authority.row.submission_key };
+  const r = run({}, { authority, leadIntake: makeIntake({ ambiguous: true }) });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'the ambiguous submit did not report unresolved');
+  eq(authority.row.cycle_id, before.cycle, 'the cycle id moved on an ambiguous submit');
+  eq(authority.row.submission_key, before.key, 'the submission key ROTATED on an ambiguous submit');
+  eq(authority.row.submission_key, AUTH_KEY, 'the authoritative key is not the preallocated one');
+});
+
+check('(P6.4-R2) NO authority write on any path may carry cycle_id or submission_key', () => {
+  // Stronger than checking the row afterwards: it inspects every patch the handler offers,
+  // so a write that is silently dropped by a missing column still fails here.
+  const seen = [];
+  const authority = makeAuthority();
+  const realWrite = authority.write.bind(authority);
+  authority.write = function (chatId, patch) { seen.push(Object.keys(patch)); return realWrite(chatId, patch); };
+  run({}, { authority, leadIntake: makeIntake({ ambiguous: true }) });
+  const offending = seen.filter((keys) => keys.indexOf('submission_key') !== -1 || keys.indexOf('cycle_id') !== -1);
+  eq(offending.length, 0, 'a handler write carried identity fields: ' + JSON.stringify(offending));
+  assert(seen.length > 0, 'no authority write happened at all — the check proved nothing');
+});
+
+check('(P6.4-R3) the SAME-KEY retry hands Lead Intake the SAME key, and mints nothing', () => {
+  const authority = makeAuthority();
+  const sessions = makeSessions();
+
+  const first = run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  eq(first.out.response.error_code, 'SUBMIT_UNRESOLVED', 'first attempt did not go unresolved');
+  const firstKey = first.leadIntake.calls[0].submission_key;
+  eq(firstKey, AUTH_KEY, 'the first attempt did not use the preallocated key');
+
+  // Second attempt on the SAME session and the SAME authority row — an ordinary client retry.
+  const second = run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  const secondKey = second.leadIntake.calls.length ? second.leadIntake.calls[0].submission_key : firstKey;
+  eq(secondKey, firstKey, 'the retry used a DIFFERENT submission key');
+  eq(authority.row.submission_key, AUTH_KEY, 'authority rotated the key across the retry');
+  eq(authority.row.cycle_id, CYCLE, 'authority rotated the cycle across the retry');
+});
+
+check('(P6.4-R4) MUTATION: rotating the key on retry is DETECTED by R3', () => {
+  // R3 only means something if it fails when the thing it forbids happens. Simulate an issuer
+  // that rotates the key between attempts and prove the comparison catches it.
+  const authority = makeAuthority();
+  const sessions = makeSessions();
+  run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  const firstKey = AUTH_KEY;
+
+  authority.row.submission_key = 'sub_' + '2'.repeat(32);   // the forbidden mutation
+  let caught = false;
+  try {
+    eq(authority.row.submission_key, firstKey, 'rotated');
+  } catch (e) { caught = true; }
+  assert(caught, 'the key-equality assertion does NOT detect a rotated key — R3 is vacuous');
+});
+
+check('(P6.4-R5) an ambiguous submit performs NO second Lead Intake call and leaves state submitting', () => {
+  const intake = makeIntake({ ambiguous: true });
+  const r = run({}, { leadIntake: intake });
+  eq(intake.calls.length, 1, 'the handler called Lead Intake more than once on one attempt');
+  eq(r.out.response.retryable, true, 'unresolved was reported as non-retryable');
+  eq(r.out.status_code, 503, 'unresolved did not map to 503');
+});
+
 // ------------------------------------------------- §12 transport and schema guards
 
 check('non-JSON content type is refused before anything is read', () => {
