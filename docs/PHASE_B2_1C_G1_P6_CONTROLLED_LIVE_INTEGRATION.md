@@ -729,3 +729,24 @@ change anywhere. No Google Sheets cell written. No Data Table created or written
 webhook called. No Telegram message sent. No AI call. No GA4, DNS or Cloudflare change. No API
 key sought, read or used. No customer PII read into this document — the header probe was
 rewritten mid-phase to emit column names only, before any value could be surfaced.
+
+---
+
+# §E — P7.0 issuer preflight (2026-08-27) — delta to D1
+
+G1 is unchanged and stays **LIVE FUNCTIONAL PROOF PASS**. P7 is the separate Mini App
+activation track, and P7.0 is its preflight. Full record:
+`docs/P7_0_ISSUER_PREFLIGHT.md`.
+
+| Item | Was (D1) | Now |
+|---|---|---|
+| **P1-L11** issuer half | "not built" | still **NOT BUILT** — but the mint primitive is now settled by live measurement, and the issuance decision is written and gated (34 checks) |
+| Mint primitive | assumed `crypto.randomBytes` per P3 §3 | **`require('crypto').randomBytes`** — there is **no `crypto` global** in an n8n Code node on this tenant, exec `3651`. The specified expression would have thrown on the `/start` path for every user |
+| Mint quality | asserted offline | **measured live**, exec `3652` — 10,000 draws, 0 collisions, all 256 byte values, and two mints **measured** inside one millisecond came out distinct |
+| **F14** — `Read Bot Sessions` is pinned to range `A:AV`, so the Concierge structurally cannot read `submission_key` (AW) | not known | **OPEN**, pinned by gate (5.1) |
+| **F15** — `Save Bot Session` auto-maps, and P6R-1 proved auto-map silently drops an unrecognised key; the AW..AZ headers carry zero data | not known | **OPEN**, pinned by gate (5.2). Must be proven live, not argued |
+
+**General Mini App activation: still NOT CLEARED.** The issuer is not deployed, no submit
+gateway is deployed, and both new blockers are open.
+
+Production mutations at P7.0: **none**. Two credential-free probes created, run, archived.
