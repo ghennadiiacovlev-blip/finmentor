@@ -240,7 +240,7 @@ every one**. **No canary active.** The only surviving new object is the empty
 | `Bot_Sessions` B.2.1-C schema | **LIVE** — 52 columns |
 | `Submission_Receipts` | **LIVE, EMPTY, UNUSED** |
 | Audited candidate deployed | **YES — §C**, `o9ndONOCI0XPJMiS`, 15/15 fidelity |
-| **G1** | **OPEN** — one item left: the F11 failure terminals have never fired live (§C1) |
+| **G1** | **OPEN** — F11 is closed live; the remaining blocker is F13, a contract decision (§C1) |
 | **G5** durable initData replay | **OPEN** |
 | **B.2.1-C** | **NOT CLEARED** |
 | **General Mini App activation** | **NOT CLEARED** |
@@ -279,24 +279,36 @@ and is the current one. Full reasoning: `docs/P6_3_INTERNAL_ROUTE_DEFECTS.md`.
 | **P1-L7** commit write before the respond node | NOT TESTED | **LIVE PASS** — `Receipt Commit (New)` (28) before `Internal Result (New)` (31) | exec 3618 node order |
 | **P1-L9** correlation chain | offline PASS; live NOT TESTED | **LIVE PASS on the NEW path** — receipt `correlation_id` equals the row's `request_id`, `req-p63-SHAPE-LIVE-1`. **Merge path still untested** | exec 3618 + receipt row 3 |
 | **F10** | fixed, closed live | unchanged — **CLOSED LIVE** | |
-| **F11** | fixed, not deployed | **fixed, deployed, gated offline — NOT observed live** | §7.11 |
+| **F11** | fixed, not deployed | **fixed, deployed, CLOSED LIVE** — fault injection, error item with no flag, gate routed internally, exec 3636 | §7.13 |
 | **Production residue** | none | **none** — 3 CRM rows and 3 receipt rows written, then removed and verified; 9 customer rows proven byte-identical | §7.12 |
 
 **Unchanged and still open:** P1-L2 (live store) NOT RETESTED, P1-L4 tenant restart NOT
 TESTED, P1-L5 owner contract decision, P1-L8 retention duration owner decision, G5 durable
 initData replay.
 
-## C1. Why G1 is still OPEN — one item
+## C1. Why G1 is still OPEN
 
-Everything the internal route was blocked on is now proven live except **one**: the three
-`Internal Result (*)` terminals that F11 restores have never fired on the platform, because no
-node has ever failed during a live run. They are proven offline only. Fault injection is built,
-deployed and waiting on an owner Execute (`rbo5Xjx6NHrpjzUt`), and `MergeFailed` is explicitly
-out of scope because reaching it requires writing a customer-shaped row into the live CRM.
+Every live prerequisite the internal route was blocked on is now proven **on the platform**.
+What remains is not a missing proof — it is one open contract question and three items that
+were never P6.3's to close.
 
-Until that run happens, G1 cannot be upgraded to **LIVE FUNCTIONAL PROOF PASS**: an internal
-contract whose failure terminals have never been observed is a contract proven only on its
-happy and validation paths.
+| Blocker | Kind | Status |
+|---|---|---|
+| **F13** — post-claim terminals report an ordinary retryable failure where the design reserves `SUBMIT_UNRESOLVED`, and leave the receipt `IN_FLIGHT` unsettled | **contract / owner decision** | **OPEN**, pinned by gate §6 |
+| **P1-L2** live-store atomic insert-if-absent | live proof | **NOT RETESTED** — P4 proved L2′ on a synthetic table |
+| **P1-L4** durability across a **tenant restart** | live proof | **NOT TESTED** — no boundary crossed |
+| **P1-L5** stable key reaching Lead Intake | frozen-contract change | **OWNER DECISION** |
+| **P1-L8** receipt retention duration | policy | **OWNER DECISION** |
+| **P1-L9** correlation on the **MERGE** path | live proof | NEW path PASS; merge path untested |
+| **G5** durable initData replay | live proof | **OPEN**, outside P6 |
+
+**The verdict.** G1 is **NOT** upgradable to LIVE FUNCTIONAL PROOF PASS, and F13 is the reason
+that matters: the receipt exists to remove ambiguity after a claim, and the two terminals that
+handle the ambiguous case report it as an ordinary retryable failure. Everything mechanical
+around it now works live — the route accepts a real gateway lead, the receipt runs
+`READY → CLAIMED → COMMITTED`, a missing receipt is refused, and every declared failure terminal
+that has been exercised returns its declared envelope. What is not settled is what the contract
+should *say* when the write fails after the claim, and that is the owner's call, not a patch.
 
 ## C2. Live tenant state after P6.3
 
@@ -304,8 +316,7 @@ happy and validation paths.
 |---|---|---|
 | Validated internal canary — **keep** | `o9ndONOCI0XPJMiS` | live, inactive, `availableInMCP: false` |
 | Canary driver — **keep** | `Z8Ai31yxfkyTSRO8` | live, inactive, `availableInMCP: true` |
-| Fault-injection copy — **pending owner run** | `Gv8lepxB2PF4H8VQ` | live, inactive, not MCP-exposed |
-| Fault-injection driver — **pending owner run** | `rbo5Xjx6NHrpjzUt` | live, inactive, `availableInMCP: true` |
+| Fault-injection pair — **run once, F11 proven, torn down** | `Gv8lepxB2PF4H8VQ` / `rbo5Xjx6NHrpjzUt` | **archived** |
 | CRM cleanup pair | `9wbe8nlZsKG7cPv1` / `ir69QPIBAXvlwMvA` | **archived** |
 | Residue sweep pair | `6oJCIbLfnDzmQStG` / `AS0KUNV5GRrWHGJd` | **archived** |
 | Superseded canaries | `S24se5SYf5CJ0FIQ`, `UBfNGfli8E0UfiNa` | **archived**, retained |

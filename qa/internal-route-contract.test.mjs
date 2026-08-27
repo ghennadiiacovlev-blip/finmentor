@@ -66,6 +66,7 @@ const NORMALIZE = body(WF, 'Normalize + Score Lead');
 
 // The GATEWAY's own payload builder -- the real module, never a copy of its shape.
 const GATEWAY = require(join(ROOT, 'n8n', 'src', 'miniapp-submit', 'submit-contract.js'));
+const RECEIPT = require(join(ROOT, 'n8n', 'src', 'lead-intake', 'idempotency-receipt.js'));
 
 // ---------------------------------------------------------------- the n8n harness
 //
@@ -530,6 +531,96 @@ check('REGRESSION: a FLAT contact payload validates but arrives CONTACTLESS', ()
   eq(row.name, '', 'a top-level name now reaches the row: the trap is closed, tighten this gate');
   eq(row.phone, '', 'a top-level phone now reaches the row: the trap is closed, tighten this gate');
   eq(row.lead_priority, 'INCOMPLETE', 'the flat shape no longer scores INCOMPLETE');
+});
+
+// ================================================================ 6. F13 -- post-claim
+//
+// The receipt design freezes a rule about what a failure AFTER the claim may report:
+//
+//   LEAD_INTAKE_CLAIM_RULES.no_ordinary_rejection_after_claim                = true
+//   LEAD_INTAKE_CLAIM_RULES.post_claim_failure_is_unresolved_not_ordinary_failure = 'SUBMIT_UNRESOLVED'
+//
+// The reason is the whole of G1. Once the receipt is claimed, a failed Pipeline write does NOT
+// establish that the row is absent -- the write may have landed and the failure be in the
+// acknowledgement. That is ambiguity, and the design reserves exactly one code for it.
+//
+// Two internal terminals sit downstream of the claim and report an ORDINARY RETRYABLE failure
+// instead. No gate checked them against the rule, which is why it survived P5 and P6.
+//
+// These checks PIN THE CONFLICT rather than assert one side of it. They fail if the terminals
+// change AND if the rule changes, so the two cannot drift apart silently, and whoever closes
+// F13 has to update this block and the doc together.
+
+const CLAIM = 'Receipt Claim';
+const postClaimTerminals = (() => {
+  // Reachability from the claim, walking main outputs only -- the same traversal the F11
+  // section uses, so "post-claim" is computed from the graph, not asserted from memory.
+  const seen = new Set();
+  const walk = (n) => {
+    if (seen.has(n)) return;
+    seen.add(n);
+    const c = (WF.connections[n] || {}).main || [];
+    c.forEach((arr) => (arr || []).forEach((e) => walk(e.node)));
+  };
+  walk(CLAIM);
+  return Object.keys(NODES).filter((n) => /^Internal Result \(/.test(n) && seen.has(n));
+})();
+
+const codeOf = (terminal) => {
+  const js = NODES[terminal].parameters.jsCode || '';
+  const m = /error_code:\s*'([A-Z_]+)'/.exec(js);
+  assert(m, terminal + ' has no literal error_code');
+  return m[1];
+};
+const retryableOf = (terminal) => {
+  const js = NODES[terminal].parameters.jsCode || '';
+  const m = /retryable:\s*(true|false)/.exec(js);
+  assert(m, terminal + ' has no literal retryable');
+  return m[1] === 'true';
+};
+
+check('the claim reaches the two write-failure terminals, so they ARE post-claim', () => {
+  assert(postClaimTerminals.indexOf('Internal Result (PipelineFailed)') !== -1,
+    'PipelineFailed is no longer reachable from the claim -- re-derive F13');
+  assert(postClaimTerminals.indexOf('Internal Result (MergeFailed)') !== -1,
+    'MergeFailed is no longer reachable from the claim -- re-derive F13');
+  // Infra is NOT post-claim: Read Settings runs long before the receipt is touched. That is
+  // why CRM_UNAVAILABLE being an ordinary retryable failure is correct, and why the live
+  // fault-injection proof (exec 3636) did not have to settle a receipt.
+  assert(postClaimTerminals.indexOf('Internal Result (Infra)') === -1,
+    'Infra became post-claim -- its retryable contract must then be reconsidered');
+});
+
+check('F13 OPEN: post-claim terminals report an ORDINARY failure, against the frozen rule', () => {
+  const rules = RECEIPT.LEAD_INTAKE_CLAIM_RULES;
+  // The rule, unchanged.
+  eq(rules.no_ordinary_rejection_after_claim, true, 'the no-ordinary-rejection rule was dropped');
+  eq(rules.post_claim_failure_is_unresolved_not_ordinary_failure, 'SUBMIT_UNRESOLVED',
+    'the post-claim rule was dropped');
+
+  // The graph, as it stands. If either of these changes to SUBMIT_UNRESOLVED, F13 has been
+  // FIXED -- update this check and docs/P6_3_INTERNAL_ROUTE_DEFECTS.md together.
+  eq(codeOf('Internal Result (PipelineFailed)'), 'PIPELINE_WRITE_FAILED',
+    'PipelineFailed changed -- if this is the F13 fix, close F13 in the doc and rewrite this check');
+  eq(codeOf('Internal Result (MergeFailed)'), 'PIPELINE_MERGE_FAILED',
+    'MergeFailed changed -- if this is the F13 fix, close F13 in the doc and rewrite this check');
+  eq(retryableOf('Internal Result (PipelineFailed)'), true, 'PipelineFailed retryable changed');
+  eq(retryableOf('Internal Result (MergeFailed)'), true, 'MergeFailed retryable changed');
+
+  // And the terminal that DOES carry the reserved code still carries it.
+  eq(codeOf('Internal Result (Unresolved)'), 'SUBMIT_UNRESOLVED',
+    'the reserved ambiguity code left the Unresolved terminal');
+});
+
+check('F13: neither post-claim terminal settles the receipt it leaves claimed', () => {
+  // Both are dead ends, so a post-claim write failure leaves the receipt IN_FLIGHT with no
+  // settlement -- while the graph does contain settlement machinery for the retry branch.
+  ['Internal Result (PipelineFailed)', 'Internal Result (MergeFailed)'].forEach((t) => {
+    const outgoing = (WF.connections[t] || {}).main || [];
+    const targets = outgoing.flatMap((arr) => (arr || []).map((e) => e.node));
+    eq(targets.length, 0, t + ' now has outgoing edges -- if it settles the receipt, close F13');
+  });
+  assert(NODES['Receipt Retry Settlement'], 'the settlement node vanished');
 });
 
 // ================================================================ summary

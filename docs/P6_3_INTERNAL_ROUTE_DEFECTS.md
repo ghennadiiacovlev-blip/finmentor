@@ -1,23 +1,31 @@
-# FINMENTOR — P6.3: two live-found defects on the internal route, and the supersede that closed them
+# FINMENTOR — P6.3: two live-found defects on the internal route, the supersede that closed them, and one found on the way out
 
 **Phase:** B.2.1-C live prerequisites, P6.3
 **Severity:** F10 — total functional failure of the internal route. F11 — every internal
 failure path collapsed onto the public route and threw at the caller. Both contained to a
-disabled canary; production was never touched.
+disabled canary; production was never touched. **F13** — found offline during closeout, still
+open, and an owner decision rather than a patch.
 
 | | Defect | Found | State |
 |---|---|---|---|
 | **F10** | `Internal Envelope Unwrap` emitted a shape `Validate Payload` cannot read, so **no lead could be accepted at all** | live, exec `3583` | **fixed, and CLOSED LIVE** — proven by driver exec `3585` case F (§6) |
-| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed, deployed, gated offline — NOT yet observed live.** No node failed in any live run, so no error output fired. Fault injection is deployed and waiting on the owner (§7.11) |
+| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed, deployed and CLOSED LIVE** — fault injection made `Read Settings` fail for real; the error item carried no flag and the gate routed internally anyway, exec `3636` (§7.13) |
+| **F13** | two **post-claim** internal terminals report an ORDINARY retryable failure, against the frozen rule that a post-claim failure is `SUBMIT_UNRESOLVED`; neither settles the receipt it leaves `IN_FLIGHT` | offline, during P6.3 closeout | **OPEN** — pinned by gate §6, owner decision (§7.14) |
 
 **Status:** F10 is closed live. The supersede was blocked twice on the write credential (§7,
 §7.4) and **completed on attempt 3** (§7.5): the canary carrying F11 is archived, the corrected
 candidate is live as **`o9ndONOCI0XPJMiS`** with a **15/15 fidelity proof**, and the receipt
 state machine ran `READY → CLAIMED → COMMITTED` end to end (§7.6).
 
-**F11 is fixed and gated offline but NOT yet proven live — see §7.11 for the correction to an
-earlier claim here that it was.** The six live negative cases all terminated at a
-*normally-fed* gate; the three error-output-fed terminals F11 restores have still never fired.
+**F11 is now CLOSED LIVE (§7.13).** An earlier version of this document claimed that on the
+strength of six negative cases that never made a node fail; §7.11 is the correction, and it was
+settled by injecting a fault so `Read Settings` failed for real. The error item carried no
+`__internal` — the exact condition that broke F11 — and the gate routed to
+`Internal Result (Infra)` anyway.
+
+**F13 is OPEN (§7.14):** the two post-claim terminals report an ordinary retryable failure where
+the design reserves `SUBMIT_UNRESOLVED`, and leave the receipt unsettled. Offline finding,
+owner decision.
 
 **Read §7.7 before treating the first two green runs as an acceptance proof.** They wrote
 **contactless `INCOMPLETE`** rows, because the cases were hand-written in a payload shape the
@@ -31,8 +39,7 @@ instruments and verified against every surface the route can reach, with the nin
 customer rows proven byte-identical (§7.12). Seven unrelated `2026-08-25` QA rows remain in the
 Pipeline and are reported, not touched.
 
-**Open:** F11 needs one fault-injection run to be proven live (§7.11). It is deployed and
-waiting on an owner Execute.
+**Open:** F13 (§7.14) — an owner decision about what a post-claim failure may report.
 
 ---
 
@@ -863,6 +870,102 @@ allowlist exists to prevent. They are reported for the owner and left alone.
    child stayed **live**. Re-creating the pair had left an archived namesake, and a plain name
    match returned the dead one. Both scripts now sort archived last, so every caller operates on
    the workflow that can still do something.
+
+
+### 7.13 F11 — **CLOSED LIVE**, by making a node fail on purpose
+
+The owner ran the fault-injection driver once. `Read Settings`, pointed at a document id that
+does not exist, failed for real:
+
+```
+PATH: Internal Subworkflow Trigger -> Internal Auth Entry -> IF Internal Fault
+      -> Internal Envelope Unwrap -> Validate Payload -> Internal Flag -> IF Valid
+      -> Read Settings -> IF Internal (Infra) -> Internal Result (Infra)
+```
+
+Every assertion F11 needs, observed rather than argued:
+
+| Observation | Value | Why it settles F11 |
+|---|---|---|
+| `Read Settings` output branches | `out[0]: 0 items`, `out[1]: 1 item` | the **error output** fired; the success path did not |
+| the item the gate received | `{"error":"The resource you are requesting could not be found"}` | a real n8n error item, from a real 404 |
+| `__internal` **on that item** | `undefined` | **exactly the condition that broke F11** — the old `$json.__internal` form read this |
+| `IF Internal (Infra)` routing | `out[0] (true): 1`, `out[1] (false): 0` | the node-reference form resolved anyway, and routed INTERNAL |
+| `Internal Result (Infra)` returned | `{ok:false, error_code:'CRM_UNAVAILABLE', retryable:true}` | the declared terminal, reached |
+| `Respond Infra Failed`, `Stop: CRM Unavailable` | **never executed** | the pre-fix collapse onto the public route did not happen |
+| execution status / top-level error | `success` / none | **no throw at the caller** |
+| the caller (`Collect`) received | `{ok:false, error_code:'CRM_UNAVAILABLE', retryable:true}` | the internal contract held across the seam |
+
+Before the fix, this exact situation produced a raw thrown error at the internal caller
+(§6.1). It now produces the declared envelope. **The error item genuinely lacked the flag and
+the gate genuinely routed correctly anyway** — the premise and the fix are both proven on the
+platform, in one run.
+
+Residue: **none**. `Read Settings` is the first credentialed node, so nothing downstream read or
+wrote anything. `Settings to Object`, `Normalize + Score Lead`, `Read Pipeline (Dedup)`,
+`Receipt Exact Read`, `Receipt Claim` and `Save to Pipeline` were all unreached, and
+`Submission_Receipts` stayed at zero rows.
+
+**What this does and does not generalise to.** `IF Internal (PipelineFailed)` and
+`IF Internal (MergeFailed)` were **not** run. What the Infra proof establishes is not
+gate-specific: that an n8n error item carries no `__internal`, and that
+`$('Internal Flag').first().json.__internal` resolves correctly when it does not. Both are
+properties of the platform and of the expression, and all three gates carry the identical
+expression. The remaining per-gate variable — whether `Internal Flag` **dominates** every path
+to that gate from both entries — is proven offline for all three (§6.4). So F11 is closed: one
+terminal observed, the mechanism proven, the other two covered by identical construction plus a
+dominance proof. The residual gap is named rather than hidden.
+
+Injecting `Save to Pipeline` to observe `PipelineFailed` directly is one command
+(`-Node 'Save to Pipeline'`) and is worth doing if P6 reopens — see §7.14, which is a better
+reason to reopen it.
+
+### 7.14 F13 — a post-claim failure reports an ORDINARY failure, against the frozen rule
+
+Found while checking what the `PipelineFailed` injection would have to clean up. Offline, in
+the candidate; **not** a live observation.
+
+The receipt design freezes two rules (`n8n/src/lead-intake/idempotency-receipt.js`):
+
+```js
+no_ordinary_rejection_after_claim:                        true,
+post_claim_failure_is_unresolved_not_ordinary_failure:    'SUBMIT_UNRESOLVED'
+```
+
+The reason is the whole of G1. Once the receipt is claimed, a failed Pipeline write does **not**
+establish that the row is absent — the append may have landed and the failure be in the
+acknowledgement. That is ambiguity, and the design reserves exactly one code for it.
+
+Two internal terminals sit downstream of the claim and report an ordinary retryable failure:
+
+| Terminal | Fed from | Returns | Post-claim? |
+|---|---|---|---|
+| `Internal Result (PipelineFailed)` | `Save to Pipeline` error output | `{PIPELINE_WRITE_FAILED, retryable: true}` | **yes** — the claim is step 6, the write is step 8 |
+| `Internal Result (MergeFailed)` | `Update Pipeline (Merge)` error output | `{PIPELINE_MERGE_FAILED, retryable: true}` | **yes** |
+| `Internal Result (Infra)` | `Read Settings` / `Read Pipeline (Dedup)` | `{CRM_UNAVAILABLE, retryable: true}` | **no** — long before the receipt is touched, so this one is correct |
+
+Neither post-claim terminal is a dead end by accident: both have **no outgoing edges at all**,
+so the receipt is left `IN_FLIGHT` with **no settlement**, while the graph does contain
+settlement machinery (`Receipt Retry Settlement`) used by the retry branch.
+
+**What is and is not established.** A retry on the **same** `submission_key` is safe by
+construction: the receipt is `IN_FLIGHT`, `IF Receipt Claimable` refuses it, and the caller gets
+`SUBMIT_UNRESOLVED` — the right answer, one attempt late. What is **not** established here is
+what the gateway does with `retryable: true` on the first failure, and whether any retry path
+mints a **fresh** key; a fresh key bypasses the receipt entirely and would duplicate a lead that
+may already exist. `idempotencyKey()` is retired in favour of a gateway-preallocated
+`submission_key`, and tracing which key a retry carries is the first step if F13 is opened.
+
+**Why no gate caught it.** The rules object was asserted — P5 checks that the *rules* still say
+what they say — but nothing compared the *terminals* against them. §6 of
+`qa/internal-route-contract.test.mjs` now pins the conflict from both sides: it fails if the
+terminals change and if the rule changes, so the two cannot drift apart silently, and closing
+F13 forces this doc and that gate to be updated together.
+
+**Not fixed here, deliberately.** Changing the code a post-claim failure returns is a change to
+the internal contract, and the gateway's `STATUS` / `RETRYABLE` mapping consumes it. That is an
+owner-visible design decision of the same class as P1-L5, not a defect to quietly patch at
+closeout — and it would require a fresh supersede cycle to redeploy and re-verify.
 
 
 ## 8. Gate status
