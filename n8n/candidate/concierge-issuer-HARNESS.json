@@ -1,0 +1,1478 @@
+{
+  "name": "FINMENTOR P73S2 HARNESS Concierge issuer (NON-ACTIVATABLE)",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1488,
+        160
+      ],
+      "id": "9b55cfcc-b422-4147-a79f-04bd42386f4c",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Settings -> object (client concierge bot, AI-guarded defaults).\n// The Telegram bot secret is no longer read from Settings at all: transport runs entirely through n8n Credentials.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def){ if (v === undefined || v === '') return def; return String(v).toLowerCase() === 'true' || v === '1'; }\nfunction num(v, def){ const n = Number(v); return Number.isFinite(n) ? n : def; }\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '<REDACTED_CHAT_ID>',\n  timezone: settings.timezone || 'Europe/Chisinau',\n  lead_intake_webhook_url: settings.lead_intake_webhook_url || 'https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake',\n  website_url: settings.website_url || 'https://finmentor.md',\n  default_language: (settings.default_language || 'ru').toLowerCase(),\n  bot_enabled: bool(settings.bot_enabled, true),\n  client_ai_enabled: bool(settings.client_ai_enabled, false),\n  client_ai_model: settings.client_ai_model || 'PASTE_AI_MODEL_PLACEHOLDER_HERE',\n  client_ai_temperature: num(settings.client_ai_temperature, 0.2)\n};\nreturn [{ json: { settings: cfg } }];"
+      },
+      "id": "a7fdbb04-c2b4-4ab6-924f-09b669ed0aed",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Telegram Update (client bot). Trigger отдаёт update на верхнем уровне (или в .body).\nconst u = $('Telegram Client Trigger').first().json;\nconst update = u.body || u;\nconst cb = update.callback_query || null;\nconst msg = update.message || update.edited_message || null;\n\nlet chat_id='', user_id='', username='', first_name='', last_name='', language='', message_text='', callback_data='', callback_query_id='';\nif (cb) {\n  chat_id = String(cb.message && cb.message.chat ? cb.message.chat.id : '');\n  user_id = String(cb.from ? cb.from.id : '');\n  username = (cb.from && cb.from.username) || '';\n  first_name = (cb.from && cb.from.first_name) || '';\n  last_name = (cb.from && cb.from.last_name) || '';\n  language = (cb.from && cb.from.language_code) || '';\n  callback_data = cb.data || '';\n  callback_query_id = cb.id || '';\n} else if (msg) {\n  chat_id = String(msg.chat ? msg.chat.id : '');\n  user_id = String(msg.from ? msg.from.id : '');\n  username = (msg.from && msg.from.username) || '';\n  first_name = (msg.from && msg.from.first_name) || '';\n  last_name = (msg.from && msg.from.last_name) || '';\n  language = (msg.from && msg.from.language_code) || '';\n  message_text = msg.text || '';\n}\nif (!chat_id) return [];  // служебный апдейт без чата — игнор\nreturn [{ json: {\n  chat_id, user_id, username, first_name, last_name, language,\n  message_text, callback_data, callback_query_id,\n  is_callback: !!cb,\n  raw_update: JSON.stringify(update).slice(0, 4000)\n}}];\n"
+      },
+      "id": "3e46b01d-6fe4-49c7-8dbb-3019deda3746",
+      "name": "Parse Telegram Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        160
+      ]
+    },
+    {
+      "id": "46af36cd-631b-4068-8d46-1e48c5de5e5e",
+      "name": "Read Bot Sessions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -940,
+        160
+      ],
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": false
+    },
+    {
+      "id": "a51eb00f-b8b5-4451-9555-af73f8c17cbb",
+      "name": "Find Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        160
+      ],
+      "parameters": {
+        "jsCode": "// Session lookup moved out of the Google Sheets node.\n// The node-level filtersUI triggered a false Retry On Fail: the read succeeded in ~440 ms but n8n still\n// waited two 2000 ms back-offs, costing ~5.3 s on every client message. The read now returns all rows\n// over an explicit A:AV range and the match happens here, in memory.\n// CONTRACT: always returns EXACTLY ONE item, so no downstream node ever sees the full array.\n// The target chat id comes ONLY from the parsed Telegram context, never from $json (which here is a sheet row).\nconst p = $('Parse Telegram Update').first().json;\nconst target = String(p.chat_id == null ? '' : p.chat_id);\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id !== undefined && String(r.chat_id).trim() !== '');\nlet matched = null;\nfor (const r of rows) { if (String(r.chat_id) === target) { matched = r; break; } }\nif (matched) return [{ json: matched }];\n// No row for this chat yet: hand the gateway a canonical empty session for THIS user only.\nreturn [{ json: {\n  row_number: 0,\n  session_id: '',\n  chat_id: target,\n  user_id: String(p.user_id || ''),\n  username: p.username || '',\n  first_name: p.first_name || '',\n  last_name: p.last_name || '',\n  language: p.language || 'ru',\n  state: '',\n  created_at: '',\n  updated_at: '',\n  last_message_at: '',\n  entry_source: '',\n  selected_service: '',\n  business_model: '',\n  turnover_range: '',\n  main_pain: '',\n  urgency: '',\n  has_cfo: '',\n  documents_status: '',\n  contact_phone: '',\n  contact_email: '',\n  contact_name: '',\n  company: '',\n  free_text_request: '',\n  consent: '',\n  lead_id: '',\n  lead_sent_at: '',\n  status: '',\n  notes: '',\n  raw_json: '',\n  cycle_id: '',\n  consent_cycle_id: '',\n  consent_at: '',\n  lead_cycle_id: '',\n  lead_intake_ok: '',\n  previous_lead_id: '',\n  submission_key: ''\n} }];"
+      }
+    },
+    {
+      "id": "4ac0da72-62d2-4e56-ab99-c45f05c860d9",
+      "name": "Get Bot Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -740,
+        160
+      ],
+      "parameters": {
+        "jsCode": "// CYCLE SEMANTICS GATE (P0 fix for stale consent).\n// Every consumer that reads $('Get Bot Session') now sees a CYCLE-VALID view of the session:\n// consent and lead_id from a previous application cycle are invalidated before the state machine ever sees them.\n// A new cycle is created ONLY on an explicit reset: /start, or \"Начать заново\" (m|diag pressed on a session that\n// already carries a consent decision, a lead, or an ended session). Plain navigation (/menu, n|menu) never changes it.\n// An unfinished diagnostic cycle is never reset by m|diag, because there the same callback means \"continue\".\nconst p = $('Parse Telegram Update').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.chat_id == null ? '' : r.chat_id).trim() !== '');\nconst s = Object.assign({}, rows.length ? rows[0] : {});\nconst now = new Date().toISOString();\nconst text = String(p.message_text || '').trim().toLowerCase();\nconst cb = String(p.callback_data || '').trim();\nconst str = v => String(v == null ? '' : v).trim();\n// ============ B.2.1-C P7.2 — ISSUANCE INPUTS, CAPTURED BEFORE THIS GATE MUTATES s ============\nconst persistedSubmissionKey = str(s.submission_key);\nconst persistedCycleIdAtEntry = str(s.cycle_id);\n\nconst isStart = text === '/start';\n// \"Завершённый\" цикл: есть решение по согласию, есть лид, либо сессия явно завершена кнопкой \"Завершить\".\nconst carriesFinishedCycle = str(s.consent) !== '' || str(s.lead_id) !== '' || str(s.status).toLowerCase() === 'ended';\nconst isRestart = cb === 'm|diag' && carriesFinishedCycle;\nconst hasNoCycle = str(s.cycle_id) === '';\n\nlet cycleId = str(s.cycle_id);\nlet reset = '';\nif (isStart) reset = 'start';\nelse if (isRestart) reset = 'restart';\nelse if (hasNoCycle) reset = 'bootstrap';\nif (reset) cycleId = 'C-' + str(p.chat_id) + '-' + Date.now();\n\nfunction archiveLead() {\n  const old = str(s.lead_id);\n  if (old) {\n    const prev = str(s.previous_lead_id).split(';').map(x => x.trim()).filter(Boolean);\n    if (!prev.includes(old)) prev.push(old);\n    s.previous_lead_id = prev.join('; ').slice(0, 500);\n  }\n  s.lead_id = ''; s.lead_cycle_id = ''; s.lead_sent_at = ''; s.lead_intake_ok = '';\n}\n\nif (reset === 'start' || reset === 'restart') {\n  // Explicit reset: a genuinely new application cycle.\n  s.consent = ''; s.consent_cycle_id = ''; s.consent_at = '';\n  archiveLead();\n  s.selected_service = ''; s.business_model = ''; s.turnover_range = ''; s.main_pain = '';\n  s.urgency = ''; s.has_cfo = ''; s.documents_status = ''; s.free_text_request = '';\n  s.raw_json = ''; s.status = 'active'; s.state = 'MENU'; s.notes = '';\n  // Identity and contact convenience fields are deliberately kept; on their own they cannot submit anything,\n  // because consent is now empty and lead_ready requires a current-cycle consent.\n}\n\ns.cycle_id = cycleId;\n\n// Independent of any reset: never let a consent or a lead from another cycle count for this one.\nif (str(s.consent) !== '' && str(s.consent_cycle_id) !== cycleId) { s.consent = ''; s.consent_cycle_id = ''; s.consent_at = ''; }\nif (str(s.lead_id) !== '' && str(s.lead_cycle_id) !== cycleId) { archiveLead(); }\n\ns.cycle_reset = reset;\n\n// ================ B.2.1-C P7.2 — SUBMISSION KEY ISSUANCE (ISSUANCE_ORDER step 1) ================\n//\n// The deployed form of decideIssuance() in n8n/src/concierge-issuer/mint-submission-key.js.\n// The module is the GATED statement of this logic; qa/concierge-issuer-candidate.test.mjs\n// drives both against one table of cases, so the two cannot drift apart silently.\n//\n// THE PRIMITIVE. require('crypto').randomBytes is the ONLY entropy source that answers in this\n// sandbox: execution 3651 measured \"typeof crypto === undefined\" on this tenant. Writing the\n// modern reflex (crypto.getRandomValues) or the specification's literal (crypto.randomBytes)\n// here is not a degraded feature — it is a ReferenceError inside the node that every Telegram\n// update passes through, i.e. a bot that stops answering /start for every user.\n//\n// THE FAILURE POSTURE. The mint is wrapped, and that wrapper is load-bearing. This node runs\n// BEFORE the reply is composed, so an exception here costs the user their message. A mint that\n// throws degrades to MINT_FAILED: the turn still answers, and it is the GRAPH that refuses to\n// persist the new cycle. planIssuance() is explicit about why that refusal is the safe half — a\n// half-advanced authority row (new cycle_id, no submission_key) makes every submit\n// PRE_ACTIVATION_BLOCKED, locking the user out of a cycle that looks current.\n//\n// NEVER_BACKFILL. A cycle that exists without a key is NEVER given one retroactively. A legacy\n// cycle may already have submitted — lead_id set, CRM row written — and a fresh READY receipt is\n// positive evidence to the gateway that it has NOT, releasing a second attempt for a lead that\n// is already in the pipeline. Cost of refusing: one restart. Cost of backfilling: a duplicate\n// lead.\n//\n// The four annotations below are __-prefixed on purpose. They are decision metadata, not sheet\n// columns, and F16 proved that a stray property reaching Save Bot Session does not vanish — it\n// permanently widens Bot_Sessions. The three row builders emit their declared COLS only, and the\n// prefix makes it visible at a glance that these were never candidates for that list.\nconst SUBMISSION_KEY_RE = /^sub_[0-9a-f]{32}$/;\nfunction mintSubmissionKey() {\n  const buf = require('crypto').randomBytes(16);\n  if (!buf || typeof buf.length !== 'number' || buf.length !== 16) { throw new Error('randomBytes did not return 16 bytes'); }\n  let hex = '';\n  for (let i = 0; i < 16; i++) {\n    const b = buf[i];\n    if (typeof b !== 'number' || !isFinite(b) || b < 0 || b > 255 || (b | 0) !== b) { throw new Error('randomBytes returned a non-byte at index ' + i); }\n    hex += (b < 16 ? '0' : '') + b.toString(16);\n  }\n  const k = 'sub_' + hex;\n  if (!SUBMISSION_KEY_RE.test(k)) { throw new Error('minted key failed the format rule'); }\n  return k;\n}\n\nlet keyAction = '';\nlet keyReason = '';\nlet keyPreallocate = false;\nif (reset !== '') {\n  // A key is minted IF AND ONLY IF a new cycle is minted. Anything else desynchronises the pair\n  // Bot_Sessions carries, and the gateway's SUBMISSION_KEY_DRIFT check exists precisely because\n  // that pair must move together or not at all.\n  try {\n    s.submission_key = mintSubmissionKey();\n    keyAction = 'MINT';\n    keyReason = 'NEW_CYCLE_' + reset.toUpperCase();\n    keyPreallocate = true;\n  } catch (e) {\n    s.submission_key = '';\n    keyAction = 'MINT_FAILED';\n    keyReason = 'MINT_THREW:' + String((e && e.message) || e).slice(0, 120);\n  }\n} else if (SUBMISSION_KEY_RE.test(persistedSubmissionKey)) {\n  s.submission_key = persistedSubmissionKey;\n  keyAction = 'CARRY';\n  keyReason = 'CYCLE_UNCHANGED';\n} else if (persistedSubmissionKey !== '') {\n  // Carried UNCHANGED and never repaired. The gateway already refuses a malformed key\n  // (SUBMISSION_KEY_INVALID, proven live); blanking it here would destroy the only evidence\n  // that the row is corrupt while producing the identical refusal. The issuer reports; it does\n  // not launder.\n  s.submission_key = persistedSubmissionKey;\n  keyAction = 'CARRY_MALFORMED';\n  keyReason = 'KEY_MALFORMED_NOT_REPAIRED';\n} else {\n  s.submission_key = '';\n  keyAction = 'LEGACY_NO_KEY';\n  keyReason = persistedCycleIdAtEntry !== '' ? 'LEGACY_CYCLE_NOT_BACKFILLED' : 'NO_CYCLE_NO_KEY';\n}\ns.__submission_key_action = keyAction;\ns.__submission_key_reason = keyReason;\ns.__submission_key_preallocate = keyPreallocate;\ns.__submission_key_fault = keyAction === 'MINT_FAILED';\nreturn [{ json: s }];"
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build Bot Response - FINMENTOR Client Concierge final state-machine.\n// State-first rules: when a concrete field is expected, never run intent classification first.\nfunction safeText(value, max = 3800) {\n  let text = String(value ?? \"\")\n    .replace(/\\r/g, \"\")\n    .replace(/[<>]/g, \"\")\n    .replace(/[_*\\[\\]()`~>#=|{}]/g, \" \")\n    .replace(/[ \\t]+\\n/g, \"\\n\")\n    .replace(/\\n{4,}/g, \"\\n\\n\\n\")\n    .replace(/[ \\t]{2,}/g, \" \")\n    .trim();\n  if (!text) text = \"Понял. Вернёмся в главное меню, где можно выбрать диагностику, встречу или свободно описать запрос.\";\n  if (text.length > max) text = text.slice(0, max).trim() + \"...\";\n  return text;\n}\n\nfunction bool(value, fallback = false) {\n  if (value === undefined || value === null || value === \"\") return fallback;\n  return String(value).toLowerCase() === \"true\" || String(value) === \"1\";\n}\n\nfunction norm(value) {\n  return String(value ?? \"\").toLowerCase().replace(/ё/g, \"е\").trim();\n}\n\nfunction empty(value) {\n  return String(value ?? \"\").trim() === \"\";\n}\n\nfunction containsAny(text, patterns) {\n  const s = norm(text);\n  return patterns.some((pattern) => pattern.test(s));\n}\n\nfunction isNoCompanyText(value) {\n  return containsAny(value, [\n    /не хочу.*(компан|указывать)/,\n    /конфиденциально/,\n    /пока не скажу/,\n    /позже/,\n    /без компании/,\n  ]);\n}\n\nfunction isNoContactText(value) {\n  return containsAny(value, [\n    /не хочу.*(контакт|оставлять)/,\n    /без контакта/,\n    /пока нет/,\n    /позже/,\n    /не оставлять/,\n  ]);\n}\n\nfunction isNoTurnoverText(value) {\n  return containsAny(value, [\n    /не хочу.*оборот/,\n    /не указывать.*оборот/,\n    /без оборота/,\n    /оборот.*позже/,\n    /конфиденциально/,\n  ]);\n}\n\nfunction isConsentYes(value) {\n  return containsAny(value, [/^да$/, /соглас/, /подтвержд/, /можно/, /передать/, /\\byes\\b/, /\\bok\\b/]);\n}\n\nfunction isConsentNo(value) {\n  return containsAny(value, [/^нет$/, /не соглас/, /не надо/, /не передав/, /пока не/, /\\bno\\b/]);\n}\n\nfunction isPersonIntro(value) {\n  const text = safeText(value, 200);\n  const s = norm(text);\n  if (!s || text.length > 120) return false;\n  if (/[?？]/.test(text) || /^(как|что|сколько|когда|где|почему|зачем)\\b/.test(s)) return false;\n  if (containsAny(s, [/нужен/, /нужна/, /нужно/, /требуется/, /ищу/, /хочу/, /проблем/, /нет/, /стоимост/, /цена/, /услуг/, /помогите/, /консультац/])) return false;\n  const words = s\n    .replace(/[.,;:!?()[\\]{}\"«»—–-]/g, \" \")\n    .split(/\\s+/)\n    .filter(Boolean);\n  if (words.length < 1 || words.length > 5) return false;\n  const roleHit = containsAny(s, [\n    /собственник/,\n    /финансовый директор/,\n    /директор/,\n    /\\bceo\\b/,\n    /\\bcfo\\b/,\n    /руководитель/,\n    /бухгалтер/,\n    /управляющ/,\n    /основатель/,\n  ]);\n  const hasLetters = /[a-zа-я]/i.test(text);\n  return hasLetters && roleHit;\n}\n\nconst cfg = (function () {\n  try {\n    return $(\"Settings to Object\").first().json.settings || {};\n  } catch (e) {\n    return {};\n  }\n})();\n\nconst site = cfg.website_url || \"https://finmentor.md\";\nconst lang = (cfg.default_language || \"ru\").toLowerCase();\nconst clientAiEnabled = bool(cfg.client_ai_enabled, false);\n\nconst p = $(\"Parse Telegram Update\").first().json;\nconst chat_id = p.chat_id;\nconst isCb = !!p.is_callback;\nconst data = String(p.callback_data || \"\").trim();\nconst text = String(p.message_text || \"\").trim();\n\nconst now = new Date().toISOString();\n\nconst ALLOWED_STATES = [\n  \"START\",\n  \"MENU\",\n  \"SERVICE_SELECTED\",\n  \"BUSINESS_MODEL_SELECTED\",\n  \"TURNOVER_SELECTED\",\n  \"MAIN_PAIN_SELECTED\",\n  \"URGENCY_SELECTED\",\n  \"HAS_CFO_SELECTED\",\n  \"DOCUMENTS_SELECTED\",\n  \"CONTACT_NAME_REQUESTED\",\n  \"COMPANY_REQUESTED\",\n  \"CONTACT_REQUESTED\",\n  \"CONSENT_REQUESTED\",\n  \"LEAD_SENT\",\n  \"CONSENT_DECLINED\",\n  \"ENDED\",\n];\n\nconst SERVICE = {\n  xray: \"Financial X-Ray / диагностика\",\n  cashflow: \"Cash Flow / деньги\",\n  receivables: \"Контроль дебиторской задолженности\",\n  inventory: \"Запасы / оборотный капитал\",\n  pnl: \"P&L / маржинальность\",\n  bi: \"BI / отчётность\",\n  automation: \"Автоматизация\",\n  cfo: \"CFO-сопровождение\",\n  meeting: \"Discovery Call\",\n  free_text: \"Free Text Request\",\n};\n\nconst BUSINESS_MODEL = {\n  trade: \"Торговля\",\n  manuf: \"Производство\",\n  construction: \"Строительство / Real Estate\",\n  horeca: \"HoReCa\",\n  services: \"Услуги / логистика\",\n  ecommerce: \"E-commerce\",\n  other: \"Другое / смешанная модель\",\n};\n\nconst TURNOVER = {\n  lt100: \"до 100k EUR/год\",\n  \"100_500\": \"100k-500k EUR/год\",\n  \"500_2m\": \"500k-2M EUR/год\",\n  \"2m_10m\": \"2M-10M EUR/год\",\n  \"10m_plus\": \"10M+ EUR/год\",\n  skip: \"Не указано\",\n};\n\nconst PAIN = {\n  no_money: \"Деньги есть в продажах, но не хватает ликвидности\",\n  no_cashflow: \"Нет понятного Cash Flow\",\n  receivables: \"Растёт дебиторская задолженность / деньги зависают у клиентов\",\n  margin: \"Непонятна маржинальность\",\n  no_profit: \"Собственник не видит реальную прибыль\",\n  manual: \"Отчётность собирается вручную\",\n  no_cfo: \"Нет финансового директора / управленческого контроля\",\n  automation: \"Нужна автоматизация финансовой отчётности\",\n};\n\nconst URGENCY = {\n  urgent: \"Срочно, в течение недели\",\n  month: \"В течение месяца\",\n  quarter: \"В ближайший квартал\",\n  exploring: \"Пока изучаю варианты\",\n};\n\nconst CFO = {\n  yes: \"Да, есть CFO\",\n  book_no_control: \"Есть бухгалтерия, но нет управленческого контроля\",\n  none: \"Нет отдельного финансового блока\",\n  unsure: \"Сложно оценить\",\n};\n\nconst DOC = {\n  cashflow: \"Cash Flow / платежи\",\n  pnl: \"P&L / прибыль и убытки\",\n  receivables: \"Дебиторская и кредиторская задолженность\",\n  sales: \"Продажи и маржа\",\n  excel: \"Excel-таблицы\",\n  nothing: \"Пока ничего не подготовлено\",\n};\n\nfunction hasContact(s) {\n  return !!(s.contact_phone || s.contact_email);\n}\n\nfunction inferState(s) {\n  if (!empty(s.contact_name) && empty(s.company)) return \"COMPANY_REQUESTED\";\n  if (!empty(s.contact_name) && !empty(s.company) && !hasContact(s)) return \"CONTACT_REQUESTED\";\n  if (!empty(s.contact_name) && !empty(s.company) && hasContact(s) && empty(s.consent)) return \"CONSENT_REQUESTED\";\n  return s.state || \"MENU\";\n}\n\nfunction baseSession(seed = {}) {\n  return {\n    session_id: seed.session_id || \"S-\" + chat_id + \"-\" + Date.now(),\n    chat_id,\n    user_id: seed.user_id || p.user_id || \"\",\n    username: seed.username || p.username || \"\",\n    first_name: seed.first_name || p.first_name || \"\",\n    last_name: seed.last_name || p.last_name || \"\",\n    language: seed.language || p.language || lang,\n    state: seed.state || \"START\",\n    created_at: seed.created_at || now,\n    updated_at: now,\n    last_message_at: now,\n    entry_source: seed.entry_source || \"telegram_client_concierge\",\n    selected_service: seed.selected_service || \"\",\n    business_model: seed.business_model || \"\",\n    turnover_range: seed.turnover_range || \"\",\n    main_pain: seed.main_pain || \"\",\n    urgency: seed.urgency || \"\",\n    has_cfo: seed.has_cfo || \"\",\n    documents_status: seed.documents_status || \"\",\n    contact_phone: seed.contact_phone || \"\",\n    contact_email: seed.contact_email || \"\",\n    contact_name: seed.contact_name || \"\",\n    company: seed.company || \"\",\n    free_text_request: seed.free_text_request || \"\",\n    consent: seed.consent || \"\",\n    lead_id: seed.lead_id || \"\",\n    lead_sent_at: seed.lead_sent_at || \"\",\n    status: seed.status || \"active\",\n    notes: seed.notes || \"\",\n    raw_json: seed.raw_json || \"\",\n  };\n}\n\nfunction normalizeSessionRows(rows) {\n  const sameChat = rows.filter((r) => String(r.chat_id || \"\") === String(chat_id));\n  const normalized = sameChat.map((r) => baseSession(r));\n  normalized.sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));\n  const good = normalized.find((r) => !empty(r.session_id) && !empty(r.state));\n  const partial = normalized.find((r) => !empty(r.session_id) || !empty(r.contact_name) || !empty(r.company) || hasContact(r));\n  const chosen = good || partial || null;\n  if (!chosen) return { session: baseSession(), recovered: false };\n  let recovered = false;\n  if (!ALLOWED_STATES.includes(chosen.state)) {\n    chosen.state = \"MENU\";\n    recovered = true;\n  }\n  const inferred = inferState(chosen);\n  if ((empty(chosen.state) || [\"START\", \"MENU\", \"SERVICE_SELECTED\"].includes(chosen.state)) && inferred !== chosen.state) {\n    chosen.state = inferred;\n    recovered = true;\n  }\n  if (empty(chosen.session_id)) {\n    chosen.session_id = \"S-\" + chat_id + \"-\" + Date.now();\n    recovered = true;\n  }\n  return { session: chosen, recovered };\n}\n\nlet rawSessions = [];\ntry {\n  rawSessions = $(\"Get Bot Session\").all().map((i) => i.json).filter((r) => r && r.chat_id);\n} catch (e) {\n  rawSessions = [];\n}\n\nlet { session, recovered: stateRecovered } = normalizeSessionRows(rawSessions);\nsession.updated_at = now;\nsession.last_message_at = now;\nif (p.username) session.username = p.username;\nif (p.first_name) session.first_name = p.first_name;\nif (p.last_name) session.last_name = p.last_name;\nif (p.language) session.language = p.language;\n\nconst stateBefore = session.state || \"START\";\n\nfunction appendNote(flag) {\n  const parts = String(session.notes || \"\").split(\";\").map((x) => x.trim()).filter(Boolean);\n  if (!parts.includes(flag)) parts.push(flag);\n  session.notes = parts.join(\"; \").slice(0, 500);\n}\n\nfunction removeNotes(flags) {\n  const remove = new Set(flags);\n  const parts = String(session.notes || \"\").split(\";\").map((x) => x.trim()).filter(Boolean);\n  session.notes = parts.filter((x) => !remove.has(x)).join(\"; \").slice(0, 500);\n}\n\nif (stateRecovered) appendNote(\"state_recovered\");\n\nfunction kb(rows) {\n  return { inline_keyboard: rows };\n}\n\nconst SITE_BTN = { text: \"🌐 Открыть сайт\", url: site };\nconst MENU_ROW = [{ text: \"🏠 Главное меню\", callback_data: \"n|menu\" }];\n\nfunction menuKeyboard() {\n  return kb([\n    [{ text: \"🚀 Короткая диагностика\", callback_data: \"m|diag\" }],\n    [{ text: \"📅 Запросить встречу\", callback_data: \"m|meeting_contact\" }],\n    [{ text: \"✍️ Описать запрос своими словами\", callback_data: \"m|free_text\" }],\n    [{ text: \"💼 Услуги FINMENTOR\", callback_data: \"m|services\" }],\n    [SITE_BTN, { text: \"❌ Завершить\", callback_data: \"n|end\" }],\n  ]);\n}\n\nfunction screenMenu() {\n  removeNotes([\"awaiting_free_text_request\", \"contact_flow_active\"]);\n  session.state = \"MENU\";\n  return {\n    state: \"MENU\",\n    text:\n      \"Здравствуйте. Я FINMENTOR Concierge.\\n\\n\" +\n      \"Помогу собственнику или руководителю спокойно выбрать первый шаг по финансам — без лишних вопросов и давления.\\n\\n\" +\n      \"Можно пройти короткую диагностику, запросить встречу или описать задачу своими словами. Как удобнее вам?\",\n    markup: menuKeyboard(),\n    detail: \"menu_opened\",\n  };\n}\n\nfunction screenServices() {\n  return {\n    state: \"MENU\",\n    text:\n      \"FINMENTOR помогает собственникам и руководителям навести управленческий финансовый контроль без лишней сложности.\\n\\n\" +\n      \"Основные направления:\\n\" +\n      \"1. Financial X-Ray бизнеса\\n\" +\n      \"2. Управленческий Cash Flow и P&L\\n\" +\n      \"3. Дебиторская задолженность, запасы и оборотный капитал\\n\" +\n      \"4. Power BI dashboards\\n\" +\n      \"5. Автоматизация через n8n / Make\\n\" +\n      \"6. CFO-as-a-Service\\n\\n\" +\n      \"Если хотите, можно коротко описать ситуацию или запросить встречу.\",\n    markup: kb([\n      [{ text: \"🚀 Короткая диагностика\", callback_data: \"m|diag\" }],\n      [{ text: \"✍️ Написать запрос\", callback_data: \"m|free_text\" }],\n      [{ text: \"📅 Запросить встречу\", callback_data: \"m|meeting_contact\" }],\n      [SITE_BTN],\n      MENU_ROW,\n    ]),\n    detail: \"services_requested\",\n  };\n}\n\nfunction screenPrice() {\n  return {\n    state: \"MENU\",\n    text:\n      \"Стоимость зависит от глубины задачи: Financial X-Ray, Cash Flow/P&L, Power BI, автоматизация или CFO-сопровождение.\\n\\n\" +\n      \"Чтобы не давать формальную цену без контекста, лучше коротко понять задачу и масштаб.\",\n    markup: kb([\n      [{ text: \"📅 Обсудить стоимость на встрече\", callback_data: \"m|meeting_contact\" }],\n      [{ text: \"🚀 Короткая диагностика\", callback_data: \"m|diag\" }],\n      [{ text: \"💼 Услуги FINMENTOR\", callback_data: \"m|services\" }],\n      MENU_ROW,\n    ]),\n    detail: \"price_question\",\n  };\n}\n\nfunction screenSkipQuestionnaire() {\n  if (empty(session.selected_service)) session.selected_service = SERVICE.free_text;\n  return {\n    state: \"SERVICE_SELECTED\",\n    text:\n      \"Понимаю. Тогда не будем проходить диагностику.\\n\\n\" +\n      \"Можно оставить минимум: имя, компания или сфера, удобный контакт и одна фраза по запросу. Этого достаточно, чтобы эксперт FINMENTOR вернулся к вам предметно.\",\n    markup: kb([\n      [{ text: \"✅ Оставить контакт\", callback_data: \"m|meeting_contact\" }],\n      [{ text: \"✍️ Написать запрос\", callback_data: \"m|free_text\" }],\n      [{ text: \"💼 Услуги FINMENTOR\", callback_data: \"m|services\" }],\n      MENU_ROW,\n    ]),\n    detail: \"questionnaire_skipped\",\n  };\n}\n\nfunction askFreeText() {\n  if (empty(session.selected_service)) session.selected_service = SERVICE.free_text;\n  appendNote(\"awaiting_free_text_request\");\n  return {\n    state: \"SERVICE_SELECTED\",\n    text:\n      \"Напишите в одном сообщении, что хотите обсудить.\\n\\n\" +\n      \"Можно коротко: «нет понятного cash flow», «нужен Power BI», «хочу CFO-сопровождение», «нужна встреча».\",\n    markup: kb([MENU_ROW]),\n    detail: \"free_text_intent_detected\",\n  };\n}\n\nfunction askStep(step, prefixText = \"\") {\n  const prefix = prefixText ? prefixText + \"\\n\\n\" : \"\";\n  if (step === \"service\") {\n    return {\n      state: \"SERVICE_SELECTED\",\n      text: prefix + \"Что сейчас важнее всего для вашего бизнеса?\",\n      markup: kb([\n        [{ text: \"💰 Cash Flow / деньги\", callback_data: \"s|cashflow\" }],\n        [{ text: \"📉 Оборотный капитал: задолженность и запасы\", callback_data: \"s|receivables\" }],\n        [{ text: \"📊 P&L / маржинальность\", callback_data: \"s|pnl\" }],\n        [{ text: \"📈 BI / отчётность\", callback_data: \"s|bi\" }],\n        [{ text: \"⚙️ Автоматизация\", callback_data: \"s|automation\" }],\n        [{ text: \"👤 CFO-сопровождение\", callback_data: \"s|cfo\" }],\n        [{ text: \"Пока не уверен — нужна диагностика\", callback_data: \"s|xray\" }],\n        MENU_ROW,\n      ]),\n      detail: \"start_diagnostic\",\n    };\n  }\n  if (step === \"business_model\") {\n    return {\n      state: \"BUSINESS_MODEL_SELECTED\",\n      text: prefix + \"Какой тип бизнеса ближе всего?\",\n      markup: kb([\n        [{ text: \"Торговля\", callback_data: \"b|trade\" }, { text: \"Производство\", callback_data: \"b|manuf\" }],\n        [{ text: \"Строительство / Real Estate\", callback_data: \"b|construction\" }],\n        [{ text: \"HoReCa\", callback_data: \"b|horeca\" }, { text: \"Услуги / логистика\", callback_data: \"b|services\" }],\n        [{ text: \"E-commerce\", callback_data: \"b|ecommerce\" }, { text: \"Другое\", callback_data: \"b|other\" }],\n        MENU_ROW,\n      ]),\n      detail: \"business_model_requested\",\n    };\n  }\n  if (step === \"turnover\") {\n    return {\n      state: \"TURNOVER_SELECTED\",\n      text: prefix + \"Ориентировочный оборот компании? Можно не указывать, если сейчас не хотите раскрывать.\",\n      markup: kb([\n        [{ text: \"до 100k EUR/год\", callback_data: \"t|lt100\" }],\n        [{ text: \"100k-500k EUR/год\", callback_data: \"t|100_500\" }],\n        [{ text: \"500k-2M EUR/год\", callback_data: \"t|500_2m\" }],\n        [{ text: \"2M-10M EUR/год\", callback_data: \"t|2m_10m\" }],\n        [{ text: \"10M+ EUR/год\", callback_data: \"t|10m_plus\" }],\n        [{ text: \"Не хочу указывать\", callback_data: \"t|skip\" }],\n        MENU_ROW,\n      ]),\n      detail: \"turnover_requested\",\n    };\n  }\n  if (step === \"main_pain\") {\n    return {\n      state: \"MAIN_PAIN_SELECTED\",\n      text: prefix + \"Что сейчас создаёт самое заметное финансовое напряжение?\",\n      markup: kb([\n        [{ text: \"Деньги есть в продажах, но не хватает ликвидности\", callback_data: \"p|no_money\" }],\n        [{ text: \"Нет понятного Cash Flow\", callback_data: \"p|no_cashflow\" }],\n        [{ text: \"Растёт дебиторская задолженность\", callback_data: \"p|receivables\" }],\n        [{ text: \"Не вижу маржу и реальную прибыль\", callback_data: \"p|no_profit\" }],\n        [{ text: \"Отчёты собираются вручную\", callback_data: \"p|manual\" }],\n        [{ text: \"Нет финансового директора\", callback_data: \"p|no_cfo\" }],\n        MENU_ROW,\n      ]),\n      detail: \"main_pain_requested\",\n    };\n  }\n  if (step === \"urgency\") {\n    return {\n      state: \"URGENCY_SELECTED\",\n      text: prefix + \"Насколько срочно нужно разобраться?\",\n      markup: kb([\n        [{ text: \"Срочно, в течение недели\", callback_data: \"u|urgent\" }],\n        [{ text: \"В течение месяца\", callback_data: \"u|month\" }],\n        [{ text: \"В ближайший квартал\", callback_data: \"u|quarter\" }],\n        [{ text: \"Пока изучаю варианты\", callback_data: \"u|exploring\" }],\n        [{ text: \"➡️ Перейти к контакту\", callback_data: \"m|to_contact\" }],\n        MENU_ROW,\n      ]),\n      detail: \"urgency_requested\",\n    };\n  }\n  if (step === \"has_cfo\") {\n    return {\n      state: \"HAS_CFO_SELECTED\",\n      text: prefix + \"Есть ли в компании финансовый директор или сильный финансовый блок?\",\n      markup: kb([\n        [{ text: \"Да, есть CFO\", callback_data: \"c|yes\" }],\n        [{ text: \"Есть бухгалтерия, но нет управленческого контроля\", callback_data: \"c|book_no_control\" }],\n        [{ text: \"Нет отдельного финансового блока\", callback_data: \"c|none\" }],\n        [{ text: \"Сложно оценить\", callback_data: \"c|unsure\" }],\n        [{ text: \"➡️ Перейти к контакту\", callback_data: \"m|to_contact\" }],\n        MENU_ROW,\n      ]),\n      detail: \"cfo_context_requested\",\n    };\n  }\n  if (step === \"documents\") {\n    return {\n      state: \"DOCUMENTS_SELECTED\",\n      text: prefix + \"Какие данные уже есть для первичного разбора?\",\n      markup: kb([\n        [{ text: \"Cash Flow / платежи\", callback_data: \"d|cashflow\" }],\n        [{ text: \"P&L / прибыль и убытки\", callback_data: \"d|pnl\" }],\n        [{ text: \"Дебиторская и кредиторская задолженность\", callback_data: \"d|receivables\" }],\n        [{ text: \"Продажи и маржа\", callback_data: \"d|sales\" }],\n        [{ text: \"Excel-таблицы\", callback_data: \"d|excel\" }],\n        [{ text: \"Пока ничего не подготовлено\", callback_data: \"d|nothing\" }],\n        MENU_ROW,\n      ]),\n      detail: \"documents_requested\",\n    };\n  }\n  if (step === \"contact_name\") {\n    appendNote(\"contact_flow_active\");\n    return {\n      state: \"CONTACT_NAME_REQUESTED\",\n      text:\n        prefix +\n        \"Чтобы эксперт FINMENTOR понимал контекст запроса, представьтесь, пожалуйста.\\n\\n\" +\n        \"Напишите имя и вашу роль в компании.\\n\\n\" +\n        \"Например:\\nГеннадий, собственник\\nили\\nАнна, финансовый директор\",\n      markup: kb([MENU_ROW]),\n      detail: \"contact_requested\",\n    };\n  }\n  if (step === \"company\") {\n    appendNote(\"contact_flow_active\");\n    return {\n      state: \"COMPANY_REQUESTED\",\n      text:\n        prefix +\n        \"Спасибо. Укажите, пожалуйста, компанию или кратко опишите сферу бизнеса.\\n\\n\" +\n        \"Например: торговая компания, производство, HoReCa, строительство, услуги, e-commerce.\",\n      markup: kb([[{ text: \"Продолжить без компании\", callback_data: \"company|skip\" }], MENU_ROW]),\n      detail: \"contact_name_captured\",\n    };\n  }\n  if (step === \"contact\") {\n    appendNote(\"contact_flow_active\");\n    return {\n      state: \"CONTACT_REQUESTED\",\n      text:\n        prefix +\n        \"Куда удобнее вернуться с первым предложением по вашему запросу?\\n\\n\" +\n        \"Можно написать телефон, email или @username.\\n\" +\n        \"Если удобнее, мы можем ответить прямо здесь, в Telegram.\",\n      markup: kb([\n        [{ text: \"Ответить здесь в Telegram\", callback_data: \"contact|telegram\" }],\n        [{ text: \"Пока без контакта\", callback_data: \"contact|skip\" }],\n        MENU_ROW,\n      ]),\n      detail: \"company_captured\",\n    };\n  }\n  return askConsent(prefixText);\n}\n\nfunction askConsent(prefixText = \"\") {\n  appendNote(\"contact_flow_active\");\n  return {\n    state: \"CONSENT_REQUESTED\",\n    text:\n      (prefixText ? prefixText + \"\\n\\n\" : \"\") +\n      \"Перед тем как передать запрос эксперту FINMENTOR, подтвердите, пожалуйста, что мы можем использовать переданные данные, чтобы связаться с вами и подготовить предварительную рекомендацию.\",\n    markup: kb([\n      [{ text: \"✅ Да, передать эксперту\", callback_data: \"consent|yes\" }],\n      [{ text: \"❌ Пока не передавать\", callback_data: \"consent|no\" }],\n      MENU_ROW,\n    ]),\n    detail: \"consent_requested\",\n  };\n}\n\nfunction endScreen() {\n  session.status = \"ended\";\n  return {\n    state: \"ENDED\",\n    text:\n      \"Спасибо за интерес к FINMENTOR.\\n\\n\" +\n      \"Когда будет удобно, вы можете вернуться и выбрать формат первого шага: короткая диагностика, встреча или свободное описание запроса.\",\n    markup: kb([[{ text: \"🚀 Начать заново\", callback_data: \"m|diag\" }], [{ text: \"💼 Услуги\", callback_data: \"m|services\" }], [SITE_BTN]]),\n    detail: \"session_ended\",\n  };\n}\n\nfunction contactSkippedScreen() {\n  session.consent = \"\";\n  session.status = \"no_contact\";\n  appendNote(\"no_contact\");\n  removeNotes([\"contact_flow_active\"]);\n  return {\n    state: \"CONTACT_REQUESTED\",\n    text:\n      \"Хорошо, без контакта.\\n\\n\" +\n      \"Я не буду передавать запрос эксперту без понятного канала связи. Когда будет удобно, вы сможете вернуться, оставить контакт или посмотреть услуги FINMENTOR.\",\n    markup: kb([[{ text: \"💼 Посмотреть услуги\", callback_data: \"m|services\" }], MENU_ROW, [{ text: \"❌ Завершить\", callback_data: \"n|end\" }]]),\n    detail: \"no_contact\",\n  };\n}\n\nfunction consentDeclinedScreen() {\n  session.consent = \"no\";\n  session.status = \"declined\";\n  return {\n    state: \"CONSENT_DECLINED\",\n    text:\n      \"Понимаю. Мы не будем передавать запрос эксперту без вашего согласия.\\n\\n\" +\n      \"Вы можете вернуться позже, посмотреть услуги или начать заново.\",\n    markup: kb([[{ text: \"🚀 Начать заново\", callback_data: \"m|diag\" }], [{ text: \"💼 Услуги\", callback_data: \"m|services\" }], MENU_ROW]),\n    detail: \"consent_declined\",\n  };\n}\n\nfunction classifyIntentFallback(value) {\n  const s = norm(value);\n  if (!s) return { intent: \"unknown\", selected_service: \"\", detail: \"unknown\" };\n  if (isPersonIntro(value)) return { intent: \"person_intro\", selected_service: \"\", detail: \"person_intro_detected\" };\n  if (containsAny(s, [/здравствуй/, /добрый день/, /доброе утро/, /добрый вечер/, /\\bhi\\b/, /\\bhello\\b/, /привет/])) {\n    return { intent: \"greeting\", selected_service: \"\", detail: \"menu_opened\" };\n  }\n  if (containsAny(s, [/не хочу.*анкет/, /не хочу.*отвеч/, /без анкет/, /без вопросов/, /давайте без/, /просто свяж/, /позвоните/, /оставлю номер/, /сразу встреч/, /без диагностики/])) {\n    return { intent: \"skip_questionnaire\", selected_service: SERVICE.free_text, detail: \"questionnaire_skipped\" };\n  }\n  if (containsAny(s, [/сколько стоит/, /цена/, /прайс/, /тариф/, /стоимость/, /сколько берете/])) {\n    return { intent: \"ask_price\", selected_service: \"\", detail: \"price_question\" };\n  }\n  if (containsAny(s, [/услуг/, /что вы делаете/, /чем занимаетесь/, /что предлагаете/, /finmentor/])) {\n    return { intent: \"ask_services\", selected_service: \"\", detail: \"services_requested\" };\n  }\n  if (containsAny(s, [/встреч/, /созвон/, /связаться/, /перезвон/, /позвон/, /discovery/, /консультац/])) {\n    return { intent: \"request_meeting\", selected_service: SERVICE.meeting, detail: \"meeting_requested\" };\n  }\n  if (isNoContactText(s)) return { intent: \"no_contact\", selected_service: \"\", detail: \"no_contact\" };\n  if (isNoCompanyText(s)) return { intent: \"no_company\", selected_service: \"\", detail: \"no_company\" };\n  if (isNoTurnoverText(s)) return { intent: \"no_turnover\", selected_service: \"\", detail: \"no_turnover\" };\n  if (containsAny(s, [\n    /нуж.*cfo/,\n    /нуж.*финансов.*директор/,\n    /ищу.*финансов.*директор/,\n    /хочу.*cfo[-\\s]?сопровожд/,\n    /нет.*финансов.*директор/,\n    /нуж.*финансов.*контрол/,\n    /нуж.*финансов.*блок/,\n    /нуж.*управлен.*финансов.*функц/,\n    /требуется.*финансов.*директор/,\n    /требуется.*управлен.*финансов.*функц/,\n  ])) {\n    return { intent: \"cfo_support\", selected_service: SERVICE.cfo, detail: \"free_text_intent_detected\" };\n  }\n  if (containsAny(s, [/cash\\s*flow/, /кэш/, /денег/, /деньги/, /платеж/, /ликвидн/])) {\n    return { intent: \"cashflow\", selected_service: SERVICE.cashflow, detail: \"free_text_intent_detected\" };\n  }\n  if (containsAny(s, [/дебитор/, /долг/, /задолж/])) return { intent: \"receivables\", selected_service: SERVICE.receivables, detail: \"free_text_intent_detected\" };\n  if (containsAny(s, [/запас/, /склад/, /товарн/])) return { intent: \"inventory\", selected_service: SERVICE.inventory, detail: \"free_text_intent_detected\" };\n  if (containsAny(s, [/p&l/, /pnl/, /марж/, /прибыл/, /убыт/])) return { intent: \"pnl_margin\", selected_service: SERVICE.pnl, detail: \"free_text_intent_detected\" };\n  if (containsAny(s, [/power\\s*bi/, /dashboard/, /дашборд/, /отчетн/, /bi\\b/])) return { intent: \"power_bi\", selected_service: SERVICE.bi, detail: \"free_text_intent_detected\" };\n  if (containsAny(s, [/автоматизац/, /\\bn8n\\b/, /\\bmake\\b/, /интеграц/])) return { intent: \"automation\", selected_service: SERVICE.automation, detail: \"free_text_intent_detected\" };\n  return { intent: \"write_free_request\", selected_service: SERVICE.free_text, detail: \"free_text_intent_detected\" };\n}\n\nfunction fallbackFreeTextResponse(value, detailOverride = \"\") {\n  const intent = classifyIntentFallback(value);\n  if (intent.intent === \"person_intro\" && empty(session.contact_name)) {\n    session.contact_name = safeText(value, 120);\n    return askStep(\"company\");\n  }\n  if (intent.selected_service && empty(session.selected_service)) session.selected_service = intent.selected_service;\n  if (intent.selected_service && session.selected_service === SERVICE.free_text) session.selected_service = intent.selected_service;\n  if (value) session.free_text_request = safeText(value, 500);\n  if (!session.main_pain && ![\"greeting\", \"ask_price\", \"ask_services\", \"person_intro\"].includes(intent.intent)) session.main_pain = safeText(value, 300);\n  if (intent.intent === \"greeting\") return screenMenu();\n  if (intent.intent === \"skip_questionnaire\") return screenSkipQuestionnaire();\n  if (intent.intent === \"ask_price\") return screenPrice();\n  if (intent.intent === \"ask_services\") return screenServices();\n  if (intent.intent === \"request_meeting\") {\n    session.selected_service = SERVICE.meeting;\n    return nextContactStep(\"Понял. Чтобы встреча была предметной, уточним только минимум.\", \"meeting_requested\");\n  }\n  if (intent.intent === \"no_contact\") return contactSkippedScreen();\n  const serviceLine = intent.selected_service ? \"Похоже, запрос связан с направлением: \" + intent.selected_service + \".\" : \"\";\n  return {\n    state: \"SERVICE_SELECTED\",\n    text:\n      \"Спасибо, понял запрос. \" +\n      serviceLine +\n      \"\\n\\nЧтобы эксперт FINMENTOR вернулся к вам предметно, можно либо пройти короткую диагностику, либо оставить контакт и одну фразу по задаче.\",\n    markup: kb([\n      [{ text: \"🚀 Продолжить диагностику\", callback_data: \"m|diag\" }],\n      [{ text: \"✅ Оставить контакт\", callback_data: \"m|meeting_contact\" }],\n      [{ text: \"💼 Услуги FINMENTOR\", callback_data: \"m|services\" }],\n      MENU_ROW,\n    ]),\n    detail: detailOverride || intent.detail,\n  };\n}\n\nfunction extractContact(value) {\n  const v = value.trim();\n  const email = v.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i);\n  if (email) {\n    session.contact_email = email[0].slice(0, 160);\n    return true;\n  }\n  const phone = v.match(/(\\+?\\d[\\d\\s().-]{6,}\\d)/);\n  if (phone) {\n    session.contact_phone = phone[0].replace(/\\s+/g, \" \").slice(0, 80);\n    return true;\n  }\n  if (v.startsWith(\"@\") && v.length > 1) {\n    session.contact_phone = v.slice(0, 80);\n    return true;\n  }\n  return false;\n}\n\nfunction useTelegramContact() {\n  const username = session.username || p.username || \"\";\n  session.contact_phone = username ? \"Telegram: @\" + String(username).replace(/^@/, \"\") : \"Telegram chat_id: \" + String(chat_id);\n  appendNote(\"telegram_contact_used\");\n  return true;\n}\n\nfunction hasMinimumLeadData() {\n  const hasName = !!(session.contact_name || session.username || session.first_name);\n  const hasContactData = hasContact(session);\n  const hasNeed = !!(session.selected_service || session.free_text_request || session.main_pain);\n  return hasName && hasContactData && hasNeed && session.consent === \"yes\";\n}\n\nfunction missingMinimumScreen() {\n  if (empty(session.contact_name) && empty(session.username) && empty(session.first_name)) return askStep(\"contact_name\", \"Чтобы передать запрос эксперту, нужно понять, как к вам обращаться.\");\n  if (!hasContact(session)) return askStep(\"contact\", \"Чтобы передать запрос эксперту, нужен удобный контакт для ответа.\");\n  if (empty(session.selected_service) && empty(session.free_text_request) && empty(session.main_pain)) return askFreeText();\n  return askStep(\"contact_name\");\n}\n\nfunction nextContactStep(prefixText = \"\", detail = \"contact_requested\") {\n  appendNote(\"contact_flow_active\");\n  if (empty(session.selected_service)) session.selected_service = session.free_text_request || session.main_pain ? SERVICE.free_text : SERVICE.meeting;\n  if (empty(session.contact_name)) {\n    const out = askStep(\"contact_name\", prefixText);\n    out.detail = detail;\n    return out;\n  }\n  if (empty(session.company)) return askStep(\"company\", prefixText);\n  if (!hasContact(session)) return askStep(\"contact\", prefixText);\n  if (session.consent !== \"yes\") return askConsent(prefixText);\n  if (hasMinimumLeadData()) return { state: \"LEAD_SENT\", text: \"Готовлю запрос для эксперта FINMENTOR.\", markup: kb([]), detail: \"lead_prepared\", leadReady: true };\n  return missingMinimumScreen();\n}\n\nfunction prepareLeadPayload() {\n  const leadId = session.lead_id || \"TG-\" + chat_id + \"-\" + Date.now();\n  session.lead_id = leadId;\n  session.status = \"lead_pending\";\n  const telegram = session.username ? \"@\" + session.username : String(chat_id);\n  const selectedService = session.selected_service || SERVICE.free_text;\n  const mainPain = session.main_pain || session.free_text_request || selectedService;\n  const businessModel = session.business_model || \"Не указано\";\n  const payload = {\n    lead_id: leadId,\n    tool: \"telegram_client_concierge\",\n    created_at: now,\n    client: {\n      name: session.contact_name || session.first_name || session.username || \"\",\n      company: session.company || \"Не указано\",\n      email: session.contact_email || \"\",\n      phone_or_messenger: session.contact_phone || \"\",\n      telegram,\n      language: session.language || lang,\n    },\n    answers: {\n      selected_service: selectedService,\n      main_pain: mainPain,\n      revenue_range: session.turnover_range || \"\",\n      business_model: businessModel,\n      has_cfo: session.has_cfo || \"\",\n      documents_status: session.documents_status || \"\",\n    },\n    diagnostic: {\n      score: \"\",\n      traffic_light: \"\",\n      urgency: session.urgency || \"\",\n      main_pain: mainPain,\n      business_model: businessModel,\n    },\n    meta: {\n      consent: true,\n      page_url: \"telegram_client_bot\",\n      utm_source: \"telegram\",\n      utm_medium: \"client_bot\",\n      utm_campaign: \"direct_telegram_concierge\",\n      ai_guarded: clientAiEnabled,\n    },\n    intake: {\n      commercial_intent: { work_interest: [selectedService] },\n      business_pain: { selected_problems: [mainPain], urgency: session.urgency || \"\" },\n      documents_available: { selected_documents: [session.documents_status || \"\"] },\n    },\n  };\n  session.raw_json = JSON.stringify(payload).slice(0, 4000);\n  return payload;\n}\n\nlet out = { state: session.state || \"MENU\", text: \"\", markup: menuKeyboard(), detail: stateRecovered ? \"state_recovered\" : \"unknown\" };\nlet leadReady = false;\nlet leadPayload = null;\nlet eventType = isCb ? \"callback\" : \"message\";\n\nif (String(cfg.bot_enabled).toLowerCase() === \"false\") {\n  out = { state: \"MENU\", text: \"Сейчас Telegram Concierge временно недоступен. Вы можете оставить запрос на сайте FINMENTOR или вернуться позже.\", markup: kb([[SITE_BTN], MENU_ROW]), detail: \"bot_disabled\" };\n} else if (isCb) {\n  const [prefix, ...rest] = data.split(\"|\");\n  const arg = rest.join(\"|\");\n  if (prefix === \"n\" && arg === \"menu\") out = screenMenu();\n  else if (prefix === \"n\" && arg === \"end\") out = endScreen();\n  else if (prefix === \"m\" && arg === \"diag\") out = askStep(\"service\");\n  else if (prefix === \"m\" && arg === \"services\") out = screenServices();\n  else if (prefix === \"m\" && arg === \"price\") out = screenPrice();\n  else if (prefix === \"m\" && arg === \"free_text\") out = askFreeText();\n  else if (prefix === \"m\" && arg === \"skip_questionnaire\") out = screenSkipQuestionnaire();\n  else if (prefix === \"m\" && (arg === \"meeting_contact\" || arg === \"meeting\")) {\n    if (empty(session.selected_service)) session.selected_service = SERVICE.meeting;\n    out = nextContactStep(\"Понял. Чтобы встреча была предметной, уточним только минимум.\", \"meeting_requested\");\n  } else if (prefix === \"m\" && arg === \"to_contact\") {\n    out = nextContactStep(\"Хорошо, перейдём к контакту, чтобы эксперт FINMENTOR вернулся предметно.\", \"shortcut_to_contact\");\n  } else if (prefix === \"m\" && arg === \"xray\") {\n    out = {\n      state: \"MENU\",\n      text: \"Financial X-Ray — это короткий управленческий разбор финансов бизнеса: cash flow, задолженность, маржа, запасы и отчётность. Первый результат — понятная карта проблем и следующий шаг.\",\n      markup: kb([[{ text: \"🚀 Пройти короткую диагностику\", callback_data: \"m|diag\" }], [{ text: \"📅 Обсудить с экспертом\", callback_data: \"m|meeting_contact\" }], MENU_ROW]),\n      detail: \"xray_requested\",\n    };\n  } else if (prefix === \"s\") {\n    session.selected_service = SERVICE[arg] || SERVICE.xray;\n    out = askStep(\"business_model\");\n  } else if (prefix === \"b\") {\n    session.business_model = BUSINESS_MODEL[arg] || BUSINESS_MODEL.other;\n    out = askStep(\"turnover\");\n  } else if (prefix === \"t\") {\n    session.turnover_range = TURNOVER[arg] || TURNOVER.skip;\n    out = arg === \"skip\" ? askStep(\"main_pain\", \"Понимаю. Тогда пропустим оборот и продолжим без этой информации.\") : askStep(\"main_pain\");\n  } else if (prefix === \"p\") {\n    session.main_pain = PAIN[arg] || \"\";\n    out = askStep(\"urgency\");\n  } else if (prefix === \"u\") {\n    session.urgency = URGENCY[arg] || \"\";\n    out = askStep(\"has_cfo\");\n  } else if (prefix === \"c\") {\n    session.has_cfo = CFO[arg] || \"\";\n    out = askStep(\"documents\");\n  } else if (prefix === \"d\") {\n    session.documents_status = DOC[arg] || \"\";\n    out = askStep(\"contact_name\");\n  } else if (prefix === \"company\" && arg === \"skip\") {\n    session.company = \"Не указано / confidential\";\n    out = askStep(\"contact\", \"Понимаю. Можно продолжить без названия компании.\");\n    out.detail = \"no_company\";\n  } else if (prefix === \"contact\" && arg === \"telegram\") {\n    useTelegramContact();\n    out = askConsent();\n    out.detail = \"telegram_contact_used\";\n  } else if (prefix === \"contact\" && arg === \"skip\") {\n    out = contactSkippedScreen();\n  } else if (prefix === \"consent\" && arg === \"yes\") {\n    session.consent = \"yes\";\n    if (hasMinimumLeadData()) {\n      leadReady = true;\n      eventType = \"lead_sent\";\n      out = { state: \"LEAD_SENT\", text: \"Готовлю запрос для эксперта FINMENTOR.\", markup: kb([]), detail: \"lead_prepared\" };\n    } else out = missingMinimumScreen();\n  } else if (prefix === \"consent\" && arg === \"no\") out = consentDeclinedScreen();\n  else out = { state: \"MENU\", text: \"Похоже, я не совсем понял контекст. Давайте вернёмся к удобному выбору: короткая диагностика, встреча или свободное описание запроса.\", markup: menuKeyboard(), detail: \"duplicate_callback_handled\" };\n} else if (text) {\n  const lower = norm(text);\n  if (lower === \"/start\" || lower === \"/menu\") out = screenMenu();\n  else if (lower === \"/end\" || lower === \"стоп\" || lower === \"завершить\") out = endScreen();\n  else if (stateBefore === \"CONTACT_NAME_REQUESTED\") {\n    session.contact_name = safeText(text, 120);\n    out = askStep(\"company\");\n    out.detail = \"contact_name_captured\";\n  } else if (stateBefore === \"COMPANY_REQUESTED\") {\n    if (isNoCompanyText(text)) {\n      session.company = \"Не указано / confidential\";\n      out = askStep(\"contact\", \"Понимаю. Можно продолжить без названия компании.\");\n      out.detail = \"no_company\";\n    } else {\n      session.company = safeText(text, 160);\n      out = askStep(\"contact\");\n      out.detail = \"company_captured\";\n    }\n  } else if (stateBefore === \"CONTACT_REQUESTED\") {\n    if (isNoContactText(text)) out = contactSkippedScreen();\n    else if (extractContact(text)) {\n      out = askConsent();\n      out.detail = \"contact_captured\";\n    } else {\n      out = askStep(\"contact\", \"Кажется, здесь нет телефона, email или @username. Напишите, пожалуйста, любой удобный контакт — или можно пропустить.\");\n      out.detail = \"contact_retry\";\n    }\n  } else if (stateBefore === \"CONSENT_REQUESTED\") {\n    if (isConsentYes(text)) {\n      session.consent = \"yes\";\n      if (hasMinimumLeadData()) {\n        leadReady = true;\n        eventType = \"lead_sent\";\n        out = { state: \"LEAD_SENT\", text: \"Готовлю запрос для эксперта FINMENTOR.\", markup: kb([]), detail: \"lead_prepared\" };\n      } else out = missingMinimumScreen();\n    } else if (isConsentNo(text)) out = consentDeclinedScreen();\n    else out = askConsent(\"Понял. Для передачи запроса эксперту нужно явное согласие.\");\n  } else if (\n    String(session.notes || \"\").includes(\"contact_flow_active\") &&\n    empty(session.contact_name) &&\n    isPersonIntro(text)\n  ) {\n    session.contact_name = safeText(text, 120);\n    appendNote(\"state_recovered_contact_name\");\n    out = askStep(\"company\");\n    out.detail = \"contact_name_captured_recovered\";\n  } else if (lower === \"/services\") out = screenServices();\n  else if (lower === \"/contact\") out = nextContactStep(\"\", \"contact_requested\");\n  else if (stateBefore === \"TURNOVER_SELECTED\" && isNoTurnoverText(text)) {\n    session.turnover_range = TURNOVER.skip;\n    out = askStep(\"main_pain\", \"Понимаю. Тогда пропустим оборот и продолжим без этой информации.\");\n  } else if (stateBefore === \"SERVICE_SELECTED\" && String(session.notes || \"\").includes(\"awaiting_free_text_request\")) {\n    session.free_text_request = safeText(text, 500);\n    session.main_pain = session.main_pain || session.free_text_request;\n    const intent = classifyIntentFallback(text);\n    if (intent.selected_service && session.selected_service === SERVICE.free_text) session.selected_service = intent.selected_service;\n    appendNote(\"free_text_request_captured\");\n    out = askStep(\"contact_name\", \"Спасибо, понял запрос. Чтобы эксперт FINMENTOR смог вернуться к вам предметно, уточним контакт.\");\n    out.detail = \"free_text_intent_detected\";\n  } else if (isPersonIntro(text) && empty(session.contact_name) && [\"START\", \"MENU\", \"SERVICE_SELECTED\"].includes(stateBefore)) {\n    session.contact_name = safeText(text, 120);\n    out = askStep(\"company\");\n    out.detail = stateRecovered ? \"contact_name_captured_recovered\" : \"contact_name_captured\";\n  } else {\n    out = fallbackFreeTextResponse(text, clientAiEnabled ? \"ai_fallback_used\" : \"\");\n    if (clientAiEnabled) appendNote(\"ai_fallback_used\");\n  }\n} else {\n  out = screenMenu();\n}\n\nif (!ALLOWED_STATES.includes(out.state)) out.state = \"MENU\";\nsession.state = out.state;\n\nif (out.leadReady) leadReady = true;\n\nif (leadReady) {\n  if (session.consent !== \"yes\" || !hasMinimumLeadData()) {\n    leadReady = false;\n    out = missingMinimumScreen();\n    session.state = out.state;\n  } else {\n    if (empty(session.selected_service)) session.selected_service = session.free_text_request ? SERVICE.free_text : SERVICE.meeting;\n    leadPayload = prepareLeadPayload();\n  }\n}\n\nconst replyText = safeText(out.text);\nconst tgBody = { chat_id, text: replyText, reply_markup: out.markup || menuKeyboard() };\nconst eventDetail = out.detail || (stateRecovered ? \"state_recovered\" : (leadReady ? \"lead_prepared\" : \"message_processed\"));\n\nreturn [{\n  json: {\n    chat_id,\n    reply_text: replyText,\n    reply_markup: out.markup || menuKeyboard(),\n    tg_body: tgBody,\n    session,\n    lead_ready: leadReady,\n    lead_payload: leadPayload,\n    ai_guarded: { enabled: clientAiEnabled, model: cfg.client_ai_model || \"\", used: false, fallback_used: false },\n    debug: {\n      state_before: stateBefore,\n      state_after: session.state,\n      detail: eventDetail,\n      session_notes: session.notes || \"\",\n    },\n    event: {\n      event_type: eventType,\n      state_before: stateBefore,\n      state_after: session.state,\n      message_text: text,\n      callback_data: data,\n      detail: eventDetail,\n    },\n  },\n}];\n"
+      },
+      "id": "f96e1b6d-866c-45f2-80cd-64eb9a1b3941",
+      "name": "Build Bot Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        -160
+      ]
+    },
+    {
+      "id": "f7d81bfd-1637-4621-b5d9-d92db111ee41",
+      "name": "Build Transport Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        500
+      ],
+      "parameters": {
+        "jsCode": "// Presentation contract for FINMENTOR Telegram Client Transport.\n// The state machine already emits reply_markup.inline_keyboard, so the layout id is derived from the ACTUAL\n// keyboard shape + per-position button type. Nothing inside the state machine is modified.\n// Approved UX note: a [U],[C] keyboard (bot_disabled screen) is normalised to [C],[U] = L2_CU.\n// An unknown signature is NEVER silently downgraded to L0_NONE: it is routed to the controlled recovery branch.\n// L0_NONE is reserved for screens that genuinely have no keyboard by design (empty signature).\nconst b = $('Build Bot Response').first().json;\nconst p = $('Parse Telegram Update').first().json;\nconst body = b.tg_body || {};\nlet rows = (body.reply_markup && Array.isArray(body.reply_markup.inline_keyboard)) ? body.reply_markup.inline_keyboard : [];\n\nfunction typeOf(btn) { if (btn && typeof btn.url === 'string' && btn.url.trim() !== '') return 'U'; return 'C'; }\nfunction sig(rws) { return rws.map(r => (r || []).map(typeOf).join('')).join('|'); }\n\nlet signature = sig(rows);\nif (signature === 'U|C') { rows = [rows[1], rows[0]]; signature = 'C|U'; }\n\nconst MAP = {\n  '': 'L0_NONE',\n  'C': 'L1_C',\n  'C|C': 'L2_C',\n  'C|U': 'L2_CU',\n  'C|C|C': 'L3_C',\n  'C|C|U': 'L3_CCU',\n  'C|C|C|C': 'L4_CCCC',\n  'C|C|U|C': 'L4_CCUC',\n  'C|C|C|U|C': 'L5_CCCUC',\n  'C|C|C|C|C|C': 'L6_C',\n  'C|C|C|C|C|C|C': 'L7_C',\n  'C|C|C|C|C|C|C|C': 'L8_C',\n  'C|C|C|C|UC': 'LAYOUT_MENU',\n  'CC|C|CC|CC|C': 'LAYOUT_BMODEL'\n};\n\nconst layout = MAP[signature] || '';\nconst mapped = layout !== '';\n\nconst kbRows = rows.map(r => (r || []).map(btn => {\n  const o = { text: String((btn && btn.text) || '') };\n  if (typeOf(btn) === 'U') o.url = String(btn.url); else o.callback_data = String((btn && btn.callback_data) || '');\n  return o;\n}));\n\n// Stable Telegram identity, not a random id: needed for duplicate protection and tracing.\nconst corr = p.is_callback ? ('cb:' + String(p.callback_query_id || '')) : ('msg:' + String(p.chat_id || '') + ':' + String(p.message_text || '').slice(0, 24));\n\nreturn [{ json: {\n  chat_id: String(body.chat_id || b.chat_id || ''),\n  text: String(body.text || ''),\n  keyboard_layout_id: layout,\n  keyboard_data: { rows: kbRows },\n  parse_mode: '',\n  disable_preview: true,\n  correlation_id: corr.slice(0, 100),\n  layout_mapped: mapped,\n  keyboard_signature: signature\n} }];"
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// B.2.1-C P7.2 — the issuance gate.\n//\n// Reached only after IF Message Delivered confirmed ok === true. It does NOT re-decide: the\n// cycle gate already made the decision, and a second decision site is a second thing to drift.\n// What it does is re-prove the one precondition an INSERT must never run without — a\n// well-formed key — and name the fault when there is one.\nconst g = $('Get Bot Session').first().json || {};\nconst p = $('Parse Telegram Update').first().json || {};\nconst t = $input.first().json || {};\nconst str = v => String(v == null ? '' : v).trim();\n\nconst key = str(g.submission_key);\nconst action = str(g.__submission_key_action);\nconst wellFormed = /^sub_[0-9a-f]{32}$/.test(key);\nconst wants = g.__submission_key_preallocate === true;\n\n// Three independent faults rather than one boolean, so the Bot_Events row says which happened.\n//\n// NO_ISSUANCE_DECISION is a DRIFT GUARD and it fails closed on purpose. It can only fire if\n// this node is running against a Get Bot Session that has no issuance block — i.e. one half of\n// this candidate was reverted by hand. Every new cycle would then be persisted with no key,\n// which is exactly the half-advanced authority row planIssuance() refuses. A loud stop beats a\n// quiet stream of unsubmittable cycles.\nlet fault = '';\nif (g.__submission_key_fault === true || action === 'MINT_FAILED') { fault = 'MINT_FAILED'; }\nelse if (action === '') { fault = 'NO_ISSUANCE_DECISION'; }\nelse if (wants && !wellFormed) { fault = 'MINT_UNUSABLE'; }\n\nreturn [{ json: {\n  __submission_key: key,\n  __issuance_action: action,\n  __issuance_reason: str(g.__submission_key_reason),\n  __preallocate: fault === '' && wants,\n  __fault: fault !== '',\n  __fault_reason: fault,\n  __chat_id: str(p.chat_id),\n  __correlation_id: str(t.correlation_id)\n} }];"
+      },
+      "id": "p72-01-code",
+      "name": "Issuance Gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        880
+      ],
+      "notes": "P7.2 issuance gate. Reads the decision the cycle gate made; re-proves the key format before any INSERT. Does not re-decide."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "p72-02-cond",
+              "leftValue": "={{ String($json.__fault) }}",
+              "operator": {
+                "name": "filter.operator.equals",
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "true"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "p72-03-if",
+      "name": "IF Issuance Fault",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        340,
+        880
+      ],
+      "notes": "Fail-closed first. A faulted issuance never reaches the preallocation branch and never reaches Save Bot Session."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "p72-04-cond",
+              "leftValue": "={{ String($json.__preallocate) }}",
+              "operator": {
+                "name": "filter.operator.equals",
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "true"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "p72-05-if",
+      "name": "IF Preallocation Required",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        120,
+        880
+      ],
+      "notes": "TRUE only for MINT. CARRY / CARRY_MALFORMED / LEGACY_NO_KEY create no receipt, so they rejoin the ordinary flow directly — there is nothing new to confirm."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "value": {
+            "submission_key": "={{ $('Issuance Gate').first().json.__submission_key }}",
+            "commit_state": "READY",
+            "canonical_lead_id": "",
+            "lead_mode": "",
+            "lead_priority": "",
+            "financial_zone": "",
+            "created_at": "={{ $now.toISO() }}",
+            "claimed_at": "",
+            "settled_at": "",
+            "abort_reason": "",
+            "correlation_id": ""
+          },
+          "schema": [
+            {
+              "id": "submission_key",
+              "displayName": "submission_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "claimed_at",
+              "displayName": "claimed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "abort_reason",
+              "displayName": "abort_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "p72-06-prealloc",
+      "name": "Receipt Preallocate",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -100,
+        1000
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "notes": "ISSUANCE_ORDER step 2. onError:continueRegularOutput is load-bearing — a store failure must reach the verdict node and fail closed there, not throw at a user whose message has already been delivered."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Issuance Gate').first().json.__submission_key }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "p72-07-readback",
+      "name": "Receipt Readback",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        1000
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "notes": "Exact-key readback. alwaysOutputData so an ABSENT receipt still reaches the verdict instead of silently skipping the branch (P4 zero-item semantics). returnAll so a DUPLICATE is visible rather than truncated to one."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// B.2.1-C P7.2 — ISSUANCE_ORDER steps 3-5, deployed form of verifyPreallocationReadback().\n//\n// WHAT IS AND IS NOT CONFIRMATION. P2 proved this Data Table has NO uniqueness constraint: two\n// inserts of one key both succeed and neither errors. So an id in the insert output, an\n// insertedCount, a 2xx and the absence of an exception are all reports about the CALL, and none\n// of them is evidence about the STATE. Only state can justify advancing authority, so authority\n// advances on an exact-key readback whose CARDINALITY and CONTENT are both checked, or not at\n// all. There is no partial credit and no probably-fine branch.\n//\n// THE ZERO-ITEM DISCRIMINATOR. Receipt Readback carries alwaysOutputData, which is load-bearing:\n// P4 proved a zero-match returns main[0] === [] and skips every downstream node, so without it\n// the fail-closed branch could never run. The cost is that \"no match\" arrives as ONE EMPTY ITEM,\n// and an empty item is not a row. It is discriminated by KEY COUNT — never by truthiness, which\n// an empty object passes, and never by try/catch, which never fires.\nconst gate = $('Issuance Gate').first().json || {};\nconst key = gate.__submission_key;\nconst norm = v => String(v == null ? '' : v).trim();\n\nlet insert = {};\ntry { insert = $('Receipt Preallocate').first().json || {}; } catch (e) { insert = {}; }\nconst insertErrored = !!(insert.error || insert.errorMessage);\n\nconst raw = $input.all().map(i => i.json).filter(r => r && typeof r === 'object' && !Array.isArray(r));\nconst storeError = raw.some(r => r.error || r.errorMessage);\nconst rows = raw.filter(r => Object.keys(r).length > 0 && !r.error && !r.errorMessage);\n\nfunction refuse(reason, extra) {\n  return [{ json: Object.assign({\n    __advance: false,\n    __reason: reason,\n    __verified_submission_key: '',\n    __rows_seen: rows.length,\n    __insert_errored: insertErrored\n  }, extra || {}) }];\n}\n\nif (!/^sub_[0-9a-f]{32}$/.test(norm(key))) { return refuse('SUBMISSION_KEY_INVALID'); }\n// \"We could not look\" and \"it is there\" must never collapse into one outcome.\nif (storeError) { return refuse('READBACK_STORE_ERROR'); }\n\n// RAW exact equality, deliberately not a trim. A trim is a REPAIR, and a MODEL B key is an\n// opaque server-minted value: a stored \"sub_...abc \" is not the same key with a stray space, it\n// is evidence that something wrote a value the minter never produced or that the store is\n// mangling what it holds. Trimming it into a match is how a corrupted row reaches authority.\nfor (let i = 0; i < rows.length; i++) {\n  const stored = rows[i].submission_key;\n  if (typeof stored !== 'string' || stored !== key) { return refuse('READBACK_WRONG_KEY'); }\n}\nif (rows.length === 0) { return refuse('READBACK_ABSENT'); }\nif (rows.length > 1) { return refuse('READBACK_DUPLICATE'); }\n\nconst row = rows[0];\nif (norm(row.commit_state) !== 'READY') { return refuse('READBACK_WRONG_STATE'); }\n\n// A pristine preallocation carries no settlement residue AND no classification residue. The\n// classification fields matter as much as the settlement ones: classifyRows replays lead_mode,\n// lead_priority and financial_zone on a COMMITTED read, so a READY row already carrying them\n// would arm a replay with a previous submission's classification.\nconst PRISTINE = ['canonical_lead_id','claimed_at','settled_at','abort_reason','lead_mode','lead_priority','financial_zone'];\nconst dirty = PRISTINE.filter(f => norm(row[f]) !== '');\nif (dirty.length) { return refuse('READBACK_NOT_PRISTINE', { __dirty_fields: dirty.join(',') }); }\n// A freshly preallocated receipt has not been claimed, so it cannot yet carry a correlation id.\n// A non-empty one means this row is not a pristine preallocation.\nif (norm(row.correlation_id) !== '') { return refuse('READBACK_ALREADY_CLAIMED'); }\n\n// created_at must be PRESENT and parseable. A receipt with no creation time cannot be aged for\n// retention and cannot be ordered against anything, and an unparseable one is a row nobody wrote\n// through buildPreallocation. Checked, never repaired: substituting a default would hide the\n// write that produced it.\nconst createdAt = row.created_at;\nif (typeof createdAt !== 'string' || createdAt.trim() === '') { return refuse('READBACK_CREATED_AT_MISSING'); }\nif (!Number.isFinite(Date.parse(createdAt))) { return refuse('READBACK_CREATED_AT_INVALID'); }\n\n// The verdict NAMES the key it verified, so the authority write is bound to THIS issuance\n// structurally rather than by trusting the branch it arrived on.\nreturn [{ json: {\n  __advance: true,\n  __reason: 'PREALLOCATION_CONFIRMED',\n  __verified_submission_key: key,\n  __rows_seen: rows.length,\n  __insert_errored: insertErrored\n} }];"
+      },
+      "id": "p72-08-code",
+      "name": "Issuance Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        1000
+      ],
+      "notes": "ISSUANCE_ORDER steps 3-5. Cardinality AND content. An insert that returned success is not confirmation, because the store cannot refuse a second row for the same key."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "p72-09-cond",
+              "leftValue": "={{ String($json.__advance) }}",
+              "operator": {
+                "name": "filter.operator.equals",
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "true"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "p72-10-if",
+      "name": "IF Authority May Advance",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -760,
+        1000
+      ],
+      "notes": "ISSUANCE_ORDER step 6. The ONLY edge on which a minted cycle may reach Save Bot Session."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// B.2.1-C P7.2 — the fail-closed terminal, reached from EITHER the fault branch or the readback\n// verdict.\n//\n// The turn persists NOTHING to Bot_Sessions, and that is the whole point. It is not a new class\n// of harm: Build Delivery Failure Event beside it already discards a proposed session on every\n// failed send. planIssuance() is explicit that keeping the OLD cycle current beats advancing to\n// a cycle with no receipt behind it — every submit on a half-advanced row is\n// PRE_ACTIVATION_BLOCKED, which locks the user out of a cycle that looks current.\n//\n// Because Save Bot Session does not run, IF Lead Ready downstream of it does not run either, so\n// no lead is handed to Intake for a cycle that no authority row names. That suppression is\n// deliberate, not a side effect.\n//\n// THE KEY ITSELF IS NEVER LOGGED. A submission_key is a capability: whoever holds it can claim\n// the receipt. Bot_Events is a spreadsheet with wider read access than the Data Table, so this\n// row records only whether a key was PRESENT.\n//\n// F16: Bot_Events is written with autoMapInputData and an EMPTY stored schema, so a stray\n// property here would permanently widen the live sheet. The key set below is exactly the one\n// Build Bot Event and Build Delivery Failure Event already emit — twelve, no more.\nconst p = $('Parse Telegram Update').first().json;\nconst b = $('Build Bot Response').first().json;\nconst d = b.debug || {};\nconst gate = $('Issuance Gate').first().json || {};\nlet v = {};\ntry { v = $('Issuance Verdict').first().json || {}; } catch (e) { v = {}; }\nconst reason = String(v.__reason || gate.__fault_reason || 'ISSUANCE_UNCONFIRMED');\nreturn [{ json: {\n  event_id: `${p.chat_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  chat_id: String(p.chat_id || ''),\n  user_id: String(p.user_id || ''),\n  username: String(p.username || ''),\n  event_type: p.is_callback ? 'callback_received' : 'message_received',\n  state_before: String(d.state_before || ''),\n  state_after: String(d.state_before || ''),\n  message_text: String(p.message_text || '').slice(0, 500),\n  callback_data: String(p.callback_data || ''),\n  detail: 'issuance_unconfirmed: ' + reason,\n  raw_json: JSON.stringify({\n    issuance_action: gate.__issuance_action || '',\n    issuance_reason: gate.__issuance_reason || '',\n    fault_reason: gate.__fault_reason || '',\n    readback_reason: v.__reason || '',\n    rows_seen: v.__rows_seen === undefined ? null : v.__rows_seen,\n    insert_errored: v.__insert_errored === true,\n    dirty_fields: v.__dirty_fields || '',\n    proposed_state_discarded: d.state_after || '',\n    submission_key_present: String(gate.__submission_key || '') !== ''\n  }).slice(0, 4000)\n} }];"
+      },
+      "id": "p72-11-code",
+      "name": "Build Issuance Failure Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        1200
+      ],
+      "notes": "Fail-closed terminal. The proposed session is discarded; the OLD cycle stays authoritative. The key value is never written to Bot_Events."
+    },
+    {
+      "id": "73146efa-809c-46d1-85f2-8293f94312a4",
+      "name": "Build Session Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        500
+      ],
+      "parameters": {
+        "jsCode": "// Reached only after Transport confirmed ok === true, so the PROPOSED session becomes the PERSISTED session here.\n// Cycle fields are re-attached from the cycle gate, because the state machine's baseSession() does not carry them.\n// lead_id is taken from the cycle gate (confirmed only) and NEVER from the state machine's provisional TG-* id.\nconst b = $('Build Bot Response').first().json;\nconst g = $('Get Bot Session').first().json || {};\nconst s = Object.assign({}, b.session || {});\nconst now = new Date().toISOString();\nconst str = v => String(v == null ? '' : v).trim();\ns.cycle_id = str(g.cycle_id);\ns.previous_lead_id = str(g.previous_lead_id);\ns.lead_id = str(g.lead_id);\ns.lead_cycle_id = str(g.lead_cycle_id);\ns.lead_sent_at = str(g.lead_sent_at);\ns.lead_intake_ok = str(g.lead_intake_ok);\n// P7.2 — the key rides with the cycle fields for the same reason they are here: the state\n// machine's baseSession() does not carry it, so it must come from the gate that decided it.\n// F7: when this turn minted, the value written is the one the READBACK VERIFIED.\nlet verifiedKey72 = '';\ntry {\n  const v72 = $('Issuance Verdict').first().json || {};\n  if (v72.__advance === true) { verifiedKey72 = String(v72.__verified_submission_key || ''); }\n} catch (e) { verifiedKey72 = ''; }\ns.submission_key = verifiedKey72 || str(g.submission_key);\nconst decision = str(s.consent);\nif (decision === 'yes' || decision === 'no') {\n  const alreadyStamped = str(g.consent) !== '' && str(g.consent_cycle_id) === str(g.cycle_id);\n  s.consent_cycle_id = alreadyStamped ? str(g.consent_cycle_id) : str(g.cycle_id);\n  s.consent_at = alreadyStamped ? (str(g.consent_at) || now) : now;\n} else {\n  s.consent_cycle_id = ''; s.consent_at = '';\n}\nconst COLS = ['session_id','chat_id','user_id','username','first_name','last_name','language','state','created_at','updated_at','last_message_at','entry_source','selected_service','business_model','turnover_range','main_pain','urgency','has_cfo','documents_status','contact_phone','contact_email','contact_name','company','free_text_request','consent','lead_id','lead_sent_at','status','notes','raw_json','cycle_id','consent_cycle_id','consent_at','lead_cycle_id','lead_intake_ok','previous_lead_id','submission_key'];\nconst row = {};\nfor (const c of COLS) row[c] = (s[c] === undefined || s[c] === null) ? '' : String(s[c]).slice(0, 45000);\nreturn [{ json: row }];"
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1584265787,
+          "mode": "list",
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_message_at",
+              "displayName": "last_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entry_source",
+              "displayName": "entry_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_service",
+              "displayName": "selected_service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "business_model",
+              "displayName": "business_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "turnover_range",
+              "displayName": "turnover_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "main_pain",
+              "displayName": "main_pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "has_cfo",
+              "displayName": "has_cfo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "documents_status",
+              "displayName": "documents_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "free_text_request",
+              "displayName": "free_text_request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "consent",
+              "displayName": "consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_sent_at",
+              "displayName": "lead_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "raw_json",
+              "displayName": "raw_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_text",
+              "displayName": "reply_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_markup",
+              "displayName": "reply_markup",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tg_body",
+              "displayName": "tg_body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session",
+              "displayName": "session",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_ready",
+              "displayName": "lead_ready",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_payload",
+              "displayName": "lead_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event",
+              "displayName": "event",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ai_guarded",
+              "displayName": "ai_guarded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ok",
+              "displayName": "ok",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -640,
+        688
+      ],
+      "id": "4690142b-a063-4ae2-8036-e3ca8282a370",
+      "name": "Save Bot Session",
+      "notesInFlow": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "PATCHED staging mode: continueOnFail=false so Bot_Sessions persistence errors are visible during runtime QA. Keep appendOrUpdate by chat_id."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "712378e1-79fc-44c1-a517-14ae27430abf",
+              "leftValue": "={{ String($('Build Bot Response').first().json.lead_ready) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f0d62630-2ece-4911-a8c8-85b3f27c5148",
+      "name": "IF Lead Ready",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -368,
+        -144
+      ]
+    },
+    {
+      "id": "p72-12-reread",
+      "name": "Authority Reread",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -308,
+        156
+      ],
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": false,
+      "notes": "Post-authority reread. Parameters are a VERBATIM copy of Read Bot Sessions — same document, same A:AV range, same credential — so the two reads cannot disagree about what the sheet looks like."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// B.2.1-C P7.2 — the stale-loser refusal.\n//\n// A concurrent winner and a lagging read look identical if you only ask \"does the row match?\".\n// They are told apart here by the one property that makes cycle_id weak: it is time-derived,\n// C-<chat_id>-<ms>. A row that names a NEWER cycle than the one this turn holds is a genuine\n// concurrent winner. A row that names an OLDER one is this turn's own write not yet visible,\n// which is read lag and not a loss — refusing there would drop a real lead to protect against\n// nothing.\n//\n// The same-millisecond case is exactly the collision P3 flagged: two issuances in one\n// millisecond produce the IDENTICAL cycle_id, so the stamps cannot separate them. The KEY can,\n// and does — equal cycle, different key means the other issuer won inside that millisecond.\n//\n// WHAT THIS DOES NOT DO. It narrows the window; it does not close it. Between this read and the\n// Intake call another execution can still win. Closing it needs a compare-and-set the Sheets\n// node does not offer (P4 explored precisely that). Stated here rather than implied, because a\n// partial check believed to be total is worse than one known to be partial.\nconst p = $('Parse Telegram Update').first().json;\nconst g = $('Get Bot Session').first().json || {};\nconst str = v => String(v == null ? '' : v).trim();\nconst target = str(p.chat_id);\n\nconst rows = $input.all().map(i => i.json).filter(r => r && r.chat_id !== undefined && String(r.chat_id).trim() !== '');\nlet current = null;\nfor (const r of rows) { if (String(r.chat_id) === target) { current = r; break; } }\n\nconst heldCycle = str(g.cycle_id);\nconst heldKey = str(g.submission_key);\n\n// Parsed against the EXACT shape the cycle gate mints — 'C-' + chat_id + '-' + Date.now() — and\n// nothing looser. An earlier form of this took the trailing run of digits and required ten or\n// more of them, and that threshold was a latent fail-open: any cycle_id that did not match it\n// stamped as NaN, and NaN fell through to \"lagged\", which PROCEEDS. Values that do not match are\n// not hypothetical — scripts/p71-sheet-probe.ps1 wrote C-900000701-P71 into the real sheet, and\n// scripts/build-cas-gate-workflow.mjs writes C-900, which has no stamp segment at all.\nfunction stamp(cid) {\n  const m = /^C-\\d+-(\\d+)$/.exec(String(cid == null ? '' : cid));\n  return m ? Number(m[1]) : NaN;\n}\nfunction verdict(ok, reason, currentCycle, currentKeyPresent) {\n  return [{ json: {\n    __current: ok,\n    __reason: reason,\n    __held_cycle_id: heldCycle,\n    __current_cycle_id: currentCycle,\n    __held_key_present: heldKey !== '',\n    __current_key_present: currentKeyPresent\n  } }];\n}\n\n// An unreadable authority row is NOT a pass. \"We could not look\" and \"we are still current\"\n// must never collapse into one outcome — the rule the readback verdict already follows. A\n// lead-ready turn always has a pre-existing row, because lead_ready needs a consent from an\n// earlier turn, so an absent row here is anomalous rather than merely early.\nif (!current) { return verdict(false, 'AUTHORITY_ROW_ABSENT', '', false); }\n\nconst currentCycle = str(current.cycle_id);\nconst currentKey = str(current.submission_key);\nconst keyPresent = currentKey !== '';\n\nif (currentCycle === heldCycle) {\n  // RAW exact equality, deliberately not a trim-and-compare, for the reason the readback verdict\n  // gives: a trim is a repair, and repairing a key promotes a row nobody minted.\n  if (currentKey === heldKey) { return verdict(true, 'AUTHORITY_CURRENT', currentCycle, keyPresent); }\n  return verdict(false, 'AUTHORITY_KEY_SUPERSEDED', currentCycle, keyPresent);\n}\n\nconst heldStamp = stamp(heldCycle);\nconst currentStamp = stamp(currentCycle);\n\n// UNCOMPARABLE IS NOT LAGGED, and this is the whole safety of the branch.\n//\n// Proceeding requires POSITIVE evidence that the row is this turn's own write not yet visible.\n// The only such evidence is a strictly OLDER stamp, and that needs both sides to parse. When\n// either side does not, we cannot tell a lagging read from a lost race — and \"we could not tell\"\n// must land where \"we could not look\" already lands, which is a refusal. The same rule the\n// readback verdict follows for READBACK_STORE_ERROR and the row lookup follows for\n// AUTHORITY_ROW_ABSENT.\n//\n// The cost of being wrong here is asymmetric and that is what settles it. A false refusal costs\n// the user one restart. A false proceed puts a lead in the CRM stamped with a cycle_id\n// Bot_Sessions no longer names, behind a receipt the gateway can never claim, and that is not\n// recoverable by the user doing anything at all.\nif (!Number.isFinite(heldStamp) || !Number.isFinite(currentStamp)) {\n  return verdict(false, 'AUTHORITY_CYCLE_UNCOMPARABLE', currentCycle, keyPresent);\n}\nif (currentStamp > heldStamp) {\n  return verdict(false, 'AUTHORITY_CYCLE_SUPERSEDED', currentCycle, keyPresent);\n}\n\n// Strictly older, and both sides parsed. This turn's own write has not become visible yet; the\n// cycle it holds is the one it just persisted. Proceed, and say WHICH of the two it was, so a\n// run that took this path is not silently indistinguishable from a clean one.\nreturn verdict(true, 'AUTHORITY_READ_LAGGED', currentCycle, keyPresent);"
+      },
+      "id": "p72-13-code",
+      "name": "Authority Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        156
+      ],
+      "notes": "Tells a concurrent winner apart from a lagging read by the cycle timestamp, and the same-millisecond collision apart by the key. Refuses only on a PROVABLE loss."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "p72-14-cond",
+              "leftValue": "={{ String($json.__current) }}",
+              "operator": {
+                "name": "filter.operator.equals",
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "true"
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          }
+        },
+        "options": {}
+      },
+      "id": "p72-15-if",
+      "name": "IF Authority Current",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -748,
+        156
+      ],
+      "notes": "The only edge on which a lead may be handed to Intake. A losing turn ends at the event row."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// B.2.1-C P7.2 — the stale-loser terminal.\n//\n// This turn wrote the authority row and then lost it to a concurrent execution. The lead is NOT\n// handed to Intake: it would be stamped with a cycle_id Bot_Sessions no longer names, and the\n// receipt behind it could never be claimed by the gateway, which reads the current row. The\n// winning execution owns this chat now, and the user's own next turn runs against its cycle.\n//\n// The KEY IS NEVER LOGGED — it is a capability, and Bot_Events is a spreadsheet with wider read\n// access than the Data Table. The cycle IDS are logged: they are already in the sheet, they name\n// nothing on their own, and without them an operator cannot tell a supersede from a lag.\n//\n// F16: exactly the twelve keys Build Bot Event and Build Delivery Failure Event emit. Bot_Events\n// is autoMapInputData over an EMPTY stored schema, so a stray property would permanently widen\n// the live sheet.\nconst p = $('Parse Telegram Update').first().json;\nconst b = $('Build Bot Response').first().json;\nconst d = b.debug || {};\nconst v = $('Authority Verdict').first().json || {};\nreturn [{ json: {\n  event_id: `${p.chat_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  chat_id: String(p.chat_id || ''),\n  user_id: String(p.user_id || ''),\n  username: String(p.username || ''),\n  event_type: p.is_callback ? 'callback_received' : 'message_received',\n  state_before: String(d.state_before || ''),\n  state_after: String(d.state_after || ''),\n  message_text: String(p.message_text || '').slice(0, 500),\n  callback_data: String(p.callback_data || ''),\n  detail: 'authority_stale: ' + String(v.__reason || 'UNKNOWN'),\n  raw_json: JSON.stringify({\n    held_cycle_id: v.__held_cycle_id || '',\n    current_cycle_id: v.__current_cycle_id || '',\n    held_key_present: v.__held_key_present === true,\n    current_key_present: v.__current_key_present === true,\n    lead_handoff_suppressed: true\n  }).slice(0, 4000)\n} }];"
+      },
+      "id": "p72-16-code",
+      "name": "Build Stale Authority Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -748,
+        376
+      ],
+      "notes": "Lead handoff refused because this turn lost the authority row. No lead reaches Intake under a key that is no longer current."
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "p73s2-harness-entry",
+      "name": "HARNESS Entry",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2100,
+        160
+      ],
+      "notes": "Test-only entry. No public URL, no bot, no transport secret. Driven by the credential-free driver workflow, which is the thing actually tested."
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS SUBSTITUTION -- generated by scripts/build-concierge-issuer-harness.mjs.\n//\n// This node carries the NAME of the production Telegram trigger because the audited body of\n// `Parse Telegram Update` opens with $('Telegram Client Trigger'), and n8n resolves that by\n// node name. Renaming it would mean running a different program.\n//\n// It is a CODE node. It holds no Telegram credential, it is not a trigger type, and it can\n// never register a webhook. It emits the synthetic Telegram-shaped update handed in by the\n// driver and nothing else.\nconst inbound = $input.first().json || {};\nconst update = inbound.update || inbound.body || inbound;\nreturn [{ json: update }];"
+      },
+      "id": "p73s2-harness-tgsub",
+      "name": "Telegram Client Trigger",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1900,
+        160
+      ],
+      "notes": "HARNESS SUBSTITUTION. Keeps the production node NAME because Parse Telegram Update resolves it by name; is a Code node so it holds no credential and cannot register."
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS SUBSTITUTION for `Send Client Message` + `IF Message Delivered`.\n//\n// Production reaches `Issuance Gate` only through IF Message Delivered's TRUE branch, whose\n// input is the transport response. This emits that shape WITHOUT executing any Telegram node\n// and WITHOUT calling the live transport workflow, so no client message is ever sent.\n//\n// correlation_id is carried through from `Build Transport Request` verbatim, because\n// `Issuance Gate` reads it off $input rather than off a named node.\nconst t = $input.first().json || {};\nreturn [{ json: {\n  ok: true,\n  correlation_id: String(t.correlation_id || ''),\n  __harness_transport: 'STUBBED -- no Telegram node executed, no transport workflow called'\n} }];"
+      },
+      "id": "p73s2-harness-delivery",
+      "name": "HARNESS Delivery Stub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        500
+      ],
+      "notes": "HARNESS SUBSTITUTION for Send Client Message + IF Message Delivered. No Telegram node executes and the live transport workflow is never called."
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS TERMINAL -- records the observable outcome. Reads every named node defensively:\n// on a turn where a branch did not run, $(...) throws, and a terminal that throws would\n// destroy the evidence it exists to capture.\nconst grab = (fn, fallback) => { try { return fn(); } catch (e) { return fallback; } };\nconst gate = grab(() => $('Issuance Gate').first().json, { __absent: true });\nconst verdict = grab(() => $('Issuance Verdict').first().json, { __absent: true });\nconst readback = grab(() => $('Receipt Readback').all().map(i => i.json), null);\nconst authority = grab(() => $('Authority Verdict').first().json, { __absent: true });\nconst sessionRow = grab(() => $('Build Session Row').first().json, { __absent: true });\nconst parsed = grab(() => $('Parse Telegram Update').first().json, { __absent: true });\nconst session = grab(() => $('Get Bot Session').first().json, { __absent: true });\nreturn [{ json: {\n  __harness_outcome: \"AUTHORITY_CURRENT\",\n  chat_id: String(parsed.chat_id || \"\"),\n  minted_key: String(session.submission_key || \"\"),\n  mint_action: String(session.__submission_key_action || \"\"),\n  cycle_id: String(session.cycle_id || \"\"),\n  gate: gate,\n  verdict: verdict,\n  receipt_readback: readback,\n  authority: authority,\n  session_row: sessionRow,\n  terminal_input: $input.first().json || {}\n} }];"
+      },
+      "id": "p73s2-harness-term-0",
+      "name": "HARNESS Result (Authority Current)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS TERMINAL -- records the observable outcome. Reads every named node defensively:\n// on a turn where a branch did not run, $(...) throws, and a terminal that throws would\n// destroy the evidence it exists to capture.\nconst grab = (fn, fallback) => { try { return fn(); } catch (e) { return fallback; } };\nconst gate = grab(() => $('Issuance Gate').first().json, { __absent: true });\nconst verdict = grab(() => $('Issuance Verdict').first().json, { __absent: true });\nconst readback = grab(() => $('Receipt Readback').all().map(i => i.json), null);\nconst authority = grab(() => $('Authority Verdict').first().json, { __absent: true });\nconst sessionRow = grab(() => $('Build Session Row').first().json, { __absent: true });\nconst parsed = grab(() => $('Parse Telegram Update').first().json, { __absent: true });\nconst session = grab(() => $('Get Bot Session').first().json, { __absent: true });\nreturn [{ json: {\n  __harness_outcome: \"STALE_AUTHORITY\",\n  chat_id: String(parsed.chat_id || \"\"),\n  minted_key: String(session.submission_key || \"\"),\n  mint_action: String(session.__submission_key_action || \"\"),\n  cycle_id: String(session.cycle_id || \"\"),\n  gate: gate,\n  verdict: verdict,\n  receipt_readback: readback,\n  authority: authority,\n  session_row: sessionRow,\n  terminal_input: $input.first().json || {}\n} }];"
+      },
+      "id": "p73s2-harness-term-1",
+      "name": "HARNESS Result (Stale Authority)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS TERMINAL -- records the observable outcome. Reads every named node defensively:\n// on a turn where a branch did not run, $(...) throws, and a terminal that throws would\n// destroy the evidence it exists to capture.\nconst grab = (fn, fallback) => { try { return fn(); } catch (e) { return fallback; } };\nconst gate = grab(() => $('Issuance Gate').first().json, { __absent: true });\nconst verdict = grab(() => $('Issuance Verdict').first().json, { __absent: true });\nconst readback = grab(() => $('Receipt Readback').all().map(i => i.json), null);\nconst authority = grab(() => $('Authority Verdict').first().json, { __absent: true });\nconst sessionRow = grab(() => $('Build Session Row').first().json, { __absent: true });\nconst parsed = grab(() => $('Parse Telegram Update').first().json, { __absent: true });\nconst session = grab(() => $('Get Bot Session').first().json, { __absent: true });\nreturn [{ json: {\n  __harness_outcome: \"ISSUANCE_FAULT\",\n  chat_id: String(parsed.chat_id || \"\"),\n  minted_key: String(session.submission_key || \"\"),\n  mint_action: String(session.__submission_key_action || \"\"),\n  cycle_id: String(session.cycle_id || \"\"),\n  gate: gate,\n  verdict: verdict,\n  receipt_readback: readback,\n  authority: authority,\n  session_row: sessionRow,\n  terminal_input: $input.first().json || {}\n} }];"
+      },
+      "id": "p73s2-harness-term-2",
+      "name": "HARNESS Result (Issuance Fault)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        1300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// HARNESS TERMINAL -- records the observable outcome. Reads every named node defensively:\n// on a turn where a branch did not run, $(...) throws, and a terminal that throws would\n// destroy the evidence it exists to capture.\nconst grab = (fn, fallback) => { try { return fn(); } catch (e) { return fallback; } };\nconst gate = grab(() => $('Issuance Gate').first().json, { __absent: true });\nconst verdict = grab(() => $('Issuance Verdict').first().json, { __absent: true });\nconst readback = grab(() => $('Receipt Readback').all().map(i => i.json), null);\nconst authority = grab(() => $('Authority Verdict').first().json, { __absent: true });\nconst sessionRow = grab(() => $('Build Session Row').first().json, { __absent: true });\nconst parsed = grab(() => $('Parse Telegram Update').first().json, { __absent: true });\nconst session = grab(() => $('Get Bot Session').first().json, { __absent: true });\nreturn [{ json: {\n  __harness_outcome: \"NOT_LEAD_READY\",\n  chat_id: String(parsed.chat_id || \"\"),\n  minted_key: String(session.submission_key || \"\"),\n  mint_action: String(session.__submission_key_action || \"\"),\n  cycle_id: String(session.cycle_id || \"\"),\n  gate: gate,\n  verdict: verdict,\n  receipt_readback: readback,\n  authority: authority,\n  session_row: sessionRow,\n  terminal_input: $input.first().json || {}\n} }];"
+      },
+      "id": "p73s2-harness-term-3",
+      "name": "HARNESS Result (Not Lead Ready)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        1500
+      ]
+    }
+  ],
+  "connections": {
+    "HARNESS Entry": {
+      "main": [
+        [
+          {
+            "node": "Telegram Client Trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Client Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Parse Telegram Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Telegram Update": {
+      "main": [
+        [
+          {
+            "node": "Read Bot Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Bot Sessions": {
+      "main": [
+        [
+          {
+            "node": "Find Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Session": {
+      "main": [
+        [
+          {
+            "node": "Get Bot Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Bot Session": {
+      "main": [
+        [
+          {
+            "node": "Build Bot Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Bot Response": {
+      "main": [
+        [
+          {
+            "node": "Build Transport Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Transport Request": {
+      "main": [
+        [
+          {
+            "node": "HARNESS Delivery Stub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HARNESS Delivery Stub": {
+      "main": [
+        [
+          {
+            "node": "Issuance Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issuance Gate": {
+      "main": [
+        [
+          {
+            "node": "IF Issuance Fault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Issuance Fault": {
+      "main": [
+        [
+          {
+            "node": "Build Issuance Failure Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Preallocation Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Preallocation Required": {
+      "main": [
+        [
+          {
+            "node": "Receipt Preallocate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Session Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Preallocate": {
+      "main": [
+        [
+          {
+            "node": "Receipt Readback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Readback": {
+      "main": [
+        [
+          {
+            "node": "Issuance Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issuance Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Authority May Advance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Authority May Advance": {
+      "main": [
+        [
+          {
+            "node": "Build Session Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Issuance Failure Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Issuance Failure Event": {
+      "main": [
+        [
+          {
+            "node": "HARNESS Result (Issuance Fault)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Session Row": {
+      "main": [
+        [
+          {
+            "node": "Save Bot Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Bot Session": {
+      "main": [
+        [
+          {
+            "node": "IF Lead Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Lead Ready": {
+      "main": [
+        [
+          {
+            "node": "Authority Reread",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HARNESS Result (Not Lead Ready)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authority Reread": {
+      "main": [
+        [
+          {
+            "node": "Authority Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authority Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Authority Current",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Authority Current": {
+      "main": [
+        [
+          {
+            "node": "HARNESS Result (Authority Current)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Stale Authority Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Stale Authority Event": {
+      "main": [
+        [
+          {
+            "node": "HARNESS Result (Stale Authority)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}

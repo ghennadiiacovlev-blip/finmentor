@@ -1,0 +1,270 @@
+{
+  "name": "FINMENTOR P73S2 CLEANUP child (DISPOSABLE)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "p73s2-cl-entry",
+      "name": "Cleanup Entry",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "notes": "Test-only entry. Receives { chat_id, session_id, cycle_id, submission_key }."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "id": "p73s2-cl-read",
+      "name": "Cleanup Read Sessions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Parameters lifted VERBATIM from the audited wrapper Read Bot Sessions."
+    },
+    {
+      "parameters": {
+        "jsCode": "// P7.3 step-2 cleanup target selection. Six guards, all of which must hold before an\n// irreversible delete is authorised. See scripts/build-p73s2-cleanup-child.mjs.\nconst want = $('Cleanup Entry').first().json || {};\nconst chat = String(want.chat_id == null ? '' : want.chat_id).trim();\nconst sess = String(want.session_id == null ? '' : want.session_id).trim();\nconst cyc  = String(want.cycle_id == null ? '' : want.cycle_id).trim();\nconst key  = String(want.submission_key == null ? '' : want.submission_key).trim();\n\n// GUARD 1 -- reserved synthetic range only.\nif (!/^900000\\d{3}$/.test(chat)) { throw new Error('REFUSING: chat_id ' + JSON.stringify(chat) + ' is outside the reserved 900000xxx range'); }\nif (!/^sub_[0-9a-f]{32}$/.test(key)) { throw new Error('REFUSING: submission_key is not a well-formed minted key'); }\nif (!sess || !cyc) { throw new Error('REFUSING: session_id and cycle_id must both be supplied'); }\n\nconst cell = (r, n) => String(r[n] == null ? '' : r[n]).trim();\nconst rows = $input.all().map(i => i.json).filter(r => r && cell(r, 'chat_id') === chat);\n\n// GUARD 2 -- exactly one row.\nif (rows.length === 0) { return [{ json: { nothing_to_delete: true, reason: 'NO_ROW_MATCHED', chat_id: chat } }]; }\nif (rows.length > 1) { throw new Error('REFUSING: ' + rows.length + ' rows carry chat_id ' + chat + '; a delete would be a guess'); }\nconst t = rows[0];\n\n// GUARD 3 -- identity beyond chat_id.\nif (cell(t, 'session_id') !== sess) { throw new Error('REFUSING: session_id mismatch, sheet has ' + JSON.stringify(cell(t, 'session_id'))); }\nif (cell(t, 'cycle_id') !== cyc) { throw new Error('REFUSING: cycle_id mismatch, sheet has ' + JSON.stringify(cell(t, 'cycle_id'))); }\nif (cell(t, 'submission_key') !== key) { throw new Error('REFUSING: submission_key mismatch, sheet has ' + JSON.stringify(cell(t, 'submission_key'))); }\n\n// GUARD 4 -- never delete a row that reached the CRM.\nif (cell(t, 'lead_id') !== '') { throw new Error('REFUSING: the row carries lead_id ' + JSON.stringify(cell(t, 'lead_id')) + '; this is not probe residue'); }\n\n// GUARD 5 -- never target the header row.\nconst rn = Number(t.row_number);\nif (!Number.isInteger(rn) || rn <= 1) { throw new Error('REFUSING: row_number ' + t.row_number + ' is not a data row'); }\n\nreturn [{ json: { nothing_to_delete: false, row_number: rn, chat_id: chat, session_id: sess, cycle_id: cyc, submission_key: key } }];"
+      },
+      "id": "p73s2-cl-select",
+      "name": "Cleanup Select Target",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        },
+        "resource": "sheet",
+        "operation": "delete",
+        "toDelete": "rows",
+        "startIndex": "={{ $json.row_number }}",
+        "numberToDelete": 1
+      },
+      "id": "p73s2-cl-delrow",
+      "name": "Cleanup Delete Session Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Cleanup Select Target').first().json.submission_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "p73s2-cl-delreceipt",
+      "name": "Cleanup Delete Receipt",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "id": "p73s2-cl-verify",
+      "name": "Cleanup Verify Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1100,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "alwaysOutputData": true,
+      "notes": "Re-reads the sheet AFTER the delete so residue-zero is measured, not asserted."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Records exactly what was removed, so the cleanup is auditable rather than asserted.\nconst grab = (fn, f) => { try { return fn(); } catch (e) { return f; } };\nconst target = grab(() => $('Cleanup Select Target').first().json, { __absent: true });\nconst receipt = grab(() => $('Cleanup Delete Receipt').all().map(i => i.json), null);\nconst sheetDel = grab(() => $('Cleanup Delete Session Row').first().json, { __absent: true });\nconst post = grab(() => $('Cleanup Verify Sheet').all().map(i => i.json).filter(r => String(r.chat_id || '').trim() === String(target.chat_id || '')), null);\nreturn [{ json: {\n  __cleanup: 'P73S2',\n  target: target,\n  sheet_delete: sheetDel,\n  receipt_rows_deleted: receipt,\n  rows_remaining_for_chat: post === null ? null : post.length,\n  residue_zero: post !== null && post.length === 0\n} }];"
+      },
+      "id": "p73s2-cl-result",
+      "name": "Cleanup Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Cleanup Entry": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Read Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Read Sessions": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Select Target",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Select Target": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Delete Session Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Delete Session Row": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Delete Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Delete Receipt": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Verify Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Verify Sheet": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}
