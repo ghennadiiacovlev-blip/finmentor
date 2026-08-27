@@ -34,6 +34,15 @@ Not built, on purpose:
 
 - **No new Lead Intake.** The slice projects onto the payload shape the *existing* Lead
   Intake already parses at its Validate Payload node. The production writer is untouched.
+
+  > **CORRECTED 2026-08-27 (F10).** The second sentence of that bullet was wrong as
+  > written. `Validate Payload` is an inherited production node and parses the **webhook
+  > request shape** (`raw.body` / `raw.headers`), not the `{ source, payload }` envelope
+  > this slice builds. The envelope is the gateway → `Internal Auth Entry` contract only;
+  > `Internal Envelope Unwrap` translates it. Believing otherwise made the internal route
+  > reject every lead as `INVALID_PAYLOAD` until P6.2 exposed it live (exec 3583). The
+  > claim in the first sentence still holds — the production writer was and is untouched.
+  > See `docs/P6_3_F10_INTERNAL_ROUTE_SHAPE.md`.
 - **No deployment.** No workflow was created, modified, activated or deactivated. The
   modules are repository sources awaiting the canary gate §7 describes.
 

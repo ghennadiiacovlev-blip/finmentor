@@ -27,7 +27,8 @@ const GATES = [
   ['G1 P5 production integration', 'receipt-integration.test.mjs'],
   ['Bot_Sessions legacy cycle contract', 'bot-sessions-legacy-cycle.test.mjs'],
   ['P6.1 safe manual-import artifact', 'import-safe.test.mjs'],
-  ['P6.2 REST-API import projection', 'api-import.test.mjs']
+  ['P6.2 REST-API import projection', 'api-import.test.mjs'],
+  ['F10 internal-route data contract', 'internal-route-contract.test.mjs']
 ];
 
 // Each gate prints its own tally, in one of two shapes: "N passed, 0 failed" or

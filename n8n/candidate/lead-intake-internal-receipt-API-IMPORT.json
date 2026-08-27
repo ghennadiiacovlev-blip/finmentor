@@ -2660,7 +2660,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// F2 — Validate Payload expects { source, payload }. The gateway sends\n// { submission_key, envelope }. Unwrap to exactly the envelope shape.\n//\n// submission_key is deliberately NOT injected into the payload. It is a receipt control,\n// not lead data, and putting it in the payload would make it indistinguishable from a\n// caller-supplied field one node later. The receipt nodes read it from\n// $('Internal Auth Entry') by node reference instead.\nconst env = $('Internal Auth Entry').first().json.__envelope || {};\nreturn [{ json: { source: env.source, payload: env.payload } }];"
+        "jsCode": "// F10 — emit the shape Validate Payload READS, which is the WEBHOOK request shape\n// { headers, body } -- NOT { source, payload }.\n//\n// This node previously emitted { source, payload }, on the documented but WRONG belief\n// that Lead Intake parses the envelope shape. Validate Payload is an INHERITED\n// PRODUCTION node and it reads raw.body / raw.headers. The consequence was total: every\n// internal submission resolved to INVALID_PAYLOAD (\"Body must be a JSON object\") and the\n// internal route could never accept a lead at all. Found live in P6.2 (exec 3583), not\n// offline -- the old gate asserted the WIRING across this seam but never the SHAPE.\n//\n// The header is a SERVER-SIDE LITERAL, not env.source. Internal Auth Entry has already\n// hard-required env.source === telegram_miniapp, so the literal is exactly as truthful\n// and cannot be steered by a caller -- provenance is established by the route, never by\n// a field in a body. Validate Payload is the only node in the graph that reads headers,\n// and only headers['x-finmentor-source'].\n//\n// submission_key is deliberately NOT injected into the body. It is a receipt control,\n// not lead data, and putting it in the body would make it indistinguishable from a\n// caller-supplied field one node later. The receipt nodes read it from\n// $('Internal Auth Entry') by node reference instead.\nconst env = $('Internal Auth Entry').first().json.__envelope || {};\nreturn [{ json: {\n  headers: { 'x-finmentor-source': 'telegram_miniapp' },\n  body: env.payload\n} }];"
       },
       "id": "p51-06-code",
       "name": "Internal Envelope Unwrap",
@@ -2670,7 +2670,7 @@
         -456,
         76
       ],
-      "notes": "F2. Emits ONLY { source, payload }. submission_key never enters the payload."
+      "notes": "F10. Emits the webhook request shape { headers, body }. submission_key never enters the body."
     },
     {
       "parameters": {

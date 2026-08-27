@@ -487,9 +487,22 @@ function evaluateConsent(opts) {
 
 // ---------------------------------------------------------------- §9.6 Lead Intake payload
 
-// Project the whitelisted Mini App answers onto the payload shape the EXISTING Lead Intake
-// already parses (`{ source, payload }`, read by its Validate Payload node). Two omissions
-// are deliberate and load-bearing:
+// Project the whitelisted Mini App answers onto the lead payload, and wrap it in the
+// `{ source, payload }` ENVELOPE.
+//
+// F10 — read the scope of that envelope precisely, because an earlier version of this very
+// comment did not. The envelope is the contract between THIS GATEWAY and the internal
+// route's `Internal Auth Entry` node, and nothing further. It is NOT the shape Lead
+// Intake's `Validate Payload` parses: that node is INHERITED PRODUCTION and reads the
+// WEBHOOK REQUEST shape, `raw.body` / `raw.headers`. `Internal Envelope Unwrap` is the node
+// that translates one into the other.
+//
+// The earlier claim that Lead Intake "already parses { source, payload }" was false, and it
+// was load-bearing: the unwrap was built to satisfy it, so every internal submission
+// resolved to INVALID_PAYLOAD and the route could not accept a single lead (live exec
+// 3583). The seam is now proven by execution in qa/internal-route-contract.test.mjs.
+//
+// Two omissions from the payload are deliberate and load-bearing:
 //
 //   * no `lead_id` — a caller-supplied lead_id must never become canonical identity, and
 //     downstream Dedup Guard uses it to select a merge target. The gateway is a caller.

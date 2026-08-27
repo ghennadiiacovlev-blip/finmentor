@@ -960,17 +960,26 @@ check('(F1) a caller-supplied marker cannot establish provenance', () => {
     .forEach((k) => assert(C.UNTRUSTED_BODY_KEYS.indexOf(k) !== -1, k + ' left the untrusted body list'));
 });
 
-check('(F2) the wrapper is proven and unwrapped to { source, payload }', () => {
+check('(F2/F10) the wrapper is proven and unwrapped to the request shape', () => {
   const js = NODE.get('Internal Auth Entry').parameters.jsCode;
   assert(js.indexOf('^sub_[0-9a-f]{32}$') !== -1, 'the entry lost its exact key check');
   assert(js.indexOf("raw.submission_key") !== -1, 'the entry does not read submission_key from the wrapper');
   assert(js.indexOf("'telegram_miniapp'") !== -1, 'the entry does not check envelope.source');
   assert(js.indexOf('ENVELOPE_PAYLOAD_MISSING') !== -1, 'the entry does not check envelope.payload');
-  // The unwrap emits the envelope shape ALONE.
+  // F10 — the unwrap emits the WEBHOOK REQUEST shape { headers, body }, because that is what
+  // the inherited Validate Payload node actually reads.
+  //
+  // This assertion previously required `{ source, payload }` and therefore ENCODED THE
+  // DEFECT: it kept passing while the internal route could not accept a single lead. The
+  // shape contract is now proven by EXECUTION in qa/internal-route-contract.test.mjs; what is
+  // checked here is only that this node still carries the structural properties this gate
+  // owns. A string check cannot establish a data contract -- that was the whole lesson.
   const un = NODE.get('Internal Envelope Unwrap');
   assert(un, 'Internal Envelope Unwrap is missing');
-  assert(un.parameters.jsCode.indexOf('source: env.source, payload: env.payload') !== -1,
-    'the unwrap does not emit exactly { source, payload }');
+  assert(un.parameters.jsCode.indexOf('body: env.payload') !== -1,
+    'the unwrap does not put the envelope payload in the request body');
+  assert(un.parameters.jsCode.indexOf('source: env.source, payload: env.payload') === -1,
+    'the unwrap reverted to the { source, payload } shape Validate Payload cannot read');
   assert(codeBody(un.parameters.jsCode).indexOf('submission_key') === -1,
     'the unwrap injects submission_key into the payload');
   eq(outputTargets('Internal Envelope Unwrap', 0).join(','), 'Validate Payload',

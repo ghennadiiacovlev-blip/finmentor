@@ -249,20 +249,36 @@ add(internalResult('Internal Result (Fault)', at('Webhook', 440, -360),
   RESULT_FAIL("String($json.__fault_reason || 'INTERNAL_REQUEST_INVALID')", false),
   'F3/F4 terminal. Reachable only from the internal fault gate.'));
 
-// F2 — hand the shared pipeline the ENVELOPE SHAPE ONLY.
+// F2 — hand the shared pipeline the REQUEST SHAPE Validate Payload actually reads.
 add(code('Internal Envelope Unwrap', at('Webhook', 440, -260),
   [
-    '// F2 — Validate Payload expects { source, payload }. The gateway sends',
-    '// { submission_key, envelope }. Unwrap to exactly the envelope shape.',
+    '// F10 — emit the shape Validate Payload READS, which is the WEBHOOK request shape',
+    "// { headers, body } -- NOT { source, payload }.",
     '//',
-    '// submission_key is deliberately NOT injected into the payload. It is a receipt control,',
-    '// not lead data, and putting it in the payload would make it indistinguishable from a',
+    '// This node previously emitted { source, payload }, on the documented but WRONG belief',
+    '// that Lead Intake parses the envelope shape. Validate Payload is an INHERITED',
+    '// PRODUCTION node and it reads raw.body / raw.headers. The consequence was total: every',
+    '// internal submission resolved to INVALID_PAYLOAD ("Body must be a JSON object") and the',
+    '// internal route could never accept a lead at all. Found live in P6.2 (exec 3583), not',
+    '// offline -- the old gate asserted the WIRING across this seam but never the SHAPE.',
+    '//',
+    '// The header is a SERVER-SIDE LITERAL, not env.source. Internal Auth Entry has already',
+    '// hard-required env.source === telegram_miniapp, so the literal is exactly as truthful',
+    '// and cannot be steered by a caller -- provenance is established by the route, never by',
+    '// a field in a body. Validate Payload is the only node in the graph that reads headers,',
+    "// and only headers['x-finmentor-source'].",
+    '//',
+    '// submission_key is deliberately NOT injected into the body. It is a receipt control,',
+    '// not lead data, and putting it in the body would make it indistinguishable from a',
     '// caller-supplied field one node later. The receipt nodes read it from',
     "// $('Internal Auth Entry') by node reference instead.",
     "const env = $('Internal Auth Entry').first().json.__envelope || {};",
-    'return [{ json: { source: env.source, payload: env.payload } }];'
+    'return [{ json: {',
+    "  headers: { 'x-finmentor-source': 'telegram_miniapp' },",
+    '  body: env.payload',
+    '} }];'
   ].join('\n'),
-  'F2. Emits ONLY { source, payload }. submission_key never enters the payload.'));
+  'F10. Emits the webhook request shape { headers, body }. submission_key never enters the body.'));
 
 // A safe internal-ness flag every downstream gate can read. Needed because the terminals
 // before Receipt Gate cannot reference Internal Auth Entry directly: on the public path that

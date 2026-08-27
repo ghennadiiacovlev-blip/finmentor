@@ -93,16 +93,28 @@ try { $ctx = Get-N8nContext -Write } catch { Fail "$($_.Exception.Message)  (a F
 Ok "write credentials present for $($ctx.Base)"
 
 # --- 4. no canary already exists — refuse to create a duplicate ---------------
-$existing = @(Get-N8nWorkflowList | Where-Object { $_.name -eq $CanaryName })
+# ARCHIVED workflows do not count as duplicates. They cannot run, cannot serve, and cannot be
+# confused for the live canary; refusing on their account would mean the only way to redeploy
+# a corrected candidate is to permanently delete the superseded one, which is strictly worse
+# than keeping it archived for the record.
+$sameName = @(Get-N8nWorkflowList | Where-Object { $_.name -eq $CanaryName })
+$archived = @($sameName | Where-Object { $_.isArchived -eq $true })
+$existing = @($sameName | Where-Object { $_.isArchived -ne $true })
 if ($existing.Count -gt 0) {
-    $existing | ForEach-Object { Bad "already exists: $($_.id)  active=$($_.active)" }
-    Fail 'a canary with this name already exists. Delete or rename it first — this script will not create a second.'
+    $existing | ForEach-Object { Bad "already exists (not archived): $($_.id)  active=$($_.active)" }
+    Fail 'a live canary with this name already exists. Archive or rename it first — this script will not create a second.'
 }
-Ok 'no workflow with the canary name exists yet'
+if ($archived.Count -gt 0) {
+    $archived | ForEach-Object { Say "  note: superseded archived canary retained: $($_.id)" }
+}
+Ok 'no LIVE workflow with the canary name exists yet'
 
 # --- 5. record the production workflow fingerprint, to prove we did not touch it
 $prodBefore = Get-N8nWorkflow -Id $ProductionId
-$prodHashBefore = Get-WorkflowStructuralHash -Workflow $prodBefore
+# The library predates this script's Set-StrictMode and reads node properties (.disabled)
+# that are absent on many production nodes. Strict mode is relaxed for the CALL ONLY --
+# narrowing it here rather than editing shared library code that other scripts rely on.
+$prodHashBefore = & { Set-StrictMode -Off; Get-WorkflowStructuralHash -Workflow $prodBefore }
 Ok "production Lead Intake fingerprint recorded: $($prodHashBefore.Substring(0,16))… (active=$($prodBefore.active))"
 
 if ($DryRun) {
@@ -149,17 +161,44 @@ Say '== VERIFY (against the live object, not the file) =========='
 $live = Get-N8nWorkflow -Id $newId
 $problems = @()
 
+# Strict-safe property read for SERVER RESPONSE objects.
+#
+# Two failure modes have to be avoided at once here, and they pull in opposite directions.
+# With Set-StrictMode on, a property the server simply omitted throws and the run dies in the
+# middle of verification. With strict mode off, `$live.active -eq $true` on an ABSENT property
+# yields $null -eq $true -> false, which falls into the else branch and prints
+# "active === false" -- a FALSE PASS on the single most important assertion in this script.
+#
+# So absence is treated as its own outcome: Get-LiveProp reports whether the property was
+# there, and a missing property is recorded as a PROBLEM rather than silently satisfying a
+# negative comparison.
+function Get-LiveProp {
+    param($Object, [Parameter(Mandatory)][string]$Path)
+    $cur = $Object
+    foreach ($seg in $Path.Split('.')) {
+        if ($null -eq $cur) { return [pscustomobject]@{ Found = $false; Value = $null } }
+        $prop = $cur.PSObject.Properties[$seg]
+        if ($null -eq $prop) { return [pscustomobject]@{ Found = $false; Value = $null } }
+        $cur = $prop.Value
+    }
+    [pscustomobject]@{ Found = $true; Value = $cur }
+}
+
 # THE assertion. `active: false` could not be carried by the artifact, because the endpoint
 # rejects the field — so inactivity was, until this moment, only the server's default. This is
 # the first and only place it can actually be established.
-if ($live.active -eq $true) {
+$activeProp = Get-LiveProp $live 'active'
+if (-not $activeProp.Found) {
+    Bad 'active: PROPERTY ABSENT — inactivity could NOT be confirmed'
+    $problems += 'the API response carries no `active` property, so inactivity is unconfirmed'
+} elseif ($activeProp.Value -eq $true) {
     Bad 'the created workflow is ACTIVE'
     Say '  -> deactivating immediately'
     try {
         Invoke-RestMethod -Method Post -Uri "$($ctx.Base)/api/v1/workflows/$newId/deactivate" `
             -Headers $ctx.Headers -ContentType 'application/json' | Out-Null
         $live = Get-N8nWorkflow -Id $newId
-        if ($live.active -eq $true) { Fail "workflow $newId is ACTIVE and could not be deactivated. DEACTIVATE IT BY HAND NOW." }
+        if ((Get-LiveProp $live 'active').Value -eq $true) { Fail "workflow $newId is ACTIVE and could not be deactivated. DEACTIVATE IT BY HAND NOW." }
         Say '  -> deactivated'
     } catch {
         Fail "workflow $newId is ACTIVE and deactivation failed. DEACTIVATE IT BY HAND NOW: $($_.Exception.Message)"
@@ -179,9 +218,18 @@ $hook = @($live.nodes | Where-Object { $_.type -eq 'n8n-nodes-base.webhook' })
 if ($hook.Count -ne 1) {
     $problems += "webhook node count is $($hook.Count), expected 1"
 } else {
-    if ($hook[0].disabled -ne $true) { $problems += 'the webhook node is NOT disabled' } else { Ok 'webhook disabled === true' }
-    if ($hook[0].parameters.path -ne $InertWebhookPath) {
-        $problems += "webhook path is '$($hook[0].parameters.path)', expected '$InertWebhookPath'"
+    $disProp = Get-LiveProp $hook[0] 'disabled'
+    if (-not $disProp.Found) {
+        $problems += 'the webhook node has NO disabled property — it is not disabled'
+    } elseif ($disProp.Value -ne $true) {
+        $problems += 'the webhook node is NOT disabled'
+    } else { Ok 'webhook disabled === true' }
+
+    $pathProp = Get-LiveProp $hook[0] 'parameters.path'
+    if (-not $pathProp.Found) {
+        $problems += 'the webhook node has NO path parameter'
+    } elseif ($pathProp.Value -ne $InertWebhookPath) {
+        $problems += "webhook path is '$($pathProp.Value)', expected '$InertWebhookPath'"
     } else { Ok "webhook path === $InertWebhookPath" }
 }
 
@@ -190,13 +238,16 @@ if ($liveJson.Contains($ProductionPath)) {
     $problems += "the production path $ProductionPath is present in the deployed definition"
 } else { Ok "production path $ProductionPath absent" }
 
-if ($live.settings.availableInMCP -ne $false) {
-    $problems += 'settings.availableInMCP is not false'
+$mcpProp = Get-LiveProp $live 'settings.availableInMCP'
+if (-not $mcpProp.Found) {
+    $problems += 'settings.availableInMCP is ABSENT from the response — MCP exposure state unconfirmed'
+} elseif ($mcpProp.Value -ne $false) {
+    $problems += "settings.availableInMCP is $($mcpProp.Value), expected false"
 } else { Ok 'settings.availableInMCP === false' }
 
 # --- production untouched -----------------------------------------------------
 $prodAfter = Get-N8nWorkflow -Id $ProductionId
-$prodHashAfter = Get-WorkflowStructuralHash -Workflow $prodAfter
+$prodHashAfter = & { Set-StrictMode -Off; Get-WorkflowStructuralHash -Workflow $prodAfter }
 if ($prodHashAfter -ne $prodHashBefore) {
     $problems += 'THE PRODUCTION LEAD INTAKE WORKFLOW CHANGED DURING THIS RUN'
 } else { Ok 'production Lead Intake structurally unchanged' }

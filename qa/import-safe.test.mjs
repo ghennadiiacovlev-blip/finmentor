@@ -45,6 +45,7 @@ const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.strin
 
 const CANON_PATH = join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-candidate.json');
 const SAFE_PATH = join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-IMPORT-SAFE.json');
+const PROD_PATH = join(ROOT, 'n8n', 'production', 'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json');
 
 const canonRaw = readFileSync(CANON_PATH, 'utf8');
 const safeRaw = readFileSync(SAFE_PATH, 'utf8');
@@ -180,7 +181,31 @@ check('every Code node body is byte-identical', () => {
     eq(sn.parameters.jsCode, cn.parameters.jsCode, 'jsCode differs for ' + cn.name);
     bytes += String(cn.parameters.jsCode).length;
   });
-  eq(bytes, 98890, 'the total Code body size drifted from the audited 98,890 characters');
+  // The total is split into INHERITED and GENERATED rather than pinned as one number.
+  //
+  // A single total conflates two properties with completely different meanings. Inherited
+  // production Code must NEVER drift -- that is the audit anchor, and any change to it is
+  // production drift. Generated Code changes whenever the receipt design changes, which it
+  // legitimately did in F10. The old single pin could only be satisfied by editing the
+  // number, which would have silently accepted inherited drift too.
+  const PROD = JSON.parse(readFileSync(PROD_PATH, 'utf8'));
+  const prodByName = Object.fromEntries(PROD.nodes.map((n) => [n.name, n]));
+  let inheritedBytes = 0, generatedBytes = 0, inheritedCount = 0;
+  codeNodes.forEach((cn) => {
+    const p = prodByName[cn.name];
+    if (p && p.type === 'n8n-nodes-base.code') {
+      inheritedCount++;
+      eq(cn.parameters.jsCode, p.parameters.jsCode,
+        'INHERITED PRODUCTION CODE DRIFTED in ' + cn.name);
+      inheritedBytes += String(cn.parameters.jsCode).length;
+    } else {
+      generatedBytes += String(cn.parameters.jsCode).length;
+    }
+  });
+  eq(inheritedCount, 24, 'the inherited Code node count drifted');
+  eq(inheritedBytes, 85602, 'inherited production Code body size drifted — this is production drift');
+  eq(generatedBytes, 14230, 'generated receipt Code body size drifted; update deliberately');
+  eq(bytes, inheritedBytes + generatedBytes, 'the split does not account for every Code body');
 });
 
 check('connections are byte-identical', () => {
