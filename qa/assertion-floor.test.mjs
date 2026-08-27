@@ -81,7 +81,10 @@ check('the baseline is self-consistent: total equals the sum of the per-gate flo
 
 check('every gate in the runner has a recorded floor, and no floor is orphaned', () => {
   // Parsed out of the runner's GATES table rather than duplicated here, so this cannot drift.
-  const files = [...RUN_ALL.matchAll(/'([a-z0-9-]+\.test\.mjs)'/g)].map((m) => m[1]);
+  // A gate may live outside qa/ and be recorded with a path prefix — the Telegram initData
+  // validator does. The pattern must allow one, or registering such a gate fails this check for
+  // a reason that has nothing to do with coverage.
+  const files = [...RUN_ALL.matchAll(/'((?:[a-z0-9-]+\/)?[a-z0-9-]+\.test\.mjs)'/g)].map((m) => m[1]);
   assert(files.length > 0, 'could not parse the GATES table out of run-all.mjs');
   const recorded = Object.keys(BASELINE.gates).sort();
   const inRunner = [...new Set(files)].sort();

@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 1130,
+  "total": 1144,
   "gates": {
     "command-center-auth.test.mjs": 43,
     "lead-intake-trust.test.mjs": 43,
@@ -31,6 +31,7 @@
     "assertion-floor.test.mjs": 20,
     "deploy-guard.test.mjs": 28,
     "cutover.test.mjs": 43,
-    "materializer.test.mjs": 31
+    "materializer.test.mjs": 31,
+    "gateway/telegram-initdata.test.mjs": 14
   }
 }

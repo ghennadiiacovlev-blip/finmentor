@@ -110,7 +110,9 @@ if (!deploy) {
 // ---------------------------------------------------------------- deploy, from memory
 
 const key = process.env.N8N_FIX_API_KEY;
+const readKey = process.env.N8N_API_KEY;
 if (!key) { console.error('REFUSING: N8N_FIX_API_KEY is not present in this process.'); process.exit(1); }
+if (!readKey) { console.error('REFUSING: N8N_API_KEY is not present; this script will not read with the write key.'); process.exit(1); }
 
 const res = await fetch(BASE + '/workflows/' + P.PRODUCTION_WORKFLOW_ID, {
   method: 'PUT',
@@ -124,7 +126,9 @@ if (!res.ok) {
 console.log('\n  PUT                    : OK (' + res.status + ')');
 
 const back = await (await fetch(BASE + '/workflows/' + P.PRODUCTION_WORKFLOW_ID, {
-  headers: { 'X-N8N-API-KEY': process.env.N8N_API_KEY || key }
+  // No fallback to the WRITE key. A read that silently borrows write credentials hides which
+  // key is in play, and P8 §0 forbids any silent fallback to another key.
+  headers: { 'X-N8N-API-KEY': readKey }
 })).json();
 
 const bn = {}; (back.nodes || []).forEach((n) => { bn[n.name] = n; });

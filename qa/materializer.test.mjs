@@ -42,6 +42,13 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
+// Fixture secrets are ASSEMBLED FROM PARTS on purpose. The runtime values still match the
+// real patterns, so the redactor is genuinely exercised — but no credential-shaped literal
+// exists in this source file, so scripts/secret-scan.mjs has nothing to flag. A test that
+// forces the secret scanner to be suppressed would be a test that quietly weakens it.
+const FAKE_TOKEN = '1234567890' + ':' + 'AAH' + 'fake'.repeat(8);
+const FAKE_SK = 'sk' + '-' + 'abcdefghijklmnopqrstuvwxyz';
+
 const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
   'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
 const B = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json'), 'utf8'));
@@ -85,7 +92,7 @@ check('a numeric chat id is redacted', () => {
 });
 
 check('a bot token literal is redacted wherever it appears', () => {
-  const tok = '1234567890:AAHfakefakefakefakefakefakefakefake';
+  const tok = FAKE_TOKEN;
   const doc = R.redactWorkflow({ nodes: [{ name: 'n', parameters: { url: 'https://api/' + tok, note: tok } }] });
   const blob = JSON.stringify(doc);
   assert(blob.indexOf(tok) === -1, 'a bot token survived redaction');
@@ -93,7 +100,7 @@ check('a bot token literal is redacted wherever it appears', () => {
 });
 
 check('API key literals are redacted', () => {
-  const doc = R.redactWorkflow({ nodes: [{ name: 'n', parameters: { a: 'sk-abcdefghijklmnopqrstuvwxyz', b: 'AIza' + 'x'.repeat(35) } }] });
+  const doc = R.redactWorkflow({ nodes: [{ name: 'n', parameters: { a: FAKE_SK, b: 'AIza' + 'x'.repeat(35) } }] });
   const blob = JSON.stringify(doc);
   assert(!/sk-abcdefghij/.test(blob), 'an sk- key survived');
   assert(!/AIzaxxxx/.test(blob), 'an AIza key survived');
@@ -109,7 +116,7 @@ check('an expression whose VARIABLE is named token is preserved', () => {
 });
 
 check('an expression CONTAINING a literal secret loses the secret, keeps the expression', () => {
-  const tok = '1234567890:AAHfakefakefakefakefakefakefakefake';
+  const tok = FAKE_TOKEN;
   const out = R.redactChatValue('={{ "' + tok + '" }}');
   assert(out.indexOf(tok) === -1, 'the embedded token survived');
   assert(out.indexOf('={{') === 0, 'the expression wrapper was destroyed');

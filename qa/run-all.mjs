@@ -39,6 +39,7 @@ const GATES = [
   ['P7.4 deployment guards', 'deploy-guard.test.mjs'],
   ['P7.5 cutover + Bot_Sessions writes', 'cutover.test.mjs'],
   ['P7.5R redactor + materializer', 'materializer.test.mjs'],
+  ['Telegram initData validator', 'gateway/telegram-initdata.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
 
@@ -47,12 +48,20 @@ const GATES = [
 // lines, so a gate that prints the word elsewhere cannot inflate the total.
 function assertionsFrom(output) {
   const m = [...output.matchAll(/(\d+)\s+(?:checks\s+)?passed\b/g)];
-  return m.length ? Number(m[m.length - 1][1]) : null;
+  if (m.length) { return Number(m[m.length - 1][1]); }
+  // node:test reports "pass N" rather than "N passed". gateway/telegram-initdata.test.mjs uses
+  // it, and P8 found that gate had never been in this runner at all -- a security-critical
+  // validator whose tests nobody ran. Reading its format here was cheaper and safer than
+  // rewriting a passing test to satisfy a regex.
+  const t = [...output.matchAll(/^\D*pass\s+(\d+)\s*$/gm)];
+  return t.length ? Number(t[t.length - 1][1]) : null;
 }
 
 const results = [];
 for (const [label, file] of GATES) {
-  const r = spawnSync(process.execPath, [join(HERE, file)], { encoding: 'utf8' });
+  // A gate path may be repo-relative when it lives outside qa/ (the gateway validator does).
+  const target = file.indexOf('/') === -1 ? join(HERE, file) : join(HERE, '..', file);
+  const r = spawnSync(process.execPath, [target], { encoding: 'utf8' });
   const ok = r.status === 0;
   const output = (r.stdout || '') + (r.stderr || '');
   const assertions = assertionsFrom(output);
