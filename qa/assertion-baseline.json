@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 1056,
+  "total": 1090,
   "gates": {
     "command-center-auth.test.mjs": 43,
     "lead-intake-trust.test.mjs": 43,
@@ -29,6 +29,7 @@
     "concierge-import-safe.test.mjs": 87,
     "concierge-issuer-harness.test.mjs": 52,
     "assertion-floor.test.mjs": 20,
-    "deploy-guard.test.mjs": 28
+    "deploy-guard.test.mjs": 28,
+    "cutover.test.mjs": 34
   }
 }

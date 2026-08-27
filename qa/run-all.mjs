@@ -37,6 +37,7 @@ const GATES = [
   ['P7.3 Concierge import-safe wrapper', 'concierge-import-safe.test.mjs'],
   ['P7.3 step-2 issuer harness fidelity', 'concierge-issuer-harness.test.mjs'],
   ['P7.4 deployment guards', 'deploy-guard.test.mjs'],
+  ['P7.5 cutover + Bot_Sessions writes', 'cutover.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
 
