@@ -29,9 +29,12 @@
 // This gate therefore RUNS the two real Code bodies, taken from the tracked candidate, against
 // each other. If the seam ever breaks again it fails offline, in CI, before a deployment.
 
+import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+
+const require = createRequire(import.meta.url);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -59,6 +62,10 @@ const body = (wf, name) => {
 
 const UNWRAP = body(WF, 'Internal Envelope Unwrap');
 const VALIDATE = body(WF, 'Validate Payload');
+const NORMALIZE = body(WF, 'Normalize + Score Lead');
+
+// The GATEWAY's own payload builder -- the real module, never a copy of its shape.
+const GATEWAY = require(join(ROOT, 'n8n', 'src', 'miniapp-submit', 'submit-contract.js'));
 
 // ---------------------------------------------------------------- the n8n harness
 //
@@ -439,6 +446,90 @@ check('REGRESSION: a $json-fed gate is provably broken by an error output', () =
   // ...and the node-reference form is unaffected by what the error item contains.
   const viaReference = { __internal: 1 };
   assert(viaReference.__internal === 1, 'the node-reference form must still resolve to 1');
+});
+
+// ================================================================ 5. the payload SHAPE
+//
+// P6.3 ran the superseded canary live and the internal route accepted a lead end to end
+// (exec 3610). The row it wrote carried NO NAME, NO PHONE, NO TELEGRAM and consent false,
+// and scored INCOMPLETE. The route was not at fault: the case had been hand-written FLAT --
+// { name, email, phone } at the top level -- and `Normalize + Score Lead` reads
+// `client.name` / `lead.name`. The gateway never emits that shape. So a green live run
+// proved the seam MOVES a payload while proving nothing about what ARRIVES in the CRM.
+//
+// §1 executes the seam as far as Validate Payload. That is one node too few: Validate Payload
+// accepts a flat payload as "meaningful", so the loss happens entirely downstream of where
+// this gate used to stop. These checks run the REAL gateway builder into the REAL normaliser.
+
+const gatewayEnvelope = (() => {
+  const built = GATEWAY.buildLeadIntakePayload({
+    nowIso: '2026-08-27T09:00:00.000Z',
+    correlationId: 'req-shape-gate',
+    telegramUserId: '123456789',
+    locale: 'ru',
+    clientVersion: GATEWAY.ALLOWED_CLIENT_VERSIONS[0],
+    contact: { name: 'Shape Gate', company: 'Shape SRL', direct: '+37360000631' },
+    answers: { sector: 'services', turnover: '500k_2m', cash: 'partial', profit: 'unclear', treasury: 'unclear', kpi: 'partial', pain: 'cash_gap', urgency: 'now' },
+    free_text: { context: 'shape gate' }
+  });
+  assert(built.ok, 'the gateway refused to build its own canonical payload');
+  return built.envelope;
+})();
+
+// The seam, one node further than `seam()`: through to the row the CRM would receive.
+const normalised = (envelope) => {
+  const unwrapped = runCode(UNWRAP, {
+    input: {},
+    nodes: { 'Internal Auth Entry': authEntryOutput(envelope, 'sub_' + 'a'.repeat(32), 'req-shape-gate') }
+  });
+  const v = runCode(VALIDATE, { input: unwrapped[0].json, nodes: {} })[0].json;
+  assert(v.valid, 'Validate Payload rejected the payload: ' + v.error_code);
+  const out = runCode(NORMALIZE, {
+    input: v,
+    nodes: {
+      'Validate Payload': v,
+      'Internal Auth Entry': authEntryOutput(envelope, 'sub_' + 'a'.repeat(32), 'req-shape-gate')
+    }
+  });
+  assert(Array.isArray(out) && out.length === 1, 'Normalize did not return exactly one item');
+  return out[0].json;
+};
+
+check('the REAL gateway payload reaches the CRM row with its contacts intact', () => {
+  const row = normalised(gatewayEnvelope);
+  eq(row.name, 'Shape Gate', 'the name did not survive the seam');
+  eq(row.company, 'Shape SRL', 'the company did not survive the seam');
+  eq(row.phone, '+37360000631', 'the contact did not survive the seam');
+  eq(row.telegram, '123456789', 'the Telegram identity did not survive the seam');
+  eq(row.consent, true, 'consent did not survive the seam');
+  assert(row.lead_priority !== 'INCOMPLETE', 'a complete gateway submission scored INCOMPLETE');
+  assert(!/нет контакта/.test(row.priority_reason || ''), 'the row was scored as having no contact');
+});
+
+check('Mini App provenance rides on attribution, since source stays website', () => {
+  // §2 fixes `source` at 'website' on purpose: an internal lead must not impersonate the
+  // concierge bot. That makes meta.page_url / utm_* the ONLY channel by which a row can be
+  // recognised as a Mini App lead, so it is load-bearing and asserted here, not assumed.
+  const row = normalised(gatewayEnvelope);
+  eq(row.page_url, 'telegram_miniapp', 'Mini App provenance is not recorded on the row');
+  eq(row.utm_source, 'telegram', 'utm_source drifted');
+  eq(row.utm_medium, 'miniapp', 'utm_medium drifted');
+});
+
+check('REGRESSION: a FLAT contact payload validates but arrives CONTACTLESS', () => {
+  // This is the P6.3 live case, preserved. It documents the trap rather than the fix: the
+  // shape is accepted at every gate and still produces an unusable lead, so a future case
+  // written this way fails HERE instead of in the production CRM.
+  const flat = {
+    meta: { request_id: 'req-shape-gate' },
+    name: 'Flat Case', email: 'flat@example.invalid', phone: '+37360000000', consent: true
+  };
+  const v = seam({ source: 'telegram_miniapp', payload: flat });
+  eq(v.valid, true, 'the flat shape no longer validates -- update this regression');
+  const row = normalised({ source: 'telegram_miniapp', payload: flat });
+  eq(row.name, '', 'a top-level name now reaches the row: the trap is closed, tighten this gate');
+  eq(row.phone, '', 'a top-level phone now reaches the row: the trap is closed, tighten this gate');
+  eq(row.lead_priority, 'INCOMPLETE', 'the flat shape no longer scores INCOMPLETE');
 });
 
 // ================================================================ summary

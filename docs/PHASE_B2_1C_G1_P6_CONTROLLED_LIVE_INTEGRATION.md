@@ -537,6 +537,12 @@ table, the pre-existing B21B QA table.
 modified, no row added anywhere. The only live reads were the `Bot_Sessions` header (names
 only) and workflow metadata.
 
+> **Superseded for later windows.** True as written, for the P6 window this section records.
+> It no longer describes the tenant: the P6.3 supersede (2026-08-27) ran the canary live and
+> wrote **two rows into the production `Pipeline` sheet** plus two `Submission_Receipts` rows.
+> The ledger is `docs/P6_3_INTERNAL_ROUTE_DEFECTS.md` §7.8, and the CRM rows are the one item
+> this repository's tooling cannot undo.
+
 ---
 
 ## 8. Residual blockers, in the order they must be resolved

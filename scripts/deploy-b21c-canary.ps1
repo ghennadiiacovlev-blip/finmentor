@@ -34,6 +34,17 @@ Set-StrictMode -Version Latest
 
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Root = Split-Path -Parent $Here
+
+# Hydrate credentials from the User scope when this process did not inherit them.
+# A variable the owner sets mid-session is invisible to an already-running process, which on
+# supersede attempt 1 read as "the credential is absent" when it was merely not inherited.
+$reg = Get-ItemProperty -Path 'HKCU:\Environment' -ErrorAction SilentlyContinue
+foreach ($n in @('N8N_BASE_URL', 'N8N_API_KEY', 'N8N_FIX_API_KEY')) {
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($n)) -and $reg -and $reg.PSObject.Properties[$n]) {
+        [Environment]::SetEnvironmentVariable($n, ([string]$reg.$n).Trim())
+    }
+}
+
 . (Join-Path $Here 'n8n-lib.ps1')
 
 $ArtifactPath = Join-Path $Root 'n8n/candidate/lead-intake-internal-receipt-API-IMPORT.json'

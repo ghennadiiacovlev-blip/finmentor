@@ -1,4 +1,4 @@
-# FINMENTOR — P6.3: two live-found defects on the internal route
+# FINMENTOR — P6.3: two live-found defects on the internal route, and the supersede that closed them
 
 **Phase:** B.2.1-C live prerequisites, P6.3
 **Severity:** F10 — total functional failure of the internal route. F11 — every internal
@@ -8,15 +8,18 @@ disabled canary; production was never touched.
 | | Defect | Found | State |
 |---|---|---|---|
 | **F10** | `Internal Envelope Unwrap` emitted a shape `Validate Payload` cannot read, so **no lead could be accepted at all** | live, exec `3583` | **fixed, and CLOSED LIVE** — proven by driver exec `3585` case F (§6) |
-| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed and gated offline — NOT yet deployed** (§7) |
+| **F11** | three `IF Internal (*)` gates read the internal-ness flag off `$json` while fed from an **error output**, making three internal terminals **unreachable** | live, driver exec `3585` case F | **fixed, deployed, and CLOSED LIVE** — six of six negative cases returned a structured envelope at the caller, exec `3600` (§7.6) |
 
-**Status:** the candidate is corrected for both and gated offline. F11's platform premise is
-**proven live** (§6.3). The live canary `S24se5SYf5CJ0FIQ` carries F10's fix but **not**
-F11's, so it must be superseded once more. The supersede has been **attempted twice and is
-still BLOCKED**, one layer lower each time. Attempt 1: the write credential was not reachable
-from the automation's processes (§7). Attempt 2: it is now reachable, and the tenant **rejects
-it as unauthorized — identically to sending no credential at all** (§7.4). §7.1 records why the
-block was not routed around via MCP.
+**Status:** both defects are closed on the platform. The supersede was blocked twice on the
+write credential (§7, §7.4) and **completed on attempt 3** (§7.5): the canary carrying F11 is
+archived, the corrected candidate is live as **`o9ndONOCI0XPJMiS`** with a **15/15 fidelity
+proof**, and the receipt state machine ran `READY → CLAIMED → COMMITTED` end to end (§7.6).
+
+**Read §7.7 before treating that as a full acceptance proof.** The two successful live runs
+wrote **contactless `INCOMPLETE`** rows, because the cases were hand-written in a payload
+shape the gateway never emits. What arrives in the CRM is now gated offline against the real
+gateway builder — but it has not yet been proven **live**. §7.8 is the production-residue
+ledger: two canary rows are sitting in the live CRM sheet.
 
 ---
 
@@ -99,7 +102,7 @@ Two properties of that, deliberate:
 
 No inherited production node was touched. The candidate is still 100 nodes.
 
-### 5.2 The new gate — `qa/internal-route-contract.test.mjs` (13 checks for F10; 8 more added for F11 in §6.3)
+### 5.2 The new gate — `qa/internal-route-contract.test.mjs` (13 checks for F10; 10 more for F11 in §6.4; 3 more for payload SHAPE in §7.7 — **26 total**)
 
 It **executes** the two real `Code` bodies, read from the tracked candidate, against each
 other in a minimal `$input` / `$()` harness. It proves:
@@ -314,7 +317,7 @@ first; making `Internal Flag` always emit `1` fails the second.
 
 ---
 
-## 7. Redeployment — attempted twice, and BLOCKED on the write credential
+## 7. Redeployment — blocked twice, **completed on attempt 3**
 
 **Attempt 1** is §7 – §7.3. The supersede was authorised and attempted; it could not be
 completed, for one reason. **Attempt 2 is §7.4**, where the credential is reachable and the
@@ -510,11 +513,120 @@ because archiving it without a deployable replacement would leave the phase with
 all. The driver was **not** repointed and was **not** re-run, for the reason in §7.2 unchanged.
 
 
+### 7.5 Attempt 3 — **the supersede is DONE**
+
+The blocker was the credential and only the credential. Both keys were reissued, and both are
+now **accepted**, not merely present:
+
+```
+N8N_API_KEY        GET /workflows -> 200      (read)
+N8N_FIX_API_KEY    GET /workflows -> 200      (read/write)
+```
+
+That single line is the whole difference from attempt 2, where the same call returned `401
+unauthorized`. Nothing in the scripts was changed to make it pass.
+
+| Step | Result |
+|---|---|
+| `S24se5SYf5CJ0FIQ` archived — reversible, retained, **not deleted** | `updatedAt 06:03:04Z` |
+| candidate deployed from `...API-IMPORT.json`, verbatim from disk | **`o9ndONOCI0XPJMiS`** |
+| post-deploy assertions (seven, §5.5) | **PASS** — `active:false`, 100 nodes, webhook disabled, `availableInMCP:false` |
+| live fidelity proof (`verify-live-canary-fidelity.mjs`) | **15/15 PASS** — 44 Code nodes, **99,832 characters byte-identical** |
+| driver `Z8Ai31yxfkyTSRO8` repointed → `Call Canary` → `o9ndONOCI0XPJMiS` | every other node written back byte-identical, verified on readback |
+
+The old canaries `UBfNGfli8E0UfiNa` and `S24se5SYf5CJ0FIQ` are both archived and both still
+exist. Unarchiving either restores it exactly.
+
+### 7.6 The live campaign — **F11 is CLOSED LIVE**
+
+Six negative cases through the repointed driver, one execution, `Z8Ai31yxfkyTSRO8` exec 3600:
+
+| Case | Returned to the caller |
+|---|---|
+| A — `submission_key` not hex | `{ok:false, error_code:'SUBMISSION_KEY_INVALID', retryable:false}` |
+| B — `submission_key` absent | `{ok:false, error_code:'SUBMISSION_KEY_INVALID', retryable:false}` |
+| C — no correlation id | `{ok:false, error_code:'CORRELATION_ID_MISSING', retryable:false}` |
+| D — envelope not an object | `{ok:false, error_code:'ENVELOPE_MISSING', retryable:false}` |
+| E — envelope source invalid | `{ok:false, error_code:'ENVELOPE_SOURCE_INVALID', retryable:false}` |
+| G — forged trust flags | `{ok:false, error_code:'SUBMISSION_KEY_INVALID', retryable:false}` |
+
+**Six of six returned a structured envelope at the caller.** Before the fix, case F died inside
+the workflow and the caller saw a raw n8n error — that is exactly what F11 was. It is closed on
+the platform, not in a model of it.
+
+Three more executions exercised the receipt state machine:
+
+| Exec | Case | Path taken | Result |
+|---|---|---|---|
+| 3608 | fresh key, **no receipt preallocated** | 21 nodes, stops at `IF Receipt Claimable` | `SUBMIT_UNRESOLVED`, `retryable:true`, **no lead written** |
+| 3610 | same key, receipt seeded `READY` | 32 nodes, full happy path | `ok:true`, `FIN-1787811991746-68`, `mode:new` |
+| 3612 | second key, receipt seeded `READY` | 32 nodes, full happy path | `ok:true`, `FIN-1787813108944-787`, `mode:new` |
+
+`Receipt Exact Read` returned `{}` on 3608 — the row genuinely was not there — and the route
+refused to invent one and refused to write a lead. Both seeded rows ended `COMMITTED` carrying
+their canonical lead id, so `READY → CLAIMED → COMMITTED` is proven live end to end.
+
+### 7.7 What those two green runs did **not** prove
+
+Read the rows they wrote before believing them. Both are `INCOMPLETE`, and both are
+**contactless**:
+
+```
+name:"" company:"" email:"" phone:"" telegram:"" consent:false
+priority_reason:"нет контакта для связи | нет явного согласия на обработку данных | ..."
+```
+
+The route is not at fault. The **case** was hand-written in a flat shape —
+`{ name, email, phone, consent }` at the top level — and `Normalize + Score Lead` reads
+`client.name` / `lead.name`. The gateway never emits that shape;
+`buildLeadIntakePayload` emits `client: {…}`, `intake: {…}`, `meta: {…}`. Executing the real
+builder into the real normaliser, offline, gives the opposite row:
+
+| Field | flat case (what ran live) | real gateway payload |
+|---|---|---|
+| `name` / `company` | `""` / `""` | `"Shape Gate"` / `"Shape SRL"` |
+| `phone` / `telegram` | `""` / `""` | `"+37360000631"` / `"123456789"` |
+| `consent` | `false` | `true` |
+| `lead_priority` / `status` | `INCOMPLETE` / `Incomplete lead` | `HOT` / `Qualified` |
+| `page_url` / `utm_source` / `utm_medium` | `""` | `telegram_miniapp` / `telegram` / `miniapp` |
+
+Two consequences, and neither is cosmetic:
+
+1. **The live run proved the seam MOVES a payload. It did not prove what ARRIVES in the CRM.**
+   A green `ok:true` and a committed receipt are compatible with a useless row.
+2. **The RETRY case proved nothing about deduplication either.** `Dedup Guard` matches on
+   `email_norm` / `phone_norm`; two contactless rows have nothing to match on, so the second
+   submission was bound to be `mode:new` whatever the dedup logic did. The duplicate lead is an
+   artefact of the case, not evidence about idempotency.
+
+`Validate Payload` is why this was invisible: it accepts a flat payload as "meaningful", so the
+loss happens one node *downstream* of where the §1 seam checks stopped. Three checks now run
+the real gateway builder through to the row — §5 of the gate — so a case written this way fails
+offline instead of in the production CRM.
+
+### 7.8 Production residue — the phase now has some
+
+This is the first live work in B.2.1-C that wrote **customer-facing production data**, and the
+earlier claim "Production residue: NONE" in `PHASE_B2_1C_G1_P6_CONTROLLED_LIVE_INTEGRATION.md`
+§7 no longer holds. Ledger:
+
+| Where | What | Reversible? |
+|---|---|---|
+| `FINMENTOR_LEADS_CRM_PREMIUM_FINAL` → `Pipeline` | **2 canary rows**: `FIN-1787811991746-68`, `FIN-1787813108944-787` — both contactless `INCOMPLETE` | needs a **row delete** in the live CRM sheet |
+| `Submission_Receipts` (`fV23lsh9uq8uFHox`) | rows `1` and `2`, `COMMITTED` | `scripts/p63-receipt-tool.ps1 -Delete` |
+| n8n | `o9ndONOCI0XPJMiS` live-inactive, `Z8Ai31yxfkyTSRO8` live-inactive, two archived canaries | archive / unarchive |
+
+The two CRM rows are the only item that cannot be undone from this repository's tooling. They
+are inert — `INCOMPLETE`, no contact, so no automation will ever act on them — but they are in
+the operator's pipeline view and must be removed by the owner or by a guarded cleanup step
+before the phase can claim a clean tenant.
+
+
 ## 8. Gate status
 
 ```
 14/14 gates passed
-TOTAL ASSERTIONS: 755        (732 + 23)
+TOTAL ASSERTIONS: 758        (732 + 26)
 assertion floors: PASS
 ```
 
@@ -523,14 +635,20 @@ and reproduce byte-for-byte on rebuild.
 
 ---
 
-## 9. The lesson, twice
+## 9. The lesson, three times
 
 **Wiring is not a contract.** F10 was an assumption about the *shape* crossing a seam. F11 was
 an assumption about what survives an *error output* — the same mistake one layer down, and it
 had been sitting behind three unreachable terminals that every offline gate reported as
 present and correctly wired.
 
-Both were found by **executing** the route, not by reading it. Presence is not reachability,
-and reachability is not reached. Every seam where generated code meets inherited production
+**A green result is not a proven result.** The third finding is not a defect at all, which is
+why it is the most dangerous of the three: the route returned `ok:true`, the receipt committed, the fidelity
+proof passed, and the row that reached the CRM was useless. Nothing in the run was red. The
+case had simply been written in a shape the gateway never emits, and every check in the path
+was happy to carry it. A live run only tests the payload you actually send it.
+
+All three were found by **executing** the route, not by reading it. Presence is not reachability,
+reachability is not reached, and reached is not correct. Every seam where generated code meets inherited production
 behaviour now has to be proven by execution offline — because the alternative, as P6.2 and
 P6.3 both demonstrated, is that a live run discovers it.
