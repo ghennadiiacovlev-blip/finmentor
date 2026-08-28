@@ -298,6 +298,60 @@ mustRefuse('(4b) an unapproved rewire of an inherited node', {
   })()
 }, 'POLICY', 'unapproved rewire: IF Layout Mapped');
 
+// ---- 4c-4f: the pin that was declared and never enforced ----------------------------------
+//
+// P8.3A wrote APPROVED_EDGES, called it "the exact post-cutover edge set", and handed it to a QA
+// assertion only. Nothing passed it to the materializer, so at DEPLOY time it constrained nothing:
+// an added node that grew its first outgoing edge was in neither the fan-in set nor the rewire set
+// and materialized cleanly. That is how a builder wired straight into a live sheet would have
+// shipped. These four fix the asymmetry — 4e is the hole itself, re-opened on purpose.
+
+check('the declared edge set is actually HANDED to the materializer, not just to this file', () => {
+  // The whole defect in one assertion: a pin that only a test reads is not a deploy-time control.
+  assert(POLICY.pinnedOutEdges, 'the policy declares no pinnedOutEdges — the map gates nothing');
+  eq(JSON.stringify(POLICY.pinnedOutEdges), JSON.stringify(P.APPROVED_EDGES),
+    'the enforced pin and the declared edge set have drifted apart');
+});
+
+mustRefuse('(4c) an approved added node re-points its pinned out-edge', {
+  desiredReference: (() => {
+    const m = clone(B);
+    m.connections['Build Authority Unresolved Event'] = {
+      main: [[{ node: 'Build Bot Response', type: 'main', index: 0 }]]
+    };
+    return m;
+  })()
+}, 'ABSOLUTE_INVARIANTS', 'pinned out-edges differ on Build Authority Unresolved Event');
+
+mustRefuse('(4d) an approved added node grows an EXTRA branch beyond the pin', {
+  desiredReference: (() => {
+    const m = clone(B);
+    m.connections['Authority Outcome Reread'].main[0].push({ node: 'Save Bot Event', type: 'main', index: 0 });
+    return m;
+  })()
+}, 'ABSOLUTE_INVARIANTS', 'pinned out-edges differ on Authority Outcome Reread');
+
+mustRefuse('(4e) THE HOLE: an added node whose out-edges no pin entry approves', {
+  // Closed by default is the half that matters. Enforcing only the sources someone remembered to
+  // list is exactly the state P8.3A shipped in, and it is why the discarded signal could have been
+  // wired into Save Bot Event by a one-line "fix" with no approval anywhere.
+  approvedDiffPolicy: (() => {
+    const pol = clone(POLICY);
+    delete pol.pinnedOutEdges['Build Authority Unresolved Event'];
+    return pol;
+  })()
+}, 'ABSOLUTE_INVARIANTS', 'Build Authority Unresolved Event has outgoing edges that no pinnedOutEdges entry approves');
+
+mustRefuse('(4f) an EIGHTH writer into the live Bot_Events sheet', {
+  // Save Bot Event appends with autoMapInputData over an EMPTY stored schema, so whoever points at
+  // it decides the sheet's columns. Seven builders may, and they are named.
+  desiredReference: (() => {
+    const m = clone(B);
+    m.connections['IF Authority Committed'].main[0].push({ node: 'Save Bot Event', type: 'main', index: 0 });
+    return m;
+  })()
+}, 'ABSOLUTE_INVARIANTS', 'protected node Save Bot Event has 8 incoming edge(s)');
+
 // 5. USER-VISIBLE TEXT DRIFT.
 mustRefuse('(5) user-visible text drift on a customer-facing node', {
   desiredReference: (() => {

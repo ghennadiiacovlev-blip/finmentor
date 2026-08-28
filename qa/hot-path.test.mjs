@@ -550,6 +550,57 @@ check('submission_key never reaches a client-facing node', () => {
   assert(!/submission_key:\s*[^!=]/.test(u.replace(/held_key_present[^\n]*/g, '')), 'the signal emits a key value');
 });
 
+// ---------------------------------------------------------------- P8.3A-1: the discarded signal
+//
+// The defect: `Build Authority Unresolved Event` was the only Build *Event node in the graph with
+// NO outgoing edge. So on every genuine authority failure the AUTHORITY_WRITE_NOT_PERSISTED signal
+// was constructed and thrown away — the one operational record of a cycle issued whose authority
+// never persisted, built once per incident and dropped on the floor. Nothing failed; it was simply
+// silent. A builder with no consumer is not a signal, and no gate said so.
+//
+// Wiring it was not the whole fix. Save Bot Event appends with autoMapInputData over an EMPTY
+// stored schema, so under F16 a stray key is not dropped — it PERMANENTLY WIDENS the live sheet.
+// The node emitted seven keys of its own, six of them outside the Bot_Events set, and was saved
+// from writing them only by being disconnected. So the contract is checked before the edge.
+
+// The twelve columns every Bot_Events row has carried since long before B.2.1-C.
+const BOT_EVENT_KEYS = ['event_id', 'ts', 'chat_id', 'user_id', 'username', 'event_type',
+  'state_before', 'state_after', 'message_text', 'callback_data', 'detail', 'raw_json'];
+
+check('P8.3A-1: EVERY event builder reaches Save Bot Event — none is constructed and discarded', () => {
+  const builders = P83.nodes.filter((n) => /^Build .*Event$/.test(n.name)).map((n) => n.name).sort();
+  eq(builders.length, 7, 'the event-builder set changed: ' + builders.join(', '));
+  builders.forEach((b) => {
+    const outs = (((P83.connections[b] || {}).main) || []).map((br) => (br || []).map((l) => l.node));
+    deepEq(outs, [['Save Bot Event']], b + ' does not write its event to Save Bot Event');
+  });
+});
+
+check('P8.3A-1: the unresolved signal emits EXACTLY the twelve Bot_Events keys', () => {
+  // Executed, not pattern-matched: F16 is about the keys that actually reach the sheet.
+  const node = P83.nodes.find((n) => n.name === 'Build Authority Unresolved Event');
+  const held = 'sub_' + 'a'.repeat(32);
+  const ctx = {
+    'Parse Telegram Update': { chat_id: '900000999', user_id: '42', username: 'u',
+      is_callback: false, message_text: 'x'.repeat(900), callback_data: '' },
+    'Build Bot Response': { debug: { state_before: 'MENU', state_after: 'MENU' } },
+    'Authority Outcome Verdict': { __authority_outcome: 'UNRESOLVED',
+      __authority_reason: 'AUTHORITY_ROW_ABSENT', __chat_id: '900000999' },
+    'Get Bot Session': { submission_key: held }
+  };
+  const $ = (n) => ({ first: () => ({ json: ctx[n] || {} }) });
+  const out = new Function('$', node.parameters.jsCode)($)[0].json;
+  deepEq(Object.keys(out).sort(), BOT_EVENT_KEYS.slice().sort(),
+    'the unresolved signal emits keys outside the Bot_Events set — F16 widens the live sheet');
+  assert(/authority_unresolved: AUTHORITY_ROW_ABSENT/.test(out.detail), 'detail does not name the reason');
+  eq(out.message_text.length, 500, 'message_text is no longer truncated to 500');
+
+  // The key is a capability and Bot_Events has wider read access than the Data Table. Presence
+  // travels; the value must not — including through raw_json, which is where it now lives.
+  eq(JSON.parse(out.raw_json).held_key_present, true, 'key presence is no longer recorded');
+  assert(JSON.stringify(out).indexOf(held) === -1, 'the submission_key VALUE reached the Bot_Events row');
+});
+
 check('INTERNAL_HANDOFF is NOT in this candidate, and the reason is recorded', () => {
   // The Concierge still calls the public webhook, because the internal entry is not deployed.
   const n = P83.nodes.find((x) => x.name === 'Send Lead to Intake');

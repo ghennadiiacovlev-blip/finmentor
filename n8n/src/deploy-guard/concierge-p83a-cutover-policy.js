@@ -152,7 +152,12 @@ const APPROVED_EDGES = {
   'IF Authority Write OK': [['IF Lead Ready'], ['Authority Outcome Reread']],
   'Authority Outcome Reread': [['Authority Outcome Verdict']],
   'Authority Outcome Verdict': [['IF Authority Committed']],
-  'IF Authority Committed': [['IF Lead Ready'], ['Build Authority Unresolved Event']]
+  'IF Authority Committed': [['IF Lead Ready'], ['Build Authority Unresolved Event']],
+
+  // P8.3A-1. This node had NO outgoing edge, so the signal it builds was discarded. Wiring it
+  // to the shared events writer is the fix; pinning it here is what stops the next added node
+  // from wiring itself into a live sheet without anyone approving the destination.
+  'Build Authority Unresolved Event': [['Save Bot Event']]
 };
 
 // ---------------------------------------------------------------- the authority invariants
@@ -163,6 +168,16 @@ const APPROVED_EDGES = {
 
 const AUTHORITY_WRITE_NODE = 'Save Bot Session';
 const AUTHORITY_WRITE_SOLE_SOURCE = 'Build Session Row';
+// `Save Bot Event` appends with autoMapInputData over an EMPTY stored schema, on a LIVE sheet.
+// Its fan-in is therefore a safety property in the same way the authority write's is: whoever
+// points at it decides the sheet's columns. Seven builders may, and they are named.
+const BOT_EVENT_WRITE_NODE = 'Save Bot Event';
+const BOT_EVENT_WRITE_SOURCES = [
+  'Build Bot Event', 'Build Intake Event', 'Build Delivery Failure Event',
+  'Build Unmapped Layout Event', 'Build Issuance Failure Event', 'Build Stale Authority Event',
+  'Build Authority Unresolved Event'
+];
+
 const AUTHORITY_CLASSIFY_ONLY_NODES = [
   'IF Authority Write OK', 'Authority Outcome Reread', 'Authority Outcome Verdict',
   'IF Authority Committed', 'Build Authority Unresolved Event'
@@ -221,8 +236,15 @@ const P83A_CUTOVER_POLICY = {
   // Session and recreate the second write path P8.2R withdrew — the mutation battery proved that
   // exact edge materialized cleanly before this line existed.
   protectedFanIn: [
-    { node: AUTHORITY_WRITE_NODE, allowedSources: [AUTHORITY_WRITE_SOLE_SOURCE], exactly: 1 }
+    { node: AUTHORITY_WRITE_NODE, allowedSources: [AUTHORITY_WRITE_SOLE_SOURCE], exactly: 1 },
+    { node: BOT_EVENT_WRITE_NODE, allowedSources: BOT_EVENT_WRITE_SOURCES, exactly: 7 }
   ],
+
+  // The map below was declared by P8.3A as "the exact post-cutover edge set" and then never
+  // handed to the materializer, so it bound a QA assertion and nothing that gates a deployment.
+  // Passing it makes the pin real, and the materializer's coverage half makes it complete:
+  // every added or rewired source must appear here or materialization refuses.
+  pinnedOutEdges: APPROVED_EDGES,
 
   // `parameters` is granted to Send Lead to Intake so the inert header can be dropped. That grant
   // would otherwise cover the URL and the body as well, which is the public Lead Intake route
@@ -251,6 +273,8 @@ module.exports = {
   APPROVED_REWIRED_SOURCES,
   APPROVED_EDGES,
   AUTHORITY_WRITE_NODE,
+  BOT_EVENT_WRITE_NODE,
+  BOT_EVENT_WRITE_SOURCES,
   AUTHORITY_WRITE_SOLE_SOURCE,
   AUTHORITY_CLASSIFY_ONLY_NODES,
   USER_FACING_NODES,

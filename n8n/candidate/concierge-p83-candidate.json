@@ -1747,7 +1747,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// P8.3 — the operational signal for an authority write that did not land.\n//\n// It writes NOTHING. The READY receipt minted earlier this turn is deliberately PRESERVED as\n// recoverable orphan evidence: it is the only record that a cycle was issued whose authority\n// never persisted, and destroying it would destroy the ability to reconcile. Same reasoning\n// that keeps IN_FLIGHT receipts undeletable in the retention policy.\n//\n// No submission_key value appears in this signal -- only whether one was held.\nconst v = $('Authority Outcome Verdict').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\nreturn [{ json: {\n  __signal: 'AUTHORITY_WRITE_NOT_PERSISTED',\n  outcome: v.__authority_outcome,\n  reason: v.__authority_reason,\n  chat_id: v.__chat_id,\n  held_key_present: String(g.submission_key || '') !== '',\n  receipt_preserved: true,\n  second_write_attempted: false\n} }];"
+        "jsCode": "// P8.3 — the operational signal for an authority write that did not land.\n//\n// It writes NOTHING to the authority row. The READY receipt minted earlier this turn is\n// deliberately PRESERVED as recoverable orphan evidence: it is the only record that a cycle\n// was issued whose authority never persisted, and destroying it would destroy the ability to\n// reconcile. Same reasoning that keeps IN_FLIGHT receipts undeletable in the retention policy.\n//\n// The KEY IS NEVER LOGGED -- it is a capability, and Bot_Events is a spreadsheet with wider\n// read access than the Data Table. Only whether one was held.\n//\n// F16: exactly the twelve keys every other Bot_Events writer emits. Bot_Events is\n// autoMapInputData over an EMPTY stored schema, so a stray property is not dropped -- it\n// PERMANENTLY WIDENS the live sheet. This node emitted seven keys of its own until P8.3A-1,\n// six of them foreign, and was saved from writing them only by being disconnected.\nconst p = $('Parse Telegram Update').first().json;\nconst b = $('Build Bot Response').first().json;\nconst d = b.debug || {};\nconst v = $('Authority Outcome Verdict').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\nreturn [{ json: {\n  event_id: `${p.chat_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  chat_id: String(p.chat_id || ''),\n  user_id: String(p.user_id || ''),\n  username: String(p.username || ''),\n  event_type: p.is_callback ? 'callback_received' : 'message_received',\n  state_before: String(d.state_before || ''),\n  state_after: String(d.state_after || ''),\n  message_text: String(p.message_text || '').slice(0, 500),\n  callback_data: String(p.callback_data || ''),\n  detail: 'authority_unresolved: ' + String(v.__authority_reason || 'UNKNOWN'),\n  raw_json: JSON.stringify({\n    signal: 'AUTHORITY_WRITE_NOT_PERSISTED',\n    outcome: String(v.__authority_outcome || ''),\n    reason: String(v.__authority_reason || ''),\n    held_key_present: String(g.submission_key || '') !== '',\n    receipt_preserved: true,\n    second_write_attempted: false,\n    lead_handoff_suppressed: true\n  }).slice(0, 4000)\n} }];"
       },
       "id": "p83-unresolved-event",
       "name": "Build Authority Unresolved Event",
@@ -2347,6 +2347,17 @@
         [
           {
             "node": "Build Authority Unresolved Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Authority Unresolved Event": {
+      "main": [
+        [
+          {
+            "node": "Save Bot Event",
             "type": "main",
             "index": 0
           }

@@ -476,6 +476,31 @@ function absoluteInvariants(C, L, policy) {
     });
   });
 
+  // 4f. PINNED OUT-EDGES. `protectedFanIn` guards a node by who may point AT it, which needs
+  //     the hazard named in advance. This is the other direction and is closed by default: a
+  //     source listed here must have EXACTLY the branches listed, and every node the delta adds
+  //     or rewires MUST be listed. P8.3A declared an APPROVED_EDGES map, called it "the exact
+  //     post-cutover edge set", and never passed it to the materializer — so it constrained a
+  //     QA assertion over the sources it happened to name, and nothing at deploy time. An added
+  //     node that grew its FIRST outgoing edge was in neither set and materialized cleanly.
+  const pinned = p.pinnedOutEdges;
+  if (pinned) {
+    const outOf = (src) => ((((C.connections || {})[src] || {}).main) || [])
+      .map((br) => (br || []).map((l) => l.node));
+    Object.keys(pinned).forEach((src) => {
+      if (JSON.stringify(outOf(src)) !== JSON.stringify(pinned[src])) {
+        fail('pinned out-edges differ on ' + src + ': candidate has '
+          + JSON.stringify(outOf(src)) + ', policy approves ' + JSON.stringify(pinned[src]));
+      }
+    });
+    // A pin nobody wrote is not a pin. Coverage is the half that makes this closed by default.
+    (p.approvedAddedNodes || []).concat(p.approvedRewiredSources || []).forEach((n) => {
+      if ((C.connections || {})[n] && !Object.prototype.hasOwnProperty.call(pinned, n)) {
+        fail('node ' + n + ' has outgoing edges that no pinnedOutEdges entry approves');
+      }
+    });
+  }
+
   // 5. Settings.
   if (!C.settings || C.settings.availableInMCP !== false) { fail('settings.availableInMCP must be exactly false'); }
 

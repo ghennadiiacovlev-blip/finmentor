@@ -176,22 +176,44 @@ const AUTHORITY_VERDICT_CODE = [
 const UNRESOLVED_EVENT_CODE = [
   '// P8.3 — the operational signal for an authority write that did not land.',
   '//',
-  '// It writes NOTHING. The READY receipt minted earlier this turn is deliberately PRESERVED as',
-  '// recoverable orphan evidence: it is the only record that a cycle was issued whose authority',
-  '// never persisted, and destroying it would destroy the ability to reconcile. Same reasoning',
-  '// that keeps IN_FLIGHT receipts undeletable in the retention policy.',
+  '// It writes NOTHING to the authority row. The READY receipt minted earlier this turn is',
+  '// deliberately PRESERVED as recoverable orphan evidence: it is the only record that a cycle',
+  '// was issued whose authority never persisted, and destroying it would destroy the ability to',
+  '// reconcile. Same reasoning that keeps IN_FLIGHT receipts undeletable in the retention policy.',
   '//',
-  '// No submission_key value appears in this signal -- only whether one was held.',
+  '// The KEY IS NEVER LOGGED -- it is a capability, and Bot_Events is a spreadsheet with wider',
+  '// read access than the Data Table. Only whether one was held.',
+  '//',
+  '// F16: exactly the twelve keys every other Bot_Events writer emits. Bot_Events is',
+  '// autoMapInputData over an EMPTY stored schema, so a stray property is not dropped -- it',
+  '// PERMANENTLY WIDENS the live sheet. This node emitted seven keys of its own until P8.3A-1,',
+  '// six of them foreign, and was saved from writing them only by being disconnected.',
+  "const p = $('Parse Telegram Update').first().json;",
+  "const b = $('Build Bot Response').first().json;",
+  'const d = b.debug || {};',
   "const v = $('Authority Outcome Verdict').first().json || {};",
   "const g = $('Get Bot Session').first().json || {};",
   'return [{ json: {',
-  "  __signal: 'AUTHORITY_WRITE_NOT_PERSISTED',",
-  '  outcome: v.__authority_outcome,',
-  '  reason: v.__authority_reason,',
-  '  chat_id: v.__chat_id,',
-  "  held_key_present: String(g.submission_key || '') !== '',",
-  '  receipt_preserved: true,',
-  '  second_write_attempted: false',
+  '  event_id: `${p.chat_id}-${Date.now()}`,',
+  '  ts: new Date().toISOString(),',
+  "  chat_id: String(p.chat_id || ''),",
+  "  user_id: String(p.user_id || ''),",
+  "  username: String(p.username || ''),",
+  "  event_type: p.is_callback ? 'callback_received' : 'message_received',",
+  "  state_before: String(d.state_before || ''),",
+  "  state_after: String(d.state_after || ''),",
+  "  message_text: String(p.message_text || '').slice(0, 500),",
+  "  callback_data: String(p.callback_data || ''),",
+  "  detail: 'authority_unresolved: ' + String(v.__authority_reason || 'UNKNOWN'),",
+  '  raw_json: JSON.stringify({',
+  "    signal: 'AUTHORITY_WRITE_NOT_PERSISTED',",
+  "    outcome: String(v.__authority_outcome || ''),",
+  "    reason: String(v.__authority_reason || ''),",
+  "    held_key_present: String(g.submission_key || '') !== '',",
+  '    receipt_preserved: true,',
+  '    second_write_attempted: false,',
+  '    lead_handoff_suppressed: true',
+  '  }).slice(0, 4000)',
   '} }];'
 ].join('\n');
 
@@ -302,6 +324,18 @@ export function buildP83(base) {
       [{ node: 'IF Lead Ready', type: 'main', index: 0 }],
       [{ node: 'Build Authority Unresolved Event', type: 'main', index: 0 }]
     ]
+  };
+
+  // P8.3A-1: the unresolved terminal REPORTS. It was built and discarded -- the only
+  // Build *Event node in the graph with no edge to Save Bot Event, so the
+  // AUTHORITY_WRITE_NOT_PERSISTED signal was constructed once per genuine failure and thrown
+  // away. Wiring alone would have been the wrong fix: the node emitted seven keys of its own,
+  // six of them outside the twelve-key Bot_Events set, and Save Bot Event is autoMapInputData
+  // over an EMPTY stored schema -- so the obvious one-line repair would have permanently
+  // widened the live sheet by six columns, exactly the F16 hazard F17 is still cleaning up.
+  // The builder was brought onto the contract FIRST; this edge is safe only because of that.
+  wf.connections['Build Authority Unresolved Event'] = {
+    main: [[{ node: 'Save Bot Event', type: 'main', index: 0 }]]
   };
 
   // ---- P8.3A: physically remove Read Settings ------------------------------------------
