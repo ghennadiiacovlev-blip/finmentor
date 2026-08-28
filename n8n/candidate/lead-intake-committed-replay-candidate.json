@@ -1,14 +1,14 @@
 {
   "id": "QmIyEW2ZEqKregmN",
-  "name": "FINMENTOR Lead Intake PREMIUM FINAL",
+  "name": "FINMENTOR Lead Intake COMMITTED REPLAY FIX CANDIDATE",
   "description": null,
   "active": true,
-  "activeVersionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
+  "activeVersionId": "2c51b904-fbab-45b6-b60a-d34403777757",
   "createdAt": "2026-07-01T07:56:26.205Z",
-  "updatedAt": "2026-08-28T19:33:59.473Z",
+  "updatedAt": "2026-08-28T18:47:27.808Z",
   "isArchived": false,
-  "versionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
-  "versionCounter": 35,
+  "versionId": "2c51b904-fbab-45b6-b60a-d34403777757",
+  "versionCounter": 34,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -5107,7 +5107,7 @@
     }
   ],
   "activeVersion": {
-    "versionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
+    "versionId": "2c51b904-fbab-45b6-b60a-d34403777757",
     "workflowId": "QmIyEW2ZEqKregmN",
     "nodes": [
       {
@@ -7983,7 +7983,7 @@
         "parameters": {
           "mode": "runOnceForAllItems",
           "language": "javaScript",
-          "jsCode": "// ABSENCE IS NEVER AN ANSWER: a current cycle is required to have a preallocated receipt,\n// so a missing row is a broken invariant, not permission to proceed.\n//\n// P8.4A-R: a COMMITTED receipt carrying a canonical_lead_id is a TERMINAL SUCCESSFUL\n// submission. It is classified as SETTLED, which is deliberately a SEPARATE flag from\n// claimable: claiming WRITES (READY -> IN_FLIGHT) and resolving does not. Conflating them\n// would put a Pipeline write on the replay path, which is the defect this fixes, inverted.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nlet settled = 0;\nlet leadId = '';\nlet mode = '';\nlet priority = '';\nlet zone = '';\n\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else if (state === 'COMMITTED') {\n    leadId = String(rows[0].canonical_lead_id || '').trim();\n    if (leadId !== '') {\n      settled = 1;\n      reason = 'COMMITTED_SETTLED';\n      mode = String(rows[0].lead_mode || '');\n      priority = String(rows[0].lead_priority || '');\n      zone = String(rows[0].financial_zone || '');\n    } else {\n      // FAIL CLOSED. A receipt that cannot say what it settled has proven nothing, and\n      // identity is never inferred from email, phone or a Pipeline search.\n      reason = 'RECEIPT_COMMITTED_WITHOUT_LEAD_ID';\n    }\n  }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, {\n  __receipt_read_ok: ok,\n  __receipt_reason: reason,\n  __receipt_settled: settled,\n  __settled_lead_id: leadId,\n  __settled_mode: mode,\n  __settled_priority: priority,\n  __settled_zone: zone\n}) }];"
+          "jsCode": "// ABSENCE IS NEVER AN ANSWER: a current cycle is required to have a preallocated receipt,\n// so a missing row is a broken invariant, not permission to proceed.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, { __receipt_read_ok: ok, __receipt_reason: reason }) }];"
         },
         "id": "p51-18-code",
         "name": "Receipt Read Verdict",
@@ -9020,54 +9020,6 @@
           1380
         ],
         "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "strict",
-              "version": 2
-            },
-            "conditions": [
-              {
-                "id": "p84r-settled-cond",
-                "leftValue": "={{ $json.__receipt_settled }}",
-                "rightValue": 1,
-                "operator": {
-                  "type": "number",
-                  "operation": "equals"
-                }
-              }
-            ],
-            "combinator": "and"
-          },
-          "options": {}
-        },
-        "id": "p84r-01-if-settled",
-        "name": "IF Receipt Settled",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.2,
-        "position": [
-          1540,
-          900
-        ]
-      },
-      {
-        "parameters": {
-          "mode": "runOnceForAllItems",
-          "language": "javaScript",
-          "jsCode": "// P8.4A-R — idempotent replay of a TERMINAL SUCCESSFUL submission.\n//\n// Reads the receipt and NOTHING else. No Pipeline write, no claim, no state change, no new\n// correlation and no new submission_key. The receipt is the authority for what was settled,\n// and its correlation_id stays immutable evidence of the original canonical write -- a replay\n// attempt does not get to overwrite it or masquerade as it.\n//\n// Same narrow return contract as the other internal terminals: no stage, no detail, no key.\nconst v = $('Receipt Read Verdict').first().json;\nreturn [{ json: {\n  ok: true,\n  lead_id: String(v.__settled_lead_id || ''),\n  mode: String(v.__settled_mode || ''),\n  priority: String(v.__settled_priority || ''),\n  financial_zone: String(v.__settled_zone || ''),\n  replay: true\n} }];"
-        },
-        "id": "p84r-02-result-replay",
-        "name": "Internal Result (Committed Replay)",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          1760,
-          840
-        ]
       }
     ],
     "connections": {
@@ -9877,7 +9829,7 @@
           ],
           [
             {
-              "node": "IF Receipt Settled",
+              "node": "Internal Result (Unresolved)",
               "type": "main",
               "index": 0
             }
@@ -10151,24 +10103,6 @@
             }
           ]
         ]
-      },
-      "IF Receipt Settled": {
-        "main": [
-          [
-            {
-              "node": "Internal Result (Committed Replay)",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Internal Result (Unresolved)",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
       }
     },
     "nodeGroups": [],
@@ -10176,16 +10110,16 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "createdAt": "2026-08-28T19:33:59.482Z",
-    "updatedAt": "2026-08-28T19:33:59.482Z",
+    "createdAt": "2026-08-28T18:47:27.822Z",
+    "updatedAt": "2026-08-28T18:47:27.822Z",
     "workflowPublishHistory": [
       {
-        "id": 110,
+        "id": 108,
         "workflowId": "QmIyEW2ZEqKregmN",
-        "versionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
+        "versionId": "2c51b904-fbab-45b6-b60a-d34403777757",
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-28T19:33:59.664Z"
+        "createdAt": "2026-08-28T18:47:28.016Z"
       }
     ]
   }

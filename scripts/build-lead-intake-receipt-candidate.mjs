@@ -79,7 +79,11 @@ import { dirname, join } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 
-const SOURCE = join(ROOT, 'n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json');
+// FROZEN pre-Write-A export. This generator produces the WRITE A artifact, whose input is the
+// 57-node graph that existed before the splice. Write A deployed and the seal advanced the
+// tracked reference to 100 nodes, so reading the moving pointer here would splice +43 onto a
+// graph that already contains them. Same trap as n8n/history/README.md describes.
+const SOURCE = join(ROOT, 'n8n/history/QmIyEW2ZEqKregmN.pre-write-a.json');
 const OUT_DIR = join(ROOT, 'n8n/candidate');
 const OUT = join(OUT_DIR, 'lead-intake-internal-receipt-candidate.json');
 

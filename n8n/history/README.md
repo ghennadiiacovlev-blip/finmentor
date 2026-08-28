@@ -20,6 +20,7 @@ read the frozen copy.** Only checks that are genuinely about *current* productio
 | `mppzthlkSJFr6Kle.pre-P7-5R-cutover.json` | pre-P7.5R Concierge, 33 nodes | `2b98eba9-8404-42a1-82cd-9ee0b0cae2f6` | `scripts/build-concierge-issuer-candidate.mjs`, `scripts/build-concierge-cutover.mjs`, `scripts/build-concierge-issuer-import-safe.mjs`, `scripts/materialize-concierge-cutover.mjs`, `qa/cutover.test.mjs`, `qa/materializer.test.mjs`, `qa/concierge-issuer-candidate.test.mjs` |
 | `mppzthlkSJFr6Kle.pre-P8-3A-cutover.json` | pre-P8.3A Concierge, 45 nodes | `ff6c8103-6823-4666-86fd-c50d4ec89a01` | `qa/p83a-cutover-policy.test.mjs`, `qa/hot-path.test.mjs`, `qa/materializer.test.mjs` |
 | `QmIyEW2ZEqKregmN.pre-write-a.json` | pre-Write-A Lead Intake, 57 nodes | `7108ec2d-410c-4b57-b546-2229dc21c2b8` | `qa/lead-intake-cutover-policy.test.mjs`, `qa/import-safe.test.mjs` |
+| `QmIyEW2ZEqKregmN.pre-replay-fix.json` | pre-P8.4A-R Lead Intake, 100 nodes | `2c51b904-fbab-45b6-b60a-d34403777757` | `scripts/build-lead-intake-committed-replay.mjs`, `qa/lead-intake-committed-replay.test.mjs` |
 
 The `versionId` column is not decoration. `qa/materializer.test.mjs` requires the frozen export's
 `versionId` to equal the `preVersionId` on the P7.5R record in `n8n/baseline-seal.json` — so a
@@ -47,3 +48,10 @@ nodes, every generated node also answered "yes", the generated set collapsed to 
 anchor quietly began covering the exact code it exists to hold apart. It did not go red for
 the right reason; it went red on a count. A moving fixture does not only break arithmetic --
 it can invert what a check MEANS while it still looks like it is checking something.
+
+The P8.4A-R correction made the count four, and one of them was a GENERATOR rather than a
+gate: `scripts/build-lead-intake-receipt-candidate.mjs` still read the moving reference, so after
+the Write A seal it would have spliced its +43 nodes onto a graph that already contained
+them. It is repointed too. The rule is therefore not "phase gates read frozen inputs" but
+**anything that describes a completed delta reads a frozen input** -- the generator that
+produces the artifact just as much as the gate that checks it.

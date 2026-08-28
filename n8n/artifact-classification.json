@@ -14,9 +14,9 @@
     "INSTRUMENT": "disposable harness/tool; deployable as its own disposable workflow only"
   },
   "counts": {
-    "total": 24,
+    "total": 26,
     "REDACTED_REFERENCE_ONLY": 16,
-    "REVIEW_REFERENCE": 5,
+    "REVIEW_REFERENCE": 7,
     "INSTRUMENT": 3,
     "production_deployable": 0
   },
@@ -130,6 +130,17 @@
       "nodes": 50
     },
     {
+      "path": "n8n/candidate/lead-intake-committed-replay-candidate.json",
+      "class": "REVIEW_REFERENCE",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "f0e0ecb0d9a3fa6edfa2b10a4f46e2288f7fbaeb8d43890c747d46a2edc7e656",
+      "nodes": 102
+    },
+    {
       "path": "n8n/candidate/lead-intake-internal-receipt-API-IMPORT.json",
       "class": "REVIEW_REFERENCE",
       "deployable_to_production": false,
@@ -194,6 +205,17 @@
       "marked_nodes": [],
       "sha256": "5870162bc6dc71646e27b3f6622cc75b9b38edecc13b1c556421e9e03ebee6bc",
       "nodes": 3
+    },
+    {
+      "path": "n8n/history/QmIyEW2ZEqKregmN.pre-replay-fix.json",
+      "class": "REVIEW_REFERENCE",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "b510452a10cf75911c9743a55897806239e952ee53ba761324026ea2e6753f50",
+      "nodes": 100
     },
     {
       "path": "n8n/history/QmIyEW2ZEqKregmN.pre-write-a.json",
@@ -269,8 +291,8 @@
       "redaction_markers": [],
       "marker_total": 0,
       "marked_nodes": [],
-      "sha256": "b510452a10cf75911c9743a55897806239e952ee53ba761324026ea2e6753f50",
-      "nodes": 100
+      "sha256": "54dacf415fd7dc0fe28013c75bb7246aeb47eca07487536dd90352964edcf451",
+      "nodes": 102
     },
     {
       "path": "n8n/production/RBiFLhVjizMkAzrK.finmentor-error-monitor-premium.json",

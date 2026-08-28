@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 1312,
+  "total": 1331,
   "gates": {
     "command-center-auth.test.mjs": 43,
     "lead-intake-trust.test.mjs": 43,
@@ -36,6 +36,7 @@
     "hot-path.test.mjs": 49,
     "mcp-config.test.mjs": 25,
     "p83a-cutover-policy.test.mjs": 36,
-    "lead-intake-cutover-policy.test.mjs": 29
+    "lead-intake-cutover-policy.test.mjs": 29,
+    "lead-intake-committed-replay.test.mjs": 19
   }
 }

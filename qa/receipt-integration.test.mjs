@@ -1343,8 +1343,15 @@ check('(3) a COMMITTED retry receipt recovers with mode=retry intact', () => {
 check('(9,12) the PUBLIC retry path is untouched by P5.2', () => {
   // The whole point of admitting retry to the vocabulary is that the live behaviour was
   // already correct. Nothing about the public graph may have moved.
-  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
-    'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+  //
+  // FROZEN pre-Write-A export -- see n8n/history/README.md. The comparison below asks whether
+  // the Write A candidate altered any node it INHERITED, so the other side has to be the graph
+  // that candidate was spliced from. The tracked reference has since advanced twice (Write A to
+  // 100 nodes, then the P8.4A-R replay correction to 102), and against that this check counted
+  // the correction's own two new nodes plus its one edited body as "the candidate altered
+  // production" -- an accusation about a candidate that predates all three.
+  const prod = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+    'QmIyEW2ZEqKregmN.pre-write-a.json'), 'utf8'));
   const respondRetry = prod.nodes.find((n) => n.name === 'Respond Retry');
   assert(/mode: 'retry'/.test(respondRetry.parameters.responseBody),
     'the public retry response no longer returns mode retry');

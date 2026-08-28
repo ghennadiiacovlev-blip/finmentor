@@ -109,6 +109,43 @@
         "BEHAVIOURAL PROOFS ARE NOT PART OF THIS SEAL. The seal asserts only that production equals",
         "the approved target, which it does, byte for byte on the executable surface."
       ]
+    },
+    {
+      "workflowId": "QmIyEW2ZEqKregmN",
+      "phase": "P8.4A-R-REPLAY-FIX",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T19:37:07.176Z",
+      "preVersionId": "2c51b904-fbab-45b6-b60a-d34403777757",
+      "postVersionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
+      "deployedTargetSha": "b942fb4f880129bf2b79d3c2994bb511733d20526b0592a2ac42657051c89707",
+      "postLiveRedactedSha": "9d4536c8be8e7951e15c81db8833e0dc594e499ef6ab9bfd77c28137bc8f10fa",
+      "trackedReferencePath": "n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
+      "nodeCount": 102,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "b942fb4f880129bf2b79d3c2994bb511733d20526b0592a2ac42657051c89707",
+        "postLiveRedactedSha": "9d4536c8be8e7951e15c81db8833e0dc594e499ef6ab9bfd77c28137bc8f10fa",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after the P8.4A-R correction: COMMITTED replay is now",
+        "idempotently SUCCESSFUL. Delta: +2 nodes (IF Receipt Settled, Internal Result (Committed",
+        "Replay)), one modified body (Receipt Read Verdict), one rewire (IF Receipt Claimable false).",
+        "WHY: live execution 3791 replayed an already-COMMITTED submission and got SUBMIT_UNRESOLVED",
+        "with retryable:true. Safe -- no second write, no corruption -- but not idempotent, and the",
+        "retry advice was wrong for a permanently settled submission. After the Concierge migration",
+        "that would have meant the lead IS captured while the customer is never confirmed.",
+        "SETTLED is a SEPARATE flag from CLAIMABLE on purpose: claiming writes, resolving does not.",
+        "Conflating them would have put a Pipeline write on the replay path -- the defect inverted.",
+        "COMMITTED without a canonical_lead_id FAILS CLOSED; identity is never inferred from email,",
+        "phone or a Pipeline search. The receipt correlation_id is never rewritten and",
+        "Pipeline.request_id is never mutated: the original commit correlation stays immutable.",
+        "LIVE RE-PROOF: exec 3797 (a1) and 3799 (a2) both returned ok:true with the ORIGINAL",
+        "canonical_lead_id, zero Pipeline writes, zero receipt writes. Regression re-checked:",
+        "exec 3801 missing-receipt, 3803 IN_FLIGHT, 3805 correlation mismatch -- all unchanged.",
+        "The 100-node pre-correction state is frozen at n8n/history/QmIyEW2ZEqKregmN.pre-replay-fix.json."
+      ]
     }
   ]
 }

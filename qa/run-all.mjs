@@ -43,6 +43,7 @@ const GATES = [
   ['P8.2 Concierge hot path', 'hot-path.test.mjs'],
   ['P8.3A cutover policy', 'p83a-cutover-policy.test.mjs'],
   ['Lead Intake internal-route cutover policy', 'lead-intake-cutover-policy.test.mjs'],
+  ['Lead Intake COMMITTED replay', 'lead-intake-committed-replay.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
