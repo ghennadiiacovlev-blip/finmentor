@@ -241,6 +241,15 @@ live Pipeline that is deliberately shaped to be matched by the merge logic.
 That is a heavier live mutation than anything P7.3/P7.4 did, on the CRM rather than on a session
 sheet, and it needs API credentials that no longer exist.
 
+> **CLOSED 2026-08-28 — P1-L9 is now PASS.** The ruling below stands as the reasoning of
+> its time and is kept unedited. What changed is that the merge branch was exercised WITHOUT the
+> synthetic CRM row this section judged too heavy to create: the owner's single approved Write B
+> test cycle hit MERGE naturally, because that chat already had a lead from an earlier session.
+> Correlation was identical across wrapper, Internal Auth Entry, Normalize + Score Lead, Build
+> Merge Update and receipt.correlation_id, on the merge path, over the internal route --
+> exec 3832 (Concierge) and 3834 (Lead Intake). Evidence: docs/P8_4B_WRITE_B_LIVE_PROOF.md.
+> The gap closed because the phase declined to fabricate a merge target, not in spite of it.
+
 **Ruling: leave P1-L9 PARTIAL, with the limitation stated precisely** — *the merge branch of Lead
 Intake correlation has never been exercised end to end; NEW is proven.* Faking it would be worse
 than the gap. It is an **accepted residual** for activation because the Mini App submit path
