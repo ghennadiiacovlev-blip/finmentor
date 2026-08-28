@@ -14,13 +14,31 @@
     "INSTRUMENT": "disposable harness/tool; deployable as its own disposable workflow only"
   },
   "counts": {
-    "total": 26,
-    "REDACTED_REFERENCE_ONLY": 16,
+    "total": 28,
+    "REDACTED_REFERENCE_ONLY": 18,
     "REVIEW_REFERENCE": 7,
     "INSTRUMENT": 3,
     "production_deployable": 0
   },
   "artifacts": [
+    {
+      "path": "n8n/candidate/concierge-internal-handoff-candidate.json",
+      "class": "REDACTED_REFERENCE_ONLY",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [
+        {
+          "marker": "<REDACTED_CHAT_ID>",
+          "count": 2
+        }
+      ],
+      "marker_total": 2,
+      "marked_nodes": [
+        "Settings to Object"
+      ],
+      "sha256": "cfa8357721a51b7eeca53e9f65e3ae6f8e7ab30a01cd66b7ac4818a691925fb5",
+      "nodes": 51
+    },
     {
       "path": "n8n/candidate/concierge-issuer-API-IMPORT.json",
       "class": "REDACTED_REFERENCE_ONLY",
@@ -265,6 +283,24 @@
       "nodes": 45
     },
     {
+      "path": "n8n/history/mppzthlkSJFr6Kle.pre-write-b.json",
+      "class": "REDACTED_REFERENCE_ONLY",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [
+        {
+          "marker": "<REDACTED_CHAT_ID>",
+          "count": 2
+        }
+      ],
+      "marker_total": 2,
+      "marked_nodes": [
+        "Settings to Object"
+      ],
+      "sha256": "b61e34313e9386e6938f00080aa203fcc43541eb690e42c4e52ef6642516e3a7",
+      "nodes": 50
+    },
+    {
       "path": "n8n/production/LZ2mvKXbBikmeVTn.finmentor-sla-lead-watch-premium-final.json",
       "class": "REDACTED_REFERENCE_ONLY",
       "deployable_to_production": false,
@@ -400,8 +436,8 @@
       "marked_nodes": [
         "Settings to Object"
       ],
-      "sha256": "b61e34313e9386e6938f00080aa203fcc43541eb690e42c4e52ef6642516e3a7",
-      "nodes": 50
+      "sha256": "8d01ba853773f81d3cca406bc6fd0a2806b93661ecb57a4f1c40aa7c89f0e349",
+      "nodes": 51
     },
     {
       "path": "n8n/production/qF9tonlHHIxc8MDd.finmentor-lead-command-center-secure-candidate.json",

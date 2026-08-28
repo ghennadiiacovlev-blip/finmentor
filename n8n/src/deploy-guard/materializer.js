@@ -494,6 +494,52 @@ function absoluteInvariants(C, L, policy) {
     }
   });
 
+  // 4d-i. APPROVED REMOVALS MUST ACTUALLY HAPPEN. `approvedRemovals` was only ever read as a
+  //     PERMISSION — "you may delete this" — so a delta that simply did not perform the removal
+  //     produced no op at all and nothing objected. P8.4B is where that matters: the whole point
+  //     of the migration is that the PUBLIC HTTP submit stops existing, and a candidate that kept
+  //     it while adding the internal call would have deployed both paths and passed.
+  (p.approvedRemovals || []).forEach((rule) => {
+    if (cn[rule.name]) {
+      fail('approved removal was NOT performed: ' + rule.name + ' is still in the candidate');
+    }
+  });
+
+  // 4d-ii. PINNED PARAMETERS ON ADDED NODES. `approvedAddedNodes` approves a node by NAME, and
+  //     until this phase that was all it approved: the node's parameters were unconstrained, so
+  //     an approved name could carry any body at all. `immutableNodeParams` could not help --
+  //     it pins a candidate value to its LIVE counterpart, and an added node has none.
+  //
+  //     That is the same hole `pinnedOutEdges` closed for edges, one level down. Write B's
+  //     battery found it three ways: the Execute Workflow target could be repointed at another
+  //     workflow, made a caller-steerable EXPRESSION, or the handoff body could be rewritten to
+  //     take the submission_key from the request or mint a fresh one -- each of them inside an
+  //     "approved" node, each materializing cleanly.
+  //
+  //     `equals` pins an exact value; `sha256` pins a whole body without reproducing it here.
+  (p.pinnedAddedNodeParams || []).forEach((rule) => {
+    const c = cn[rule.node];
+    if (!c) { fail('pinned added node is absent: ' + rule.node); return; }
+    let v = c;
+    String(rule.path).split('.').forEach((k) => { v = (v == null ? v : v[k]); });
+    if (Object.prototype.hasOwnProperty.call(rule, 'equals')) {
+      if (v !== rule.equals) {
+        fail('pinned parameter differs on ' + rule.node + '.' + rule.path
+          + ': candidate has ' + JSON.stringify(v) + ', policy approves ' + JSON.stringify(rule.equals));
+      }
+    }
+    if (rule.sha256) {
+      const got = sha(typeof v === 'string' ? v : JSON.stringify(v));
+      if (got !== rule.sha256) {
+        fail('pinned parameter body changed on ' + rule.node + '.' + rule.path
+          + ' (sha ' + got.slice(0, 12) + ' vs approved ' + String(rule.sha256).slice(0, 12) + ')');
+      }
+    }
+    if (rule.mustNotMatch && typeof v === 'string' && new RegExp(rule.mustNotMatch).test(v)) {
+      fail('pinned parameter on ' + rule.node + '.' + rule.path + ' matches a forbidden pattern: ' + rule.mustNotMatch);
+    }
+  });
+
   // 4e. IMMUTABLE PARAMETER PATHS. `approvedModifiedFields` is coarse: granting `parameters` to a
   //     node so it can drop a header also grants it the URL. The battery proved that too — the
   //     public Lead Intake route could be repointed inside an approved field. These paths must

@@ -146,6 +146,46 @@
         "exec 3801 missing-receipt, 3803 IN_FLIGHT, 3805 correlation mismatch -- all unchanged.",
         "The 100-node pre-correction state is frozen at n8n/history/QmIyEW2ZEqKregmN.pre-replay-fix.json."
       ]
+    },
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P8.4B-WRITE-B",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T19:56:15.502Z",
+      "preVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+      "postVersionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
+      "deployedTargetSha": "10962d877cf849b2ff4b7f3d877acb1de2ff8f33f5fcba896dbdff8131599d97",
+      "postLiveRedactedSha": "85f610b28e2a1eb7253a3e52074fcd97f63aba11d87547825cbc48a185b0b7d1",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 51,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "4705b253b12a475ad06e4cf81bbd9eebdd07ce2695d4e0e4265b729e14cc1b1a",
+        "postLiveRedactedSha": "85f610b28e2a1eb7253a3e52074fcd97f63aba11d87547825cbc48a185b0b7d1",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after WRITE B: the Concierge lead handoff moved from the",
+        "PUBLIC Lead Intake webhook to the STRUCTURAL internal Execute Workflow route deployed by",
+        "Write A. Delta: +2 nodes (Build Internal Handoff, Send Lead to Intake (Internal)), -1 node",
+        "(Send Lead to Intake, the public httpRequest, removed by exact id and exact live edges),",
+        "4 rewires, ZERO modified inherited bodies.",
+        "THE KEY IS NOT MINTED AT HANDOFF. Build Internal Handoff reads the submission_key from",
+        "Issuance Gate -- the same node Receipt Preallocate writes the receipt with -- so the handoff",
+        "carries the authoritative key the cycle already owns. A second mint would orphan that receipt.",
+        "Issuance Gate is used rather than Issuance Verdict because Verdict only runs when a",
+        "preallocation was required; on the REUSE path it never executes.",
+        "TWO MATERIALIZER GAPS WERE CLOSED to make this deployable, both found by this battery:",
+        "approvedAddedNodes approved a node by NAME and left its PARAMETERS unconstrained, so the",
+        "Execute Workflow target could be repointed or made a caller-steerable expression and the",
+        "handoff body could take the key from the request or mint one -- all inside approved names.",
+        "And an approvedRemovals entry was only a PERMISSION: a candidate that simply kept the public",
+        "HTTP node produced no delta op and nothing objected, which would have deployed BOTH paths.",
+        "The 50-node pre-Write-B state is frozen at n8n/history/mppzthlkSJFr6Kle.pre-write-b.json.",
+        "LIVE END-TO-END TELEGRAM PROOF IS NOT PART OF THIS SEAL: it requires a real Telegram cycle",
+        "driven by the owner. The seal asserts only that production equals the approved target."
+      ]
     }
   ]
 }

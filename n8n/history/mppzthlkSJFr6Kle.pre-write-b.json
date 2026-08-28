@@ -3,12 +3,12 @@
   "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
   "description": null,
   "active": true,
-  "activeVersionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
+  "activeVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
   "createdAt": "2026-07-01T11:59:03.293Z",
-  "updatedAt": "2026-08-28T19:55:18.628Z",
+  "updatedAt": "2026-08-28T17:46:08.616Z",
   "isArchived": false,
-  "versionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
-  "versionCounter": 40,
+  "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+  "versionCounter": 39,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -573,6 +573,33 @@
       },
       "continueOnFail": true,
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings to Object').first().json.settings.lead_intake_webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Build Bot Response').first().json.lead_payload, { audit: { cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_at: $('Get Bot Session').first().json.consent_at || $now.toISO() } })) }}",
+        "options": {},
+        "sendHeaders": false,
+        "headerParameters": {
+          "parameters": []
+        }
+      },
+      "id": "b43d5227-8eaa-4e98-94d7-f901fc5c3255",
+      "name": "Send Lead to Intake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -16,
+        -240
+      ],
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -1731,47 +1758,6 @@
         560
       ],
       "notes": "Terminal. Emits an operational signal and writes nothing."
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// P8.4B — build the INTERNAL envelope for the structural Lead Intake handoff.\n//\n// THE KEY IS NOT MINTED HERE. It is read from Issuance Gate, the same node Receipt\n// Preallocate wrote the receipt with, so the handoff carries the authoritative key this cycle\n// already owns. A second mint at handoff would orphan that receipt and create a submission the\n// state machine could never settle. Nothing here is caller-supplied: the Telegram update does\n// not reach this node, and no header, body flag or source field is consulted for trust.\nconst gate = $('Issuance Gate').first().json || {};\nconst b = $('Build Bot Response').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\n\nconst key = String(gate.__submission_key || '');\nconst cycleId = String(g.cycle_id || '');\nconst base = b.lead_payload || {};\n\n// The correlation the receipt will be stamped with. cycle_id is server-derived and stable\n// across retries within the cycle, so a replay correlates to the submission it replays.\nconst payload = Object.assign({}, base, {\n  audit: {\n    cycle_id: cycleId,\n    consent_cycle_id: String(g.consent_cycle_id || g.cycle_id || ''),\n    consent_at: String(g.consent_at || new Date().toISOString())\n  },\n  meta: Object.assign({}, base.meta || {}, { request_id: cycleId })\n});\n\n// The wrapper the internal trigger passes through untouched. source is the internal GATEWAY\n// envelope marker required by Internal Auth Entry; lead attribution stays payload.tool.\nreturn [{ json: {\n  submission_key: key,\n  envelope: {\n    source: 'telegram_miniapp',\n    payload: payload\n  }\n} }];"
-      },
-      "id": "p84b-01-build-handoff",
-      "name": "Build Internal Handoff",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -216,
-        -240
-      ]
-    },
-    {
-      "parameters": {
-        "mode": "each",
-        "options": {
-          "waitForSubWorkflow": true
-        },
-        "workflowId": {
-          "__rl": true,
-          "mode": "id",
-          "value": "QmIyEW2ZEqKregmN"
-        }
-      },
-      "id": "p84b-02-internal-handoff",
-      "name": "Send Lead to Intake (Internal)",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.2,
-      "position": [
-        -16,
-        -240
-      ],
-      "onError": "continueRegularOutput",
-      "retryOnFail": true,
-      "maxTries": 2,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
     }
   ],
   "connections": {
@@ -1937,7 +1923,18 @@
         ],
         [
           {
-            "node": "Build Internal Handoff",
+            "node": "Send Lead to Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Lead to Intake": {
+      "main": [
+        [
+          {
+            "node": "Parse Intake Response",
             "type": "main",
             "index": 0
           }
@@ -2366,28 +2363,6 @@
           }
         ]
       ]
-    },
-    "Build Internal Handoff": {
-      "main": [
-        [
-          {
-            "node": "Send Lead to Intake (Internal)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send Lead to Intake (Internal)": {
-      "main": [
-        [
-          {
-            "node": "Parse Intake Response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "nodeGroups": [],
@@ -2425,7 +2400,7 @@
     }
   ],
   "activeVersion": {
-    "versionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
+    "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
     "workflowId": "mppzthlkSJFr6Kle",
     "nodes": [
       {
@@ -2989,6 +2964,33 @@
         },
         "continueOnFail": true,
         "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $('Settings to Object').first().json.settings.lead_intake_webhook_url }}",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Build Bot Response').first().json.lead_payload, { audit: { cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_at: $('Get Bot Session').first().json.consent_at || $now.toISO() } })) }}",
+          "options": {},
+          "sendHeaders": false,
+          "headerParameters": {
+            "parameters": []
+          }
+        },
+        "id": "b43d5227-8eaa-4e98-94d7-f901fc5c3255",
+        "name": "Send Lead to Intake",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          -16,
+          -240
+        ],
+        "continueOnFail": true,
+        "onError": "continueRegularOutput",
+        "retryOnFail": true,
+        "maxTries": 2,
+        "waitBetweenTries": 2000
       },
       {
         "parameters": {
@@ -4147,47 +4149,6 @@
           560
         ],
         "notes": "Terminal. Emits an operational signal and writes nothing."
-      },
-      {
-        "parameters": {
-          "mode": "runOnceForAllItems",
-          "language": "javaScript",
-          "jsCode": "// P8.4B — build the INTERNAL envelope for the structural Lead Intake handoff.\n//\n// THE KEY IS NOT MINTED HERE. It is read from Issuance Gate, the same node Receipt\n// Preallocate wrote the receipt with, so the handoff carries the authoritative key this cycle\n// already owns. A second mint at handoff would orphan that receipt and create a submission the\n// state machine could never settle. Nothing here is caller-supplied: the Telegram update does\n// not reach this node, and no header, body flag or source field is consulted for trust.\nconst gate = $('Issuance Gate').first().json || {};\nconst b = $('Build Bot Response').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\n\nconst key = String(gate.__submission_key || '');\nconst cycleId = String(g.cycle_id || '');\nconst base = b.lead_payload || {};\n\n// The correlation the receipt will be stamped with. cycle_id is server-derived and stable\n// across retries within the cycle, so a replay correlates to the submission it replays.\nconst payload = Object.assign({}, base, {\n  audit: {\n    cycle_id: cycleId,\n    consent_cycle_id: String(g.consent_cycle_id || g.cycle_id || ''),\n    consent_at: String(g.consent_at || new Date().toISOString())\n  },\n  meta: Object.assign({}, base.meta || {}, { request_id: cycleId })\n});\n\n// The wrapper the internal trigger passes through untouched. source is the internal GATEWAY\n// envelope marker required by Internal Auth Entry; lead attribution stays payload.tool.\nreturn [{ json: {\n  submission_key: key,\n  envelope: {\n    source: 'telegram_miniapp',\n    payload: payload\n  }\n} }];"
-        },
-        "id": "p84b-01-build-handoff",
-        "name": "Build Internal Handoff",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          -216,
-          -240
-        ]
-      },
-      {
-        "parameters": {
-          "mode": "each",
-          "options": {
-            "waitForSubWorkflow": true
-          },
-          "workflowId": {
-            "__rl": true,
-            "mode": "id",
-            "value": "QmIyEW2ZEqKregmN"
-          }
-        },
-        "id": "p84b-02-internal-handoff",
-        "name": "Send Lead to Intake (Internal)",
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.2,
-        "position": [
-          -16,
-          -240
-        ],
-        "onError": "continueRegularOutput",
-        "retryOnFail": true,
-        "maxTries": 2,
-        "waitBetweenTries": 2000,
-        "continueOnFail": true
       }
     ],
     "connections": {
@@ -4353,7 +4314,18 @@
           ],
           [
             {
-              "node": "Build Internal Handoff",
+              "node": "Send Lead to Intake",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send Lead to Intake": {
+        "main": [
+          [
+            {
+              "node": "Parse Intake Response",
               "type": "main",
               "index": 0
             }
@@ -4782,28 +4754,6 @@
             }
           ]
         ]
-      },
-      "Build Internal Handoff": {
-        "main": [
-          [
-            {
-              "node": "Send Lead to Intake (Internal)",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send Lead to Intake (Internal)": {
-        "main": [
-          [
-            {
-              "node": "Parse Intake Response",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
       }
     },
     "nodeGroups": [],
@@ -4811,16 +4761,16 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "createdAt": "2026-08-28T19:55:18.631Z",
-    "updatedAt": "2026-08-28T19:55:18.631Z",
+    "createdAt": "2026-08-28T17:46:08.619Z",
+    "updatedAt": "2026-08-28T17:46:08.619Z",
     "workflowPublishHistory": [
       {
-        "id": 112,
+        "id": 106,
         "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
+        "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-28T19:55:18.788Z"
+        "createdAt": "2026-08-28T17:46:08.804Z"
       }
     ]
   }

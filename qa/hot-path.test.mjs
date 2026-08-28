@@ -44,6 +44,14 @@ const CONCIERGE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
 // check about CURRENT production keeps reading the moving reference above.
 const CONCIERGE_PRE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
   'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json'), 'utf8'));
+// The state WRITE B deployed from. The three checks below record why the public handoff had to
+// go -- caller-asserted provenance, a retried submit with no idempotency record, and a key the
+// Concierge minted but never sent. Write B removed that node, so they are history now and read
+// the frozen copy; each one also asserts FORWARD that the migration actually landed, so they
+// cannot quietly become a description of a world nobody lives in any more.
+const CONCIERGE_PRE_B = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'mppzthlkSJFr6Kle.pre-write-b.json'), 'utf8'));
+const MIGRATED_HANDOFF = 'Send Lead to Intake (Internal)';
 const INTAKE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
   'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
 const CAND = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json'), 'utf8'));
@@ -316,10 +324,12 @@ check('provenance today is caller-asserted on a PUBLIC endpoint', () => {
   assert(/toolKey === 'telegram_client_concierge' \|\| hdrSource === 'telegram_client_concierge'/.test(vp),
     'the source derivation changed; re-run this analysis');
   // The Concierge sends NO source header at all, so its provenance comes from the BODY.
-  const n = byName(CONCIERGE, 'Send Lead to Intake');
+  const n = byName(CONCIERGE_PRE_B, 'Send Lead to Intake');
   const names = n.parameters.headerParameters.parameters.map((p) => p.name);
   assert(names.indexOf('x-finmentor-source') === -1,
     'the Concierge now sends a source header; the body-provenance finding has changed');
+  // FORWARD: and this is why the public submit no longer exists.
+  assert(!byName(CONCIERGE, 'Send Lead to Intake'), 'WRITE B REGRESSED: the public HTTP handoff is back');
 });
 
 check('`source` NEVER gates a decision — it is attribution, not trust', () => {
@@ -353,20 +363,30 @@ check('the route is recorded as PUBLIC today with STRUCTURAL INTERNAL as the tar
 });
 
 check('the duplicate-submit exposure is recorded as the reason B is canonical', () => {
-  const n = byName(CONCIERGE, 'Send Lead to Intake');
+  const n = byName(CONCIERGE_PRE_B, 'Send Lead to Intake');
   eq(n.retryOnFail, true, 'the intake call no longer retries');
   eq(n.maxTries, 2, 'maxTries changed');
   eq(n.continueOnFail, true, 'continueOnFail changed');
   assert(/no receipt/.test(H.LEAD_INTAKE_ROUTE.duplicateExposure),
     'the module no longer records that the retried public submit has no idempotency record');
+  // FORWARD: the retry posture is preserved on the INTERNAL call, where a replay is now safe.
+  const now = byName(CONCIERGE, MIGRATED_HANDOFF);
+  assert(now, 'WRITE B REGRESSED: the internal handoff is gone');
+  eq(now.retryOnFail, true, 'the internal handoff lost its retry');
+  eq(now.maxTries, 2, 'the internal handoff maxTries changed');
 });
 
 check('the Concierge mints a key it does not use on its own handoff', () => {
   // Stated in the module because it is the clearest argument for the migration.
-  const body = byName(CONCIERGE, 'Send Lead to Intake').parameters.jsonBody || '';
+  const body = byName(CONCIERGE_PRE_B, 'Send Lead to Intake').parameters.jsonBody || '';
   assert(!/submission_key/.test(body), 'the Concierge now sends submission_key on the public route');
   assert(/mints a submission_key/i.test(readFileSync(join(ROOT, 'n8n', 'src', 'concierge-config', 'hot-path-config.js'), 'utf8')),
     'the observation is no longer recorded');
+  // FORWARD: the key it mints is now the key it sends, on the internal route.
+  const handoff = byName(CONCIERGE, 'Build Internal Handoff');
+  assert(handoff, 'WRITE B REGRESSED: the internal handoff builder is gone');
+  assert(/gate.__submission_key/.test(handoff.parameters.jsCode),
+    'the handoff no longer sends the authoritative minted key');
 });
 
 check('MUTATION 4 semantics: the stale-authority predicate already exists and refuses', () => {

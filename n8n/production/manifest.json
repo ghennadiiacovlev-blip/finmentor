@@ -172,15 +172,14 @@
       "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
       "active": true,
       "archived": false,
-      "updatedAt": "08/28/2026 17:46:08",
-      "nodeCount": 50,
-      "structuralHash": "16482c31b66dac7b23865624ac90804b0ed8f31e50165c02817dd28dfdc490d3",
+      "updatedAt": "08/28/2026 20:10:00",
+      "nodeCount": 51,
+      "structuralHash": "414e44eeb49a154dc2e39275287abe351576a52b37c412a2688300c7865c6a93",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.dataTable",
         "n8n-nodes-base.executeWorkflow",
         "n8n-nodes-base.googleSheets",
-        "n8n-nodes-base.httpRequest",
         "n8n-nodes-base.if",
         "n8n-nodes-base.telegram",
         "n8n-nodes-base.telegramTrigger"
@@ -191,7 +190,7 @@
       ],
       "export": "mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
       "trackedReason": "",
-      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant at the P8.3A cutover, so this value is current for THIS entry. The manifest RUN at generatedAt still predates it, and the other entries were not re-read -- the field fingerprints the LIVE workflow as the API returns it, not the redacted export beside it, so it can never be recomputed offline from this file."
+      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant after P8.4B (Write B, the internal handoff migration), so this value is current for THIS entry. The manifest RUN at generatedAt still predates it."
     },
     {
       "id": "ShcmmJeLSE8LYVBk",

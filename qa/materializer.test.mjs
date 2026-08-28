@@ -529,12 +529,13 @@ const LATEST = CONCIERGE_RECORDS[CONCIERGE_RECORDS.length - 1];
 // n8n/history/ from becoming a pile of copies nobody can vouch for.
 const FROZEN = {
   'P7.5R': { file: 'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json', nodes: 33 },
-  'P8.3A': { file: 'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json', nodes: 45 }
+  'P8.3A': { file: 'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json', nodes: 45 },
+  'P8.4B-WRITE-B': { file: 'mppzthlkSJFr6Kle.pre-write-b.json', nodes: 50 }
 };
 
 check('the LATEST Concierge cutover is SEALED, so the next deploy is not refused on baseline grounds', () => {
   assert(LATEST, 'no mppzthlkSJFr6Kle record at all');
-  eq(LATEST.phase, 'P8.3A', 'the most recent Concierge record is not the phase this repo last deployed');
+  eq(LATEST.phase, 'P8.4B-WRITE-B', 'the most recent Concierge record is not the phase this repo last deployed');
   eq(LATEST.status, SEALM.SEALED, 'the latest cutover is still unsealed');
   assert(SEALM.preflightSealCheck(SEALFILE, 'mppzthlkSJFr6Kle').ok, 'the sealed record still refuses');
 });

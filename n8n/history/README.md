@@ -21,6 +21,7 @@ read the frozen copy.** Only checks that are genuinely about *current* productio
 | `mppzthlkSJFr6Kle.pre-P8-3A-cutover.json` | pre-P8.3A Concierge, 45 nodes | `ff6c8103-6823-4666-86fd-c50d4ec89a01` | `qa/p83a-cutover-policy.test.mjs`, `qa/hot-path.test.mjs`, `qa/materializer.test.mjs` |
 | `QmIyEW2ZEqKregmN.pre-write-a.json` | pre-Write-A Lead Intake, 57 nodes | `7108ec2d-410c-4b57-b546-2229dc21c2b8` | `qa/lead-intake-cutover-policy.test.mjs`, `qa/import-safe.test.mjs` |
 | `QmIyEW2ZEqKregmN.pre-replay-fix.json` | pre-P8.4A-R Lead Intake, 100 nodes | `2c51b904-fbab-45b6-b60a-d34403777757` | `scripts/build-lead-intake-committed-replay.mjs`, `qa/lead-intake-committed-replay.test.mjs` |
+| `mppzthlkSJFr6Kle.pre-write-b.json` | pre-Write-B Concierge, 50 nodes | `1a2e37df-5292-48c6-b7af-a6f63b6eb66d` | `scripts/build-concierge-internal-handoff.mjs`, `qa/concierge-internal-handoff.test.mjs`, `qa/hot-path.test.mjs` |
 
 The `versionId` column is not decoration. `qa/materializer.test.mjs` requires the frozen export's
 `versionId` to equal the `preVersionId` on the P7.5R record in `n8n/baseline-seal.json` — so a
@@ -55,3 +56,12 @@ the Write A seal it would have spliced its +43 nodes onto a graph that already c
 them. It is repointed too. The rule is therefore not "phase gates read frozen inputs" but
 **anything that describes a completed delta reads a frozen input** -- the generator that
 produces the artifact just as much as the gate that checks it.
+
+Write B added the fifth entry and one refinement worth keeping. Three hot-path checks recorded
+WHY the public handoff had to go — caller-asserted provenance, a retried submit with no
+idempotency record, a key the Concierge minted but never sent. All three inspected the node
+Write B deleted. Repointing them at the frozen copy preserves the argument, but on its own it
+would leave three checks describing a world nobody lives in any more and passing forever. So
+each one now also asserts FORWARD: the public node is gone, the internal call kept the retry
+posture, and the minted key is the key actually sent. **A history check should assert the
+history AND the thing history was replaced by** — otherwise it decays into trivia.
