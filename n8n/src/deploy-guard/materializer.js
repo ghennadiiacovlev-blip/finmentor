@@ -436,6 +436,46 @@ function absoluteInvariants(C, L, policy) {
     }));
   });
 
+  // 4d. PROTECTED FAN-IN. An added node may wire itself freely — that is what "new graph" means,
+  //     and validateDelta allows it. But for a node whose SAFETY PROPERTY IS ITS FAN-IN, that
+  //     freedom is a hole: the P8.3A battery proved a new node could route an edge straight back
+  //     into the authority write, recreating the second write path P8.2R withdrew, and every
+  //     stage passed it. Approving a node is not approving where it points.
+  (p.protectedFanIn || []).forEach((rule) => {
+    const inbound = [];
+    Object.keys(C.connections || {}).forEach((src) => {
+      ((C.connections[src] || {}).main || []).forEach((br) => (br || []).forEach((l) => {
+        if (l && l.node === rule.node && inbound.indexOf(src) === -1) { inbound.push(src); }
+      }));
+    });
+    const allowed = rule.allowedSources || [];
+    inbound.forEach((s) => {
+      if (allowed.indexOf(s) === -1) {
+        fail('protected node ' + rule.node + ' is fed by ' + s + ', which is not an approved source');
+      }
+    });
+    if (rule.exactly !== undefined && inbound.length !== rule.exactly) {
+      fail('protected node ' + rule.node + ' has ' + inbound.length
+        + ' incoming edge(s), and exactly ' + rule.exactly + ' is approved');
+    }
+  });
+
+  // 4e. IMMUTABLE PARAMETER PATHS. `approvedModifiedFields` is coarse: granting `parameters` to a
+  //     node so it can drop a header also grants it the URL. The battery proved that too — the
+  //     public Lead Intake route could be repointed inside an approved field. These paths must
+  //     equal LIVE even on a node the policy otherwise allows to change.
+  (p.immutableNodeParams || []).forEach((rule) => {
+    const c = cn[rule.node];
+    const l = ln[rule.node];
+    if (!c || !l) { return; }
+    (rule.paths || []).forEach((path) => {
+      const read = (n) => String(path).split('.').reduce((v, k) => (v === undefined || v === null ? v : v[k]), n);
+      if (JSON.stringify(read(c)) !== JSON.stringify(read(l))) {
+        fail('immutable parameter changed on ' + rule.node + ': ' + path);
+      }
+    });
+  });
+
   // 5. Settings.
   if (!C.settings || C.settings.availableInMCP !== false) { fail('settings.availableInMCP must be exactly false'); }
 
