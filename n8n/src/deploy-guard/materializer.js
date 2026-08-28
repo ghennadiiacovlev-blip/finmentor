@@ -373,7 +373,41 @@ function absoluteInvariants(C, L, policy) {
   const isTrigger = (t) => /trigger$/i.test(String(t)) || String(t) === 'n8n-nodes-base.webhook';
   const cTrig = (C.nodes || []).filter((n) => isTrigger(n.type));
   const lTrig = (L.nodes || []).filter((n) => isTrigger(n.type));
-  if (cTrig.length !== lTrig.length) { fail('trigger count changed: ' + lTrig.length + ' -> ' + cTrig.length); }
+
+  // 3a. ADDED TRIGGERS. An entry point is the one thing an attacker most wants to add, so this
+  //     was an absolute refusal: trigger count may not move. That is right for the Concierge and
+  //     wrong for a workflow whose whole phase IS a second entry point -- Lead Intake's internal
+  //     Model-B route is an executeWorkflowTrigger beside the existing public webhook.
+  //
+  //     So the rule is not relaxed, it is made SPECIFIC, and it stays closed by default: a
+  //     trigger may appear only if the policy names it by name AND type AND id, only if it is
+  //     also an approved added node, and NO trigger may ever disappear or change. A policy that
+  //     forgets to list one gets the old refusal. Type is pinned because the difference between
+  //     an executeWorkflowTrigger and a webhook is the difference between an internal entry and
+  //     a second PUBLIC one, and that must never be a detail nobody had to write down.
+  const approvedTrigs = p.approvedAddedTriggers || [];
+  const lTrigNames = lTrig.map((n) => n.name);
+  const addedTrigs = cTrig.filter((n) => lTrigNames.indexOf(n.name) === -1);
+  const goneTrigs = lTrig.filter((n) => !cn[n.name]);
+  goneTrigs.forEach((n) => { fail('a trigger was removed: ' + n.name); });
+  addedTrigs.forEach((n) => {
+    const rule = approvedTrigs.filter((r) => r.name === n.name)[0];
+    if (!rule) { fail('unapproved trigger added: ' + n.name + ' (' + n.type + ')'); return; }
+    if (rule.type !== n.type) {
+      fail('added trigger ' + n.name + ' is a ' + n.type + ', the policy approves ' + rule.type);
+    }
+    if (rule.id && n.id !== rule.id) { fail('added trigger ' + n.name + ' has an unapproved id'); }
+    if ((p.approvedAddedNodes || []).indexOf(n.name) === -1) {
+      fail('trigger ' + n.name + ' is approved as a trigger but is not an approved added node');
+    }
+  });
+  // A pin nobody satisfied is not a pin: every approved trigger must actually be there.
+  approvedTrigs.forEach((r) => {
+    if (!cn[r.name]) { fail('approved added trigger is missing from the candidate: ' + r.name); }
+  });
+  if (cTrig.length !== lTrig.length + addedTrigs.length - goneTrigs.length) {
+    fail('trigger count changed: ' + lTrig.length + ' -> ' + cTrig.length);
+  }
   if (p.triggerNode) {
     const c = cn[p.triggerNode];
     const l = ln[p.triggerNode];
