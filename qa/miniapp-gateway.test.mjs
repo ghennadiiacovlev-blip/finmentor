@@ -29,7 +29,7 @@ import { buildBotDataCheckString } from '../gateway/telegram-initdata.mjs';
 import { deriveReplayKey } from '../gateway/g5-replay-claim.mjs';
 import {
   buildGateway, verifyGateway, NODES, G5_CLAIM_NODE, SUPABASE_CREDENTIAL,
-  NEON_CREDENTIAL_ID, BOT_ID_SENTINEL, APP_SESSION_TABLE, APP_SESSION_TTL_SECONDS
+  NEON_CREDENTIAL_ID, BOT_ID_SENTINEL, CONFIGURED_BOT_ID, APP_SESSION_TABLE, APP_SESSION_TTL_SECONDS
 } from '../scripts/build-miniapp-gateway.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -225,6 +225,16 @@ check('Verify InitData is bootstrap-canary.js with ONLY the BOT_ID line substitu
   assert(botLine, 'the deployed body has no BOT_ID line');
   eq(tracked.replace(sentinelLine, botLine), deployed,
     'the deployed verifier differs from the tracked canary by more than BOT_ID');
+});
+
+check('the deployed BOT_ID is the confirmed one, and not the rejected id', () => {
+  const deployed = byName('Verify InitData').parameters.jsCode;
+  const m = deployed.match(/const BOT_ID = '([^']*)';/);
+  assert(m, 'no BOT_ID line');
+  eq(m[1], CONFIGURED_BOT_ID, 'the deployed bot id is not the confirmed one');
+  eq(m[1], '8917808598', 'the confirmed bot id drifted');
+  // 8267398121 was explicitly rejected by the owner; it must appear nowhere.
+  assert(JSON.stringify(WF).indexOf('8267398121') === -1, 'the REJECTED bot id appears in the Gateway');
 });
 
 check('an unconfigured BOT_ID fails CLOSED', () => {

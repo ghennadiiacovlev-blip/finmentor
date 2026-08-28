@@ -55,6 +55,13 @@ const CANARY = join(ROOT, 'gateway', 'n8n', 'bootstrap-canary.js');
 const OUT = join(ROOT, 'n8n', 'candidate', 'miniapp-gateway-candidate.json');
 
 export const BOT_ID_SENTINEL = 'SET_BOT_ID_BEFORE_CANARY';
+
+// The FINMENTOR client bot numeric id. NON-SECRET: Telegram's own third-party validation takes
+// it in the clear, and it is not the token. It is the builder default so the artifact is
+// reproducible -- a generator that needed an env var to reproduce its own output would fail the
+// byte-exact binding this repo checks everywhere else. The sentinel guard stays in the canary,
+// so a body built WITHOUT a configured id still fails closed.
+export const CONFIGURED_BOT_ID = '8917808598';
 export const G5_TABLE = 'telegram_initdata_replays';
 export const APP_SESSION_TABLE = 'MiniApp_App_Sessions';
 export const SUPABASE_CREDENTIAL = { id: 'B6wRirWfjqoASXU3', name: 'FINMENTOR Supabase G5' };
@@ -203,7 +210,7 @@ const respond = (name, id, x, y, codeExpr, bodyExpr) => ({
 });
 
 export function buildGateway(options) {
-  const botId = (options && options.botId) || BOT_ID_SENTINEL;
+  const botId = (options && options.botId) || CONFIGURED_BOT_ID;
   const canarySrc = readFileSync(CANARY, 'utf8');
   if (canarySrc.indexOf("const BOT_ID = '" + BOT_ID_SENTINEL + "';") === -1) {
     throw new Error('the tracked canary no longer carries the BOT_ID sentinel');
@@ -346,7 +353,7 @@ export function verifyGateway(wf) {
 
 const isMain = process.argv[1] && process.argv[1].endsWith('build-miniapp-gateway.mjs');
 if (isMain) {
-  const botId = process.env.FINMENTOR_BOT_ID || BOT_ID_SENTINEL;
+  const botId = process.env.FINMENTOR_BOT_ID || CONFIGURED_BOT_ID;
   const wf = buildGateway({ botId });
   const v = verifyGateway(wf);
   if (!v.ok) {
