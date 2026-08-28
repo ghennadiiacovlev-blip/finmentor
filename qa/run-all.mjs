@@ -45,6 +45,7 @@ const GATES = [
   ['Lead Intake internal-route cutover policy', 'lead-intake-cutover-policy.test.mjs'],
   ['Lead Intake COMMITTED replay', 'lead-intake-committed-replay.test.mjs'],
   ['P8.4B Concierge internal handoff', 'concierge-internal-handoff.test.mjs'],
+  ['G5 initData replay claim', 'g5-replay-claim.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
