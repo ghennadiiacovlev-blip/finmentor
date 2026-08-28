@@ -384,6 +384,29 @@ check('(4.4) NO tracked workflow Code body references the crypto GLOBAL', () => 
   });
 });
 
+check('(4.4b) MUTATION: stripping comments does not stop (4.4) seeing a real call', () => {
+  // (4.4) was narrowed to executable lines. That narrowing is only safe if the narrowed scan
+  // still fires -- so plant the forbidden call on a CODE line inside the very node whose
+  // comment block motivated the change, and require both halves of the check to catch it.
+  const wf = JSON.parse(readFileSync(join(ROOT,
+    'n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+  const victim = wf.nodes.find((n) => n.name === 'Get Bot Session');
+  assert(victim, 'Get Bot Session is gone; re-derive this mutation');
+  const strip = (s) => s.split('\n').filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line)).join('\n');
+
+  // The node as it really is: clean once the prose is removed.
+  const clean = strip(victim.parameters.jsCode);
+  assert(clean.indexOf('crypto.getRandomValues') === -1, 'the real body has a live getRandomValues call');
+  assert(!/(^|[^A-Za-z0-9_$.])crypto\s*\./.test(
+    clean.replace(/require\(\s*['"]crypto['"]\s*\)/g, 'REQUIRED_CRYPTO')), 'the real body uses the crypto global');
+
+  // The same node with one executable line added.
+  const planted = strip(victim.parameters.jsCode + '\nconst r = crypto.getRandomValues(new Uint8Array(16));');
+  assert(planted.indexOf('crypto.getRandomValues') !== -1, 'the literal scan went blind after stripping');
+  assert(/(^|[^A-Za-z0-9_$.])crypto\s*\./.test(
+    planted.replace(/require\(\s*['"]crypto['"]\s*\)/g, 'REQUIRED_CRYPTO')), 'the global scan went blind after stripping');
+});
+
 check('(4.5) the issuer names require(crypto) as the primitive the deployed body must use', () => {
   eq(ISSUER.REQUIRED_ENTROPY_CALL, "require('crypto').randomBytes", 'the required primitive drifted');
   assert(ISSUER.FORBIDDEN_IN_CODE_NODE.indexOf('crypto.randomUUID') !== -1, 'randomUUID is no longer forbidden');

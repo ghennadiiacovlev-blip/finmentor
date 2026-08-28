@@ -125,7 +125,25 @@ green would have been to delete the warning — a gate that punishes documenting
 
 It now strips **whole-line comments only**: stripping from the first `//` on any line would also
 cut a real usage sitting after a URL inside a string literal, which is the one thing the check
-must never miss.
+must never miss. The narrowing is covered by a planted-call mutation (4.4b), so a scan that went
+blind would fail rather than pass quietly.
+
+---
+
+## A SECOND DRIFT, FOUND BY THE SEAL
+
+`n8n/production/manifest.json` said the Concierge had 33 nodes, beside a 45-node export, and
+nothing noticed. Every check in the drift gate was about the manifest’s *internal* consistency;
+none compared it to the files it describes. `nodeCount` and `nodeTypes` are now checked against
+each export, and both new checks are mutation-proven rather than asserted.
+
+**`structuralHash` cannot be one of them, and that is a finding rather than a gap.** It
+fingerprints the LIVE workflow as the exporter read it from the API; the file written beside it is
+then REDACTED. Recomputing it from the tracked artifact differs for **all nine** entries, not only
+the changed one — so it is a live-drift fingerprint, refreshable only by
+`scripts/export-n8n-production.ps1` against the tenant. **No value was fabricated for it.** What is
+checkable offline is that an entry updated *after* the manifest run declares the staleness rather
+than presenting a pre-update fingerprint as current, and the Concierge entry now does.
 
 ---
 
@@ -133,16 +151,15 @@ must never miss.
 
 | | |
 |---|---|
-| Gates | **25/25**, 1240 assertions (was 1229) |
+| Gates | **25/25**, 1243 assertions (was 1229) |
 | Production | **unchanged by this phase.** Nothing was deployed, nothing was written to the tenant |
 | P7.5R | **SEALED** |
 | P8.3A cutover | no longer blocked on the baseline. Still needs a fresh short-lived n8n key pair |
 
 ### Not done here
 
-* `n8n/production/manifest.json` still describes the pre-cutover Concierge. Its `structuralHash`
-  fingerprints the LIVE workflow, not the redacted file beside it, so refreshing that field needs
-  an API key.
+* `manifest.structuralHash` for `mppzthlkSJFr6Kle` is stale, and is now declared stale rather than
+  guessed at. It needs a live export to refresh, which needs an API key.
 * The P8.3A cutover itself, and its policy — `CONCIERGE_CUTOVER_POLICY` still describes the
   P7.5R delta. P8.3A adds six nodes and removes one; that policy does not exist yet.
 * Everything in `docs/P8_3_CONCIERGE_HARDENING_INTERNAL_HANDOFF.md` §OWNER ACTIONS is unchanged.
