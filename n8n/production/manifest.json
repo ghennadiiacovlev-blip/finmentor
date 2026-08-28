@@ -121,12 +121,14 @@
       "name": "FINMENTOR Lead Intake PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 20:02:09",
-      "nodeCount": 57,
-      "structuralHash": "0dfebb810d7ee2e3d97b17b10b4e1d90e36b82739cf6f99bb2bef67ab1308d8e",
+      "updatedAt": "08/28/2026 18:20:00",
+      "nodeCount": 100,
+      "structuralHash": "f90dc053f86820598f2c0323f5de5d7dedc80897a80716e81e7950b58051923c",
       "nodeTypes": [
         "@n8n/n8n-nodes-langchain.openAi",
         "n8n-nodes-base.code",
+        "n8n-nodes-base.dataTable",
+        "n8n-nodes-base.executeWorkflowTrigger",
         "n8n-nodes-base.googleSheets",
         "n8n-nodes-base.if",
         "n8n-nodes-base.respondToWebhook",
@@ -141,7 +143,8 @@
         "OpenAI account"
       ],
       "export": "QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
-      "trackedReason": ""
+      "trackedReason": "",
+      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant at the Write A cutover, so this value is current for THIS entry. The manifest RUN at generatedAt still predates it and the other entries were not re-read; the field fingerprints the LIVE workflow as the API returns it, not the export beside it."
     },
     {
       "id": "LZ2mvKXbBikmeVTn",

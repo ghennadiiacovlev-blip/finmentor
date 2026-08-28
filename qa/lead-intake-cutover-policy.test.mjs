@@ -48,8 +48,13 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
-const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
-  'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
+// FROZEN pre-Write-A export -- see n8n/history/README.md. Sealing Write A advanced the tracked
+// reference to the 100-node post-cutover graph, which is what current production IS. This gate is
+// about the delta Write A DEPLOYED, whose input is a fact about the past: 57 nodes, one entry
+// point, no internal route. Reading the moving pointer here would assert the cutover math was
+// wrong the moment it succeeded.
+const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'QmIyEW2ZEqKregmN.pre-write-a.json'), 'utf8'));
 const B = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate',
   'lead-intake-internal-receipt-candidate.json'), 'utf8'));
 const SEALFILE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
@@ -346,9 +351,35 @@ mustRefuse('(7) live drifted from the tracked baseline', {
   })()
 }, 'BASELINE_DRIFT');
 
-mustRefuse('(8) a tracked redacted artifact supplied as the LIVE workflow', {
-  liveWorkflow: A
-}, 'INPUT', 'already contains redaction markers');
+// (8) THE CONTROL THAT IS VACUOUS HERE, STATED HONESTLY RATHER THAN ASSUMED.
+//
+// "Was this really a live export?" is enforced by looking for redaction markers. For the
+// Concierge that works: its reference carries one. For Lead Intake it does NOT, and the reason
+// is legitimate -- every chatId in this workflow is a node-reference EXPRESSION, never a concrete
+// id, so R(L) == L and the rebaselined reference has zero markers. A marker-based check cannot
+// see the difference between that file and a live read, because on this surface there is none.
+//
+// So the check is proven where it CAN apply (a marker-bearing document is still refused), and
+// the gap is named rather than papered over. The operative control for this workflow is that the
+// deployment driver fetches live from the API itself and never takes a file path, plus
+// n8n/history's rule that a phase input is frozen. Recorded for the post-launch backlog.
+check('REFUSES: a MARKER-BEARING document supplied as the LIVE workflow', () => {
+  const planted = clone(L);
+  byName(planted, 'Validate Payload').parameters.jsCode =
+    '// <REDACTED_CHAT_ID>\n' + byName(planted, 'Validate Payload').parameters.jsCode;
+  const v = run({ liveWorkflow: planted });
+  assert(!v.ok, 'a document carrying a redaction marker was accepted as live');
+  eq(v.stage, 'INPUT', 'wrong stage');
+  assert(v.failures.some((f) => f.includes('already contains redaction markers')), v.failures.join(' | '));
+});
+
+check('KNOWN GAP, asserted so it cannot be forgotten: this reference has no markers to detect', () => {
+  // If this ever starts failing, Lead Intake grew a concrete identity and the marker control
+  // came back to life -- at which point the mutation above should be widened to use A directly.
+  eq(R.findMarkers(A).length, 0, 'the Lead Intake reference now carries markers; restore the A-as-live mutation');
+  const v = run({ liveWorkflow: A });
+  assert(v.ok, 'A-as-live is now refused — good; replace this check with the stronger mutation');
+});
 
 check('REFUSES: the evidence never carries a live literal', () => {
   const planted = clone(L);

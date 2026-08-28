@@ -164,7 +164,15 @@ check('every tracked artifact is classified and none is production-deployable', 
   });
 });
 
-check('both production exports and both candidate chains are REDACTED_REFERENCE_ONLY', () => {
+check('no production export or candidate chain is a DEPLOY SOURCE', () => {
+  // This asserted class === REDACTED_REFERENCE_ONLY until the Lead Intake reference was
+  // rebaselined onto the corrected redactor. R(L) == L for that workflow: every chatId is a
+  // node-reference EXPRESSION, not a concrete id, so there is genuinely nothing to redact and
+  // the file legitimately became REVIEW_REFERENCE ("no markers, still not a deploy source").
+  //
+  // Marker count was never the safety property. Not being a deploy source is, and that is what
+  // is asserted now -- for the named artifacts and, below, for every artifact in the file.
+  const NON_DEPLOY = ['REDACTED_REFERENCE_ONLY', 'REVIEW_REFERENCE'];
   ['mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json',
     'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json',
     'concierge-issuer-candidate.json', 'concierge-issuer-IMPORT-SAFE.json',
@@ -173,8 +181,14 @@ check('both production exports and both candidate chains are REDACTED_REFERENCE_
   ].forEach((base) => {
     const a = CLASS.artifacts.find((x) => x.path.endsWith(base));
     assert(a, 'not classified: ' + base);
-    eq(a.class, 'REDACTED_REFERENCE_ONLY', base + ' is not REDACTED_REFERENCE_ONLY');
+    assert(NON_DEPLOY.indexOf(a.class) !== -1, base + ' carries a deploy-capable class: ' + a.class);
+    eq(a.deployable_to_production, false, base + ' is marked production-deployable');
+    eq(a.deployable_as_disposable, false, base + ' is marked disposable-deployable');
   });
+  // The invariant the whole classification exists for, over EVERY artifact, not just these.
+  eq(CLASS.artifacts.filter((a) => a.deployable_to_production).length, 0,
+    'an artifact is marked production-deployable');
+  eq(CLASS.counts.production_deployable, 0, 'the counts disagree with the artifacts');
 });
 
 check('the classification is not stale', () => {
@@ -526,8 +540,10 @@ check('the LATEST Concierge cutover is SEALED, so the next deploy is not refused
 });
 
 check('NO record is left UNSEALED -- an unsealed phase anywhere blocks the next deployment', () => {
-  const open = CONCIERGE_RECORDS.filter((r) => r.status !== SEALM.SEALED);
-  eq(open.length, 0, 'unsealed Concierge phases: ' + open.map((r) => r.phase).join(', '));
+  // Every workflow, not just the Concierge: an unsealed record fails the NEXT deployment of that
+  // workflow closed, so one left behind anywhere is a trap set for a later phase.
+  const open = (SEALFILE.records || []).filter((r) => r.status !== SEALM.SEALED);
+  eq(open.length, 0, 'unsealed phases: ' + open.map((r) => r.workflowId + '/' + r.phase).join(', '));
 });
 
 check('THE CHAIN: each cutover deployed FROM the state the previous one deployed TO', () => {

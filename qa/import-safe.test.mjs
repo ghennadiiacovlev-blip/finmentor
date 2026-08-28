@@ -45,7 +45,12 @@ const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.strin
 
 const CANON_PATH = join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-candidate.json');
 const SAFE_PATH = join(ROOT, 'n8n', 'candidate', 'lead-intake-internal-receipt-IMPORT-SAFE.json');
-const PROD_PATH = join(ROOT, 'n8n', 'production', 'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json');
+// FROZEN pre-Write-A export -- see n8n/history/README.md. "Inherited production Code" means the
+// 24 Code nodes Lead Intake had BEFORE the internal receipt section was spliced in, and that set
+// is a fact about the past. Write A deployed the splice and the seal advanced the tracked
+// reference to the 100-node graph, at which point every generated node also looked "inherited"
+// and the audit anchor silently covered the very code it exists to distinguish.
+const PROD_PATH = join(ROOT, 'n8n', 'history', 'QmIyEW2ZEqKregmN.pre-write-a.json');
 
 const canonRaw = readFileSync(CANON_PATH, 'utf8');
 const safeRaw = readFileSync(SAFE_PATH, 'utf8');

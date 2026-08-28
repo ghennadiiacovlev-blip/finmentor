@@ -1459,7 +1459,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": {
@@ -1531,7 +1531,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -1556,7 +1556,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -1665,7 +1665,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.ai_telegram_message_short || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,

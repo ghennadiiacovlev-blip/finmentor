@@ -14,9 +14,9 @@
     "INSTRUMENT": "disposable harness/tool; deployable as its own disposable workflow only"
   },
   "counts": {
-    "total": 22,
-    "REDACTED_REFERENCE_ONLY": 19,
-    "REVIEW_REFERENCE": 0,
+    "total": 24,
+    "REDACTED_REFERENCE_ONLY": 16,
+    "REVIEW_REFERENCE": 5,
     "INSTRUMENT": 3,
     "production_deployable": 0
   },
@@ -131,65 +131,35 @@
     },
     {
       "path": "n8n/candidate/lead-intake-internal-receipt-API-IMPORT.json",
-      "class": "REDACTED_REFERENCE_ONLY",
+      "class": "REVIEW_REFERENCE",
       "deployable_to_production": false,
       "deployable_as_disposable": false,
-      "redaction_markers": [
-        {
-          "marker": "<REDACTED_CHAT_ID>",
-          "count": 4
-        }
-      ],
-      "marker_total": 4,
-      "marked_nodes": [
-        "Telegram Lead Alert",
-        "Telegram Warm Alert",
-        "Telegram Incomplete Alert",
-        "Telegram AI Work Plan"
-      ],
-      "sha256": "25ec5a0a5538d811907cf2691f8dd9c842257b0a60df7c081eb824c856774302",
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "3f92d064d7e6a39415893eaaf68fa53e36b5e79df2d5fd25c158eb048146cc64",
       "nodes": 100
     },
     {
       "path": "n8n/candidate/lead-intake-internal-receipt-IMPORT-SAFE.json",
-      "class": "REDACTED_REFERENCE_ONLY",
+      "class": "REVIEW_REFERENCE",
       "deployable_to_production": false,
       "deployable_as_disposable": false,
-      "redaction_markers": [
-        {
-          "marker": "<REDACTED_CHAT_ID>",
-          "count": 4
-        }
-      ],
-      "marker_total": 4,
-      "marked_nodes": [
-        "Telegram Lead Alert",
-        "Telegram Warm Alert",
-        "Telegram Incomplete Alert",
-        "Telegram AI Work Plan"
-      ],
-      "sha256": "a823c7221c075f1b0b56e5239fdb99e4f9402003af917eab42d3de6e3698bb49",
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "40f01d49b4cbc3aacad2596dc7ade2f6d926fee5ffcc850b573ceac10c8c97f9",
       "nodes": 100
     },
     {
       "path": "n8n/candidate/lead-intake-internal-receipt-candidate.json",
-      "class": "REDACTED_REFERENCE_ONLY",
+      "class": "REVIEW_REFERENCE",
       "deployable_to_production": false,
       "deployable_as_disposable": false,
-      "redaction_markers": [
-        {
-          "marker": "<REDACTED_CHAT_ID>",
-          "count": 8
-        }
-      ],
-      "marker_total": 8,
-      "marked_nodes": [
-        "Telegram Lead Alert",
-        "Telegram Warm Alert",
-        "Telegram Incomplete Alert",
-        "Telegram AI Work Plan"
-      ],
-      "sha256": "48423f9bbb3fea02f50139fa73211e70ab51eb5f2d8d54da7885f674edb90b8e",
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "b5e91d6da67db50d1b52c916b8977242eafcd841656535adf8cda4c4d19c9ec4",
       "nodes": 100
     },
     {
@@ -226,6 +196,17 @@
       "nodes": 3
     },
     {
+      "path": "n8n/history/QmIyEW2ZEqKregmN.pre-write-a.json",
+      "class": "REVIEW_REFERENCE",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "58467686de5d339745950de913950b64e4788df4646be477b745e0a11304fd4f",
+      "nodes": 57
+    },
+    {
       "path": "n8n/history/mppzthlkSJFr6Kle.pre-P7-5R-cutover.json",
       "class": "REDACTED_REFERENCE_ONLY",
       "deployable_to_production": false,
@@ -242,6 +223,24 @@
       ],
       "sha256": "eb97eafb85fc1d1232a202800174098e9df36c57fa20a8beca6e83868057ef95",
       "nodes": 33
+    },
+    {
+      "path": "n8n/history/mppzthlkSJFr6Kle.pre-P8-3A-cutover.json",
+      "class": "REDACTED_REFERENCE_ONLY",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [
+        {
+          "marker": "<REDACTED_CHAT_ID>",
+          "count": 2
+        }
+      ],
+      "marker_total": 2,
+      "marked_nodes": [
+        "Settings to Object"
+      ],
+      "sha256": "ea17ad0366c1527a130949eaae3caf816e45262cd17e174a18535905a0600fd5",
+      "nodes": 45
     },
     {
       "path": "n8n/production/LZ2mvKXbBikmeVTn.finmentor-sla-lead-watch-premium-final.json",
@@ -264,24 +263,14 @@
     },
     {
       "path": "n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
-      "class": "REDACTED_REFERENCE_ONLY",
+      "class": "REVIEW_REFERENCE",
       "deployable_to_production": false,
       "deployable_as_disposable": false,
-      "redaction_markers": [
-        {
-          "marker": "<REDACTED_CHAT_ID>",
-          "count": 8
-        }
-      ],
-      "marker_total": 8,
-      "marked_nodes": [
-        "Telegram Lead Alert",
-        "Telegram Warm Alert",
-        "Telegram Incomplete Alert",
-        "Telegram AI Work Plan"
-      ],
-      "sha256": "1a2d040938f40224094eb379cf8b3dd51a8eead4bc1d74d9b881954b700ead62",
-      "nodes": 57
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "b510452a10cf75911c9743a55897806239e952ee53ba761324026ea2e6753f50",
+      "nodes": 100
     },
     {
       "path": "n8n/production/RBiFLhVjizMkAzrK.finmentor-error-monitor-premium.json",

@@ -324,13 +324,24 @@ check('provenance today is caller-asserted on a PUBLIC endpoint', () => {
 
 check('`source` NEVER gates a decision — it is attribution, not trust', () => {
   // The check that makes "delete the header" safe: nothing downstream branches on source.
+  // COMMENTS ARE STRIPPED FIRST. Write A put the internal-route nodes into this reference, and
+  // `Internal Envelope Unwrap` EXPLAINS in prose that "Internal Auth Entry has already hard-
+  // required env.source === telegram_miniapp". The scanner matched that sentence and reported a
+  // trust violation in a node whose body contains no branch at all. A gate that cries wolf over
+  // its own documentation gets muted, so it reads code and only code.
+  const stripComments = (s) => s.split('\n').map((line) => line.replace(/\/\/.*$/, '')).join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
   const deciding = (INTAKE.nodes || []).filter((n) => {
     if (n.type !== 'n8n-nodes-base.code' || n.name === 'Validate Payload') { return false; }
-    const c = n.parameters.jsCode || '';
+    const c = stripComments(n.parameters.jsCode || '');
     return /source\s*===|source\s*!==|if\s*\(\s*source/.test(c);
   }).map((n) => n.name);
   eq(deciding.length, 0, 'source now gates a decision in: ' + deciding.join(', '));
   assert(/NONE/.test(H.LEAD_INTAKE_ROUTE.privilegeGranted), 'the module no longer records that no privilege is granted');
+  // The control: stripping comments must not have blinded the scanner to real gating.
+  const planted = stripComments("// env.source === 'x' is fine in prose\nif (source === 'telegram') { return 1; }");
+  assert(/source\s*===|source\s*!==|if\s*\(\s*source/.test(planted),
+    'the comment-stripping scanner no longer detects real source gating');
 });
 
 check('the route is recorded as PUBLIC today with STRUCTURAL INTERNAL as the target', () => {
@@ -607,12 +618,26 @@ check('P8.3A-1: the unresolved signal emits EXACTLY the twelve Bot_Events keys',
   assert(JSON.stringify(out).indexOf(held) === -1, 'the submission_key VALUE reached the Bot_Events row');
 });
 
-check('INTERNAL_HANDOFF is NOT in this candidate, and the reason is recorded', () => {
-  // The Concierge still calls the public webhook, because the internal entry is not deployed.
-  const n = P83.nodes.find((x) => x.name === 'Send Lead to Intake');
-  eq(n.type, 'n8n-nodes-base.httpRequest', 'the handoff changed without the internal route existing');
+check('the internal Lead Intake entry is LIVE, and the handoff state agrees with the record', () => {
+  // This check used to assert the internal entry was ABSENT, so that it would go red the moment
+  // the prerequisite for INTERNAL_HANDOFF existed. Write A deployed it, the check fired, and it
+  // did its job. Silencing it there would have thrown away the forcing function, so it is
+  // INVERTED rather than deleted: it now guards Write A against regression, and it still refuses
+  // to let the Concierge's handoff drift out of step with what LEAD_INTAKE_ROUTE claims.
   const live = (INTAKE.nodes || []).some((x) => x.type === 'n8n-nodes-base.executeWorkflowTrigger');
-  assert(!live, 'the internal Lead Intake entry IS now live — INTERNAL_HANDOFF can and should be built');
+  assert(live, 'WRITE A REGRESSED: the internal Lead Intake entry is no longer in the reference');
+
+  const n = P83.nodes.find((x) => x.name === 'Send Lead to Intake');
+  if (n.type === 'n8n-nodes-base.httpRequest') {
+    // Write B has not landed. The Concierge still calls the PUBLIC route, and the record must
+    // say so -- an unmigrated handoff described as internal is the dangerous direction.
+    assert(/^PUBLIC/.test(H.LEAD_INTAKE_ROUTE.today),
+      'the Concierge still calls the public route, but LEAD_INTAKE_ROUTE no longer records that');
+  } else {
+    eq(n.type, 'n8n-nodes-base.executeWorkflow', 'the handoff is neither the public route nor the internal one');
+    assert(!/^PUBLIC/.test(H.LEAD_INTAKE_ROUTE.today),
+      'the Concierge migrated to the internal route but LEAD_INTAKE_ROUTE still says PUBLIC');
+  }
   const src = readFileSync(join(ROOT, 'scripts', 'build-concierge-p83-candidate.mjs'), 'utf8');
   assert(/43 nodes to add/.test(src), 'the exact mismatch is no longer recorded in the generator');
 });

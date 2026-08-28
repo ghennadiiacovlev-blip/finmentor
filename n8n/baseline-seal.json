@@ -70,6 +70,45 @@
         "versionChainVerified": true,
         "_shaNote": "the two shas differ by SHAPE, not content: approvedRedactedSha covers the four-field {name,nodes,connections,settings} projection of C_live, postLiveRedactedSha the whole redacted document. The equality that gates the seal is matches:true, computed on the safety-relevant surface by baselineEquivalence -- not string equality of these two."
       }
+    },
+    {
+      "workflowId": "QmIyEW2ZEqKregmN",
+      "phase": "P8.4A-WRITE-A",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T18:54:59.569Z",
+      "preVersionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
+      "postVersionId": "2c51b904-fbab-45b6-b60a-d34403777757",
+      "deployedTargetSha": "49b6d21bc2628b77fba48120a449a273ad46d517b874d01c2d609c91a06ee165",
+      "postLiveRedactedSha": "87f0637b057e5daea528937a066b264c33dce06be0ae271cd0650b13be3e6d90",
+      "trackedReferencePath": "n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
+      "nodeCount": 100,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "49b6d21bc2628b77fba48120a449a273ad46d517b874d01c2d609c91a06ee165",
+        "postLiveRedactedSha": "87f0637b057e5daea528937a066b264c33dce06be0ae271cd0650b13be3e6d90",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after Write A: the Lead Intake internal Model-B route.",
+        "Delta: +43 nodes, 0 removals, 0 field changes, 42 rewires. The workflow gained a SECOND",
+        "ENTRY POINT -- an executeWorkflowTrigger reachable only from inside the tenant -- beside the",
+        "unchanged public website webhook, which was pinned to LIVE by id, webhookId and every",
+        "parameter rather than merely left alone in the candidate.",
+        "PRE-STATE NOTE: the 57-node pre-state is frozen at n8n/history/QmIyEW2ZEqKregmN.pre-write-a.json.",
+        "Its versionId equals preVersionId here. That reference had to be rebaselined onto the",
+        "corrected redactor FIRST: the old redactor replaced chatId by FIELD NAME, destroying four",
+        "={{ $('Settings...') }} node-reference expressions, so R(L) == A could not hold. All four",
+        "differences classified EXPRESSION_RESTORED with zero OTHER drift, by the tracked",
+        "scripts/rebaseline-production-reference.mjs, which refuses on anything else.",
+        "CONSEQUENCE WORTH KNOWING: this reference now carries ZERO redaction markers, because every",
+        "chatId in Lead Intake is an expression and there is no concrete identity to redact. Its",
+        "artifact class moved REDACTED_REFERENCE_ONLY -> REVIEW_REFERENCE (\"no markers, still not a",
+        "deploy source\"); deployable_to_production stays false. The marker-based \"is this really a",
+        "live export?\" control is therefore VACUOUS for this workflow -- see the backlog note.",
+        "BEHAVIOURAL PROOFS ARE NOT PART OF THIS SEAL. The seal asserts only that production equals",
+        "the approved target, which it does, byte for byte on the executable surface."
+      ]
     }
   ]
 }
