@@ -38,6 +38,12 @@ const deepEq = (a, b, m) => { if (JSON.stringify(a) !== JSON.stringify(b)) { thr
 
 const CONCIERGE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
   'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+// The state P8.3A deployed FROM. Two checks below are about the condition that JUSTIFIED this
+// phase -- Read Settings as a pre-reply single point of failure, and the malformed internal-key
+// consumer. The cutover removed both, so they are history now and read the frozen copy; every
+// check about CURRENT production keeps reading the moving reference above.
+const CONCIERGE_PRE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json'), 'utf8'));
 const INTAKE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
   'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json'), 'utf8'));
 const CAND = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json'), 'utf8'));
@@ -105,7 +111,7 @@ console.log('\n-- §7 internal_intake_key is DEAD, and all three reasons are che
 
 check('REASON 2: the live consumer expression is MALFORMED', () => {
   // The valid form is $('Settings to Object'), which the URL field on the SAME node uses.
-  const n = byName(CONCIERGE, 'Send Lead to Intake');
+  const n = byName(CONCIERGE_PRE, 'Send Lead to Intake');
   const header = n.parameters.headerParameters.parameters
     .find((p) => p.name === 'x-finmentor-internal-key');
   assert(header, 'the internal-key header is gone; re-read this gate');
@@ -440,7 +446,7 @@ console.log('\n-- §1/§2 the failure that started this --');
 
 check('MUTATION 1: Read Settings is TODAY a single point of failure before any reply', () => {
   // The condition that produced #3716, asserted so the fix can be shown to remove it.
-  const n = byName(CONCIERGE, 'Read Settings');
+  const n = byName(CONCIERGE_PRE, 'Read Settings');
   eq(n.retryOnFail || false, false, 'Read Settings gained a retry — the design chose REMOVAL over retry');
   eq(n.onError || 'stopWorkflow', 'stopWorkflow', 'Read Settings no longer aborts the turn');
   const io = preReplyIO(CAND);

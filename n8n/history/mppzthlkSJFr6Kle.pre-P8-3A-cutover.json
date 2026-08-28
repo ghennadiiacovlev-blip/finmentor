@@ -3,12 +3,12 @@
   "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
   "description": null,
   "active": true,
-  "activeVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+  "activeVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
   "createdAt": "2026-07-01T11:59:03.293Z",
-  "updatedAt": "2026-08-28T17:46:08.616Z",
+  "updatedAt": "2026-08-27T19:29:56.620Z",
   "isArchived": false,
-  "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
-  "versionCounter": 39,
+  "versionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
+  "versionCounter": 38,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -32,6 +32,39 @@
         "telegramApi": {
           "id": "2JnVm0BIX0Z8tvBf",
           "name": "FINMENTOR Client Concierge Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1488,
+        160
+      ],
+      "id": "9b55cfcc-b422-4147-a79f-04bd42386f4c",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
         }
       }
     },
@@ -480,8 +513,7 @@
           "name": "Google Sheets OAuth2 API"
         }
       },
-      "notes": "PATCHED staging mode: continueOnFail=false so Bot_Sessions persistence errors are visible during runtime QA. Keep appendOrUpdate by chat_id.",
-      "onError": "continueRegularOutput"
+      "notes": "PATCHED staging mode: continueOnFail=false so Bot_Sessions persistence errors are visible during runtime QA. Keep appendOrUpdate by chat_id."
     },
     {
       "parameters": {
@@ -571,8 +603,7 @@
           "name": "Google Sheets OAuth2 API"
         }
       },
-      "continueOnFail": true,
-      "onError": "continueRegularOutput"
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -582,9 +613,14 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Build Bot Response').first().json.lead_payload, { audit: { cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_at: $('Get Bot Session').first().json.consent_at || $now.toISO() } })) }}",
         "options": {},
-        "sendHeaders": false,
+        "sendHeaders": true,
         "headerParameters": {
-          "parameters": []
+          "parameters": [
+            {
+              "name": "x-finmentor-internal-key",
+              "value": "={{ \\Settings to Object.first().json.settings.internal_intake_key || '' }}"
+            }
+          ]
         }
       },
       "id": "b43d5227-8eaa-4e98-94d7-f901fc5c3255",
@@ -1148,7 +1184,7 @@
       },
       "retryOnFail": true,
       "maxTries": 3,
-      "waitBetweenTries": 750,
+      "waitBetweenTries": 2000,
       "alwaysOutputData": false
     },
     {
@@ -1603,161 +1639,6 @@
         376
       ],
       "notes": "Lead handoff refused because this turn lost the authority row. No lead reaches Intake under a key that is no longer current."
-    },
-    {
-      "parameters": {
-        "jsCode": "// P8.3 HOT_PATH_CONFIG — local settings, zero I/O.\n//\n// Replaces the `Read Settings` Google Sheets round trip that aborted production execution\n// #3716 in 312 ms and cost a customer their /start reply. It emits the SAME { key, value }\n// row shape `Settings to Object` already consumes, so that node and every downstream\n// $('Settings to Object') reference are untouched.\n//\n// The four DEAD keys are not emitted at all: internal_intake_key (never produced, malformed\n// consumer, never validated by Lead Intake), owner_chat_id, timezone and\n// client_ai_temperature (referenced by no node). Removing them IS the fix; there is nothing\n// to migrate.\n//\n// bot_enabled lives here rather than in Sheets deliberately. Under the old design, Google\n// Sheets being unavailable meant the bot could not answer AT ALL -- the maintenance switch's\n// own dependency took the bot down. Here maintenance mode still works when Sheets is down,\n// which is exactly when it is wanted. The EMERGENCY stop remains workflow.active.\nconst CONFIG = {\n  bot_enabled: 'true',\n  client_ai_enabled: 'false',\n  default_language: 'ru',\n  website_url: 'https://finmentor.md',\n  client_ai_model: 'PASTE_AI_MODEL_PLACEHOLDER_HERE',\n  lead_intake_webhook_url: 'https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake'\n};\n\nreturn Object.keys(CONFIG).map((key) => ({ json: { key: key, value: CONFIG[key] } }));"
-      },
-      "id": "p83-hotpath-config",
-      "name": "Hot Path Config",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -1480,
-        320
-      ],
-      "notes": "P8.3 HOT_PATH_CONFIG. Local settings, zero I/O. Replaces the Read Settings round trip that aborted production execution #3716."
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "p83-write-ok",
-              "leftValue": "={{ String($json.error === undefined && $json.errorMessage === undefined) }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              },
-              "rightValue": "true"
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "p83-if-write-ok",
-      "name": "IF Authority Write OK",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1500,
-        220
-      ],
-      "notes": "Save Bot Session now continues on error, so this is where an ambiguous write is caught."
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
-          "mode": "list",
-          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
-        },
-        "options": {
-          "dataLocationOnSheet": {
-            "values": {
-              "firstDataRow": 2,
-              "headerRow": 1,
-              "range": "A:AV",
-              "rangeDefinition": "specifyRange"
-            }
-          }
-        },
-        "sheetName": {
-          "__rl": true,
-          "cachedResultName": "Bot_Sessions",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
-          "mode": "list",
-          "value": 1584265787
-        }
-      },
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "PzVCuEPa9YF3YSaD",
-          "name": "Google Sheets OAuth2 API"
-        }
-      },
-      "id": "p83-authority-reread",
-      "name": "Authority Outcome Reread",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1700,
-        420
-      ],
-      "alwaysOutputData": true,
-      "onError": "continueRegularOutput",
-      "notes": "CLASSIFY ONLY. Read Bot Sessions parameters VERBATIM. Its result can never authorise a write; an unreadable result classifies as UNRESOLVED, which also does not write."
-    },
-    {
-      "parameters": {
-        "jsCode": "// P8.3 AUTHORITY_FAILURE_CLASSIFICATION — classify an ambiguous authority write.\n//\n// THIS NODE NEVER AUTHORISES A WRITE. Not on any branch. P8.2R withdrew verify-then-retry\n// because a reread followed by an unconditional write has a TOCTOU window: the reread can see\n// C1/K1, a concurrent turn can land C2/K2, and the retry then overwrites it. A pre-write check\n// does not make a later write conditional; it only makes it feel conditional.\n//\n// It also deliberately does NOT rank cycles. Observed either equals intended or it does not.\n// Refusing to decide which is \"newer\" is what keeps a stale classification harmless -- an\n// ordering result would invite some future edit to treat it as permission.\nconst intended = $('Build Session Row').first().json || {};\nconst rows = $input.all().map(i => i.json);\nconst str = v => String(v == null ? '' : v).trim();\nconst chat = str(intended.chat_id);\n\nlet observed = null;\nfor (const r of rows) { if (r && str(r.chat_id) === chat) { observed = r; break; } }\n\nconst iC = str(intended.cycle_id);\nconst iK = str(intended.submission_key);\n\nlet outcome, reason;\nif (!observed) {\n  outcome = 'AUTHORITY_WRITE_UNRESOLVED'; reason = 'ROW_ABSENT_OR_UNREADABLE';\n} else {\n  const oC = str(observed.cycle_id);\n  const oK = str(observed.submission_key);\n  if (oC === iC && oK === iK) {\n    outcome = 'ACK_LOST_BUT_COMMITTED'; reason = 'ROW_MATCHES_INTENT';\n  } else if (/^C-\\d+-\\d+$/.test(oC) && /^sub_[0-9a-f]{32}$/.test(oK)) {\n    outcome = 'SUPERSEDED'; reason = 'ROW_HOLDS_A_DIFFERENT_VALID_PAIR';\n  } else {\n    outcome = 'AUTHORITY_WRITE_UNRESOLVED'; reason = 'ROW_NOT_INTERPRETABLE_AS_CURRENT';\n  }\n}\n\nreturn [{ json: {\n  __authority_outcome: outcome,\n  __authority_reason: reason,\n  __authority_committed: outcome === 'ACK_LOST_BUT_COMMITTED',\n  __write_allowed: false,\n  __chat_id: chat\n} }];"
-      },
-      "id": "p83-authority-verdict",
-      "name": "Authority Outcome Verdict",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1900,
-        420
-      ],
-      "notes": "Deployed form of classifyAuthorityWriteOutcome(). __write_allowed is false on every branch, and the node never ranks cycles."
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "p83-committed",
-              "leftValue": "={{ String($json.__authority_committed) }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              },
-              "rightValue": "true"
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "p83-if-committed",
-      "name": "IF Authority Committed",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        2100,
-        420
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// P8.3 — the operational signal for an authority write that did not land.\n//\n// It writes NOTHING to the authority row. The READY receipt minted earlier this turn is\n// deliberately PRESERVED as recoverable orphan evidence: it is the only record that a cycle\n// was issued whose authority never persisted, and destroying it would destroy the ability to\n// reconcile. Same reasoning that keeps IN_FLIGHT receipts undeletable in the retention policy.\n//\n// The KEY IS NEVER LOGGED -- it is a capability, and Bot_Events is a spreadsheet with wider\n// read access than the Data Table. Only whether one was held.\n//\n// F16: exactly the twelve keys every other Bot_Events writer emits. Bot_Events is\n// autoMapInputData over an EMPTY stored schema, so a stray property is not dropped -- it\n// PERMANENTLY WIDENS the live sheet. This node emitted seven keys of its own until P8.3A-1,\n// six of them foreign, and was saved from writing them only by being disconnected.\nconst p = $('Parse Telegram Update').first().json;\nconst b = $('Build Bot Response').first().json;\nconst d = b.debug || {};\nconst v = $('Authority Outcome Verdict').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\nreturn [{ json: {\n  event_id: `${p.chat_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  chat_id: String(p.chat_id || ''),\n  user_id: String(p.user_id || ''),\n  username: String(p.username || ''),\n  event_type: p.is_callback ? 'callback_received' : 'message_received',\n  state_before: String(d.state_before || ''),\n  state_after: String(d.state_after || ''),\n  message_text: String(p.message_text || '').slice(0, 500),\n  callback_data: String(p.callback_data || ''),\n  detail: 'authority_unresolved: ' + String(v.__authority_reason || 'UNKNOWN'),\n  raw_json: JSON.stringify({\n    signal: 'AUTHORITY_WRITE_NOT_PERSISTED',\n    outcome: String(v.__authority_outcome || ''),\n    reason: String(v.__authority_reason || ''),\n    held_key_present: String(g.submission_key || '') !== '',\n    receipt_preserved: true,\n    second_write_attempted: false,\n    lead_handoff_suppressed: true\n  }).slice(0, 4000)\n} }];"
-      },
-      "id": "p83-unresolved-event",
-      "name": "Build Authority Unresolved Event",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2300,
-        560
-      ],
-      "notes": "Terminal. Emits an operational signal and writes nothing."
     }
   ],
   "connections": {
@@ -1765,12 +1646,23 @@
       "main": [
         [
           {
-            "node": "Hot Path Config",
+            "node": "Read Settings",
             "type": "main",
             "index": 0
           },
           {
             "node": "IF Has Callback Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
             "type": "main",
             "index": 0
           }
@@ -1792,7 +1684,7 @@
       "main": [
         [
           {
-            "node": "IF Authority Write OK",
+            "node": "IF Lead Ready",
             "type": "main",
             "index": 0
           }
@@ -2283,86 +2175,6 @@
           }
         ]
       ]
-    },
-    "Hot Path Config": {
-      "main": [
-        [
-          {
-            "node": "Settings to Object",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Authority Write OK": {
-      "main": [
-        [
-          {
-            "node": "IF Lead Ready",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Authority Outcome Reread",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Authority Outcome Reread": {
-      "main": [
-        [
-          {
-            "node": "Authority Outcome Verdict",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Authority Outcome Verdict": {
-      "main": [
-        [
-          {
-            "node": "IF Authority Committed",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF Authority Committed": {
-      "main": [
-        [
-          {
-            "node": "IF Lead Ready",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Build Authority Unresolved Event",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Authority Unresolved Event": {
-      "main": [
-        [
-          {
-            "node": "Save Bot Event",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "nodeGroups": [],
@@ -2373,6 +2185,7 @@
     "errorWorkflow": "RBiFLhVjizMkAzrK"
   },
   "staticData": null,
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "aiBuilderAssisted": true,
@@ -2400,7 +2213,7 @@
     }
   ],
   "activeVersion": {
-    "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+    "versionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
     "workflowId": "mppzthlkSJFr6Kle",
     "nodes": [
       {
@@ -2423,6 +2236,39 @@
           "telegramApi": {
             "id": "2JnVm0BIX0Z8tvBf",
             "name": "FINMENTOR Client Concierge Bot"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+            "mode": "list",
+            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1871239368,
+            "mode": "list",
+            "cachedResultName": "Settings",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -1488,
+          160
+        ],
+        "id": "9b55cfcc-b422-4147-a79f-04bd42386f4c",
+        "name": "Read Settings",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "PzVCuEPa9YF3YSaD",
+            "name": "Google Sheets OAuth2 API"
           }
         }
       },
@@ -2871,8 +2717,7 @@
             "name": "Google Sheets OAuth2 API"
           }
         },
-        "notes": "PATCHED staging mode: continueOnFail=false so Bot_Sessions persistence errors are visible during runtime QA. Keep appendOrUpdate by chat_id.",
-        "onError": "continueRegularOutput"
+        "notes": "PATCHED staging mode: continueOnFail=false so Bot_Sessions persistence errors are visible during runtime QA. Keep appendOrUpdate by chat_id."
       },
       {
         "parameters": {
@@ -2962,8 +2807,7 @@
             "name": "Google Sheets OAuth2 API"
           }
         },
-        "continueOnFail": true,
-        "onError": "continueRegularOutput"
+        "continueOnFail": true
       },
       {
         "parameters": {
@@ -2973,9 +2817,14 @@
           "specifyBody": "json",
           "jsonBody": "={{ JSON.stringify(Object.assign({}, $('Build Bot Response').first().json.lead_payload, { audit: { cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_cycle_id: $('Get Bot Session').first().json.cycle_id || '', consent_at: $('Get Bot Session').first().json.consent_at || $now.toISO() } })) }}",
           "options": {},
-          "sendHeaders": false,
+          "sendHeaders": true,
           "headerParameters": {
-            "parameters": []
+            "parameters": [
+              {
+                "name": "x-finmentor-internal-key",
+                "value": "={{ \\Settings to Object.first().json.settings.internal_intake_key || '' }}"
+              }
+            ]
           }
         },
         "id": "b43d5227-8eaa-4e98-94d7-f901fc5c3255",
@@ -3539,7 +3388,7 @@
         },
         "retryOnFail": true,
         "maxTries": 3,
-        "waitBetweenTries": 750,
+        "waitBetweenTries": 2000,
         "alwaysOutputData": false
       },
       {
@@ -3994,161 +3843,6 @@
           376
         ],
         "notes": "Lead handoff refused because this turn lost the authority row. No lead reaches Intake under a key that is no longer current."
-      },
-      {
-        "parameters": {
-          "jsCode": "// P8.3 HOT_PATH_CONFIG — local settings, zero I/O.\n//\n// Replaces the `Read Settings` Google Sheets round trip that aborted production execution\n// #3716 in 312 ms and cost a customer their /start reply. It emits the SAME { key, value }\n// row shape `Settings to Object` already consumes, so that node and every downstream\n// $('Settings to Object') reference are untouched.\n//\n// The four DEAD keys are not emitted at all: internal_intake_key (never produced, malformed\n// consumer, never validated by Lead Intake), owner_chat_id, timezone and\n// client_ai_temperature (referenced by no node). Removing them IS the fix; there is nothing\n// to migrate.\n//\n// bot_enabled lives here rather than in Sheets deliberately. Under the old design, Google\n// Sheets being unavailable meant the bot could not answer AT ALL -- the maintenance switch's\n// own dependency took the bot down. Here maintenance mode still works when Sheets is down,\n// which is exactly when it is wanted. The EMERGENCY stop remains workflow.active.\nconst CONFIG = {\n  bot_enabled: 'true',\n  client_ai_enabled: 'false',\n  default_language: 'ru',\n  website_url: 'https://finmentor.md',\n  client_ai_model: 'PASTE_AI_MODEL_PLACEHOLDER_HERE',\n  lead_intake_webhook_url: 'https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake'\n};\n\nreturn Object.keys(CONFIG).map((key) => ({ json: { key: key, value: CONFIG[key] } }));"
-        },
-        "id": "p83-hotpath-config",
-        "name": "Hot Path Config",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          -1480,
-          320
-        ],
-        "notes": "P8.3 HOT_PATH_CONFIG. Local settings, zero I/O. Replaces the Read Settings round trip that aborted production execution #3716."
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "strict",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "p83-write-ok",
-                "leftValue": "={{ String($json.error === undefined && $json.errorMessage === undefined) }}",
-                "operator": {
-                  "type": "string",
-                  "operation": "equals",
-                  "name": "filter.operator.equals"
-                },
-                "rightValue": "true"
-              }
-            ],
-            "combinator": "and"
-          },
-          "options": {}
-        },
-        "id": "p83-if-write-ok",
-        "name": "IF Authority Write OK",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.2,
-        "position": [
-          1500,
-          220
-        ],
-        "notes": "Save Bot Session now continues on error, so this is where an ambiguous write is caught."
-      },
-      {
-        "parameters": {
-          "documentId": {
-            "__rl": true,
-            "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
-            "mode": "list",
-            "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
-          },
-          "options": {
-            "dataLocationOnSheet": {
-              "values": {
-                "firstDataRow": 2,
-                "headerRow": 1,
-                "range": "A:AV",
-                "rangeDefinition": "specifyRange"
-              }
-            }
-          },
-          "sheetName": {
-            "__rl": true,
-            "cachedResultName": "Bot_Sessions",
-            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
-            "mode": "list",
-            "value": 1584265787
-          }
-        },
-        "credentials": {
-          "googleSheetsOAuth2Api": {
-            "id": "PzVCuEPa9YF3YSaD",
-            "name": "Google Sheets OAuth2 API"
-          }
-        },
-        "id": "p83-authority-reread",
-        "name": "Authority Outcome Reread",
-        "type": "n8n-nodes-base.googleSheets",
-        "typeVersion": 4.7,
-        "position": [
-          1700,
-          420
-        ],
-        "alwaysOutputData": true,
-        "onError": "continueRegularOutput",
-        "notes": "CLASSIFY ONLY. Read Bot Sessions parameters VERBATIM. Its result can never authorise a write; an unreadable result classifies as UNRESOLVED, which also does not write."
-      },
-      {
-        "parameters": {
-          "jsCode": "// P8.3 AUTHORITY_FAILURE_CLASSIFICATION — classify an ambiguous authority write.\n//\n// THIS NODE NEVER AUTHORISES A WRITE. Not on any branch. P8.2R withdrew verify-then-retry\n// because a reread followed by an unconditional write has a TOCTOU window: the reread can see\n// C1/K1, a concurrent turn can land C2/K2, and the retry then overwrites it. A pre-write check\n// does not make a later write conditional; it only makes it feel conditional.\n//\n// It also deliberately does NOT rank cycles. Observed either equals intended or it does not.\n// Refusing to decide which is \"newer\" is what keeps a stale classification harmless -- an\n// ordering result would invite some future edit to treat it as permission.\nconst intended = $('Build Session Row').first().json || {};\nconst rows = $input.all().map(i => i.json);\nconst str = v => String(v == null ? '' : v).trim();\nconst chat = str(intended.chat_id);\n\nlet observed = null;\nfor (const r of rows) { if (r && str(r.chat_id) === chat) { observed = r; break; } }\n\nconst iC = str(intended.cycle_id);\nconst iK = str(intended.submission_key);\n\nlet outcome, reason;\nif (!observed) {\n  outcome = 'AUTHORITY_WRITE_UNRESOLVED'; reason = 'ROW_ABSENT_OR_UNREADABLE';\n} else {\n  const oC = str(observed.cycle_id);\n  const oK = str(observed.submission_key);\n  if (oC === iC && oK === iK) {\n    outcome = 'ACK_LOST_BUT_COMMITTED'; reason = 'ROW_MATCHES_INTENT';\n  } else if (/^C-\\d+-\\d+$/.test(oC) && /^sub_[0-9a-f]{32}$/.test(oK)) {\n    outcome = 'SUPERSEDED'; reason = 'ROW_HOLDS_A_DIFFERENT_VALID_PAIR';\n  } else {\n    outcome = 'AUTHORITY_WRITE_UNRESOLVED'; reason = 'ROW_NOT_INTERPRETABLE_AS_CURRENT';\n  }\n}\n\nreturn [{ json: {\n  __authority_outcome: outcome,\n  __authority_reason: reason,\n  __authority_committed: outcome === 'ACK_LOST_BUT_COMMITTED',\n  __write_allowed: false,\n  __chat_id: chat\n} }];"
-        },
-        "id": "p83-authority-verdict",
-        "name": "Authority Outcome Verdict",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          1900,
-          420
-        ],
-        "notes": "Deployed form of classifyAuthorityWriteOutcome(). __write_allowed is false on every branch, and the node never ranks cycles."
-      },
-      {
-        "parameters": {
-          "conditions": {
-            "options": {
-              "caseSensitive": true,
-              "leftValue": "",
-              "typeValidation": "strict",
-              "version": 3
-            },
-            "conditions": [
-              {
-                "id": "p83-committed",
-                "leftValue": "={{ String($json.__authority_committed) }}",
-                "operator": {
-                  "type": "string",
-                  "operation": "equals",
-                  "name": "filter.operator.equals"
-                },
-                "rightValue": "true"
-              }
-            ],
-            "combinator": "and"
-          },
-          "options": {}
-        },
-        "id": "p83-if-committed",
-        "name": "IF Authority Committed",
-        "type": "n8n-nodes-base.if",
-        "typeVersion": 2.2,
-        "position": [
-          2100,
-          420
-        ]
-      },
-      {
-        "parameters": {
-          "jsCode": "// P8.3 — the operational signal for an authority write that did not land.\n//\n// It writes NOTHING to the authority row. The READY receipt minted earlier this turn is\n// deliberately PRESERVED as recoverable orphan evidence: it is the only record that a cycle\n// was issued whose authority never persisted, and destroying it would destroy the ability to\n// reconcile. Same reasoning that keeps IN_FLIGHT receipts undeletable in the retention policy.\n//\n// The KEY IS NEVER LOGGED -- it is a capability, and Bot_Events is a spreadsheet with wider\n// read access than the Data Table. Only whether one was held.\n//\n// F16: exactly the twelve keys every other Bot_Events writer emits. Bot_Events is\n// autoMapInputData over an EMPTY stored schema, so a stray property is not dropped -- it\n// PERMANENTLY WIDENS the live sheet. This node emitted seven keys of its own until P8.3A-1,\n// six of them foreign, and was saved from writing them only by being disconnected.\nconst p = $('Parse Telegram Update').first().json;\nconst b = $('Build Bot Response').first().json;\nconst d = b.debug || {};\nconst v = $('Authority Outcome Verdict').first().json || {};\nconst g = $('Get Bot Session').first().json || {};\nreturn [{ json: {\n  event_id: `${p.chat_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  chat_id: String(p.chat_id || ''),\n  user_id: String(p.user_id || ''),\n  username: String(p.username || ''),\n  event_type: p.is_callback ? 'callback_received' : 'message_received',\n  state_before: String(d.state_before || ''),\n  state_after: String(d.state_after || ''),\n  message_text: String(p.message_text || '').slice(0, 500),\n  callback_data: String(p.callback_data || ''),\n  detail: 'authority_unresolved: ' + String(v.__authority_reason || 'UNKNOWN'),\n  raw_json: JSON.stringify({\n    signal: 'AUTHORITY_WRITE_NOT_PERSISTED',\n    outcome: String(v.__authority_outcome || ''),\n    reason: String(v.__authority_reason || ''),\n    held_key_present: String(g.submission_key || '') !== '',\n    receipt_preserved: true,\n    second_write_attempted: false,\n    lead_handoff_suppressed: true\n  }).slice(0, 4000)\n} }];"
-        },
-        "id": "p83-unresolved-event",
-        "name": "Build Authority Unresolved Event",
-        "type": "n8n-nodes-base.code",
-        "typeVersion": 2,
-        "position": [
-          2300,
-          560
-        ],
-        "notes": "Terminal. Emits an operational signal and writes nothing."
       }
     ],
     "connections": {
@@ -4156,12 +3850,23 @@
         "main": [
           [
             {
-              "node": "Hot Path Config",
+              "node": "Read Settings",
               "type": "main",
               "index": 0
             },
             {
               "node": "IF Has Callback Query",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read Settings": {
+        "main": [
+          [
+            {
+              "node": "Settings to Object",
               "type": "main",
               "index": 0
             }
@@ -4183,7 +3888,7 @@
         "main": [
           [
             {
-              "node": "IF Authority Write OK",
+              "node": "IF Lead Ready",
               "type": "main",
               "index": 0
             }
@@ -4674,86 +4379,6 @@
             }
           ]
         ]
-      },
-      "Hot Path Config": {
-        "main": [
-          [
-            {
-              "node": "Settings to Object",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "IF Authority Write OK": {
-        "main": [
-          [
-            {
-              "node": "IF Lead Ready",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Authority Outcome Reread",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Authority Outcome Reread": {
-        "main": [
-          [
-            {
-              "node": "Authority Outcome Verdict",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Authority Outcome Verdict": {
-        "main": [
-          [
-            {
-              "node": "IF Authority Committed",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "IF Authority Committed": {
-        "main": [
-          [
-            {
-              "node": "IF Lead Ready",
-              "type": "main",
-              "index": 0
-            }
-          ],
-          [
-            {
-              "node": "Build Authority Unresolved Event",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Build Authority Unresolved Event": {
-        "main": [
-          [
-            {
-              "node": "Save Bot Event",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
       }
     },
     "nodeGroups": [],
@@ -4761,16 +4386,16 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "createdAt": "2026-08-28T17:46:08.619Z",
-    "updatedAt": "2026-08-28T17:46:08.619Z",
+    "createdAt": "2026-08-27T19:29:56.622Z",
+    "updatedAt": "2026-08-27T19:29:56.622Z",
     "workflowPublishHistory": [
       {
-        "id": 106,
+        "id": 104,
         "workflowId": "mppzthlkSJFr6Kle",
-        "versionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+        "versionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-28T17:46:08.804Z"
+        "createdAt": "2026-08-27T19:29:56.774Z"
       }
     ]
   }

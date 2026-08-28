@@ -38,8 +38,13 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
-const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+// FROZEN pre-P8.3A export -- see n8n/history/README.md. Sealing P8.3A advanced the tracked
+// reference to the 50-node post-cutover graph, which is what current production IS. This gate is
+// about the delta P8.3A DEPLOYED, and that delta's input is a fact about the past: 45 nodes, with
+// Read Settings still in the graph. Reading the moving pointer here would assert that the cutover
+// math was wrong the moment it succeeded.
+const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json'), 'utf8'));
 const B = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-p83-candidate.json'), 'utf8'));
 const SEALFILE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
 

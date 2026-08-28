@@ -508,38 +508,73 @@ check('a workflow with no cutover history is allowed', () => {
 
 // ---- the repository's own state, which is a different claim from the mechanism ----------
 
-const P75R = (SEALFILE.records || []).filter((r) => r.workflowId === 'mppzthlkSJFr6Kle').pop();
+const CONCIERGE_RECORDS = (SEALFILE.records || []).filter((r) => r.workflowId === 'mppzthlkSJFr6Kle');
+const LATEST = CONCIERGE_RECORDS[CONCIERGE_RECORDS.length - 1];
 
-check('the P7.5R cutover is SEALED, so the next deploy is not refused on baseline grounds', () => {
-  assert(P75R, 'no mppzthlkSJFr6Kle record at all');
-  eq(P75R.phase, 'P7.5R', 'the most recent Concierge record is not P7.5R');
-  eq(P75R.status, SEALM.SEALED, 'P7.5R is still unsealed');
+// One frozen pre-state per sealed phase. This table IS the chain, and it is what stops
+// n8n/history/ from becoming a pile of copies nobody can vouch for.
+const FROZEN = {
+  'P7.5R': { file: 'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json', nodes: 33 },
+  'P8.3A': { file: 'mppzthlkSJFr6Kle.pre-P8-3A-cutover.json', nodes: 45 }
+};
+
+check('the LATEST Concierge cutover is SEALED, so the next deploy is not refused on baseline grounds', () => {
+  assert(LATEST, 'no mppzthlkSJFr6Kle record at all');
+  eq(LATEST.phase, 'P8.3A', 'the most recent Concierge record is not the phase this repo last deployed');
+  eq(LATEST.status, SEALM.SEALED, 'the latest cutover is still unsealed');
   assert(SEALM.preflightSealCheck(SEALFILE, 'mppzthlkSJFr6Kle').ok, 'the sealed record still refuses');
 });
 
-check('the seal record is EVIDENCE, not an assertion: every hash is present and a sha256', () => {
-  ['deployedTargetSha', 'postLiveRedactedSha'].forEach((k) => {
-    assert(/^[0-9a-f]{64}$/.test(P75R[k] || ''), k + ' is not a sha256');
-  });
-  assert(P75R.sealProof, 'the record carries no seal proof');
-  assert(/^[0-9a-f]{64}$/.test(P75R.sealProof.approvedRedactedSha || ''), 'approvedRedactedSha is not a sha256');
-  eq(P75R.sealProof.versionChainVerified, true, 'the version chain was not verified');
-  assert(P75R.sealedAt && !isNaN(Date.parse(P75R.sealedAt)), 'sealedAt is not a timestamp');
+check('NO record is left UNSEALED -- an unsealed phase anywhere blocks the next deployment', () => {
+  const open = CONCIERGE_RECORDS.filter((r) => r.status !== SEALM.SEALED);
+  eq(open.length, 0, 'unsealed Concierge phases: ' + open.map((r) => r.phase).join(', '));
 });
 
-check('THE ANCHOR: the frozen history export is the state P7.5R actually deployed FROM', () => {
+check('THE CHAIN: each cutover deployed FROM the state the previous one deployed TO', () => {
+  // The property that makes the history a chain rather than a list. A gap here means some
+  // production change happened outside this tooling and nobody recorded it.
+  for (let i = 1; i < CONCIERGE_RECORDS.length; i++) {
+    eq(CONCIERGE_RECORDS[i].preVersionId, CONCIERGE_RECORDS[i - 1].postVersionId,
+      CONCIERGE_RECORDS[i].phase + ' did not start from where ' + CONCIERGE_RECORDS[i - 1].phase + ' ended');
+  }
+});
+
+check('EVERY seal record is EVIDENCE, not an assertion: every hash is present and a sha256', () => {
+  // Applied to the whole chain, not just the tip. A record that stopped carrying its proof the
+  // moment a newer one landed would make the history unfalsifiable.
+  CONCIERGE_RECORDS.forEach((rec) => {
+    ['deployedTargetSha', 'postLiveRedactedSha'].forEach((k) => {
+      assert(/^[0-9a-f]{64}$/.test(rec[k] || ''), rec.phase + ': ' + k + ' is not a sha256');
+    });
+    assert(rec.sealProof, rec.phase + ': the record carries no seal proof');
+    assert(/^[0-9a-f]{64}$/.test(rec.sealProof.approvedRedactedSha || ''),
+      rec.phase + ': approvedRedactedSha is not a sha256');
+    eq(rec.sealProof.versionChainVerified, true, rec.phase + ': the version chain was not verified');
+    assert(rec.sealedAt && !isNaN(Date.parse(rec.sealedAt)), rec.phase + ': sealedAt is not a timestamp');
+  });
+});
+
+check('THE ANCHOR: each frozen history export is the state its phase actually deployed FROM', () => {
   // Without this, n8n/history/ is just a copy somebody made, and the gates above are testing
   // arithmetic against a fixture nobody can vouch for. The version chain is what makes it
-  // evidence: the frozen export must carry the exact preVersionId the seal recorded.
-  eq(A.versionId, P75R.preVersionId, 'the frozen pre-P7.5R export is not the recorded pre-state');
-  eq(A.nodes.length, 33, 'the frozen pre-P7.5R export is no longer the 33-node graph');
+  // evidence: each frozen export must carry the exact preVersionId its seal recorded.
+  CONCIERGE_RECORDS.forEach((rec) => {
+    const f = FROZEN[rec.phase];
+    assert(f, rec.phase + ' has no frozen pre-state in the table -- freeze it or drop the record');
+    const frozen = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', f.file), 'utf8'));
+    eq(frozen.versionId, rec.preVersionId, 'the frozen pre-' + rec.phase + ' export is not the recorded pre-state');
+    eq(frozen.nodes.length, f.nodes,
+      'the frozen pre-' + rec.phase + ' export is no longer the ' + f.nodes + '-node graph');
+  });
+  // A is the pre-P7.5R fixture the arithmetic gates above run on; keep it pinned by identity.
+  eq(A.versionId, FROZEN['P7.5R'] && CONCIERGE_RECORDS[0].preVersionId, 'the P7.5R fixture moved');
 });
 
-check('THE OTHER END: the tracked reference is the state P7.5R deployed TO', () => {
+check('THE OTHER END: the tracked reference is the state the LATEST cutover deployed TO', () => {
   const tracked = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
     'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
-  eq(tracked.versionId, P75R.postVersionId, 'the tracked reference is not the sealed post-state');
-  eq(tracked.nodes.length, P75R.nodeCount, 'the tracked reference node count contradicts the record');
+  eq(tracked.versionId, LATEST.postVersionId, 'the tracked reference is not the sealed post-state');
+  eq(tracked.nodes.length, LATEST.nodeCount, 'the tracked reference node count contradicts the record');
   // A_next entered git as R(L_post). If it carries no markers, redaction did not run -- the
   // P7.5 defect in reverse, and the one thing a seal must never do.
   assert(R.findMarkers(tracked).length > 0, 'the sealed reference carries no redaction markers');

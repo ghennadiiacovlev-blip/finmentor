@@ -37,6 +37,39 @@
         "The 33-node pre-state is frozen at n8n/history/mppzthlkSJFr6Kle.pre-P7-5R-cutover.json;",
         "its versionId must equal preVersionId here, and the tracked reference postVersionId."
       ]
+    },
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P8.3A",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T17:50:50.895Z",
+      "preVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
+      "postVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+      "deployedTargetSha": "2d285ed76487ca99e14e08f2b0fbf9f850cd9ff78195d03effd29060022617d2",
+      "postLiveRedactedSha": "fc8c8248fb3077c26483698ec946c9f0ff808c4299351af833df7f98be84224b",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 50,
+      "_note": [
+        "SEALED 2026-08-28, immediately after the P8.3A cutover. A_next = R(L_post) is accepted for",
+        "ONE reason: L_post equalled the materialized target that was approved -- sealBaseline",
+        "recomputed that equality itself and would have refused otherwise.",
+        "The delta: +6 nodes, -1 (Read Settings, physically removed), 4 field changes, 9 rewires.",
+        "P8.3A-1 closed the hole that made this phase necessary twice over: Build Authority Unresolved",
+        "Event had no outgoing edge, so AUTHORITY_WRITE_NOT_PERSISTED was built per incident and",
+        "discarded; and APPROVED_EDGES was declared but never handed to the materializer, so at deploy",
+        "time it constrained nothing. Both halves are now enforced -- see the commit that precedes this",
+        "seal and qa/p83a-cutover-policy.test.mjs mutations 4c-4f.",
+        "The 45-node pre-P8.3A state is the reference this record supersedes; its versionId is",
+        "preVersionId here and the P7.5R record postVersionId."
+      ],
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "f5dc6397e3b627ba7b67866b7fa1d85e815fe2e9533e0f7035535a6e58d69bec",
+        "postLiveRedactedSha": "fc8c8248fb3077c26483698ec946c9f0ff808c4299351af833df7f98be84224b",
+        "matches": true,
+        "versionChainVerified": true,
+        "_shaNote": "the two shas differ by SHAPE, not content: approvedRedactedSha covers the four-field {name,nodes,connections,settings} projection of C_live, postLiveRedactedSha the whole redacted document. The equality that gates the seal is matches:true, computed on the safety-relevant surface by baselineEquivalence -- not string equality of these two."
+      }
     }
   ]
 }

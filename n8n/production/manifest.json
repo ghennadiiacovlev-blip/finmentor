@@ -169,9 +169,9 @@
       "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
       "active": true,
       "archived": false,
-      "updatedAt": "08/27/2026 19:29:56",
-      "nodeCount": 45,
-      "structuralHash": "a0ce72c3c702be36cf326ca0f8c262953408d5990e72cea0b02f3941747e9e29",
+      "updatedAt": "08/28/2026 17:46:08",
+      "nodeCount": 50,
+      "structuralHash": "16482c31b66dac7b23865624ac90804b0ed8f31e50165c02817dd28dfdc490d3",
       "nodeTypes": [
         "n8n-nodes-base.code",
         "n8n-nodes-base.dataTable",
@@ -188,7 +188,7 @@
       ],
       "export": "mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
       "trackedReason": "",
-      "structuralHashStale": "taken 08/25/2026, before the P7.5R cutover. The field fingerprints the LIVE workflow as read from the API, not this redacted export, so it cannot be recomputed offline from the file beside it -- refresh it with scripts/export-n8n-production.ps1 on the next live export."
+      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant at the P8.3A cutover, so this value is current for THIS entry. The manifest RUN at generatedAt still predates it, and the other entries were not re-read -- the field fingerprints the LIVE workflow as the API returns it, not the redacted export beside it, so it can never be recomputed offline from this file."
     },
     {
       "id": "ShcmmJeLSE8LYVBk",

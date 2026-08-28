@@ -126,7 +126,7 @@
       "marked_nodes": [
         "Settings to Object"
       ],
-      "sha256": "79b0fdbc0ecaab741ae072b7d343c917a9e2586d7d123a2c17acb1b3b6c8ab3f",
+      "sha256": "cd3b4e716949ec3c4028fa1680e9934107396e28352cbf6b7dca7921e40c417e",
       "nodes": 50
     },
     {
@@ -389,8 +389,8 @@
       "marked_nodes": [
         "Settings to Object"
       ],
-      "sha256": "4916f5b75aba0fa28672824fcabf398eb2141af840eb0f17066ad8c6de361246",
-      "nodes": 45
+      "sha256": "b61e34313e9386e6938f00080aa203fcc43541eb690e42c4e52ef6642516e3a7",
+      "nodes": 50
     },
     {
       "path": "n8n/production/qF9tonlHHIxc8MDd.finmentor-lead-command-center-secure-candidate.json",
