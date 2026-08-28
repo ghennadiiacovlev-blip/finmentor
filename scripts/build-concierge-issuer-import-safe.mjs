@@ -31,8 +31,10 @@ const ROOT = join(HERE, '..');
 const S = require(join(ROOT, 'n8n', 'src', 'concierge-import-safe', 'concierge-import-safe.js'));
 
 const IN = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json');
-const PROD = join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json');
+// FROZEN pre-P7.5R export -- see n8n/history/README.md. The wrapper is built from the same
+// canonical candidate this export produced, and the hazards it proves are the ones that
+// existed then.
+const PROD = join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json');
 const OUT_DIR = join(ROOT, 'n8n', 'candidate');
 const OUT = join(OUT_DIR, 'concierge-issuer-IMPORT-SAFE.json');
 

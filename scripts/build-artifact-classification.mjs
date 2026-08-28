@@ -59,7 +59,11 @@ function collect(dir) {
   return out;
 }
 
-const files = collect('n8n/production').concat(collect('n8n/candidate')).sort();
+// n8n/history/ is scanned on the same terms as the other two. A frozen phase input is still
+// a tracked workflow JSON, and "no tracked artifact is production-deployable" has to mean every
+// tracked artifact -- narrowing the scan to the directories we currently worry about is how the
+// P7.5 defect happened in the first place.
+const files = collect('n8n/production').concat(collect('n8n/candidate')).concat(collect('n8n/history')).sort();
 
 const artifacts = files.map((rel) => {
   const raw = readFileSync(join(ROOT, rel), 'utf8');

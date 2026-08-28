@@ -61,7 +61,17 @@ const LEGACY_REQUIRED = [
 ];
 
 // B.2.1-C columns. Explicitly NOT delivered by P6R-1 and must never be marked live by it.
+// submission_key WAS in this list. P7.5R shipped the Concierge issuer, so the Concierge row
+// builders now write it deliberately, and "no row builder writes it" became false for the one
+// reason that is allowed to make it false. The two claims the list was carrying are separable:
+//
+//   * P6R-1 must not CLAIM any B.2.1-C column as legacy-live   -- still true of all four
+//   * no Concierge row builder may WRITE one                   -- still true of the other three
+//
+// Collapsing them back into one list would mean either dropping submission_key from the P6R-1
+// containment (losing coverage) or asserting production has not shipped (asserting a falsehood).
 const B21C_ONLY = ['submission_key', 'lead_mode', 'lead_priority', 'financial_zone'];
+const B21C_NOT_YET_SHIPPED = ['lead_mode', 'lead_priority', 'financial_zone'];
 
 // The live header row as observed on 2026-08-26 (P6R-0 / P6R-1 preflight), 40 columns.
 const LIVE_HEADERS_40 = [
@@ -404,15 +414,29 @@ check('(P6R-1R) the duplicate error header cannot shadow any legacy column', () 
 });
 
 check('(step 12) no B.2.1-C column is falsely marked live by P6R-1', () => {
+  // Unconditional for all four: whatever production has shipped, P6R-1's legacy scope must not
+  // grow to include a B.2.1-C column.
   B21C_ONLY.forEach((c) => {
     assert(LEGACY_REQUIRED.indexOf(c) === -1, c + ' was smuggled into the P6R-1 legacy set');
     assert(MIGRATED_HEADERS_46.indexOf(c) === -1, c + ' appears in the P6R-1 migrated header set');
-    // ...and no Concierge row builder writes it either, so P6R-1 cannot deliver it by accident.
+  });
+  // ...and for the three that have NOT shipped, no Concierge row builder writes them either,
+  // so P6R-1 cannot deliver one by accident.
+  B21C_NOT_YET_SHIPPED.forEach((c) => {
     ROW_BUILDERS.forEach((b) => assert(colsOf(b).indexOf(c) === -1,
       b + ' writes ' + c + ', which is B.2.1-C scope, not P6R-1'));
   });
   eq(MIGRATED_HEADERS_46.length, 46, 'the migrated header count is not 40 + 6');
   eq(LIVE_HEADERS_40.length, 40, 'the observed live header count drifted from 40');
+});
+
+check('(step 12b) submission_key is written by ALL THREE row builders or by none', () => {
+  // The only column P7.5R moved out of B.2.1-C scope, and the reason it needs its own check:
+  // all three builders persist a session row over the SAME sheet row, so a column carried by
+  // two of them is not "partly shipped" -- it is blanked by whichever one runs last.
+  const carries = ROW_BUILDERS.filter((b) => colsOf(b).indexOf('submission_key') !== -1);
+  assert(carries.length === 0 || carries.length === ROW_BUILDERS.length,
+    'submission_key is written by ' + carries.join(', ') + ' but not the rest; the others will blank it');
 });
 
 // ---------------------------------------------------------------- summary

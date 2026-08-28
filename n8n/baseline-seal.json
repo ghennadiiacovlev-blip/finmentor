@@ -11,22 +11,31 @@
     {
       "workflowId": "mppzthlkSJFr6Kle",
       "phase": "P7.5R",
-      "status": "BASELINE_UNSEALED",
-      "sealedAt": "",
+      "status": "SEALED",
+      "sealedAt": "2026-08-27T21:18:45.515Z",
       "preVersionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
       "postVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
       "deployedTargetSha": "a6d2f8aac394f0d9efd2c7817e5fd6824bac8345354cf9a44cf9b253bbbaac0e",
-      "postLiveRedactedSha": "",
+      "postLiveRedactedSha": "1e5660778e9b6e99810657848b7b7e6e91970df4b119c8fa28cbe5eec7518fbc",
       "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
       "nodeCount": 45,
+      "sealProof": {
+        "method": "offline rebuild: applyDelta(delta(A,B), A), redacted, compared to R(L_current)",
+        "approvedRedactedSha": "8bba38d9488e587599c94e75334feec9c4ab5209a623aa627b94c8a71476f28a",
+        "rebuiltTargetSha": "8bba38d9488e587599c94e75334feec9c4ab5209a623aa627b94c8a71476f28a",
+        "versionChainVerified": true
+      },
       "_note": [
-        "Recorded UNSEALED because that is the truth. P7.5R deployed 45 nodes; the tracked",
-        "reference is still the 33-node pre-Model-B export, so R(L) == A cannot hold today.",
-        "This record is what makes the next deployment fail closed instead of comparing against",
-        "a reference that describes neither the old production nor the new one.",
-        "SEALING IT NEEDS A LIVE READ. The acceptance test is offline-computable: the approved",
-        "P7.5R target redacts to applyDelta(delta(A,B), A), because R(L_pre) == A held at the",
-        "time. So R(L_current) must equal that, and sealing is a proof rather than a rubber stamp."
+        "SEALED 2026-08-27. Recorded UNSEALED first, because that was the truth: P7.5R deployed 45",
+        "nodes while the tracked reference was still the 33-node pre-Model-B export, so R(L) == A",
+        "could not hold and the next deployment failed closed rather than comparing against a",
+        "reference that described neither the old production nor the new one.",
+        "SEALING NEEDED A LIVE READ, but the acceptance test was offline-computable: R(L_pre) == A",
+        "held at the time, so the approved P7.5R target redacts to applyDelta(delta(A,B), A). The",
+        "fresh live read was required to equal that and did, with the version chain intact -- see",
+        "sealProof above and docs/P8_3A_P7_5R_BASELINE_SEAL.md. A proof, not a rubber stamp.",
+        "The 33-node pre-state is frozen at n8n/history/mppzthlkSJFr6Kle.pre-P7-5R-cutover.json;",
+        "its versionId must equal preVersionId here, and the tracked reference postVersionId."
       ]
     }
   ]

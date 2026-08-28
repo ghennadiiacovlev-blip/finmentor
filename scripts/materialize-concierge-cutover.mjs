@@ -29,8 +29,10 @@ const R = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'redactor.js'));
 const MZ = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'materializer.js'));
 const P = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'concierge-cutover-policy.js'));
 
-const A_PATH = join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json');
+// FROZEN pre-P7.5R export -- see n8n/history/README.md. This driver materializes ONE delta,
+// A_pre -> B, and that is the delta P7.5R approved. Pointing it at the moving tracked
+// reference would silently redefine what it deploys.
+const A_PATH = join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json');
 const B_PATH = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json');
 const BASE = 'https://ghennadi.app.n8n.cloud/api/v1';
 
@@ -58,11 +60,18 @@ if (notDeployable.length) {
   process.exit(1);
 }
 
+// The seal history is a required input: an unsealed PREVIOUS cutover means `A` describes
+// neither the production that was nor the one that is, and no comparison below would mean
+// anything. Read from the repository, so what gates this deployment is the recorded state and
+// not a flag on the command line.
+const SEAL_FILE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
+
 const result = MZ.materializeDeployment({
   redactedReference: A,
   desiredReference: B,
   liveWorkflow: L,
-  approvedDiffPolicy: P.CONCIERGE_CUTOVER_POLICY
+  approvedDiffPolicy: P.CONCIERGE_CUTOVER_POLICY,
+  sealFile: SEAL_FILE
 });
 
 const ev = result.evidence;

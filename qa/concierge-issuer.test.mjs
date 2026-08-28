@@ -361,12 +361,23 @@ check('(4.4) NO tracked workflow Code body references the crypto GLOBAL', () => 
     wf.nodes.forEach((n) => {
       const js = (n.parameters && (n.parameters.jsCode || n.parameters.code)) || '';
       if (!js) { return; }
+      // WHOLE-LINE COMMENTS ARE STRIPPED BEFORE ANY OF THIS. A ReferenceError comes from
+      // executed code, never from prose -- and the Model-B `Get Bot Session` that P7.5R put
+      // into production carries a comment block naming the forbidden forms precisely to record
+      // why they must not be used. Flagging that is not strictness, it is a gate that punishes
+      // documenting its own hazard, and the cheapest way to make it green would have been to
+      // delete the warning.
+      //
+      // Only WHOLE-LINE comments go. Stripping from the first `//` on any line would also cut
+      // a real usage sitting after a URL in a string literal, which is the one thing this check
+      // must never miss.
+      const code = js.split('\n').filter((line) => !/^\s*(\/\/|\*|\/\*)/.test(line)).join('\n');
       ISSUER.FORBIDDEN_IN_CODE_NODE.forEach((bad) => {
-        assert(js.indexOf(bad) === -1, rel + ' node "' + n.name + '" uses ' + bad + ', which is undefined in the n8n Code sandbox (exec 3651)');
+        assert(code.indexOf(bad) === -1, rel + ' node "' + n.name + '" uses ' + bad + ', which is undefined in the n8n Code sandbox (exec 3651)');
       });
       // The bare global, in any use. `require('crypto')` is the allowed form and is excluded
       // by requiring the reference to NOT be preceded by require('...').
-      const bareGlobal = js.replace(/require\(\s*['"]crypto['"]\s*\)/g, 'REQUIRED_CRYPTO');
+      const bareGlobal = code.replace(/require\(\s*['"]crypto['"]\s*\)/g, 'REQUIRED_CRYPTO');
       assert(!/(^|[^A-Za-z0-9_$.])crypto\s*\./.test(bareGlobal),
         rel + ' node "' + n.name + '" references the crypto global');
     });
@@ -445,12 +456,32 @@ check('(5.2) F15 closed — Save Bot Session auto-maps, and P7.1 proved the writ
     'the production Save Bot Session schema now lists submission_key — production was modified; that must be deliberate');
 });
 
-check('(5.3) the production Concierge still contains ZERO submission_key references', () => {
-  // The statement P6.4 §6 made, kept true by execution rather than by memory. When P7.1 lands
-  // a candidate, this stays green because the candidate is a separate artifact — the day this
-  // fails, production has been modified and that must be a deliberate, recorded act.
+// (5.3) USED TO READ "the production Concierge still contains ZERO submission_key references",
+// and its own comment named the condition for changing it: "the day this fails, production has
+// been modified and that must be a deliberate, recorded act." P7.5R is that act. It is not
+// remembered, it is recorded — n8n/baseline-seal.json carries the version chain, the approved
+// target hash and the proof that live matched it.
+//
+// So the containment does not disappear, it MOVES: production may reference submission_key only
+// while a sealed record says a cutover put it there. Deleting the check instead would have left
+// the repository unable to tell a deployed issuer from an undeployed one.
+check('(5.3) production references submission_key, and a SEALED record says why', () => {
+  const SEALM = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'baseline-seal.js'));
+  const sealFile = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
+  const rec = (sealFile.records || []).filter((r) => r.workflowId === 'mppzthlkSJFr6Kle').pop();
+
   const hits = CONCIERGE.nodes.filter((n) => JSON.stringify(n.parameters || {}).indexOf('submission_key') !== -1);
-  eq(hits.length, 0, 'production nodes now reference submission_key: ' + hits.map((n) => n.name).join(', '));
+  if (hits.length === 0) {
+    // The pre-cutover state is still a legitimate state for this gate to see.
+    assert(!rec || rec.status !== SEALM.SEALED,
+      'a sealed cutover is recorded but production carries no submission_key reference at all');
+  } else {
+    assert(rec, 'production references submission_key with NO cutover recorded for this workflow');
+    eq(rec.status, SEALM.SEALED,
+      'production carries the issuer but its cutover is ' + rec.status + '; the reference describes neither state');
+    eq(rec.nodeCount, CONCIERGE.nodes.length, 'the sealed record and the tracked reference disagree on node count');
+    eq(rec.postVersionId, CONCIERGE.versionId, 'the tracked reference is not the version the record sealed');
+  }
   eq(CONCIERGE.active, true, 'the production Concierge is no longer active; re-read the deployment risk');
 });
 
@@ -461,15 +492,23 @@ check('(5.4) the row builders the issuer must extend are the ones the legacy gat
     assert(m, 'COLS not found in ' + nodeName);
     return m[1].split(',').map((s) => s.trim().replace(/^'|'$/g, ''));
   };
-  const cols = colsOf('Build Session Row');
-  eq(cols.length, 36, 'Build Session Row COLS drifted from 36');
-  assert(cols.indexOf('cycle_id') !== -1, 'cycle_id left the persisted set');
-  assert(cols.indexOf('submission_key') === -1, 'production now writes submission_key — that is P7.1, not P7.0');
-  // The three builders all persist a session row, so all three must gain the column together
-  // or the key will be blanked by whichever one runs last.
-  ['Build Intake State Row', 'Build Confirmation State Row'].forEach((b) => {
-    assert(colsOf(b).indexOf('submission_key') === -1, b + ' writes submission_key ahead of P7.1');
-    assert(colsOf(b).indexOf('cycle_id') !== -1, b + ' no longer persists cycle_id');
+  const BUILDERS = ['Build Session Row', 'Build Intake State Row', 'Build Confirmation State Row'];
+  // 36 before P7.5R, 37 after: the issuer adds exactly submission_key and nothing else. The
+  // number is stated as base + the one approved column rather than as 37, so a second column
+  // arriving later cannot hide inside a bumped literal.
+  const BASE_COLS = 36;
+  const carriers = BUILDERS.filter((b) => colsOf(b).indexOf('submission_key') !== -1);
+
+  // THE HAZARD, and the reason this check is worth more than the count. All three builders
+  // persist the SAME sheet row, so a column carried by some of them is not partly shipped — it
+  // is blanked by whichever one runs last. All three, or none.
+  assert(carriers.length === 0 || carriers.length === BUILDERS.length,
+    'submission_key is written by ' + carriers.join(', ') + ' but not the others; they will blank it');
+
+  BUILDERS.forEach((b) => {
+    const c = colsOf(b);
+    eq(c.length, BASE_COLS + (carriers.length ? 1 : 0), b + ' COLS drifted from the pinned set');
+    assert(c.indexOf('cycle_id') !== -1, b + ' no longer persists cycle_id');
   });
 });
 

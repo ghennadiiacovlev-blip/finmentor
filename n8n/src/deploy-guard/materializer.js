@@ -485,6 +485,41 @@ function materializeDeployment(input) {
     steps: {}
   };
 
+  // ---- stage 0: has the PREVIOUS cutover of this workflow been sealed? --------------------
+  //
+  // This runs before everything else because it is not a question about these three documents;
+  // it is the question of whether deploying this workflow at all is permitted right now. An
+  // unsealed prior cutover means `A` describes neither the production that was, nor the one
+  // that is, so every check below would be comparing against a reference that means nothing --
+  // and BASELINE_DRIFT would be the diagnosis, which is the wrong one and invites the exact
+  // repair the model exists to prevent: rebaseline from live until the check goes quiet.
+  //
+  // FAIL CLOSED ON ABSENCE. A caller that supplies no seal file is refused, rather than
+  // defaulting to "allowed". §8 shipped this rule as a library function with a unit test and no
+  // caller, so nothing was actually gated by it; requiring the input is what makes every driver
+  // inherit the gate instead of remembering to ask for it.
+  //
+  // Required lazily: baseline-seal.js requires this module for baselineEquivalence, so a
+  // top-level require here would be a cycle and would see a half-built exports object.
+  const SEAL = require('./baseline-seal.js');
+  const wid = policy.productionWorkflowId;
+  if (!input.sealFile) {
+    return { ok: false, stage: 'SEAL_PREFLIGHT', evidence: evidence, failures: [
+      'no baseline seal file supplied; a deployment cannot be authorised without knowing '
+      + 'whether the previous cutover of this workflow was sealed'
+    ] };
+  }
+  if (!wid) {
+    return { ok: false, stage: 'SEAL_PREFLIGHT', evidence: evidence, failures: [
+      'the policy names no productionWorkflowId, so the seal history cannot be looked up'
+    ] };
+  }
+  const sealOk = SEAL.preflightSealCheck(input.sealFile, wid);
+  evidence.steps.sealPreflight = { ok: sealOk.ok, workflowId: wid };
+  if (!sealOk.ok) {
+    return { ok: false, stage: 'SEAL_PREFLIGHT', evidence: evidence, failures: [sealOk.reason] };
+  }
+
   // A tracked reference is allowed — expected, even — to be redacted. A LIVE workflow never is.
   if (R.hasMarkers(L)) {
     evidence.steps.liveIsRedacted = false;

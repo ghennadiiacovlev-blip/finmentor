@@ -49,8 +49,12 @@ const clone = (v) => JSON.parse(JSON.stringify(v));
 const FAKE_TOKEN = '1234567890' + ':' + 'AAH' + 'fake'.repeat(8);
 const FAKE_SK = 'sk' + '-' + 'abcdefghijklmnopqrstuvwxyz';
 
-const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+// `A` here is the FROZEN pre-P7.5R export -- see n8n/history/README.md. Everything in §3 and
+// §12 is the three-way input of that one cutover: A_pre, the Model-B candidate B, and a
+// synthetic live built from A_pre. Against the tracked reference these become A == B, which is
+// not a cutover at all and tests nothing.
+const A = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json'), 'utf8'));
 const B = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json'), 'utf8'));
 const CLASS = JSON.parse(readFileSync(join(ROOT, 'n8n', 'artifact-classification.json'), 'utf8'));
 const byName = (wf, n) => (wf.nodes || []).find((x) => x.name === n);
@@ -186,8 +190,13 @@ check('the classification is not stale', () => {
 console.log('\n-- §3 three-way materialization --');
 
 const POLICY = P.CONCIERGE_CUTOVER_POLICY;
+// The seal history is a REQUIRED input -- see the SEAL_PREFLIGHT stage. These runs replay
+// P7.5R, whose own prior cutover is not in the file, so the honest fixture is a clean history:
+// "no prior cutover recorded" is the state that made P7.5R deployable at the time.
+const NO_PRIOR_CUTOVER = { records: [] };
 const run = (over) => MZ.materializeDeployment(Object.assign({
-  redactedReference: A, desiredReference: B, liveWorkflow: L, approvedDiffPolicy: POLICY
+  redactedReference: A, desiredReference: B, liveWorkflow: L, approvedDiffPolicy: POLICY,
+  sealFile: NO_PRIOR_CUTOVER
 }, over || {}));
 
 check('CONTROL: the real three-way input materializes', () => {
@@ -239,6 +248,45 @@ function mustRefuse(label, over, expectStage, expectSubstring) {
     }
   });
 }
+
+// 0. The seal preflight is the first gate, and it is fail-closed on ABSENCE. These three sit
+//    at the top of the battery because they refuse before any of the three documents is even
+//    looked at -- which is the point: an unsealed prior cutover is not a fact about this
+//    deployment's inputs, it is a fact about whether there may be a deployment at all.
+mustRefuse('a deployment with NO seal history supplied at all', {
+  sealFile: undefined
+}, 'SEAL_PREFLIGHT', 'no baseline seal file supplied');
+
+mustRefuse('a deployment whose PREVIOUS cutover was never sealed', {
+  sealFile: { records: [{ workflowId: P.PRODUCTION_WORKFLOW_ID, phase: 'P7.5R', status: 'BASELINE_UNSEALED' }] }
+}, 'SEAL_PREFLIGHT', 'BASELINE_UNSEALED');
+
+mustRefuse('a policy that names no production workflow, so no seal history can be found', {
+  approvedDiffPolicy: (() => { const m = clone(POLICY); delete m.productionWorkflowId; return m; })()
+}, 'SEAL_PREFLIGHT', 'names no productionWorkflowId');
+
+check('CONTROL: a SEALED prior cutover does NOT block the next deployment', () => {
+  // The gate must be a gate, not a wall. Without this the two refusals above would also pass
+  // for a materializer that refused everything.
+  const v = run({ sealFile: { records: [
+    { workflowId: P.PRODUCTION_WORKFLOW_ID, phase: 'P7.0', status: 'SEALED' }
+  ] } });
+  assert(v.ok, 'a sealed prior cutover was refused: ' + v.stage + ': ' + v.failures.join(' | '));
+  eq(v.evidence.steps.sealPreflight.ok, true, 'the seal preflight is not recorded in the evidence');
+});
+
+check('the seal preflight runs BEFORE the input check, not after', () => {
+  // Ordering is load-bearing. If an unsealed baseline were diagnosed as BASELINE_DRIFT, the
+  // obvious repair is to rebaseline from live until the check goes quiet -- the exact silent
+  // rebaseline §8 exists to prevent. Proven by handing it an input that is ALSO invalid on
+  // other grounds and requiring the seal to be the reported reason.
+  const v = run({
+    liveWorkflow: A,   // a redacted artifact: an INPUT-stage failure on its own
+    sealFile: { records: [{ workflowId: P.PRODUCTION_WORKFLOW_ID, phase: 'P7.5R', status: 'BASELINE_UNSEALED' }] }
+  });
+  assert(!v.ok, 'this input should not have materialized');
+  eq(v.stage, 'SEAL_PREFLIGHT', 'the seal preflight did not run first');
+});
 
 // 1. A and B both carry the same marker -> direct deployment still refused.
 check('REFUSES: (1) a marker shared by A and B cannot be deployed from disk', () => {
@@ -330,7 +378,8 @@ check('REFUSES: (10) the evidence never carries a live literal', () => {
   byName(planted, 'Settings to Object').parameters.jsCode =
     byName(planted, 'Settings to Object').parameters.jsCode.split(SYNTHETIC_ID).join('900000123');
   const v = MZ.materializeDeployment({
-    redactedReference: A, desiredReference: B, liveWorkflow: planted, approvedDiffPolicy: POLICY
+    redactedReference: A, desiredReference: B, liveWorkflow: planted, approvedDiffPolicy: POLICY,
+    sealFile: NO_PRIOR_CUTOVER
   });
   const blob = JSON.stringify(v.evidence) + JSON.stringify(v.delta || []) + (v.failures || []).join(' ');
   assert(blob.indexOf('900000123') === -1, 'a live literal reached the evidence or the delta');
@@ -430,14 +479,70 @@ console.log('\n-- §8 baseline sealing: a cutover invalidates its own reference 
 const SEALM = require(join(ROOT, 'n8n', 'src', 'deploy-guard', 'baseline-seal.js'));
 const SEALFILE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'baseline-seal.json'), 'utf8'));
 
+// The MECHANISM, on a synthetic record. This used to assert that the repository's own P7.5R
+// record was BASELINE_UNSEALED, which conflated two different things: whether the gate works,
+// and whether a particular cutover happens to be sealed today. Sealing P7.5R is the expected,
+// desired outcome -- and it made the mechanism test go red for succeeding at its purpose. The
+// gate is tested on a record built here; the repository's real state is asserted separately,
+// below, where it belongs.
 check('MUTATION: a cutover that was never sealed REFUSES the next deploy', () => {
-  const v = SEALM.preflightSealCheck(SEALFILE, 'mppzthlkSJFr6Kle');
+  const f = { records: [{ workflowId: 'X', phase: 'P0', status: SEALM.UNSEALED }] };
+  const v = SEALM.preflightSealCheck(f, 'X');
   assert(!v.ok, 'an unsealed prior cutover allowed the next deploy');
   assert(/BASELINE_UNSEALED/.test(v.reason), 'wrong reason: ' + v.reason);
 });
 
+check('MUTATION: the MOST RECENT record decides, not the best one', () => {
+  // A sealed history followed by an unsealed cutover must still refuse. Scanning for "is there
+  // a sealed record" instead of "is the last one sealed" would pass this and be wrong.
+  const f = { records: [
+    { workflowId: 'X', phase: 'P0', status: SEALM.SEALED },
+    { workflowId: 'X', phase: 'P1', status: SEALM.UNSEALED }
+  ] };
+  assert(!SEALM.preflightSealCheck(f, 'X').ok, 'an unsealed cutover after a sealed one was allowed');
+});
+
 check('a workflow with no cutover history is allowed', () => {
   assert(SEALM.preflightSealCheck(SEALFILE, 'QmIyEW2ZEqKregmN').ok, 'a first deployment was refused');
+});
+
+// ---- the repository's own state, which is a different claim from the mechanism ----------
+
+const P75R = (SEALFILE.records || []).filter((r) => r.workflowId === 'mppzthlkSJFr6Kle').pop();
+
+check('the P7.5R cutover is SEALED, so the next deploy is not refused on baseline grounds', () => {
+  assert(P75R, 'no mppzthlkSJFr6Kle record at all');
+  eq(P75R.phase, 'P7.5R', 'the most recent Concierge record is not P7.5R');
+  eq(P75R.status, SEALM.SEALED, 'P7.5R is still unsealed');
+  assert(SEALM.preflightSealCheck(SEALFILE, 'mppzthlkSJFr6Kle').ok, 'the sealed record still refuses');
+});
+
+check('the seal record is EVIDENCE, not an assertion: every hash is present and a sha256', () => {
+  ['deployedTargetSha', 'postLiveRedactedSha'].forEach((k) => {
+    assert(/^[0-9a-f]{64}$/.test(P75R[k] || ''), k + ' is not a sha256');
+  });
+  assert(P75R.sealProof, 'the record carries no seal proof');
+  assert(/^[0-9a-f]{64}$/.test(P75R.sealProof.approvedRedactedSha || ''), 'approvedRedactedSha is not a sha256');
+  eq(P75R.sealProof.versionChainVerified, true, 'the version chain was not verified');
+  assert(P75R.sealedAt && !isNaN(Date.parse(P75R.sealedAt)), 'sealedAt is not a timestamp');
+});
+
+check('THE ANCHOR: the frozen history export is the state P7.5R actually deployed FROM', () => {
+  // Without this, n8n/history/ is just a copy somebody made, and the gates above are testing
+  // arithmetic against a fixture nobody can vouch for. The version chain is what makes it
+  // evidence: the frozen export must carry the exact preVersionId the seal recorded.
+  eq(A.versionId, P75R.preVersionId, 'the frozen pre-P7.5R export is not the recorded pre-state');
+  eq(A.nodes.length, 33, 'the frozen pre-P7.5R export is no longer the 33-node graph');
+});
+
+check('THE OTHER END: the tracked reference is the state P7.5R deployed TO', () => {
+  const tracked = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
+    'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+  eq(tracked.versionId, P75R.postVersionId, 'the tracked reference is not the sealed post-state');
+  eq(tracked.nodes.length, P75R.nodeCount, 'the tracked reference node count contradicts the record');
+  // A_next entered git as R(L_post). If it carries no markers, redaction did not run -- the
+  // P7.5 defect in reverse, and the one thing a seal must never do.
+  assert(R.findMarkers(tracked).length > 0, 'the sealed reference carries no redaction markers');
 });
 
 check('a SEALED record allows the next deploy', () => {

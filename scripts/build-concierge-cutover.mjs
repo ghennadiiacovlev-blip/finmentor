@@ -53,8 +53,10 @@ import { createHash } from 'node:crypto';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 
-const PROD = join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json');
+// FROZEN pre-P7.5R export, not the tracked reference -- see n8n/history/README.md. The P7.5
+// cutover body is "production at that moment" + Model B; the tracked reference has since
+// advanced past it.
+const PROD = join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json');
 const CAND = join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json');
 const OUT = join(ROOT, 'n8n', 'candidate', 'concierge-cutover-PRODUCTION.json');
 

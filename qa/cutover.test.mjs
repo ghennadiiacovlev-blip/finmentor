@@ -40,8 +40,13 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
 const deepEq = (a, b, m) => { if (JSON.stringify(a) !== JSON.stringify(b)) { throw new Error(m); } };
 
-const PROD = JSON.parse(readFileSync(join(ROOT, 'n8n', 'production',
-  'mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json'), 'utf8'));
+// The FROZEN pre-P7.5R export, not the tracked reference -- see n8n/history/README.md. This
+// gate checks the arithmetic of one specific cutover: production-at-that-moment plus the
+// twelve Model-B nodes. Sealing P7.5R advanced the tracked reference to the 45-node result of
+// that very cutover, at which point "production + 12" became 57 and this gate went red for a
+// change it had itself already verified.
+const PROD = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history',
+  'mppzthlkSJFr6Kle.pre-P7-5R-cutover.json'), 'utf8'));
 const CAND = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'concierge-issuer-candidate.json'), 'utf8'));
 // The cutover artifact is NO LONGER WRITTEN TO DISK. The generator refuses, because every
 // artifact derived from the tracked (redacted) production export carries <REDACTED_CHAT_ID>

@@ -87,7 +87,12 @@ import { dirname, join } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 
-const SOURCE = join(ROOT, 'n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json');
+// FROZEN, not the tracked reference. This generator splices Model B into the export P7.5R was
+// built from, and that export is a fact about the past. The tracked reference under
+// n8n/production/ advances on every seal -- it is `A` in `R(L) == A` and must describe current
+// production -- so reading it here made regeneration depend on how many cutovers had happened
+// since. See n8n/history/README.md.
+const SOURCE = join(ROOT, 'n8n/history/mppzthlkSJFr6Kle.pre-P7-5R-cutover.json');
 const OUT_DIR = join(ROOT, 'n8n/candidate');
 const OUT = join(OUT_DIR, 'concierge-issuer-candidate.json');
 
