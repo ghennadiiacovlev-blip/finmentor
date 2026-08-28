@@ -46,6 +46,7 @@ const GATES = [
   ['Lead Intake COMMITTED replay', 'lead-intake-committed-replay.test.mjs'],
   ['P8.4B Concierge internal handoff', 'concierge-internal-handoff.test.mjs'],
   ['G5 initData replay claim', 'g5-replay-claim.test.mjs'],
+  ['P9 Mini App Gateway pre-deploy', 'miniapp-gateway.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];

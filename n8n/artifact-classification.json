@@ -14,9 +14,9 @@
     "INSTRUMENT": "disposable harness/tool; deployable as its own disposable workflow only"
   },
   "counts": {
-    "total": 28,
+    "total": 29,
     "REDACTED_REFERENCE_ONLY": 18,
-    "REVIEW_REFERENCE": 7,
+    "REVIEW_REFERENCE": 8,
     "INSTRUMENT": 3,
     "production_deployable": 0
   },
@@ -190,6 +190,17 @@
       "marked_nodes": [],
       "sha256": "b5e91d6da67db50d1b52c916b8977242eafcd841656535adf8cda4c4d19c9ec4",
       "nodes": 100
+    },
+    {
+      "path": "n8n/candidate/miniapp-gateway-candidate.json",
+      "class": "REVIEW_REFERENCE",
+      "deployable_to_production": false,
+      "deployable_as_disposable": false,
+      "redaction_markers": [],
+      "marker_total": 0,
+      "marked_nodes": [],
+      "sha256": "d491834248b1dbc34c2d0b95c5f9713e8c281343cc2e043c14c720257ffafef5",
+      "nodes": 13
     },
     {
       "path": "n8n/candidate/p73s2-cleanup-child.json",
