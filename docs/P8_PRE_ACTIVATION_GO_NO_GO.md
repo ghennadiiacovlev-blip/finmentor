@@ -22,8 +22,11 @@ never been built or run**:
 2. **G5 (replay protection) cannot be built on the infrastructure we have.** It needs an atomic
    "create if absent" that neither the n8n Data Table nor Google Sheets provides. This needs an
    owner decision on a store, and it is the only item here that costs money.
-3. **F17** — nine dead columns on `Bot_Sessions` — must be removed, and the only safe route is a
-   few clicks in the Google Sheets UI.
+3. ~~**F17** — nine dead columns on `Bot_Sessions` — must be removed, and the only safe route is a
+   few clicks in the Google Sheets UI.~~
+   **CLOSED 2026-08-29. F17 = VERIFIED, required deletion = NONE.** The residue is already absent;
+   the live schema ends at `AZ = financial_zone`. See `P9_F17_HEADER_CORRECTION.md`. The `AZ:BH`
+   range named in §6 below is RETIRED and must not be acted on — it would delete `financial_zone`.
 
 None of these is urgent in the sense of risk-to-production. All three are prerequisites.
 
@@ -68,7 +71,7 @@ Nothing below is carried over because an old document said so.
 | **F11** | **LIVE CLOSED** | closed by fault injection | P6.3 | no |
 | **F13** | **LIVE CLOSED** | post-claim failure is `SUBMIT_UNRESOLVED`, receipt stays `IN_FLIGHT` | P6.4 | no |
 | **F16** | **GUARDED** | `autoMapInputData` appends a column for any unknown key | runtime projection + writer contract + footprint guard, all gated | no |
-| **F17** | **OPEN** | nine dead trailing columns `AZ:BH` | §6 runbook | **YES** |
+| **F17** | **CLOSED / VERIFIED 2026-08-29** | ~~nine dead trailing columns `AZ:BH`~~ — range was wrong (`BA:BI`), and the residue is now **absent**; schema ends at `AZ = financial_zone` | `P9_F17_HEADER_CORRECTION.md` | **no — deletion = NONE** |
 | **G1** | **PASS** | durable idempotency receipt substrate, live end to end | P6.4 | no |
 | **G5** | **OPEN — OWNER DECISION REQUIRED** | durable `initData` replay / single-use | §3 | **YES** |
 
@@ -257,7 +260,28 @@ reaches Lead Intake through the same internal route that NEW already proved.
 
 ---
 
-## 6. F17 — nine dead columns: OWNER ACTION
+## 6. F17 — nine dead columns: ~~OWNER ACTION~~ **CLOSED, DO NOT EXECUTE**
+
+> ### ⛔ THIS RUNBOOK IS RETIRED. DO NOT RUN IT.
+>
+> **F17 = CLOSED / VERIFIED 2026-08-29. Required deletion = NONE.**
+>
+> Two things are wrong with everything below, both established after it was written:
+>
+> 1. **The range is wrong by one column in both directions.** The residue was `BA:BI`, not
+>    `AZ:BH`. Step 4 as written — *"Delete columns AZ–BH"* — **would delete
+>    `AZ = financial_zone`**, a live column the receipt contract writes. The mapping in this
+>    section came from an n8n Sheets range probe that returned identical output for two different
+>    ranges; `P9_F17_HEADER_CORRECTION.md` records how that was caught.
+> 2. **There is nothing left to delete.** A fresh authoritative XLSX export of the live sheet on
+>    2026-08-29, parsed by physical cell reference, shows 52 contiguous headers `A:AZ` ending at
+>    `AZ = financial_zone`, with **no cell and no data at or beyond `BA`**.
+>
+> Owner decision 2026-08-29: **perform no column deletion on `Bot_Sessions`**, and never use an
+> "empty trailing columns" heuristic there — `financial_zone` is currently empty and is *not*
+> residue.
+>
+> The text below is retained unaltered as the historical record of the P8 gate only.
 
 Live tail, measured 2026-08-27 by reading the header row **as data**:
 
@@ -355,7 +379,7 @@ alert. No monitoring platform required.
 | `availableInMCP` false | **HOLDS** | verified on the live workflow |
 | No temporary API credentials left | **HOLDS locally** | absent from User env and `HKCU\Environment`; **tenant-side revocation is still owner action** |
 | No test workflows active | **HOLDS** | every P7.3/P7.4/P7.5 disposable archived; none was ever activated |
-| No unbounded synthetic residue | **PARTIAL** | zero synthetic rows; **nine dead columns remain** (F17) |
+| No unbounded synthetic residue | **HOLDS** (was PARTIAL) | zero synthetic rows; the nine dead columns are **gone** — verified 2026-08-29, schema ends at `AZ = financial_zone` (F17 CLOSED) |
 | Tracked artifacts non-production-deployable | **HOLDS** | 20 classified, 0 deployable; the materializer refuses them |
 | Rollback material ephemeral | **HOLDS** | hashed, deleted, deletion verified; 0 sensitive files in the repo |
 | Lead Intake public route unchanged | **HOLDS** | untouched since before P7 |
@@ -373,7 +397,8 @@ production load, because no customer traffic has hit the new graph yet.
 1. **Mini App gateway is not deployed.** Nothing can submit. *(largest, and it is build work)*
 2. **G5 replay protection does not exist** and cannot be built on current infrastructure —
    **owner decision on a store required.**
-3. **F17** — nine dead columns — **owner UI action required.**
+3. ~~**F17** — nine dead columns — **owner UI action required.**~~ **CLOSED 2026-08-29 — no owner
+   action required, required deletion = NONE.**
 4. **P1-L8 retention duration** not approved.
 5. **No production smoke has been run** on the new Concierge graph.
 6. **Two observability gaps**: stuck-`IN_FLIGHT` alarm, scheduled schema-footprint check.

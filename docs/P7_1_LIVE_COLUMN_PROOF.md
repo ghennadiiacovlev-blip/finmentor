@@ -169,7 +169,20 @@ the CRM and is not disposable whatever else it says.
 
 ---
 
-## 6. F17 — **NEW, and it blocks the hygiene sweep only**
+## 6. F17 — ~~**NEW, and it blocks the hygiene sweep only**~~ **CLOSED / VERIFIED 2026-08-29**
+
+> **F17 is closed. Required deletion = NONE, and no sweep is to be run.**
+>
+> The `AZ:BE` range named below was a first reading and is **retired**; the residue was later
+> established as `BA:BI`, and a fresh authoritative XLSX read on 2026-08-29 found it **already
+> absent** — `Bot_Sessions` has 52 contiguous headers `A:AZ` ending at `AZ = financial_zone`,
+> with no cell and no data at or beyond `BA`.
+>
+> `scripts/p71b-column-sweep.ps1` must **not** be run: its target range would today delete live
+> columns. F17 itself — the Sheets credential's domain restriction — remains a sound control that
+> fired as designed, and is not to be weakened for hygiene.
+>
+> Authoritative record: `P9_F17_HEADER_CORRECTION.md`.
 
 `scripts/p71b-column-sweep.ps1` was written to remove the six dead `AZ:BE` columns. It
 deliberately used the raw Sheets v4 API rather than the Sheets node, for two good reasons: the
@@ -216,7 +229,7 @@ customer sheet is a worse trade than leaving six empty columns in place.
 | `submission_key` **read** live | **YES** — F14 refuted, through the unmodified production read node |
 | Mint spliced into `Get Bot Session` | **NO** — P7.2 |
 | Row builders extended | **NO** — all three, together, in P7.2 |
-| Dead `AZ:BE` columns removed | **NO** — blocked by F17 |
+| Dead `AZ:BE` columns removed | **SUPERSEDED** — range was wrong; residue was `BA:BI` and is **absent** as of 2026-08-29 (F17 CLOSED, deletion = NONE) |
 | Mini App submit gateway deployed | **NO** — unchanged, still absent |
 | General Mini App activation | **NOT CLEARED** — unchanged |
 
@@ -238,7 +251,9 @@ The P7.0 §5 list is now two steps shorter. What remains:
 4. **Row-builder exactness is now a schema-integrity rule, not a hygiene preference** (F16). Any
    stray property on a row object widens `Bot_Sessions` permanently.
 
-**Open for the owner (F17):** the sweep of `AZ:BE` needs one of —
+**~~Open for the owner (F17)~~ — CLOSED 2026-08-29. Option (d) is what happened, and it is now
+permanent: no sweep is to be run, and the four options below are retained only as the historical
+record.** The sweep of `AZ:BE` was framed as needing one of —
 
 - **(a)** allow `PzVCuEPa9YF3YSaD` in HTTP Request nodes, run `p71b` exactly as written, restore
   the restriction. The script is complete and its nine proofs are unmodified.
