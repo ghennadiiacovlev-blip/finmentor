@@ -67,7 +67,17 @@ export const APP_SESSION_TABLE = 'MiniApp_App_Sessions';
 export const SUPABASE_CREDENTIAL = { id: 'B6wRirWfjqoASXU3', name: 'FINMENTOR Supabase G5' };
 export const NEON_CREDENTIAL_ID = 'LWefMXHbpCWhvobq';
 export const WEBHOOK_PATH = 'finmentor-miniapp-gateway';
-export const APP_SESSION_TTL_SECONDS = 1800;
+// OWNER DECISION 5 (2026-08-29): 1800s is rejected for the Premium UX. A 30-minute window
+// contradicts «Продолжить незавершённый бриф» — a client who steps away for an hour would find no
+// session to resume, and the Telegram copy promises otherwise.
+//
+// The closed Gateway contract does NOT fix this value. Contract §6 requires only "server-side
+// TTL", i.e. a BOUNDED lifetime, and never names a number. The G5 replay ledger is a separate
+// clock entirely (auth_date + 900s in Derive Replay Key) and is untouched by this change.
+//
+// Fixed hard expiry, stamped server-side at bootstrap. No sliding extension, and the client
+// cannot influence it: expires_at is written by the Gateway and only ever read afterwards.
+export const APP_SESSION_TTL_SECONDS = 259200; // 72 hours
 
 export const NODES = [
   'Gateway Webhook', 'Verify InitData', 'IF Verified', 'Respond Rejected',

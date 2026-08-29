@@ -208,13 +208,27 @@ check('REJECTS a malformed or dishonest acknowledgement', () => {
   for (const a of bad) { assert(!PR.buildPrivacyRecord({ submissionKey: KEY, ack: a }).ok, 'accepted: ' + JSON.stringify(a)); }
 });
 
-check('the insert is idempotent by conflict, so a retry writes no second row', () => {
-  assert(/on conflict \(submission_key\) do nothing/.test(PR.INSERT_SQL), 'insert is not conflict-idempotent');
+check('the insert is a PLAIN insert — ON CONFLICT needs a SELECT the writer must not have', () => {
+  // Measured against the real privacy_audit_writer role: `on conflict do nothing` fails with
+  // permission denied, because ON CONFLICT requires SELECT and the writer is granted INSERT only.
+  // Granting SELECT to make the tidier form work would trade the least-privilege property for
+  // syntax, so idempotency moves one layer up: the unique index raises 23505 and the caller reads
+  // that as "already recorded". Three write attempts for one key left exactly one row.
+  assert(!/on conflict/i.test(PR.INSERT_SQL), 'ON CONFLICT is back; it needs SELECT and the writer has none');
   assert(!/update/i.test(PR.INSERT_SQL), 'the insert contains an UPDATE — append-only would be a claim, not a fact');
   assert(!/delete/i.test(PR.INSERT_SQL), 'the insert contains a DELETE');
+  assert(/privacy\.privacy_acknowledgements/.test(PR.INSERT_SQL), 'the insert does not target the privacy schema');
   const params = PR.insertParams(PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack() }).record);
-  eq(params.length, 9, 'parameter count');
+  eq(params.length, 7, 'parameter count');
   eq(params[0], KEY, 'first parameter is the opaque key');
+});
+
+check('a duplicate write is recognised as already-recorded, not as a failure', () => {
+  eq(PR.ALREADY_RECORDED_SQLSTATE, '23505', 'sqlstate');
+  assert(PR.isAlreadyRecorded({ code: '23505' }), 'did not recognise 23505');
+  assert(PR.isAlreadyRecorded({ message: 'duplicate key value violates unique constraint "x"' }), 'did not recognise the message form');
+  assert(!PR.isAlreadyRecorded({ code: '42501' }), 'treated permission denied as already-recorded');
+  assert(!PR.isAlreadyRecorded(null), 'treated no error as already-recorded');
 });
 
 console.log('');

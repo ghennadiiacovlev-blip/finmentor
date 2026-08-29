@@ -106,7 +106,7 @@ async function main() {
   must('state is draft', String(newest.state) === 'draft');
   must('draft_json is empty', String(newest.draft_json || '') === '');
   const ttl = (new Date(newest.expires_at) - new Date(newest.created_at)) / 1000;
-  must('TTL is 1800s', Math.abs(ttl - 1800) < 2, String(ttl));
+  must('TTL is 72h', Math.abs(ttl - 259200) < 2, String(ttl)); // owner decision 5; was 1800s
 
   say('');
   say('== 8 + 11. NO PII, NO SIGNED MATERIAL PERSISTED ===========');

@@ -161,7 +161,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into public.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, ''), $3, $4, $5::timestamptz, $6::timestamptz, $7)\non conflict (submission_key) do nothing",
+        "query": "insert into privacy.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, ''), $3, $4, $5::timestamptz, $6::timestamptz, $7)",
         "options": {}
       },
       "id": "pux-privacy-write",

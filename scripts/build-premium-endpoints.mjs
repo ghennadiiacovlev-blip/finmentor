@@ -264,7 +264,10 @@ function submitWorkflow() {
     ifNode('IF Submit Allowed', '={{ $json.ok }}', 1),
     code('Build Privacy Record', SUBMIT_PRIVACY),
     { parameters: { operation: 'executeQuery',
-      query: 'insert into public.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, \'\'), $3, $4, $5::timestamptz, $6::timestamptz, $7)\non conflict (submission_key) do nothing',
+      // PLAIN insert. Idempotency is the unique index on submission_key plus 23505 handling in
+      // Parse Privacy Result — NOT `on conflict do nothing`, which needs a SELECT the writer is
+      // deliberately not granted. Measured against the real role; see the privacy store proof.
+      query: 'insert into privacy.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, \'\'), $3, $4, $5::timestamptz, $6::timestamptz, $7)',
       options: {} },
       id: 'pux-privacy-write', name: 'Write Privacy Acknowledgement', type: 'n8n-nodes-base.postgres', typeVersion: 2.4, position: [1320, 0],
       credentials: { postgres: { id: PRIVACY_CRED_PLACEHOLDER, name: 'FINMENTOR Privacy Audit (writer)' } },
@@ -346,7 +349,10 @@ export function verifyEndpoint(wf, kind) {
     if (iPrivacy === -1 || iIntake === -1) { f.push('submit endpoint is missing a required node'); }
     else if (iPrivacy > iIntake) { f.push('the acknowledgement is written AFTER the irreversible call'); }
     if (json.indexOf('Save to Pipeline') !== -1 || json.indexOf('googleSheets') !== -1) { f.push('submit endpoint writes the CRM directly'); }
-    if (json.indexOf('on conflict (submission_key) do nothing') === -1) { f.push('the privacy insert is not idempotent'); }
+    // Idempotency is the unique index plus 23505 handling, NOT ON CONFLICT: measured against the
+    // real writer role, ON CONFLICT needs SELECT and the writer is granted INSERT only.
+    if (/on conflict/i.test(json)) { f.push('the privacy insert uses ON CONFLICT, which needs a SELECT the writer must not have'); }
+    if (json.indexOf('privacy.privacy_acknowledgements') === -1) { f.push('the privacy insert does not target the privacy schema'); }
     if (/\bupdate\s+public\.privacy_acknowledgements/i.test(json) || /delete\s+from\s+public\.privacy_acknowledgements/i.test(json)) {
       f.push('the candidate mutates the privacy store');
     }

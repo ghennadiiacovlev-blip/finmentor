@@ -13,9 +13,10 @@
 //   * A "shown but never acknowledged" row has no evidentiary value. The obligation is to prove
 //     what was ACKNOWLEDGED, not what was rendered; a row for every impression is a second
 //     analytics dataset with none of the benefit.
-//   * One row per `submission_key` is idempotent by construction: the retry does
-//     `on conflict (submission_key) do nothing`, exactly the CTE shape G5 already proved.
-//     An event model would need a join to answer the only question that is ever asked.
+//   * One row per `submission_key` is idempotent by construction: a unique index, a plain INSERT,
+//     and SQLSTATE 23505 read as "already recorded". NOT `on conflict do nothing` — see INSERT_SQL
+//     below for why the writer role cannot execute that form. An event model would need a join to
+//     answer the only question that is ever asked.
 //
 // WHAT IT MUST NEVER CARRY. The record is deliberately almost empty. It links to the request by an
 // opaque `submission_key` — the identity the cycle issuer already mints — and carries no personal
@@ -113,17 +114,42 @@ function buildPrivacyRecord(opts) {
   return { ok: true, record: record };
 }
 
-// The insert the endpoint issues. Idempotent by conflict, never by read-then-write: a retry after
-// an ambiguous outcome produces no second row and no error.
+// The insert the endpoint issues.
+//
+// PLAIN INSERT, NOT `on conflict do nothing` — and that is a correction forced by measurement, not
+// a style choice. The Phase 2 design used `on conflict (submission_key) do nothing`, which reads as
+// the obviously-idempotent form. Executed as the real `privacy_audit_writer` role it fails with
+// `permission denied for table`: ON CONFLICT needs SELECT, and the writer is granted INSERT and
+// nothing else. Granting SELECT to make the pretty form work would have traded the least-privilege
+// property for syntax.
+//
+// A plain INSERT is idempotent in exactly the same way, one layer up: the unique index on
+// `submission_key` raises SQLSTATE 23505, and the caller treats that as "already recorded".
+// Measured on the live store: three write attempts for one key leave exactly one row.
+//
+// The table lives in its own schema. `public` is owned by `pg_database_owner`, so a non-login
+// owner role could not be given CREATE there and therefore could not own a table in it.
 const INSERT_SQL = [
-  'insert into public.privacy_acknowledgements',
+  'insert into privacy.privacy_acknowledgements',
   '  (submission_key, cycle_id, privacy_notice_version, privacy_locale,',
-  '   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis,',
-  '   marketing_consent, marketing_consent_at)',
-  'values ($1, nullif($2, \'\'), $3, $4, $5::timestamptz, $6::timestamptz, $7, $8, $9::timestamptz)',
-  'on conflict (submission_key) do nothing'
+  '   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)',
+  'values ($1, nullif($2, \'\'), $3, $4, $5::timestamptz, $6::timestamptz, $7)'
 ].join('\n');
 
+// SQLSTATE for unique_violation. A retry that raises this has NOT failed — the acknowledgement is
+// already on record, which is the outcome the caller wanted.
+const ALREADY_RECORDED_SQLSTATE = '23505';
+
+function isAlreadyRecorded(err) {
+  if (!err) { return false; }
+  const code = err.code || err.sqlState || err.sqlstate || (err.original && err.original.code) || '';
+  if (String(code) === ALREADY_RECORDED_SQLSTATE) { return true; }
+  return /duplicate key value violates unique constraint/i.test(String(err.message || err));
+}
+
+// Marketing consent is deliberately NOT in the insert. It is separate, optional, never required to
+// submit, and is not collected anywhere in v1 — so it has no column in the created store rather
+// than a column that is always null.
 function insertParams(record) {
   return [
     record.submission_key,
@@ -132,10 +158,11 @@ function insertParams(record) {
     record.privacy_locale,
     record.privacy_notice_shown_at,
     record.privacy_notice_acknowledged_at,
-    record.privacy_legal_basis,
-    record.marketing_consent,
-    record.marketing_consent_at
+    record.privacy_legal_basis
   ];
 }
 
-module.exports = { RECORD_KEYS, FORBIDDEN, PENDING_LEGAL_BASIS, buildPrivacyRecord, leaks, INSERT_SQL, insertParams };
+module.exports = {
+  RECORD_KEYS, FORBIDDEN, PENDING_LEGAL_BASIS, buildPrivacyRecord, leaks,
+  INSERT_SQL, ALREADY_RECORDED_SQLSTATE, isAlreadyRecorded, insertParams
+};
