@@ -50,6 +50,11 @@ const GATES = [
   ['P9-R2 Gateway store-failure harness', 'gateway-store-failure-harness.test.mjs'],
   ['P9-R3 Lead Intake dedup-outage harness', 'lead-intake-dedup-harness.test.mjs'],
   ['P9-R4 Lead Intake dedup remediation', 'lead-intake-dedup-remediation.test.mjs'],
+  ['Premium UX content contract', 'premium-ux-content.test.mjs'],
+  ['Premium UX draft + provenance', 'premium-ux-draft.test.mjs'],
+  ['Premium UX submit projection', 'premium-ux-submit.test.mjs'],
+  ['Premium UX Telegram state machine', 'premium-ux-state.test.mjs'],
+  ['Premium UX brief + privacy record', 'premium-ux-brief.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];

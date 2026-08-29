@@ -1,0 +1,546 @@
+{
+  "name": "[CANDIDATE] FINMENTOR Mini App Submit",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "finmentor-miniapp-submit",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "pux-submit-webhook",
+      "name": "Submit Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The submit body carries a session id and a privacy acknowledgement. NOTHING ELSE IS READ.\n//\n// This is stronger than B.2.0, where answers travelled with the submit call and were\n// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to\n// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not\n// filtered, it is simply never looked at.\nconst body = $(\"Submit Webhook\").first().json.body || {};\nconst id = String(body.app_session_id || \"\").trim();\nconst ack = body.privacy_ack || {};\nconst iso = v => typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);\nif (!/^AS-[0-9a-f]{64}$/.test(id)) { return [{ json: { ok: 0, error_code: \"BAD_REQUEST\", status: 400 } }]; }\nif (!String(ack.notice_version || \"\").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {\n  return [{ json: { ok: 0, error_code: \"CONSENT_REQUIRED\", status: 409 } }];\n}\nreturn [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || \"ru\"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];"
+      },
+      "id": "pux-submit-guard",
+      "name": "Submit Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-submit-shape-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-submit-shape",
+      "name": "IF Submit Shape",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_App_Sessions"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "app_session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.app_session_id }}"
+            }
+          ]
+        }
+      },
+      "id": "pux-submit-read",
+      "name": "Read Submit Session",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Idempotency, resolved from server state BEFORE the irreversible call.\n//\n// A retry after an ambiguous outcome must return the PRIOR canonical success rather than\n// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || \"\").trim() !== \"\");\nif (rows.length !== 1) { return [{ json: { ok: 0, error_code: \"SESSION_INVALID\", status: 401 } }]; }\nconst s = rows[0];\nif (new Date(String(s.expires_at)).getTime() <= Date.now()) { return [{ json: { ok: 0, error_code: \"SESSION_EXPIRED\", status: 401 } }]; }\nif (String(s.state) === \"submitted\") {\n  return [{ json: { ok: 0, already: 1, error_code: \"ALREADY_SUBMITTED\", status: 200, lead_id: String(s.lead_id || \"\") } }];\n}\nlet draft = null;\ntry { draft = JSON.parse(String(s.draft_json || \"null\")); } catch (e) { draft = null; }\nif (!draft || !draft.fields) { return [{ json: { ok: 0, error_code: \"BAD_REQUEST\", status: 400 } }]; }\nreturn [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id, cycle_id: String(s.cycle_id || \"\"), draft: draft } }];"
+      },
+      "id": "pux-submit-state",
+      "name": "Submit State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-submit-allowed-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-submit-allowed",
+      "name": "IF Submit Allowed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The acknowledgement is written BEFORE the irreversible Lead Intake call.\n//\n// That ordering is the whole argument for a separate store: the notice was shown and\n// acknowledged whether or not the submission then succeeds, and a per-lead CRM row could only\n// ever record the acknowledgements that happened to succeed — the wrong subset.\n//\n// One immutable row per submission_key. No UPDATE turns \"shown\" into \"acknowledged\", because\n// both timestamps are captured at acknowledgement time. The insert is idempotent by conflict,\n// so a retry writes no second row and raises no error.\nconst v = $(\"Submit State\").first().json;\nconst ack = $(\"Submit Guard\").first().json.privacy_ack;\nreturn [{ json: {\n  submission_key: String(v.submission_key || \"\"),\n  cycle_id: v.cycle_id,\n  privacy_notice_version: ack.notice_version,\n  privacy_locale: ack.locale,\n  privacy_notice_shown_at: ack.shown_at,\n  privacy_notice_acknowledged_at: ack.acknowledged_at,\n  // Owner decision B: no final Moldovan legal-basis value until legal review.\n  privacy_legal_basis: \"PENDING_LEGAL_REVIEW\"\n} }];"
+      },
+      "id": "pux-build-privacy-record",
+      "name": "Build Privacy Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into public.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, ''), $3, $4, $5::timestamptz, $6::timestamptz, $7)\non conflict (submission_key) do nothing",
+        "options": {}
+      },
+      "id": "pux-privacy-write",
+      "name": "Write Privacy Acknowledgement",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        1320,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "__PRIVACY_AUDIT_CREDENTIAL_ID__",
+          "name": "FINMENTOR Privacy Audit (writer)"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Deployed form of n8n/src/premium-ux/submit-projection.js buildLeadIntakePayload.\n// The answers come from the STORED draft, never from the request body.\nreturn [{ json: { placeholder: \"built from $('Submit State').first().json.draft\" } }];"
+      },
+      "id": "pux-build-intake-payload",
+      "name": "Build Intake Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "__LEAD_INTAKE_WORKFLOW_ID__"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "pux-intake",
+      "name": "Call Lead Intake",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Success is `ok === true` and nothing else. Not HTTP 2xx, not a parseable body, not the\n// absence of an exception — the rule Lead Intake already enforces, restated where it is read.\nconst r = $input.first().json || {};\nconst b = (r.body && typeof r.body === \"object\") ? r.body : r;\nconst ok = b.ok === true || String(b.ok).toLowerCase() === \"true\";\nif (!ok) { return [{ json: { ok: 0, error_code: String(b.error_code || \"INTAKE_NOT_OK\"), retryable: b.retryable === true, status: 503 } }]; }\nreturn [{ json: { ok: 1, lead_id: String(b.lead_id || \"\"), priority: String(b.priority || \"\"), financial_zone: String(b.financial_zone || \"\") } }];"
+      },
+      "id": "pux-parse-intake-result",
+      "name": "Parse Intake Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-intake-ok-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-intake-ok",
+      "name": "IF Intake OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_App_Sessions"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "app_session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Submit State').first().json.app_session_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "state": "submitted",
+            "updated_at": "={{ new Date().toISOString() }}"
+          },
+          "schema": []
+        }
+      },
+      "id": "pux-mark-submitted",
+      "name": "Mark Submitted",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, lead_id: $('Parse Intake Result').first().json.lead_id, priority: $('Parse Intake Result').first().json.priority, financial_zone: $('Parse Intake Result').first().json.financial_zone, submit_state: 'submitted' }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "pux-r-respond-submit-ok",
+      "name": "Respond Submit OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'BAD_REQUEST', retryable: false }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "pux-r-respond-submit-rejected",
+      "name": "Respond Submit Rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'SESSION_INVALID', retryable: false }) }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "pux-r-respond-submit-session-invalid",
+      "name": "Respond Submit Session Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'SUBMIT_UNRESOLVED', retryable: true }) }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "pux-r-respond-submit-unresolved",
+      "name": "Respond Submit Unresolved",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Submit Webhook": {
+      "main": [
+        [
+          {
+            "node": "Submit Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Guard": {
+      "main": [
+        [
+          {
+            "node": "IF Submit Shape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Submit Shape": {
+      "main": [
+        [
+          {
+            "node": "Read Submit Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Submit Session": {
+      "main": [
+        [
+          {
+            "node": "Submit State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit State": {
+      "main": [
+        [
+          {
+            "node": "IF Submit Allowed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Submit Allowed": {
+      "main": [
+        [
+          {
+            "node": "Build Privacy Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Session Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Privacy Record": {
+      "main": [
+        [
+          {
+            "node": "Write Privacy Acknowledgement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Privacy Acknowledgement": {
+      "main": [
+        [
+          {
+            "node": "Build Intake Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Intake Payload": {
+      "main": [
+        [
+          {
+            "node": "Call Lead Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Lead Intake": {
+      "main": [
+        [
+          {
+            "node": "Parse Intake Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Intake Result": {
+      "main": [
+        [
+          {
+            "node": "IF Intake OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Intake OK": {
+      "main": [
+        [
+          {
+            "node": "Mark Submitted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Unresolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Submitted": {
+      "main": [
+        [
+          {
+            "node": "Respond Submit OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none"
+  }
+}
