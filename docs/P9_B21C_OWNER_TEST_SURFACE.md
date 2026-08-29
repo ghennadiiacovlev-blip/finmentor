@@ -762,24 +762,119 @@ them.
     page retained executions      0
 
 
-## 16. Gateway verdict
+### 15.3 STEP 3B — A + B on the P9-R2 graph. **LIVE PASS** (2026-08-29 08:23:58Z)
 
-    VALID ACCEPT    = LIVE PASS
-    EXACT REPLAY    = LIVE PASS
-    STALE FRESHNESS = LIVE PASS   (banked 2026-08-29)
-    STORE FAILURE   = LIVE PASS   (P9-R2 deployed and proven 2026-08-29, §14)
+One owner press of the button already in the chat. No second button was sent, so no second signed
+context was issued. One genuine Telegram context, one body built once, two shots back to back.
 
-**GATEWAY: GO on the four contract gates.** All four are now proven — three against genuine
-Telegram-signed contexts, the fourth on an isolated harness that never touched production.
+| | client-visible (owner's screen) | server-side (measured here) |
+|---|---|---|
+| A · ACCEPT | `200`, `ok:true`, `session_id_len` **67**, `leak_fields []` | ledger **3 → 4**, sessions **3 → 4** |
+| B · EXACT REPLAY | `409`, `ok:false`, `REPLAY_REFUSED`, `retryable:false`, `leak_fields []` | ledger **+0**, sessions **+0** |
 
-Two things keep this short of an unqualified product GO, and both are stated because they are
-true rather than because they are required:
+**The two halves agree, and that is the point.** `session_id_len = 67` on screen is exactly
+`AS-` + 64 hex, the shape of the row actually stored. The client report and the database were
+collected independently and cross-check each other.
 
-- **A and B have not been re-run since the claim query changed.** They passed on the previous
-  graph. The harness controls and the real-Postgres probe say the change is safe, but a live
-  press is the only thing that proves it. That is step 3 and awaits owner approval.
-- **The negative battery has not been re-run.** `Respond Rejected` is the shared path for
-  400/401/403 and was not modified, so no regression is expected there — expected is not proven.
+**Why the client half had to come from the owner's screen.** Both workflows retain zero
+executions by design, so no server-side record exists of what the caller was *told*. The ledger
+and session writes prove the Gateway did the work; they do not prove it reported it. That is
+precisely P9-R1 §8a — a session was minted there too and the caller still received a bare 500 —
+so the codes were requested rather than inferred from the writes.
 
-Nothing was merged and the product was not activated.
+### The two shots were one request
+
+    ledger  replay_key fingerprint : 4ccaf2f65727b1753aa0af52f8cf838c
+    session replay_key fingerprint : 4ccaf2f65727b1753aa0af52f8cf838c   -> same request
+
+    ledger first_seen_at           : 2026-08-29 08:23:58.082833+00
+    ledger expires_at              : 2026-08-29 08:38:54+00
+    implied auth_date              : 2026-08-29 08:23:54+00
+    payload age at claim           : 4.08 s   -> a genuinely fresh signature
+    replay_key shape               : 64 lowercase hex
+    app_session_id shape           : AS- + 64 lowercase hex, all 16 hex digits present
+    session TTL                    : 1800 s
+    cycle_id / draft_json / state  : "" / "" / draft
+
+Compared by MD5 fingerprint so neither digest is ever printed. **On the intermediate read:** A and
+B ran back to back in one uninterrupted browser run, so there was no moment at which the ledger
+could be sampled *between* them. That the delta is **+1 and not +2** — one ledger row, one
+session, with B answering 409 and carrying no `app_session_id` — is what establishes that B
+claimed nothing. Claiming three separate reads were taken would be a nicer sentence and a false
+one.
+
+### A correction to this session's own scan
+
+The first leak scan reported a `phone` on the new session row. **It was a false positive in the
+check, not a leak.** A loose digit pattern matches the nine-digit `telegram_user_id` and every
+ISO timestamp, so it fired on a row behaving exactly as specified. A scan that cannot fail
+meaningfully cannot pass meaningfully either, so it was replaced rather than waived:
+
+- signed material (`query_id=`, `auth_date=`, `user=`, `hash=`, `signature=`, a bot-token
+  shape) scanned across the **whole** row — none present;
+- contact PII scanned only over the fields that can carry free text (`cycle_id`, `state`,
+  `draft_json`, which held `""`, `draft`, `""`) — none present;
+- the column set asserted to be **exactly** the expected thirteen, so nothing was added;
+- `telegram_user_id` / `chat_id` asserted for **shape** — a bare numeric id, equal to each
+  other — because the contract requires that binding to be there (§6). It is the session binding,
+  not a leak, and no name, username, email, phone or free text accompanies it.
+
+### The seventeen proofs
+
+     1. A = HTTP 200, ok:true                        PASS   owner screen
+     2. exactly one new G5 row on A                  PASS   3 -> 4
+     3. exactly one new app session on A             PASS   3 -> 4
+     4. B = HTTP 409 REPLAY_REFUSED                  PASS   owner screen
+     5. G5 count unchanged on B                      PASS   +1 total, not +2
+     6. app-session count unchanged on B             PASS   +1 total, not +2
+     7. A and B used the exact same body built once  PASS   one replay_key; page line 126
+     8. leak_fields = []                             PASS   both shots, and the stored row
+     9. Gateway retained executions = 0              PASS   after a real ACCEPTED request
+    10. page retained executions = 0                 PASS
+    11. no raw initData, signature or PII persisted  PASS   exact column set, no signed material
+    12. G5 schema unchanged                          PASS   4 columns
+    13. Supabase G5 the only Gateway Postgres cred   PASS
+    14. Neon untouched                               PASS   not referenced
+    15. Concierge and Lead Intake unchanged          PASS   9/9 tracked, 0 drift
+    16. Pipeline untouched                           PASS   structurally impossible from the Gateway
+    17. F17 untouched                                PASS   sweep driver inactive, 0 executions
+
+Proof 15 was measured with `Get-WorkflowStructuralHash` from `scripts/n8n-lib.ps1` — the same
+function that produced the tracked hashes in `n8n/production/manifest.json`. A Node
+reimplementation would be a different serialisation and could only ever prove itself.
+
+Zero executions tenant-wide in the press window. The negative battery was re-run afterwards and
+the ledger stayed at 4, so nothing in this verification consumed a replay key.
+
+
+## 16. Gateway verdict — **FINAL GO**
+
+    VALID ACCEPT     = LIVE PASS       genuine Telegram context, 200 + high-entropy session
+    EXACT REPLAY     = LIVE PASS       same bytes resent, 409 REPLAY_REFUSED, nothing claimed
+    STALE FRESHNESS  = LIVE PASS       banked 2026-08-29, 401 TG_INITDATA_EXPIRED
+    STORE FAILURE    = ISOLATED PASS   503 REPLAY_STORE_UNAVAILABLE retryable:true, both shots
+    NEGATIVE BATTERY = LIVE PASS       12 cases, all deterministic, zero side effects
+
+**GATEWAY = FINAL GO.**
+
+All four contract gates plus the negative battery are proven on the deployed P9-R2 graph. Three
+gates were proven against genuine Telegram-signed contexts, the fourth on an isolated harness that
+never touched production, and the battery against the live endpoint with a ledger that did not
+move.
+
+What this closes and what it does not:
+
+- It closes the **Gateway** gate. The bootstrap contract — verify, refuse a replay, refuse a
+  stale context, fail closed and *say so* when the store is unreachable — behaves as specified on
+  the wire, not on the page.
+- It does **not** merge anything, activate the Mini App product, or open F17 or Premium
+  Conversation UX. The branch stands where it stands.
+- `docs/FINDING_LEAD_INTAKE_DEDUP_STORE_OUTAGE.md` remains **OPEN and explicitly outside this
+  gate**. It is the same `alwaysOutputData` + `continueErrorOutput` defect class found by
+  sweeping for the pair after P9-R2 was understood, it lives in Lead Intake rather than the
+  Gateway, and it is a reading of the graph rather than a live finding. Nothing in Lead Intake was
+  touched.
+
+The Gateway was NO-GO for one reason and one only: a store outage told every caller their context
+had already been used. It now says 503, retry. That was the last gate.
 
