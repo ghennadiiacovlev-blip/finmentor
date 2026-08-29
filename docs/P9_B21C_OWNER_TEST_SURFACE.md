@@ -677,7 +677,92 @@ they are not the same thing as a real signed context, and this document does not
 interchangeable. That is step 3, and it is not approved.
 
 
-## 15. Gateway verdict
+## 15. Step 3 — final Gateway verification (owner-approved 2026-08-29)
+
+### 15.1 STEP 3A — the negative battery, re-run live. **LIVE PASS**
+
+No owner action. `scripts/run-gateway-negative-battery.mjs` re-runs the eleven cases already
+approved in `P9_GATEWAY_NEGATIVE_LIVE_PROOF.md` §2/3, plus an empty-string `init_data` that
+exercises the same presence check as an absent one. Nothing new is invented: this is a regression
+check, not a discovery exercise. P9-R2 changed the claim query and the verdict node, and
+`Respond Rejected` is the shared path for every 400/401/403 — this is what says it was not
+disturbed.
+
+    non-JSON content-type                     400  BAD_REQUEST
+    unsupported client_version                400  CLIENT_VERSION_UNSUPPORTED
+    unsupported locale                        400  BAD_REQUEST
+    init_data absent                          400  TG_INITDATA_MISSING
+    init_data empty string                    400  TG_INITDATA_MISSING
+    forged signature, fresh auth_date         401  TG_INITDATA_INVALID
+    forged signature, STALE auth_date (2h)    401  TG_INITDATA_INVALID
+    forged signature, FUTURE auth_date        401  TG_INITDATA_INVALID
+    signature field absent                    401  TG_INITDATA_INVALID
+    malformed initData (empty pair)           401  TG_INITDATA_INVALID
+    malformed percent-encoding                401  TG_INITDATA_INVALID
+    duplicate key                             401  TG_INITDATA_INVALID
+
+Twelve cases, 84 assertions, every one deterministic and matching the pre-P9-R2 outcome exactly.
+The two stale/future cases return `TG_INITDATA_INVALID` rather than `EXPIRED`/`FUTURE` because
+the signature is checked **before** freshness and these signatures are forged — the same ordering
+that made the genuine stale proof (§8) meaningful.
+
+Per case: `ok:false`, `retryable:false`, the body is exactly the three-key contract
+`{ok, error_code, retryable}`, no `app_session_id`, and `leak_fields` empty — scanned for
+`query_id=`, `auth_date=`, `signature=`, `hash=`, `init_data`, bot/token/password/stack
+shapes, Postgres and Supabase strings, the ledger table name, and the synthetic user id.
+
+**Zero side effects, measured rather than assumed:**
+
+    G5 ledger rows                3 -> 3   (newest still 2026-08-29 07:05:55.493966+00)
+    app-session rows              3 -> 3
+    Gateway retained executions   0 -> 0
+    page retained executions      0 -> 0
+    Gateway graph                 unchanged, still active
+    only Postgres credential      FINMENTOR Supabase G5
+
+**Rejected requests cannot reach G5, structurally.** Every payload carries a random signature, so
+none can pass Ed25519, and `Derive Replay Key` sits downstream of `IF Verified`. The ledger
+count is the measurement; the graph shape is the reason.
+
+### 15.2 STEP 3B — preflight before the owner press
+
+`scripts/preflight-b21c-ab-press.mjs` changes nothing. It proves the page is ready and takes the
+baselines the post-press proof is measured against.
+
+**No new button was created and no sender was run.** The sender `2e8iMFQYVIwufhUy` and the driver
+`gbeozU4lyy3YDv0M` are both INACTIVE and were left that way — a second button would issue a second
+signed context, and "the same bytes twice" would then be a claim about two different contexts. The
+message already in the owner chat is the one to press.
+
+    live page vs gateway/n8n/b21c-gateway-test-page.html   BYTE-IDENTICAL
+    reviewed source vs the builder gate                     still passes
+    shot C / STALE FRESHNESS                                absent
+    TG_INITDATA_EXPIRED asserted                            absent
+    setInterval / setTimeout / rAF / rIC                    none - no scheduler at all
+    fetch call sites                                        exactly 1
+    send() calls                                            2, chained: A then B
+    B asserts REPLAY_REFUSED and no second session          yes
+    initData persisted or logged                            no storage, no cookie, no console,
+                                                            no initDataUnsafe
+    page workflow                                           ACTIVE, route b21c/gateway-test
+    Gateway                                                 ACTIVE, 13 nodes, CTE claim,
+                                                            no alwaysOutputData, 200/409/503
+                                                            numeric, one Supabase G5 credential
+
+**One body, built once.** At `b21c-gateway-test-page.html:126` the request body is serialised a
+single time into `var body`; `send()` closes over that variable and both shots pass it
+unmodified. B is provably the same bytes as A because there is no code path that could rebuild
+them.
+
+**Fresh baselines immediately before the press:**
+
+    G5 ledger rows                3
+    app-session rows              3
+    Gateway retained executions   0
+    page retained executions      0
+
+
+## 16. Gateway verdict
 
     VALID ACCEPT    = LIVE PASS
     EXACT REPLAY    = LIVE PASS
