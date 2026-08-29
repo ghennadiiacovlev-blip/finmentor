@@ -51,6 +51,7 @@ export const MINIAPP_URL_PLACEHOLDER = '__PREMIUM_MINIAPP_URL__';
 
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
 const SM_PATH = join(ROOT, 'n8n', 'src', 'premium-ux', 'tg-state-machine.js');
+const CX_PATH = join(ROOT, 'n8n', 'src', 'premium-ux', 'context-extraction.js');
 const SM = require(SM_PATH);
 
 const args = process.argv.slice(2);
@@ -79,6 +80,18 @@ const cachesStripped = JSON.stringify(live.nodes).split('"cachedResult').length 
 // ------------------------------------------------------------------ the node body
 
 // The module source, minus its CommonJS shell. Inlined rather than reimplemented.
+// The extraction module, inlined the same way and for the same reason: one copy of the logic, and
+// qa/premium-ux-extraction.test.mjs drives it. Its `shownSections` and `promoteShown` reach back
+// into the other two modules through `require`, which does not exist in a Code node — so those two
+// functions are dropped here and the adapter calls `confirmContextSections` directly instead.
+const cxSource = readFileSync(CX_PATH, 'utf8')
+  .replace(/^'use strict';\s*$/m, '')
+  .replace(/^const B = require\('\.\/branches\.js'\);\s*$/m, '')
+  .replace(/^function shownSections\(normalised, turnoverBand\) \{[\s\S]*?\n\}\s*$/m, '')
+  .replace(/^function promoteShown\(draft, sections, nowIso\) \{[\s\S]*?\n\}\s*$/m, '')
+  .replace(/^module\.exports = \{[\s\S]*?\};\s*$/m, '')
+  .trim();
+
 const smSource = readFileSync(SM_PATH, 'utf8')
   .replace(/^'use strict';\s*$/m, '')
   .replace(/^const B = require\('\.\/branches\.js'\);\s*$/m, '')
@@ -96,9 +109,27 @@ const ADAPTER_HEAD = [
   '// reply_markup, tg_body, session, lead_ready, lead_payload, ai_guarded, debug, event — because',
   '// eleven downstream nodes read those keys and none of them is in scope here.',
   '',
-  'const B = { TG_COPY: ' + JSON.stringify(B.TG_COPY, null, 2).split('\n').join('\n') + ' };',
+  '// `B` stands in for branches.js, which cannot be required inside a Code node. It carries exactly',
+  '// what the two inlined modules read from it — the approved copy and the approved taxonomy — so a',
+  '// value that is not in branches.js cannot appear here. The extraction module reads',
+  '// B.OBJECTIVE_IDS and B.objectiveById; leaving those off produced a node that threw on the first',
+  '// message, which is what the executed gate caught.',
+  'const OBJECTIVE_LABEL = ' + JSON.stringify(B.OBJECTIVES.reduce((a, o) => { a[o.id] = o.label; return a; }, {}), null, 2) + ';',
+  'const B = {',
+  '  TG_COPY: ' + JSON.stringify(B.TG_COPY, null, 2).split('\n').join('\n') + ',',
+  '  OBJECTIVE_IDS: ' + JSON.stringify(B.OBJECTIVE_IDS) + ',',
+  '  OBJECTIVE_LABELS: ' + JSON.stringify(B.OBJECTIVE_LABELS) + ',',
+  '  objectiveById: (id) => (OBJECTIVE_LABEL[id] ? { id: id, label: OBJECTIVE_LABEL[id] } : null),',
+  '  objectiveByLabel: (label) => {',
+  '    for (const id of Object.keys(OBJECTIVE_LABEL)) {',
+  '      if (OBJECTIVE_LABEL[id] === label) { return { id: id, label: label }; }',
+  '    }',
+  '    return null;',
+  '  }',
+  '};',
   '',
   'const MINIAPP_URL = ' + JSON.stringify(MINIAPP_URL_PLACEHOLDER) + ';',
+  'const objectiveLabel = (id) => OBJECTIVE_LABEL[id] || "";',
   ''
 ].join('\n');
 
@@ -239,14 +270,45 @@ const ADAPTER_TAIL = [
   '',
   '// ---------------------------------------------------------------- output',
   '',
-  '// A confirmation screen with nothing to confirm is worse than no confirmation screen: it asks',
-  '// the client to verify a summary that is not there. If extraction produced no section, go',
-  '// straight to the brief.',
+  '// ---------------------------------------------------------------- context extraction',
+  '',
+  '// The free text has just arrived. Extraction proposes structure; `normalise` decides what is',
+  '// allowed through. Everything that survives is ai_inferred and unconfirmed, which is why it can',
+  '// prefill a later screen but can never skip a question.',
+  'if (outcome.state === "TG_CONFIRM_CONTEXT" && (writes || []).indexOf("free_text") !== -1) {',
+  '  const proposal = normalise(extractDeterministic(outcome.free_text || text));',
+  '  auth.context_extracted = {',
+  '    company_name: proposal.fields.company_name || "",',
+  '    role: proposal.fields.role || "",',
+  '    turnover_band: String(session.turnover_band || ""),',
+  '    objective: proposal.fields.objective ? (objectiveLabel(proposal.fields.objective) || "") : "",',
+  '    problem_summary: proposal.fields.problem_summary || ""',
+  '  };',
+  '  // Stored so the Mini App can prefill from the same proposal, and so «Всё верно» has',
+  '  // something to promote. The draft itself is written by the endpoint, not here.',
+  '  session.context_extracted_json = JSON.stringify(auth.context_extracted);',
+  '  session.context_confirmed = "false";',
+  '}',
+  '',
+  '// «Исправить» must not leave the rejected guess in place — a later screen would prefill from a',
+  '// value the client has just told us is wrong.',
+  'if (input.kind === "callback" && input.value === ACTIONS.CONFIRM_FIX) {',
+  '  session.context_extracted_json = "";',
+  '  session.context_confirmed = "false";',
+  '}',
+  '',
+  '// The confirmation screen has to EARN its place. «Проверьте, правильно ли FINMENTOR понял ваш',
+  '// контекст» is worth asking when extraction found structure — a company, a role, an objective.',
+  '// It is not worth asking when the only thing on screen is the client\'s own sentence read back',
+  '// to them: that is a step with no decision in it, and it makes the product look like it',
+  '// understood something when it did not.',
   '//',
-  '// IN THIS CANDIDATE THAT IS THE ONLY PATH. The context-extraction step does not exist in the',
-  '// Concierge spine, so context_extracted_json is never populated and TG_CONFIRM_CONTEXT never',
-  '// renders. That is a NAMED GAP, not an accident — see PREMIUM_UX_PRODUCTION_PREREQUISITES.md.',
-  'if (outcome.state === "TG_CONFIRM_CONTEXT" && confirmContextSections(auth.context_extracted).length === 0) {',
+  '// So the screen renders only when at least one STRUCTURED field survived. `problem_summary` is',
+  '// the client\'s own words and never counts towards that on its own.',
+  'const structuralKeys = ["company_name", "role", "turnover_band", "objective"];',
+  'const sectionsNow = confirmContextSections(auth.context_extracted);',
+  'const hasStructure = sectionsNow.some((s) => structuralKeys.indexOf(s.key) !== -1);',
+  'if (outcome.state === "TG_CONFIRM_CONTEXT" && !hasStructure) {',
   '  outcome.state = "TG_OPEN_BRIEF";',
   '  outcome.copy = B.TG_COPY.TG_OPEN_BRIEF;',
   '}',
@@ -287,7 +349,15 @@ const ADAPTER_TAIL = [
   '}];'
 ].join('\n');
 
-const NODE_BODY = ADAPTER_HEAD + '\n' + smSource + '\n' + ADAPTER_TAIL + '\n';
+// Both gated modules, in dependency order, then the adapter that binds them to n8n's item shape.
+const NODE_BODY = ADAPTER_HEAD + '\n' + smSource + '\n\n' + cxSource + '\n' + ADAPTER_TAIL + '\n';
+
+// An inlining that silently produced nothing would leave the node calling functions that do not
+// exist — which is exactly what the first attempt did, and what the executed gate caught.
+if (!/function normalise\b/.test(cxSource) || !/function extractDeterministic\b/.test(cxSource)) {
+  console.error('REFUSING: the extraction module did not survive inlining');
+  process.exit(1);
+}
 
 // ------------------------------------------------------------------ assemble
 

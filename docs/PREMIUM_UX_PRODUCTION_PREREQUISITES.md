@@ -21,8 +21,12 @@ schema and the Supabase privacy store — and both are recorded in full below.
 | MINI APP RU | **PASS** |
 | LEAD INTAKE PROJECTION | **PASS** |
 | LEGAL NOTICE | **PENDING** (permitted to remain pending) |
+| PRIVACY WRITER CREDENTIAL | **PASS** |
+| LEGAL NOTICE DRAFTS | **READY** |
+| TG_CONFIRM_CONTEXT | **PASS** |
+| RU OWNER UAT CANDIDATE | **READY** |
 
-QA: **43/43 gates, 1723 assertions, floors PASS.**
+QA: **45/45 gates, 1770 assertions, floors PASS.**
 
 Blockers that remain are in §8. None of them is one of the eight gates.
 
@@ -289,9 +293,9 @@ is a new workflow, and uses deploy-time placeholders for every production identi
 | 1 | Gateway (TTL 72 h) | 13 | `8242bceb2f2f61a2…` | `0b85be549b4fc657…` |
 | 2 | PUT `/miniapp/session` | 13 | `ac026ec13bd096df…` | `32d69e9d8148161c…` |
 | 3 | POST `/miniapp/submit` | 17 | `7cb785987f412f69…` | `a13b57a5e6640dbe…` |
-| 4 | Premium RU Concierge | 51 | `0f0664c13f2598c3…` | `fbfee119a3314cce…` |
+| 4 | Premium RU Concierge | 51 | `0f0664c13f2598c3…` | `cf6b2911f63de898…` |
 | 5 | Lead Intake projection | 102 | `9759f73fd2943612…` | `6cea284e9c1d5c31…` |
-| 6 | Premium RU Mini App | — | bundle `4b3c9e33c7050bb9…` | — |
+| 6 | Premium RU Mini App | — | bundle `67a446fadacbe1e8…` | — |
 
 ### 1. Gateway — the whole delta is one line
 
@@ -320,8 +324,8 @@ The live Concierge is 51 nodes and almost all of them are the spine: the issuanc
 preallocation and readback, authority re-read and verdict, the stale- and unresolved-authority
 branches, the transport worker, the internal handoff. Every P8/P9 hardening decision lives there and
 every one is closed at GO. **Exactly one node changed** — `Build Bot Response`, 996 lines of legacy
-state machine → 473 lines generated from `tg-state-machine.js` and the `TG_COPY` block of
-`branches.js`. Structural hash identical; connections identical; unrelated drift NONE.
+state machine → 822 lines generated from `tg-state-machine.js`, `context-extraction.js` and the
+`TG_COPY` block of `branches.js`. Structural hash identical; connections identical; unrelated drift NONE.
 
 The node body is **generated from the gated modules**, not retyped, so the deployed logic and the
 tested logic are one artifact.
@@ -344,11 +348,12 @@ one exists in the current cycle.
 «Открыть бриф» is the only `web_app` button, its URL is `__PREMIUM_MINIAPP_URL__`, and every other
 button carries a callback within the 64-byte Telegram cap.
 
-**Named gap in this candidate.** The context-extraction step does not exist in the Concierge spine,
-so `context_extracted_json` is never populated and `TG_CONFIRM_CONTEXT` never renders. Rather than
-show a screen headed «Проверьте, правильно ли FINMENTOR понял ваш контекст.» with nothing under it,
-the adapter falls through to `TG_OPEN_BRIEF`. The state and its copy are implemented and tested; the
-extraction that feeds them is **not built**. See §8.
+**The named gap is closed.** Context extraction now runs in the node: free text arrives,
+`extractDeterministic` proposes, `normalise` refuses everything outside the approved vocabularies,
+and what survives is written as `ai_inferred` and unconfirmed. `TG_CONFIRM_CONTEXT` renders only
+when extraction found STRUCTURE — a company, a role or an objective. A screen headed «Проверьте,
+правильно ли FINMENTOR понял ваш контекст» that only reads the client's own sentence back to them
+is a step with no decision in it, so it is skipped. See §11.
 
 ### 5. Lead Intake projection — two nodes, additive only
 
@@ -397,23 +402,17 @@ Ordered by what each one blocks.
 
 ### Blocks deployment (not the eight gates)
 
-1. **`PRIVACY WRITER CREDENTIAL = OWNER ACTION REQUIRED.`** `privacy_audit_writer` still holds the
-   placeholder password set at creation. `scripts/provision-privacy-writer-credential.mjs` rotates it
-   and creates a dedicated n8n Postgres credential in one run. It is deliberately **not run
-   automatically**: it mints a secret, and a secret is the owner's to hold, not something to create
-   unprompted in a live tenant and then convey. It needs `PRIVACY_PG_HOST` and `PRIVACY_PG_USER`
-   (the pooler username form differs between Supabase connection modes and must not be guessed), and
-   prints a verification INSERT that proves the credential without leaving a row.
+1. ~~`PRIVACY WRITER CREDENTIAL = OWNER ACTION REQUIRED`~~ — **DONE.** The password was rotated and
+   the dedicated credential `FINMENTOR Privacy Audit Writer` created, then proven by executing real
+   statements THROUGH IT. See §10.
 2. **Deploy-time placeholders**: `__LEAD_INTAKE_WORKFLOW_ID__`, `__PRIVACY_AUDIT_CREDENTIAL_ID__`,
    `__PREMIUM_MINIAPP_URL__`. None may be committed into a candidate.
 
 ### Blocks the full Premium conversational flow
 
-3. **Context extraction is not built.** `TG_CONFIRM_CONTEXT` is implemented, gated and unreachable
-   in this candidate, because nothing populates `context_extracted_json`. Free text is captured and
-   stored verbatim; the client simply is not asked to confirm a summary. This is a product decision
-   to make, not a defect to patch quietly: extraction means an AI step, and everything it proposes is
-   `ai_inferred` — which, per the draft contract, may prefill but may never skip a question.
+3. ~~Context extraction is not built~~ — **DONE.** `n8n/src/premium-ux/context-extraction.js`, gated
+   by `qa/premium-ux-extraction.test.mjs` (26 assertions) and inlined into the Concierge candidate.
+   `TG_CONFIRM_CONTEXT` is now reachable. See §11.
 
 ### Blocks customer activation (does NOT block RU UAT)
 
@@ -437,3 +436,167 @@ Ordered by what each one blocks.
 - No legal identity, address, registration number or article citation was invented.
 - No test row was written to the privacy store. It is at zero rows, and in an append-only store a
   proof row would be permanent.
+
+---
+
+## 10. Privacy writer credential — PASS
+
+**`FINMENTOR Privacy Audit Writer`**, proven by executing real statements **through the credential
+itself** — not by `SET ROLE` as `postgres`, which is what the store proof did. Those are different
+claims: one shows the role is constrained, the other shows that the thing n8n authenticates as is.
+
+| Operation | Verdict | What the server said |
+|-----------|---------|----------------------|
+| CONNECT (`select 1`) | **ALLOWED** | — |
+| INSERT | **ALLOWED** | one disposable row, since removed |
+| SELECT | **DENIED** | permission denied for table privacy_acknowledgements |
+| UPDATE | **DENIED** | permission denied for table privacy_acknowledgements |
+| DELETE | **DENIED** | permission denied for table privacy_acknowledgements |
+| TRUNCATE | **DENIED** | permission denied for table privacy_acknowledgements |
+| ALTER | **DENIED** | must be owner of table privacy_acknowledgements |
+| DROP | **DENIED** | must be owner of table privacy_acknowledgements |
+| ESCALATION (`create role`) | **DENIED** | permission denied to create role |
+
+Post-conditions, re-read after cleanup: **0 rows**, 9 columns, no `injected` column, no
+`escalated_by_writer` role, writer grants = `INSERT`, RLS still forced.
+
+### The secret
+
+Generated in memory, used twice, never printed, never written to a file, never on a command line,
+and never embedded in a stored workflow definition. The rotation ran through a disposable workflow
+with retention OFF and the password travelling in the request body, so n8n persisted it only in the
+credential store. Its length, prefix, suffix and hash are equally never printed — each is a partial
+disclosure of the same secret — and every line the script prints passes through a redactor as a
+backstop.
+
+### Three wrong measurements, and why none was reported
+
+Recorded because a proof that measures the wrong thing looks exactly like a proof.
+
+1. **Eight identical DENIED verdicts.** Every operation denied the same way is the signature of a
+   connection failure, not a privilege matrix. The script refused to publish it.
+2. **The error carried no cause.** `Error.message` is not an enumerable property, so it survives
+   neither n8n's item serialisation nor the public API's JSON. Reading it off the item, and then off
+   the execution record, both yielded only «Failed query: select 1 as ok» — the statement, never the
+   reason. The fix was to let the node FAIL, which records the failure at execution level where the
+   message is a plain string.
+3. **A `CONNECT` probe was missing.** Without it, "denied" and "never connected" are
+   indistinguishable. It is now the first probe and the arbiter of every other verdict.
+
+The design that came out of it: **one probe per execution, no `onError`.** Nine executions instead
+of one — the right trade, because a privilege matrix is only worth reporting if each row names the
+reason it says what it says.
+
+### What the diagnosis actually found
+
+| Hypothesis | Verdict |
+|------------|---------|
+| Wrong pooler region | No — `aws-0-eu-central-1` is right; every other region answers "Host not found" |
+| Wrong username form | No — `privacy_audit_writer.<project-ref>` is correct |
+| Bad password / role state | No — `rolcanlogin`, no `rolvaliduntil`, SCRAM-SHA-256, CONNECT and USAGE all present |
+| Direct host `db.<ref>.supabase.co` | **Unusable** — IPv6-only, and n8n answers `ENETUNREACH` |
+| **TLS chain** | **This was it** — «self-signed certificate in certificate chain» |
+
+### The TLS compromise, stated plainly
+
+Supabase's pooler presents a certificate signed by a private CA that is not in Node's trust store,
+and the n8n Postgres credential has **no field for a CA bundle** — the schema offers only
+`allowUnauthorizedCerts`. So chain verification is relaxed.
+
+**The connection is still encrypted; it is the chain that goes unverified.** This is a real
+weakening and it is reported rather than buried: a machine-in-the-middle able to intercept the
+connection could present its own certificate. Mitigating facts: the host is a fixed name, the role
+can only INSERT, and the same compromise is already made by the existing `FINMENTOR Supabase G5`
+credential — so this changes nothing about the instance's overall posture. If it is unacceptable,
+the fix is upstream (a Postgres node that accepts a CA bundle), not a workaround here.
+
+---
+
+## 11. Context extraction — PASS
+
+`n8n/src/premium-ux/context-extraction.js`, gated by `qa/premium-ux-extraction.test.mjs`
+(26 assertions) and inlined into the Concierge candidate, whose executed gate
+(`qa/premium-ux-concierge-candidate.test.mjs`, 30 assertions) drives it through the real node body.
+
+**The architecture is a gatekeeper, not a brain.** An upstream step proposes a structured object;
+`normalise()` decides what is allowed through. A model can say anything; this module can only emit
+values from the approved vocabularies, on the approved fields, marked `ai_inferred` and unconfirmed.
+An unrestricted diagnosis cannot reach the draft because no code path carries one.
+
+| # | Rule | Where it is enforced |
+|---|------|----------------------|
+| 1 | Only the supported fields survive | `EXTRACTABLE`; everything else is reported in `dropped` |
+| 2 | Everything is `ai_inferred`, `confirmed: false` | `toDraftFields()` — no parameter can change it |
+| 3 | AI inference NEVER smart-skips | `draft-contract.canSkip()` refuses `ai_inferred`, even with a forged `confirmed: true` |
+| 4 | Only non-empty values render | `confirmContextSections()`; no label, no dash |
+| 5 | «Всё верно» promotes ONLY what was shown | `promoteShown()` takes the rendered sections, not the proposal |
+| 6 | «Исправить» discards the guess | `discard()` clears `ai_inferred` fields and leaves `user_explicit` ones alone |
+| 7 | No unrestricted AI diagnosis | there is no field for one |
+| 8 | Objective maps only to the approved eight | exact id/label match; `independent_view` and `other` are **not inferable** |
+| 9 | Ambiguity stays unknown | every classifier returns null on a tie; `turnover_band` is never inferred at all |
+| 10–13 | No CRM write, no lead, no rotation, no initData | the module is a pure function that performs no I/O |
+
+**Why `turnover_band` is never inferred.** The approved bands are money ranges and one of them is
+«Предпочитаю не указывать» — an explicit refusal. Guessing a band from «у нас небольшая компания»
+would put a number in a consultant's brief that the client never gave, and would make the refusal
+option unreachable by inference. It stays a question.
+
+**Why the confirmation screen can be skipped.** Extraction always produces a `problem_summary` from
+any non-empty text — the client's own words. A screen headed «Проверьте, правильно ли FINMENTOR
+понял ваш контекст» showing only that is a step with no decision in it, and it makes the product
+look as though it understood something when it did not. The screen renders only when a STRUCTURAL
+field survived.
+
+**A field extraction prefills but never shows can be neither confirmed nor skipped.**
+`business_activity` is that case: owner rule 1 permits extracting it "where supported", and the
+approved confirmation screen does not show it. It therefore stays a prefill the client answers on
+the app screen — the correct outcome, and asserted as such.
+
+### Defects found by writing the tests
+
+- `\b` and `\w` are **ASCII-only** in JavaScript regular expressions, so `\bя` never matches at the
+  start of «Я собственник» and `финансов\w+ директор` never matches a Cyrillic ending. Every role
+  and activity pattern was silently dead. Replaced with explicit Cyrillic classes.
+- The draft contract validates `objective` against **labels**, not ids. Writing the id straight into
+  the draft produced `VALUE_NOT_ALLOWED` — the contract doing its job. The id remains the
+  taxonomy-safe internal form; `toDraftFields` converts to the label the draft is allowed to hold.
+- The inlined extraction reads `B.OBJECTIVE_IDS`, which the generated node did not define, so the
+  node threw on the first message. The executed gate caught it; a string-matching gate would not
+  have. The builder now refuses to emit if the extraction module fails to survive inlining.
+
+---
+
+## 12. Mini App network layer — new this phase
+
+The Mini App had **no network layer at all**: it always landed on the failure screen, so UAT steps
+E and R–W could not be exercised. `app-premium/net.js` closes that, gated by
+`qa/premium-ux-net.test.mjs` (18 assertions).
+
+- **Success is `ok === true` and nothing else.** Not a 2xx, not "the request did not throw", not a
+  parseable body. A 200 carrying `{ok:false}`, garbage or nothing is a failure.
+- **The submit body carries the session id and the acknowledgement, and nothing else.** An injected
+  `answers`, `lead_id` or `contact_value` is not filtered — the shape is asserted from this side too.
+- **Retry cannot double-submit.** The acknowledgement is captured once and re-sent unchanged;
+  re-stamping `acknowledged_at` would record a second, contradictory moment of consent. The client
+  mints **no idempotency key of its own** — the server derives the submission key from the session.
+- **Retryability comes from the server**, never inferred from a status code; a non-retryable refusal
+  shows no retry button.
+- **Endpoints are deploy-time placeholders.** While they are placeholders the app is offline and
+  says so, rather than pretending.
+
+---
+
+## 13. RU OWNER UAT CANDIDATE — READY
+
+Procedure: `PREMIUM_UX_RU_OWNER_UAT.md`. Covers A–Z and the controlled failure path, names what to
+observe at each step rather than only what to tap, and gives the SQL for verifying the privacy
+evidence and the absence of duplicates.
+
+Three cautions carried into it:
+
+1. **A UAT run writes real rows** — a real lead, a real cycle, and a real immutable privacy record
+   the runtime cannot delete. Cleanup requires an administrator, and the document says so.
+2. **Deployment is still not authorised here.** The document lists the six artifacts and the
+   placeholders to fill; nothing has been deployed.
+3. **Legal activation stays blocked.** `privacy_legal_basis` is `PENDING_LEGAL_REVIEW` throughout,
+   and the Mini App shows the DRAFT notice.

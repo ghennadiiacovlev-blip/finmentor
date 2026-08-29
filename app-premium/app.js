@@ -697,20 +697,56 @@
     return s;
   }
 
-  // No endpoint is deployed. The stub NEVER claims success — a candidate that fakes a committed
-  // submission is exactly the failure mode the approved failure copy exists to prevent.
+  // ---------------------------------------------------------------- submission
+  //
+  // THE ACKNOWLEDGEMENT IS CAPTURED ONCE. `submitAck` is stamped the first time the client taps
+  // «Передать консультанту» and is reused UNCHANGED on every retry. Re-stamping
+  // `acknowledged_at` on a retry would record a second, contradictory moment of consent and would
+  // read as a fresh acknowledgement the client never gave.
+  //
+  // SUCCESS IS ok === true AND NOTHING ELSE. Not a 2xx, not "the request did not throw". Showing
+  // «Обращение передано» over a failed write is the same class of defect as the Gateway answering
+  // 409 to an outage; the failure screen exists precisely so this path never has to guess.
+  var submitAck = null;
+  var lastFailure = null;
+
   function submit() {
-    go('APP_SUBMITTING');
-    setTimeout(function () {
-      window.FM_LAST_ACK = {
-        notice_version: 'pn-2026-08',
+    if (!submitAck) {
+      submitAck = {
+        notice_version: (window.FM_NOTICE_VERSION || 'pn-2026-08'),
         locale: get('locale') || 'ru',
-        shown_at: privacyShownAt,
+        shown_at: privacyShownAt || nowIso(),
         acknowledged_at: nowIso()
       };
+      window.FM_LAST_ACK = submitAck;
+    }
+    go('APP_SUBMITTING');
+
+    // Offline candidate: no endpoints injected. It must NOT look like a failed submission of a
+    // real request, and it must never look like a success.
+    if (!window.FM_NET || !window.FM_NET.configured()) {
+      lastFailure = { error_code: 'NOT_CONFIGURED', retryable: false };
+      setTimeout(function () { go('APP_FAILURE'); }, 400);
+      return;
+    }
+
+    window.FM_NET.submit(submitAck).then(function (r) {
+      if (r.ok === true) {
+        lastFailure = null;
+        submitted = true;
+        lastLeadId = String((r.body && r.body.lead_id) || '');
+        go('APP_SUCCESS');
+        return;
+      }
+      lastFailure = r;
       go('APP_FAILURE');
-    }, 600);
+    });
   }
+
+  // Terminal on the client too. Once the server has committed, a second tap must not re-enter the
+  // flow — the server would refuse it as SUBMIT_IN_PROGRESS, and asking is worse than not asking.
+  var submitted = false;
+  var lastLeadId = '';
 
   function scrSuccess() {
     var o = objective();
@@ -749,9 +785,18 @@
     s.appendChild(title(C.FAILURE.title, 'sm'));
     C.FAILURE.lines.forEach(function (l) { s.appendChild(lead(l)); });
     s.appendChild(grow());
-    var retry = btn(C.FAILURE.primary, function () { submit(); });
-    retry.insertBefore(icon('refresh'), retry.firstChild);
-    s.appendChild(actions(retry, btn(C.FAILURE.secondary, function () { go('APP_REVIEW'); }, 'secondary')));
+
+    // A non-retryable refusal must not offer a retry button that will refuse again. The server
+    // states retryability; the client does not infer it from a status code.
+    var canRetry = !lastFailure || lastFailure.retryable !== false;
+    var back = btn(C.FAILURE.secondary, function () { go('APP_REVIEW'); }, 'secondary');
+    if (canRetry) {
+      var retry = btn(C.FAILURE.primary, function () { submit(); });
+      retry.insertBefore(icon('refresh'), retry.firstChild);
+      s.appendChild(actions(retry, back));
+    } else {
+      s.appendChild(actions(back));
+    }
     return s;
   }
 

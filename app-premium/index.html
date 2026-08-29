@@ -16,17 +16,26 @@
 </head>
 <body>
   <!--
-    FINMENTOR Premium Mini App — OFFLINE CANDIDATE (b3.0.0).
+    FINMENTOR Premium Mini App — CANDIDATE (b3.1.0).
 
     Built to docs/PREMIUM_UX_FINAL_RU_SPEC.md and the approved Fable visual contract. This is a
     CANDIDATE beside the deployed B.2.0 prototype in ../app/, which is left untouched: that
     directory is served from the site root, so editing it in place would change a live page.
 
-    It performs NO network write. The session and submit endpoints are not deployed, so the
-    submit action runs against a local stub and says so. Every string comes from
-    n8n/src/premium-ux/branches.js via content.js, so the copy cannot drift from the gated
-    contract.
+    Every string comes from n8n/src/premium-ux/branches.js via content.js, so the copy cannot
+    drift from the gated contract.
+
+    ENDPOINTS ARE INJECTED AT DEPLOY TIME. FM_ENDPOINTS below holds placeholders; while they are
+    placeholders the app is offline and says so, rather than pretending a submission succeeded.
+    Nothing here may be committed with a real URL in it.
   -->
+  <script>
+    window.FM_ENDPOINTS = {
+      gateway: '__PREMIUM_GATEWAY_URL__',
+      session: '__PREMIUM_SESSION_URL__',
+      submit:  '__PREMIUM_SUBMIT_URL__'
+    };
+  </script>
   <div class="shell">
     <header class="topbar">
       <button class="back" id="back" type="button" aria-label="Назад" hidden>
@@ -44,6 +53,7 @@
   </div>
 
   <script src="content.js"></script>
+  <script src="net.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

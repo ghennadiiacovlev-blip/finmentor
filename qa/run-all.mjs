@@ -57,6 +57,8 @@ const GATES = [
   ['Premium UX brief + privacy record', 'premium-ux-brief.test.mjs'],
   ['Premium UX privacy notice (RU/RO, templated)', 'premium-ux-privacy-notice.test.mjs'],
   ['Premium UX app-session TTL (72h)', 'premium-ux-ttl.test.mjs'],
+  ['Premium UX context extraction', 'premium-ux-extraction.test.mjs'],
+  ['Premium UX Mini App network layer', 'premium-ux-net.test.mjs'],
   ['Premium Concierge candidate (executed)', 'premium-ux-concierge-candidate.test.mjs'],
   ['Lead Intake projection candidate (executed)', 'premium-ux-projection-candidate.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],

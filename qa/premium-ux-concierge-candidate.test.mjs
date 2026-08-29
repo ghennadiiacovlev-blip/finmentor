@@ -249,29 +249,69 @@ check('free text on the problem screen is captured verbatim and bounded', () => 
   eq(r.debug.writes.indexOf('free_text') !== -1, true, 'the free_text write was not recorded');
 });
 
-check('the confirmation screen renders a present field and omits an empty one', () => {
-  // Reached the way it is actually reached: free text on the problem screen. A stray callback
-  // would fall through to TG_ENTRY, which is what the first version of this check measured.
-  const s = drafting({
-    state: 'TG_FREEFORM_PROBLEM',
-    context_extracted_json: JSON.stringify({ company_name: 'ООО Пример', role: '', objective: 'Управленческая отчётность' })
+check('the confirmation screen is built from EXTRACTION, and omits what was not found', () => {
+  // The seeded context_extracted_json is no longer the input: extraction now runs in the node and
+  // derives the context from the message itself. The fixture is the MESSAGE.
+  const r = run({
+    session: drafting({ state: 'TG_FREEFORM_PROBLEM' }),
+    message_text: 'Я собственник, у нас ООО «Ромашка». Постоянно возникают кассовые разрывы, платежный календарь не ведется.'
   });
-  const r = run({ session: s, message_text: 'Сводка собирается вручную.' });
   eq(r.debug.state_after, 'TG_CONFIRM_CONTEXT', 'state');
-  assert(r.reply_text.indexOf('Компания: ООО Пример') !== -1, 'a present field is missing');
-  assert(r.reply_text.indexOf('Задача: Управленческая отчётность') !== -1, 'a present field is missing');
-  assert(r.reply_text.indexOf('Ваша роль') === -1, 'an empty field rendered its label');
+  assert(r.reply_text.indexOf('Компания: Ромашка') !== -1, 'the extracted company is missing: ' + r.reply_text);
+  assert(r.reply_text.indexOf('Ваша роль: Собственник') !== -1, 'the extracted role is missing');
+  assert(r.reply_text.indexOf('Задача: Денежный поток') !== -1, 'the extracted objective is missing');
+  // Scale was never asked and is never inferred, so it renders no label at all.
+  assert(r.reply_text.indexOf('Масштаб') === -1, 'an uninferred scale rendered a label');
   assert(r.reply_text.indexOf('—') === -1, 'an em dash placeholder leaked into the confirmation screen');
+  eq(labels(r).join(' | '), 'Всё верно | Исправить', 'confirmation actions');
 });
 
-check('with nothing extracted, the confirm screen is SKIPPED rather than rendered empty', () => {
-  // A screen headed «Проверьте, правильно ли FINMENTOR понял ваш контекст.» with no lines under it
-  // is worse than no screen. In this candidate it is also the ONLY path: the extraction step does
-  // not exist in the Concierge spine, so context_extracted_json is never populated.
-  const r = run({ session: drafting({ state: 'TG_FREEFORM_PROBLEM' }), message_text: 'Есть вопрос по отчётности.' });
+check('the extracted context is stored for the Mini App, and never marked confirmed', () => {
+  const r = run({
+    session: drafting({ state: 'TG_FREEFORM_PROBLEM' }),
+    message_text: 'Я собственник, у нас ООО «Ромашка». Постоянные кассовые разрывы и нехватка денег.'
+  });
+  const ctx = JSON.parse(r.session.context_extracted_json);
+  eq(ctx.company_name, 'Ромашка', 'stored company');
+  eq(r.session.context_confirmed, 'false', 'extraction marked itself confirmed');
+});
+
+check('with no STRUCTURE found, the confirm screen is skipped rather than echoing the client', () => {
+  // Extraction always produces a problem summary from any non-empty text. A screen headed
+  // «Проверьте, правильно ли FINMENTOR понял ваш контекст» that shows only the client's own
+  // sentence back to them is a step with no decision in it.
+  const r = run({ session: drafting({ state: 'TG_FREEFORM_PROBLEM' }), message_text: 'Хочу обсудить найм персонала.' });
   eq(r.debug.state_after, 'TG_OPEN_BRIEF', 'state');
   assert(r.reply_text.indexOf('Проверьте') === -1, 'an empty confirmation screen was rendered');
-  assert(/Есть вопрос по отчётности/.test(r.session.free_text_request), 'the free text was dropped');
+  assert(/найм персонала/.test(r.session.free_text_request), 'the free text was dropped');
+});
+
+check('«Исправить» clears the stored guess so nothing later prefills from it', () => {
+  const seeded = drafting({
+    state: 'TG_CONFIRM_CONTEXT',
+    context_extracted_json: JSON.stringify({ company_name: 'Ромашка', objective: 'Денежный поток' })
+  });
+  const r = run({ session: seeded, callback_data: A.CONFIRM_FIX });
+  eq(r.debug.state_after, 'TG_FREEFORM_PROBLEM', 'state');
+  eq(r.session.context_extracted_json, '', 'the rejected guess was kept');
+  eq(r.session.context_confirmed, 'false', 'confirmed flag survived a correction');
+});
+
+check('an objective outside the approved taxonomy never reaches the screen', () => {
+  const r = run({
+    session: drafting({ state: 'TG_FREEFORM_PROBLEM' }),
+    message_text: 'Я собственник. Нужно оптимизировать налоги и наладить работу с юристами.'
+  });
+  // Role is found, so the screen renders. The client's own words legitimately appear under
+  // «Основная ситуация» — that is their summary, not a claim by the product. What must NOT appear
+  // is a «Задача:» line, because no approved objective was established.
+  assert(r.reply_text.indexOf('Задача:') === -1, 'an objective was shown without one being established');
+  for (const label of ['Финансовое управление', 'Денежный поток', 'Прибыль и эффективность',
+                       'Нужен независимый взгляд', 'Другая задача']) {
+    assert(r.reply_text.indexOf(label) === -1, 'an objective label was invented: ' + label);
+  }
+  const ctx = JSON.parse(r.session.context_extracted_json || '{}');
+  eq(String(ctx.objective || ''), '', 'an off-taxonomy objective was stored');
 });
 
 check('«Всё верно» is the only promotion of extracted context, and it opens the brief', () => {
