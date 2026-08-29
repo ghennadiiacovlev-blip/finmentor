@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>FINMENTOR — B21C Gateway Test</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--navy:#0d1b2a;--graphite:#1b2735;--line:#2a3a4d;--gold:#c9a227;--off:#f4f1ea;--muted:#8fa0b3;--ok:#2e7d5b;--bad:#a33a3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--off);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:22px 18px calc(22px + env(safe-area-inset-bottom));min-height:100vh}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+  h1{font-family:Georgia,serif;font-size:20px;font-weight:600;margin-bottom:6px}
+  p.sub{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:18px}
+  .card{background:var(--graphite);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px}
+  .head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+  .dot.ok{background:var(--ok)}
+  .dot.bad{background:var(--bad)}
+  .title{font-size:14px;font-weight:600}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12px}
+  dt{color:var(--muted)}
+  dd{font-family:ui-monospace,Menlo,monospace;word-break:break-all}
+  .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:14px}
+  #prog{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--gold);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="eyebrow">B.2.1-C · Gateway Bootstrap Proof</div>
+<h1>Проверка Mini App Gateway</h1>
+<p class="sub">Один запрос. Лид не создаётся, эксперту ничего не передаётся, анкета не открывается.</p>
+<div id="prog">Запуск…</div>
+<div id="out"></div>
+<p class="note" id="note"></p>
+<script>
+(function () {
+  'use strict';
+
+  // The CURRENT deployed Gateway. Same origin as this page, so the browser issues no CORS
+  // preflight and the Gateway needs no CORS change - which is exactly why this page is served
+  // from n8n and not from www.finmentor.md.
+  var ENDPOINT = 'https://ghennadi.app.n8n.cloud/webhook/finmentor-miniapp-gateway';
+
+  var CLIENT_VERSION = 'b2.1.0';
+  var LOCALE = 'ru';
+
+  // If any of these ever appears in a Gateway response, TB-1 has leaked. Checked at every
+  // nesting depth, not just the top level.
+  var FORBIDDEN = ['init_data','initData','signature','hash','replay_key','submission_key',
+                   'telegram_user_id','lead_id','canonical_lead_id','cycle_id','consent',
+                   'mode','lead_mode','credential','token','bot_token','row_number','id'];
+
+  var out = document.getElementById('out');
+  var note = document.getElementById('note');
+  var prog = document.getElementById('prog');
+
+  function card(title, kind, rows) {
+    var c = document.createElement('div'); c.className = 'card';
+    var h = document.createElement('div'); h.className = 'head';
+    var d = document.createElement('span'); d.className = 'dot' + (kind ? ' ' + kind : '');
+    var t = document.createElement('span'); t.className = 'title'; t.textContent = title;
+    h.appendChild(d); h.appendChild(t); c.appendChild(h);
+    var dl = document.createElement('dl');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i][1] === undefined || rows[i][1] === null || rows[i][1] === '') { continue; }
+      var a = document.createElement('dt'); a.textContent = rows[i][0];
+      var b = document.createElement('dd'); b.textContent = String(rows[i][1]);
+      dl.appendChild(a); dl.appendChild(b);
+    }
+    c.appendChild(dl); out.appendChild(c);
+  }
+
+  function scan(obj, found, depth) {
+    if (obj === null || typeof obj !== 'object' || depth > 8) { return found; }
+    var k = Object.keys(obj);
+    for (var i = 0; i < k.length; i++) {
+      if (FORBIDDEN.indexOf(k[i]) !== -1 && found.indexOf(k[i]) === -1) { found.push(k[i]); }
+      scan(obj[k[i]], found, depth + 1);
+    }
+    return found;
+  }
+
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (!tg) {
+    prog.textContent = '';
+    card('Вне Telegram', 'bad', [['статус', 'Telegram WebApp SDK недоступен']]);
+    note.textContent = 'Откройте страницу кнопкой в Telegram, а не в обычном браузере.';
+    return;
+  }
+  tg.ready();
+  if (tg.expand) { tg.expand(); }
+  try { tg.setHeaderColor('#0d1b2a'); tg.setBackgroundColor('#0d1b2a'); } catch (e) {}
+
+  // The ONLY place raw initData is touched. It is read into a local, placed straight into the
+  // request body, and never written to the DOM, console, storage, cookies or the URL.
+  var initData = tg.initData;
+  if (typeof initData !== 'string' || initData.length === 0) {
+    prog.textContent = '';
+    card('Нет Telegram-контекста', 'bad', [['статус', 'подписанный контекст пуст']]);
+    note.textContent = 'Telegram не передал подписанный контекст. Переоткройте кнопку.';
+    return;
+  }
+  var initDataBytes = initData.length;
+
+  prog.textContent = 'Запрос к Gateway…';
+  var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+
+  // Exactly ONE request per open, and no retry on failure. A second attempt would present the
+  // same signed context and be refused by G5 as a replay, which would look like a Gateway
+  // defect instead of the correct behaviour it is.
+  fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    credentials: 'omit',
+    referrerPolicy: 'no-referrer',
+    body: JSON.stringify({ init_data: initData, client_version: CLIENT_VERSION, locale: LOCALE })
+  })
+  .then(function (res) {
+    return res.json()
+      .then(function (d) { return { status: res.status, data: d }; })
+      .catch(function () { return { status: res.status, data: null }; });
+  })
+  .catch(function () { return { status: 0, data: null }; })
+  .then(function (r) {
+    var ms = Math.round(((window.performance && performance.now) ? performance.now() : Date.now()) - t0);
+    var d = r.data || {};
+    var okd = r.status === 200 && d.ok === true && typeof d.app_session_id === 'string' && d.app_session_id.length > 0;
+    var leaks = scan(d, [], 0);
+
+    // A PREFIX only. app_session_id is a session-binding token with a TTL; 16 of its 64 hex
+    // characters are enough to match this open against its MiniApp_App_Sessions row, and not
+    // enough to be used as one.
+    var prefix = okd ? (d.app_session_id.substring(0, 16) + '…') : '';
+
+    prog.textContent = 'Готово.';
+    card(okd ? 'GATEWAY BOOTSTRAP — PASS' : 'GATEWAY BOOTSTRAP — REFUSED', okd ? 'ok' : 'bad', [
+      ['HTTP', r.status === 0 ? 'network error' : r.status],
+      ['ok', String(d.ok)],
+      ['app_session_id', prefix],
+      ['session_id_len', okd ? d.app_session_id.length : ''],
+      ['expires_at', d.expires_at],
+      ['locale', d.locale],
+      ['error_code', d.error_code],
+      ['retryable', d.retryable === undefined ? '' : String(d.retryable)],
+      ['initdata_bytes', initDataBytes],
+      ['browser_total_ms', ms],
+      ['leak_fields', leaks.length ? leaks.join(',') : '[]']
+    ]);
+
+    if (okd) {
+      note.textContent = 'Подписанный Telegram-контекст принят Gateway, replay-ключ занят, сессия выдана. ' +
+        'Покажите карточку целиком. Подписанный контекст нигде не показан и не сохранён.';
+    } else if (d.error_code === 'REPLAY_REFUSED') {
+      note.textContent = 'Этот же подписанный контекст уже был использован. Это корректный отказ G5, а не сбой. ' +
+        'Закройте Mini App, подождите и откройте кнопку заново, чтобы Telegram выдал новый контекст.';
+    } else {
+      note.textContent = 'Gateway отказал. Покажите карточку целиком — error_code достаточно для разбора.';
+    }
+  });
+})();
+</script>
+</body>
+</html>
