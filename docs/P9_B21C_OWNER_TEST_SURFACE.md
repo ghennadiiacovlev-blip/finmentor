@@ -454,10 +454,18 @@ is unreachable, and `retryable:false` tells a correct client never to retry. Und
 outage every user would be told their context was already used, with no signal to come back.
 That is a replay-semantics weakening in the one direction the ledger cannot detect.
 
-### The minimal fix — RECOMMENDED, NOT APPLIED
+### The minimal fix — APPLIED IN THE REPO, NOT YET PROVEN LIVE
 
-Not implemented here: it changes the Gateway, and this session was scoped not to. Make the claim
-query always return exactly one row carrying its own verdict, then drop `alwaysOutputData`:
+Applied to the tracked builder and candidate. **Nothing has been deployed and nothing has been
+re-run on the wire**, so `STORE FAILURE` is still an ISOLATED FAIL below: the fix is a change
+that should close it, not evidence that it did.
+
+Three things changed in `scripts/build-miniapp-gateway.mjs`, and a field-level diff of the new
+candidate against the previous one shows exactly those three and nothing else — same 13 nodes,
+same single credential on the same node, all four respond nodes untouched, connection map
+untouched, retention still `none`.
+
+**1. The claim query wraps the INSERT in a data-modifying CTE, so it always returns one row.**
 
     with ins as (
       insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)
@@ -469,12 +477,97 @@ query always return exactly one row carrying its own verdict, then drop `alwaysO
 
     won      -> one row, claimed = 1
     conflict -> one row, claimed = 0
-    outage   -> node errors, NO success item at all -> only the error output -> 503
+    outage   -> the node errors, so there is NO success item at all
 
-`Claim Verdict` would read `claimed` instead of filtering on `replay_key`. G5 semantics are
-preserved exactly: one atomic `INSERT ... ON CONFLICT DO NOTHING`, no `SELECT`-before-`INSERT`,
-schema untouched, fail-closed routing unchanged. This needs owner approval, a rebuild, a live
-re-run of the harness, and a re-run of A/B.
+A data-modifying `WITH` runs exactly once and always to completion whether or not the outer
+query reads it, so the INSERT is not conditional on the SELECT. The `::int` cast is deliberate:
+`count(*)` is a `bigint`, and node-postgres hands `int8` back as a string.
+
+G5's semantics are unchanged — one atomic `INSERT ... ON CONFLICT DO NOTHING`, no
+`SELECT`-before-`INSERT`, no schema change, fail-closed routing as it was.
+
+**2. `Claim Verdict` reads the stated value instead of counting rows.**
+
+`claim_won` is 1 only on an explicit `claimed = 1`. No row, several rows, a missing column, an
+unparseable one — all refuse, because refusing mints no session.
+
+**3. `alwaysOutputData` comes off `G5 Replay Claim`.**
+
+That flag was the other half of the defect, and the CTE is what makes it unnecessary: a conflict
+now returns a row on its own, so the zero-row success case it existed to paper over is gone.
+Without it, an error produces only the error item, and the error output is the only path left.
+
+### The two halves are gated as one
+
+Either half alone re-opens the defect — with the flag, an error still emits an empty success item;
+without the CTE, an empty success item is still indistinguishable from a conflict. So
+`verifyGateway` now **refuses to emit** a Gateway whose claim node carries `alwaysOutputData`,
+whose claim query has no `claimed` verdict column, that lost its `ON CONFLICT DO NOTHING`, that
+`SELECT`s before it `INSERT`s, or whose verdict never reads the column.
+
+`qa/miniapp-gateway.test.mjs` executes the real verdict code against the row shapes Postgres can
+actually produce, and carries the regression assertion that matters: **one row carrying a
+`replay_key` and no verdict column — the exact shape the old verdict read as a win — must now
+lose.** Four mutations re-add the flag, revert the query, revert the verdict to counting rows, and
+smuggle a `SELECT` ahead of the `INSERT`; all four are rejected, and the unmutated build is
+accepted. A gate that cannot reject the form it replaced is not a gate — the lesson of §8a.
+
+### The harness follows production, in both directions
+
+The harness exists to mirror the Gateway, so it mirrors this too, and its own gate was inverted
+rather than relaxed. `H1`'s claim stand-in now returns **one row for a lost claim as well as a
+won one** (`claimed: 0` / `claimed: 1`), because that is what the CTE does; a stand-in still
+returning zero rows on "lost" would be mirroring a query that no longer exists, and the conflict
+and outage paths would look alike inside the harness and nowhere else.
+
+The gate compares the flag against **whatever production holds**, so the two cannot drift apart,
+and it refuses an H1 whose stand-in cannot state `claimed = 1`, cannot state `claimed = 0`, or
+returns an empty array at all. Two mutations were added and one was inverted: re-adding
+`alwaysOutputData` is now the regression, and so is making a lost claim return no row.
+
+A new executed check runs the H1 stand-in and feeds its output to the **real** `Claim Verdict`
+code, so the mirror is exercised rather than asserted: won → 1, lost → 0, down → throws, unset →
+throws.
+
+Repo QA after the change: **32/32 gates, 1462 assertions** (gateway 22 → 23, harness 61 → 63).
+
+### What is still owed before this can be called fixed
+
+    1. deploy the rebuilt candidate to nTZHLbv2KFggdhh5, field-level diff before and after
+    2. re-run the isolated harness: both outage shots must answer 503 REPLAY_STORE_UNAVAILABLE
+       retryable:true, and the three controls must still answer 200 / 409 / 409
+    3. re-run A + B live on one genuine owner press, to show the accept and replay paths are
+       unregressed by the query change
+    4. re-run the negative battery, since Respond Rejected is the shared path
+
+Steps 1–3 touch the live Gateway or need a real Telegram context, so none of them has been taken.
+
+### The same defect class elsewhere: Lead Intake's dedup read
+
+Found by sweeping every tracked workflow for the combination that caused this one —
+`alwaysOutputData: true` **together with** `onError: continueErrorOutput`. Twenty-eight
+workflows scanned; the Gateway was the only Mini App hit, and one other node carries the pair:
+
+    QmIyEW2ZEqKregmN  FINMENTOR Lead Intake PREMIUM FINAL
+    Read Pipeline (Dedup)   googleSheets   onError: continueErrorOutput + alwaysOutputData: true
+
+        main[0] -> Dedup Guard  -> ... -> IF Is New -> Build Pipeline Row -> Save to Pipeline
+        main[1] -> IF Internal (Infra) -> Respond Infra Failed -> Stop: CRM Unavailable
+
+`Dedup Guard` opens with `filter(r => String(r.lead_id || '').trim() !== '')` — it discards
+items with no `lead_id`, which is exactly what the old `Claim Verdict` did with `replay_key`.
+So on a Sheets read outage the empty success item survives to `Dedup Guard`, is filtered away,
+and **"the store is unreachable" becomes "no duplicate was found"** — the branch that ends in a
+Pipeline **write**, while the error branch separately answers CRM-unavailable.
+
+This is a repo-level observation from reading the graph, **not** a live finding: no outage was
+simulated against Lead Intake and nothing here was changed. It is written down because it is the
+same root cause, one `filter` away, and because the direction is worse — the Gateway failed
+closed on side effects, whereas this path leads to a write. Two things plausibly mask it in
+practice and neither is a design: a Sheets read outage will usually take the write down too, and
+the error branch is far shorter, so it likely commits the HTTP response first. Worth its own
+diagnosis before anyone relies on either.
+
 
 ### Second, minor observation
 
@@ -504,8 +597,9 @@ Repo QA after the run: **32/32 gates, 1459 assertions**.
     VALID ACCEPT    = LIVE PASS
     EXACT REPLAY    = LIVE PASS
     STALE FRESHNESS = LIVE PASS   (banked 2026-08-29)
-    STORE FAILURE   = ISOLATED FAIL
+    STORE FAILURE   = ISOLATED FAIL   (fix applied in-repo, NOT yet re-run live)
 
 **GATEWAY: NO-GO**, on the store-failure contract alone. Three of the four gates are live-proven.
 The fourth is not a gap in evidence any more — it is a defect the evidence found, and the fix
-above is small and known.
+above is now written and gated in the repo. It stays a FAIL until the harness answers 503 on the
+wire: a fix that has not been run is a hypothesis, and this document does not bank hypotheses.

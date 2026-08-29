@@ -86,7 +86,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for the Postgres replay claim so the response adapter can be\n// exercised without a store. It reads nothing, writes nothing and holds no credential.\n//\n//   down -> throw, exactly as an unreachable store does; n8n routes to the ERROR output\n//   won  -> one row carrying a replay_key, as a successful INSERT ... RETURNING does\n//   lost -> no row, as ON CONFLICT DO NOTHING does when the key is already held\n//\n// An unrecognised or absent mode THROWS rather than defaulting to anything, because a\n// harness that quietly picks a happy path proves nothing.\nconst src = $(\"Gateway Webhook\").first().json.body || {};\nconst mode = String(src.harness_store || \"\");\nconst derived = $(\"Derive Replay Key\").first().json;\nif (mode === \"down\") { throw new Error(\"HARNESS: simulated replay-store outage\"); }\nif (mode === \"won\")  { return [{ json: { replay_key: derived.replay_key } }]; }\nif (mode === \"lost\") { return []; }\nthrow new Error(\"HARNESS: harness_store must be one of down|won|lost\");"
+        "jsCode": "// HARNESS ONLY - stands in for the Postgres replay claim so the response adapter can be\n// exercised without a store. It reads nothing, writes nothing and holds no credential.\n//\n//   down -> throw, exactly as an unreachable store does; n8n routes to the ERROR output\n//   won  -> one row, claimed = 1, as the CTE returns when the INSERT took the key\n//   lost -> one row, claimed = 0, as the CTE returns when ON CONFLICT DO NOTHING found it held\n//\n// An unrecognised or absent mode THROWS rather than defaulting to anything, because a\n// harness that quietly picks a happy path proves nothing.\nconst src = $(\"Gateway Webhook\").first().json.body || {};\nconst mode = String(src.harness_store || \"\");\nif (mode === \"down\") { throw new Error(\"HARNESS: simulated replay-store outage\"); }\nif (mode === \"won\")  { return [{ json: { claimed: 1 } }]; }\nif (mode === \"lost\") { return [{ json: { claimed: 0 } }]; }\nthrow new Error(\"HARNESS: harness_store must be one of down|won|lost\");"
       },
       "id": "gw-05-claim",
       "name": "G5 Replay Claim",
@@ -96,14 +96,13 @@
         260,
         -120
       ],
-      "onError": "continueErrorOutput",
-      "alwaysOutputData": true
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P9 — read Postgres' verdict. This node does NOT arbitrate and must never learn to:\n// no SELECT, no count of existing rows, no 'not found so proceed'. One row returned by the\n// INSERT means this execution won the key; zero means the key was already held.\nconst claimed = $input.all().filter(function (i) {\n  return i.json && String(i.json.replay_key || '') !== '';\n});\nconst d = $('Derive Replay Key').first().json;\nreturn [{ json: {\n  claim_won: claimed.length === 1 ? 1 : 0,\n  replay_key: d.replay_key,\n  telegram_user_id: d.telegram_user_id,\n  correlation_id: d.correlation_id,\n  locale: d.locale\n} }];"
+        "jsCode": "// P9 — read Postgres' verdict. This node does NOT arbitrate and must never learn to:\n// no SELECT, no count of existing rows, no 'not found so proceed'. The claim query returns\n// exactly one row carrying `claimed`: 1 when this execution won the key, 0 when the key was\n// already held.\n//\n// P9-R2. This used to infer the verdict from the NUMBER of rows on the success output, which\n// made a store outage indistinguishable from a conflict. Read the value; never count rows.\nconst rows = $input.all();\nconst claimed = rows.length === 1 ? Number(rows[0].json.claimed) : NaN;\nconst d = $('Derive Replay Key').first().json;\nreturn [{ json: {\n  // Only an explicit claimed = 1 wins. Anything else — no row, several rows, a missing or\n  // unparseable column — refuses. Ambiguity must never mint a session.\n  claim_won: claimed === 1 ? 1 : 0,\n  replay_key: d.replay_key,\n  telegram_user_id: d.telegram_user_id,\n  correlation_id: d.correlation_id,\n  locale: d.locale\n} }];"
       },
       "id": "gw-06-verdict",
       "name": "Claim Verdict",

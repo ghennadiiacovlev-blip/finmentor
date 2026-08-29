@@ -102,7 +102,12 @@ for (const [label, H] of [['H1', H1], ['H2', H2]]) {
     eq(c[0][0].node, 'Claim Verdict', 'claim success target');
     eq(c[1][0].node, 'Respond Store Unavailable', 'claim error target');
     eq(nodeOf(H, CLAIM_NODE).onError, 'continueErrorOutput', 'claim onError');
-    eq(nodeOf(H, CLAIM_NODE).alwaysOutputData, true, 'claim alwaysOutputData');
+    // P9-R2. Whatever production does with the flag, the harness does. It is absent in
+    // production now, and this asserts the mirror rather than the value, so the two move together.
+    eq(nodeOf(H, CLAIM_NODE).alwaysOutputData, nodeOf(GW, CLAIM_NODE).alwaysOutputData,
+      'claim alwaysOutputData does not mirror production');
+    assert(!nodeOf(GW, CLAIM_NODE).alwaysOutputData,
+      'production re-acquired alwaysOutputData; an outage would answer 409, not 503');
   });
   check(label + ' keeps the store-failure branch clear of session minting', () => {
     // Nothing on the error branch may reach the session path. Structural, not conventional.
@@ -160,6 +165,44 @@ check('H1 claim stand-in is a code node that can throw', () => {
   assert(/down/.test(c.parameters.jsCode) && /won/.test(c.parameters.jsCode) && /lost/.test(c.parameters.jsCode),
     'the three store modes are not all present');
 });
+
+check('EXECUTED: the H1 stand-in emits the shape the PRODUCTION query emits', () => {
+  // The stand-in is only evidence if it answers exactly as the real statement answers. Since
+  // P9-R2 the real one is a CTE that always returns one row carrying `claimed`, so "lost" is a
+  // row too. Run the stand-in and feed its output to the REAL Claim Verdict code.
+  const standIn = nodeOf(H1, CLAIM_NODE).parameters.jsCode;
+  const verdict = nodeOf(GW, 'Claim Verdict').parameters.jsCode;
+  const run = (mode) => {
+    const $ = (n) => ({ first: () => ({ json: n === 'Gateway Webhook'
+      ? { body: { harness_store: mode } }
+      : { replay_key: 'k', telegram_user_id: '551662084', correlation_id: 'C', locale: 'ru' } }) });
+    return new Function('$', standIn)($);
+  };
+  const decide = (rows) => {
+    const $ = () => ({ first: () => ({ json: { replay_key: 'k', telegram_user_id: '551662084', correlation_id: 'C', locale: 'ru' } }) });
+    const $input = { all: () => rows };
+    return new Function('$', '$input', verdict)($, $input)[0].json.claim_won;
+  };
+
+  const won = run('won');
+  eq(won.length, 1, 'a won claim did not return exactly one row');
+  eq(won[0].json.claimed, 1, 'a won claim did not state claimed = 1');
+  eq(decide(won), 1, 'the real verdict did not read the won row as a win');
+
+  const lost = run('lost');
+  eq(lost.length, 1, 'a lost claim did not return a row; the CTE always returns one');
+  eq(lost[0].json.claimed, 0, 'a lost claim did not state claimed = 0');
+  eq(decide(lost), 0, 'the real verdict did not read the lost row as a refusal');
+
+  // An outage throws, so n8n routes to the ERROR output and NOTHING reaches the verdict.
+  let threw = false;
+  try { run('down'); } catch (e) { threw = true; }
+  assert(threw, 'the down mode did not throw, so no outage can be simulated');
+  // and an unset mode must not quietly pick a path
+  let threwUnset = false;
+  try { run(''); } catch (e) { threwUnset = true; }
+  assert(threwUnset, 'an unset mode defaulted to a path instead of throwing');
+});
 check('H2 keeps the REAL postgres claim node and query', () => {
   const h = nodeOf(H2, CLAIM_NODE);
   const g = nodeOf(GW, CLAIM_NODE);
@@ -197,7 +240,13 @@ const MUTATIONS = [
   ['rewire the claim error output away from the 503', 'h1', (h) => { h.connections[CLAIM_NODE].main[1] = [{ node: 'Claim Verdict', type: 'main', index: 0 }]; }],
   ['let a store failure fall through to the accept path', 'h1', (h) => { h.connections[CLAIM_NODE].main[1] = [{ node: 'Build App Session', type: 'main', index: 0 }]; }],
   ['drop the claim error routing', 'h1', (h) => { delete nodeOf(h, CLAIM_NODE).onError; }],
-  ['drop alwaysOutputData from the claim', 'h1', (h) => { delete nodeOf(h, CLAIM_NODE).alwaysOutputData; }],
+  // P9-R2 inverts this one. Re-adding the flag is now the regression: with it, an error fires
+  // the success output as well, and the empty item races to a 409 before the 503 can be sent.
+  ['re-add alwaysOutputData to the claim', 'h1', (h) => { nodeOf(h, CLAIM_NODE).alwaysOutputData = true; }],
+  ['make the lost claim return no row, as the pre-P9-R2 query did', 'h1', (h) => {
+    const c = nodeOf(h, CLAIM_NODE);
+    c.parameters.jsCode = c.parameters.jsCode.replace('return [{ json: { claimed: 0 } }];', 'return [];');
+  }],
   ['bake a real trust anchor into the artifact', 'h1', (h) => {
     const v = nodeOf(h, VERIFY_NODE);
     v.parameters.jsCode = v.parameters.jsCode.split(PUBKEY_PLACEHOLDER).join('a'.repeat(64));

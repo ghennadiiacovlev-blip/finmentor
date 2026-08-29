@@ -178,16 +178,28 @@ check('the builder REFUSES to emit a string-valued response code', () => {
 
 console.log('\n-- the claim is arbitrated by Postgres, not by us --');
 
-check('the claim query is a single INSERT ... ON CONFLICT DO NOTHING RETURNING', () => {
+check('the claim is one atomic INSERT ... ON CONFLICT DO NOTHING, wrapped so it always answers', () => {
   const q = byName(G5_CLAIM_NODE).parameters.query;
   assert(/insert into public\.telegram_initdata_replays/i.test(q), 'not an insert into the ledger');
   assert(/on conflict \(replay_key\) do nothing/i.test(q), 'no on-conflict clause: replays would throw, not refuse');
-  assert(/returning replay_key/i.test(q), 'nothing is returned, so the verdict cannot be read');
-  assert(!/\bselect\b/i.test(q.replace(/returning[\s\S]*/i, '')), 'the claim SELECTs before inserting — that is the race');
+  assert(/returning replay_key/i.test(q), 'the insert returns nothing, so it cannot count what it won');
   assert(!/delete|update|drop|alter/i.test(q), 'the claim query mutates beyond the insert');
+
+  // The INSERT must still be the FIRST thing the statement does. A SELECT ahead of it is the
+  // check-then-act race G5 exists to prevent, and no CTE wrapper may smuggle one in.
+  const insertAt = q.search(/insert\s+into/i);
+  assert(insertAt !== -1, 'the claim query does not insert');
+  assert(!/\bselect\b/i.test(q.slice(0, insertAt)), 'the claim SELECTs before inserting — that is the race');
+
+  // P9-R2. The statement must ALWAYS return exactly one row carrying its own verdict. While a
+  // won claim was one row and a lost claim was zero, an outage — which also yielded zero rows on
+  // the success output — was indistinguishable from a conflict and answered 409 instead of 503.
+  assert(/with\s+ins\s+as\s*\(/i.test(q), 'the insert is not wrapped in a CTE, so a conflict returns no row at all');
+  assert(/\bas\s+claimed\b/i.test(q), 'no `claimed` verdict column: the verdict would be inferred from a row count again');
+  assert(/count\(\*\)\s*from\s+ins/i.test(q), 'the verdict is not counted from the insert CTE');
 });
 
-check('EXECUTED: the verdict reads row count only, and never arbitrates', () => {
+check('EXECUTED: the verdict reads the STATED value, and never infers it from a row count', () => {
   const body = byName('Claim Verdict').parameters.jsCode;
   const run = (rows) => {
     const $ = (n) => ({ first: () => ({ json: n === 'Derive Replay Key'
@@ -195,11 +207,73 @@ check('EXECUTED: the verdict reads row count only, and never arbitrates', () => 
     const $input = { all: () => rows.map((r) => ({ json: r })) };
     return new Function('$', '$input', body)($, $input)[0].json;
   };
-  eq(run([{ replay_key: 'k' }]).claim_won, 1, 'one returned row was not read as a win');
-  eq(run([]).claim_won, 0, 'zero returned rows was not read as a refusal');
-  eq(run([{}]).claim_won, 0, 'an empty item was counted as a win');
+  eq(run([{ claimed: 1 }]).claim_won, 1, 'claimed = 1 was not read as a win');
+  eq(run([{ claimed: 0 }]).claim_won, 0, 'claimed = 0 was not read as a refusal');
+  // node-postgres can hand an ::int back as a string depending on the driver's type parsing
+  eq(run([{ claimed: '1' }]).claim_won, 1, 'a string-typed claimed = 1 was not read as a win');
+
+  // Everything ambiguous refuses. Refusing is the safe direction here: a 409 mints no session.
+  eq(run([]).claim_won, 0, 'no row at all was not read as a refusal');
+  eq(run([{}]).claim_won, 0, 'a row with no verdict column was counted as a win');
+  eq(run([{ claimed: 1 }, { claimed: 1 }]).claim_won, 0, 'two rows were counted as a win');
+  eq(run([{ claimed: null }]).claim_won, 0, 'a null verdict was counted as a win');
+
+  // The P9-R2 regression assertion. This is the shape the OLD verdict read as a win: one row
+  // carrying a replay_key and no verdict column. It must not win now, or the fix is cosmetic.
+  eq(run([{ replay_key: 'k' }]).claim_won, 0, 'the verdict still infers a win from a returned replay_key');
+
   const code = body.split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
   assert(!/\bselect\b/i.test(code), 'the verdict SELECTs');
+});
+
+check('the claim node does NOT carry alwaysOutputData, and the builder refuses to re-add it', () => {
+  // P9-R2, the other half of the same mechanism. With alwaysOutputData, onError:
+  // continueErrorOutput fires BOTH outputs on failure: the error item on output 1 AND an empty
+  // item on output 0. The empty item reached Claim Verdict and committed a 409 before
+  // Respond Store Unavailable could answer, and n8n recorded the outage as a success.
+  const claim = byName(G5_CLAIM_NODE);
+  assert(!claim.alwaysOutputData, 'the claim node carries alwaysOutputData; an outage would answer 409, not 503');
+  eq(claim.onError, 'continueErrorOutput', 'the claim node does not route its error output to the 503');
+
+  const withFlag = buildGateway({ botId: CONFIGURED_BOT_ID });
+  withFlag.nodes.find((n) => n.name === G5_CLAIM_NODE).alwaysOutputData = true;
+  const v1 = verifyGateway(withFlag);
+  assert(!v1.ok, 'verifyGateway accepted a claim node carrying alwaysOutputData');
+  assert(v1.failures.some((f) => /alwaysOutputData/.test(f)), 'the failure does not name alwaysOutputData');
+
+  // The query is the other half, and the two must not be able to drift apart: reverting the CTE
+  // alone leaves a conflict returning zero rows, which is the ambiguity all over again.
+  const oldQuery = buildGateway({ botId: CONFIGURED_BOT_ID });
+  oldQuery.nodes.find((n) => n.name === G5_CLAIM_NODE).parameters.query = [
+    'insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)',
+    "values ($1, $2::timestamptz, nullif($3, ''))",
+    'on conflict (replay_key) do nothing',
+    'returning replay_key'
+  ].join('\n');
+  const v2 = verifyGateway(oldQuery);
+  assert(!v2.ok, 'verifyGateway accepted the pre-P9-R2 claim query');
+  assert(v2.failures.some((f) => /claimed/.test(f)), 'the failure does not name the missing verdict column');
+
+  // And a verdict that goes back to counting rows must be rejected even with the CTE in place.
+  const counting = buildGateway({ botId: CONFIGURED_BOT_ID });
+  counting.nodes.find((n) => n.name === 'Claim Verdict').parameters.jsCode =
+    "const rows = $input.all();\nreturn [{ json: { claim_won: rows.length === 1 ? 1 : 0 } }];";
+  const v3 = verifyGateway(counting);
+  assert(!v3.ok, 'verifyGateway accepted a verdict that counts rows instead of reading the column');
+
+  // A SELECT ahead of the INSERT stays refused; the CTE must not become a way to reintroduce it.
+  const racy = buildGateway({ botId: CONFIGURED_BOT_ID });
+  racy.nodes.find((n) => n.name === G5_CLAIM_NODE).parameters.query =
+    'select 1 from public.telegram_initdata_replays where replay_key = $1;\n' +
+    'insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)\n' +
+    "values ($1, $2::timestamptz, nullif($3, '')) on conflict (replay_key) do nothing\n" +
+    'returning 1 as claimed';
+  const v4 = verifyGateway(racy);
+  assert(!v4.ok, 'verifyGateway accepted a SELECT before the INSERT');
+  assert(v4.failures.some((f) => /race/.test(f)), 'the failure does not name the race');
+
+  // The unmutated graph is still accepted — a gate that rejects everything proves nothing.
+  assert(verifyGateway(buildGateway({ botId: CONFIGURED_BOT_ID })).ok, 'the unmutated Gateway was rejected');
 });
 
 console.log('\n-- the inlined derivation AGREES with the tracked module --');

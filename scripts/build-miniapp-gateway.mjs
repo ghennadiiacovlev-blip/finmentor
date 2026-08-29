@@ -143,25 +143,49 @@ const DERIVE_CODE = [
   "} }];"
 ].join('\n');
 
-// ON CONFLICT DO NOTHING ... RETURNING is the whole arbitration: one row back means this
-// execution won the key, zero rows means somebody already holds it. Postgres decides.
+// ON CONFLICT DO NOTHING is still the whole arbitration: Postgres decides and we only read the
+// answer. The INSERT is wrapped in a data-modifying CTE so the statement ALWAYS returns exactly
+// one row, carrying its own verdict in `claimed`.
+//
+// P9-R2. It used to return the INSERTed row itself, so a won claim was one row and a lost claim
+// was zero rows. A store OUTAGE was also zero rows on the success output — the claim node carried
+// alwaysOutputData, so an error emitted an empty item there as well — and zero rows is exactly
+// what a genuine conflict looks like. An unreachable ledger was therefore answered
+// 409 REPLAY_REFUSED retryable:false: "you already used this context, never come back."
+//
+// The verdict is now a value the query STATES rather than a row count we infer, and zero success
+// rows is unreachable. An outage produces no success item at all, so the error output is the only
+// path left and it answers 503.
+//
+// A data-modifying WITH runs exactly once and always to completion, independently of whether the
+// outer query reads it, so the INSERT is not conditional on the SELECT. G5 semantics are
+// unchanged: one atomic INSERT ... ON CONFLICT DO NOTHING, no SELECT-before-INSERT, no schema
+// change, fail-closed routing untouched.
 const CLAIM_QUERY = [
-  'insert into public.' + G5_TABLE + ' (replay_key, expires_at, correlation_id)',
-  "values ($1, $2::timestamptz, nullif($3, ''))",
-  'on conflict (replay_key) do nothing',
-  'returning replay_key'
+  'with ins as (',
+  '  insert into public.' + G5_TABLE + ' (replay_key, expires_at, correlation_id)',
+  "  values ($1, $2::timestamptz, nullif($3, ''))",
+  '  on conflict (replay_key) do nothing',
+  '  returning replay_key',
+  ')',
+  'select (select count(*) from ins)::int as claimed'
 ].join('\n');
 
 const CLAIM_VERDICT_CODE = [
   "// P9 — read Postgres' verdict. This node does NOT arbitrate and must never learn to:",
-  "// no SELECT, no count of existing rows, no 'not found so proceed'. One row returned by the",
-  "// INSERT means this execution won the key; zero means the key was already held.",
-  "const claimed = $input.all().filter(function (i) {",
-  "  return i.json && String(i.json.replay_key || '') !== '';",
-  "});",
+  "// no SELECT, no count of existing rows, no 'not found so proceed'. The claim query returns",
+  "// exactly one row carrying \`claimed\`: 1 when this execution won the key, 0 when the key was",
+  "// already held.",
+  "//",
+  "// P9-R2. This used to infer the verdict from the NUMBER of rows on the success output, which",
+  "// made a store outage indistinguishable from a conflict. Read the value; never count rows.",
+  "const rows = $input.all();",
+  "const claimed = rows.length === 1 ? Number(rows[0].json.claimed) : NaN;",
   "const d = $('Derive Replay Key').first().json;",
   "return [{ json: {",
-  "  claim_won: claimed.length === 1 ? 1 : 0,",
+  "  // Only an explicit claimed = 1 wins. Anything else — no row, several rows, a missing or",
+  "  // unparseable column — refuses. Ambiguity must never mint a session.",
+  "  claim_won: claimed === 1 ? 1 : 0,",
   "  replay_key: d.replay_key,",
   "  telegram_user_id: d.telegram_user_id,",
   "  correlation_id: d.correlation_id,",
@@ -274,7 +298,13 @@ export function buildGateway(options) {
         credentials: { postgres: SUPABASE_CREDENTIAL },
         // FAIL CLOSED. An unreachable ledger routes to a 503; it must never fall through to the
         // session branch, because "cannot know whether this was replayed" is not "proceed".
-        onError: 'continueErrorOutput', alwaysOutputData: true },
+        //
+        // P9-R2. alwaysOutputData is deliberately ABSENT, and its absence is gated below. With it,
+        // an error fired BOTH outputs — the error item on output 1 and an empty item on output 0 —
+        // and the empty one ran ahead through Claim Verdict to commit a 409 before
+        // Respond Store Unavailable could answer. The CTE is what makes the flag unnecessary: a
+        // conflict now returns a row of its own accord, so the zero-row success case is gone.
+        onError: 'continueErrorOutput' },
 
       { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: CLAIM_VERDICT_CODE },
         id: 'gw-06-verdict', name: 'Claim Verdict', type: 'n8n-nodes-base.code',
@@ -379,6 +409,39 @@ export function verifyGateway(wf) {
     if (typeof c === 'string' && c.indexOf('{{') !== -1) { return; }
     failures.push(n.name + ' responseCode ' + JSON.stringify(c) + ' does not evaluate to a number; it returns 500');
   });
+
+  // P9-R2. The claim query and the alwaysOutputData flag are ONE mechanism and are gated as one.
+  // Either half alone re-opens the defect: with the flag, an error also emits an empty success
+  // item; without the CTE, an empty success item is indistinguishable from a conflict. Together
+  // they made a total store outage answer 409 "already used, do not retry" instead of 503.
+  const claim = byName(G5_CLAIM_NODE);
+  if (claim) {
+    if (claim.alwaysOutputData) {
+      failures.push(G5_CLAIM_NODE + ' carries alwaysOutputData; an error would also emit an empty success item and answer 409, not 503');
+    }
+    if (claim.onError !== 'continueErrorOutput') {
+      failures.push(G5_CLAIM_NODE + ' does not route its error output; a store outage would never reach the 503');
+    }
+    const q = String((claim.parameters || {}).query || '');
+    if (!/\bas\s+claimed\b/i.test(q)) {
+      failures.push('the claim query returns no \`claimed\` verdict column; the verdict would be inferred from a row count again');
+    }
+    if (!/on conflict \(replay_key\) do nothing/i.test(q)) {
+      failures.push('the claim query lost its ON CONFLICT DO NOTHING arbitration');
+    }
+    const insertAt = q.search(/insert\s+into/i);
+    if (insertAt === -1) { failures.push('the claim query does not INSERT'); }
+    else if (/\bselect\b/i.test(q.slice(0, insertAt))) {
+      failures.push('the claim query SELECTs before it INSERTs; that is the race G5 exists to prevent');
+    }
+  }
+
+  // The verdict must READ the column. A node that still counts rows would pass every check above.
+  const verdict = byName('Claim Verdict');
+  if (verdict && !/\bclaimed\b/.test(String((verdict.parameters || {}).jsCode || ''))) {
+    failures.push('Claim Verdict does not read the \`claimed\` column');
+  }
+
   return { ok: failures.length === 0, failures };
 }
 

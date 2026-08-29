@@ -18,7 +18,7 @@
 //
 // The deployed Gateway routes store failure like this:
 //
-//     G5 Replay Claim  (onError: continueErrorOutput, alwaysOutputData: true)
+//     G5 Replay Claim  (onError: continueErrorOutput; NO alwaysOutputData — see P9-R2)
 //        main[0] -> Claim Verdict -> IF Claim Won -> ... -> Respond Bootstrap OK   (200)
 //        main[1] -> Respond Store Unavailable                                      (503)
 //
@@ -102,24 +102,29 @@ const SETTINGS = {
 
 // ---------------------------------------------------------------- the stand-ins
 
-// H1 claim node. Same name, same error wiring, same alwaysOutputData as the real one, so nothing
-// downstream can tell the difference. It holds no credential and inserts nothing.
+// H1 claim node. Same name, same error wiring, and it emits exactly the shape the production
+// query emits, so nothing downstream can tell the difference. It holds no credential and inserts
+// nothing.
+//
+// P9-R2. The production claim is now a data-modifying CTE that ALWAYS returns one row carrying
+// `claimed`, so the stand-in returns one row too — for a lost claim as much as a won one. A
+// stand-in that still returned zero rows on "lost" would be mirroring a query that no longer
+// exists, and the outage and conflict paths would look identical here and only here.
 const H1_CLAIM_CODE = [
   '// HARNESS ONLY - stands in for the Postgres replay claim so the response adapter can be',
   '// exercised without a store. It reads nothing, writes nothing and holds no credential.',
   '//',
   '//   down -> throw, exactly as an unreachable store does; n8n routes to the ERROR output',
-  '//   won  -> one row carrying a replay_key, as a successful INSERT ... RETURNING does',
-  '//   lost -> no row, as ON CONFLICT DO NOTHING does when the key is already held',
+  '//   won  -> one row, claimed = 1, as the CTE returns when the INSERT took the key',
+  '//   lost -> one row, claimed = 0, as the CTE returns when ON CONFLICT DO NOTHING found it held',
   '//',
   '// An unrecognised or absent mode THROWS rather than defaulting to anything, because a',
   '// harness that quietly picks a happy path proves nothing.',
   'const src = $("Gateway Webhook").first().json.body || {};',
   'const mode = String(src.harness_store || "");',
-  'const derived = $("Derive Replay Key").first().json;',
   'if (mode === "down") { throw new Error("HARNESS: simulated replay-store outage"); }',
-  'if (mode === "won")  { return [{ json: { replay_key: derived.replay_key } }]; }',
-  'if (mode === "lost") { return []; }',
+  'if (mode === "won")  { return [{ json: { claimed: 1 } }]; }',
+  'if (mode === "lost") { return [{ json: { claimed: 0 } }]; }',
   'throw new Error("HARNESS: harness_store must be one of down|won|lost");'
 ].join('\n');
 
@@ -175,10 +180,12 @@ export function buildHarness(gateway, variant) {
 
     if (n.name === CLAIM_NODE) {
       if (variant === 'h1') {
-        return codeNode(n, CLAIM_NODE, H1_CLAIM_CODE, {
-          onError: n.onError,
-          alwaysOutputData: n.alwaysOutputData
-        });
+        // Mirror the flag by COPYING it, in whichever state production holds it. Since P9-R2 it
+        // is absent there, and an absent flag must stay absent rather than becoming an explicit
+        // undefined that a later reader could mistake for "not considered".
+        const extra = { onError: n.onError };
+        if (n.alwaysOutputData !== undefined) { extra.alwaysOutputData = n.alwaysOutputData; }
+        return codeNode(n, CLAIM_NODE, H1_CLAIM_CODE, extra);
       }
       // H2 keeps the REAL postgres node and the REAL query. Only the credential moves, to a
       // disposable one pointing at an address nothing listens on.
@@ -246,7 +253,13 @@ export function verifyHarness(gateway, wf, variant) {
   }
   const claim = byName(wf, CLAIM_NODE);
   if (!claim || claim.onError !== 'continueErrorOutput') { f.push('the claim node does not route its error output'); }
-  if (!claim || claim.alwaysOutputData !== true) { f.push('the claim node lost alwaysOutputData'); }
+  // P9-R2. Mirror production in BOTH directions. The flag is absent there now, and a harness that
+  // re-added it would reproduce the very defect this harness was built to find — an error firing
+  // the success output too — while still calling itself a copy of production.
+  const gwFlag = (byName(gateway, CLAIM_NODE) || {}).alwaysOutputData;
+  if (!claim || claim.alwaysOutputData !== gwFlag) {
+    f.push('the claim node does not mirror the Gateway alwaysOutputData (production: ' + JSON.stringify(gwFlag) + ', harness: ' + JSON.stringify((claim || {}).alwaysOutputData) + ')');
+  }
 
   // --- nothing production-owned may be reachable ---------------------------
   if (json.indexOf(PRODUCTION_G5_CREDENTIAL_ID) !== -1) { f.push('the harness references the PRODUCTION G5 credential'); }
@@ -276,6 +289,14 @@ export function verifyHarness(gateway, wf, variant) {
   if (variant === 'h1') {
     if (credNodes.length !== 0) { f.push('H1 must be credential-free, found ' + credNodes.length + ' credential-bearing node(s)'); }
     if (byName(wf, CLAIM_NODE).type !== 'n8n-nodes-base.code') { f.push('H1 claim stand-in is not a code node'); }
+    // P9-R2. The stand-in is only evidence if it answers in the shape the real statement answers.
+    // The production CTE always returns ONE row carrying `claimed`, so a stand-in that returns
+    // an empty array for a lost claim is mirroring a query that no longer exists — and inside
+    // this harness, and nowhere else, the conflict and outage paths would look alike again.
+    const h1code = ((byName(wf, CLAIM_NODE).parameters || {}).jsCode || '');
+    if (!/claimed:\s*1\b/.test(h1code)) { f.push('the H1 stand-in never states claimed = 1, so a won claim cannot be simulated'); }
+    if (!/claimed:\s*0\b/.test(h1code)) { f.push('the H1 stand-in never states claimed = 0; a lost claim must return a ROW, as the CTE does'); }
+    if (/return\s*\[\s*\]/.test(h1code)) { f.push('the H1 stand-in returns an empty array; the production claim query cannot do that'); }
   } else {
     if (credNodes.length !== 1) { f.push('H2 must carry exactly one credential, found ' + credNodes.length); }
     if (credNodes.length === 1 && credNodes[0].name !== CLAIM_NODE) { f.push('H2 credential is not on the claim node'); }

@@ -86,7 +86,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)\nvalues ($1, $2::timestamptz, nullif($3, ''))\non conflict (replay_key) do nothing\nreturning replay_key",
+        "query": "with ins as (\n  insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)\n  values ($1, $2::timestamptz, nullif($3, ''))\n  on conflict (replay_key) do nothing\n  returning replay_key\n)\nselect (select count(*) from ins)::int as claimed",
         "options": {
           "queryReplacement": "={{ $json.replay_key }},={{ $json.expires_at }},={{ $json.correlation_id }}"
         }
@@ -105,14 +105,13 @@
           "name": "FINMENTOR Supabase G5"
         }
       },
-      "onError": "continueErrorOutput",
-      "alwaysOutputData": true
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P9 — read Postgres' verdict. This node does NOT arbitrate and must never learn to:\n// no SELECT, no count of existing rows, no 'not found so proceed'. One row returned by the\n// INSERT means this execution won the key; zero means the key was already held.\nconst claimed = $input.all().filter(function (i) {\n  return i.json && String(i.json.replay_key || '') !== '';\n});\nconst d = $('Derive Replay Key').first().json;\nreturn [{ json: {\n  claim_won: claimed.length === 1 ? 1 : 0,\n  replay_key: d.replay_key,\n  telegram_user_id: d.telegram_user_id,\n  correlation_id: d.correlation_id,\n  locale: d.locale\n} }];"
+        "jsCode": "// P9 — read Postgres' verdict. This node does NOT arbitrate and must never learn to:\n// no SELECT, no count of existing rows, no 'not found so proceed'. The claim query returns\n// exactly one row carrying `claimed`: 1 when this execution won the key, 0 when the key was\n// already held.\n//\n// P9-R2. This used to infer the verdict from the NUMBER of rows on the success output, which\n// made a store outage indistinguishable from a conflict. Read the value; never count rows.\nconst rows = $input.all();\nconst claimed = rows.length === 1 ? Number(rows[0].json.claimed) : NaN;\nconst d = $('Derive Replay Key').first().json;\nreturn [{ json: {\n  // Only an explicit claimed = 1 wins. Anything else — no row, several rows, a missing or\n  // unparseable column — refuses. Ambiguity must never mint a session.\n  claim_won: claimed === 1 ? 1 : 0,\n  replay_key: d.replay_key,\n  telegram_user_id: d.telegram_user_id,\n  correlation_id: d.correlation_id,\n  locale: d.locale\n} }];"
       },
       "id": "gw-06-verdict",
       "name": "Claim Verdict",
