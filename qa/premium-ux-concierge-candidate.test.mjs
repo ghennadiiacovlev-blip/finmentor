@@ -442,6 +442,28 @@ check('the gate reads the owner identity from Settings, and embeds no Telegram i
   eq(wf.connections['Premium Owner Gate'].main.length, 2, 'the gate must have exactly two outputs');
 });
 
+check('an empty message stays on the free-text screen and stores nothing', () => {
+  // Live defect, RU owner UAT: an empty message is still a text input, so decide() answered
+  // TG_CONFIRM_CONTEXT with an empty free_text, extraction found nothing (correctly), and the
+  // 'a confirmation screen with nothing on it is worse than none' rule forwarded to TG_OPEN_BRIEF
+  // — walking the client PAST the only question the screen asks.
+  const BLANKS = ['', '   ', String.fromCharCode(10, 10), String.fromCharCode(9)];
+  for (const text of BLANKS) {
+    const r = run({ session: fresh({ state: 'TG_FREEFORM_PROBLEM' }), message_text: text });
+    eq(r.debug.state_after, 'TG_FREEFORM_PROBLEM', 'empty text ' + JSON.stringify(text) + ' left the screen');
+    eq(String(r.session.free_text_request || ''), '', 'an empty summary was stored');
+    eq(String(r.session.context_confirmed || 'false'), 'false', 'something was marked confirmed');
+  }
+});
+
+check('a real message still leaves the free-text screen', () => {
+  // The guard must be narrow: it may only catch the empty case.
+  const r = run({ session: fresh({ state: 'TG_FREEFORM_PROBLEM' }),
+    message_text: 'Я собственник, кассовые разрывы, нужен прогноз движения денежных средств.' });
+  assert(r.debug.state_after !== 'TG_FREEFORM_PROBLEM', 'a real message was swallowed by the empty guard');
+  assert(String(r.session.free_text_request || '').length > 0, 'the real text was not stored');
+});
+
 check('the THREE ADDED nodes embed no Telegram id', () => {
   // Scoped to what this delta introduced. The rest of the artifact is the live workflow verbatim,
   // and the long numbers in it are spreadsheet gids and timestamps that were already there — a
