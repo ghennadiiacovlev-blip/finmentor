@@ -875,6 +875,43 @@ What this closes and what it does not:
   Gateway, and it is a reading of the graph rather than a live finding. Nothing in Lead Intake was
   touched.
 
+  > **UPDATE — P9-R4, 2026-08-29.** That finding is now **CLOSED.** It was driven on an isolated
+  > harness (P9-R3), confirmed to be worse than recorded — the outage reaches `Save to Pipeline`
+  > *and* answers the caller `{"ok":true,"mode":"new"}` at HTTP 200 — then remediated, deployed to
+  > `QmIyEW2ZEqKregmN` and proven on the deployed structure (P9-R4). Five field changes across two
+  > nodes; the Gateway was not touched and its FINAL GO is unaffected.
+  > See `P9_R3_LEAD_INTAKE_DEDUP_OUTAGE_PROOF.md` and `P9_R4_LEAD_INTAKE_DEDUP_REMEDIATION.md`.
+
 The Gateway was NO-GO for one reason and one only: a store outage told every caller their context
 had already been used. It now says 503, retry. That was the last gate.
 
+
+## 17. Standing state after P9-R4 (2026-08-29, re-verified)
+
+Recorded so the next cycle starts from measured state rather than from the last thing written.
+
+    Gateway        FINAL GO      §16, unchanged by anything since
+    Lead Intake    GO            P9-R4, deployed 09:32Z to QmIyEW2ZEqKregmN, active, 102 nodes
+    QA             34/34 gates, 1536 assertions, green from a foreign working directory
+
+**Tenant residue, read back from the live list rather than assumed.** Every disposable workflow
+and credential created for P9-R3 and P9-R4 is gone — isolation held. What remains is older debt:
+
+    gbeozU4lyy3YDv0M   [TEMP] B21C test button driver          inactive, availableInMCP: TRUE
+    086czLeGvhYXW19n   [TEMP] B21C respond-code shape probe    inactive  (P9-R1 leftover)
+    c4OyUDcItEto1Kb8   [TEMP] P71b column sweep driver         inactive, availableInMCP: TRUE
+    DtrlDGUC9FLptEdr   [TEMP] P71b Bot_Sessions column sweep   inactive
+    Z8Ai31yxfkyTSRO8   [TEMP] P6.2 canary driver               inactive, availableInMCP: TRUE
+
+`gbeozU4lyy3YDv0M` was kept under §10 only so a second button could be sent if a fresh signed
+context were needed. The three-shot proof is recorded (§12) and A + B were re-pressed on the
+P9-R2 graph (§15.3), so **its reason to exist is spent and it is now due for archiving.** The
+other four are inert manual-trigger drivers from earlier phases. None is active; none carries a
+webhook. Archiving is a live tenant mutation and needs owner approval, so nothing was touched.
+
+**Open, and deliberately not started:**
+
+- **Concurrent duplicate submission at the Gateway** (§9) — as distinct from the ledger-level
+  race already measured in P9 §5. The only contract question left unproven at the Gateway.
+- The branch still merges nothing, activates no Mini App product, and opens neither F17 nor
+  Premium Conversation UX.
