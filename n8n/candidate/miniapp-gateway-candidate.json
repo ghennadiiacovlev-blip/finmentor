@@ -201,7 +201,7 @@
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: true, app_session_id: $('Build App Session').first().json.app_session_id, expires_at: $('Build App Session').first().json.expires_at, locale: $('Claim Verdict').first().json.locale }) }}",
         "options": {
-          "responseCode": "=200"
+          "responseCode": 200
         }
       },
       "id": "gw-10-ok",
@@ -235,7 +235,7 @@
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'REPLAY_REFUSED', retryable: false }) }}",
         "options": {
-          "responseCode": "=409"
+          "responseCode": 409
         }
       },
       "id": "gw-12-replay",
@@ -252,7 +252,7 @@
         "respondWith": "json",
         "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'REPLAY_STORE_UNAVAILABLE', retryable: true }) }}",
         "options": {
-          "responseCode": "=503"
+          "responseCode": 503
         }
       },
       "id": "gw-13-store",

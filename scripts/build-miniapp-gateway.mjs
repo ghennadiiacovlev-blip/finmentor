@@ -199,7 +199,29 @@ const BUILD_SESSION_CODE = [
   "} }];"
 ].join('\n');
 
-const respond = (name, id, x, y, codeExpr, bodyExpr) => ({
+// P9-R1. `responseCode` MUST be a number, or an n8n expression that EVALUATES to one.
+//
+// The string '=200' is neither. The leading '=' marks the value as an expression, but the
+// body '200' contains no {{ }}, so n8n evaluates it to the STRING '200' and hands that to
+// the HTTP layer -- which throws while writing the response, AFTER the graph has already
+// finished. The execution is recorded as a SUCCESS and the caller receives a bare 500.
+//
+// That is exactly how A and B failed live on 2026-08-29 while C succeeded: C is the only
+// respond node whose code was a real {{ }} expression. Proven in isolation on a
+// credential-free probe: '=409' -> 500, '={{ 409 }}' -> 409, 409 -> 409.
+//
+// Fixed codes are emitted as plain numbers, which is what the n8n editor itself stores and
+// needs no expression evaluation at all. A dynamic code must use {{ }}.
+const respond = (name, id, x, y, codeExpr, bodyExpr) => {
+  const literalExpressionCode = typeof codeExpr === 'string' && /^=(?!.*{{)/.test(codeExpr);
+  if (literalExpressionCode) {
+    throw new Error(
+      'respond(' + name + '): responseCode ' + JSON.stringify(codeExpr) +
+      ' is an expression with no {{ }} and evaluates to a string, which returns HTTP 500. ' +
+      'Use a plain number, or a {{ }} expression.'
+    );
+  }
+  return {
   parameters: {
     respondWith: 'json',
     responseBody: bodyExpr,
@@ -207,7 +229,8 @@ const respond = (name, id, x, y, codeExpr, bodyExpr) => ({
   },
   id: id, name: name, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1.1,
   position: [x, y]
-});
+  };
+};
 
 export function buildGateway(options) {
   const botId = (options && options.botId) || CONFIGURED_BOT_ID;
@@ -274,17 +297,17 @@ export function buildGateway(options) {
         id: 'gw-09-createsession', name: 'Create App Session', type: 'n8n-nodes-base.dataTable',
         typeVersion: 1, position: [1140, -320] },
 
-      respond('Respond Bootstrap OK', 'gw-10-ok', 1360, -320, '=200',
+      respond('Respond Bootstrap OK', 'gw-10-ok', 1360, -320, 200,
         '={{ JSON.stringify({ ok: true, app_session_id: $(\'Build App Session\').first().json.app_session_id, expires_at: $(\'Build App Session\').first().json.expires_at, locale: $(\'Claim Verdict\').first().json.locale }) }}'),
 
       respond('Respond Rejected', 'gw-11-rejected', 40, 140,
         '={{ $json.statusCode }}',
         '={{ JSON.stringify({ ok: false, error_code: $json.response.error_code, retryable: $json.response.retryable === true }) }}'),
 
-      respond('Respond Replay Refused', 'gw-12-replay', 920, -100, '=409',
+      respond('Respond Replay Refused', 'gw-12-replay', 920, -100, 409,
         '={{ JSON.stringify({ ok: false, error_code: \'REPLAY_REFUSED\', retryable: false }) }}'),
 
-      respond('Respond Store Unavailable', 'gw-13-store', 480, 40, '=503',
+      respond('Respond Store Unavailable', 'gw-13-store', 480, 40, 503,
         '={{ JSON.stringify({ ok: false, error_code: \'REPLAY_STORE_UNAVAILABLE\', retryable: true }) }}')
     ],
     connections: {
@@ -348,6 +371,14 @@ export function verifyGateway(wf) {
     failures.push('execution data retention is on; raw initData would be persisted');
   }
   if (wf.settings.availableInMCP !== false) { failures.push('availableInMCP is not false'); }
+  // P9-R1. Every response code must reach the HTTP layer as a NUMBER. An '=' value with no
+  // {{ }} evaluates to a string, and the caller gets 500 after the graph has already run.
+  wf.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook').forEach((n) => {
+    const c = (n.parameters.options || {}).responseCode;
+    if (typeof c === 'number') { return; }
+    if (typeof c === 'string' && c.indexOf('{{') !== -1) { return; }
+    failures.push(n.name + ' responseCode ' + JSON.stringify(c) + ' does not evaluate to a number; it returns 500');
+  });
   return { ok: failures.length === 0, failures };
 }
 

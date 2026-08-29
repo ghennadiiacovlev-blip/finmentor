@@ -136,6 +136,46 @@ check('an unreachable ledger FAILS CLOSED to 503, never onward', () => {
     'a store outage can still create an app session');
 });
 
+check('every response code reaches the HTTP layer as a NUMBER', () => {
+  // P9-R1, the defect that made A and B return 500 live on 2026-08-29 while C passed.
+  //
+  // In n8n a value starting with '=' is an EXPRESSION. '=200' contains no {{ }}, so it
+  // evaluates to the STRING '200', and the HTTP layer throws while writing the response --
+  // after the graph has already finished. n8n records the execution as a SUCCESS and the
+  // caller gets a bare 500. C was the only respond node whose code was a real {{ }}
+  // expression, which is precisely why C was the only one that answered correctly.
+  //
+  // Proven in isolation on a credential-free probe: '=409' -> 500, '={{ 409 }}' -> 409,
+  // 409 -> 409. Note a substring test like /503/.test(...) passes for BOTH the broken and
+  // the fixed form, which is why the 503 assertion above never caught this.
+  const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
+  eq(responders.length, 4, 'expected four respond nodes');
+  responders.forEach((n) => {
+    const c = (n.parameters.options || {}).responseCode;
+    const isNumber = typeof c === 'number';
+    const isRealExpression = typeof c === 'string' && c.indexOf('{{') !== -1;
+    assert(isNumber || isRealExpression,
+      n.name + ': responseCode ' + JSON.stringify(c) +
+      ' is an expression with no {{ }}; it evaluates to a string and returns 500');
+  });
+  eq(byName('Respond Bootstrap OK').parameters.options.responseCode, 200, 'bootstrap success is not 200');
+  eq(byName('Respond Replay Refused').parameters.options.responseCode, 409, 'replay refusal is not 409');
+  eq(byName('Respond Store Unavailable').parameters.options.responseCode, 503, 'store outage is not 503');
+  // the rejection code stays dynamic, because the validator chooses it
+  assert(/\{\{/.test(byName('Respond Rejected').parameters.options.responseCode),
+    'the rejection code is no longer derived from the validator');
+});
+
+check('the builder REFUSES to emit a string-valued response code', () => {
+  // A mutation gate: the fix must be structural, not a value someone can retype. Mutate the
+  // built graph back to the broken form and require the verifier to reject it.
+  const broken = buildGateway({ botId: CONFIGURED_BOT_ID });
+  broken.nodes.find((n) => n.name === 'Respond Replay Refused').parameters.options.responseCode = '=409';
+  const v = verifyGateway(broken);
+  assert(!v.ok, 'verifyGateway accepted a string-valued response code');
+  assert(v.failures.some((f) => /returns 500/.test(f)), 'the failure does not name the 500');
+});
+
 console.log('\n-- the claim is arbitrated by Postgres, not by us --');
 
 check('the claim query is a single INSERT ... ON CONFLICT DO NOTHING RETURNING', () => {

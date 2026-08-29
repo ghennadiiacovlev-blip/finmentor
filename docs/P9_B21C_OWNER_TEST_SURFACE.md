@@ -157,6 +157,93 @@ A + 940s always clears the 900s window; only clock rate matters, not the browser
 The context lives in one page-local variable for ~16 minutes and dies when the page closes. It
 is never written to n8n, GitHub, Sheets or any store, and no human reads it.
 
+## 8a. P9-R1 — the 500 defect, found by the three-shot run
+
+The three-shot run on 2026-08-29 returned **A: 500, B: 500, C: 401 PASS**. C is the freshness
+gate and it is now live-proven with a genuine Telegram signature gone stale — the gate P9 §2/§3
+recorded as unproven. A and B are a real defect.
+
+### Root cause
+
+`options.responseCode` on three of the four respond nodes was the string `'=200'` / `'=409'` /
+`'=503'`. In n8n a leading `=` marks a value as an **expression**, but those bodies contain no
+`{{ }}`, so each evaluates to a **string**. The HTTP layer then throws while writing the
+response — *after* the graph has already finished. n8n records the execution as a **success**
+and the caller receives a bare `500`.
+
+`Respond Rejected` was the only node whose code was a real expression,
+`={{ $json.statusCode }}`, which evaluates to a number. That is precisely and only why C
+answered correctly, and why every negative-battery code in P9 §2/§3 (400/401/403) looked fine:
+**every one of them went through `Respond Rejected`.** `200`, `409` and `503` had never once
+been exercised live.
+
+### Proven, not inferred
+
+An isolated credential-free probe workflow, one webhook and one respond node, same graph three
+times:
+
+| `responseCode` | result |
+|---|---|
+| `'=409'` (expression marker, no `{{ }}`) | **HTTP 500** |
+| `'={{ 409 }}'` | HTTP 409 |
+| `409` (plain number) | HTTP 409 |
+
+No Telegram material, no credentials, no production node involved.
+
+### What the ledger says about A and B
+
+    rows before the three-shot run : 1
+    rows after A                    : 2   <- A CLAIMED A NEW KEY
+    rows after B                    : 2   <- B correctly won nothing
+    rows after C                    : 2   <- C never reached the claim
+    MiniApp_App_Sessions after A    : 2   <- A MINTED A SESSION
+
+So **A was a valid ACCEPT candidate and the Gateway did the whole job correctly** — fresh
+signature verified, new key claimed, high-entropy session minted — and then failed to *tell the
+caller*. The defect is entirely in the response layer, downstream of every security decision.
+B likewise reached `Respond Replay Refused` and failed the same way, which is why the zero-row
+path looked broken when it was not: `G5 Replay Claim` already carries `alwaysOutputData`, so the
+conflict emits an item, `Claim Verdict` runs, and `claim_won: 0` routes correctly.
+
+**Nothing about G5 was changed.** The atomic `INSERT ... ON CONFLICT DO NOTHING RETURNING`
+stands, there is no `SELECT`-before-`INSERT`, the schema is untouched, and fail-closed routing
+is unchanged.
+
+### The minimal change
+
+Three values, and nothing else. A field-level diff of the fixed candidate against the live graph
+before redeploy returned **exactly three differences**:
+
+    Respond Bootstrap OK      "=200" -> 200
+    Respond Replay Refused    "=409" -> 409
+    Respond Store Unavailable "=503" -> 503
+
+`Respond Rejected` keeps `={{ $json.statusCode }}`, because the validator chooses that code.
+
+Redeployed to `nTZHLbv2KFggdhh5`, still active, 13 nodes, one credential on `G5 Replay Claim`,
+`alwaysOutputData` intact, retention still `none`. The negative battery was re-run live
+afterwards with no regression: `TG_INITDATA_MISSING` 400, `CLIENT_VERSION_UNSUPPORTED` 400,
+`BAD_REQUEST` 400 (locale and content-type), `TG_INITDATA_INVALID` 401 (forged and duplicate
+key). Ledger unchanged at 2 throughout.
+
+### Two guards so it cannot come back
+
+- `verifyGateway` now **refuses to emit** a graph where any `responseCode` is neither a number
+  nor a `{{ }}` expression, and `respond()` throws on the broken form at build time.
+- `qa/miniapp-gateway.test.mjs` asserts the four codes explicitly and includes a mutation check
+  that flips one back to `'=409'` and requires the verifier to reject it.
+
+The old assertion `/503/.test(JSON.stringify(resp.parameters))` passed for **both** the broken
+and the fixed form. That is why a substring test was not enough, and why the new gate compares
+the typed value.
+
+### Orphans left in place, deliberately
+
+Two app sessions (`05:58:10`, `06:08:47`) and their two ledger rows are legitimately claimed
+work whose response never reached the client. They are **not** deleted — deleting a claimed
+replay row to make a test look clean is exactly the thing that must never become a habit. Both
+sessions expire on their own 1800s TTL.
+
 ## 9. Still pending after the three-shot press
 
 - **Store-failure fail-closed, live.** Deliberately breaking production Supabase is refused.
