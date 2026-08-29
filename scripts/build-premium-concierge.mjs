@@ -422,6 +422,29 @@ for (const n of [ANCHOR_IN, LEGACY_SESSION, RESPONSE_NODE, ANCHOR_OUT]) {
 // else changed. Generated from the live node so it cannot drift from the spine it mirrors.
 const legacySession = baseNodes.find((n) => n.name === LEGACY_SESSION);
 const RESET_LINE = "if (isStart) reset = 'start';";
+
+// THE LINE IS NEUTERED, NOT COMMENTED OUT.
+//
+// It is the HEAD of an if/else chain in the live node:
+//
+//     if (isStart) reset = 'start';
+//     else if (isRestart) reset = 'restart';
+//     else if (hasNoCycle) reset = 'bootstrap';
+//
+// Commenting the head out orphans the first `else`, and the node dies with
+// `SyntaxError: Unexpected token 'else'`. That is not hypothetical: the owner's first two real
+// /start messages reached n8n and routed correctly through the owner gate, and then this node
+// threw — so the bot answered nothing at all, with no error visible to the person typing.
+//
+// `if (false)` keeps the chain syntactically intact and keeps the removal legible in the
+// deployed source. The `isStart` binding above stays — unused and harmless — rather than being
+// deleted, because every other byte of this node is the live code verbatim and each extra edit
+// is another chance to break something that was working.
+const PREMIUM_RESET_REPLACEMENT = [
+  '// [premium] REMOVED: /start no longer resets the cycle. `if (false)` rather than a comment,',
+  '// because this line heads an if/else chain and commenting it out orphans the `else` below.',
+  "if (false) { reset = 'start'; }"
+].join('\n');
 let premiumSessionCode = '';
 if (legacySession) {
   const orig = legacySession.parameters.jsCode;
@@ -444,7 +467,7 @@ if (legacySession) {
       '// the legacy m|diag restart stays as it is -- the premium flow never sends that callback, so',
       '// it is inert here rather than removed.',
       ''
-    ].join('\n') + orig.replace(RESET_LINE, '// [premium] REMOVED: ' + RESET_LINE);
+    ].join('\n') + orig.replace(RESET_LINE, PREMIUM_RESET_REPLACEMENT);
   }
 }
 
@@ -565,7 +588,7 @@ if (/\b\d{6,}\b/.test(gateJson)) { fail.push(OWNER_GATE + ': a literal Telegram 
 
 // The premium session node must be the live code MINUS the reset, and nothing else.
 if (legacySession && premiumSessionCode) {
-  if (premiumSessionCode.indexOf('// [premium] REMOVED: ' + RESET_LINE) === -1) {
+  if (premiumSessionCode.indexOf('[premium] REMOVED') === -1) {
     fail.push(PREMIUM_SESSION + ': the removal of the /start reset is not recorded in the node');
   }
   const strippedPremium = premiumSessionCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
@@ -626,9 +649,14 @@ for (const leak of ['cachedResultUrl', 'activeVersion', 'versionId', 'pinData'])
   if (text.indexOf('"' + leak + '"') !== -1) { fail.push('leaked key in the candidate: ' + leak); }
 }
 
-// The node must actually run. A syntax error here would surface only in production.
-try { new Function(NODE_BODY.replace(/\$input/g, '__input')); }
-catch (e) { fail.push('the generated node body does not parse: ' + e.message); }
+// EVERY generated node body must parse. The response body was checked here from the start; the
+// SESSION body was not, and that omission is precisely what reached production: a spliced
+// if/else chain that no test executed and no gate parsed, discovered by the owner typing /start.
+for (const [label, body] of [[PREMIUM_RESPONSE, NODE_BODY], [PREMIUM_SESSION, premiumSessionCode]]) {
+  if (!body) { continue; }
+  try { new Function(body.replace(/\$input/g, '__input').replace(/\$\(/g, '__ref(')); }
+  catch (e) { fail.push(label + ': the generated node body does not parse: ' + e.message); }
+}
 
 // ------------------------------------------------------------------ emit
 
