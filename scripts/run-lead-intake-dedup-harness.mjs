@@ -35,12 +35,16 @@ import {
   CREDENTIAL_PLACEHOLDER, DOCUMENT_PLACEHOLDER,
   DEDUP_NODE, GUARD_NODE, WRITE_NODE, BUILD_ROW_NODE
 } from './build-lead-intake-dedup-harness.mjs';
+import { remediate } from './build-lead-intake-dedup-remediation.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const SRC_PATH = join(ROOT, 'n8n', 'production', 'QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json');
 
 const RUN = process.argv.includes('--run');
+// --remediated builds the harness from the FIXED graph instead of the deployed one, so the same
+// rig that found the defect is what proves the remediation. Nothing else about the run changes.
+const REMEDIATED = process.argv.includes('--remediated');
 const BASE = (process.env.N8N_BASE_URL || '').replace(/\/+$/, '');
 const READ_KEY = process.env.N8N_API_KEY;
 const WRITE_KEY = process.env.N8N_FIX_API_KEY;
@@ -123,6 +127,26 @@ function outputsOf(runData, name) {
 }
 
 function ranNode(runData, name) { return Array.isArray(runData[name]) && runData[name].length > 0; }
+
+// --probe support. The remediation design turns on two facts that cannot be reasoned out of the
+// graph: what the SYNTHETIC output-0 item actually contains when the node threw (if it is
+// indistinguishable from a legitimately empty read, no shape-based fix is admissible), and the
+// real branch execution order (if the success branch runs first, no ordering-based fix is
+// admissible either). Both are measured, not assumed.
+function rawItem(runData, name, branch) {
+  const runs = runData[name];
+  if (!runs || !runs.length) { return null; }
+  const main = (runs[0].data && runs[0].data.main) || [];
+  const b = main[branch || 0];
+  return (b && b[0]) || null;
+}
+
+function orderOf(runData) {
+  return Object.entries(runData)
+    .map(([n, r]) => [n, (r[0] && r[0].startTime) || 0])
+    .sort((a, b) => a[1] - b[1])
+    .map((x) => x[0]);
+}
 
 // Which Respond to Webhook nodes actually executed. With the flag pair BOTH branches run, so
 // more than one can fire and whichever ran FIRST committed the HTTP response; the others became
@@ -222,22 +246,48 @@ async function main() {
   }
   ok('live graph is a field-level match for the tracked export (0 differences)');
 
+  // The live node must be in one of the two states this rig knows how to reason about. Anything
+  // else means production moved underneath us and no verdict from this run would mean anything.
   const liveDedup = live.nodes.find((n) => n.name === DEDUP_NODE);
   if (!liveDedup) { die('the live graph has no node named ' + DEDUP_NODE); }
-  if (liveDedup.alwaysOutputData !== true || liveDedup.onError !== 'continueErrorOutput') {
-    die('the live ' + DEDUP_NODE + ' no longer carries alwaysOutputData + continueErrorOutput. The finding is moot; this run would be theatre.');
+  if (liveDedup.alwaysOutputData !== true) {
+    die('the live ' + DEDUP_NODE + ' lost alwaysOutputData; an empty Pipeline sheet would stall and this rig does not model that.');
   }
-  ok('the defect under test is present in PRODUCTION: ' + DEDUP_NODE + ' has alwaysOutputData + continueErrorOutput');
+  const liveState = liveDedup.onError === 'continueErrorOutput' ? 'DEFECTIVE'
+    : liveDedup.onError === 'continueRegularOutput' ? 'REMEDIATED' : 'UNKNOWN';
+  if (liveState === 'UNKNOWN') {
+    die('the live ' + DEDUP_NODE + ' is in an unrecognised state (onError=' + JSON.stringify(liveDedup.onError) + ').');
+  }
+  ok('live ' + DEDUP_NODE + ' state: ' + liveState + '  (alwaysOutputData + onError=' + liveDedup.onError + ')');
+  if (!REMEDIATED && liveState === 'REMEDIATED') {
+    say('  NOTE  production is already remediated; this defective-base run is a REGRESSION reproduction,');
+    say('        not a statement about what production does today.');
+  }
+  if (REMEDIATED && liveState === 'DEFECTIVE') {
+    say('  NOTE  production is still defective; this run proves the CANDIDATE, before deploy.');
+  }
 
-  const allow = divergenceAllowlist(tracked);
-  const h1 = buildHarness(tracked, 'h1');
-  const h2 = buildHarness(tracked, 'h2');
+  // After the fix is deployed the tracked export IS the remediated graph, and applying the
+  // remediation a second time would (correctly) be refused by remediate(). Detect that and use
+  // the export as-is, so the same command verifies the candidate before deploy and production
+  // after it.
+  const trackedDedup = tracked.nodes.find((n) => n.name === DEDUP_NODE);
+  const trackedAlreadyFixed = trackedDedup && trackedDedup.onError === 'continueRegularOutput';
+  const base = !REMEDIATED ? tracked
+    : trackedAlreadyFixed ? tracked
+      : remediate({ name: tracked.name, nodes: tracked.nodes, connections: tracked.connections, settings: tracked.settings });
+  if (REMEDIATED) {
+    ok('harness base is the REMEDIATED graph (' + (trackedAlreadyFixed ? 'tracked export is already the fixed graph' : 'P9-R4 fix applied to the pre-fix export') + ')');
+  }
+  const allow = divergenceAllowlist(base);
+  const h1 = buildHarness(base, 'h1');
+  const h2 = buildHarness(base, 'h2');
   for (const [v, wf] of [['h1', h1], ['h2', h2]]) {
-    const r = verifyHarness(tracked, wf, v);
+    const r = verifyHarness(base, wf, v);
     if (!r.ok) { r.failures.forEach((x) => bad(x)); die(v.toUpperCase() + ' failed its own gate.'); }
   }
   ok('both harnesses rebuilt from the tracked export and re-verified');
-  ok(allow.length + ' declared divergences, ' + (tracked.nodes.length - allow.length) + ' nodes byte-identical, connection map identical');
+  ok(allow.length + ' declared divergences, ' + (base.nodes.length - allow.length) + ' nodes byte-identical, connection map identical');
 
   if (!RUN) {
     say('');
@@ -279,7 +329,7 @@ async function main() {
     say('');
     say('H1 — credential-free stand-in read');
     say('-'.repeat(78));
-    for (const mode of ['none', 'dup', 'new', 'down']) {
+    for (const mode of ['none', 'dup', 'new', 'down', 'weird']) {
       const r = await shot(H1_PATH, mode);
       const exec = await executionForNonce(created.h1, r.nonce);
       if (!exec) { bad('mode ' + mode + ': no execution matched the nonce; cannot read runData'); continue; }
@@ -298,12 +348,16 @@ async function main() {
         respondInfraRan: ranNode(rd, 'Respond Infra Failed'),
         mergeRan: ranNode(rd, 'Build Merge Update'),
         responders: respondersOf(rd),
+        stopRan: ranNode(rd, 'Stop: CRM Unavailable'),
+        dedupOut0Raw: rawItem(rd, DEDUP_NODE, 0),
+        dedupOut1Raw: rawItem(rd, DEDUP_NODE, 1),
+        order: orderOf(rd),
         nodesRun: Object.keys(rd).length
       };
       const x = results['h1:' + mode];
       say('  mode=' + mode.padEnd(5) + ' HTTP ' + x.http + '  exec=' + x.execStatus +
         '  dedupOutputs=' + JSON.stringify(x.dedupOutputs) +
-        '  guard=' + (x.guardVerdict ? x.guardVerdict.dedup_mode : 'DID NOT RUN') +
+        '  guard=' + (x.guardVerdict ? x.guardVerdict.dedup_mode : (x.guardRan ? 'THREW (fail closed)' : 'did not run')) +
         '  buildRow=' + (x.buildRowRan ? 'RAN' : 'no') +
         '  WRITE=' + (x.writeReached ? 'REACHED' : 'not reached') +
         '  errorBranch=' + (x.infraRan ? 'ran' : 'no'));
@@ -338,12 +392,39 @@ async function main() {
         const x = results['h2:real'];
         say('  real Sheets node  HTTP ' + x.http + '  exec=' + x.execStatus +
           '  dedupOutputs=' + JSON.stringify(x.dedupOutputs) +
-          '  guard=' + (x.guardVerdict ? x.guardVerdict.dedup_mode : 'DID NOT RUN') +
+          '  guard=' + (x.guardVerdict ? x.guardVerdict.dedup_mode : (x.guardRan ? 'THREW (fail closed)' : 'did not run')) +
           '  buildRow=' + (x.buildRowRan ? 'RAN' : 'no') +
           '  WRITE=' + (x.writeReached ? 'REACHED' : 'not reached') +
           '  errorBranch=' + (x.infraRan ? 'ran' : 'no'));
         say('           responders=' + JSON.stringify(x.responders) + '  caller got: ' + JSON.stringify(x.response));
       }
+    }
+
+    // ---------------- probe ----------------
+    if (process.argv.includes('--probe')) {
+      const d = results['h1:down'], n = results['h1:none'];
+      say('');
+      say('PROBE — the two facts the remediation design turns on');
+      say('='.repeat(78));
+      say('');
+      say('1. Is the synthetic output-0 item distinguishable from a legitimately empty read?');
+      say('   OUTAGE  out0 = ' + JSON.stringify(d && d.dedupOut0Raw));
+      say('   EMPTY   out0 = ' + JSON.stringify(n && n.dedupOut0Raw));
+      say('   OUTAGE  out1 = ' + JSON.stringify(d && d.dedupOut1Raw).slice(0, 300));
+      const identical = JSON.stringify(d && d.dedupOut0Raw) === JSON.stringify(n && n.dedupOut0Raw);
+      say('   => output-0 items are ' + (identical ? 'IDENTICAL: no shape-based fix is admissible'
+        : 'DIFFERENT: a shape-based fix would be possible, but see the owner constraint'));
+      say('');
+      say('2. Which branch runs first on an outage?');
+      say('   order = ' + JSON.stringify((d && d.order) || []));
+      if (d && d.order) {
+        const iGuard = d.order.indexOf(GUARD_NODE);
+        const iInfra = d.order.indexOf('IF Internal (Infra)');
+        say('   ' + GUARD_NODE + ' at ' + iGuard + ', IF Internal (Infra) at ' + iInfra);
+        say('   => the ' + (iGuard < iInfra ? 'SUCCESS' : 'ERROR') + ' branch runs first'
+          + (iGuard < iInfra ? ': no ordering-based fix is admissible' : ''));
+      }
+      say('   Stop: CRM Unavailable ran on the outage: ' + (d && d.stopRan));
     }
 
     // ---------------- verdict ----------------
@@ -405,6 +486,8 @@ function verdict(r) {
     return;
   }
 
+  if (REMEDIATED) { return remediatedVerdict(r); }
+
   // The finding.
   if (!down) { bad('no result for the outage shot'); return; }
   const bothOutputs = Array.isArray(down.dedupOutputs) && down.dedupOutputs.length === 2 && down.dedupOutputs[0] >= 1 && down.dedupOutputs[1] >= 1;
@@ -464,3 +547,75 @@ function verdict(r) {
 }
 
 main().catch((e) => { console.error('\nERROR: ' + e.message); process.exit(1); });
+
+// ---------------------------------------------------------------- the remediation verdict
+//
+// The owner's acceptance matrix, graded case by case. A is the case the fix could most easily
+// have broken (a legitimately empty read MUST still write); C/D/E are the cases it exists for.
+// Every failure case is graded on BOTH halves — the side effect and the HTTP response — because
+// P9-R3 showed a defect that got the write wrong and the response wrong independently.
+function remediatedVerdict(r) {
+  const cases = [
+    ['A  successful EMPTY read      -> NEW, write reached', r['h1:none'], 'write'],
+    ['B  successful DUPLICATE read  -> DUPLICATE, no write', r['h1:dup'], 'nowrite'],
+    ['C  synthetic read OUTAGE      -> 503 retryable, no write', r['h1:down'], 'fail'],
+    ['D  REAL Sheets dead credential-> 503 retryable, no write', r['h2:real'], 'fail'],
+    ['E  ambiguous read output      -> fail closed, no write', r['h1:weird'], 'fail']
+  ];
+  let bad_ = 0;
+  for (const [label, x, kind] of cases) {
+    if (!x) { bad(label + '  -> NO RESULT'); bad_++; continue; }
+    const problems = [];
+    if (kind === 'write') {
+      if (!x.writeReached) { problems.push('did not reach the write'); }
+      if (x.http !== 200) { problems.push('HTTP ' + x.http + ', expected 200'); }
+      if (!x.response || x.response.ok !== true) { problems.push('response was not ok:true'); }
+    }
+    if (kind === 'nowrite') {
+      if (x.writeReached) { problems.push('REACHED THE WRITE'); }
+      if (x.http !== 200) { problems.push('HTTP ' + x.http + ', expected 200'); }
+    }
+    if (kind === 'fail') {
+      if (x.writeReached) { problems.push('REACHED THE WRITE'); }
+      if (x.buildRowRan) { problems.push('Build Pipeline Row ran'); }
+      if (x.http !== 503) { problems.push('HTTP ' + x.http + ', expected 503'); }
+      if (!x.response || x.response.ok !== false) { problems.push('response was not ok:false'); }
+      if (!x.response || x.response.error_code !== 'CRM_UNAVAILABLE') { problems.push('error_code was not CRM_UNAVAILABLE'); }
+      if (!x.response || x.response.retryable !== true) { problems.push('retryable was not true'); }
+      if (Array.isArray(x.responders) && x.responders.length !== 1) { problems.push(x.responders.length + ' respond nodes fired: ' + JSON.stringify(x.responders)); }
+    }
+    if (problems.length) { bad(label + '  -> ' + problems.join('; ')); bad_++; }
+    else { ok(label); }
+  }
+
+  // The specific fail-open signature must be gone, stated as its own assertion rather than
+  // inferred from the table above.
+  const failCases = [r['h1:down'], r['h2:real'], r['h1:weird']].filter(Boolean);
+  const anyOkTrue = failCases.some((x) => x.response && x.response.ok === true);
+  if (anyOkTrue) { bad('a failure case still answered ok:true'); bad_++; }
+  else { ok('no failure case answered {"ok":true,"mode":"new"}'); }
+  const anyDouble = failCases.some((x) => Array.isArray(x.responders) && x.responders.length > 1);
+  if (anyDouble) { bad('a failure case fired more than one respond node'); bad_++; }
+  else { ok('exactly one response per failure case'); }
+  const anyWrite = failCases.some((x) => x.writeReached);
+  if (anyWrite) { bad('a failure case reached ' + WRITE_NODE); bad_++; }
+  else { ok('no failure case reached ' + WRITE_NODE); }
+
+  // A and C must now be DISTINGUISHABLE — that was the whole ambiguity.
+  const a = r['h1:none'], c = r['h1:down'];
+  if (a && c) {
+    const same = a.http === c.http && JSON.stringify(a.response) === JSON.stringify(c.response);
+    if (same) { bad('an OUTAGE is still indistinguishable from a legitimately EMPTY read'); bad_++; }
+    else { ok('an outage and a legitimately empty read are now distinguishable: ' + a.http + ' vs ' + c.http); }
+  }
+
+  say('');
+  if (bad_ === 0) {
+    say('REMEDIATION PROVEN. All five cases behave as specified, on both the side effect and the');
+    say('HTTP response. A dedup-read failure now fails closed with 503 CRM_UNAVAILABLE retryable,');
+    say('reaches no write, and emits exactly one response.');
+  } else {
+    say('REMEDIATION NOT PROVEN: ' + bad_ + ' case(s) failed. Do not deploy.');
+    process.exitCode = 1;
+  }
+}

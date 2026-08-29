@@ -1,10 +1,10 @@
 {
-  "name": "[TEMP] P9-R3 Lead Intake dedup-outage H2 (dead sheets credential)",
+  "name": "FINMENTOR Lead Intake PREMIUM FINAL",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "p9r3/dedup-outage-h2",
+        "path": "finmentor-lead-intake",
         "options": {},
         "responseMode": "responseNode"
       },
@@ -15,7 +15,8 @@
         336
       ],
       "id": "edaeeb23-11b5-4806-b083-d1f3a2fc0449",
-      "name": "Webhook"
+      "name": "Webhook",
+      "webhookId": "e0ce5df2-f4cd-4b72-b2ac-4f44686a6be4"
     },
     {
       "parameters": {
@@ -45,18 +46,182 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Lead_Answers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=936189533",
+          "mode": "list",
+          "value": 936189533
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{$json.lead_id}}",
+            "created_at": "={{$json.created_at}}",
+            "tool": "={{$json.tool}}",
+            "section": "={{$json.section}}",
+            "question_key": "={{$json.question_key}}",
+            "question_label": "={{$json.question_label}}",
+            "answer_value": "={{$json.answer_value}}",
+            "answer_type": "={{$json.answer_type}}",
+            "score_percent": "={{$json.score_percent}}",
+            "weight": "={{$json.weight}}",
+            "earned": "={{$json.earned}}",
+            "raw_answer": "={{$json.raw_answer}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tool",
+              "displayName": "tool",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section",
+              "displayName": "section",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "question_key",
+              "displayName": "question_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "question_label",
+              "displayName": "question_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "answer_value",
+              "displayName": "answer_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "answer_type",
+              "displayName": "answer_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "score_percent",
+              "displayName": "score_percent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "weight",
+              "displayName": "weight",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "earned",
+              "displayName": "earned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "raw_answer",
+              "displayName": "raw_answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "b7d848d1-8881-4299-a7eb-4c9af5f8b926",
-      "name": "Save Answers to Lead_Answers",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         0,
         0
-      ]
+      ],
+      "id": "b7d848d1-8881-4299-a7eb-4c9af5f8b926",
+      "name": "Save Answers to Lead_Answers",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -73,34 +238,1074 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for the Pipeline WRITE. It writes nothing. Reaching this node at\n// all is the finding: on a dedup-read outage the success branch must not get here.\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__harness_write_reached = 1;\n  out.push({ json: j });\n}\nreturn out;"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304",
+          "mode": "list",
+          "value": 1883973304
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{$json.lead_id}}",
+            "created_at": "={{$json.created_at}}",
+            "updated_at": "={{$json.updated_at}}",
+            "priority": "={{$json.priority}}",
+            "financial_zone": "={{$json.financial_zone}}",
+            "status": "={{$json.status}}",
+            "deal_stage": "={{$json.deal_stage}}",
+            "next_action": "={{$json.next_action}}",
+            "next_follow_up_at": "={{$json.next_follow_up_at}}",
+            "sla_hours": "={{$json.sla_hours}}",
+            "responsible": "={{$json.responsible}}",
+            "company": "={{$json.company}}",
+            "name": "={{$json.name}}",
+            "role": "={{$json.role}}",
+            "email": "={{$json.email}}",
+            "phone": "={{$json.phone}}",
+            "telegram": "={{$json.telegram}}",
+            "business_model": "={{$json.business_model}}",
+            "industry_category": "={{$json.industry_category}}",
+            "turnover_range": "={{$json.turnover_range}}",
+            "employees_range": "={{$json.employees_range}}",
+            "main_pain": "={{$json.main_pain}}",
+            "selected_problems": "={{$json.selected_problems}}",
+            "selected_goals": "={{$json.selected_goals}}",
+            "work_interest": "={{$json.work_interest}}",
+            "documents_status": "={{$json.documents_status}}",
+            "selected_documents": "={{$json.selected_documents}}",
+            "preferred_meeting_format": "={{$json.preferred_meeting_format}}",
+            "priority_reason": "={{$json.priority_reason}}",
+            "critical_flags": "={{$json.critical_flags}}",
+            "source_page": "={{$json.source_page}}",
+            "utm_source": "={{$json.utm_source}}",
+            "utm_medium": "={{$json.utm_medium}}",
+            "utm_campaign": "={{$json.utm_campaign}}",
+            "comment": "={{$json.comment}}",
+            "last_contacted_at": "={{$json.last_contacted_at}}",
+            "meeting_date": "={{$json.meeting_date}}",
+            "documents_requested_at": "={{$json.documents_requested_at}}",
+            "proposal_sent_at": "={{$json.proposal_sent_at}}",
+            "deal_value_estimate": "={{$json.deal_value_estimate}}",
+            "close_reason": "={{$json.close_reason}}",
+            "sla_status": "={{$json.sla_status}}",
+            "sla_snooze_until": "={{$json.sla_snooze_until}}",
+            "owner_note": "={{$json.owner_note}}",
+            "last_activity_at": "={{ $json.created_at }}",
+            "ai_plan_ready": "N",
+            "last_sla_alert_at": "",
+            "first_response_at": "",
+            "first_response_minutes": "",
+            "sla_breach": "N",
+            "days_in_stage": "0",
+            "request_id": "={{ $json.request_id }}",
+            "analytics_consent": "={{ $json.analytics_consent }}",
+            "ga_client_id": "={{ $json.ga_client_id }}",
+            "ga_session_id": "={{ $json.ga_session_id }}",
+            "utm_source_first": "={{ $json.utm_source_first }}",
+            "utm_medium_first": "={{ $json.utm_medium_first }}",
+            "utm_campaign_first": "={{ $json.utm_campaign_first }}",
+            "first_touch_at": "={{ $json.first_touch_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "deal_stage",
+              "displayName": "deal_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_follow_up_at",
+              "displayName": "next_follow_up_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sla_hours",
+              "displayName": "sla_hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "responsible",
+              "displayName": "responsible",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "business_model",
+              "displayName": "business_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry_category",
+              "displayName": "industry_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "turnover_range",
+              "displayName": "turnover_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employees_range",
+              "displayName": "employees_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "main_pain",
+              "displayName": "main_pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_problems",
+              "displayName": "selected_problems",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_goals",
+              "displayName": "selected_goals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "work_interest",
+              "displayName": "work_interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "documents_status",
+              "displayName": "documents_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_documents",
+              "displayName": "selected_documents",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preferred_meeting_format",
+              "displayName": "preferred_meeting_format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority_reason",
+              "displayName": "priority_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "critical_flags",
+              "displayName": "critical_flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_page",
+              "displayName": "source_page",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "utm_source",
+              "displayName": "utm_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "utm_medium",
+              "displayName": "utm_medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "utm_campaign",
+              "displayName": "utm_campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "comment",
+              "displayName": "comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_contacted_at",
+              "displayName": "last_contacted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "meeting_date",
+              "displayName": "meeting_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "documents_requested_at",
+              "displayName": "documents_requested_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "proposal_sent_at",
+              "displayName": "proposal_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deal_value_estimate",
+              "displayName": "deal_value_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "close_reason",
+              "displayName": "close_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_status",
+              "displayName": "sla_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_snooze_until",
+              "displayName": "sla_snooze_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner_note",
+              "displayName": "owner_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "dd1713e2-7f4c-4045-bcdb-d3a949504dc5",
-      "name": "Save to Pipeline",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         -464,
         736
       ],
-      "onError": "continueErrorOutput"
+      "id": "dd1713e2-7f4c-4045-bcdb-d3a949504dc5",
+      "name": "Save to Pipeline",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=409890193",
+          "mode": "list",
+          "value": 409890193
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead ID": "={{ $json.submission_lead_id || $json.lead_id }}",
+            "Created At": "={{ $json.created_at }}",
+            "Tool": "={{ $json.tool }}",
+            "Lead Temperature": "={{ $json.lead_temperature }}",
+            "Status": "={{ $json.status }}",
+            "Name": "={{ $json.name }}",
+            "Company": "={{ $json.company }}",
+            "Role": "={{ $json.role }}",
+            "Email": "={{ $json.email }}",
+            "Phone": "={{ $json.phone }}",
+            "Telegram": "={{ $json.telegram }}",
+            "Country": "={{ $json.country }}",
+            "City": "={{ $json.city }}",
+            "Language": "={{ $json.language }}",
+            "Business Model": "={{ $json.business_model }}",
+            "Urgency": "={{ $json.urgency }}",
+            "Score Zone": "={{ $json.score_zone }}",
+            "First Step": "={{ $json.first_step }}",
+            "Main Pain": "={{ $json.main_pain }}",
+            "Page URL": "={{ $json.page_url }}",
+            "Referrer": "={{ $json.referrer }}",
+            "UTM Source": "={{ $json.utm_source }}",
+            "UTM Medium": "={{ $json.utm_medium }}",
+            "UTM Campaign": "={{ $json.utm_campaign }}",
+            "UTM Content": "={{ $json.utm_content }}",
+            "UTM Term": "={{ $json.utm_term }}",
+            "Consent": "={{ $json.consent }}",
+            "Raw JSON": "={{ $json.raw_json }}",
+            "Diagnostic Score": "={{$json.diagnostic_score}}",
+            "Risk Zone": "={{$json.risk_zone}}",
+            "Industry Category": "={{$json.industry_category}}",
+            "Turnover Range": "={{$json.turnover_range}}",
+            "Employees Range": "={{$json.employees_range}}",
+            "Selected Problems": "={{$json.selected_problems}}",
+            "Selected Goals": "={{$json.selected_goals}}",
+            "Selected Documents": "={{$json.selected_documents}}",
+            "Documents Status": "={{$json.documents_status}}",
+            "Work Interest": "={{$json.work_interest}}",
+            "Preferred Meeting Format": "={{$json.preferred_meeting_format}}",
+            "Data Quality Hint": "={{$json.data_quality_hint}}",
+            "Routing Hint": "={{$json.routing_hint}}",
+            "Human Review Required": "={{$json.human_review_required}}",
+            "Lead Priority": "={{$json.lead_priority}}",
+            "Financial Zone": "={{$json.financial_zone}}",
+            "Priority Reason": "={{$json.priority_reason}}",
+            "Critical Flags": "={{$json.critical_flags}}",
+            "Strong Commercial Intent": "={{$json.strong_commercial_intent}}",
+            "Light Commercial Intent": "={{$json.light_commercial_intent}}",
+            "Explicit Meeting Intent": "={{$json.explicit_meeting_intent}}",
+            "Has CFO": "={{ $json.has_cfo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Lead ID",
+              "displayName": "Lead ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tool",
+              "displayName": "Tool",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Temperature",
+              "displayName": "Lead Temperature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Role",
+              "displayName": "Role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Telegram",
+              "displayName": "Telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Language",
+              "displayName": "Language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Business Model",
+              "displayName": "Business Model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgency",
+              "displayName": "Urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score Zone",
+              "displayName": "Score Zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Step",
+              "displayName": "First Step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Main Pain",
+              "displayName": "Main Pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Page URL",
+              "displayName": "Page URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Referrer",
+              "displayName": "Referrer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Source",
+              "displayName": "UTM Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Medium",
+              "displayName": "UTM Medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Campaign",
+              "displayName": "UTM Campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Content",
+              "displayName": "UTM Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "UTM Term",
+              "displayName": "UTM Term",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Consent",
+              "displayName": "Consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Raw JSON",
+              "displayName": "Raw JSON",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Diagnostic Score",
+              "displayName": "Diagnostic Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Risk Zone",
+              "displayName": "Risk Zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Industry Category",
+              "displayName": "Industry Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Turnover Range",
+              "displayName": "Turnover Range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Employees Range",
+              "displayName": "Employees Range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Selected Problems",
+              "displayName": "Selected Problems",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Selected Goals",
+              "displayName": "Selected Goals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Selected Documents",
+              "displayName": "Selected Documents",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Documents Status",
+              "displayName": "Documents Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Work Interest",
+              "displayName": "Work Interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Preferred Meeting Format",
+              "displayName": "Preferred Meeting Format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Data Quality Hint",
+              "displayName": "Data Quality Hint",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Routing Hint",
+              "displayName": "Routing Hint",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Human Review Required",
+              "displayName": "Human Review Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead Priority",
+              "displayName": "Lead Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Financial Zone",
+              "displayName": "Financial Zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority Reason",
+              "displayName": "Priority Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Critical Flags",
+              "displayName": "Critical Flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Strong Commercial Intent",
+              "displayName": "Strong Commercial Intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Light Commercial Intent",
+              "displayName": "Light Commercial Intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Explicit Meeting Intent",
+              "displayName": "Explicit Meeting Intent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "0b39e7b1-16ff-4eda-8011-e806cc8791f5",
-      "name": "Save Lead to CRM",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         -256,
         688
-      ]
+      ],
+      "id": "0b39e7b1-16ff-4eda-8011-e806cc8791f5",
+      "name": "Save Lead to CRM",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -251,48 +1456,125 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Done",
+                    "additionalFields": {
+                      "callback_data": "=done|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "⏰ Snooze 24h",
+                    "additionalFields": {
+                      "callback_data": "=snooze|{{$json.lead_id}}|24"
+                    }
+                  },
+                  {
+                    "text": "📞 Discovery",
+                    "additionalFields": {
+                      "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled"
+                    }
+                  },
+                  {
+                    "text": "📄 Docs",
+                    "additionalFields": {
+                      "callback_data": "=docs|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "💤 Nurture",
+                    "additionalFields": {
+                      "callback_data": "=nurture|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "🏆 Won",
+                    "additionalFields": {
+                      "callback_data": "=won|{{$json.lead_id}}|0"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
       },
-      "id": "01bbd08d-9f70-402a-b854-00b1a3d91a05",
-      "name": "Telegram Lead Alert",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
         288,
         272
-      ]
+      ],
+      "id": "01bbd08d-9f70-402a-b854-00b1a3d91a05",
+      "name": "Telegram Lead Alert",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
       },
-      "id": "00e372ec-b085-4a46-b17c-a672b399cad2",
-      "name": "Telegram Warm Alert",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
         288,
         448
-      ]
+      ],
+      "id": "00e372ec-b085-4a46-b17c-a672b399cad2",
+      "name": "Telegram Warm Alert",
+      "webhookId": "86b0c93c-b9e5-4f41-8cae-f82a0da279ef",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
       },
-      "id": "01fd6857-f111-4da4-8b87-79d30105eb4e",
-      "name": "Telegram Incomplete Alert",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
         288,
         640
-      ]
+      ],
+      "id": "01fd6857-f111-4da4-8b87-79d30105eb4e",
+      "name": "Telegram Incomplete Alert",
+      "webhookId": "848424e5-f122-46f9-aa96-acb03f2af053",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
     },
     {
       "parameters": {
@@ -309,19 +1591,48 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "images": {
+          "values": [
+            {}
+          ]
+        },
+        "modelId": {
+          "__rl": true,
+          "value": "={{ $json.ai_model }}",
+          "mode": "id"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "={{$json.ai_system_prompt}}"
+            },
+            {
+              "content": "={{$json.ai_user_prompt}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
       },
-      "id": "e1cfcac3-5b57-4df6-aa1e-7925e4d19eb6",
-      "name": "AI Client Work Plan",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
       "position": [
         416,
         96
       ],
-      "onError": "continueErrorOutput"
+      "id": "e1cfcac3-5b57-4df6-aa1e-7925e4d19eb6",
+      "name": "AI Client Work Plan",
+      "credentials": {
+        "openAiApi": {
+          "id": "MC2uu5oVRKPe7iIH",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -351,48 +1662,109 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ String($json.ai_telegram_message_short || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
       },
-      "id": "0b5e4ade-169f-4beb-86f0-f0d4841d2e94",
-      "name": "Telegram AI Work Plan",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
       "position": [
         1200,
         288
-      ]
+      ],
+      "id": "0b5e4ade-169f-4beb-86f0-f0d4841d2e94",
+      "name": "Telegram AI Work Plan",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "AI_Plans",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=962064347",
+          "mode": "list",
+          "value": 962064347
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "6ac79a97-7405-4a17-a962-5ca95767d1c5",
-      "name": "Save AI Plan",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         976,
         96
-      ]
+      ],
+      "id": "6ac79a97-7405-4a17-a962-5ca95767d1c5",
+      "name": "Save AI Plan",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for the Settings sheet read. Synthetic, credential-free, and\n// deliberately carrying no chat ids. AI and auto-reply are off so the run is deterministic.\nreturn [\n  { json: { key: \"sla_hot_hours\", value: \"4\" } },\n  { json: { key: \"sla_warm_hours\", value: \"24\" } },\n  { json: { key: \"ai_enabled_for_hot\", value: \"false\" } },\n  { json: { key: \"ai_enabled_for_warm\", value: \"false\" } },\n  { json: { key: \"ai_enabled_for_cold\", value: \"false\" } },\n  { json: { key: \"auto_reply_enabled\", value: \"false\" } },\n  { json: { key: \"follow_up_enabled\", value: \"false\" } },\n  { json: { key: \"timezone\", value: \"Europe/Chisinau\" } },\n  { json: { key: \"currency\", value: \"EUR\" } }\n];"
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
       },
-      "id": "5d624a24-317f-4af9-832d-0d5e10742b9b",
-      "name": "Read Settings",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         -704,
         128
       ],
+      "id": "5d624a24-317f-4af9-832d-0d5e10742b9b",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
       "onError": "continueErrorOutput"
     },
     {
@@ -412,13 +1784,17 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "__HARNESS_DEAD_SHEETS_DOCUMENT_ID__",
-          "mode": "id"
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 1883973304,
-          "mode": "id"
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
         },
         "options": {}
       },
@@ -433,8 +1809,8 @@
       "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "__HARNESS_DEAD_SHEETS_CREDENTIAL_ID__",
-          "name": "P9-R3 dead sheets (disposable)"
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
         }
       },
       "retryOnFail": true,
@@ -518,19 +1894,51 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304",
+          "mode": "list",
+          "value": 1883973304
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "214af9cd-20b6-494e-925f-7fda4a93c59c",
-      "name": "Update Pipeline (Merge)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         912,
         1104
       ],
-      "onError": "continueErrorOutput"
+      "id": "214af9cd-20b6-494e-925f-7fda4a93c59c",
+      "name": "Update Pipeline (Merge)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -547,18 +1955,48 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892",
+          "mode": "list",
+          "value": 623316892
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "a2243785-577d-43d4-a839-2bafd18a2138",
-      "name": "Save Activity",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         912,
         1248
-      ]
+      ],
+      "id": "a2243785-577d-43d4-a839-2bafd18a2138",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -575,18 +2013,48 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Dashboard_Feed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1289462207",
+          "mode": "list",
+          "value": 1289462207
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "48d45f94-a8e9-4920-a506-9e1ea77f35ea",
-      "name": "Append Dashboard_Feed",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         912,
         960
-      ]
+      ],
+      "id": "48d45f94-a8e9-4920-a506-9e1ea77f35ea",
+      "name": "Append Dashboard_Feed",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -603,33 +2071,97 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304",
+          "mode": "list",
+          "value": 1883973304
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
-      "id": "c4e485c8-3866-41b4-b1b5-28a71c503ddf",
-      "name": "Update Pipeline AI Ready",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         1872,
         704
-      ]
+      ],
+      "id": "c4e485c8-3866-41b4-b1b5-28a71c503ddf",
+      "name": "Update Pipeline AI Ready",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Dashboard_Feed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1289462207",
+          "mode": "list",
+          "value": 1289462207
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
       },
       "id": "15150c89-25e2-4035-be26-a52f159242aa",
       "name": "Update Dashboard AI Ready",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         1872,
         864
-      ]
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "id": "b5d8ad58-8993-4ca3-befd-78c828b0d6bb",
@@ -838,19 +2370,51 @@
       }
     },
     {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
-      },
       "id": "b29e6914-b94b-4318-9934-16b879f1ca7e",
       "name": "Update Dashboard_Feed (Merge)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
       "position": [
         1400,
         980
-      ]
+      ],
+      "parameters": {
+        "columns": {
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "value": {}
+        },
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "operation": "appendOrUpdate",
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Dashboard_Feed",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1289462207",
+          "mode": "list",
+          "value": 1289462207
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
     },
     {
       "id": "a6035503-ef94-463c-ad8b-37653ef29d23",
@@ -1277,19 +2841,35 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.__submission_key }}"
+            }
+          ]
+        },
+        "returnAll": true
       },
       "id": "p51-17-read",
       "name": "Receipt Exact Read",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         900,
         580
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "notes": "Exact-key read. alwaysOutputData so an ABSENT receipt still reaches the verdict node instead of silently skipping the rest of the branch (P4 zero-item semantics)."
     },
     {
       "parameters": {
@@ -1377,19 +2957,116 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "READY"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id }}",
+            "lead_mode": "retry",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}",
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
       },
       "id": "p51-23-retry-settle",
       "name": "Receipt Retry Settlement",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         1780,
         460
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "notes": "F6 READY -> COMMITTED in one CAS. No Pipeline write occurs on this branch, so there is no ambiguous window to protect and no IN_FLIGHT state is created. canonical_lead_id is the DEDUP-SELECTED existing lead, matching Respond Retry exactly."
     },
     {
       "parameters": {
@@ -1459,19 +3136,76 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "READY"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "IN_FLIGHT",
+            "claimed_at": "={{ $now.toISO() }}",
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "claimed_at",
+              "displayName": "claimed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
       },
       "id": "p51-28-claim",
       "name": "Receipt Claim",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         1780,
         700
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "notes": "READY -> IN_FLIGHT CAS for the write-bearing branches. alwaysOutputData:true is LOAD-BEARING: P4 proved a zero-match returns main[0]===[] and skips every downstream node, so without it the fail-closed branch could never run. Sets correlation_id (P1-L9)."
     },
     {
       "parameters": {
@@ -1575,19 +3309,106 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "IN_FLIGHT"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.lead_id }}",
+            "lead_mode": "new",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
       },
       "id": "p51-35-commit",
       "name": "Receipt Commit (New)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         -244,
         1056
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
     },
     {
       "parameters": {
@@ -1691,19 +3512,106 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
-        "jsCode": "// HARNESS ONLY - stands in for a side-effecting node. It passes its input through untouched\n// and is structurally incapable of writing, sending or calling anything.\nreturn $input.all();"
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "IN_FLIGHT"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Build Merge Update').first().json.lead_id }}",
+            "lead_mode": "merged",
+            "lead_priority": "={{ $('Build Merge Update').first().json.priority }}",
+            "financial_zone": "={{ $('Build Merge Update').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
       },
       "id": "p51-42-commit",
       "name": "Receipt Commit (Merge)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
         1132,
         1424
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
     },
     {
       "parameters": {
@@ -3159,9 +5067,6 @@
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false,
-    "saveExecutionProgress": true,
-    "saveManualExecutions": true,
-    "saveDataErrorExecution": "all",
-    "saveDataSuccessExecution": "all"
+    "errorWorkflow": "RBiFLhVjizMkAzrK"
   }
 }

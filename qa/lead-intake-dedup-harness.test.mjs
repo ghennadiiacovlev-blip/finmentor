@@ -67,25 +67,37 @@ console.log('');
 
 // ---------------------------------------------------------------- the defect under test
 
-check('production still carries the flag pair this harness targets', () => {
+// P9-R4. The base is now the REMEDIATED graph. These checks flipped from "the defect is present
+// so the harness has something to find" to "the defect is gone and cannot come back" — the
+// harness itself is unchanged and still mirrors whatever base it is handed, which is what lets
+// the same rig prove the fix that found the fault.
+check('production no longer carries the flag pair (P9-R4 remediated)', () => {
   const d = nodeOf(SRC, DEDUP_NODE);
   assert(d, DEDUP_NODE + ' is absent from the tracked export');
-  eq(d.alwaysOutputData, true, 'production dedup read lost alwaysOutputData');
-  eq(d.onError, 'continueErrorOutput', 'production dedup read lost continueErrorOutput');
+  eq(d.alwaysOutputData, true, 'the dedup read lost alwaysOutputData; an empty Pipeline sheet would stall');
+  eq(d.onError, 'continueRegularOutput', 'the dedup read is not routing its failure to the regular output');
 });
 
-check('it is the ONLY node in Lead Intake carrying the pair', () => {
+check('NO node anywhere in Lead Intake carries the fail-open pair', () => {
   const both = SRC.nodes.filter((n) => n.alwaysOutputData === true && n.onError === 'continueErrorOutput');
-  eq(both.length, 1, 'expected exactly one node with the pair, found: ' + both.map((n) => n.name).join(', '));
-  eq(both[0].name, DEDUP_NODE, 'the node with the pair is not the dedup read');
+  eq(both.length, 0, 'the P9-R2 flag pair is present on: ' + both.map((n) => n.name).join(', '));
 });
 
-check('both harnesses mirror the pair rather than asserting it', () => {
+check('both harnesses mirror the base state rather than asserting one', () => {
+  const base = nodeOf(SRC, DEDUP_NODE);
   for (const [v, wf] of [['h1', H1], ['h2', H2]]) {
     const d = nodeOf(wf, DEDUP_NODE);
-    eq(d.alwaysOutputData, true, v + ' dedup read lost alwaysOutputData');
-    eq(d.onError, 'continueErrorOutput', v + ' dedup read lost continueErrorOutput');
+    eq(d.alwaysOutputData, base.alwaysOutputData, v + ' dedup read does not mirror alwaysOutputData');
+    eq(d.onError, base.onError, v + ' dedup read does not mirror onError');
   }
+});
+
+check('Dedup Guard fails closed and routes its error output', () => {
+  const g = nodeOf(SRC, GUARD_NODE);
+  eq(g.onError, 'continueErrorOutput', GUARD_NODE + ' does not route its error output');
+  assert(g.alwaysOutputData !== true, GUARD_NODE + ' carries alwaysOutputData; a throw would still emit a success item');
+  assert(g.parameters.jsCode.indexOf('DEDUP_READ_FAULT') !== -1, GUARD_NODE + ' does not fail closed on a faulted read');
+  assert(g.parameters.jsCode.indexOf('PIPELINE_FIELDS') !== -1, GUARD_NODE + ' has no positive row classification');
 });
 
 // ---------------------------------------------------------------- fidelity
@@ -129,15 +141,25 @@ check('the nodes whose behaviour is in question are production\'s own', () => {
   }
 });
 
-check('the wiring that carries the hypothesis is intact', () => {
+check('the remediated wiring is intact: one read output, the fault contract on the guard', () => {
   for (const [v, wf] of [['h1', H1], ['h2', H2]]) {
     const d = wf.connections[DEDUP_NODE];
-    eq(d.main.length, 2, v + ' dedup read does not have two outputs');
-    eq(d.main[0][0].node, GUARD_NODE, v + ' dedup success output is not wired to ' + GUARD_NODE);
-    eq(d.main[1][0].node, 'IF Internal (Infra)', v + ' dedup error output is not wired to IF Internal (Infra)');
+    eq(d.main.length, 1, v + ' the dedup read still has a second output; the race is back');
+    eq(d.main[0][0].node, GUARD_NODE, v + ' dedup output is not wired to ' + GUARD_NODE);
+    const g = wf.connections[GUARD_NODE];
+    eq(g.main.length, 2, v + ' ' + GUARD_NODE + ' does not have both outputs wired');
+    eq(g.main[0][0].node, 'Receipt Gate', v + ' ' + GUARD_NODE + ' success output moved');
+    eq(g.main[1][0].node, 'IF Internal (Infra)', v + ' ' + GUARD_NODE + ' error output is not wired to IF Internal (Infra)');
     eq(wf.connections['IF Is New'].main[0][0].node, BUILD_ROW_NODE, v + ' IF Is New true branch moved');
     eq(wf.connections[BUILD_ROW_NODE].main[0][0].node, WRITE_NODE, v + ' ' + BUILD_ROW_NODE + ' no longer feeds ' + WRITE_NODE);
   }
+});
+
+check('the 503 CRM_UNAVAILABLE contract the fault routes to is untouched', () => {
+  const r = nodeOf(SRC, 'Respond Infra Failed');
+  eq(r.parameters.options.responseCode, 503, 'Respond Infra Failed is not a numeric 503');
+  assert(String(r.parameters.responseBody).indexOf('CRM_UNAVAILABLE') !== -1, 'lost error_code CRM_UNAVAILABLE');
+  assert(String(r.parameters.responseBody).indexOf('retryable: true') !== -1, 'lost retryable: true');
 });
 
 // ---------------------------------------------------------------- isolation

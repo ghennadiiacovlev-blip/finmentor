@@ -187,7 +187,11 @@ const H1_DEDUP_CODE = [
   '    created_at: now, updated_at: now, request_id: ""',
   '  } }];',
   '}',
-  'throw new Error("HARNESS: harness_dedup must be one of down|none|dup|new");'
+  '// P9-R4 case E. A read that SUCCEEDS but returns something the graph cannot vouch for.',
+  '// Not an error item and not the empty marker - it carries no recognised Pipeline field at',
+  '// all. v2 filtered this away and called it "no duplicate"; the remediation must fail closed.',
+  'if (mode === "weird") { return [{ json: { unexpected_column: "x", another: 1 } }]; }',
+  'throw new Error("HARNESS: harness_dedup must be one of down|none|dup|new|weird");'
 ].join('\n');
 
 // The write we must never perform, and the thing we are trying to observe. It records that it
@@ -349,22 +353,45 @@ export function verifyHarness(src, wf, variant) {
     }
   }
 
-  // --- the defect under test is preserved exactly --------------------------
+  // --- the state under test is MIRRORED, whichever state that is -----------
+  //
+  // The base graph is either the DEFECTIVE production one (alwaysOutputData +
+  // continueErrorOutput, error on output 1) or the REMEDIATED one (alwaysOutputData +
+  // continueRegularOutput, single output). The harness must mirror whichever it was handed —
+  // asserting one specific state here would mean the harness could only ever test that state,
+  // and the remediation could never be proven on the same rig that found the defect.
   const gd = byName(src, DEDUP_NODE);
   const hd = byName(wf, DEDUP_NODE);
   if (!gd) { f.push('the dedup read is absent from the source graph'); }
-  if (gd && gd.alwaysOutputData !== true) { f.push('production dedup read no longer carries alwaysOutputData; this harness targets a defect that is gone'); }
-  if (gd && gd.onError !== 'continueErrorOutput') { f.push('production dedup read no longer routes its error output; this harness targets a defect that is gone'); }
-  if (hd && hd.alwaysOutputData !== true) { f.push('the harness dedup read does not carry alwaysOutputData'); }
-  if (hd && hd.onError !== 'continueErrorOutput') { f.push('the harness dedup read does not route its error output'); }
+  const DEFECTIVE = gd && gd.alwaysOutputData === true && gd.onError === 'continueErrorOutput';
+  const REMEDIATED = gd && gd.alwaysOutputData === true && gd.onError === 'continueRegularOutput';
+  if (gd && !DEFECTIVE && !REMEDIATED) {
+    f.push('the base dedup read is in neither the known-defective nor the known-remediated state (alwaysOutputData=' +
+      JSON.stringify(gd.alwaysOutputData) + ', onError=' + JSON.stringify(gd.onError) + ')');
+  }
+  if (gd && gd.alwaysOutputData !== true) { f.push('the base dedup read lost alwaysOutputData; an empty Pipeline sheet would stall'); }
+  if (hd && hd.alwaysOutputData !== gd.alwaysOutputData) { f.push('the harness dedup read does not mirror alwaysOutputData'); }
+  if (hd && (hd.onError || null) !== (gd.onError || null)) { f.push('the harness dedup read does not mirror onError'); }
 
-  // --- the wiring that carries the hypothesis ------------------------------
+  // --- the wiring is the base wiring ---------------------------------------
   const dOut = wf.connections[DEDUP_NODE];
-  if (!dOut || !dOut.main || dOut.main.length !== 2) {
-    f.push('the dedup read does not have both a success and an error output');
-  } else {
-    if ((dOut.main[0][0] || {}).node !== GUARD_NODE) { f.push('the dedup success output is not wired to ' + GUARD_NODE); }
-    if ((dOut.main[1][0] || {}).node !== 'IF Internal (Infra)') { f.push('the dedup ERROR output is not wired to IF Internal (Infra)'); }
+  if (JSON.stringify(dOut) !== JSON.stringify(src.connections[DEDUP_NODE])) {
+    f.push('the dedup read wiring differs from the base graph');
+  }
+  if (!dOut || !dOut.main || !dOut.main.length) { f.push('the dedup read has no outputs'); }
+  else if ((dOut.main[0][0] || {}).node !== GUARD_NODE) { f.push('the dedup success output is not wired to ' + GUARD_NODE); }
+  if (DEFECTIVE) {
+    if (dOut.main.length !== 2) { f.push('the defective base must have a second, error output'); }
+    else if ((dOut.main[1][0] || {}).node !== 'IF Internal (Infra)') { f.push('the dedup ERROR output is not wired to IF Internal (Infra)'); }
+  }
+  if (REMEDIATED) {
+    if (dOut.main.length !== 1) { f.push('the remediated dedup read must have exactly one output'); }
+    const gOut = wf.connections[GUARD_NODE];
+    if (!gOut || gOut.main.length !== 2) { f.push('the remediated ' + GUARD_NODE + ' must route an error output'); }
+    else if ((gOut.main[1][0] || {}).node !== 'IF Internal (Infra)') { f.push('the remediated ' + GUARD_NODE + ' error output is not wired to IF Internal (Infra)'); }
+    const hg = byName(wf, GUARD_NODE);
+    if (!hg || hg.onError !== 'continueErrorOutput') { f.push('the remediated ' + GUARD_NODE + ' does not route its error output'); }
+    if (hg && hg.alwaysOutputData === true) { f.push('the remediated ' + GUARD_NODE + ' carries alwaysOutputData; a throw would still emit a success item'); }
   }
   const newOut = wf.connections['IF Is New'];
   if (!newOut || (newOut.main[0][0] || {}).node !== BUILD_ROW_NODE) { f.push('IF Is New true-branch is not wired to ' + BUILD_ROW_NODE); }
@@ -374,7 +401,7 @@ export function verifyHarness(src, wf, variant) {
   // --- the H1 stand-in must be able to state all four modes ----------------
   if (variant === 'h1') {
     const c = ((byName(wf, DEDUP_NODE).parameters) || {}).jsCode || '';
-    for (const mode of ['down', 'none', 'dup', 'new']) {
+    for (const mode of ['down', 'none', 'dup', 'new', 'weird']) {
       if (c.indexOf('"' + mode + '"') === -1) { f.push('the H1 stand-in cannot express mode: ' + mode); }
     }
     if (c.indexOf('throw new Error("HARNESS: simulated') === -1) { f.push('the H1 stand-in cannot fail'); }
@@ -451,7 +478,9 @@ if (isMain) {
   console.log('  source nodes         : ' + src.nodes.length);
   console.log('  divergence allowlist : ' + allow.length + ' computed from node type + the webhook');
   console.log('  byte-identical nodes : ' + (src.nodes.length - allow.length));
-  console.log('  defect under test    : ' + DEDUP_NODE + ' alwaysOutputData + continueErrorOutput, mirrored');
+  const rn = src.nodes.find((n) => n.name === DEDUP_NODE);
+  console.log('  base state mirrored  : ' + DEDUP_NODE + ' alwaysOutputData=' + (rn.alwaysOutputData === true) + ', onError=' + rn.onError +
+    (rn.onError === 'continueErrorOutput' ? '  (DEFECTIVE - pre-P9-R4)' : '  (REMEDIATED - P9-R4)'));
   console.log('  retention            : ON (runData is the evidence)');
   console.log('  error workflow       : removed (the harness fails on purpose)');
   console.log('  production creds     : absent');

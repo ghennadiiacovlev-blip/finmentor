@@ -1,6 +1,7 @@
 # FINDING — Lead Intake dedup read: a Sheets outage may read as "no duplicate"
 
-**Status: CONFIRMED 2026-08-29 on an isolated harness. STILL NOT REMEDIATED.**
+**Status: CLOSED 2026-08-29. Confirmed on an isolated harness (P9-R3), then REMEDIATED, DEPLOYED
+and PROVEN (P9-R4). See `P9_R4_LEAD_INTAKE_DEDUP_REMEDIATION.md`.**
 
 > **UPDATE — P9-R3.** Everything below was written as a *reading of the deployed graph*, and it
 > has now been driven. The hypothesis is **confirmed**: on a dedup-read outage the success branch
@@ -152,3 +153,25 @@ it must also settle the **response**, not only the write. Fixing the write alone
 caller being told `ok:true` while the execution errors.
 
 Full record: `P9_R3_LEAD_INTAKE_DEDUP_OUTAGE_PROOF.md`.
+
+---
+
+## CLOSED (P9-R4, 2026-08-29)
+
+Remediated under owner approval and deployed to `QmIyEW2ZEqKregmN`.
+
+`Read Pipeline (Dedup)` now routes its failure to the REGULAR output
+(`onError: continueRegularOutput`), which makes n8n deliver the error ITEM instead of an anonymous
+`{}` and leaves exactly one branch out of the read. `Dedup Guard` v3 refuses to proceed unless
+every item is positively classifiable, carries `onError: continueErrorOutput` and no
+`alwaysOutputData`, and routes a fault to the pre-existing `Respond Infra Failed` contract —
+HTTP 503, `CRM_UNAVAILABLE`, `retryable: true`.
+
+`alwaysOutputData` was KEPT on the read. It is what lets a legitimately empty Pipeline sheet yield
+an item rather than stall; it simply can no longer manufacture a success item on a failure.
+
+Five field changes across two nodes, 100 of 102 nodes untouched, and the response contract itself
+unmodified. All five acceptance cases pass on both the side effect and the HTTP response, proven
+before deploy and again against the deployed structure.
+
+Full record: `P9_R4_LEAD_INTAKE_DEDUP_REMEDIATION.md`.

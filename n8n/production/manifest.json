@@ -121,9 +121,9 @@
       "name": "FINMENTOR Lead Intake PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/28/2026 19:45:00",
+      "updatedAt": "08/29/2026 09:32:53",
       "nodeCount": 102,
-      "structuralHash": "adf3ad0bbb15d7c6fec65b25bc91cd1a49df0ccec38e0a0f9e3b40a156463991",
+      "structuralHash": "0003fe025cef35fb1f3f3f4e5ed7e88012b8837bfdd89048a6d19566d1465beb",
       "nodeTypes": [
         "@n8n/n8n-nodes-langchain.openAi",
         "n8n-nodes-base.code",
@@ -144,7 +144,7 @@
       ],
       "export": "QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
       "trackedReason": "",
-      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant after the P8.4A-R COMMITTED-replay correction, so this value is current for THIS entry. The manifest RUN at generatedAt still predates it and the other entries were not re-read."
+      "structuralHashStale": "REFRESHED 2026-08-29 from the live tenant after the P9-R4 dedup fail-open remediation (Read Pipeline (Dedup) onError -> continueRegularOutput; Dedup Guard v3 read verdict + error output). This value is current for THIS entry. The manifest RUN at generatedAt still predates it and the other entries were not re-read."
     },
     {
       "id": "LZ2mvKXbBikmeVTn",
