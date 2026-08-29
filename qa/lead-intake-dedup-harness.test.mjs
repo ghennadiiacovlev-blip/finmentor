@@ -327,12 +327,18 @@ check('the shipped H1 and H2 both pass their own verification', () => {
 });
 
 check('the emitted candidates on disk match a fresh build', () => {
+  // Compared with line endings NORMALISED, deliberately. core.autocrlf is true here and there is
+  // no .gitattributes, so a checkout rewrites these LF artifacts to CRLF and a byte-exact compare
+  // would then report a stale builder for a file that is character-for-character correct — a
+  // known false failure in this repo. Content is the thing being gated; the newline convention
+  // the working copy happens to hold is not.
+  const lf = (s) => s.replace(/\r\n/g, '\n');
   for (const [v, wf, file] of [
     ['h1', H1, 'li-dedup-outage-h1-candidate.json'],
     ['h2', H2, 'li-dedup-outage-h2-candidate.json']
   ]) {
     const onDisk = readFileSync(join(ROOT, 'n8n', 'candidate', file), 'utf8');
-    eq(onDisk, JSON.stringify(wf, null, 2) + '\n', v + ' on disk is stale; re-run the builder');
+    eq(lf(onDisk), lf(JSON.stringify(wf, null, 2) + '\n'), v + ' on disk is stale; re-run the builder');
   }
 });
 
