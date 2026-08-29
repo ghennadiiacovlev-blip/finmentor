@@ -233,28 +233,36 @@ export function verifySurface(page, sender, html) {
   ['localStorage', 'sessionStorage', 'document.cookie', 'console.log', 'location.hash', 'location.search']
     .forEach((sink) => { if (html.indexOf(sink) !== -1) { f.push('the page uses a persistence/logging sink: ' + sink); } });
   if (/textContent\s*=\s*[^;]*\binitData\b/.test(html)) { f.push('the page renders raw initData into the DOM'); }
-  // ONE outbound call site, so the three shots cannot differ in the bytes they send, and ONE
+  // ONE outbound call site, so the two shots cannot differ in the bytes they send, and ONE
   // request body, built once and reused. A second `fetch(` or a second body would mean the
   // "exact replay" is not provably exact.
   if ((html.match(/fetch\(/g) || []).length !== 1) { f.push('the page has more than one fetch call site'); }
   if ((html.match(/JSON\.stringify\(\{\s*init_data/g) || []).length !== 1) {
     f.push('the page builds the request body more than once; the replay would not be provably identical');
   }
-  // The three shots the live proof needs, and the outcome each one requires.
-  ['A · ACCEPT', 'B · EXACT REPLAY', 'C · STALE FRESHNESS'].forEach((s) => {
+  // The two shots this run is trimmed to, and the outcome each one requires.
+  ['A · ACCEPT', 'B · EXACT REPLAY'].forEach((s) => {
     if (html.indexOf(s) === -1) { f.push('the page is missing shot: ' + s); }
   });
   if (html.indexOf('REPLAY_REFUSED') === -1) { f.push('the page does not assert the replay verdict'); }
-  if (html.indexOf('TG_INITDATA_EXPIRED') === -1) { f.push('the page does not assert the freshness verdict'); }
-  // Exactly one timer — the freshness countdown — and it must stop itself and latch, so a
-  // throttled or resumed webview cannot fire shot C twice.
-  if ((html.match(/setInterval\(/g) || []).length !== 1) { f.push('the page does not have exactly one timer'); }
-  if (html.indexOf('clearInterval') === -1) { f.push('the freshness timer never stops'); }
-  if (!/fired\s*=\s*true/.test(html)) { f.push('shot C has no single-fire latch'); }
-  // Shot C must be scheduled past the Gateway's 900s freshness window.
-  const staleMs = /STALE_DELAY_MS\s*=\s*(\d+)/.exec(html);
-  if (!staleMs) { f.push('the freshness delay is not declared'); }
-  else if (Number(staleMs[1]) <= 900000) { f.push('the freshness delay does not clear the 900s window'); }
+  // B must prove BOTH halves: the refusal code, and that no second session came back with it.
+  if (!/error_code\s*===\s*'REPLAY_REFUSED'/.test(html)) { f.push('B does not assert REPLAY_REFUSED as its verdict'); }
+  if (!/app_session_id\s*===\s*undefined/.test(html)) { f.push('B does not assert that no second app session was issued'); }
+  // Exactly two sends, chained - B off A's resolution, not raced with it. A third would be an
+  // unreviewed request against a live Gateway.
+  if ((html.match(/send\(\)\.then\(/g) || []).length !== 2) { f.push('the page does not fire exactly two chained shots'); }
+
+  // ---- the banked shot must NOT come back ---------------------------------
+  //
+  // C · STALE FRESHNESS is a LIVE PASS (2026-08-29, a genuine Telegram signature gone stale
+  // answered 401 TG_INITDATA_EXPIRED). Re-running it costs sixteen minutes of held signed
+  // context to re-prove a result already in the ledger, so this surface must not attempt it.
+  // A timer was the only reason deferred work ever existed on this page; with C banked, any
+  // scheduler left here is either that re-run or an unreviewed third request.
+  if (html.indexOf('C · STALE FRESHNESS') !== -1) { f.push('the page still carries the banked stale-freshness shot'); }
+  if (html.indexOf('TG_INITDATA_EXPIRED') !== -1) { f.push('the page still asserts the banked freshness verdict'); }
+  ['setInterval(', 'setTimeout(', 'requestAnimationFrame(', 'requestIdleCallback(', 'STALE_DELAY_MS']
+    .forEach((t) => { if (html.indexOf(t) !== -1) { f.push('the page still schedules deferred work: ' + t); } });
   // The submit surface must be absent. Route names, not English words: the page's own leak
   // detector legitimately names fields like `consent` and `lead_id` in order to refuse them.
   ['miniapp/submit', 'miniapp/session', 'finmentor-lead-intake'].forEach((s) => {

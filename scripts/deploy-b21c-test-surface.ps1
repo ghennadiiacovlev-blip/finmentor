@@ -22,7 +22,7 @@ param(
     [switch]$Deploy,
     # Replace the page body on the ALREADY DEPLOYED page workflow, keeping its id, its route and
     # therefore the Telegram button already in the owner's chat. Used to move the page from the
-    # one-shot v1 proof to the three-shot accept/replay/freshness proof without sending a second
+    # one-shot v1 proof to the trimmed two-shot accept/replay proof without sending a second
     # button, which would issue a second signed context and muddy the ledger.
     [string]$UpdatePageId
 )

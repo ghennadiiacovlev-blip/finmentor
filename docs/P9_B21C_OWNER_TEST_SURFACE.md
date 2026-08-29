@@ -257,3 +257,68 @@ sessions expire on their own 1800s TTL.
 `gbeozU4lyy3YDv0M` is kept only so a second button can be sent if a fresh signed context is
 needed. It is `availableInMCP: true` — the narrowest form of the exposure, on a credential-free
 two-node driver — and should be archived once the three-shot proof is recorded.
+
+## 11. The next press is trimmed to A + B (owner decision, 2026-08-29)
+
+`C · STALE FRESHNESS` is **banked as a LIVE PASS** and must not be repeated: the 2026-08-29
+three-shot run answered `401 TG_INITDATA_EXPIRED` on a genuine Telegram signature gone stale,
+which is exactly the gate P9 §2/§3 had recorded as unproven. Re-running it would cost sixteen
+minutes of held signed context to re-prove a result already in the ledger.
+
+The page at `EU91nSsmqQqIeD8w` was therefore **replaced in place again** — same workflow, same
+route `/webhook/b21c/gateway-test`, same Telegram button already in the owner's chat, so **no
+second button was sent and no second signed context was issued.**
+
+| shot | when | required |
+|---|---|---|
+| A · ACCEPT | immediately | `200`, `ok:true`, non-empty high-entropy `app_session_id`, ledger **+1** |
+| B · EXACT REPLAY | right after A | `409 REPLAY_REFUSED`, ledger **+0**, **no** second app session |
+
+One `fetch` call site and one request body built once and reused, so B is provably the same
+signed bytes as A. The 940s timer is gone — the page now carries **no scheduler of any kind**,
+and both shots complete in one uninterrupted run.
+
+### The gate was inverted, not loosened
+
+The v2 gate *required* shot C, exactly one `setInterval`, a latch, and a `STALE_DELAY_MS` past
+900s. Those assertions are now **prohibitions**, so a re-run of the banked shot cannot reach the
+wire by accident:
+
+    C · STALE FRESHNESS present            -> refuse
+    TG_INITDATA_EXPIRED asserted           -> refuse
+    setInterval / setTimeout / rAF / rIC   -> refuse
+    STALE_DELAY_MS declared                -> refuse
+    more or fewer than two chained send()  -> refuse
+    B not asserting REPLAY_REFUSED         -> refuse
+    B not asserting "no second session"    -> refuse
+
+Every one of the eleven mutations in the probe — re-adding a timer, re-adding shot C, firing a
+third shot, dropping B's no-second-session assertion, adding a second `fetch`, rebuilding the
+body, pointing at a write-side route, persisting the context — was rejected. The unmutated page
+was accepted. A gate that cannot reject the form it replaced is not a gate; that is the lesson
+P9-R1 §8a paid for.
+
+### Pre-press state, verified before the owner was asked to press
+
+    Gateway nTZHLbv2KFggdhh5      active, 13 nodes
+    live graph vs HEAD candidate  field-level diff: IDENTICAL (commit 32d8458)
+    Respond Bootstrap OK          200   numeric
+    Respond Replay Refused        409   numeric
+    Respond Store Unavailable     503   numeric
+    Respond Rejected              ={{ $json.statusCode }}   dynamic numeric expression
+    Gateway structural hash       1cf43ea9a92838c52b836e336ffe5f49656ec75923a4c57f818edcd045500385
+    telegram_initdata_replays     2 rows
+    MiniApp_App_Sessions          2 rows
+    Gateway retained executions   0
+    page retained executions      0
+    sender 2e8iMFQYVIwufhUy       INACTIVE, not run
+    driver gbeozU4lyy3YDv0M       INACTIVE, not run
+    live page == reviewed source  true
+    repo QA                       31/31 gates, 1398 assertions
+
+The three numeric codes are the P9-R1 fix. They are read back as JSON numbers from the live
+graph, not matched as substrings — `'=200'` and `200` are indistinguishable to a substring test
+and that is precisely how the defect survived the first gate.
+
+`Store Failure = 503` remains **unproven live** and the overall Gateway gate stays open until an
+isolated, credential-safe store-failure harness proves it without touching production Supabase.
