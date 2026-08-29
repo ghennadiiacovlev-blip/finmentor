@@ -79,19 +79,94 @@ One message, to the owner chat only.
 The sending bot id equals the `BOT_ID` the Gateway canonicalises against, so the button and the
 verifier are bound to the same bot — a wrong-bot launch could not produce a passing signature.
 
-## 7. Pre-press baseline
+## 7. The positive live proof — PASS (2026-08-29 05:58:10Z)
 
-    telegram_initdata_replays rows : 0
-    Gateway nTZHLbv2KFggdhh5        : active, 13 nodes, structurally unchanged by this deploy
-    GET /webhook/b21c/gateway-test  : 200, text/html; charset=utf-8, cache-control: no-store
+One real owner Mini App open. Pre-press baseline was `telegram_initdata_replays = 0`.
 
-A successful press must move the replay ledger from 0 to 1. A second press of the *same*
-delivered button may return `409 REPLAY_REFUSED` if Telegram reuses the signed context — that is
-G5 working, and the page says so rather than showing it as a failure. A fresh signed context
-requires a newly sent button.
+**Genuine Telegram-signed initData was accepted.** The evidence is the pair of writes the
+accept path is the only way to reach, and they agree:
 
-## 8. Cleanup debt
+| | |
+|---|---|
+| replay ledger rows | 0 → **1** |
+| `replay_key` | 64 lowercase hex (SHA-256 over the domain-separated canonical string + hash) |
+| ledger `first_seen_at` | `2026-08-29 05:58:10.200818+00` |
+| ledger `expires_at` | `2026-08-29 06:13:07+00` |
+| implied `auth_date` | `05:58:07Z` — `expires_at` is `auth_date + 900`, so the payload was **~3 seconds old** |
+| `MiniApp_App_Sessions` rows | 0 → **1** |
+| `app_session_id` | `AS-` + **64 hex characters** = 32 bytes from `crypto.randomBytes` |
+| session `replay_key` | **identical** to the ledger row — same request, both halves |
+| session `cycle_id` | `""` — bootstrap minted no cycle, as §5.1 requires |
+| session `state` / `draft_json` | `draft` / empty |
+| session TTL | 1800s (`05:58:10.235Z` → `06:28:10.235Z`) |
+
+A forged payload cannot produce this row: `Derive Replay Key` sits downstream of `IF Verified`,
+so reaching the `INSERT` at all means the Ed25519 signature verified against Telegram's
+production key, and the ~3-second age means it verified against a genuinely fresh one.
+
+**Persistence and retention.**
+
+    Gateway executions retained     : 0   (after a real ACCEPTED request)
+    page workflow executions        : 0
+    Gateway settings                : saveDataSuccessExecution/saveDataErrorExecution = none,
+                                      saveManualExecutions/saveExecutionProgress = false
+    Gateway structural hash          : f60866711b08f5b6924e947a072453b48d799c8dc74ca7fcc42edb79e58f1cf0
+                                      (identical to the post-deploy capture — unchanged)
+
+The zero-retained figure is the load-bearing one: the Gateway processed a genuine accepted
+request and kept no execution record of it, so no raw `initData` can be recovered from n8n.
+
+Neither store holds `initData`, a signature or a hash. `telegram_initdata_replays` has exactly
+four columns — `replay_key`, `first_seen_at`, `expires_at`, `correlation_id` — and the key is a
+one-way digest. `MiniApp_App_Sessions` holds the owner's own `telegram_user_id`/`chat_id`, which
+is the session binding the contract requires (§6, "bound to exactly one Telegram user"), and no
+contact data, no lead, no free text.
+
+## 8. What the accept proof does NOT cover, and why the page changed
+
+**The exact replay could not be performed from here.** Refusing it is the point: the replay must
+present the *same* signed bytes, and this session neither holds that value nor may fabricate
+one. The replay row proves the context was used; it is a digest and cannot reconstruct it.
+
+Re-pressing the delivered v1 button was rejected as the method, because its outcome is
+ambiguous — if Telegram issues a fresh context the request is *accepted*, consuming a second key
+and proving nothing about replay.
+
+So the page was replaced in place (same workflow, same route, same delivered button — no second
+button, therefore no second signed context) with a **three-shot** proof driven from one genuine
+context held only in browser memory:
+
+| shot | when | required |
+|---|---|---|
+| A · ACCEPT | immediately | `200`, `ok:true`, `app_session_id` issued, ledger **+1** |
+| B · EXACT REPLAY | right after A | `409 REPLAY_REFUSED`, ledger **unchanged** |
+| C · STALE FRESHNESS | A + 940s | `401 TG_INITDATA_EXPIRED`, ledger **unchanged**, G5 never reached |
+
+One `fetch` call site and one request body built once and reused, so B and C are provably the
+same bytes as A — the builder gate asserts both, plus a single latched timer for C.
+
+Shot C is the gate P9 recorded as unproven. The Gateway verifies the signature **before**
+freshness and claims the replay key only after both pass, so a genuine-but-stale context fails
+with the signature still valid. `TG_INITDATA_EXPIRED` is emitted at exactly one place in the
+verifier, so observing that code *is* the proof that `Derive Replay Key` was never reached.
+
+The delay is measured from shot A rather than from `auth_date`, so the page never parses the
+signed context and never touches `initDataUnsafe`. `auth_date` is always at or before shot A, so
+A + 940s always clears the 900s window; only clock rate matters, not the browser's clock offset.
+
+The context lives in one page-local variable for ~16 minutes and dies when the page closes. It
+is never written to n8n, GitHub, Sheets or any store, and no human reads it.
+
+## 9. Still pending after the three-shot press
+
+- **Store-failure fail-closed, live.** Deliberately breaking production Supabase is refused.
+  This needs an isolated disposable Gateway harness pointed at a throwaway store. Proven
+  structurally on the deployed graph and offline in `qa/g5-replay-claim.test.mjs`.
+- **Concurrent duplicate submission at the Gateway**, as opposed to the ledger-level race
+  already measured in P9 §5.
+
+## 10. Cleanup debt
 
 `gbeozU4lyy3YDv0M` is kept only so a second button can be sent if a fresh signed context is
 needed. It is `availableInMCP: true` — the narrowest form of the exposure, on a credential-free
-two-node driver — and should be archived once the positive proof is recorded.
+two-node driver — and should be archived once the three-shot proof is recorded.

@@ -25,12 +25,14 @@
   dd{font-family:ui-monospace,Menlo,monospace;word-break:break-all}
   .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:14px}
   #prog{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--gold);margin-bottom:12px}
+  .warn{border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.55;color:var(--gold)}
 </style>
 </head>
 <body>
-<div class="eyebrow">B.2.1-C · Gateway Bootstrap Proof</div>
+<div class="eyebrow">B.2.1-C · Gateway Live Proof</div>
 <h1>Проверка Mini App Gateway</h1>
-<p class="sub">Один запрос. Лид не создаётся, эксперту ничего не передаётся, анкета не открывается.</p>
+<p class="sub">Три проверки одного подписанного контекста. Лид не создаётся, эксперту ничего не передаётся, анкета не открывается.</p>
+<div class="warn">Не закрывайте эту страницу до конца третьей проверки (около 16 минут). Держите экран включённым и Telegram на переднем плане.</div>
 <div id="prog">Запуск…</div>
 <div id="out"></div>
 <p class="note" id="note"></p>
@@ -45,6 +47,26 @@
 
   var CLIENT_VERSION = 'b2.1.0';
   var LOCALE = 'ru';
+
+  // ---------------------------------------------------------------- the three shots
+  //
+  // ONE genuine Telegram-signed context, sent three times, unchanged. The browser is the only
+  // place it can safely live: holding it here for the freshness window means it is never
+  // written to n8n, GitHub, Sheets or any store, and no human ever reads it.
+  //
+  //   A  immediately              expect 200  ok:true, app_session_id issued, G5 row +1
+  //   B  right after A            expect 409  REPLAY_REFUSED, G5 row count unchanged
+  //   C  auth_date + >900s        expect 401  TG_INITDATA_EXPIRED, G5 never reached
+  //
+  // The Gateway verifies the Ed25519 signature BEFORE freshness, and claims the replay key
+  // only after both pass. So C fails at the freshness gate with the signature still valid,
+  // which is the one gate P9 could not prove live: TG_INITDATA_EXPIRED is emitted at exactly
+  // one place in the verifier, and reaching it means the claim node was never touched.
+
+  // Measured from shot A, not from auth_date, so the page never parses the signed context.
+  // auth_date is always <= the moment A is sent, so A + 940s is always past auth_date + 900s.
+  // Only clock RATE matters here, not the browser's absolute clock offset.
+  var STALE_DELAY_MS = 940000;
 
   // If any of these ever appears in a Gateway response, TB-1 has leaked. Checked at every
   // nesting depth, not just the top level.
@@ -92,9 +114,10 @@
   tg.ready();
   if (tg.expand) { tg.expand(); }
   try { tg.setHeaderColor('#0d1b2a'); tg.setBackgroundColor('#0d1b2a'); } catch (e) {}
+  try { if (tg.disableClosingConfirmation) { tg.enableClosingConfirmation(); } } catch (e) {}
 
-  // The ONLY place raw initData is touched. It is read into a local, placed straight into the
-  // request body, and never written to the DOM, console, storage, cookies or the URL.
+  // The ONLY place the raw signed context is touched. It is read into a local, placed straight
+  // into each request body, and never written to the DOM, console, storage, cookies or the URL.
   var initData = tg.initData;
   if (typeof initData !== 'string' || initData.length === 0) {
     prog.textContent = '';
@@ -104,61 +127,104 @@
   }
   var initDataBytes = initData.length;
 
-  prog.textContent = 'Запрос к Gateway…';
-  var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+  // ONE outbound code path, used by all three shots, so the bytes cannot differ between them.
+  var body = JSON.stringify({ init_data: initData, client_version: CLIENT_VERSION, locale: LOCALE });
 
-  // Exactly ONE request per open, and no retry on failure. A second attempt would present the
-  // same signed context and be refused by G5 as a replay, which would look like a Gateway
-  // defect instead of the correct behaviour it is.
-  fetch(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    cache: 'no-store',
-    credentials: 'omit',
-    referrerPolicy: 'no-referrer',
-    body: JSON.stringify({ init_data: initData, client_version: CLIENT_VERSION, locale: LOCALE })
-  })
-  .then(function (res) {
-    return res.json()
-      .then(function (d) { return { status: res.status, data: d }; })
-      .catch(function () { return { status: res.status, data: null }; });
-  })
-  .catch(function () { return { status: 0, data: null }; })
-  .then(function (r) {
-    var ms = Math.round(((window.performance && performance.now) ? performance.now() : Date.now()) - t0);
+  function send() {
+    var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    return fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      body: body
+    })
+    .then(function (res) {
+      return res.json()
+        .then(function (d) { return { status: res.status, data: d }; })
+        .catch(function () { return { status: res.status, data: null }; });
+    })
+    .catch(function () { return { status: 0, data: null }; })
+    .then(function (r) {
+      r.ms = Math.round(((window.performance && performance.now) ? performance.now() : Date.now()) - t0);
+      return r;
+    });
+  }
+
+  function render(shot, expected, r, pass) {
     var d = r.data || {};
-    var okd = r.status === 200 && d.ok === true && typeof d.app_session_id === 'string' && d.app_session_id.length > 0;
     var leaks = scan(d, [], 0);
-
-    // A PREFIX only. app_session_id is a session-binding token with a TTL; 16 of its 64 hex
-    // characters are enough to match this open against its MiniApp_App_Sessions row, and not
-    // enough to be used as one.
-    var prefix = okd ? (d.app_session_id.substring(0, 16) + '…') : '';
-
-    prog.textContent = 'Готово.';
-    card(okd ? 'GATEWAY BOOTSTRAP — PASS' : 'GATEWAY BOOTSTRAP — REFUSED', okd ? 'ok' : 'bad', [
+    // A PREFIX only. app_session_id is a session-binding token with a TTL; 16 of its characters
+    // are enough to match this open against its MiniApp_App_Sessions row, and not enough to be
+    // used as one.
+    var prefix = (typeof d.app_session_id === 'string' && d.app_session_id.length)
+      ? (d.app_session_id.substring(0, 16) + '…') : '';
+    card(shot + ' — ' + (pass ? 'PASS' : 'UNEXPECTED'), pass ? 'ok' : 'bad', [
+      ['expected', expected],
       ['HTTP', r.status === 0 ? 'network error' : r.status],
       ['ok', String(d.ok)],
-      ['app_session_id', prefix],
-      ['session_id_len', okd ? d.app_session_id.length : ''],
-      ['expires_at', d.expires_at],
-      ['locale', d.locale],
       ['error_code', d.error_code],
       ['retryable', d.retryable === undefined ? '' : String(d.retryable)],
-      ['initdata_bytes', initDataBytes],
-      ['browser_total_ms', ms],
+      ['app_session_id', prefix],
+      ['session_id_len', typeof d.app_session_id === 'string' ? d.app_session_id.length : ''],
+      ['expires_at', d.expires_at],
+      ['locale', d.locale],
+      ['browser_total_ms', r.ms],
       ['leak_fields', leaks.length ? leaks.join(',') : '[]']
     ]);
+    return leaks;
+  }
 
-    if (okd) {
-      note.textContent = 'Подписанный Telegram-контекст принят Gateway, replay-ключ занят, сессия выдана. ' +
-        'Покажите карточку целиком. Подписанный контекст нигде не показан и не сохранён.';
-    } else if (d.error_code === 'REPLAY_REFUSED') {
-      note.textContent = 'Этот же подписанный контекст уже был использован. Это корректный отказ G5, а не сбой. ' +
-        'Закройте Mini App, подождите и откройте кнопку заново, чтобы Telegram выдал новый контекст.';
-    } else {
-      note.textContent = 'Gateway отказал. Покажите карточку целиком — error_code достаточно для разбора.';
-    }
+  var allLeaks = [];
+  var verdict = { a: false, b: false, c: false };
+
+  prog.textContent = 'A — отправляю подписанный контекст…';
+
+  send().then(function (rA) {
+    var dA = rA.data || {};
+    verdict.a = rA.status === 200 && dA.ok === true &&
+                typeof dA.app_session_id === 'string' && dA.app_session_id.length > 0;
+    allLeaks = allLeaks.concat(render('A · ACCEPT', '200 ok:true + app_session_id', rA, verdict.a));
+
+    prog.textContent = 'B — повторяю тот же контекст…';
+    return send().then(function (rB) {
+      var dB = rB.data || {};
+      verdict.b = rB.status === 409 && dB.ok === false && dB.error_code === 'REPLAY_REFUSED';
+      allLeaks = allLeaks.concat(render('B · EXACT REPLAY', '409 REPLAY_REFUSED', rB, verdict.b));
+
+      // ---- C: same context, after the freshness window ----
+      var target = Date.now() + STALE_DELAY_MS;
+      var fired = false;
+      var tick = setInterval(function () {
+        var left = Math.ceil((target - Date.now()) / 1000);
+        if (left > 0) {
+          prog.textContent = 'C — жду истечения окна свежести: ' + left + ' с. Не закрывайте страницу.';
+          return;
+        }
+        if (fired) { return; }
+        fired = true;
+        clearInterval(tick);
+        prog.textContent = 'C — отправляю тот же контекст после истечения окна…';
+        send().then(function (rC) {
+          var dC = rC.data || {};
+          verdict.c = rC.status === 401 && dC.ok === false && dC.error_code === 'TG_INITDATA_EXPIRED';
+          allLeaks = allLeaks.concat(render('C · STALE FRESHNESS', '401 TG_INITDATA_EXPIRED', rC, verdict.c));
+
+          var all = verdict.a && verdict.b && verdict.c && allLeaks.length === 0;
+          prog.textContent = 'Готово.';
+          card('SUMMARY', all ? 'ok' : 'bad', [
+            ['A accept', verdict.a ? 'PASS' : 'FAIL'],
+            ['B exact replay', verdict.b ? 'PASS' : 'FAIL'],
+            ['C stale freshness', verdict.c ? 'PASS' : 'FAIL'],
+            ['initdata_bytes', initDataBytes],
+            ['leak_fields', allLeaks.length ? allLeaks.join(',') : '[]']
+          ]);
+          note.textContent = 'Покажите все карточки. Подписанный контекст нигде не показан и не сохранён — ' +
+            'он существовал только в памяти этой страницы и исчезает при её закрытии.';
+        });
+      }, 1000);
+    });
   });
 })();
 </script>

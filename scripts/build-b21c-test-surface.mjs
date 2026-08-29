@@ -233,9 +233,28 @@ export function verifySurface(page, sender, html) {
   ['localStorage', 'sessionStorage', 'document.cookie', 'console.log', 'location.hash', 'location.search']
     .forEach((sink) => { if (html.indexOf(sink) !== -1) { f.push('the page uses a persistence/logging sink: ' + sink); } });
   if (/textContent\s*=\s*[^;]*\binitData\b/.test(html)) { f.push('the page renders raw initData into the DOM'); }
-  // Exactly one outbound request per open, and no retry loop.
-  if ((html.match(/fetch\(/g) || []).length !== 1) { f.push('the page does not issue exactly one fetch'); }
-  if (html.indexOf('setInterval') !== -1) { f.push('the page has a repeating timer'); }
+  // ONE outbound call site, so the three shots cannot differ in the bytes they send, and ONE
+  // request body, built once and reused. A second `fetch(` or a second body would mean the
+  // "exact replay" is not provably exact.
+  if ((html.match(/fetch\(/g) || []).length !== 1) { f.push('the page has more than one fetch call site'); }
+  if ((html.match(/JSON\.stringify\(\{\s*init_data/g) || []).length !== 1) {
+    f.push('the page builds the request body more than once; the replay would not be provably identical');
+  }
+  // The three shots the live proof needs, and the outcome each one requires.
+  ['A · ACCEPT', 'B · EXACT REPLAY', 'C · STALE FRESHNESS'].forEach((s) => {
+    if (html.indexOf(s) === -1) { f.push('the page is missing shot: ' + s); }
+  });
+  if (html.indexOf('REPLAY_REFUSED') === -1) { f.push('the page does not assert the replay verdict'); }
+  if (html.indexOf('TG_INITDATA_EXPIRED') === -1) { f.push('the page does not assert the freshness verdict'); }
+  // Exactly one timer — the freshness countdown — and it must stop itself and latch, so a
+  // throttled or resumed webview cannot fire shot C twice.
+  if ((html.match(/setInterval\(/g) || []).length !== 1) { f.push('the page does not have exactly one timer'); }
+  if (html.indexOf('clearInterval') === -1) { f.push('the freshness timer never stops'); }
+  if (!/fired\s*=\s*true/.test(html)) { f.push('shot C has no single-fire latch'); }
+  // Shot C must be scheduled past the Gateway's 900s freshness window.
+  const staleMs = /STALE_DELAY_MS\s*=\s*(\d+)/.exec(html);
+  if (!staleMs) { f.push('the freshness delay is not declared'); }
+  else if (Number(staleMs[1]) <= 900000) { f.push('the freshness delay does not clear the 900s window'); }
   // The submit surface must be absent. Route names, not English words: the page's own leak
   // detector legitimately names fields like `consent` and `lead_id` in order to refuse them.
   ['miniapp/submit', 'miniapp/session', 'finmentor-lead-intake'].forEach((s) => {

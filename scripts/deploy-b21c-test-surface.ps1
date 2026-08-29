@@ -19,7 +19,12 @@
 [CmdletBinding()]
 param(
     [switch]$DryRun,
-    [switch]$Deploy
+    [switch]$Deploy,
+    # Replace the page body on the ALREADY DEPLOYED page workflow, keeping its id, its route and
+    # therefore the Telegram button already in the owner's chat. Used to move the page from the
+    # one-shot v1 proof to the three-shot accept/replay/freshness proof without sending a second
+    # button, which would issue a second signed context and muddy the ledger.
+    [string]$UpdatePageId
 )
 
 $ErrorActionPreference = 'Stop'
@@ -65,7 +70,66 @@ function Get-StructuralHash {
     Get-WorkflowStructuralHash -Workflow $Workflow
 }
 
-if (-not $DryRun -and -not $Deploy) { Fail 'specify -DryRun (preflight only) or -Deploy (preflight then write).' }
+if (-not $DryRun -and -not $Deploy -and -not $UpdatePageId) {
+    Fail 'specify -DryRun (preflight only), -Deploy (create both), or -UpdatePageId <id> (replace the page body).'
+}
+
+# ---------------------------------------------------------------- update-in-place path
+if ($UpdatePageId) {
+    Say ''
+    Say '== UPDATE PAGE IN PLACE ==================================='
+
+    & node (Join-Path $Here 'build-b21c-test-surface.mjs') | Out-Null
+    if ($LASTEXITCODE -ne 0) { Fail 'the builder self-gate FAILED. Refusing to serve an unverified page.' }
+    Ok 'page artifact passes the builder self-gate'
+
+    $target = Get-N8nWorkflow -Id $UpdatePageId
+    if ($target.name -ne $PageName) { Fail "workflow $UpdatePageId is '$($target.name)', not the B21C page. Refusing." }
+    $wasActive = [bool]$target.active
+    Ok "target is '$($target.name)' (active=$wasActive)"
+
+    $gwBefore = Get-N8nWorkflow -Id $GatewayId
+    $gwHash = Get-StructuralHash -Workflow $gwBefore
+
+    $cand = Get-Content -Raw -Path $PageArtifact | ConvertFrom-Json
+    $existingPath = ($target.nodes | Where-Object { $_.type -eq 'n8n-nodes-base.webhook' }).parameters.path
+    $newPath      = ($cand.nodes   | Where-Object { $_.type -eq 'n8n-nodes-base.webhook' }).parameters.path
+    if ($existingPath -ne $newPath) { Fail "the route would change from '$existingPath' to '$newPath'; the delivered button would break." }
+    Ok "route unchanged: /webhook/$newPath"
+
+    # n8n refuses a PUT that carries `active`; the flag is owned by the activate endpoint.
+    $payload = [ordered]@{ name = $cand.name; nodes = $cand.nodes; connections = $cand.connections; settings = $cand.settings }
+    Invoke-N8n -Method Put -Path "/workflows/$UpdatePageId" -Body $payload -Write | Out-Null
+    Ok 'page body replaced'
+
+    $after = Get-N8nWorkflow -Id $UpdatePageId
+    if (-not $after.active -and $wasActive) {
+        Invoke-N8n -Method Post -Path "/workflows/$UpdatePageId/activate" -Write | Out-Null
+        $after = Get-N8nWorkflow -Id $UpdatePageId
+        Ok 'page re-activated after the update'
+    }
+    if ($wasActive -and -not $after.active) { Fail 'the page is no longer active.' }
+
+    $localHtml  = (Get-Content -Raw -Path (Join-Path $Root 'gateway/n8n/b21c-gateway-test-page.html'))
+    $servedHtml = ($after.nodes | Where-Object { $_.type -eq 'n8n-nodes-base.respondToWebhook' }).parameters.responseBody
+    if ($servedHtml -ne $localHtml) { Fail 'the stored page body differs from the reviewed page on disk.' }
+    Ok 'stored body identical to the reviewed source'
+
+    $live = Invoke-WebRequest -Uri "https://ghennadi.app.n8n.cloud/webhook/$newPath" -Method Get
+    if ($live.StatusCode -ne 200) { Fail "the live route answered $($live.StatusCode)." }
+    if ($live.Content -ne $localHtml) { Fail 'the live route serves something other than the reviewed page.' }
+    Ok 'live route serves the reviewed page, HTTP 200'
+
+    $gwAfter2 = Get-N8nWorkflow -Id $GatewayId
+    if ((Get-StructuralHash -Workflow $gwAfter2) -ne $gwHash) { Fail 'THE GATEWAY CHANGED. Investigate immediately.' }
+    if (-not $gwAfter2.active) { Fail 'the Gateway is no longer active.' }
+    Ok 'Gateway structurally unchanged and still active'
+
+    Say ''
+    Say "  page $UpdatePageId updated in place; the delivered button now launches the new page."
+    Say ''
+    exit 0
+}
 
 Say ''
 Say '== PREFLIGHT =============================================='
