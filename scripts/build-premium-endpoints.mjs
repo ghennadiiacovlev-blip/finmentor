@@ -100,6 +100,32 @@ function respond(name, statusCode, body) {
     name: name, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [y * 220, 0]
   };
 }
+// ECHO THE VERDICT, DO NOT FLATTEN IT.
+//
+// The session and submit verdict nodes compute a specific outcome — NOT_AUTHORISED 403,
+// SESSION_EXPIRED 401, SUBMIT_IN_PROGRESS 409 — and the IF that follows has only two outputs, so
+// every one of them arrived at a single responder that answered SESSION_INVALID 401 regardless.
+//
+// That was measured, not theorised: a traced execution showed Session Verdict emitting
+// {ok:0, error_code:"NOT_AUTHORISED", status:403} while the caller received
+// {ok:false, error_code:"SESSION_INVALID"} with 401. The owner gate was working and the response
+// said otherwise — which is the same class of defect as the Gateway answering 409 to an outage.
+//
+// The client maps error codes to behaviour (retryable, terminal, refused), so a wrong code is not
+// cosmetic: it makes the app retry something it must not, or give up on something it should retry.
+const echoBody =
+  '={{ JSON.stringify({ ok: false, error_code: String($json.error_code || "UNSPECIFIED"), retryable: $json.retryable === true }) }}';
+const echoCode = '={{ Number($json.status || 400) }}';
+
+function respondEcho(name, fallbackCode) {
+  y += 1;
+  return {
+    parameters: { respondWith: 'json', responseBody: echoBody, options: { responseCode: echoCode } },
+    id: 'pux-r-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    name: name, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [y * 220, 0]
+  };
+}
+
 const errBody = (codeName, retryable) =>
   `={{ JSON.stringify({ ok: false, error_code: '${codeName}', retryable: ${retryable} }) }}`;
 
@@ -184,7 +210,7 @@ function sessionWorkflow() {
       onError: 'continueRegularOutput' },
     respond('Respond Draft OK', 200, '={{ JSON.stringify({ ok: true }) }}'),
     respond('Respond Draft Rejected', 400, errBody('BAD_REQUEST', false)),
-    respond('Respond Session Invalid', 401, errBody('SESSION_INVALID', false)),
+    respondEcho('Respond Session Invalid', 401),
     respond('Respond Draft Unavailable', 503, errBody('TEMPORARY_BACKEND_ERROR', true))
   ];
   const connections = {
@@ -316,7 +342,7 @@ function submitWorkflow() {
       onError: 'continueRegularOutput' },
     respond('Respond Submit OK', 200, '={{ JSON.stringify({ ok: true, lead_id: $(\'Parse Intake Result\').first().json.lead_id, priority: $(\'Parse Intake Result\').first().json.priority, financial_zone: $(\'Parse Intake Result\').first().json.financial_zone, submit_state: \'submitted\' }) }}'),
     respond('Respond Submit Rejected', 400, errBody('BAD_REQUEST', false)),
-    respond('Respond Submit Session Invalid', 401, errBody('SESSION_INVALID', false)),
+    respondEcho('Respond Submit Session Invalid', 401),
     respond('Respond Submit Unresolved', 503, errBody('SUBMIT_UNRESOLVED', true))
   ];
   const connections = {

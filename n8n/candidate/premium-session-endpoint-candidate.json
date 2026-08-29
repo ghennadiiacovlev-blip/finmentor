@@ -264,9 +264,9 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'SESSION_INVALID', retryable: false }) }}",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: String($json.error_code || \"UNSPECIFIED\"), retryable: $json.retryable === true }) }}",
         "options": {
-          "responseCode": 401
+          "responseCode": "={{ Number($json.status || 400) }}"
         }
       },
       "id": "pux-r-respond-session-invalid",

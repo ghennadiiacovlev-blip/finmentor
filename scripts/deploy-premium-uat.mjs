@@ -9,8 +9,9 @@
 // ── WHAT IT WILL NOT DO ────────────────────────────────────────────────────────────────────────
 //
 //   · it does not merge, push, or touch www.finmentor.md;
-//   · it does not deploy the Gateway — that artifact is not in the approved six, so the live
-//     bootstrap and its 1800 s TTL stay exactly as they are;
+//   · it does not touch the Gateway. The 72 h TTL was authorised and deployed SEPARATELY by
+//     scripts/deploy-gateway-ttl.mjs, which patched one literal in one node and left the other
+//     twelve byte-identical. Nothing here re-deploys it.
 //   · it does not expose a customer entry point: the Concierge change is ADDITIVE and non-owners
 //     reach the same node they reach today;
 //   · it does not write a resolved value into any tracked file.
@@ -50,6 +51,12 @@ const ROLLBACK = {
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry-run');
 const CONFIRM = args.includes('--confirm');
+// Once the projection and the Concierge are deployed, the live workflows legitimately differ from
+// the pre-deploy rollback artifacts — that is this script's own change, not unrelated drift. So a
+// later endpoint-only fix would be blocked by the guard that exists to protect exactly those two
+// workflows. `--endpoints-only` redeploys the Mini App host and the two endpoints and does not
+// look at, or touch, either production workflow.
+const ENDPOINTS_ONLY = args.includes('--endpoints-only');
 
 const BASE = (process.env.N8N_BASE_URL || '').replace(/\/+$/, '');
 const READ_KEY = process.env.N8N_API_KEY;
@@ -146,7 +153,7 @@ say('');
 // 2. Fresh before-hashes, and a drift check against what the candidates were built from. ------
 say('STEP 2 — fresh before-hashes, and a drift check against the rollback artifacts');
 const before = {};
-for (const [id, label] of [[LEAD_INTAKE_ID, 'Lead Intake'], [CONCIERGE_ID, 'Concierge']]) {
+for (const [id, label] of (ENDPOINTS_ONLY ? [] : [[LEAD_INTAKE_ID, 'Lead Intake'], [CONCIERGE_ID, 'Concierge']])) {
   const live = id === CONCIERGE_ID ? conciergeLive : await api('GET', '/workflows/' + id);
   const nodes = sanitize(JSON.parse(JSON.stringify(live.nodes)));
   before[id] = { name: live.name, nodes: nodes, connections: live.connections, active: live.active };
@@ -175,7 +182,8 @@ for (const [id, label] of [[LEAD_INTAKE_ID, 'Lead Intake'], [CONCIERGE_ID, 'Conc
   ok(label + ': no unrelated drift; the candidate is built on exactly this workflow');
   writeFileSync(join(OUT_DIR, id + '.before.json'), JSON.stringify(importable(before[id]), null, 2) + '\n', 'utf8');
 }
-ok('rollback artifacts written to ' + OUT_DIR);
+if (ENDPOINTS_ONLY) { ok('endpoints-only: the two production workflows are not read and not touched'); }
+else { ok('rollback artifacts written to ' + OUT_DIR); }
 say('');
 
 // 3. Deploy the Mini App host FIRST — the Concierge needs its URL. ----------------------------
@@ -203,7 +211,7 @@ const GATEWAY_URL = BASE + '/webhook/' + GATEWAY_PATH;
   if (/__PREMIUM_[A-Z_]+__/.test(page)) { die('an endpoint placeholder survived substitution in the hosted page'); }
   node.parameters.responseBody = page;
 }
-say('  gateway  : ' + GATEWAY_URL + '   (LIVE, NOT redeployed — TTL remains 1800 s)');
+say('  gateway  : ' + GATEWAY_URL + '   (LIVE, NOT redeployed here; TTL already 72 h)');
 say('  session  : ' + SESSION_URL);
 say('  submit   : ' + SUBMIT_URL);
 say('  mini app : ' + MINIAPP_URL);
@@ -244,9 +252,9 @@ for (const [file, label] of [['premium-session-endpoint-candidate.json', 'PUT /m
 say('');
 
 // 5. Substitute the Mini App URL into the Concierge candidate. ---------------------------------
-say('STEP 5 — Concierge candidate');
+say(ENDPOINTS_ONLY ? 'STEP 5 — Concierge candidate (SKIPPED: endpoints-only)' : 'STEP 5 — Concierge candidate');
 const conciergeCandidate = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-concierge-candidate.json'), 'utf8'));
-{
+if (!ENDPOINTS_ONLY) {
   let text = JSON.stringify(conciergeCandidate);
   text = text.split('__PREMIUM_MINIAPP_URL__').join(MINIAPP_URL);
   if (/__[A-Z_]{4,}__/.test(text)) { die('a placeholder survived substitution in the Concierge'); }
@@ -279,9 +287,9 @@ const conciergeCandidate = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate'
 say('');
 
 // 6. Lead Intake projection, verified against live. ---------------------------------------------
-say('STEP 6 — Lead Intake projection candidate');
+say(ENDPOINTS_ONLY ? 'STEP 6 — Lead Intake projection (SKIPPED: endpoints-only)' : 'STEP 6 — Lead Intake projection candidate');
 const projection = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'lead-intake-premium-projection-candidate.json'), 'utf8'));
-{
+if (!ENDPOINTS_ONLY) {
   const liveNodes = before[LEAD_INTAKE_ID].nodes;
   if (projection.nodes.length !== liveNodes.length) { die('the projection candidate changes the node count'); }
   const changed = [];
@@ -349,15 +357,19 @@ for (const e of endpoints) {
   catch (err) { bad(e.label + ' activation failed: ' + err.message); }
 }
 
-// Lead Intake projection.
-await put(LEAD_INTAKE_ID, projection, 'Lead Intake projection');
+if (!ENDPOINTS_ONLY) {
+  // Lead Intake projection.
+  await put(LEAD_INTAKE_ID, projection, 'Lead Intake projection');
 
-// Concierge LAST — the only artifact that changes what a person sees.
-await put(CONCIERGE_ID, conciergeCandidate.__resolved, 'Concierge (owner-gated)');
+  // Concierge LAST — the only artifact that changes what a person sees.
+  await put(CONCIERGE_ID, conciergeCandidate.__resolved, 'Concierge (owner-gated)');
+} else {
+  ok('endpoints-only: Lead Intake and the Concierge were not written');
+}
 
 say('');
 say('STEP 8 — post-deploy verification');
-{
+if (!ENDPOINTS_ONLY) {
   const c = await api('GET', '/workflows/' + CONCIERGE_ID);
   const names = c.nodes.map((n) => n.name);
   for (const n of ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)']) {
