@@ -39,6 +39,23 @@ export const LEAD_INTAKE_PLACEHOLDER = '__LEAD_INTAKE_WORKFLOW_ID__';
 export const PRIVACY_CRED_PLACEHOLDER = '__PRIVACY_AUDIT_CREDENTIAL_ID__';
 export const SESSION_TABLE = 'MiniApp_App_Sessions';
 
+// OWNER-ONLY UAT GATE.
+//
+// The Mini App is reached from an inline button in the owner-gated Concierge branch, so in
+// practice only the owner is handed the URL. That is not enough: 'do not rely only on hiding a
+// URL' is the whole point, and a session id pasted into any browser would otherwise work.
+//
+// So both endpoints check the Telegram user the SERVER stored on the session row — never anything
+// the client sends — against an id substituted at deploy time.
+//
+// IT FAILS CLOSED. While the placeholder is unsubstituted the comparison cannot match, so nobody
+// passes, including the owner. That is the correct direction: a forgotten substitution locks the
+// owner out of a test, whereas the opposite would open a customer surface.
+//
+// THIS GATE IS FOR UAT AND MUST BE REMOVED FOR CUSTOMER ACTIVATION. It is deliberately a single
+// named constant in one place so that removal is one substitution, not an archaeology exercise.
+export const OWNER_TELEGRAM_PLACEHOLDER = '__OWNER_TELEGRAM_ID__';
+
 const SETTINGS = {
   executionOrder: 'v1',
   availableInMCP: false,
@@ -106,6 +123,13 @@ const SESSION_VERDICT = [
   'const rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || "").trim() !== "");',
   'if (rows.length !== 1) { return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }]; }',
   'const s = rows[0];',
+  '',
+  '// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the',
+  '// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.',
+  'const OWNER_TELEGRAM_ID = ' + JSON.stringify(OWNER_TELEGRAM_PLACEHOLDER) + ';',
+  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) {',
+  '  return [{ json: { ok: 0, error_code: "NOT_AUTHORISED", status: 403 } }];',
+  '}',
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) {',
   '  return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }];',
   '}',
@@ -205,6 +229,13 @@ const SUBMIT_STATE = [
   'const rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || "").trim() !== "");',
   'if (rows.length !== 1) { return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }]; }',
   'const s = rows[0];',
+  '',
+  '// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the',
+  '// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.',
+  'const OWNER_TELEGRAM_ID = ' + JSON.stringify(OWNER_TELEGRAM_PLACEHOLDER) + ';',
+  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) {',
+  '  return [{ json: { ok: 0, error_code: "NOT_AUTHORISED", status: 403 } }];',
+  '}',
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) { return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }]; }',
   'if (String(s.state) === "submitted") {',
   '  return [{ json: { ok: 0, already: 1, error_code: "ALREADY_SUBMITTED", status: 200, lead_id: String(s.lead_id || "") } }];',
@@ -352,6 +383,12 @@ export function verifyEndpoint(wf, kind) {
     // Idempotency is the unique index plus 23505 handling, NOT ON CONFLICT: measured against the
     // real writer role, ON CONFLICT needs SELECT and the writer is granted INSERT only.
     if (/on conflict/i.test(json)) { f.push('the privacy insert uses ON CONFLICT, which needs a SELECT the writer must not have'); }
+    // The owner gate must be present, must read the SERVER-stored identity, and must still be a
+    // placeholder in the tracked artifact.
+    if (json.indexOf('NOT_AUTHORISED') === -1) { f.push('the owner-only UAT gate is missing'); }
+    if (json.indexOf(OWNER_TELEGRAM_PLACEHOLDER) === -1) { f.push('the owner id placeholder is missing'); }
+    if (!/s\.telegram_user_id/.test(json)) { f.push('the owner gate does not read the server-stored telegram_user_id'); }
+    if (/\"\\d{6,}\"/.test(json)) { f.push('a literal Telegram id is baked into the candidate'); }
     if (json.indexOf('privacy.privacy_acknowledgements') === -1) { f.push('the privacy insert does not target the privacy schema'); }
     if (/\bupdate\s+public\.privacy_acknowledgements/i.test(json) || /delete\s+from\s+public\.privacy_acknowledgements/i.test(json)) {
       f.push('the candidate mutates the privacy store');

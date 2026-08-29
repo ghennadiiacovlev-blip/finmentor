@@ -73,6 +73,15 @@ const CONCISE = {
   }
 };
 
+// PROCESSORS ARE DESCRIBED BY ROLE, NEVER BY NAME.
+//
+// «Telegram» was named individually here while every other processor was a category, and that
+// inconsistency is the whole problem: naming one vendor and not the others reads as a complete
+// list when it is not, and it commits the controller to a disclosure the others do not carry.
+// Either every processor is named or none is; the approved model is by role, so none is.
+//
+// `assertNoVendorNames()` enforces it, so this cannot regress back into prose.
+
 // --------------------------------------------------------------------------- layer 2 (full)
 //
 // `{{controller_full_name}}` and `{{controller_privacy_email}}` are the only substitutions. They
@@ -102,7 +111,7 @@ const FULL = {
       },
       recipients: {
         heading: 'Кто ещё имеет доступ',
-        body: 'Консультант, который готовится к встрече с вами. Поставщики инфраструктуры, действующие как обработчики по поручению оператора: хостинг базы данных, платформа автоматизации, сервис таблиц и Telegram как канал доставки сообщений. Данные не продаются и не передаются для маркетинга третьих лиц.'
+        body: 'Консультант, который готовится к встрече с вами. Поставщики инфраструктуры, действующие как обработчики по поручению оператора: хостинг базы данных, платформа автоматизации, сервис таблиц и мессенджер, через который вы обратились. Данные не продаются и не передаются для маркетинга третьих лиц.'
       },
       transfers: {
         heading: 'Передача за пределы Республики Молдова',
@@ -149,7 +158,7 @@ const FULL = {
       },
       recipients: {
         heading: 'Cine mai are acces',
-        body: 'Consultantul care se pregătește pentru întâlnirea cu dumneavoastră. Furnizorii de infrastructură, care acționează ca persoane împuternicite de operator: găzduirea bazei de date, platforma de automatizare, serviciul de foi de calcul și Telegram ca mijloc de livrare a mesajelor. Datele nu se vând și nu se transmit pentru marketingul terților.'
+        body: 'Consultantul care se pregătește pentru întâlnirea cu dumneavoastră. Furnizorii de infrastructură, care acționează ca persoane împuternicite de operator: găzduirea bazei de date, platforma de automatizare, serviciul de foi de calcul și serviciul de mesagerie prin care ne-ați contactat. Datele nu se vând și nu se transmit pentru marketingul terților.'
       },
       transfers: {
         heading: 'Transfer în afara Republicii Moldova',
@@ -178,6 +187,43 @@ const FULL = {
 
 const LOCALES = ['ru', 'ro'];
 const MOUSTACHE = /\{\{\s*([a-z_]+)\s*\}\}/g;
+
+// Vendor names that must not appear as RECIPIENTS. The rule is scoped to the recipients element
+// on purpose:
+//
+//   * `recipients` answers "who else sees this". Naming one vendor there and not the others reads
+//     as a complete list when it is not.
+//   * `categories` answers "what data". It legitimately says the contact channel may be Telegram
+//     and that a Telegram account identifier is stored — that is the DATA, and describing it by
+//     category instead («мессенджер») would make the disclosure less true, not more consistent.
+//
+// So the same word is forbidden in one section and required in another, and that is not an
+// inconsistency: the two sections are answering different questions.
+const VENDOR_NAMES = [
+  'Telegram', 'Supabase', 'Google', 'n8n', 'OpenAI', 'GitHub',
+  'Amazon', 'AWS', 'Cloudflare', 'Microsoft', 'Meta', 'WhatsApp', 'Viber'
+];
+const VENDOR_SCOPED = ['recipients', 'transfers'];
+
+function assertNoVendorNames() {
+  const found = [];
+  for (const loc of LOCALES) {
+    for (const el of VENDOR_SCOPED) {
+      const e = (FULL[loc] && FULL[loc].elements[el]) || {};
+      const text = String(e.heading || '') + ' ' + String(e.body || '');
+      for (const v of VENDOR_NAMES) {
+        // '\\b' — a word boundary. '\b' in a JS string literal is a BACKSPACE character, so the
+        // first version of this check silently tested for a control code and found nothing.
+        if (new RegExp('\\b' + v + '\\b', 'i').test(text)) { found.push(loc + '/' + el + ': ' + v); }
+      }
+    }
+    const c = CONCISE[loc] || {};
+    for (const v of VENDOR_NAMES) {
+      if (new RegExp('\\b' + v + '\\b', 'i').test(String(c.body || ''))) { found.push(loc + '/concise: ' + v); }
+    }
+  }
+  return found;
+}
 
 function assertComplete() {
   const problems = [];
@@ -227,6 +273,9 @@ function render(locale, controller) {
   const incomplete = assertComplete();
   if (incomplete.length) { return { ok: false, error_code: 'NOTICE_INCOMPLETE', problems: incomplete }; }
 
+  const named = assertNoVendorNames();
+  if (named.length) { return { ok: false, error_code: 'VENDOR_NAMED_AS_RECIPIENT', problems: named }; }
+
   const fill = (s) => String(s).replace(MOUSTACHE, (m, k) => {
     if (SLOTS.indexOf(k) === -1) { throw new Error('unknown slot: ' + k); }
     return String(c[k]);
@@ -267,5 +316,5 @@ module.exports = {
   NOTICE_VERSION, LEGAL_BASIS_CANDIDATE, LEGAL_BASIS_PENDING,
   CONTROLLER_TYPE, SLOTS, OWNER_INPUT_REQUIRED, CONTROLLER_TEMPLATE,
   REQUIRED_ELEMENTS, LOCALES, CONCISE, FULL,
-  assertComplete, slotsUsed, render
+  assertComplete, assertNoVendorNames, VENDOR_NAMES, VENDOR_SCOPED, slotsUsed, render
 };

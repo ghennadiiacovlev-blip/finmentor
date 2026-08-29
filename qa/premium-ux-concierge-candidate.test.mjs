@@ -31,7 +31,9 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
 
 const wf = JSON.parse(readFileSync(CANDIDATE, 'utf8'));
-const body = wf.nodes.find((n) => n.name === 'Build Bot Response').parameters.jsCode;
+// The premium body lives on its OWN node now. `Build Bot Response` is the legacy node and must
+// stay exactly as it is, because that is what every non-owner still runs.
+const body = wf.nodes.find((n) => n.name === 'Build Bot Response (Premium)').parameters.jsCode;
 
 // The node reads `$input.first().json`. Everything else it touches is its own.
 const runner = new Function('$input', body);
@@ -380,7 +382,78 @@ check('the P9-R2 flag pair is absent from every node', () => {
     assert(!(n.alwaysOutputData === true && n.onError === 'continueErrorOutput'),
       'P9-R2 flag pair on ' + n.name);
   }
-  eq(wf.nodes.length, 51, 'node count');
+  eq(wf.nodes.length, 54, 'node count');
+});
+
+// ---------------------------------------------------------------- the owner gate
+
+check('the premium branch is ADDITIVE — three nodes added, none modified, none removed', () => {
+  const live = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
+  const added = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
+  eq(wf.nodes.length, live.nodes.length + 3, 'node count');
+  for (const n of wf.nodes) {
+    if (added.indexOf(n.name) !== -1) { continue; }
+    const was = live.nodes.find((x) => x.name === n.name);
+    assert(was, 'unexpected new node: ' + n.name);
+    eq(JSON.stringify(n), JSON.stringify(was), 'a live node was modified: ' + n.name);
+  }
+  for (const n of live.nodes) {
+    assert(wf.nodes.find((x) => x.name === n.name), 'a live node was removed: ' + n.name);
+  }
+});
+
+check('a NON-owner reaches the legacy node, and the legacy node still resets on /start', () => {
+  // The legacy behaviour is not merely 'preserved' — it is the same object. And it must still
+  // carry the /start reset: removing it for everyone would be a silent change to the live product.
+  const legacy = wf.nodes.find((n) => n.name === 'Build Bot Response');
+  assert(legacy, 'the legacy response node is gone');
+  const legacySession = wf.nodes.find((n) => n.name === 'Get Bot Session');
+  assert(/if \(isStart\) reset = 'start';/.test(legacySession.parameters.jsCode),
+    'the /start reset was removed for NON-owners too — that is a live product change');
+  const gate = wf.connections['Premium Owner Gate'];
+  eq(gate.main[1][0].node, 'Get Bot Session', 'the FALSE branch does not lead to the legacy path');
+  eq(wf.connections['Get Bot Session'].main[0][0].node, 'Build Bot Response', 'the legacy path was rewired');
+});
+
+check('the OWNER path drops the /start reset, and keeps everything else', () => {
+  const premiumSession = wf.nodes.find((n) => n.name === 'Get Bot Session (Premium)');
+  assert(premiumSession, 'the premium session node is missing');
+  const code = premiumSession.parameters.jsCode;
+  const exec = code.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  assert(!/if \(isStart\) reset = /.test(exec), 'the /start reset is still executable on the owner path');
+  assert(/\[premium\] REMOVED/.test(code), 'the removal is not recorded in the node');
+  // The cycle-semantics gate and submission-key issuance must survive intact.
+  for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'cycle_reset', '__submission_key_action']) {
+    assert(code.indexOf(keep) !== -1, 'the premium session node lost ' + keep);
+  }
+  eq(wf.connections['Premium Owner Gate'].main[0][0].node, 'Get Bot Session (Premium)', 'TRUE branch');
+  eq(wf.connections['Get Bot Session (Premium)'].main[0][0].node, 'Build Bot Response (Premium)', 'premium chain');
+  eq(wf.connections['Build Bot Response (Premium)'].main[0][0].node, 'Build Transport Request', 'premium rejoin');
+});
+
+check('the gate reads the owner identity from Settings, and embeds no Telegram id', () => {
+  const gate = wf.nodes.find((n) => n.name === 'Premium Owner Gate');
+  const j = JSON.stringify(gate);
+  assert(j.indexOf('owner_chat_id') !== -1, 'the gate does not read owner_chat_id from Settings');
+  assert(j.indexOf('Parse Telegram Update') !== -1, 'the gate does not read the incoming chat id');
+  assert(!/\b\d{6,}\b/.test(j), 'a literal Telegram id is embedded in the gate');
+  // Two outputs, and only two.
+  eq(gate.type, 'n8n-nodes-base.if', 'the gate is not an IF node');
+  eq(wf.connections['Premium Owner Gate'].main.length, 2, 'the gate must have exactly two outputs');
+});
+
+check('the THREE ADDED nodes embed no Telegram id', () => {
+  // Scoped to what this delta introduced. The rest of the artifact is the live workflow verbatim,
+  // and the long numbers in it are spreadsheet gids and timestamps that were already there — a
+  // check that flagged those would be measuring the repo's history, not this change.
+  const added = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
+  for (const name of added) {
+    const n = wf.nodes.find((x) => x.name === name);
+    assert(n, 'missing added node: ' + name);
+    const j = JSON.stringify(n);
+    const hits = (j.match(/\b\d{7,}\b/g) || []);
+    eq(hits.length, 0, name + ' embeds a long numeric id: ' + hits.slice(0, 3).join(', '));
+  }
 });
 
 console.log('');

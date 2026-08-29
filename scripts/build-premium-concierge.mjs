@@ -6,17 +6,20 @@
 // REPO-ONLY. Emits n8n/candidate/premium-concierge-candidate.json and never contacts n8n.
 // It is a CANDIDATE, not a deployment.
 //
-// WHAT IT REPLACES, AND WHAT IT DELIBERATELY DOES NOT.
+// IT REPLACES NOTHING. It ADDS an owner-only branch.
 //
-// The live Concierge is 51 nodes. Almost all of them are the SPINE: session read, the issuance
-// gate, receipt preallocation and readback, the authority re-read and verdict, the stale-authority
-// and unresolved-authority branches, the transport worker, the internal handoff to Lead Intake.
-// Every P8/P9 hardening decision lives in that spine and every one of them is closed at GO.
+// The live Concierge is 51 nodes and serves real customers. Almost all of those nodes are the
+// SPINE: session read, the issuance gate, receipt preallocation and readback, the authority re-read
+// and verdict, the stale- and unresolved-authority branches, the transport worker, the internal
+// handoff to Lead Intake. Every P8/P9 hardening decision lives there and every one is closed at GO.
 //
-// This candidate replaces exactly ONE node — `Build Bot Response`, the 996-line legacy
-// conversational state machine — with the nine-state Premium machine. The spine is not touched,
-// not rewired, and not regenerated. That is the whole point: the conversation is the product
-// decision that changed; the delivery and authority machinery is not.
+// An earlier version of this script OVERWROTE `Build Bot Response`. That was fine while the
+// candidate was never going to be deployed; it stopped being fine the moment owner-only UAT on the
+// live bot became the plan, because it would have put the Premium flow in front of every customer.
+//
+// So: three nodes are added, none is modified, none is removed, and a non-owner reaches exactly
+// the node they reach today — one IF later. Owner-only becomes a server-side property rather than
+// an unlisted URL.
 //
 // THE NODE BODY IS GENERATED FROM THE GATED MODULES. `n8n/src/premium-ux/tg-state-machine.js` and
 // the TG_COPY block of `branches.js` are inlined verbatim at build time rather than retyped here.
@@ -203,11 +206,19 @@ const ADAPTER_TAIL = [
   '',
   '// ---------------------------------------------------------------- input',
   '',
+  '// In the deployed graph this node sits directly after Get Bot Session, which returns the SESSION',
+  '// ROW ITSELF, flat — not `{session: {...}}`. The offline harness passes the wrapped shape. Both',
+  '// are accepted, because getting this wrong would silently produce an empty session and a bot that',
+  '// greets a committed client as a stranger.',
   'const src = $input.first().json;',
-  'const chat_id = String(src.chat_id || (src.session && src.session.chat_id) || "");',
-  'const session = Object.assign({}, src.session || {});',
-  'const text = String(src.message_text || src.text || "");',
-  'const data = String(src.callback_data || src.data || "");',
+  'const session = Object.assign({}, (src && src.session) ? src.session : src);',
+  '',
+  '// The message and the callback come from Parse Telegram Update, which is the only node that has',
+  '// them. `$` does not exist in the offline harness, so its absence is a normal case, not an error.',
+  'const p = (function () { try { return $("Parse Telegram Update").first().json || {}; } catch (e) { return {}; } })();',
+  'const chat_id = String(session.chat_id || src.chat_id || p.chat_id || "");',
+  'const text = String(p.message_text || src.message_text || src.text || "");',
+  'const data = String(p.callback_data || src.callback_data || src.data || "");',
   '',
   '// The authority snapshot is resolved UPSTREAM, from Bot_Sessions, and is read here rather than',
   '// derived from the message. `committed` is never taken from a caller.',
@@ -362,38 +373,215 @@ if (!/function normalise\b/.test(cxSource) || !/function extractDeterministic\b/
 // ------------------------------------------------------------------ assemble
 
 const candidate = {
-  name: '[CANDIDATE] FINMENTOR Telegram Client Concierge PREMIUM UX',
+  name: '[CANDIDATE] FINMENTOR Telegram Client Concierge PREMIUM UX (owner-gated)',
   nodes: JSON.parse(JSON.stringify(baseNodes)),
   connections: JSON.parse(JSON.stringify(live.connections)),
   settings: JSON.parse(JSON.stringify(live.settings || {}))
 };
 
 const fail = [];
-const target = candidate.nodes.find((n) => n.name === RESPONSE_NODE);
-if (!target) { fail.push('missing node: ' + RESPONSE_NODE); }
-else { target.parameters.jsCode = NODE_BODY; }
+
+// ------------------------------------------------------------------ the owner gate
+//
+// THE PREMIUM FLOW IS ADDITIVE, NOT A REPLACEMENT. The live Concierge serves real customers, so
+// this candidate does NOT overwrite the existing response builder. It adds a branch only the owner
+// can enter, and leaves every existing node byte-identical:
+//
+//   Find Session -> Premium Owner Gate --[owner]--> Get Bot Session (Premium)
+//                          |                            -> Build Bot Response (Premium) --+
+//                          --[everyone else]--> Get Bot Session -> Build Bot Response ----+
+//                                                                                         v
+//                                                                        Build Transport Request
+//
+// A non-owner reaches the SAME node running the SAME code, one IF later. That is what makes
+// owner-only a server-side property rather than an unlisted URL.
+//
+// WHY THE GATE SITS BEFORE Get Bot Session AND NOT AFTER IT. Get Bot Session is where the /start
+// reset lives:
+//
+//     const isStart = text === '/start';
+//     if (isStart) reset = 'start';
+//     if (reset) cycleId = 'C-' + chat_id + '-' + Date.now();
+//
+// It mints a new cycle BEFORE any response node runs. Gating after it would leave the premium
+// machine enforcing a terminal rule on a session that had already been reset out from under it:
+// the fix would appear to work and would in fact do nothing.
+
+const OWNER_GATE = 'Premium Owner Gate';
+const PREMIUM_SESSION = 'Get Bot Session (Premium)';
+const PREMIUM_RESPONSE = 'Build Bot Response (Premium)';
+const ANCHOR_IN = 'Find Session';
+const LEGACY_SESSION = 'Get Bot Session';
+const ANCHOR_OUT = 'Build Transport Request';
+
+for (const n of [ANCHOR_IN, LEGACY_SESSION, RESPONSE_NODE, ANCHOR_OUT]) {
+  if (!candidate.nodes.find((x) => x.name === n)) { fail.push('missing anchor node: ' + n); }
+}
+
+// The owner path's session resolution: the live code with the /start reset removed and nothing
+// else changed. Generated from the live node so it cannot drift from the spine it mirrors.
+const legacySession = baseNodes.find((n) => n.name === LEGACY_SESSION);
+const RESET_LINE = "if (isStart) reset = 'start';";
+let premiumSessionCode = '';
+if (legacySession) {
+  const orig = legacySession.parameters.jsCode;
+  if (orig.indexOf(RESET_LINE) === -1) {
+    fail.push(LEGACY_SESSION + ': the /start reset line was not found -- do not splice blindly');
+  } else {
+    premiumSessionCode = [
+      '// Get Bot Session (PREMIUM) -- the live cycle-semantics gate, with ONE line removed.',
+      '//',
+      '// GENERATED by scripts/build-premium-concierge.mjs from the live Get Bot Session node.',
+      '// Do not edit here. This is the live code minus the /start reset, and nothing else.',
+      '//',
+      '// REMOVED:  ' + RESET_LINE,
+      '//',
+      '// In the premium flow, /start after a committed submission must land on the terminal screen',
+      '// with the lead intact. Minting a new cycle here would destroy the lead before the state',
+      '// machine ever saw it, and the terminal rule would be enforcing nothing.',
+      '//',
+      '// isRestart and hasNoCycle are UNCHANGED: a session with no cycle still bootstraps one, and',
+      '// the legacy m|diag restart stays as it is -- the premium flow never sends that callback, so',
+      '// it is inert here rather than removed.',
+      ''
+    ].join('\n') + orig.replace(RESET_LINE, '// [premium] REMOVED: ' + RESET_LINE);
+  }
+}
+
+// The owner identity is READ FROM SETTINGS, never hard-coded. The live workflow already resolves
+// owner_chat_id in Settings to Object, so this reuses the identity the instance already trusts
+// rather than introducing a second source of truth -- and nothing about the owner reaches this repo.
+const OWNER_EXPR = '={{ String($("Parse Telegram Update").first().json.chat_id || "") }}';
+const OWNER_VALUE = '={{ String(($("Settings to Object").first().json.settings || {}).owner_chat_id || "") }}';
+
+if (!fail.length) {
+  const anchorNode = candidate.nodes.find((n) => n.name === ANCHOR_IN);
+  const baseX = (anchorNode && anchorNode.position && anchorNode.position[0]) || 0;
+  const baseY = (anchorNode && anchorNode.position && anchorNode.position[1]) || 0;
+
+  candidate.nodes.push({
+    parameters: {
+      conditions: {
+        options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+        conditions: [{
+          id: 'premium-owner-gate',
+          leftValue: OWNER_EXPR,
+          rightValue: OWNER_VALUE,
+          operator: { type: 'string', operation: 'equals' }
+        }],
+        combinator: 'and'
+      },
+      options: {}
+    },
+    id: 'premium-owner-gate', name: OWNER_GATE,
+    type: 'n8n-nodes-base.if', typeVersion: 2, position: [baseX + 160, baseY - 240]
+  });
+
+  candidate.nodes.push({
+    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: premiumSessionCode },
+    id: 'premium-get-session', name: PREMIUM_SESSION,
+    type: 'n8n-nodes-base.code', typeVersion: 2, position: [baseX + 400, baseY - 240]
+  });
+
+  candidate.nodes.push({
+    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: NODE_BODY },
+    id: 'premium-build-response', name: PREMIUM_RESPONSE,
+    type: 'n8n-nodes-base.code', typeVersion: 2, position: [baseX + 640, baseY - 240]
+  });
+
+  // Rewire: Find Session now feeds the gate; the gate feeds the two session nodes.
+  candidate.connections[ANCHOR_IN] = { main: [[{ node: OWNER_GATE, type: 'main', index: 0 }]] };
+  candidate.connections[OWNER_GATE] = {
+    main: [
+      [{ node: PREMIUM_SESSION, type: 'main', index: 0 }],   // true  -- owner
+      [{ node: LEGACY_SESSION, type: 'main', index: 0 }]     // false -- everyone else, unchanged
+    ]
+  };
+  candidate.connections[PREMIUM_SESSION] = { main: [[{ node: PREMIUM_RESPONSE, type: 'main', index: 0 }]] };
+  candidate.connections[PREMIUM_RESPONSE] = { main: [[{ node: ANCHOR_OUT, type: 'main', index: 0 }]] };
+}
 
 // ------------------------------------------------------------------ invariants
 
-const CHANGED = [RESPONSE_NODE];
+// EXACTLY three nodes are added and NONE is modified. That is the strongest statement available
+// about a workflow that serves real customers: the non-owner path is not 'equivalent', it is the
+// same objects.
+const ADDED = [OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE];
 
-if (candidate.nodes.length !== baseNodes.length) { fail.push('node count moved'); }
-if (JSON.stringify(candidate.connections) !== JSON.stringify(live.connections)) {
-  fail.push('the connection graph changed — the spine must not be rewired');
+if (candidate.nodes.length !== baseNodes.length + 3) {
+  fail.push('node count moved: ' + baseNodes.length + ' -> ' + candidate.nodes.length + ' (expected +3)');
 }
+
 const drift = [];
 for (const n of candidate.nodes) {
-  if (CHANGED.indexOf(n.name) !== -1) { continue; }
+  if (ADDED.indexOf(n.name) !== -1) { continue; }
   const was = baseNodes.find((x) => x.name === n.name);
-  if (!was || JSON.stringify(n) !== JSON.stringify(was)) { drift.push(n.name); }
+  if (!was) { drift.push(n.name + ' (new)'); continue; }
+  if (JSON.stringify(n) !== JSON.stringify(was)) { drift.push(n.name); }
 }
 if (drift.length) { fail.push('UNRELATED DRIFT in ' + drift.length + ' node(s): ' + drift.slice(0, 8).join(', ')); }
 
-if (target) {
-  const was = baseNodes.find((x) => x.name === RESPONSE_NODE);
-  const a = Object.assign({}, was, { parameters: Object.assign({}, was.parameters, { jsCode: null }) });
-  const b = Object.assign({}, target, { parameters: Object.assign({}, target.parameters, { jsCode: null }) });
-  if (JSON.stringify(a) !== JSON.stringify(b)) { fail.push(RESPONSE_NODE + ': something other than jsCode changed'); }
+// No live node was removed.
+for (const n of baseNodes) {
+  if (!candidate.nodes.find((x) => x.name === n.name)) { fail.push('node removed: ' + n.name); }
+}
+
+// The connection graph may differ in EXACTLY four keys, and no others.
+const EXPECTED_EDGE_KEYS = [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE].sort();
+const edgeDiff = [];
+for (const k of new Set(Object.keys(live.connections).concat(Object.keys(candidate.connections)))) {
+  if (JSON.stringify(live.connections[k]) !== JSON.stringify(candidate.connections[k])) { edgeDiff.push(k); }
+}
+if (edgeDiff.sort().join(',') !== EXPECTED_EDGE_KEYS.join(',')) {
+  fail.push('unexpected rewiring: ' + edgeDiff.join(', ') + ' (expected exactly ' + EXPECTED_EDGE_KEYS.join(', ') + ')');
+}
+
+// The legacy path must still be intact end to end.
+const legacyEdge = candidate.connections[LEGACY_SESSION];
+if (JSON.stringify(legacyEdge) !== JSON.stringify(live.connections[LEGACY_SESSION])) {
+  fail.push(LEGACY_SESSION + ': the legacy path was rewired');
+}
+if (JSON.stringify(candidate.connections[RESPONSE_NODE]) !== JSON.stringify(live.connections[RESPONSE_NODE])) {
+  fail.push(RESPONSE_NODE + ': the legacy response path was rewired');
+}
+
+// The gate must route the FALSE branch to the legacy path. A gate that sent everyone to premium,
+// or that had only one output, would expose the flow to every customer.
+const gateEdges = candidate.connections[OWNER_GATE];
+if (!gateEdges || !gateEdges.main || gateEdges.main.length !== 2) {
+  fail.push(OWNER_GATE + ': must have exactly two outputs');
+} else {
+  const t = gateEdges.main[0][0] && gateEdges.main[0][0].node;
+  const f = gateEdges.main[1][0] && gateEdges.main[1][0].node;
+  if (t !== PREMIUM_SESSION) { fail.push(OWNER_GATE + ': the TRUE branch does not lead to the premium path'); }
+  if (f !== LEGACY_SESSION) { fail.push(OWNER_GATE + ': the FALSE branch does not lead to the legacy path'); }
+}
+
+// The owner identity must be read from Settings, never embedded.
+const gateNode = candidate.nodes.find((n) => n.name === OWNER_GATE);
+const gateJson = JSON.stringify(gateNode || {});
+if (gateJson.indexOf('owner_chat_id') === -1) { fail.push(OWNER_GATE + ': does not read owner_chat_id from Settings'); }
+if (/\b\d{6,}\b/.test(gateJson)) { fail.push(OWNER_GATE + ': a literal Telegram id is embedded in the gate'); }
+
+// The premium session node must be the live code MINUS the reset, and nothing else.
+if (legacySession && premiumSessionCode) {
+  if (premiumSessionCode.indexOf('// [premium] REMOVED: ' + RESET_LINE) === -1) {
+    fail.push(PREMIUM_SESSION + ': the removal of the /start reset is not recorded in the node');
+  }
+  const strippedPremium = premiumSessionCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  if (/if \(isStart\) reset = /.test(strippedPremium)) {
+    fail.push(PREMIUM_SESSION + ': the /start reset is still executable on the premium path');
+  }
+  // Everything else must survive: the cycle-semantics gate and the submission-key issuance are
+  // what make the spine trustworthy, and removing either by accident would be invisible here
+  // without this check.
+  for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'isRestart', 'cycle_reset', '__submission_key_action']) {
+    if (premiumSessionCode.indexOf(keep) === -1) { fail.push(PREMIUM_SESSION + ': lost ' + keep); }
+  }
+  // …and the legacy node itself must be untouched.
+  if (legacySession.parameters.jsCode.indexOf(RESET_LINE) === -1) {
+    fail.push(LEGACY_SESSION + ': the LIVE node was modified — non-owners must keep exactly today\'s behaviour');
+  }
 }
 
 // The output contract eleven downstream nodes read.
@@ -460,25 +648,35 @@ const structural = (nodes, connections) => crypto.createHash('sha256').update(JS
 const json = JSON.stringify(candidate, null, 2) + '\n';
 writeFileSync(OUT, json, 'utf8');
 
-const wasLines = baseNodes.find((n) => n.name === RESPONSE_NODE).parameters.jsCode.split('\n').length;
+const premiumLines = NODE_BODY.split('\n').length;
+const legacyLines = baseNodes.find((n) => n.name === RESPONSE_NODE).parameters.jsCode.split('\n').length;
 
 console.log('');
-console.log('Premium RU Concierge candidate');
+console.log('Premium RU Concierge candidate — OWNER-GATED, ADDITIVE');
 console.log('  source (live)      : ' + live.name + '  (' + baseNodes.length + ' nodes)');
 console.log('  display caches     : ' + cachesStripped + ' stripped');
 console.log('  out                : n8n/candidate/premium-concierge-candidate.json');
-console.log('  node replaced      : ' + RESPONSE_NODE + '   (1 of ' + baseNodes.length + ')');
-console.log('  node body          : ' + wasLines + ' lines -> ' + NODE_BODY.split('\n').length + ' lines, generated from the gated modules');
+console.log('');
+console.log('  nodes ADDED (3)    : ' + ADDED.join(', '));
+console.log('  nodes MODIFIED     : NONE — every one of the ' + baseNodes.length + ' live nodes is byte-identical');
+console.log('  nodes REMOVED      : NONE');
+console.log('  edges rewired (4)  : ' + [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE].join(', '));
+console.log('');
+console.log('  owner path         : ' + [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE, ANCHOR_OUT].join(' -> '));
+console.log('  everyone else      : ' + [ANCHOR_IN, OWNER_GATE, LEGACY_SESSION, RESPONSE_NODE, ANCHOR_OUT].join(' -> '));
+console.log('  owner identity     : read from Settings owner_chat_id; no literal id in this artifact');
+console.log('');
+console.log('  premium response   : ' + premiumLines + ' lines, generated from the gated modules');
+console.log('  legacy response    : ' + legacyLines + ' lines, UNTOUCHED');
+console.log('  /start reset       : removed on the PREMIUM path only; the legacy node keeps it');
 console.log('  spine              : UNTOUCHED (issuance gate, receipts, authority verdicts, transport, handoff)');
-console.log('  connections        : identical');
-console.log('  unrelated drift    : NONE');
-console.log('  states             : ' + SM.STATES.length);
-console.log('  rotate branches    : ' + rotates + ' (both confirmed)');
-console.log('  /start reset defect: ABSENT');
-console.log('  web_app buttons    : 1  («Открыть бриф», URL = ' + MINIAPP_URL_PLACEHOLDER + ')');
+console.log('  states             : ' + SM.STATES.length + '   rotate branches: ' + rotates + ' (both confirmed)');
+console.log('  web_app buttons    : 1  (Открыть бриф, URL = ' + MINIAPP_URL_PLACEHOLDER + ')');
 console.log('  P9-R2 flag pair    : ABSENT across all ' + candidate.nodes.length + ' nodes');
 console.log('');
-console.log('  structural sha256  : ' + structural(baseNodes, live.connections));
-console.log('    (identical before and after — one node body changed, no node and no edge)');
+console.log('  structural sha256  : ' + structural(baseNodes, live.connections) + '   (before)');
+console.log('                       ' + structural(candidate.nodes, candidate.connections) + '   (after)');
+console.log('    These DIFFER, and must: three nodes were added and four edges rewired. A candidate');
+console.log('    that added a branch and reported an unchanged structural hash would be lying.');
 console.log('  candidate sha256   : ' + crypto.createHash('sha256').update(json).digest('hex'));
 console.log('');

@@ -166,6 +166,35 @@ check('the pending sentinel is distinct from the candidate', () => {
 
 // ---------------------------------------------------------------- the substantive disclosures
 
+check('no processor is named individually where processors are described by role', () => {
+  // The regression: «Telegram» was named in `recipients` while every other processor was a
+  // category. Naming one vendor and not the others reads as a complete list when it is not.
+  eq(N.assertNoVendorNames().length, 0, 'a vendor is named as a recipient: ' + N.assertNoVendorNames().join(', '));
+  for (const loc of N.LOCALES) {
+    const b = N.FULL[loc].elements.recipients.body;
+    assert(!/Telegram/i.test(b), loc + ' names Telegram as a recipient');
+    // …and the role description that replaced it must still be there, or the disclosure shrank.
+    assert(/мессенджер|mesagerie/i.test(b), loc + ' dropped the messaging channel from recipients entirely');
+  }
+});
+
+check('the DATA description may still name the channel, and must', () => {
+  // `categories` answers "what data", not "who sees it". Saying a Telegram account identifier is
+  // stored is the disclosure; replacing it with «мессенджер» would make it less true.
+  assert(/Telegram/.test(N.FULL.ru.elements.categories.body), 'RU stopped disclosing the stored Telegram identifier');
+  assert(/Telegram/.test(N.FULL.ro.elements.categories.body), 'RO stopped disclosing the stored Telegram identifier');
+  eq(N.VENDOR_SCOPED.indexOf('categories'), -1, 'the vendor rule was widened to categories, which would delete a real disclosure');
+});
+
+check('render REFUSES a notice that reintroduces a named vendor as a recipient', () => {
+  const saved = N.FULL.ru.elements.recipients.body;
+  N.FULL.ru.elements.recipients.body = saved.replace('мессенджер, через который вы обратились', 'Telegram');
+  const r = N.render('ru', FILLED);
+  N.FULL.ru.elements.recipients.body = saved;
+  eq(r.ok, false, 'a named vendor rendered');
+  eq(r.error_code, 'VENDOR_NAMED_AS_RECIPIENT', 'error code');
+});
+
 check('the transfer disclosure is present and honest', () => {
   // Supabase, n8n and Google all sit outside Moldova. Saying "we do not transfer data abroad"
   // would be false; naming a specific vendor in a customer notice is a commitment the owner has

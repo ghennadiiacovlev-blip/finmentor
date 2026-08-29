@@ -54,7 +54,7 @@ Numele și rolul, denumirea companiei, dimensiunea afacerii, descrierea sarcinii
 
 ### 5. Cine mai are acces
 
-Consultantul care se pregătește pentru întâlnirea cu dumneavoastră. Furnizorii de infrastructură, care acționează ca persoane împuternicite de operator: găzduirea bazei de date, platforma de automatizare, serviciul de foi de calcul și Telegram ca mijloc de livrare a mesajelor. Datele nu se vând și nu se transmit pentru marketingul terților.
+Consultantul care se pregătește pentru întâlnirea cu dumneavoastră. Furnizorii de infrastructură, care acționează ca persoane împuternicite de operator: găzduirea bazei de date, platforma de automatizare, serviciul de foi de calcul și serviciul de mesagerie prin care ne-ați contactat. Datele nu se vând și nu se transmit pentru marketingul terților.
 
 ### 6. Transfer în afara Republicii Moldova
 
