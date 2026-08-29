@@ -246,9 +246,9 @@ sessions expire on their own 1800s TTL.
 
 ## 9. Still pending after the three-shot press
 
-- **Store-failure fail-closed, live.** Deliberately breaking production Supabase is refused.
-  This needs an isolated disposable Gateway harness pointed at a throwaway store. Proven
-  structurally on the deployed graph and offline in `qa/g5-replay-claim.test.mjs`.
+- ~~**Store-failure fail-closed, live.**~~ CLOSED. It was never proven because the 503 was
+  unreachable, not because the harness was missing; see §13 for the defect and §14 for the
+  deployed fix and its live proof. Production Supabase was never broken to get there.
 - **Concurrent duplicate submission at the Gateway**, as opposed to the ledger-level race
   already measured in P9 §5.
 
@@ -386,7 +386,7 @@ returned **nothing**. `leak_fields` was empty on both shots.
     F17 / Neon                        : untouched
     merge / activation                : neither
 
-## 13. P9-R2 — STORE FAILURE: **ISOLATED FAIL**. The 503 path is unreachable.
+## 13. P9-R2 — the finding: `STORE FAILURE` was an ISOLATED FAIL (fixed in §14)
 
 An isolated harness was built rather than breaking production Supabase: a copy of the deployed
 graph with a gated four-item divergence allowlist (route, trust anchor, claim node, session
@@ -454,11 +454,12 @@ is unreachable, and `retryable:false` tells a correct client never to retry. Und
 outage every user would be told their context was already used, with no signal to come back.
 That is a replay-semantics weakening in the one direction the ledger cannot detect.
 
-### The minimal fix — APPLIED IN THE REPO, NOT YET PROVEN LIVE
+### The minimal fix — what changed
 
-Applied to the tracked builder and candidate. **Nothing has been deployed and nothing has been
-re-run on the wire**, so `STORE FAILURE` is still an ISOLATED FAIL below: the fix is a change
-that should close it, not evidence that it did.
+Written and gated here; deployed and proven on the wire in §14. When this subsection was first
+written nothing had been deployed and `STORE FAILURE` was still a FAIL — it is kept in that
+order because the change and the evidence for it are different things, and collapsing them would
+lose the distinction that made the P9-R1 gate too weak.
 
 Three things changed in `scripts/build-miniapp-gateway.mjs`, and a field-level diff of the new
 candidate against the previous one shows exactly those three and nothing else — same 13 nodes,
@@ -531,75 +532,169 @@ throws.
 
 Repo QA after the change: **32/32 gates, 1462 assertions** (gateway 22 → 23, harness 61 → 63).
 
-### What is still owed before this can be called fixed
+### What was still owed, and what remains
 
-    1. deploy the rebuilt candidate to nTZHLbv2KFggdhh5, field-level diff before and after
-    2. re-run the isolated harness: both outage shots must answer 503 REPLAY_STORE_UNAVAILABLE
-       retryable:true, and the three controls must still answer 200 / 409 / 409
-    3. re-run A + B live on one genuine owner press, to show the accept and replay paths are
-       unregressed by the query change
-    4. re-run the negative battery, since Respond Rejected is the shared path
+Steps 1 and 2 were approved by the owner on 2026-08-29 and are recorded in §15 below as a LIVE
+PASS. Steps 3 and 4 are **not** approved and were not attempted:
 
-Steps 1–3 touch the live Gateway or need a real Telegram context, so none of them has been taken.
+    1. deploy the rebuilt candidate                                   DONE   - §15.1
+    2. re-run the isolated harness until both outage shots 503        DONE   - §15.2
+    3. re-run A + B live on one genuine owner press                   NOT APPROVED, not attempted
+    4. re-run the negative battery, Respond Rejected being shared     NOT APPROVED, not attempted
 
-### The same defect class elsewhere: Lead Intake's dedup read
-
-Found by sweeping every tracked workflow for the combination that caused this one —
-`alwaysOutputData: true` **together with** `onError: continueErrorOutput`. Twenty-eight
-workflows scanned; the Gateway was the only Mini App hit, and one other node carries the pair:
-
-    QmIyEW2ZEqKregmN  FINMENTOR Lead Intake PREMIUM FINAL
-    Read Pipeline (Dedup)   googleSheets   onError: continueErrorOutput + alwaysOutputData: true
-
-        main[0] -> Dedup Guard  -> ... -> IF Is New -> Build Pipeline Row -> Save to Pipeline
-        main[1] -> IF Internal (Infra) -> Respond Infra Failed -> Stop: CRM Unavailable
-
-`Dedup Guard` opens with `filter(r => String(r.lead_id || '').trim() !== '')` — it discards
-items with no `lead_id`, which is exactly what the old `Claim Verdict` did with `replay_key`.
-So on a Sheets read outage the empty success item survives to `Dedup Guard`, is filtered away,
-and **"the store is unreachable" becomes "no duplicate was found"** — the branch that ends in a
-Pipeline **write**, while the error branch separately answers CRM-unavailable.
-
-This is a repo-level observation from reading the graph, **not** a live finding: no outage was
-simulated against Lead Intake and nothing here was changed. It is written down because it is the
-same root cause, one `filter` away, and because the direction is worse — the Gateway failed
-closed on side effects, whereas this path leads to a write. Two things plausibly mask it in
-practice and neither is a design: a Sheets read outage will usually take the write down too, and
-the error branch is far shorter, so it likely commits the HTTP response first. Worth its own
-diagnosis before anyone relies on either.
+No Telegram press was requested and none is implied by anything below.
 
 
-### Second, minor observation
+### The same defect class elsewhere — recorded separately
 
-While diagnosing, a synthetic context missing the 64-hex `hash` field made `Derive Replay Key`
-throw `G5_HASH_MISSING`, and the caller received an **empty HTTP 200** — n8n's behaviour when a
-`responseNode` webhook finishes without reaching a respond node. Practically unreachable in
-production: a genuine Telegram context always carries `hash`, and a forged one cannot pass
-Ed25519 first. Recorded because an empty 200 on an internal throw is a poor default, not because
-it is currently exploitable.
+Sweeping all 28 tracked workflow artifacts for the flag pair that caused this one —
+`alwaysOutputData: true` **together with** `onError: continueErrorOutput` — found exactly two
+sites. One is the Gateway's `G5 Replay Claim`, fixed above. The other is `Read Pipeline (Dedup)`
+in Lead Intake PREMIUM FINAL.
 
-### Isolation held
+It is written up on its own, as a reading of the graph rather than a live finding, in
+**`docs/FINDING_LEAD_INTAKE_DEDUP_STORE_OUTAGE.md`** — open, undiagnosed, and deliberately not
+remediated. This Gateway cycle was scoped not to broaden into Lead Intake, and it did not.
 
-    production ledger rows      3 -> 3       (newest row is still shot A at 07:05:55Z)
-    production app sessions     3 -> 3
-    Gateway retained executions 0
-    Gateway graph               unchanged, still active, 13 nodes
-    Gateway credential          FINMENTOR Supabase G5, unchanged and never used by the harness
-    harness workflows           created, exercised, deleted, confirmed gone (404 on readback)
-    disposable credential       created, deleted; its password was generated in-process,
-                                never printed and never written to disk
-    Neon                        untouched
 
-Repo QA after the run: **32/32 gates, 1459 assertions**.
+## 14. P9-R2 — DEPLOYED AND PROVEN. `STORE FAILURE` = LIVE PASS (2026-08-29)
 
-## 14. Gateway verdict
+Owner-approved as steps 1 and 2 only, on candidate commit `15ec55b`, and scoped as an
+adapter/materialization fix rather than a G5 redesign.
+
+### 14.1 STEP 1 — the deploy, gated by its own diff
+
+`scripts/deploy-miniapp-gateway.mjs` was written for this rather than repeating P9-R1's hand
+deploy, where the "exactly three fields" evidence was assembled *after* the write. Here the diff
+is the gate: the script states the change set before writing and refuses to proceed on anything
+outside it. It is dry-run by default and touches exactly one workflow.
+
+It reuses `normalise()` from the harness runner **verbatim**, so the harness preflight is an
+independent re-check of the deploy rather than a restatement of it.
+
+    live graph vs the d8c3b5e candidate   field-level: IDENTICAL - zero pre-existing drift
+                                          (nobody had edited the Gateway in the UI, so the
+                                          three-field claim is about the real starting point)
+
+    fields changed by the deploy          exactly 3, all three intended:
+      nodes.G5 Replay Claim.parameters.query          187 -> 261 chars, CTE form
+      nodes.G5 Replay Claim.alwaysOutputData          true -> absent
+      nodes.Claim Verdict.parameters.jsCode           609 -> 968 chars, reads `claimed`
+
+    deployed graph vs the 15ec55b candidate   field-level: IDENTICAL
+    normalise() agrees with the field diff    yes
+
+Invariants read back off the **live** graph after the write:
+
+    workflow                    nTZHLbv2KFggdhh5, still ACTIVE (this script never touches activation)
+    nodes                       13, same names and same ids
+    public entry                exactly one webhook node
+    credential-bearing nodes    exactly one - G5 Replay Claim
+    credential                  FINMENTOR Supabase G5 (B6wRirWfjqoASXU3), unchanged
+    respond nodes               the same four; 200 / 409 / 503 numeric + ={{ $json.statusCode }}
+    connection map              unchanged
+    retention                   saveDataSuccessExecution / saveDataErrorExecution = none
+    retained executions         0
+    node types                  no googleSheets, no httpRequest, no executeWorkflow
+    Neon                        not referenced
+
+### 14.2 STEP 2 — the isolated harness, on the same runner that failed
+
+`scripts/run-gateway-store-failure-harness.mjs` was **not modified**. It is the same gate, with
+the same assertions, that returned the P9-R2 FAIL against the old graph — which is the whole
+reason its verdict means anything now. No production outage was induced, production Supabase was
+not touched, and the production credential was not modified.
+
+    H1 store DOWN      (code stand-in throws)   -> HTTP 503  REPLAY_STORE_UNAVAILABLE  retryable:true
+    H1 store WON       (control)                -> HTTP 200  ok:true, AS-<64 hex>
+    H1 store LOST      (control)                -> HTTP 409  REPLAY_REFUSED  retryable:false
+    H1 mode UNSET      (fail-closed control)    -> HTTP 503  REPLAY_STORE_UNAVAILABLE  retryable:true
+    H2 REAL postgres node, dead store           -> HTTP 503  REPLAY_STORE_UNAVAILABLE  retryable:true
+
+Every one of those five was previously wrong in the same direction: both outage shots and the
+unset control answered `409 REPLAY_REFUSED retryable:false`. All 22 verdict assertions pass.
+
+**Both outage shots fail closed and leak nothing.** No app session, no ledger row, no 200, and
+the body is the static three-key contract — the H2 response contains no `127.0.0.1`, no
+`p9r2_nobody`, no `p9r2_no_such_db`, no `econnrefused`, no `password`, no `stack`.
+
+**The controls still prove the non-outage semantics,** which is what stops "503 on everything"
+from looking like a pass: a won claim still mints a well-formed `AS-` + 64-hex session, a lost
+claim still answers `409 REPLAY_REFUSED` with no session, and an ambiguous store output does not
+become an ACCEPT — an unrecognised mode fails closed to 503 rather than picking a happy path.
+
+**The harness key cannot be turned on production.** A harness-signed context sent at the real
+Gateway was rejected `401 TG_INITDATA_INVALID` and minted nothing.
+
+### 14.3 The CTE itself, executed by real Postgres
+
+H2 proved the *outage* path with the real Postgres node, but the connection never opened, so the
+new statement was never parsed or planned by a real server. That gap is closed separately, against
+a **temporary table** — nothing was written to `telegram_initdata_replays`:
+
+    FIRST claim on a fresh key                          claimed = 1   (integer, not text)
+    SECOND claim, same key                              claimed = 0
+    THIRD claim, a different key                        claimed = 1
+    rows actually stored after three claims             2   -> the conflict wrote nothing
+    conflict did NOT overwrite the held row             corr-1 intact
+    nullif('','') still stores NULL                     yes
+
+The statement executed was proven byte-identical to the deployed one after normalising the table
+name and the `$1/$2/$3` bindings — compared programmatically, not by eye. `::int` matters and is
+not decoration: `count(*)` is a `bigint`, node-postgres returns `int8` as a **string**, and
+`Claim Verdict` compares with `Number(...)` for the same reason.
+
+### 14.4 Isolation held
+
+    production ledger rows        3 -> 3   (newest still shot A, 2026-08-29 07:05:55.493966+00)
+    production app sessions       3 -> 3
+    G5 schema                     unchanged - 4 columns: correlation_id, expires_at,
+                                  first_seen_at, replay_key
+    leftover probe tables         0        (the temp table was ON COMMIT DROP)
+    Gateway graph after the run   unchanged, still active
+    Gateway retained executions   0
+    harness workflows             created, activated, exercised, deleted, 404 on readback
+                                  (GmtVTbgD9rhKxnDG, rDjD3sCSUuTV0mzY)
+    disposable credential         created, deleted; password generated in-process, never printed
+    production G5 credential      never used by the harness, never modified
+    Neon / F17                    untouched
+    Pipeline writes               none
+    Lead Intake calls             none
+    merge / activation            neither
+
+Repo QA after the run: **32/32 gates, 1462 assertions.**
+
+### 14.5 What this does and does not establish
+
+It establishes that the deployed Gateway now answers a replay-store outage with
+`503 REPLAY_STORE_UNAVAILABLE retryable:true` instead of telling every user their context was
+already used, and that the accept and refusal semantics either side of it are unchanged.
+
+It does **not** re-prove the live accept and replay paths against a genuine Telegram context. A
+and B were live-passed on the *previous* graph (§12) and the claim query has changed underneath
+them. The controls and the real-Postgres probe are strong evidence that nothing regressed, but
+they are not the same thing as a real signed context, and this document does not treat them as
+interchangeable. That is step 3, and it is not approved.
+
+
+## 15. Gateway verdict
 
     VALID ACCEPT    = LIVE PASS
     EXACT REPLAY    = LIVE PASS
     STALE FRESHNESS = LIVE PASS   (banked 2026-08-29)
-    STORE FAILURE   = ISOLATED FAIL   (fix applied in-repo, NOT yet re-run live)
+    STORE FAILURE   = LIVE PASS   (P9-R2 deployed and proven 2026-08-29, §14)
 
-**GATEWAY: NO-GO**, on the store-failure contract alone. Three of the four gates are live-proven.
-The fourth is not a gap in evidence any more — it is a defect the evidence found, and the fix
-above is now written and gated in the repo. It stays a FAIL until the harness answers 503 on the
-wire: a fix that has not been run is a hypothesis, and this document does not bank hypotheses.
+**GATEWAY: GO on the four contract gates.** All four are now proven — three against genuine
+Telegram-signed contexts, the fourth on an isolated harness that never touched production.
+
+Two things keep this short of an unqualified product GO, and both are stated because they are
+true rather than because they are required:
+
+- **A and B have not been re-run since the claim query changed.** They passed on the previous
+  graph. The harness controls and the real-Postgres probe say the change is safe, but a live
+  press is the only thing that proves it. That is step 3 and awaits owner approval.
+- **The negative battery has not been re-run.** `Respond Rejected` is the shared path for
+  400/401/403 and was not modified, so no regression is expected there — expected is not proven.
+
+Nothing was merged and the product was not activated.
+
