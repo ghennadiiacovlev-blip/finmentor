@@ -322,3 +322,190 @@ and that is precisely how the defect survived the first gate.
 
 `Store Failure = 503` remains **unproven live** and the overall Gateway gate stays open until an
 isolated, credential-safe store-failure harness proves it without touching production Supabase.
+
+## 12. A + B — LIVE PASS (2026-08-29 07:05:55Z)
+
+One owner press, two shots from one genuine Telegram-signed context, one body built once.
+
+| | client-visible | server-side |
+|---|---|---|
+| A · ACCEPT | `200`, `ok:true`, `app_session_id` present, `session_id_len` 67, `leak_fields []` | ledger **2 → 3**, sessions **2 → 3** |
+| B · EXACT REPLAY | `409`, `ok:false`, `REPLAY_REFUSED`, `retryable:false`, `leak_fields []` | ledger **+0**, sessions **+0** |
+
+### The two halves are one request
+
+The new ledger row and the new app session carry the **same `replay_key`**, compared by MD5
+fingerprint so the digest itself is never printed:
+
+    ledger  replay_key fingerprint : 43d97d41209a4abb92b0705c3018d8a3
+    session replay_key fingerprint : 43d97d41209a4abb92b0705c3018d8a3   -> same request
+
+    ledger first_seen_at           : 2026-08-29 07:05:55.493966+00
+    ledger expires_at              : 2026-08-29 07:20:52+00
+    implied auth_date              : 2026-08-29 07:05:52+00
+    payload age at claim           : 3.49 s   -> a genuinely fresh signature, not a stale one
+    replay_key shape               : 64 lowercase hex
+    app_session_id shape           : AS- + 64 lowercase hex, all 16 hex digits present
+                                     = 32 bytes from crypto.randomBytes
+    session TTL                    : 1800 s
+    cycle_id / draft_json / state  : "" / "" / draft
+
+**On the intermediate read.** A and B run back to back inside one uninterrupted browser run, so
+there was no moment at which the ledger could be sampled *between* them; the recorded sequence
+is baseline 2, then 3 after the pair. That the delta is **+1 and not +2** — one new ledger row
+and exactly one new session, with B answering `409 REPLAY_REFUSED` and carrying no
+`app_session_id` — is what establishes that B claimed nothing. Claiming that three separate
+reads were taken would be a nicer-looking sentence and a false one.
+
+### Retention and privacy
+
+    Gateway retained executions : 0
+    page    retained executions : 0
+    Gateway settings            : saveDataSuccessExecution / saveDataErrorExecution = none,
+                                  saveManualExecutions / saveExecutionProgress = false
+
+`telegram_initdata_replays` still has exactly four columns — `replay_key`, `first_seen_at`,
+`expires_at`, `correlation_id` — and holds no PII: the key is a one-way digest and the
+correlation id is a random UUID. A scan of the whole new session row for `query_id=`,
+`auth_date=`, `user=`, `hash=`, `signature=`, a bot-token shape, an email and a phone shape
+returned **nothing**. `leak_fields` was empty on both shots.
+
+### Reconfirmed
+
+    only Gateway Postgres credential : FINMENTOR Supabase G5 (B6wRirWfjqoASXU3), on G5 Replay Claim
+    second postgres credential        : "Postgres account" — NOT referenced by the Gateway
+    G5 schema                         : unchanged, 4 columns
+    live drift vs n8n/production/manifest.json : 9 tracked workflows, 0 drifted
+                                        (Concierge, Lead Intake, Command Center, Digest,
+                                         Followup, SLA Watch, Error Monitor, Transport)
+    Gateway node types                : webhook, code, if, postgres, dataTable, respondToWebhook
+                                        — no googleSheets, no httpRequest, no executeWorkflow
+    Pipeline write                    : impossible; the only "Pipeline" string in the graph is
+                                        the self-reported counter pipeline_writes: 0
+    submit route                      : absent
+    F17 / Neon                        : untouched
+    merge / activation                : neither
+
+## 13. P9-R2 — STORE FAILURE: **ISOLATED FAIL**. The 503 path is unreachable.
+
+An isolated harness was built rather than breaking production Supabase: a copy of the deployed
+graph with a gated four-item divergence allowlist (route, trust anchor, claim node, session
+write). Every other node and the entire connection map are byte-identical to the Gateway
+candidate, **all four respond nodes are copied verbatim**, and `qa/gateway-store-failure-harness.test.mjs`
+refuses to emit a harness that breaks any of that — 61 checks, including 20 mutations that each
+re-introduce a way the harness could stop mirroring production.
+
+The trust anchor is swapped for a keypair generated at run time so a synthetic context can reach
+the claim node with no Telegram material and no production credential. That cut both ways and
+was verified live: **a harness-signed context is rejected `401 TG_INITDATA_INVALID` by the
+production Gateway and minted nothing**, so the harness key cannot be turned against the real
+endpoint.
+
+### What the wire said
+
+    H1 store DOWN     (code stand-in throws)      -> HTTP 409  REPLAY_REFUSED  retryable:false
+    H1 store WON      (control)                   -> HTTP 200  ok:true, AS-<64 hex>
+    H1 store LOST     (control)                   -> HTTP 409  REPLAY_REFUSED
+    H1 mode UNSET     (fail-closed control)       -> HTTP 409  REPLAY_REFUSED
+    H2 REAL postgres node, dead store             -> HTTP 409  REPLAY_REFUSED  retryable:false
+
+Expected on the two outage shots: `503 REPLAY_STORE_UNAVAILABLE retryable:true`. The controls
+passed, which is what makes this a finding rather than a broken harness — the same graph answers
+`200` on a won claim and `409` on a lost one.
+
+### Root cause, observed rather than inferred
+
+A diagnostic copy with retention enabled shows the node-by-node truth of a real store outage:
+
+    G5 Replay Claim            outputs=[1, 1]      <- ONE item on SUCCESS, ONE on ERROR
+    Claim Verdict              outputs=[1]
+    IF Claim Won               outputs=[0, 1]
+    Respond Replay Refused     outputs=[1]         <- this one answered the caller
+    Respond Store Unavailable  outputs=[1]         <- ran, but the response was already sent
+    lastNodeExecuted: Respond Store Unavailable
+    execution status: success
+
+`G5 Replay Claim` carries **`alwaysOutputData: true`**. On error, `onError: continueErrorOutput`
+puts the error item on output 1 — and `alwaysOutputData` *also* puts an empty item on output 0.
+Both branches then run. The empty success item reaches `Claim Verdict`, which filters on
+`replay_key !== ''`, finds none, and emits `claim_won: 0` — which is **exactly what a genuine
+ON CONFLICT conflict looks like**. `Respond Replay Refused` commits the 409 first, and the 503
+that follows is a no-op.
+
+So a total store outage is reported to the caller as *"you have already used this context, do
+not retry"*, and the execution is recorded as a **success**.
+
+`alwaysOutputData` is not a stray flag: P9-R1 §8a relied on it, correctly, to make the
+zero-row conflict path emit an item. The same flag is what makes the outage path indistinguishable
+from that conflict.
+
+### Severity, stated fairly
+
+Fail-closed **on side effects** — and that part holds:
+
+    no app session minted        Build App Session and Create App Session never ran
+    no ledger row written        ledger 3 -> 3 across the entire harness run
+    no fallback to ACCEPT        no 200 on either outage shot
+    no secret exposure           body is the static 3-key contract; no host, user, database,
+                                 ECONNREFUSED, password or stack text in the response
+
+Not fail-closed **on the contract**: the documented `503 REPLAY_STORE_UNAVAILABLE retryable:true`
+is unreachable, and `retryable:false` tells a correct client never to retry. Under a Supabase
+outage every user would be told their context was already used, with no signal to come back.
+That is a replay-semantics weakening in the one direction the ledger cannot detect.
+
+### The minimal fix — RECOMMENDED, NOT APPLIED
+
+Not implemented here: it changes the Gateway, and this session was scoped not to. Make the claim
+query always return exactly one row carrying its own verdict, then drop `alwaysOutputData`:
+
+    with ins as (
+      insert into public.telegram_initdata_replays (replay_key, expires_at, correlation_id)
+      values ($1, $2::timestamptz, nullif($3, ''))
+      on conflict (replay_key) do nothing
+      returning replay_key
+    )
+    select (select count(*) from ins)::int as claimed
+
+    won      -> one row, claimed = 1
+    conflict -> one row, claimed = 0
+    outage   -> node errors, NO success item at all -> only the error output -> 503
+
+`Claim Verdict` would read `claimed` instead of filtering on `replay_key`. G5 semantics are
+preserved exactly: one atomic `INSERT ... ON CONFLICT DO NOTHING`, no `SELECT`-before-`INSERT`,
+schema untouched, fail-closed routing unchanged. This needs owner approval, a rebuild, a live
+re-run of the harness, and a re-run of A/B.
+
+### Second, minor observation
+
+While diagnosing, a synthetic context missing the 64-hex `hash` field made `Derive Replay Key`
+throw `G5_HASH_MISSING`, and the caller received an **empty HTTP 200** — n8n's behaviour when a
+`responseNode` webhook finishes without reaching a respond node. Practically unreachable in
+production: a genuine Telegram context always carries `hash`, and a forged one cannot pass
+Ed25519 first. Recorded because an empty 200 on an internal throw is a poor default, not because
+it is currently exploitable.
+
+### Isolation held
+
+    production ledger rows      3 -> 3       (newest row is still shot A at 07:05:55Z)
+    production app sessions     3 -> 3
+    Gateway retained executions 0
+    Gateway graph               unchanged, still active, 13 nodes
+    Gateway credential          FINMENTOR Supabase G5, unchanged and never used by the harness
+    harness workflows           created, exercised, deleted, confirmed gone (404 on readback)
+    disposable credential       created, deleted; its password was generated in-process,
+                                never printed and never written to disk
+    Neon                        untouched
+
+Repo QA after the run: **32/32 gates, 1459 assertions**.
+
+## 14. Gateway verdict
+
+    VALID ACCEPT    = LIVE PASS
+    EXACT REPLAY    = LIVE PASS
+    STALE FRESHNESS = LIVE PASS   (banked 2026-08-29)
+    STORE FAILURE   = ISOLATED FAIL
+
+**GATEWAY: NO-GO**, on the store-failure contract alone. Three of the four gates are live-proven.
+The fourth is not a gap in evidence any more — it is a defect the evidence found, and the fix
+above is small and known.
