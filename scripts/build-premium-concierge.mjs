@@ -122,6 +122,11 @@ const ADAPTER_HEAD = [
   '  TG_COPY: ' + JSON.stringify(B.TG_COPY, null, 2).split('\n').join('\n') + ',',
   '  OBJECTIVE_IDS: ' + JSON.stringify(B.OBJECTIVE_IDS) + ',',
   '  OBJECTIVE_LABELS: ' + JSON.stringify(B.OBJECTIVE_LABELS) + ',',
+  // `normalise` validates turnover_band against the approved bands. Leaving SCALE_OPTIONS off
+  // this stub is the same class of defect as the missing OBJECTIVE_IDS: the module reads it, the
+  // node would throw on the first message that states a turnover, and only an EXECUTED gate finds
+  // it. The gate below asserts every B key the inlined modules touch.
+  '  SCALE_OPTIONS: ' + JSON.stringify(B.SCALE_OPTIONS) + ',',
   '  objectiveById: (id) => (OBJECTIVE_LABEL[id] ? { id: id, label: OBJECTIVE_LABEL[id] } : null),',
   '  objectiveByLabel: (label) => {',
   '    for (const id of Object.keys(OBJECTIVE_LABEL)) {',
@@ -188,14 +193,29 @@ const ADAPTER_TAIL = [
   '',
   '// «Открыть бриф» is the ONLY web_app button. Everything else is a callback, so a stale message',
   '// can never launch the Mini App with an identity the server has not re-resolved.',
-  'function buildMarkup(labels, sessionId) {',
+  '// A label carries a different action on a CONFIRMATION screen than on the screen that opened it.',
+  '// «Начать новый вопрос» appears on three screens: on TG_SUBMITTED and on the append confirmation',
+  '// it OPENS the confirmation, and on TG_NEW_REQUEST_CONFIRM it must CONFIRM. With one global',
+  '// label->action map it opened the confirmation from inside the confirmation, so the primary',
+  '// button re-rendered its own screen and a client could never actually start a new question.',
+  '// ACTIONS.NEW_CONFIRM was reachable only through «Да, начать новый вопрос», which no screen',
+  '// renders.',
+  '//',
+  '// Keyed by STATE as well as label, so the fix cannot leak: the discard confirmation reuses the',
+  '// TG_NEW_REQUEST_CONFIRM state id but renders «Начать новое», which is not in this table.',
+  'const LABEL_ACTION_BY_STATE = {',
+  '  TG_NEW_REQUEST_CONFIRM: { "Начать новый вопрос": ACTIONS.NEW_CONFIRM }',
+  '};',
+  '',
+  'function buildMarkup(labels, sessionId, state) {',
+  '  const perState = LABEL_ACTION_BY_STATE[String(state || "")] || {};',
   '  const rows = [];',
   '  for (const label of labels || []) {',
   '    if (label === "Открыть бриф") {',
   '      rows.push([{ text: label, web_app: { url: MINIAPP_URL } }]);',
   '      continue;',
   '    }',
-  '    const action = LABEL_ACTION[label];',
+  '    const action = perState[label] || LABEL_ACTION[label];',
   '    if (!action) { continue; }',
   '    rows.push([{ text: label, callback_data: action }]);',
   '  }',
@@ -318,7 +338,10 @@ const ADAPTER_TAIL = [
   '  auth.context_extracted = {',
   '    company_name: proposal.fields.company_name || "",',
   '    role: proposal.fields.role || "",',
-  '    turnover_band: String(session.turnover_band || ""),',
+  '  // The client\'s OWN answer always wins. Extraction only fills a band the client has not',
+  '  // given, and only from a stated turnover — never from prose. «Предпочитаю не указывать»',
+  '  // cannot be produced by extraction at all, so a client who chose it keeps that choice.',
+  '    turnover_band: String(session.turnover_band || proposal.fields.turnover_band || ""),',
   '    objective: proposal.fields.objective ? (objectiveLabel(proposal.fields.objective) || "") : "",',
   '    problem_summary: proposal.fields.problem_summary || ""',
   '  };',
@@ -357,7 +380,7 @@ const ADAPTER_TAIL = [
   '// TG_ENTRY — so this changes nothing for any other reply.',
   'const parse_mode = String((outcome.copy && outcome.copy.parse_mode) || "");',
   'const reply_text = safeText(rendered.text, 3800, parse_mode === "HTML");',
-  'const reply_markup = buildMarkup(rendered.actions, session.app_session_id);',
+  'const reply_markup = buildMarkup(rendered.actions, session.app_session_id, outcome.state);',
   '',
   '// lead_ready is FALSE on every premium screen. The premium brief is submitted through',
   '// POST /miniapp/submit, which owns the projection and the privacy record; a second path from',
@@ -732,6 +755,24 @@ for (const n of candidate.nodes) {
 const text = JSON.stringify(candidate);
 for (const leak of ['cachedResultUrl', 'activeVersion', 'versionId', 'pinData']) {
   if (text.indexOf('"' + leak + '"') !== -1) { fail.push('leaked key in the candidate: ' + leak); }
+}
+
+// EVERY key the inlined modules read off `B` must exist on the stub that stands in for
+// branches.js. `OBJECTIVE_IDS` was once missing and the node threw on the first message; adding
+// `turnover_band` needed `SCALE_OPTIONS` and would have done it again. Derived from the module
+// sources rather than listed by hand, so a new `B.x` in a module fails the build that introduces it.
+{
+  const stubKeys = ['TG_COPY', 'OBJECTIVE_IDS', 'OBJECTIVE_LABELS', 'SCALE_OPTIONS', 'objectiveById', 'objectiveByLabel'];
+  const used = new Set();
+  for (const src of [smSource, cxSource]) {
+    for (const m of src.matchAll(/\bB\.([A-Za-z_][A-Za-z0-9_]*)/g)) { used.add(m[1]); }
+  }
+  for (const key of used) {
+    if (stubKeys.indexOf(key) === -1) { fail.push('the inlined modules read B.' + key + ', which the node-body stub does not provide'); }
+  }
+  for (const key of stubKeys) {
+    if (NODE_BODY.indexOf('  ' + key + ':') === -1) { fail.push('the node-body stub is missing ' + key); }
+  }
 }
 
 // EVERY generated node body must parse. The response body was checked here from the start; the

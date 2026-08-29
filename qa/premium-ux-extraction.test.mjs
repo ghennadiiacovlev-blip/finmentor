@@ -70,15 +70,22 @@ check('no company mentioned means no company proposed', () => {
   eq(r.fields.objective, 'cash_flow', 'objective');
 });
 
-check('no scale is EVER inferred, even when the text describes size', () => {
+check('no scale is inferred from PROSE, only normalised from a stated turnover', () => {
+  // Owner-authorised narrowing of the original "never inferred" rule: a STATED turnover is
+  // arithmetic, not inference. Prose about size still yields nothing, and the refusal option
+  // «Предпочитаю не указывать» remains unreachable by any code path — it is the client's choice.
   for (const t of ['У нас небольшая компания, оборот скромный.',
-                   'Мы крупный холдинг с оборотом около 30 миллионов евро.',
-                   'Оборот 5 млн евро в год, кассовые разрывы постоянные.']) {
-    const r = pipeline(t);
-    eq(r.fields.turnover_band, undefined, 'a turnover band was inferred from: ' + t);
+                   'Мы крупный бизнес, работаем по всей стране.',
+                   'Взяли кредит на 5 млн евро.']) {
+    eq(pipeline(t).fields.turnover_band, undefined, 'a turnover band was inferred from prose: ' + t);
   }
-  assert(X.EXTRACTABLE.indexOf('turnover_band') === -1, 'turnover_band is extractable at all');
-  assert(X.DRAFT_BACKED.indexOf('turnover_band') === -1, 'turnover_band is draft-backed by extraction');
+  for (const [t, want] of [['Мы холдинг с оборотом около 30 миллионов евро.', '€10–50 млн'],
+                           ['Оборот 5 млн евро в год, кассовые разрывы постоянные.', '€2–10 млн']]) {
+    eq(pipeline(t).fields.turnover_band, want, 'a stated turnover did not normalise: ' + t);
+  }
+  for (const t of ['Оборот 5 млн евро.', 'У нас небольшая компания.']) {
+    assert(pipeline(t).fields.turnover_band !== 'Предпочитаю не указывать', 'the refusal option was inferred');
+  }
 });
 
 check('an AMBIGUOUS objective stays unknown rather than being guessed', () => {
@@ -111,15 +118,16 @@ check('independent_view and other are never inferable', () => {
   assert(B.OBJECTIVE_IDS.indexOf('other') !== -1, 'other left the taxonomy');
 });
 
-check('a proposal may only touch the six supported fields', () => {
+check('a proposal may only touch the supported fields', () => {
   const r = X.normalise({
     company_name: 'ООО Тест', role: 'Собственник', objective: 'cash_flow',
     business_activity: 'оптовая торговля', problem_summary: 'кассовые разрывы',
     turnover_band: '€2–10 млн', contact_value: 'x@example.test', problem: 'что-то',
     diagnosis: 'компания в кризисе', important_context: 'секрет'
   });
-  eq(Object.keys(r.fields).sort().join(','), 'business_activity,company_name,objective,problem_summary,role', 'surviving fields');
-  for (const forbidden of ['turnover_band', 'contact_value', 'problem', 'diagnosis', 'important_context']) {
+  eq(Object.keys(r.fields).sort().join(','), 'business_activity,company_name,objective,problem_summary,role,turnover_band', 'surviving fields');
+  // turnover_band is now supported, and its own gate proves it accepts only approved bands.
+  for (const forbidden of ['contact_value', 'problem', 'diagnosis', 'important_context']) {
     assert(r.dropped.indexOf(forbidden) !== -1, forbidden + ' was dropped silently rather than reported');
   }
 });

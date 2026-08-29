@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 1807,
+  "total": 1839,
   "gates": {
     "ai-safe-projection.test.mjs": 52,
     "api-import.test.mjs": 48,
@@ -55,6 +55,8 @@
     "website-contract.test.mjs": 75,
     "gateway/telegram-initdata.test.mjs": 14,
     "assertion-floor.test.mjs": 20,
-    "premium-ux-tg-presentation.test.mjs": 23
+    "premium-ux-tg-presentation.test.mjs": 23,
+    "premium-ux-extraction-quality.test.mjs": 21,
+    "premium-ux-new-request.test.mjs": 11
   }
 }

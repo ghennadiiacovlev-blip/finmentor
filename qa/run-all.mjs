@@ -59,6 +59,8 @@ const GATES = [
   ['Premium UX app-session TTL (72h)', 'premium-ux-ttl.test.mjs'],
   ['Premium UX context extraction', 'premium-ux-extraction.test.mjs'],
   ['Premium UX Mini App network layer', 'premium-ux-net.test.mjs'],
+  ['Premium UX extraction quality', 'premium-ux-extraction-quality.test.mjs'],
+  ['Premium UX new-request path', 'premium-ux-new-request.test.mjs'],
   ['Premium Telegram presentation', 'premium-ux-tg-presentation.test.mjs'],
   ['Premium Concierge candidate (executed)', 'premium-ux-concierge-candidate.test.mjs'],
   ['Lead Intake projection candidate (executed)', 'premium-ux-projection-candidate.test.mjs'],

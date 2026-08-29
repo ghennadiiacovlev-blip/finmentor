@@ -285,12 +285,11 @@ const BUTTONS = {
   TG_SUBMITTED: [['Добавить к обращению', 'p|append'], ['Начать новый вопрос', 'p|new']],
   TG_APPEND_MESSAGE: [],
   TG_APPEND_DONE: [['Вернуться', 'p|back'], ['Начать новый вопрос', 'p|new']],
-  // OPEN DEFECT, pre-existing and reported to the owner: this screen's primary button carries
-  // `p|new`, the same action that opened it, so tapping it re-renders the screen. The confirming
-  // action `p|new_y` is bound to the label «Да, начать новый вопрос», which no screen renders — so
-  // from Telegram a client cannot actually start a new question. Pinned as-is because the fix is a
-  // callback rewiring, which this copy pass is explicitly forbidden to make.
-  TG_NEW_REQUEST_CONFIRM: [['Начать новый вопрос', 'p|new'], ['Вернуться', 'p|back']],
+  // FIXED (owner-authorised). This screen's primary button used to carry `p|new` — the action that
+  // opened it — so tapping it re-rendered the screen and a client could never start a new question.
+  // The label -> action map is now keyed by state as well as label. qa/premium-ux-new-request.mjs
+  // owns the rotation invariants; this line pins the wiring the client actually sees.
+  TG_NEW_REQUEST_CONFIRM: [['Начать новый вопрос', 'p|new_y'], ['Вернуться', 'p|back']],
   TG_RESUME_DRAFT: [['Продолжить', 'p|resume'], ['Начать заново', 'p|restart']],
   TG_RESUME_DISCARD_CONFIRM: [['Начать новое', 'p|restart_y'], ['Вернуться', 'p|back']]
 };
