@@ -413,12 +413,29 @@ const STAGES = ['Контекст', 'Задача', 'Подготовка', 'П�
 // ---------------------------------------------------------------- Telegram copy
 // AUTHORITATIVE, Phase 3 owner decision C. Not invented, not paraphrased.
 const TG_COPY = {
+  // THE ONLY SCREEN RENDERED AS HTML.
+  //
+  // `parse_mode: 'HTML'` is a property of the COPY, not of the transport: the transport decides
+  // nothing about presentation, it carries what the screen asks for. Every other screen keeps the
+  // default (no parse mode) and is sent as plain text exactly as before.
+  //
+  // HTML is safe HERE because this screen is entirely static approved copy — it interpolates
+  // nothing. A screen that renders client-supplied text (TG_CONFIRM_CONTEXT renders a company name
+  // and the client's own words) must NOT be switched to HTML without escaping that text first,
+  // because an unescaped `<` would either break the message or inject markup.
+  //
+  // Elements are joined with a blank line; a single newline inside an element is deliberate — the
+  // brand pair and the two format lines are meant to sit tight together.
   TG_ENTRY: {
+    parse_mode: 'HTML',
     text: [
+      '<b>FINMENTOR</b>\n<i>Подготовка к первой встрече</i>',
       'Здравствуйте.',
-      'FINMENTOR поможет подготовить контекст до первой встречи — чтобы консультант заранее понимал вашу компанию, задачу и ожидаемый результат.',
-      'Можно сразу описать ситуацию своими словами или подготовить краткий бриф.',
-      'Перед отправкой вы сможете всё проверить и изменить.'
+      '<b>Консультант должен понимать ваш бизнес ещё до начала разговора.</b>',
+      'FINMENTOR поможет заранее зафиксировать компанию, задачу и ожидаемый результат — чтобы первая встреча началась сразу по существу.',
+      '<b>Выберите удобный формат:</b>',
+      '<b>Описать задачу</b> — расскажите ситуацию своими словами.\n<b>Подготовить бриф</b> — структурируйте ключевой контекст за несколько минут.',
+      '<i>Перед отправкой всё можно проверить и изменить.</i>'
     ],
     actions: ['Описать задачу', 'Подготовить бриф']
   },

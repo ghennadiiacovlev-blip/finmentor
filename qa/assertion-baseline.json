@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 1778,
+  "total": 1782,
   "gates": {
     "ai-safe-projection.test.mjs": 52,
     "api-import.test.mjs": 48,
@@ -42,7 +42,7 @@
     "p83a-cutover-policy.test.mjs": 36,
     "premium-ux-brief.test.mjs": 20,
     "premium-ux-concierge-candidate.test.mjs": 35,
-    "premium-ux-content.test.mjs": 26,
+    "premium-ux-content.test.mjs": 30,
     "premium-ux-draft.test.mjs": 32,
     "premium-ux-extraction.test.mjs": 26,
     "premium-ux-net.test.mjs": 18,

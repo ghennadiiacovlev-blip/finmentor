@@ -236,6 +236,62 @@ check('edit selector covers every editable field and returns to review', () => {
 
 // ---------------------------------------------------------------- Telegram copy (owner decision C)
 
+// THE ENTRY SCREEN IS PINNED, WORD FOR WORD.
+//
+// Until this existed, no gate asserted what TG_ENTRY actually SAYS. The state gate compares
+// `decide()`'s copy to `B.TG_COPY.TG_ENTRY` — the same object it came from — so it passes whatever
+// branches.js happens to contain. The whole entry message was replaced and the suite stayed green.
+//
+// So the approved text lives here too, as an independent second copy. Changing the product copy now
+// requires changing it in both places deliberately, which is the point: this is owner-approved
+// customer-facing wording, not an implementation detail.
+const TG_ENTRY_APPROVED = [
+  '<b>FINMENTOR</b>\n<i>Подготовка к первой встрече</i>',
+  'Здравствуйте.',
+  '<b>Консультант должен понимать ваш бизнес ещё до начала разговора.</b>',
+  'FINMENTOR поможет заранее зафиксировать компанию, задачу и ожидаемый результат — чтобы первая встреча началась сразу по существу.',
+  '<b>Выберите удобный формат:</b>',
+  '<b>Описать задачу</b> — расскажите ситуацию своими словами.\n<b>Подготовить бриф</b> — структурируйте ключевой контекст за несколько минут.',
+  '<i>Перед отправкой всё можно проверить и изменить.</i>'
+].join('\n\n');
+
+check('TG_ENTRY is the approved copy, byte for byte', () => {
+  eq(B.TG_COPY.TG_ENTRY.text.join('\n\n'), TG_ENTRY_APPROVED, 'TG_ENTRY text');
+  eq(JSON.stringify(B.TG_COPY.TG_ENTRY.actions), JSON.stringify(['Описать задачу', 'Подготовить бриф']), 'TG_ENTRY actions');
+});
+
+check('TG_ENTRY is the ONLY screen rendered as HTML', () => {
+  // HTML is safe on this screen because it interpolates nothing. A screen that renders client text
+  // — TG_CONFIRM_CONTEXT shows a company name and the client's own words — would need escaping
+  // first, so a second screen must not pick up a parse mode unnoticed.
+  eq(B.TG_COPY.TG_ENTRY.parse_mode, 'HTML', 'TG_ENTRY parse_mode');
+  const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
+  eq(withMode.join(','), 'TG_ENTRY', 'screens declaring a parse mode');
+});
+
+check('the entry HTML is valid for Telegram, and is not Markdown', () => {
+  const s = TG_ENTRY_APPROVED;
+  const ALLOWED = ['b', 'i', 'u', 's', 'a', 'code', 'pre', 'blockquote', 'tg-spoiler'];
+  const tags = [...s.matchAll(/<\/?([a-z-]+)[^>]*>/g)].map((m) => m[1]);
+  for (const t of tags) { assert(ALLOWED.indexOf(t) !== -1, 'Telegram does not support the tag: ' + t); }
+  eq((s.match(/<(b|i)>/g) || []).length, (s.match(/<\/(b|i)>/g) || []).length, 'balanced b/i tags');
+  assert(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(s), 'the entry copy contains an emoji');
+  assert(!/(\*\*|__|\[[^\]]+\]\([^)]+\))/.test(s), 'the entry copy contains Markdown');
+  assert(s.length <= 4096, 'the entry message exceeds the Telegram 4096-character cap');
+});
+
+check('every OTHER Telegram screen stays plain text with no markup', () => {
+  // A stray tag on a plain-text screen would be shown to the client literally.
+  for (const k of Object.keys(B.TG_COPY)) {
+    if (k === 'TG_ENTRY') { continue; }
+    const c = B.TG_COPY[k];
+    const parts = [].concat(c.text || [], c.header || [], c.closing || [], (c.done && c.done.text) || []);
+    for (const line of parts) {
+      assert(!/<\/?[a-z-]+>/i.test(String(line)), k + ' contains markup but is not an HTML screen: ' + String(line).slice(0, 60));
+    }
+  }
+});
+
 check('all nine Telegram states carry copy, none empty', () => {
   const need = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
     'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',

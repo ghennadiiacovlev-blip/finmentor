@@ -140,12 +140,17 @@ const ADAPTER_TAIL = [
   '',
   '// ---------------------------------------------------------------- rendering',
   '',
-  '// Telegram-safe text. Same conservative stripping the legacy node used: the copy is approved RU',
-  '// prose, so nothing here may re-word it — only characters Telegram would misparse are removed.',
-  'function safeText(value, max) {',
+  '// Telegram-safe text. The copy is approved RU prose, so nothing here may re-word it — only',
+  '// characters Telegram would misparse are removed.',
+  '//',
+  '// ON AN HTML SCREEN THE ANGLE BRACKETS MUST SURVIVE. Stripping them is right for plain text',
+  '// and destroys the markup here, which is why the mode is passed in rather than assumed. Only',
+  '// TG_ENTRY sets it, and only because that screen is entirely static approved copy: a screen',
+  '// that renders client-supplied text must escape it before it could ever be sent as HTML.',
+  'function safeText(value, max, html) {',
   '  let t = String(value === null || value === undefined ? "" : value)',
   '    .replace(/\\r/g, "")',
-  '    .replace(/[<>]/g, "")',
+  '    .replace(html ? /(?:)/g : /[<>]/g, "")',
   '    .replace(/[ \\t]+\\n/g, "\\n")',
   '    .replace(/\\n{4,}/g, "\\n\\n\\n")',
   '    .trim();',
@@ -325,7 +330,11 @@ const ADAPTER_TAIL = [
   '}',
   '',
   'const rendered = renderCopy(outcome.copy, auth);',
-  'const reply_text = safeText(rendered.text);',
+  '',
+  '// The screen declares its own parse mode. Absent means plain text, which is every screen but',
+  '// TG_ENTRY — so this changes nothing for any other reply.',
+  'const parse_mode = String((outcome.copy && outcome.copy.parse_mode) || "");',
+  'const reply_text = safeText(rendered.text, 3800, parse_mode === "HTML");',
   'const reply_markup = buildMarkup(rendered.actions, session.app_session_id);',
   '',
   '// lead_ready is FALSE on every premium screen. The premium brief is submitted through',
@@ -336,7 +345,7 @@ const ADAPTER_TAIL = [
   '    chat_id: chat_id,',
   '    reply_text: reply_text,',
   '    reply_markup: reply_markup,',
-  '    tg_body: { chat_id: chat_id, text: reply_text, reply_markup: reply_markup },',
+  '    tg_body: { chat_id: chat_id, text: reply_text, reply_markup: reply_markup, parse_mode: parse_mode },',
   '    session: session,',
   '    lead_ready: false,',
   '    lead_payload: null,',
@@ -611,6 +620,26 @@ if (legacySession && premiumSessionCode) {
 for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session', 'lead_ready',
                    'lead_payload', 'ai_guarded', 'debug', 'event']) {
   if (NODE_BODY.indexOf(key + ':') === -1) { fail.push('output contract lost the key: ' + key); }
+}
+
+// Exactly one screen may declare a parse mode, and it must be the static one. A screen that
+// interpolates client text would need escaping first, so this refuses to let a second screen
+// pick up HTML unnoticed.
+{
+  const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
+  if (withMode.join(',') !== 'TG_ENTRY') {
+    fail.push('parse_mode is declared on: ' + (withMode.join(', ') || '(none)') + ' — only TG_ENTRY may');
+  }
+  if (B.TG_COPY.TG_ENTRY.parse_mode !== 'HTML') { fail.push('TG_ENTRY does not declare HTML'); }
+  const entry = B.TG_COPY.TG_ENTRY.text.join('\n\n');
+  const tags = [...entry.matchAll(/<\/?([a-z-]+)[^>]*>/g)].map((m) => m[1]);
+  const ALLOWED_TAGS = ['b', 'i', 'u', 's', 'a', 'code', 'pre', 'blockquote', 'tg-spoiler'];
+  for (const t of tags) { if (ALLOWED_TAGS.indexOf(t) === -1) { fail.push('TG_ENTRY uses a tag Telegram does not support: ' + t); } }
+  if ((entry.match(/<(b|i)>/g) || []).length !== (entry.match(/<\/(b|i)>/g) || []).length) {
+    fail.push('TG_ENTRY has unbalanced b/i tags');
+  }
+  if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(entry)) { fail.push('TG_ENTRY contains an emoji'); }
+  if (/(\*\*|__)/.test(entry)) { fail.push('TG_ENTRY contains Markdown emphasis'); }
 }
 
 // All nine states, and no tenth.
