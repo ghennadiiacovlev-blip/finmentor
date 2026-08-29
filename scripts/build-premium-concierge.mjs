@@ -147,6 +147,15 @@ const ADAPTER_TAIL = [
   '// and destroys the markup here, which is why the mode is passed in rather than assumed. Only',
   '// TG_ENTRY sets it, and only because that screen is entirely static approved copy: a screen',
   '// that renders client-supplied text must escape it before it could ever be sent as HTML.',
+  '// Client-derived values are interpolated into an HTML screen, so they are escaped before they',
+  '// go anywhere near a tag. safeText deliberately does NOT strip < and > on an HTML screen — the',
+  '// authored copy needs its tags — so escaping the VALUES is the only thing standing between a',
+  '// client typing "<" and a broken send.',
+  'function escapeHtml(value) {',
+  '  return String(value === null || value === undefined ? "" : value)',
+  '    .split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");',
+  '}',
+  '',
   'function safeText(value, max, html) {',
   '  let t = String(value === null || value === undefined ? "" : value)',
   '    .replace(/\\r/g, "")',
@@ -200,9 +209,10 @@ const ADAPTER_TAIL = [
   '  if (copy.header) {',
   '    const lines = [copy.header, ""];',
   '    for (const s of confirmContextSections(auth.context_extracted)) {',
-  '      lines.push(s.label + ": " + s.value);',
+  '      lines.push(s.label);',
+  '      lines.push("<b>" + escapeHtml(s.value) + "</b>");',
+  '      lines.push("");',
   '    }',
-  '    lines.push("");',
   '    lines.push(copy.closing);',
   '    return { text: lines.join("\\n"), actions: copy.actions || [] };',
   '  }',
@@ -634,24 +644,58 @@ for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session'
   if (NODE_BODY.indexOf(key + ':') === -1) { fail.push('output contract lost the key: ' + key); }
 }
 
-// Exactly one screen may declare a parse mode, and it must be the static one. A screen that
-// interpolates client text would need escaping first, so this refuses to let a second screen
-// pick up HTML unnoticed.
+// Every client-facing Premium screen is HTML now (owner copy pass). What used to be "only one
+// screen may declare a mode" becomes: the set is EXACTLY this, tags are Telegram-supported and
+// balanced, no emoji, no Markdown — and the one screen that interpolates client text must escape
+// it. That last check is the reason the old gate existed at all.
 {
+  const HTML_STATES = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
+    'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',
+    'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM'];
   const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
-  if (withMode.join(',') !== 'TG_ENTRY') {
-    fail.push('parse_mode is declared on: ' + (withMode.join(', ') || '(none)') + ' — only TG_ENTRY may');
+  if (withMode.slice().sort().join(',') !== HTML_STATES.slice().sort().join(',')) {
+    fail.push('HTML is declared on: ' + (withMode.join(', ') || '(none)') + ' — expected exactly the approved ten');
   }
-  if (B.TG_COPY.TG_ENTRY.parse_mode !== 'HTML') { fail.push('TG_ENTRY does not declare HTML'); }
-  const entry = B.TG_COPY.TG_ENTRY.text.join('\n\n');
-  const tags = [...entry.matchAll(/<\/?([a-z-]+)[^>]*>/g)].map((m) => m[1]);
   const ALLOWED_TAGS = ['b', 'i', 'u', 's', 'a', 'code', 'pre', 'blockquote', 'tg-spoiler'];
-  for (const t of tags) { if (ALLOWED_TAGS.indexOf(t) === -1) { fail.push('TG_ENTRY uses a tag Telegram does not support: ' + t); } }
-  if ((entry.match(/<(b|i)>/g) || []).length !== (entry.match(/<\/(b|i)>/g) || []).length) {
-    fail.push('TG_ENTRY has unbalanced b/i tags');
+  const screens = [];
+  for (const k of HTML_STATES) {
+    const c = B.TG_COPY[k];
+    if (!c) { fail.push('missing screen: ' + k); continue; }
+    if (c.parse_mode !== 'HTML') { fail.push(k + ' does not declare HTML'); }
+    if (c.text) { screens.push([k, c.text.join('\n\n')]); }
+    if (c.header) { screens.push([k + ' (header/closing)', c.header + '\n' + c.closing]); }
+    if (c.done) {
+      if (c.done.parse_mode !== 'HTML') { fail.push(k + '.done does not declare HTML'); }
+      screens.push([k + '.done', (c.done.text || []).join('\n\n')]);
+    }
   }
-  if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(entry)) { fail.push('TG_ENTRY contains an emoji'); }
-  if (/(\*\*|__)/.test(entry)) { fail.push('TG_ENTRY contains Markdown emphasis'); }
+  for (const pair of screens) {
+    const name = pair[0];
+    const text = pair[1];
+    for (const m of text.matchAll(/<\/?([a-z-]+)[^>]*>/g)) {
+      if (ALLOWED_TAGS.indexOf(m[1]) === -1) { fail.push(name + ' uses a tag Telegram does not support: ' + m[1]); }
+    }
+    for (const t of ['b', 'i']) {
+      const open = (text.match(new RegExp('<' + t + '>', 'g')) || []).length;
+      const close = (text.match(new RegExp('</' + t + '>', 'g')) || []).length;
+      if (open !== close) { fail.push(name + ' has unbalanced <' + t + '> tags'); }
+    }
+    if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)) { fail.push(name + ' contains an emoji'); }
+    if (/(\*\*|__)/.test(text)) { fail.push(name + ' contains Markdown emphasis'); }
+    if (/(^|[^а-яё])я\s+(перенесу|перенёс|добавил|добавила|сохранил|сохранила|понял|поняла)/i.test(text)) {
+      fail.push(name + ' uses first-person bot wording');
+    }
+  }
+  // TG_CONFIRM_CONTEXT is the only data-assembled screen, and its values are client text. On an
+  // HTML screen safeText does not strip < and >, so escaping the values is the whole defence.
+  if (NODE_BODY.indexOf('escapeHtml(s.value)') === -1) {
+    fail.push('the confirmation screen interpolates client text into HTML without escaping it');
+  }
+  // Failure must never read as success.
+  const failText = (B.TG_COPY.TG_INFRA_FAILURE.text || []).join(' ');
+  for (const w of ['Спасибо', 'получили', 'отправлено', 'успешно', 'принято']) {
+    if (failText.indexOf(w) !== -1) { fail.push('TG_INFRA_FAILURE contains success wording: ' + w); }
+  }
 }
 
 // All nine states, and no tenth.
@@ -695,6 +739,11 @@ for (const leak of ['cachedResultUrl', 'activeVersion', 'versionId', 'pinData'])
 // if/else chain that no test executed and no gate parsed, discovered by the owner typing /start.
 for (const [label, body] of [[PREMIUM_RESPONSE, NODE_BODY], [PREMIUM_SESSION, premiumSessionCode]]) {
   if (!body) { continue; }
+  // A parse failure names a line number in a body that exists nowhere on disk. BUILD_DUMP_DIR
+  // writes it out so that number means something.
+  if (process.env.BUILD_DUMP_DIR) {
+    writeFileSync(join(process.env.BUILD_DUMP_DIR, label.replace(/[^A-Za-z0-9]+/g, '_') + '.js'), body, 'utf8');
+  }
   try { new Function(body.replace(/\$input/g, '__input').replace(/\$\(/g, '__ref(')); }
   catch (e) { fail.push(label + ': the generated node body does not parse: ' + e.message); }
 }

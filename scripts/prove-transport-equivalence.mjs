@@ -99,14 +99,18 @@ say('TRANSPORT RESOLVER — both paths, against real recorded traffic');
 say('='.repeat(78));
 say('');
 
-// The patched nodes, exactly as they would be deployed.
-const candidatePath = join(OUT_DIR, CONCIERGE_ID + '.transport-resolver-candidate.json');
-let candidate;
-try { candidate = JSON.parse(readFileSync(candidatePath, 'utf8')); }
-catch (e) { bad('no dry-run candidate at ' + candidatePath + ' — run deploy-transport-resolver.mjs --dry-run first'); process.exit(1); }
-const patchedTransport = candidate.nodes.find((n) => n.name === 'Build Transport Request');
-if (!patchedTransport) { bad('the candidate has no Build Transport Request'); process.exit(1); }
-ok('loaded the patched transport node from the dry-run candidate');
+// The transport node comes from LIVE, not from a dry-run candidate file. It used to be read from
+// `.uat/<id>.transport-resolver-candidate.json`, and that file froze the node as it was on the day
+// the resolver was written — before the HTML layout mapping existed. The proof therefore replayed
+// a node that no longer runs anywhere and reported PASS on its behaviour: it saw layout L2_C for a
+// screen that live maps to L2_C_HTML. A proof of equivalence has to replay what is deployed.
+const liveNow = await api('GET', '/workflows/' + CONCIERGE_ID);
+const patchedTransport = liveNow.nodes.find((n) => n.name === 'Build Transport Request');
+if (!patchedTransport) { bad('the live workflow has no Build Transport Request'); process.exit(1); }
+if (String(patchedTransport.parameters.jsCode).indexOf("$('Build Bot Response (Premium)').isExecuted") === -1) {
+  bad('the live transport node does not carry the response resolver'); process.exit(1);
+}
+ok('loaded Build Transport Request from the LIVE workflow');
 say('');
 
 // ── A. legacy byte-equivalence ─────────────────────────────────────────────────────────────────
@@ -270,8 +274,19 @@ if (premium) {
       const dest = String(t.chat_id || '');
       if (dest && dest === OWNER) { ok('destination is the server-resolved owner chat (value withheld)'); }
       else { bad('destination is not the server-resolved owner chat'); }
-      if (String(t.parse_mode || '') === '') { ok('parse_mode is empty — the approved copy is sent as plain text'); }
-      else { bad('parse_mode is set to ' + JSON.stringify(t.parse_mode)); }
+      // The payload carries the requested mode AND the layout that encodes it. The renderer is
+      // chosen by layout, so the two must agree: an HTML screen routed to a plain renderer would
+      // show the client a literal <b>FINMENTOR</b>. The old assertion here — "parse_mode is empty,
+      // the copy is sent as plain text" — was written when TG_ENTRY was plain, and would now pass
+      // for exactly that broken case.
+      const mode = String(t.parse_mode || '');
+      const layoutId = String(t.keyboard_layout_id || '');
+      if (mode === 'HTML') { ok('the screen requests HTML'); }
+      else { bad('TG_ENTRY no longer requests HTML: ' + JSON.stringify(mode)); }
+      if (layoutId === 'L2_C_HTML') { ok('and routes to the HTML renderer for its shape (L2_C_HTML)'); }
+      else { bad('TG_ENTRY routes to ' + JSON.stringify(layoutId) + ' — its markup would be shown literally'); }
+      if ((mode === 'HTML') === /_HTML$/.test(layoutId)) { ok('mode and layout agree'); }
+      else { bad('mode ' + JSON.stringify(mode) + ' disagrees with layout ' + JSON.stringify(layoutId)); }
       const j = JSON.stringify(t);
       for (const secret of ['bot_token', 'token', 'init_data', 'hash', 'signature', 'api_key']) {
         if (new RegExp('"' + secret + '"').test(j)) { bad('the transport payload carries ' + secret); }

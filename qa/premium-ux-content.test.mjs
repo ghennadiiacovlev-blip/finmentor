@@ -260,13 +260,19 @@ check('TG_ENTRY is the approved copy, byte for byte', () => {
   eq(JSON.stringify(B.TG_COPY.TG_ENTRY.actions), JSON.stringify(['Описать задачу', 'Подготовить бриф']), 'TG_ENTRY actions');
 });
 
-check('TG_ENTRY is the ONLY screen rendered as HTML', () => {
-  // HTML is safe on this screen because it interpolates nothing. A screen that renders client text
-  // — TG_CONFIRM_CONTEXT shows a company name and the client's own words — would need escaping
-  // first, so a second screen must not pick up a parse mode unnoticed.
-  eq(B.TG_COPY.TG_ENTRY.parse_mode, 'HTML', 'TG_ENTRY parse_mode');
+// The owner copy pass made every client-facing screen HTML. HTML was previously confined to
+// TG_ENTRY because that screen interpolates nothing, and TG_CONFIRM_CONTEXT shows a company name
+// and the client's own words. That concern did not go away — it is now discharged by escaping the
+// VALUES, which qa/premium-ux-tg-presentation.test.mjs proves against the built node.
+const HTML_SCREENS = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
+  'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',
+  'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM'];
+
+check('exactly the approved screens are rendered as HTML', () => {
   const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
-  eq(withMode.join(','), 'TG_ENTRY', 'screens declaring a parse mode');
+  eq(withMode.slice().sort().join(','), HTML_SCREENS.slice().sort().join(','), 'screens declaring a parse mode');
+  for (const k of HTML_SCREENS) { eq(B.TG_COPY[k].parse_mode, 'HTML', k + ' parse_mode'); }
+  eq(B.TG_COPY.TG_APPEND_MESSAGE.done.parse_mode, 'HTML', 'the append-done screen parse_mode');
 });
 
 check('the entry HTML is valid for Telegram, and is not Markdown', () => {
@@ -280,15 +286,24 @@ check('the entry HTML is valid for Telegram, and is not Markdown', () => {
   assert(s.length <= 4096, 'the entry message exceeds the Telegram 4096-character cap');
 });
 
-check('every OTHER Telegram screen stays plain text with no markup', () => {
-  // A stray tag on a plain-text screen would be shown to the client literally.
-  for (const k of Object.keys(B.TG_COPY)) {
-    if (k === 'TG_ENTRY') { continue; }
+check('every Telegram screen carries valid Telegram HTML, and no Markdown', () => {
+  // A tag Telegram does not support, or an unbalanced one, is shown to the client literally or
+  // rejects the send outright. Checked per screen so the failure names the screen.
+  const ALLOWED = ['b', 'i', 'u', 's', 'a', 'code', 'pre', 'blockquote', 'tg-spoiler'];
+  for (const k of HTML_SCREENS) {
     const c = B.TG_COPY[k];
     const parts = [].concat(c.text || [], c.header || [], c.closing || [], (c.done && c.done.text) || []);
-    for (const line of parts) {
-      assert(!/<\/?[a-z-]+>/i.test(String(line)), k + ' contains markup but is not an HTML screen: ' + String(line).slice(0, 60));
+    const s = parts.join('\n\n');
+    for (const m of s.matchAll(/<\/?([a-z-]+)[^>]*>/g)) {
+      assert(ALLOWED.indexOf(m[1]) !== -1, k + ' uses a tag Telegram does not support: ' + m[1]);
     }
+    for (const tag of ['b', 'i']) {
+      eq((s.match(new RegExp('<' + tag + '>', 'g')) || []).length,
+        (s.match(new RegExp('</' + tag + '>', 'g')) || []).length, k + ' balanced <' + tag + '> tags');
+    }
+    assert(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(s), k + ' contains an emoji');
+    assert(!/(\*\*|__|\[[^\]]+\]\([^)]+\))/.test(s), k + ' contains Markdown');
+    assert(s.length <= 4096, k + ' exceeds the Telegram 4096-character cap');
   }
 });
 
@@ -312,12 +327,15 @@ check('the terminal Telegram screen offers exactly append and new request', () =
 check('append confirmation states that no new request was created', () => {
   const done = B.TG_COPY.TG_APPEND_MESSAGE.done.text.join(' ');
   assert(/не создавалось/.test(done), 'append confirmation does not deny creating a new request');
-  assert(/не создаст новое обращение/.test(B.TG_COPY.TG_APPEND_MESSAGE.text.join(' ')), 'append entry copy changed');
+  assert(/не создаст новое/.test(B.TG_COPY.TG_APPEND_MESSAGE.text.join(' ')), 'append entry copy no longer denies creating a new request');
 });
 
 check('infra failure never implies the request was received', () => {
   const t = B.TG_COPY.TG_INFRA_FAILURE.text.join(' ');
-  assert(/не считается отправленным/.test(t), 'does not state the request was not sent');
+  // Asserted as a property: the owner copy pass rewrote the sentence, and the promise the screen
+  // must make is that nothing completed and nothing was created — not one particular phrasing.
+  assert(/не (завершено|считается отправленным)/.test(t), 'does not state the action did not complete');
+  assert(/не создано/.test(t), 'does not deny that a request was created');
   assert(!/(получено|принято|передано FINMENTOR)/.test(t), 'implies success');
 });
 

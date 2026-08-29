@@ -259,12 +259,16 @@ check('the confirmation screen is built from EXTRACTION, and omits what was not 
     message_text: 'Я собственник, у нас ООО «Ромашка». Постоянно возникают кассовые разрывы, платежный календарь не ведется.'
   });
   eq(r.debug.state_after, 'TG_CONFIRM_CONTEXT', 'state');
-  assert(r.reply_text.indexOf('Компания: Ромашка') !== -1, 'the extracted company is missing: ' + r.reply_text);
-  assert(r.reply_text.indexOf('Ваша роль: Собственник') !== -1, 'the extracted role is missing');
-  assert(r.reply_text.indexOf('Задача: Денежный поток') !== -1, 'the extracted objective is missing');
+  // Owner decision 1: label and value on separate lines, the value in bold.
+  assert(r.reply_text.indexOf('Компания\n<b>Ромашка</b>') !== -1, 'the extracted company is missing: ' + r.reply_text);
+  assert(r.reply_text.indexOf('Ваша роль\n<b>Собственник</b>') !== -1, 'the extracted role is missing');
+  assert(r.reply_text.indexOf('Задача\n<b>Денежный поток</b>') !== -1, 'the extracted objective is missing');
   // Scale was never asked and is never inferred, so it renders no label at all.
   assert(r.reply_text.indexOf('Масштаб') === -1, 'an uninferred scale rendered a label');
-  assert(r.reply_text.indexOf('—') === -1, 'an em dash placeholder leaked into the confirmation screen');
+  // An em dash is legitimate inside the approved closing sentence. What must never appear is one
+  // standing in for a value that was not extracted.
+  assert(!/\n(—|-)\n/.test(r.reply_text) && r.reply_text.indexOf('<b>—</b>') === -1,
+    'an em dash placeholder leaked into the confirmation screen');
   eq(labels(r).join(' | '), 'Всё верно | Исправить', 'confirmation actions');
 });
 
@@ -362,8 +366,18 @@ check('the reply is Telegram-safe and within the length cap', () => {
   const long = 'а'.repeat(9000);
   const r = run({ session: drafting({ state: 'TG_FREEFORM_PROBLEM' }), message_text: long });
   assert(r.reply_text.length <= 3803, 'reply exceeds the cap: ' + r.reply_text.length);
-  assert(!/[<>]/.test(r.reply_text), 'angle brackets survived into the reply');
   assert(r.session.free_text_request.length <= 500, 'stored free text exceeds 500 chars');
+
+  // The screen is HTML now, so "no angle brackets at all" is no longer the safety property —
+  // the authored copy needs its tags. The property is that NO angle bracket in the reply came
+  // from the client: every raw tag must be one the copy wrote, and the client's are escaped.
+  const hostile = run({ session: drafting({ state: 'TG_FREEFORM_PROBLEM' }),
+    message_text: 'Я собственник ООО «Ромашка». <b>Кассовые разрывы</b> & нет платежного календаря.' });
+  assert(hostile.reply_text.indexOf('&lt;b&gt;') !== -1, 'a client-supplied tag was not escaped');
+  assert(hostile.reply_text.indexOf('&amp;') !== -1, 'a client-supplied ampersand was not escaped');
+  for (const m of hostile.reply_text.matchAll(/<\/?([a-z-]+)[^>]*>/g)) {
+    assert(['b', 'i'].indexOf(m[1]) !== -1, 'an unexpected raw tag reached the reply: ' + m[1]);
+  }
 });
 
 // ---------------------------------------------------------------- the candidate as an artifact

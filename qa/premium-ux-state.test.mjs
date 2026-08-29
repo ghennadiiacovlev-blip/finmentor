@@ -218,10 +218,15 @@ check('TG_CONFIRM_CONTEXT renders nothing at all when nothing was extracted', ()
 // ---------------------------------------------------------------- failure
 
 check('infra failure never implies the request was received', () => {
+  // Asserted as PROPERTIES, not as the exact sentences: the owner copy pass rewrote the wording,
+  // and a gate pinned to a phrase would have failed an approved change while proving nothing about
+  // what the screen actually promises.
   const t = B.TG_COPY.TG_INFRA_FAILURE.text.join(' ');
-  assert(/не считается отправленным/.test(t), 'does not deny sending');
-  assert(!/(получено|принято|передано)/.test(t), 'implies success');
-  assert(/Не начинайте новый вопрос/.test(t), 'does not steer away from a new request');
+  assert(/не (завершено|считается отправленным)/.test(t), 'does not state that the action did not complete');
+  assert(/не создано/.test(t), 'does not deny that a request was created');
+  assert(!/(получено|принято|передано|успешно|Спасибо)/.test(t), 'implies success');
+  assert(/(Не начинайте новый вопрос|новый вопрос создавать не нужно)/.test(t),
+    'does not steer away from a new request');
 });
 
 console.log('');
