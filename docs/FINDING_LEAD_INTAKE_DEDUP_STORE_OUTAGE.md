@@ -1,12 +1,29 @@
 # FINDING — Lead Intake dedup read: a Sheets outage may read as "no duplicate"
 
-**Status: OPEN, UNDIAGNOSED, NOT REMEDIATED. Recorded 2026-08-29 during the P9-R2 Gateway cycle
-and deliberately left alone — the owner scoped that cycle to the Gateway.**
+**Status: CONFIRMED 2026-08-29 on an isolated harness. STILL NOT REMEDIATED.**
 
-This is a **reading of the deployed graph**, not a live finding. No outage was simulated against
+> **UPDATE — P9-R3.** Everything below was written as a *reading of the deployed graph*, and it
+> has now been driven. The hypothesis is **confirmed**: on a dedup-read outage the success branch
+> reaches `Save to Pipeline`. See **`P9_R3_LEAD_INTAKE_DEDUP_OUTAGE_PROOF.md`** for the harness,
+> the five shots and the per-node `runData`.
+>
+> **One prediction below is WRONG and is corrected there.** The "two things that may mask it"
+> section argues that the shorter error branch very probably answers the caller first. It does
+> not. Both respond nodes fire, `Respond New Lead` wins, and the caller is told
+> `{"ok":true, "mode":"new"}` with a fresh `lead_id` at **HTTP 200**. The outage is invisible from
+> the caller's side as well as from the sheet's, so the defect is *worse* than recorded here, not
+> merely confirmed.
+>
+> Nothing in Lead Intake was changed. Remediation remains a separate cycle needing owner approval.
+
+Originally recorded 2026-08-29 during the P9-R2 Gateway cycle and deliberately left alone — the
+owner scoped that cycle to the Gateway. The text below is preserved as written, so that what was
+inferred can be compared against what was later measured.
+
+This was a **reading of the deployed graph**, not a live finding. No outage was simulated against
 Lead Intake, no request was sent to it, and nothing in it was changed. Everything below is
 falsifiable by driving one real failure through a retention-enabled copy, which is what P9-R2
-did for the Gateway and what has *not* been done here.
+did for the Gateway and what had *not* been done here at the time of writing.
 
 ## How it was found
 
@@ -113,3 +130,25 @@ there is no CTE to make a legitimately-empty read produce a row on its own.
 
 Recorded only. **No change was made to Lead Intake PREMIUM FINAL, its candidate, its builder or
 its QA.** Remediation is a separate cycle and needs its own owner approval.
+
+---
+
+## Outcome (P9-R3, 2026-08-29)
+
+Settled by exactly the method sketched in "What would settle it" above, with one addition: a
+fourth mode in which the read **succeeds and matches nothing**, so that the outage could be shown
+to be indistinguishable from the legitimate empty case rather than merely asserted to be.
+
+    down   dedup outputs [1,1]   Dedup Guard: new         Save to Pipeline: REACHED
+    none   dedup outputs [1,0]   Dedup Guard: new         Save to Pipeline: REACHED
+    dup    dedup outputs [1,0]   Dedup Guard: duplicate   Save to Pipeline: not reached   (control)
+    new    dedup outputs [1,0]   Dedup Guard: new         Save to Pipeline: REACHED       (control)
+
+`Dedup Guard` emitted a byte-identical verdict for `down` and `none`. The real Google Sheets node
+against a dead credential behaved identically to the credential-free stand-in.
+
+The fix proposed above stands unchanged, with one requirement the finding could not have known:
+it must also settle the **response**, not only the write. Fixing the write alone would leave a
+caller being told `ok:true` while the execution errors.
+
+Full record: `P9_R3_LEAD_INTAKE_DEDUP_OUTAGE_PROOF.md`.
