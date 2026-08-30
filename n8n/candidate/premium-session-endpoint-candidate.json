@@ -93,6 +93,7 @@
         660,
         0
       ],
+      "alwaysOutputData": true,
       "onError": "continueRegularOutput"
     },
     {

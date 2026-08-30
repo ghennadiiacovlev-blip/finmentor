@@ -42,8 +42,29 @@
   FIELDS.forEach(function (n) { draft.fields[n] = { value: null, source: null, confirmed: false, at: null }; });
 
   function nowIso() { return new Date().toISOString(); }
+
+  // Every mutation marks the draft dirty. It is FLUSHED on a screen transition rather than on
+  // every keystroke: a PUT per character would be a hundred writes for one company name, and the
+  // draft is cumulative, so the next flush carries everything an earlier one would have.
+  var dirty = false;
   function set(name, value, source, confirmed) {
     draft.fields[name] = { value: value, source: source, confirmed: confirmed !== false, at: confirmed !== false ? nowIso() : null };
+    dirty = true;
+  }
+  function clearField(name) {
+    draft.fields[name] = { value: null, source: null, confirmed: false, at: null };
+    dirty = true;
+  }
+
+  // Empty the brief and write the empty draft through, so the server forgets it too. The
+  // SESSION is untouched: the same app_session_id, the same TTL, the same G5 claim behind it.
+  function restartBrief() {
+    FIELDS.forEach(function (n) { clearField(n); });
+    editingField = null;
+    history = [];
+    carryFromTelegram();
+    draft.step = 'APP_BOOTSTRAP';
+    go('APP_BOOTSTRAP');
   }
   function get(name) { var f = draft.fields[name]; return f ? f.value : null; }
   // ai_inferred NEVER satisfies this, whatever the confirmed flag says.
@@ -63,11 +84,21 @@
   }
   function isFreeTextBranch() { var o = objective(); return !!o && C.PROBLEMS[o.id].mode === 'free_text'; }
 
+  // The one identity the client carries from Telegram. `locale` is NOT set here: startup()
+  // records what the Gateway stored, and the browser's language_code is a hint offered at
+  // bootstrap, never the authority.
+  function carryFromTelegram() {
+    var u = tgUser();
+    if (u && u.first_name) { set('contact_name', u.first_name, 'telegram_carried', true); }
+  }
+
   // ---------------------------------------------------------------- flow
   var FLOW = ['APP_COMPANY', 'APP_ROLE', 'APP_SCALE', 'APP_OBJECTIVE', 'APP_PROBLEM',
     'APP_DESIRED_OUTCOME', 'APP_CURRENT_SETUP', 'APP_DECISION_HORIZON', 'APP_DOCUMENTS',
     'APP_CONTACT', 'APP_IMPORTANT_CONTEXT', 'APP_REVIEW'];
   var STAGE_OF = {
+    // Three states outside the ladder, and outside the stage strip.
+    APP_STARTING: -1, APP_BOOT_FAILURE: -1, APP_SESSION_EXPIRED: -1, APP_RESUME: -1,
     APP_BOOTSTRAP: -1, APP_COMPANY: 0, APP_ROLE: 0, APP_SCALE: 0,
     APP_OBJECTIVE: 1, APP_PROBLEM: 1, APP_DESIRED_OUTCOME: 1,
     APP_CURRENT_SETUP: 2, APP_DECISION_HORIZON: 2, APP_DOCUMENTS: 2, APP_CONTACT: 2, APP_IMPORTANT_CONTEXT: 2,
@@ -103,14 +134,84 @@
   }
   function reviewReady() { return firstUnsettled() === 'APP_REVIEW'; }
 
-  var state = 'APP_BOOTSTRAP';
+  var state = 'APP_STARTING';
   var editingField = null;   // set while APP_EDIT_FIELD is active → return straight to review
   var history = [];
+
+  // ── THREE FAILURES, THREE SCREENS ───────────────────────────────────────────────────────────
+  //
+  // The deployed build had one. A session that never existed produced «Заявка пока не отправлена
+  // … Повторно проходить вопросы не нужно» — a submission-failure screen for a client who had not
+  // submitted anything, offering a retry that could only refuse again.
+  //
+  //   bootFailure     the Mini App could not start. No session, no answers, nothing sent.
+  //   sessionFailure  the session is gone or was refused. Answers exist; none were delivered.
+  //   lastFailure     a real submission was attempted and did not complete.
+  //
+  // They are distinct internally and each has its own calm screen. Only the third offers a retry.
+  var bootFailure = null;
+  var sessionFailure = null;
+
+  // ── the draft, persisted server-side ────────────────────────────────────────────────────────
+  //
+  // One PUT in flight at a time, newest state wins. A failed save is NOT retried on a timer: the
+  // next transition writes the same cumulative draft again, so a transient failure heals itself
+  // without a second scheduler. What a failure must never do is pass silently into submit, which
+  // is why submit flushes and waits.
+  var saveInFlight = false;
+  var savePending = false;
+  var saveWaiters = [];
+
+  function sessionGone(r) {
+    return !!r && (r.error_code === 'SESSION_EXPIRED' || r.error_code === 'SESSION_INVALID' ||
+      r.error_code === 'NOT_AUTHORISED' || r.error_code === 'SUBMIT_IN_PROGRESS');
+  }
+
+  function settleWaiters(ok) {
+    var w = saveWaiters; saveWaiters = [];
+    w.forEach(function (fn) { fn(ok); });
+  }
+
+  function flushDraft() {
+    if (!window.FM_NET || !window.FM_NET.ready()) { return; }
+    if (!dirty && !savePending) { settleWaiters(true); return; }
+    if (saveInFlight) { savePending = true; return; }
+    saveInFlight = true;
+    dirty = false;
+    var step = draft.step;
+    window.FM_NET.saveDraft(step, draft.fields).then(function (r) {
+      saveInFlight = false;
+      if (r.ok !== true) {
+        // The server refusing the SESSION is terminal and must be shown. Anything else — a
+        // dropped connection, a 503 — is transient, and the draft stays dirty so the next
+        // transition rewrites it.
+        if (sessionGone(r)) { sessionFailure = r; settleWaiters(false); go('APP_SESSION_EXPIRED'); return; }
+        dirty = true;
+        settleWaiters(false);
+        return;
+      }
+      if (savePending) { savePending = false; flushDraft(); return; }
+      settleWaiters(true);
+    });
+  }
+
+  // Resolves once the server holds the CURRENT draft. Submit waits on this so it can never read
+  // a draft the server has not yet been told about.
+  function draftSettled() {
+    return new Promise(function (resolve) {
+      if (!window.FM_NET || !window.FM_NET.ready()) { resolve(false); return; }
+      if (!dirty && !saveInFlight && !savePending) { resolve(true); return; }
+      saveWaiters.push(resolve);
+      flushDraft();
+    });
+  }
 
   function go(next, opts) {
     if (!(opts && opts.back)) { history.push(state); }
     state = next;
     render();
+    // After the render, so a slow network never delays the screen the client asked for.
+    flushDraft();
   }
   function advance() {
     if (editingField) { editingField = null; go('APP_REVIEW'); return; }
@@ -133,7 +234,11 @@
     info: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>',
     refresh: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 01-13.7 5.7"/><path d="M4 12a8 8 0 0113.7-5.7"/><path d="M18 3v4h-4"/><path d="M6 21v-4h4"/></svg>'
   };
-  function icon(name) { var s = el('span'); s.innerHTML = ICON[name]; s.style.display = 'flex'; return s; }
+  // NO INLINE STYLE HERE. An inline `display:flex` outranks every stylesheet rule, which is how
+  // `.row .tick { display: none }` stopped hiding the check on unselected rows — and why every
+  // option on the contact screen rendered a check and the selection read as ambiguous. Display is
+  // a `.ic` class rule now, so the more specific `.row .tick` / `.card .tick` rules win again.
+  function icon(name, cls) { var s = el('span', 'ic' + (cls ? ' ' + cls : '')); s.innerHTML = ICON[name]; return s; }
 
   function screen(cls) { return el('section', 'screen' + (cls ? ' ' + cls : '')); }
   function title(text, cls) { var h = el('h1', cls || null, text); return h; }
@@ -146,7 +251,7 @@
     b.type = 'button';
     b.setAttribute('aria-pressed', isSel ? 'true' : 'false');
     b.appendChild(el('span', null, label));
-    var t = icon('tick'); t.className = 'tick'; b.appendChild(t);
+    b.appendChild(icon('tick', 'tick'));
     b.addEventListener('click', onClick);
     return b;
   }
@@ -158,7 +263,7 @@
     body.appendChild(el('b', null, titleText));
     if (lineText) { body.appendChild(el('i', null, lineText)); }
     b.appendChild(body);
-    var t = icon('tick'); t.className = 'tick'; b.appendChild(t);
+    b.appendChild(icon('tick', 'tick'));
     b.addEventListener('click', onClick);
     return b;
   }
@@ -200,7 +305,7 @@
 
   function knownRow(labelText, valueText, note, onEdit) {
     var d = el('div', 'known');
-    var t = icon('tick'); t.className = 'tick'; d.appendChild(t);
+    d.appendChild(icon('tick', 'tick'));
     var body = el('div', 'body');
     body.appendChild(el('b', null, valueText));
     body.appendChild(el('i', null, note ? labelText + ' · ' + note : labelText));
@@ -210,6 +315,74 @@
   }
 
   // ---------------------------------------------------------------- screens
+
+  // The Mini App is talking to the Gateway. Deliberately plain: it is on screen for a few hundred
+  // milliseconds and must not look like a step the client has to complete.
+  function scrStarting() {
+    var s = screen('screen--center');
+    var sp = el('div'); sp.style.height = '60px'; s.appendChild(sp);
+    s.appendChild(title('Открываем форму…', 'sm'));
+    s.appendChild(grow());
+    return s;
+  }
+
+  // A terminal screen, and NOT the submission-failure screen. Nothing was answered, so nothing
+  // can be resubmitted; the only real recovery is a fresh signed context, which only reopening
+  // from the chat produces. Offering «Повторить отправку» here would be a lie twice over.
+  function scrBootFailure() {
+    var s = screen('screen--center');
+    var sp = el('div'); sp.style.height = '12px'; s.appendChild(sp);
+    var orb = el('div', 'orb orb--fail'); orb.appendChild(icon('info')); s.appendChild(orb);
+    var sp2 = el('div'); sp2.style.height = '26px'; s.appendChild(sp2);
+    s.appendChild(title(C.BOOTSTRAP_FAILURE.title, 'sm'));
+    C.BOOTSTRAP_FAILURE.lines.forEach(function (l) { s.appendChild(lead(l)); });
+    s.appendChild(grow());
+    s.appendChild(actions(btn(C.BOOTSTRAP_FAILURE.primary, function () { if (tg && tg.close) { tg.close(); } })));
+    return s;
+  }
+
+  // The 72 h TTL, or a session the server refused. Answers may exist; none of them reached a
+  // consultant, and the screen says so rather than leaving the client to assume either way.
+  function scrSessionExpired() {
+    var s = screen('screen--center');
+    var sp = el('div'); sp.style.height = '12px'; s.appendChild(sp);
+    var orb = el('div', 'orb orb--fail'); orb.appendChild(icon('info')); s.appendChild(orb);
+    var sp2 = el('div'); sp2.style.height = '26px'; s.appendChild(sp2);
+    s.appendChild(title(C.SESSION_EXPIRED.title, 'sm'));
+    C.SESSION_EXPIRED.lines.forEach(function (l) { s.appendChild(lead(l)); });
+    s.appendChild(grow());
+    s.appendChild(actions(btn(C.SESSION_EXPIRED.primary, function () { if (tg && tg.close) { tg.close(); } })));
+    return s;
+  }
+
+  // ── RESUME ──────────────────────────────────────────────────────────────────────────────────
+  //
+  // Shown when the Gateway resolved an existing draft that already holds answers. The copy is
+  // the approved Telegram wording, derived from TG_RESUME_DRAFT so the two surfaces cannot
+  // promise different things.
+  //
+  // «Начать заново» does NOT mint a session — a new session needs a new signed Telegram context
+  // and the client cannot produce one. It clears the DRAFT in place, server-side, through the
+  // write the app already makes on every transition. Same session, empty brief.
+  function scrResume() {
+    var s = screen();
+    var sp0 = el('div'); sp0.style.height = '20px'; s.appendChild(sp0);
+    s.appendChild(el('div', 'kicker', 'Подготовка к встрече'));
+    var sp = el('div'); sp.style.height = '20px'; s.appendChild(sp);
+    s.appendChild(title(C.RESUME.title, 'lg'));
+    C.RESUME.lines.forEach(function (l) { s.appendChild(lead(l)); });
+
+    // What is already known, in the same strip the ladder uses, so the promise is visible
+    // rather than merely stated.
+    var st = strip(); if (st) { var sp2 = el('div'); sp2.style.height = '28px'; s.appendChild(sp2); s.appendChild(st); }
+
+    s.appendChild(grow());
+    s.appendChild(actions(
+      btn(C.RESUME.primary, function () { go(firstUnsettled()); }),
+      btn(C.RESUME.secondary, function () { restartBrief(); }, 'secondary')
+    ));
+    return s;
+  }
 
   function scrEntry() {
     var s = screen();
@@ -223,13 +396,16 @@
 
     var u = tgUser();
     if (u && u.first_name) {
-      set('contact_name', u.first_name, 'telegram_carried', true);
-      set('locale', (u.language_code === 'ro' ? 'ro' : 'ru'), 'telegram_carried', true);
+      carryFromTelegram();
       var sp = el('div'); sp.style.height = '34px'; s.appendChild(sp);
       s.appendChild(knownRow('Из Telegram', u.first_name, 'спрашивать не будем', null));
     }
     s.appendChild(grow());
-    s.appendChild(actions(btn('Начать', function () { go(firstUnsettled()); })));
+    // «Начать» is reachable only with an authoritative session behind it. There is no UI path
+    // where the client can answer questions that cannot be saved, or reach a Submit that has
+    // nothing to submit against.
+    s.appendChild(actions(btn('Начать', function () { go(firstUnsettled()); }, null,
+      !(window.FM_NET && window.FM_NET.ready()))));
     var link = el('div', 'entry-link');
     link.appendChild(icon('lock'));
     link.appendChild(el('span', null, C.PRIVACY.entryLink));
@@ -262,11 +438,20 @@
     return s;
   }
 
-  function fieldInput(labelText, name, placeholder) {
+  // `kind` is 'phone' | 'email' | undefined. It picks the on-screen keyboard only. The authority on
+  // whether a value is acceptable is contactValid(), never the input type — a browser that ignores
+  // type="email" must not thereby widen what the app accepts.
+  function fieldInput(labelText, name, placeholder, kind) {
     var f = el('div', 'field');
     var lab = el('label', null, labelText);
     var inp = el('input');
-    inp.type = 'text';
+    inp.type = kind === 'phone' ? 'tel' : (kind === 'email' ? 'email' : 'text');
+    if (kind === 'phone') { inp.setAttribute('inputmode', 'tel'); }
+    if (kind === 'email') {
+      inp.setAttribute('inputmode', 'email');
+      inp.setAttribute('autocapitalize', 'off');
+      inp.setAttribute('autocorrect', 'off');
+    }
     inp.value = get(name) || '';
     if (placeholder) { inp.placeholder = placeholder; }
     inp.addEventListener('input', function () {
@@ -318,7 +503,7 @@
           // a problem from another branch into the brief.
           set('objective', o.label, 'user_explicit', true);
           ['problem', 'problem_free_text', 'desired_outcome', 'desired_outcome_free_text'].forEach(function (n) {
-            draft.fields[n] = { value: null, source: null, confirmed: false, at: null };
+            clearField(n);
           });
         }
         advance();
@@ -353,7 +538,7 @@
     p.options.forEach(function (opt) {
       stack.appendChild(cardBtn(opt[0], opt[1], get('problem') === opt[0], function () {
         set('problem', opt[0], 'user_explicit', true);
-        draft.fields.problem_free_text = { value: null, source: null, confirmed: false, at: null };
+        clearField('problem_free_text');
         advance();
       }));
     });
@@ -405,7 +590,7 @@
       stack.appendChild(cardBtn(opt[0], opt[1], get('desired_outcome') === opt[0], function () {
         set('desired_outcome', opt[0], 'user_explicit', true);
         if (opt[0] !== C.OUTCOME_FREE_TEXT_OPTION) {
-          draft.fields.desired_outcome_free_text = { value: null, source: null, confirmed: false, at: null };
+          clearField('desired_outcome_free_text');
           advance();
         } else { render(); }
       }));
@@ -488,11 +673,51 @@
     s.appendChild(actions(
       btn('Продолжить', function () { advance(); }),
       btn(C.DOCUMENTS.continueWithout, function () {
-        draft.fields.documents = { value: null, source: null, confirmed: false, at: null };
+        clearField('documents');
         advance();
       }, 'tertiary')
     ));
     return s;
+  }
+
+  // ONE preferred channel. `contact_channel` holds a single value, never a set, and `contact_value`
+  // is meaningful only against the channel currently selected — so switching channels DISCARDS it.
+  // Carrying it over is how a number typed under «По телефону» survived a switch to «По email» and
+  // stood as the authoritative preferred email.
+  function clearContactValue() {
+    clearField('contact_value');
+  }
+
+  // Format validation, and nothing more. It says the value is SHAPED like a reachable phone or
+  // email; it cannot say the line answers or the mailbox exists, and it does not claim to.
+  //
+  // Phone accepts two forms and no others:
+  //   · Moldovan national — 0 followed by 8 digits (069 123 456), the form a local client types;
+  //   · E.164 international — + followed by 8 to 15 digits, which covers +373 and everywhere else.
+  // Separators (spaces, dashes, dots, brackets) are ignored for the test, but what the client typed
+  // is stored verbatim: silently normalising a contact is a data decision, not a validation one.
+  function contactValid(channel, raw) {
+    var v = String(raw === null || raw === undefined ? '' : raw).trim();
+    if (channel === 'telegram') { return true; }   // the reply channel needs no typed contact
+    if (!v) { return false; }
+    if (channel === 'phone') {
+      var d = v.replace(/[\s().\-]/g, '');
+      if (/^0\d{8}$/.test(d)) { return true; }
+      return /^\+\d{8,15}$/.test(d);
+    }
+    if (channel === 'email') {
+      if (v.length > 254) { return false; }
+      return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(v);
+    }
+    return false;
+  }
+
+  // Settled AND well-formed. `settled` on its own would let "abc" stand as an email.
+  function contactReady() {
+    var ch = get('contact_channel');
+    if (!settled('contact_channel')) { return false; }
+    if (ch === 'telegram') { return true; }
+    return settled('contact_value') && contactValid(ch, get('contact_value'));
   }
 
   function scrContact() {
@@ -502,22 +727,28 @@
     var stack = el('div', 'stack');
     C.CONTACT.options.forEach(function (o) {
       stack.appendChild(rowBtn(o.label, get('contact_channel') === o.id, function () {
+        // ANY change of channel invalidates the previous contact — including phone → email, the
+        // transition that used to keep a phone number standing as the authoritative email.
+        if (get('contact_channel') !== o.id) { clearContactValue(); }
         set('contact_channel', o.id, 'user_explicit', true);
-        // Telegram is the reply channel: no phone, no email is requested.
-        if (o.id === 'telegram') { draft.fields.contact_value = { value: null, source: null, confirmed: false, at: null }; }
         render();
       }));
     });
     s.appendChild(stack);
     var ch = get('contact_channel');
     if (ch === 'telegram') { s.appendChild(quiet(C.CONTACT.telegramNote)); }
+    var next = btn('Продолжить', function () { advance(); }, null, !contactReady());
     if (ch === 'phone' || ch === 'email') {
       var sp2 = el('div'); sp2.style.height = '20px'; s.appendChild(sp2);
-      s.appendChild(fieldInput(ch === 'phone' ? 'Телефон' : 'Email', 'contact_value', ''));
+      var field = fieldInput(ch === 'phone' ? 'Телефон' : 'Email', 'contact_value',
+        ch === 'phone' ? '+373 60 000 000' : 'name@company.md', ch);
+      s.appendChild(field);
+      // Without this the button was evaluated once at render and never again, so on the phone and
+      // email branches «Продолжить» could not be reached at all: typing does not re-render.
+      field.addEventListener('input', function () { next.disabled = !contactReady(); });
     }
     s.appendChild(grow());
-    var ready = settled('contact_channel') && (ch === 'telegram' || settled('contact_value'));
-    s.appendChild(actions(btn('Продолжить', function () { advance(); }, null, !ready)));
+    s.appendChild(actions(next));
     return s;
   }
 
@@ -638,7 +869,7 @@
       body.appendChild(el('i', null, r.label));
       body.appendChild(el('b', null, editValue(r.field)));
       b.appendChild(body);
-      var c = icon('chev'); c.className = 'chev'; b.appendChild(c);
+      b.appendChild(icon('chev', 'chev'));
       b.addEventListener('click', function () {
         // APP_EDIT_FIELD: change one thing, then straight back to review. Never the ladder.
         editingField = r.field;
@@ -682,7 +913,7 @@
 
     s.appendChild(grow());
     s.appendChild(actions(
-      btn(C.PRIVACY.primary, function () { submit(); }),
+      btn(C.PRIVACY.primary, function () { submit(); }, null, !submitReady()),
       btn('Вернуться к брифу', function () { go('APP_REVIEW'); }, 'tertiary')
     ));
     return s;
@@ -710,7 +941,45 @@
   var submitAck = null;
   var lastFailure = null;
 
+  // THE IN-FLIGHT LOCK. Until now the lock was incidental: submit() replaces the screen with
+  // scrSubmitting, which carries no button and hides Back, so a second tap had nothing to hit.
+  // That is a property of the current rendering, not a guarantee — and what a duplicate tap
+  // would buy is a second POST carrying the SAME derived submission key into an irreversible
+  // privacy write. Backend idempotency is not the answer to a client that asks twice. Every
+  // exit below clears the flag; one that did not would lock the app out of its own retry.
+  var submitting = false;
+
+  // THE PRECONDITION, IN ONE PLACE. Submit is reachable only with a session, a complete review
+  // and an acknowledgement. `scrPrivacy` disables its primary button on the same predicate, so
+  // the check here is a backstop rather than the only guard — but it is the one that decides.
+  function submitReady() {
+    return !!(window.FM_NET && window.FM_NET.configured() && window.FM_NET.ready()) &&
+      reviewReady() && !submitted;
+  }
+
   function submit() {
+    // One tap is one request. A tap arriving while a submission is in flight is ignored
+    // outright rather than queued: the answer to the first is the answer to both.
+    if (submitting) { return; }
+    // Terminal is terminal. The success screen has no submit affordance, so this is
+    // unreachable by tapping today — but the guarantee should not depend on which screen
+    // happens to be rendered. The server would refuse a committed replay anyway; asking is
+    // worse than not asking.
+    if (submitted) { return; }
+    // No session: this is a SESSION failure, not a submission failure. Saying «Заявка пока не
+    // отправлена … Повторно проходить вопросы не нужно» over a session that never existed is
+    // exactly what the deployed build did.
+    if (!window.FM_NET || !window.FM_NET.configured()) {
+      bootFailure = { error_code: 'NOT_CONFIGURED', retryable: false };
+      go('APP_BOOT_FAILURE');
+      return;
+    }
+    if (!window.FM_NET.ready()) {
+      sessionFailure = { error_code: 'SESSION_INVALID', retryable: false };
+      go('APP_SESSION_EXPIRED');
+      return;
+    }
+
     if (!submitAck) {
       submitAck = {
         notice_version: (window.FM_NOTICE_VERSION || 'pn-2026-08'),
@@ -720,25 +989,41 @@
       };
       window.FM_LAST_ACK = submitAck;
     }
+    submitting = true;
     go('APP_SUBMITTING');
 
-    // Offline candidate: no endpoints injected. It must NOT look like a failed submission of a
-    // real request, and it must never look like a success.
-    if (!window.FM_NET || !window.FM_NET.configured()) {
-      lastFailure = { error_code: 'NOT_CONFIGURED', retryable: false };
-      setTimeout(function () { go('APP_FAILURE'); }, 400);
-      return;
-    }
-
-    window.FM_NET.submit(submitAck).then(function (r) {
-      if (r.ok === true) {
-        lastFailure = null;
-        submitted = true;
-        lastLeadId = String((r.body && r.body.lead_id) || '');
-        go('APP_SUCCESS');
-        return;
+    // The answers live SERVER-SIDE. Submitting before the last screen's write has landed would
+    // ask the server to project a draft it has not been told about, so the flush is awaited and a
+    // failed flush is a retryable submission failure rather than a silent partial brief.
+    draftSettled().then(function (saved) {
+      if (!saved) {
+        submitting = false;
+        if (state === 'APP_SESSION_EXPIRED') { return null; }   // flushDraft already routed
+        lastFailure = { ok: false, error_code: 'SUBMIT_UNRESOLVED', retryable: true };
+        go('APP_FAILURE');
+        return null;
       }
-      lastFailure = r;
+      return window.FM_NET.submit(submitAck).then(function (r) {
+        submitting = false;
+        // SUCCESS IS ok === true AND NOTHING ELSE — including a replay of a submission the server
+        // has already committed, which answers { ok:true, already:true, lead_id }. That IS the
+        // truth: the brief was accepted. Rendering the failure screen over it was D7.
+        if (window.FM_NET.isCommitted(r)) {
+          lastFailure = null;
+          submitted = true;
+          lastLeadId = String((r.body && r.body.lead_id) || '');
+          go('APP_SUCCESS');
+          return;
+        }
+        if (sessionGone(r)) { sessionFailure = r; go('APP_SESSION_EXPIRED'); return; }
+        lastFailure = r;
+        go('APP_FAILURE');
+      });
+    })['catch'](function () {
+      // net.js resolves its failures rather than rejecting, so this is a backstop. It exists
+      // because a throw that skipped the release would leave the retry button inert forever.
+      submitting = false;
+      lastFailure = { ok: false, error_code: 'SUBMIT_UNRESOLVED', retryable: true };
       go('APP_FAILURE');
     });
   }
@@ -787,8 +1072,9 @@
     s.appendChild(grow());
 
     // A non-retryable refusal must not offer a retry button that will refuse again. The server
-    // states retryability; the client does not infer it from a status code.
-    var canRetry = !lastFailure || lastFailure.retryable !== false;
+    // states retryability; the client does not infer it from a status code. The two codes the
+    // client produces itself — NETWORK and TIMEOUT — are classified once, in net.js.
+    var canRetry = !!lastFailure && window.FM_NET && window.FM_NET.retryable(lastFailure);
     var back = btn(C.FAILURE.secondary, function () { go('APP_REVIEW'); }, 'secondary');
     if (canRetry) {
       var retry = btn(C.FAILURE.primary, function () { submit(); });
@@ -802,6 +1088,8 @@
 
   // ---------------------------------------------------------------- render
   var SCREENS = {
+    APP_STARTING: scrStarting, APP_BOOT_FAILURE: scrBootFailure, APP_SESSION_EXPIRED: scrSessionExpired,
+    APP_RESUME: scrResume,
     APP_BOOTSTRAP: scrEntry, APP_COMPANY: scrCompany, APP_ROLE: scrRole, APP_SCALE: scrScale,
     APP_OBJECTIVE: scrObjective, APP_PROBLEM: scrProblem, APP_DESIRED_OUTCOME: scrOutcome,
     APP_CURRENT_SETUP: scrSetup, APP_DECISION_HORIZON: scrHorizon, APP_DOCUMENTS: scrDocuments,
@@ -828,7 +1116,11 @@
     main.appendChild(fn());
     renderStages();
     // Terminal states have no back affordance; submitting is not interruptible.
-    backBtn.hidden = (state === 'APP_BOOTSTRAP' || state === 'APP_SUCCESS' || state === 'APP_SUBMITTING');
+    // Terminal states have no back affordance; submitting is not interruptible; and the three
+    // states outside the ladder have nowhere to go back to.
+    backBtn.hidden = (state === 'APP_BOOTSTRAP' || state === 'APP_SUCCESS' || state === 'APP_SUBMITTING' ||
+      state === 'APP_STARTING' || state === 'APP_BOOT_FAILURE' || state === 'APP_SESSION_EXPIRED' ||
+      state === 'APP_RESUME');
     window.scrollTo({ top: 0, behavior: (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth' });
   }
 
@@ -840,13 +1132,104 @@
     render();
   });
 
+  // ---------------------------------------------------------------- startup
+  //
+  // THE SEQUENCE THE DEPLOYED BUILD DID NOT HAVE.
+  //
+  //   1. Telegram is told the app is ready (already done at module load).
+  //   2. The app renders APP_STARTING, so nothing is interactive before there is a session.
+  //   3. ONE bootstrap. net.js memoises it, so this cannot fire twice however it is called.
+  //   4. On success the entry screen appears with «Начать» enabled and a session behind it.
+  //   5. On failure the BOOTSTRAP failure screen appears — not the submission failure screen.
+  //
+  // The old build skipped 2–5 entirely: it rendered the entry screen immediately and never made a
+  // network call until submit, which then failed its own SESSION_INVALID guard locally.
+  function startup() {
+    render();
+
+    if (!window.FM_NET || !window.FM_NET.configured()) {
+      bootFailure = { error_code: 'NOT_CONFIGURED', retryable: false };
+      state = 'APP_BOOT_FAILURE';
+      render();
+      return;
+    }
+
+    // The locale the Gateway is asked to record. `initDataUnsafe` is used for this and for the
+    // greeting only — never for trust — and the Gateway returns the locale it actually stored.
+    var u = tgUser();
+    var locale = (u && u.language_code === 'ro') ? 'ro' : 'ru';
+
+    window.FM_NET.bootstrap(locale).then(function (r) {
+      if (r.ok !== true) {
+        bootFailure = r;
+        state = 'APP_BOOT_FAILURE';
+        render();
+        return;
+      }
+      // The SERVER decides the locale; the client records what it was told.
+      set('locale', String((r.body && r.body.locale) || locale), 'telegram_carried', true);
+
+      // ── HYDRATION ─────────────────────────────────────────────────────────────────────────
+      //
+      // The Gateway resolves which session this Telegram user and cycle already own and returns
+      // its stored draft. A new signed context is not a new business request, so a reload, a
+      // close-and-reopen, or a second device all land back on the same brief.
+      //
+      // Provenance is copied VERBATIM. Rewriting `source` here would turn a value the client
+      // gave into one the system guessed, or the reverse — and the skip rule reads exactly that
+      // field, so the draft would come back subtly more or less trusted than it was saved.
+      var restored = 0;
+      var stored = window.FM_NET.resumedDraft();
+      if (stored) {
+        FIELDS.forEach(function (n) {
+          var f = stored.fields[n];
+          if (!f || typeof f !== 'object') { return; }
+          draft.fields[n] = {
+            value: f.value === undefined ? null : f.value,
+            source: f.source === undefined ? null : f.source,
+            confirmed: f.confirmed === true,
+            at: f.at === undefined ? null : f.at
+          };
+          if (settled(n)) { restored++; }
+        });
+        // Hydration is not an edit. The draft that came back IS what the server holds, so
+        // marking it dirty would write it straight back for no reason.
+        dirty = false;
+      }
+      carryFromTelegram();
+
+      // A COMMITTED session never returns to qualification. It shows what it produced.
+      if (window.FM_NET.sessionState() === 'submitted') {
+        submitted = true;
+        lastLeadId = '';
+        state = 'APP_SUCCESS';
+        render();
+        return;
+      }
+
+      // A resumed draft with answers in it is announced rather than silently continued: the
+      // client is told what was kept, and offered the way out.
+      state = restored > 0 ? 'APP_RESUME' : 'APP_BOOTSTRAP';
+      render();
+    });
+  }
+
   // Exposed for the offline QA harness only. Not used by the UI.
   window.FM_APP = {
     draft: draft, get: get, set: set, settled: settled,
+    contactValid: contactValid, contactReady: contactReady,
     firstUnsettled: firstUnsettled, reviewReady: reviewReady,
-    goto: function (s) { state = s; render(); },
-    current: function () { return state; }
+    // Deliberately go(), not a raw assignment: a harness that skipped the transition would
+    // never exercise the draft flush, and the flush is what makes the answers reach the server.
+    goto: function (s) { go(s); },
+    current: function () { return state; },
+    submitReady: submitReady,
+    submit: submit,
+    submitting: function () { return submitting; },
+    flushDraft: flushDraft,
+    draftSettled: draftSettled,
+    failures: function () { return { boot: bootFailure, session: sessionFailure, submit: lastFailure }; }
   };
 
-  render();
+  startup();
 })();

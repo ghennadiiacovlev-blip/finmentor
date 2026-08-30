@@ -60,17 +60,49 @@
 
   // Every failure this layer can produce, as a closed set. The UI maps these to approved copy; an
   // unmapped code renders the generic failure screen rather than a raw message.
+  // A code the client does not know is downgraded to BAD_RESPONSE, which is non-retryable. That
+  // is a safe default and a bad user experience, so the list below is the FULL set the three
+  // deployed endpoints can return — read out of their response nodes, not guessed. A gate holds
+  // it against them.
   var CODES = {
     NOT_CONFIGURED: 'NOT_CONFIGURED',     // no endpoints — offline candidate
     NO_TELEGRAM: 'NO_TELEGRAM',           // not running inside Telegram
-    NETWORK: 'NETWORK',                   // transport failed; retryable
-    TIMEOUT: 'TIMEOUT',                   // no answer in time; retryable
+    NETWORK: 'NETWORK',                   // transport failed
+    TIMEOUT: 'TIMEOUT',                   // no answer in time
     BAD_RESPONSE: 'BAD_RESPONSE',         // answered, but not with ok:true — see the rule above
+
+    // ── Gateway ──────────────────────────────────────────────────────────────────────────────
+    BAD_REQUEST: 'BAD_REQUEST',
+    CLIENT_VERSION_UNSUPPORTED: 'CLIENT_VERSION_UNSUPPORTED',
+    TG_INITDATA_MISSING: 'TG_INITDATA_MISSING',
+    TG_INITDATA_INVALID: 'TG_INITDATA_INVALID',
+    TG_INITDATA_EXPIRED: 'TG_INITDATA_EXPIRED',
+    TG_INITDATA_FUTURE: 'TG_INITDATA_FUTURE',
+    TG_USER_MISSING: 'TG_USER_MISSING',
+    TG_USER_INVALID: 'TG_USER_INVALID',
+    TG_USER_BOT: 'TG_USER_BOT',
+    RATE_LIMITED: 'RATE_LIMITED',
+    TEMPORARY_BACKEND_ERROR: 'TEMPORARY_BACKEND_ERROR',
+    // G5 said this signed context was already spent. It is NOT a transport failure and must
+    // never be retried with the same initData — the client cannot mint a new one, so the only
+    // recovery is reopening the Mini App.
+    REPLAY_REFUSED: 'REPLAY_REFUSED',
+    REPLAY_STORE_UNAVAILABLE: 'REPLAY_STORE_UNAVAILABLE',
+
+    // ── session and submit ───────────────────────────────────────────────────────────────────
     SESSION_INVALID: 'SESSION_INVALID',
     SESSION_EXPIRED: 'SESSION_EXPIRED',
+    NOT_AUTHORISED: 'NOT_AUTHORISED',
     SUBMIT_IN_PROGRESS: 'SUBMIT_IN_PROGRESS',
-    CONSENT_REQUIRED: 'CONSENT_REQUIRED'
+    CONSENT_REQUIRED: 'CONSENT_REQUIRED',
+    DRAFT_EMPTY: 'DRAFT_EMPTY',
+    PRIVACY_UNRESOLVED: 'PRIVACY_UNRESOLVED',
+    SUBMIT_UNRESOLVED: 'SUBMIT_UNRESOLVED'
   };
+
+  // The Gateway REQUIRES this exact string in the bootstrap body and rejects anything else with
+  // CLIENT_VERSION_UNSUPPORTED. It is the Gateway's wire version, not the Mini App build number.
+  var GATEWAY_CLIENT_VERSION = 'b2.1.0';
 
   function fail(code, retryable, detail) {
     return { ok: false, error_code: code, retryable: retryable === true, detail: detail || '' };
@@ -116,30 +148,82 @@
 
   // ---------------------------------------------------------------- session
 
-  var session = { id: '', expires_at: '', locale: '' };
+  // `state` and `draft` come back from the Gateway when it RESUMES an existing session rather
+  // than minting one. They are the client's own answers returning to it; nothing else crosses.
+  var session = { id: '', expires_at: '', locale: '', state: '', resumed: false, draft: null };
 
   // The Mini App never mints its own identity. It hands Telegram's initData to the Gateway, which
   // validates the signature, claims the replay ledger and issues an opaque session id. The raw
   // initData is used for this one call and is never stored, logged or re-sent.
-  function bootstrap() {
+  // ONE BOOTSTRAP PER PAGE LIFECYCLE, ENFORCED HERE RATHER THAN BY THE CALLER.
+  //
+  // The promise is memoised, so every later call — a re-render, a second entry into the start
+  // screen, a defensive call somewhere in app.js — receives the SAME result without a second
+  // request. A caller cannot replay the signed context by accident, because a caller cannot
+  // reach the request at all after the first one.
+  //
+  // AND IT IS NEVER RETRIED WITH THE SAME initData. A transport failure leaves it unknowable
+  // whether G5 claimed the key: the INSERT may have committed and the response been lost. Re-
+  // sending would either be refused as a replay or, worse, mint a second session for one signed
+  // context. The client cannot mint fresh initData — only reopening the Mini App does — so the
+  // recovery for a failed bootstrap is to reopen, and app.js says exactly that.
+  var bootstrapPromise = null;
+  var bootstrapAttempts = 0;
+
+  function bootstrap(locale) {
+    if (bootstrapPromise) { return bootstrapPromise; }
+    bootstrapPromise = runBootstrap(locale);
+    return bootstrapPromise;
+  }
+
+  function runBootstrap(locale) {
+    bootstrapAttempts++;
     var tg = window.Telegram && window.Telegram.WebApp;
     var initData = tg && tg.initData ? String(tg.initData) : '';
     if (!initData) { return Promise.resolve(fail(CODES.NO_TELEGRAM, false)); }
-    return request(endpoints().gateway, 'POST', { init_data: initData }).then(function (r) {
+
+    // The Gateway validates three things about the BODY before it looks at the signature:
+    // content type, client_version against its allow-list, and locale against its allow-list.
+    // Sending init_data alone returns 400 CLIENT_VERSION_UNSUPPORTED and never reaches Ed25519.
+    var body = {
+      init_data: initData,
+      client_version: GATEWAY_CLIENT_VERSION,
+      locale: locale === 'ro' ? 'ro' : 'ru'
+    };
+    // The only reference this module ever held is dropped now. `body.init_data` is cleared as
+    // soon as the request has been serialised, below, so nothing survives the call.
+    initData = '';
+
+    return request(endpoints().gateway, 'POST', body).then(function (r) {
+      body.init_data = '';
       if (!r.ok) { return r; }
-      session.id = String(r.body.app_session_id || '');
-      session.expires_at = String(r.body.expires_at || '');
-      session.locale = String(r.body.locale || 'ru');
-      if (!/^AS-[0-9a-f]{64}$/.test(session.id)) {
-        session.id = '';
+      var id = String(r.body.app_session_id || '');
+      if (!/^AS-[0-9a-f]{64}$/.test(id)) {
         return fail(CODES.BAD_RESPONSE, false, 'malformed session id');
       }
+      session.id = id;
+      session.expires_at = String(r.body.expires_at || '');
+      session.locale = String(r.body.locale || 'ru');
+      session.state = String(r.body.state || 'draft');
+      session.resumed = r.body.resumed === true;
+      // Shape-checked here so a malformed stored draft cannot reach the app as one.
+      var d = r.body.draft;
+      session.draft = (d && typeof d === 'object' && !Array.isArray(d) &&
+        d.fields && typeof d.fields === 'object' && !Array.isArray(d.fields)) ? d : null;
       return { ok: true, body: r.body };
-    });
+    }, function (e) { body.init_data = ''; throw e; });
   }
+
+  // For the gate and the app: has bootstrap been attempted, and did it settle a session?
+  function bootstrapCount() { return bootstrapAttempts; }
+  function ready() { return session.id !== ''; }
 
   function sessionId() { return session.id; }
   function expiresAt() { return session.expires_at; }
+  function sessionState() { return session.state; }
+  function wasResumed() { return session.resumed === true; }
+  // The stored draft, or null. The app hydrates from it; nothing else reads it.
+  function resumedDraft() { return session.draft; }
 
   // The server is authoritative on expiry; this is a courtesy check so the app can stop asking
   // questions it already knows will be refused. It is never used to EXTEND anything.
@@ -219,12 +303,48 @@
     return request(endpoints().submit, 'POST', body);
   }
 
+  // ---------------------------------------------------------------- what the UI may conclude
+
+  // SUCCESS IS ok === true, INCLUDING A REPLAY OF A COMMITTED SUBMISSION.
+  //
+  // The endpoint answers a submit against an already-`submitted` session with
+  // { ok: true, already: true, lead_id }. That is the truthful answer — the brief WAS accepted —
+  // and rendering the failure screen over it was the mirror image of showing «Обращение
+  // передано» over a failed write. `verdict()` already treats ok:true as success; this exposes
+  // the fact so the UI can tell the two apart if it ever needs to.
+  function isCommitted(r) { return !!r && r.ok === true; }
+  function wasAlreadyCommitted(r) { return !!r && r.ok === true && !!r.body && r.body.already === true; }
+
+  // Retryability is STATED BY THE SERVER and never inferred from a status code. The three codes
+  // below are the client's own, produced without a server answer, and each is classified once:
+  //
+  //   NETWORK / TIMEOUT   the request may or may not have been processed. For SUBMIT that is
+  //                       safe to retry — the submission key is derived from the session, so the
+  //                       server collapses a duplicate. For BOOTSTRAP it is not, and bootstrap
+  //                       never retries at all.
+  //   NOT_CONFIGURED      a build fault. Retrying changes nothing.
+  var CLIENT_RETRYABLE = { NETWORK: true, TIMEOUT: true };
+  function retryable(r) {
+    if (!r || r.ok === true) { return false; }
+    if (CLIENT_RETRYABLE[r.error_code]) { return true; }
+    return r.retryable === true;
+  }
+
   window.FM_NET = {
     CODES: CODES,
+    GATEWAY_CLIENT_VERSION: GATEWAY_CLIENT_VERSION,
     configured: configured,
     endpoints: endpoints,
     bootstrap: bootstrap,
+    bootstrapCount: bootstrapCount,
+    ready: ready,
+    isCommitted: isCommitted,
+    wasAlreadyCommitted: wasAlreadyCommitted,
+    retryable: retryable,
     sessionId: sessionId,
+    sessionState: sessionState,
+    wasResumed: wasResumed,
+    resumedDraft: resumedDraft,
     expiresAt: expiresAt,
     likelyExpired: likelyExpired,
     saveDraft: saveDraft,

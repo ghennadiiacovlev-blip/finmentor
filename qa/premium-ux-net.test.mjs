@@ -55,13 +55,26 @@ function stubFetch(url, opts) {
 }
 
 // Load net.js into a scope with the stubs in place. It attaches itself to `window`.
+//
+// `boot()` builds a FRESH module, which is the point rather than a convenience: bootstrap is now
+// memoised for the life of the page, so a test that wants a second bootstrap must model a second
+// page. Reusing one module across cases would have quietly asserted that memoisation does not
+// exist — and the memoisation is the mechanism that stops a page lifecycle replaying a signed
+// context, so it is the last thing a gate should paper over.
 const src = readFileSync(join(ROOT, 'app-premium', 'net.js'), 'utf8');
-new Function('window', 'fetch', 'setTimeout', 'clearTimeout', 'AbortController', src)(
-  win, stubFetch, setTimeout, clearTimeout, globalThis.AbortController
-);
-const NET = win.FM_NET;
+function boot(w) {
+  new Function('window', 'fetch', 'setTimeout', 'clearTimeout', 'AbortController', src)(
+    w || win, stubFetch, setTimeout, clearTimeout, globalThis.AbortController
+  );
+  return (w || win).FM_NET;
+}
+let NET = boot();
 
-const reset = () => { sent = []; responder = () => ({ status: 200, body: { ok: true } }); };
+// A generic ok:true is not a valid BOOTSTRAP answer — the Gateway must return a well-formed
+// app_session_id or the client refuses it. The default responder therefore answers everything
+// with a complete bootstrap body; the extra keys are ignored by the draft and submit paths.
+const OK_BOOTSTRAP = { ok: true, app_session_id: SESSION_ID, expires_at: '2026-09-01T10:00:00.000Z', locale: 'ru' };
+const reset = () => { sent = []; responder = () => ({ status: 200, body: OK_BOOTSTRAP }); };
 
 console.log('Premium UX — Mini App network layer');
 console.log('');
@@ -104,11 +117,14 @@ await check('bootstrap hands initData to the Gateway and keeps the opaque id', a
 await check('a malformed session id is REFUSED rather than stored', async () => {
   reset();
   responder = () => ({ status: 200, body: { ok: true, app_session_id: 'not-a-session' } });
-  const r = await NET.bootstrap();
+  const bad = boot();                       // a page that receives a malformed id
+  const r = await bad.bootstrap();
   eq(r.ok, false, 'a malformed id was accepted');
-  eq(NET.sessionId(), '', 'a malformed id was stored');
-  // Restore a good session for the rest of the run.
+  eq(bad.sessionId(), '', 'a malformed id was stored');
+  eq(bad.ready(), false, 'the app was told it had a session');
+  // The next page gets a good one, and the rest of the run uses it.
   responder = () => ({ status: 200, body: { ok: true, app_session_id: SESSION_ID, expires_at: '2026-09-01T10:00:00.000Z', locale: 'ru' } });
+  NET = boot();
   await NET.bootstrap();
 });
 
@@ -116,14 +132,133 @@ await check('outside Telegram, bootstrap fails and is NOT retryable', async () =
   reset();
   const tg = win.Telegram;
   win.Telegram = null;
-  const r = await NET.bootstrap();
+  const outside = boot();
+  const r = await outside.bootstrap();
   eq(r.ok, false, 'bootstrapped without Telegram');
   eq(r.error_code, 'NO_TELEGRAM', 'code');
   eq(r.retryable, false, 'retrying will not summon Telegram');
   eq(sent.length, 0, 'a request was sent without initData');
   win.Telegram = tg;
-  responder = () => ({ status: 200, body: { ok: true, app_session_id: SESSION_ID } });
+  responder = () => ({ status: 200, body: { ok: true, app_session_id: SESSION_ID, expires_at: '2026-09-01T10:00:00.000Z', locale: 'ru' } });
+  NET = boot();
   await NET.bootstrap();
+});
+
+// ---------------------------------------------------------------- the bootstrap body contract
+
+await check('bootstrap sends the three fields the Gateway validates BEFORE the signature', async () => {
+  reset();
+  const w = boot();
+  await w.bootstrap('ru');
+  eq(sent.length, 1, 'requests sent');
+  eq(sent[0].method, 'POST', 'method');
+  eq(sent[0].body.init_data, win.Telegram.WebApp.initData, 'initData was not sent');
+  // THE DEFECT THIS CLOSES. The Gateway checks content type, then client_version against its
+  // allow-list, then locale — all before it reaches Ed25519. A body carrying only init_data was
+  // rejected 400 CLIENT_VERSION_UNSUPPORTED and never verified anything.
+  eq(sent[0].body.client_version, 'b2.1.0', 'client_version');
+  eq(w.GATEWAY_CLIENT_VERSION, 'b2.1.0', 'the constant the app reads');
+  eq(sent[0].body.locale, 'ru', 'locale');
+  eq(Object.keys(sent[0].body).sort().join(','), 'client_version,init_data,locale', 'the body carries exactly three keys');
+});
+
+await check('locale is constrained to what the Gateway accepts', async () => {
+  for (const [asked, want] of [['ru', 'ru'], ['ro', 'ro'], ['en', 'ru'], ['', 'ru'], [undefined, 'ru'], ['RO', 'ru']]) {
+    reset();
+    const w = boot();
+    await w.bootstrap(asked);
+    eq(sent[0].body.locale, want, 'locale for ' + JSON.stringify(asked));
+  }
+});
+
+await check('ONE bootstrap per page lifecycle, however many times it is called', async () => {
+  reset();
+  const w = boot();
+  const results = await Promise.all([w.bootstrap(), w.bootstrap(), w.bootstrap()]);
+  eq(sent.length, 1, 'the signed context was sent more than once');
+  eq(w.bootstrapCount(), 1, 'bootstrap ran more than once');
+  results.forEach((r, i) => eq(r.ok, true, 'call ' + i + ' did not receive the memoised success'));
+  // And sequentially, after it has settled.
+  await w.bootstrap();
+  await w.bootstrap();
+  eq(sent.length, 1, 'a later call re-sent the signed context');
+  eq(w.bootstrapCount(), 1, 'a later call re-ran bootstrap');
+});
+
+await check('a FAILED bootstrap is never retried with the same signed context', async () => {
+  for (const r of [{ throws: 'boom' }, { status: 503, body: { ok: false, error_code: 'REPLAY_STORE_UNAVAILABLE', retryable: true } },
+    { status: 409, body: { ok: false, error_code: 'REPLAY_REFUSED', retryable: false } }]) {
+    reset();
+    responder = () => r;
+    const w = boot();
+    const first = await w.bootstrap();
+    eq(first.ok, false, 'this case should have failed');
+    await w.bootstrap();
+    await w.bootstrap();
+    eq(sent.length, r.throws ? 1 : 1, 'the same initData was re-sent after a failure');
+    eq(w.bootstrapCount(), 1, 'bootstrap re-ran after a failure');
+    eq(w.ready(), false, 'a failed bootstrap left the app believing it had a session');
+  }
+});
+
+await check('raw initData is used for bootstrap and then held nowhere', async () => {
+  reset();
+  const w = boot();
+  await w.bootstrap();
+  const raw = win.Telegram.WebApp.initData;
+  // It WAS sent — that is the whole point of bootstrap — and the fetch stub records an
+  // independent parse of what went on the wire, so `sent[0]` holding it proves only that the
+  // call happened. The claim worth making is that the MODULE keeps nothing afterwards, and that
+  // no LATER call carries it.
+  eq(sent[0].body.init_data, raw, 'bootstrap did not send initData at all');
+  for (const k of Object.keys(w)) {
+    if (typeof w[k] === 'function') { continue; }
+    assert(JSON.stringify(w[k]).indexOf(raw) === -1, 'FM_NET.' + k + ' retains raw initData');
+  }
+  // The later calls must not carry it either.
+  await w.saveDraft('APP_COMPANY', { company_name: { value: 'X', source: 'user_explicit', confirmed: true } });
+  await w.submit({ notice_version: 'pn-2026-08', locale: 'ru', shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z' });
+  for (const s2 of sent.slice(1)) {
+    assert(JSON.stringify(s2.body).indexOf(raw) === -1, s2.url + ' carried initData');
+    assert(JSON.stringify(s2.body).indexOf('init_data') === -1, s2.url + ' carried an init_data key');
+  }
+});
+
+await check('a committed replay of a submit is a SUCCESS, not a failure', async () => {
+  reset();
+  const w = boot();
+  await w.bootstrap();
+  responder = () => ({ status: 200, body: { ok: true, already: true, lead_id: 'FIN-1' } });
+  const r = await w.submit({ notice_version: 'pn-2026-08', locale: 'ru', shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z' });
+  eq(r.ok, true, 'a committed replay was reported as a failure — this is D7');
+  eq(w.isCommitted(r), true, 'isCommitted');
+  eq(w.wasAlreadyCommitted(r), true, 'wasAlreadyCommitted');
+  eq(r.body.lead_id, 'FIN-1', 'the canonical lead id did not come back');
+});
+
+await check('retryability comes from the server, except for the two the client produces itself', () => {
+  const w = boot();
+  eq(w.retryable({ ok: false, error_code: 'NETWORK' }), true, 'NETWORK');
+  eq(w.retryable({ ok: false, error_code: 'TIMEOUT' }), true, 'TIMEOUT');
+  eq(w.retryable({ ok: false, error_code: 'NOT_CONFIGURED' }), false, 'NOT_CONFIGURED');
+  eq(w.retryable({ ok: false, error_code: 'SUBMIT_UNRESOLVED', retryable: true }), true, 'server said retryable');
+  eq(w.retryable({ ok: false, error_code: 'SESSION_EXPIRED', retryable: false }), false, 'server said no');
+  eq(w.retryable({ ok: false, error_code: 'NOT_AUTHORISED' }), false, 'silence means no');
+  eq(w.retryable({ ok: true }), false, 'a success is not retryable');
+  eq(w.retryable(null), false, 'nothing is not retryable');
+});
+
+await check('the code set covers every code the three deployed endpoints can return', () => {
+  const w = boot();
+  // Read out of the response nodes, not guessed.
+  const gateway = ['BAD_REQUEST', 'CLIENT_VERSION_UNSUPPORTED', 'TG_INITDATA_MISSING', 'TG_INITDATA_INVALID',
+    'TG_INITDATA_EXPIRED', 'TG_INITDATA_FUTURE', 'TG_USER_MISSING', 'TG_USER_INVALID', 'TG_USER_BOT',
+    'RATE_LIMITED', 'TEMPORARY_BACKEND_ERROR', 'REPLAY_REFUSED', 'REPLAY_STORE_UNAVAILABLE'];
+  const session = ['SESSION_INVALID', 'SESSION_EXPIRED', 'NOT_AUTHORISED', 'SUBMIT_IN_PROGRESS', 'BAD_REQUEST'];
+  const submit = ['CONSENT_REQUIRED', 'DRAFT_EMPTY', 'PRIVACY_UNRESOLVED', 'SUBMIT_UNRESOLVED', 'NOT_AUTHORISED'];
+  for (const c of gateway.concat(session, submit)) {
+    assert(w.CODES[c] === c, 'the client would downgrade ' + c + ' to BAD_RESPONSE and refuse to retry it');
+  }
 });
 
 // ---------------------------------------------------------------- success is ok === true

@@ -407,6 +407,39 @@ const FAILURE = {
   secondary: 'Вернуться к резюме'
 };
 
+// ── the two failures that are NOT a submission failure ────────────────────────────────────────
+//
+// §22 FAILURE is about a brief that was answered and could not be delivered. These two are about
+// a form that could not be opened, and a form whose session ran out. Collapsing them into §22
+// would tell a client «Повторно проходить вопросы не нужно» when there are no answers yet, and
+// offer «Повторить отправку» when there is nothing to send — which is how the deployed build
+// showed the submission-failure screen for a session that never existed.
+//
+// Neither offers a retry. The client cannot mint a new signed Telegram context, so re-sending the
+// spent one is either refused as a replay or, worse, ambiguous. Reopening from the chat is the
+// only real recovery, and it is what these screens ask for.
+const BOOTSTRAP_FAILURE = {
+  title: 'Не удалось открыть форму',
+  lines: [
+    'Возникла техническая ошибка при подключении.',
+    'Ничего не было отправлено.',
+    'Закройте окно и откройте форму заново из чата.'
+  ],
+  primary: 'Закрыть'
+};
+
+// The 72 h app-session TTL, expressed once, in the client's language. The server is the authority
+// on expiry; this screen only reports it.
+const SESSION_EXPIRED = {
+  title: 'Время сессии истекло',
+  lines: [
+    'Форма была открыта больше 72 часов назад.',
+    'Ваше обращение не было отправлено консультанту.',
+    'Откройте форму заново из чата, чтобы продолжить.'
+  ],
+  primary: 'Закрыть'
+};
+
 // spec §24 — four stages, no percentages, no step counts.
 const STAGES = ['Контекст', 'Задача', 'Подготовка', 'Проверка'];
 
@@ -564,12 +597,26 @@ function isFreeTextProblem(objectiveId) {
   return !!p && p.mode === 'free_text';
 }
 
+// ── the Mini App resume screen ────────────────────────────────────────────────────────────────
+//
+// DERIVED from TG_RESUME_DRAFT rather than retyped. The two surfaces make the same promise to
+// the same person about the same brief, and the promise is the thing that must not drift: if the
+// Telegram wording is ever revised, this follows it in the same commit or not at all.
+//
+// The tags are stripped because the Mini App renders text nodes, not Telegram HTML.
+const RESUME = {
+  title: TG_COPY.TG_RESUME_DRAFT.text[0].replace(/<\/?[a-z]+>/g, ''),
+  lines: TG_COPY.TG_RESUME_DRAFT.text.slice(1).map((t) => t.replace(/<\/?[a-z]+>/g, '')),
+  primary: TG_COPY.TG_RESUME_DRAFT.actions[0],
+  secondary: TG_COPY.TG_RESUME_DRAFT.actions[1]
+};
+
 module.exports = {
   OBJECTIVES, OBJECTIVE_IDS, OBJECTIVE_LABELS, OBJECTIVE_SCREEN,
   PROBLEMS, PROBLEM_FREE_TEXT_OPTION,
   OUTCOMES, OUTCOME_FREE_TEXT_OPTION,
   COMPANY_SCREEN, SCALE_OPTIONS, CURRENT_SETUP, DECISION_HORIZON, DOCUMENTS,
   CONTACT, IMPORTANT_CONTEXT, REVIEW, FOCUS_MAP, FOCUS_DISCLAIMER,
-  PRIVACY, EDIT, SUCCESS, FAILURE, STAGES, TG_COPY,
+  PRIVACY, EDIT, SUCCESS, FAILURE, BOOTSTRAP_FAILURE, SESSION_EXPIRED, RESUME, STAGES, TG_COPY,
   objectiveById, objectiveByLabel, problemLabels, outcomeLabels, isFreeTextProblem
 };

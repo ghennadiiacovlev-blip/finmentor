@@ -14,6 +14,7 @@
 // It also holds the draft validator against the shapes a hostile or stale client would send:
 // unknown fields, forbidden keys, cross-branch pairings, oversize bodies.
 
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -296,6 +297,21 @@ check('confirmContext never invents a value for an empty field', () => {
     eq(r.draft.fields[n].value, null, 'value appeared for ' + n);
     assert(!D.canSkip(r.draft.fields[n], n), 'empty field became skippable: ' + n);
   }
+});
+
+check('the CLIENT field list and the SERVER field map agree, exactly', () => {
+  // THE DEFECT THIS CLOSES. app-premium/app.js declared "contact_name" and wrote it into every
+  // draft; this module's FIELDS map did not list it, so validateDraft rejected the draft as
+  // UNKNOWN_FIELD — and assertSubmittable runs validateDraft, so EVERY submission would have been
+  // refused, reporting an empty draft while naming the wrong cause. Two lists that must match, in
+  // two files, with nothing holding them together. Now something does.
+  const src = readFileSync(join(ROOT, 'app-premium', 'app.js'), 'utf8');
+  const m = /var FIELDS = \[([\s\S]*?)\];/.exec(src);
+  assert(m, 'app.js no longer declares a FIELDS list');
+  const client = m[1].match(/'[a-z_]+'/g).map((x) => x.slice(1, -1)).sort();
+  const server = D.FIELD_NAMES.slice().sort();
+  eq(client.join(','), server.join(','),
+    'the client and the server disagree about what a draft may hold');
 });
 
 console.log('');

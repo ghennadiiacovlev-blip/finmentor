@@ -23,7 +23,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// The submit body carries a session id and a privacy acknowledgement. NOTHING ELSE IS READ.\n//\n// This is stronger than B.2.0, where answers travelled with the submit call and were\n// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to\n// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not\n// filtered, it is simply never looked at.\nconst body = $(\"Submit Webhook\").first().json.body || {};\nconst id = String(body.app_session_id || \"\").trim();\nconst ack = body.privacy_ack || {};\nconst iso = v => typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);\nif (!/^AS-[0-9a-f]{64}$/.test(id)) { return [{ json: { ok: 0, error_code: \"BAD_REQUEST\", status: 400 } }]; }\nif (!String(ack.notice_version || \"\").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {\n  return [{ json: { ok: 0, error_code: \"CONSENT_REQUIRED\", status: 409 } }];\n}\nreturn [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || \"ru\"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];"
+        "jsCode": "// The submit body carries a session id and a privacy acknowledgement. NOTHING ELSE IS READ.\n//\n// This is stronger than B.2.0, where answers travelled with the submit call and were\n// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to\n// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not\n// filtered, it is simply never looked at.\nconst body = $(\"Submit Webhook\").first().json.body || {};\nconst id = String(body.app_session_id || \"\").trim();\nconst ack = body.privacy_ack || {};\nconst iso = v => typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);\n// EVERY REFUSAL CARRIES ITS OWN RESPONSE. The shape branch used to end at a responder that\n// answered a hard-coded BAD_REQUEST 400 to everything, so a client that had not acknowledged\n// the privacy notice was told its REQUEST was malformed. The live probe confirmed it.\nif (!/^AS-[0-9a-f]{64}$/.test(id)) {\n  return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: \"BAD_REQUEST\", retryable: false } } }];\n}\nif (!String(ack.notice_version || \"\").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {\n  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: \"CONSENT_REQUIRED\", retryable: false } } }];\n}\nreturn [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || \"ru\"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];"
       },
       "id": "pux-submit-guard",
       "name": "Submit Guard",
@@ -93,13 +93,14 @@
         660,
         0
       ],
+      "alwaysOutputData": true,
       "onError": "continueRegularOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Idempotency, resolved from server state BEFORE the irreversible call.\n//\n// A retry after an ambiguous outcome must return the PRIOR canonical success rather than\n// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || \"\").trim() !== \"\");\nif (rows.length !== 1) { return [{ json: { ok: 0, error_code: \"SESSION_INVALID\", status: 401 } }]; }\nconst s = rows[0];\n\n// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the\n// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.\nconst OWNER_TELEGRAM_ID = \"__OWNER_TELEGRAM_ID__\";\nif (String(s.telegram_user_id || \"\") !== OWNER_TELEGRAM_ID) {\n  return [{ json: { ok: 0, error_code: \"NOT_AUTHORISED\", status: 403 } }];\n}\nif (new Date(String(s.expires_at)).getTime() <= Date.now()) { return [{ json: { ok: 0, error_code: \"SESSION_EXPIRED\", status: 401 } }]; }\nif (String(s.state) === \"submitted\") {\n  return [{ json: { ok: 0, already: 1, error_code: \"ALREADY_SUBMITTED\", status: 200, lead_id: String(s.lead_id || \"\") } }];\n}\nlet draft = null;\ntry { draft = JSON.parse(String(s.draft_json || \"null\")); } catch (e) { draft = null; }\nif (!draft || !draft.fields) { return [{ json: { ok: 0, error_code: \"BAD_REQUEST\", status: 400 } }]; }\nreturn [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id, cycle_id: String(s.cycle_id || \"\"), draft: draft } }];"
+        "jsCode": "// Idempotency, resolved from server state BEFORE the irreversible call.\n//\n// A retry after an ambiguous outcome must return the PRIOR canonical success rather than\n// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.\nconst crypto = require(\"crypto\");\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || \"\").trim() !== \"\");\nconst R = (status, code) => [{ json: { ok: 0, __status: status,\n  __response: { ok: false, error_code: code, retryable: false } } }];\nif (rows.length !== 1) { return R(401, \"SESSION_INVALID\"); }\nconst s = rows[0];\n\n// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the\n// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.\nconst OWNER_TELEGRAM_ID = \"__OWNER_TELEGRAM_ID__\";\nif (String(s.telegram_user_id || \"\") !== OWNER_TELEGRAM_ID) { return R(403, \"NOT_AUTHORISED\"); }\n\n// THE SUBMISSION IDENTITY. Derived, not minted and not stored.\nconst submission_key = \"sub_\" + crypto.createHash(\"sha256\")\n  .update(\"miniapp:\" + String(s.app_session_id)).digest(\"hex\").slice(0, 32);\n\n// COMMITTED IS CHECKED FIRST, BEFORE EXPIRY. A session that was submitted and has since aged\n// past its TTL is still a committed submission, and the truthful answer is the lead it\n// produced rather than \"expired\". This branch answers ok:TRUE — see Respond Submit Terminal.\nif (String(s.state) === \"submitted\") {\n  return [{ json: { ok: 0, already: 1, submission_key: submission_key,\n    __status: 200,\n    __response: { ok: true, already: true, lead_id: String(s.lead_id || \"\"), submit_state: \"submitted\" } } }];\n}\nif (new Date(String(s.expires_at)).getTime() <= Date.now()) { return R(401, \"SESSION_EXPIRED\"); }\nlet draft = null;\ntry { draft = JSON.parse(String(s.draft_json || \"null\")); } catch (e) { draft = null; }\n// An empty draft is its own refusal. Calling it BAD_REQUEST told the client its request was\n// malformed when what actually happened is that no answers ever reached the server.\nif (!draft || !draft.fields || !Object.keys(draft.fields).length) { return R(409, \"DRAFT_EMPTY\"); }\nreturn [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id,\n  chat_id: String(s.chat_id || s.telegram_user_id || \"\"), cycle_id: String(s.cycle_id || \"\"),\n  contact_name: String(s.contact_name || \"\"), submission_key: submission_key, draft: draft } }];"
       },
       "id": "pux-submit-state",
       "name": "Submit State",
@@ -162,7 +163,9 @@
       "parameters": {
         "operation": "executeQuery",
         "query": "insert into privacy.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, ''), $3, $4, $5::timestamptz, $6::timestamptz, $7)",
-        "options": {}
+        "options": {
+          "queryReplacement": "={{ $json.submission_key }},={{ $json.cycle_id }},={{ $json.privacy_notice_version }},={{ $json.privacy_locale }},={{ $json.privacy_notice_shown_at }},={{ $json.privacy_notice_acknowledged_at }},={{ $json.privacy_legal_basis }}"
+        }
       },
       "id": "pux-privacy-write",
       "name": "Write Privacy Acknowledgement",
@@ -184,14 +187,394 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Deployed form of n8n/src/premium-ux/submit-projection.js buildLeadIntakePayload.\n// The answers come from the STORED draft, never from the request body.\nreturn [{ json: { placeholder: \"built from $('Submit State').first().json.draft\" } }];"
+        "jsCode": "const v = $(\"Submit State\").first().json;\nconst items = $input.all();\nlet created = 0; let already = 0; let fault = \"\";\nfor (const it of items) {\n  const j = (it && it.json) || {};\n  const raw = j.error !== undefined ? j.error : (it && it.error !== undefined ? it.error : null);\n  if (raw === null || raw === undefined) { created = 1; continue; }\n  // The unique-index refusal arrives on json.message; json.error carries no code and no\n  // message of its own, so classifying json.error alone never sees the duplicate.\n  const parts = [];\n  if (j.message !== undefined && j.message !== null) { parts.push(typeof j.message === \"string\" ? j.message : JSON.stringify(j.message)); }\n  parts.push(typeof raw === \"string\" ? raw : JSON.stringify(raw));\n  const txt = parts.join(\" | \");\n  if (/23505|duplicate key|privacy_ack_submission_key_uidx/i.test(txt)) { already = 1; continue; }\n  fault = txt.slice(0, 200);\n}\n// FAIL CLOSED. No items at all, or an error that is not the unique-index refusal, means the\n// acknowledgement is UNPROVEN and the irreversible call must not happen. It is retryable: the\n// same derived key makes the next attempt land on the same row or the same refusal.\nif (!created && !already) {\n  return [{ json: { ok: 0, error_code: \"PRIVACY_UNRESOLVED\", status: 503, retryable: true, detail: fault } }];\n}\nreturn [{ json: Object.assign({}, v, { ok: 1, privacy_state: already ? \"already_recorded\" : \"recorded\" }) }];"
+      },
+      "id": "pux-privacy-verdict",
+      "name": "Privacy Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-privacy-recorded-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-privacy-recorded",
+      "name": "IF Privacy Recorded",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Submit State').first().json.submission_key }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "pux-receipt-probe",
+      "name": "Receipt Probe",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        0
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Does a receipt already exist for this submission key?\nconst v = $(\"Submit State\").first().json;\nconst raw = $input.all().map(function (i) { return i.json; })\n  .filter(function (r) { return r && typeof r === \"object\" && !Array.isArray(r); });\nconst storeError = raw.some(function (r) { return r.error || r.errorMessage; });\n// A zero-match arrives as ONE EMPTY ITEM because the read carries alwaysOutputData, and an\n// empty item is not a row. Discriminate by KEY COUNT — never by truthiness, which an empty\n// object passes.\nconst rows = raw.filter(function (r) {\n  return Object.keys(r).length > 0 && !r.error && !r.errorMessage;\n});\n// PREALLOCATE ONLY ON A CLEAN READ OF ZERO ROWS. A store we could not read is NOT a store\n// with no row in it, and inserting on that reading is exactly how a second receipt appears\n// for a key that already had one. Anything else passes through untouched and is judged by\n// the readback, which fails closed.\nconst needed = (!storeError && rows.length === 0) ? 1 : 0;\nreturn [{ json: Object.assign({}, v, { __receipt_needed: needed,\n  __probe_rows: rows.length, __probe_store_error: storeError ? 1 : 0 }) }];"
+      },
+      "id": "pux-receipt-probe-verdict",
+      "name": "Receipt Probe Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-receipt-needed-cond",
+              "leftValue": "={{ $json.__receipt_needed }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-receipt-needed",
+      "name": "IF Receipt Needed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "value": {
+            "submission_key": "={{ $('Submit State').first().json.submission_key }}",
+            "commit_state": "READY",
+            "canonical_lead_id": "",
+            "lead_mode": "",
+            "lead_priority": "",
+            "financial_zone": "",
+            "created_at": "={{ $now.toISO() }}",
+            "claimed_at": "",
+            "settled_at": "",
+            "abort_reason": "",
+            "correlation_id": ""
+          },
+          "schema": [
+            {
+              "id": "submission_key",
+              "displayName": "submission_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "claimed_at",
+              "displayName": "claimed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "abort_reason",
+              "displayName": "abort_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "pux-receipt-insert",
+      "name": "Preallocate Receipt",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2420,
+        0
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Submit State').first().json.submission_key }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "pux-receipt-readback",
+      "name": "Receipt Readback",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2640,
+        0
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const v = $(\"Submit State\").first().json;\nconst key = String(v.submission_key || \"\");\nconst raw = $input.all().map(function (i) { return i.json; })\n  .filter(function (r) { return r && typeof r === \"object\" && !Array.isArray(r); });\nconst storeError = raw.some(function (r) { return r.error || r.errorMessage; });\nconst rows = raw.filter(function (r) {\n  return Object.keys(r).length > 0 && !r.error && !r.errorMessage;\n});\nfunction refuse(reason) {\n  return [{ json: { ok: 0, error_code: \"SUBMIT_UNRESOLVED\", status: 503, retryable: true,\n    receipt_reason: reason } }];\n}\nif (!/^sub_[0-9a-f]{32}$/.test(key)) { return refuse(\"SUBMISSION_KEY_INVALID\"); }\n// \"We could not look\" and \"it is there\" must never collapse into one outcome.\nif (storeError) { return refuse(\"READBACK_STORE_ERROR\"); }\n// RAW equality, deliberately not a trim. A trim is a REPAIR, and a stored key that is not\n// byte-identical is evidence the store is holding something the deriver never produced.\nfor (var i = 0; i < rows.length; i++) {\n  if (typeof rows[i].submission_key !== \"string\" || rows[i].submission_key !== key) {\n    return refuse(\"READBACK_WRONG_KEY\");\n  }\n}\nif (rows.length === 0) { return refuse(\"READBACK_ABSENT\"); }\nif (rows.length > 1) { return refuse(\"DUPLICATE_RECEIPTS\"); }\nconst state = String(rows[0].commit_state || \"\").trim();\nif (state === \"\") { return refuse(\"RECEIPT_STATE_EMPTY\"); }\nconst created = rows[0].created_at;\nif (typeof created !== \"string\" || created.trim() === \"\" ||\n    !Number.isFinite(Date.parse(created))) { return refuse(\"READBACK_CREATED_AT_INVALID\"); }\nreturn [{ json: Object.assign({}, v, { ok: 1, receipt_state: state }) }];"
+      },
+      "id": "pux-receipt-verdict",
+      "name": "Receipt Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2860,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-receipt-present-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-receipt-present",
+      "name": "IF Receipt Present",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "__PREMIUM_SUBMIT_PROJECTION__\n\n// The answers come from the STORED draft. Nothing in the request body is read: the browser\n// posts a session id and an acknowledgement, and neither can steer this.\nconst v = $(\"Submit State\").first().json;\n\n// The draft must be COMPLETE before an irreversible call. `assertSubmittable` re-runs the same\n// required-field and provenance rules the client mirrors, on the server, where they are rules\n// rather than a convenience.\nconst ready = SP.assertSubmittable(v.draft);\nif (!ready.ok) {\n  return [{ json: { __build_ok: 0, __status: 409, detail: String(ready.detail || \"\"),\n    __response: { ok: false, error_code: \"DRAFT_EMPTY\", retryable: false } } }];\n}\n\n// THE CORRELATION IS THE SUBMISSION KEY. A retry correlates to the submission it replays,\n// which is the whole point of deriving the key from the session rather than minting one.\nconst built = SP.buildLeadIntakePayload({\n  draft: v.draft,\n  telegramUserId: String(v.telegram_user_id || \"\"),\n  // contact_name is a DRAFT field, not a session column: Telegram supplies the first name and\n  // the client carries it into the draft with telegram_carried provenance.\n  contactName: (v.draft && v.draft.fields && v.draft.fields.contact_name && v.draft.fields.contact_name.value) || \"\",\n  nowIso: new Date().toISOString(),\n  correlationId: String(v.submission_key || \"\"),\n  clientVersion: SP.ALLOWED_CLIENT_VERSIONS[0]\n});\nif (!built || built.ok === false) {\n  return [{ json: { __build_ok: 0, __status: 409,\n    __response: { ok: false, error_code: String((built && built.error_code) || \"BAD_REQUEST\"), retryable: false } } }];\n}\n\n// The INTERNAL envelope Lead Intake authenticates. buildLeadIntakePayload already assembles\n// it — source marker and all — so this wraps rather than rebuilds: a second construction here\n// would be a second contract, and the one that is gated would stop being the one that ships.\n// `submission_key` is what Lead Intake's idempotency receipt claims on.\nreturn [{ json: {\n  submission_key: String(v.submission_key || \"\"),\n  envelope: built.envelope\n} }];"
       },
       "id": "pux-build-intake-payload",
       "name": "Build Intake Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1320,
+        3300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-payload-built-cond",
+              "leftValue": "={{ $json.__build_ok === undefined ? 1 : $json.__build_ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-payload-built",
+      "name": "IF Payload Built",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3520,
         0
       ]
     },
@@ -227,7 +610,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1540,
+        3740,
         0
       ]
     },
@@ -260,7 +643,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1760,
+        3960,
         0
       ]
     },
@@ -285,6 +668,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "state": "submitted",
+            "lead_id": "={{ $('Parse Intake Result').first().json.lead_id }}",
             "updated_at": "={{ new Date().toISOString() }}"
           },
           "schema": []
@@ -313,41 +697,24 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1980,
+        4180,
         0
       ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'BAD_REQUEST', retryable: false }) }}",
+        "responseBody": "={{ JSON.stringify($json.__response) }}",
         "options": {
-          "responseCode": 400
+          "responseCode": "={{ Number($json.__status || 400) }}"
         }
       },
-      "id": "pux-r-respond-submit-rejected",
-      "name": "Respond Submit Rejected",
+      "id": "pux-r-respond-submit-terminal",
+      "name": "Respond Submit Terminal",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        2200,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: false, error_code: String($json.error_code || \"UNSPECIFIED\"), retryable: $json.retryable === true }) }}",
-        "options": {
-          "responseCode": "={{ Number($json.status || 400) }}"
-        }
-      },
-      "id": "pux-r-respond-submit-session-invalid",
-      "name": "Respond Submit Session Invalid",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        2420,
+        4400,
         0
       ]
     },
@@ -364,7 +731,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        2640,
+        4620,
         0
       ]
     }
@@ -403,7 +770,7 @@
         ],
         [
           {
-            "node": "Respond Submit Rejected",
+            "node": "Respond Submit Terminal",
             "type": "main",
             "index": 0
           }
@@ -443,7 +810,7 @@
         ],
         [
           {
-            "node": "Respond Submit Session Invalid",
+            "node": "Respond Submit Terminal",
             "type": "main",
             "index": 0
           }
@@ -465,7 +832,127 @@
       "main": [
         [
           {
+            "node": "Privacy Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Privacy Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Privacy Recorded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Privacy Recorded": {
+      "main": [
+        [
+          {
+            "node": "Receipt Probe",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Unresolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Probe": {
+      "main": [
+        [
+          {
+            "node": "Receipt Probe Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Probe Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Receipt Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Needed": {
+      "main": [
+        [
+          {
+            "node": "Preallocate Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Receipt Readback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preallocate Receipt": {
+      "main": [
+        [
+          {
+            "node": "Receipt Readback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Readback": {
+      "main": [
+        [
+          {
+            "node": "Receipt Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Receipt Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Present": {
+      "main": [
+        [
+          {
             "node": "Build Intake Payload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Unresolved",
             "type": "main",
             "index": 0
           }
@@ -476,7 +963,25 @@
       "main": [
         [
           {
+            "node": "IF Payload Built",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Payload Built": {
+      "main": [
+        [
+          {
             "node": "Call Lead Intake",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Terminal",
             "type": "main",
             "index": 0
           }

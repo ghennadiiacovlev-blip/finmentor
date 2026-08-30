@@ -25,7 +25,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  buildHarness, verifyHarness, ALLOWED_DIVERGENCE, CLAIM_NODE, SESSION_NODE, VERIFY_NODE,
+  buildHarness, verifyHarness, allowedDivergence, dataTableNodes, CLAIM_NODE, SESSION_NODE, VERIFY_NODE,
   WEBHOOK_NODE, H1_PATH, H2_PATH, GATEWAY_PATH, PUBKEY_PLACEHOLDER, CREDENTIAL_PLACEHOLDER,
   PRODUCTION_G5_CREDENTIAL_ID, PRODUCTION_SESSION_TABLE
 } from '../scripts/build-gateway-store-failure-harness.mjs';
@@ -68,7 +68,7 @@ for (const [label, H] of [['H1', H1], ['H2', H2]]) {
     eq(JSON.stringify(H.connections), JSON.stringify(GW.connections), 'connections'));
   check(label + ' diverges only inside the declared allowlist', () => {
     for (const g of GW.nodes) {
-      if (ALLOWED_DIVERGENCE.indexOf(g.name) !== -1) { continue; }
+      if (allowedDivergence(GW).indexOf(g.name) !== -1) { continue; }
       const h = nodeOf(H, g.name);
       assert(h, 'missing node ' + g.name);
       eq(JSON.stringify(h.parameters), JSON.stringify(g.parameters), 'parameters of ' + g.name);

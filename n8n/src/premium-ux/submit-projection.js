@@ -207,7 +207,15 @@ function buildLeadIntakePayload(opts) {
     miniapp: { client_version: str(o.clientVersion), objective_id: obj.id }
   };
 
-  const envelope = { source: 'telegram_miniapp_premium', payload: payload };
+  // THE SOURCE MARKER IS telegram_miniapp, EXACTLY.
+  //
+  // Lead Intake's Internal Auth Entry compares it with ===, and anything else is refused as
+  // ENVELOPE_SOURCE_INVALID before the payload is looked at. This module said
+  // 'telegram_miniapp_premium' — a value nothing accepts — and had never been executed against
+  // the live authenticator to find out. The Concierge sends the same marker from
+  // Build Internal Handoff; qa/concierge-internal-handoff.test.mjs pins it there and
+  // qa/premium-ux-submit-idempotency.test.mjs now pins it here.
+  const envelope = { source: 'telegram_miniapp', payload: payload };
   let bytes;
   try { bytes = byteLength(JSON.stringify(envelope)); }
   catch (e) { return fail('BAD_REQUEST', 'PAYLOAD_UNSERIALISABLE'); }

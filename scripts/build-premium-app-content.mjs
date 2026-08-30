@@ -50,6 +50,9 @@ export function buildContent() {
     EDIT: B.EDIT,
     SUCCESS: B.SUCCESS,
     FAILURE: B.FAILURE,
+    BOOTSTRAP_FAILURE: B.BOOTSTRAP_FAILURE,
+    SESSION_EXPIRED: B.SESSION_EXPIRED,
+    RESUME: B.RESUME,
     STAGES: B.STAGES
   };
   return [

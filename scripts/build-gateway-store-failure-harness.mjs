@@ -85,11 +85,20 @@ export const PRODUCTION_SESSION_TABLE = 'MiniApp_App_Sessions';
 
 export const CLAIM_NODE = 'G5 Replay Claim';
 export const SESSION_NODE = 'Create App Session';
+
+// EVERY data-table node is replaced, not one named one. The Gateway gained a read/resolve/
+// re-read path for cross-reload resume, and a harness that neutralised only the INSERT would
+// have shipped two live reads against the production app-session table — which is exactly what
+// this harness exists to make structurally impossible. The list is DERIVED from the Gateway,
+// so the next node added there is neutralised without anyone remembering to add it here.
+export const dataTableNodes = (gateway) =>
+  gateway.nodes.filter((n) => n.type === 'n8n-nodes-base.dataTable').map((n) => n.name);
 export const VERIFY_NODE = 'Verify InitData';
 export const WEBHOOK_NODE = 'Gateway Webhook';
 
 // The only nodes this harness may differ from the Gateway in. Anything else must match.
-export const ALLOWED_DIVERGENCE = [VERIFY_NODE, CLAIM_NODE, SESSION_NODE, WEBHOOK_NODE];
+export const allowedDivergence = (gateway) =>
+  [VERIFY_NODE, CLAIM_NODE, WEBHOOK_NODE].concat(dataTableNodes(gateway));
 
 const SETTINGS = {
   executionOrder: 'v1',
@@ -131,9 +140,13 @@ const H1_CLAIM_CODE = [
 // Both harnesses use this in place of the app-session INSERT, so no row can reach the production
 // data table while Respond Bootstrap OK is still exercised end to end.
 const SESSION_PASSTHROUGH_CODE = [
-  '// HARNESS ONLY - stands in for the app-session INSERT. It passes the built session through',
-  '// untouched so Respond Bootstrap OK runs exactly as in production, and it is structurally',
-  '// incapable of writing: there is no dataTable node anywhere in this workflow.',
+  '// HARNESS ONLY - stands in for an app-session Data Table node. It passes its input through',
+  '// untouched so the responders run exactly as in production, and it is structurally incapable',
+  '// of reading or writing: there is no dataTable node anywhere in this workflow.',
+  '//',
+  '// Nothing downstream of the claim is reached in this harness anyway — the claim is the thing',
+  '// under test and it always fails — but a node that COULD touch the production table would',
+  '// defeat the point of the harness whether or not it is reachable.',
   'return $input.all();'
 ].join('\n');
 
@@ -174,8 +187,8 @@ export function buildHarness(gateway, variant) {
       return v;
     }
 
-    if (n.name === SESSION_NODE) {
-      return codeNode(n, SESSION_NODE, SESSION_PASSTHROUGH_CODE);
+    if (n.type === 'n8n-nodes-base.dataTable') {
+      return codeNode(n, n.name, SESSION_PASSTHROUGH_CODE);
     }
 
     if (n.name === CLAIM_NODE) {
@@ -216,7 +229,7 @@ export function verifyHarness(gateway, wf, variant) {
   for (const g of gateway.nodes) {
     const h = byName(wf, g.name);
     if (!h) { f.push('the harness is missing Gateway node: ' + g.name); continue; }
-    if (ALLOWED_DIVERGENCE.indexOf(g.name) !== -1) { continue; }
+    if (allowedDivergence(gateway).indexOf(g.name) !== -1) { continue; }
     if (!deepEqual(h.parameters, g.parameters)) { f.push('undeclared divergence in node parameters: ' + g.name); }
     if (h.type !== g.type || h.typeVersion !== g.typeVersion) { f.push('undeclared divergence in node type: ' + g.name); }
     if (!deepEqual(h.onError || null, g.onError || null)) { f.push('undeclared divergence in onError: ' + g.name); }
@@ -334,7 +347,7 @@ if (isMain) {
   console.log('P9-R2 isolated store-failure harness');
   console.log('  H1 (credential-free) : n8n/candidate/gw-store-failure-h1-candidate.json  /webhook/' + H1_PATH);
   console.log('  H2 (dead store)      : n8n/candidate/gw-store-failure-h2-candidate.json  /webhook/' + H2_PATH);
-  console.log('  divergence allowlist : ' + ALLOWED_DIVERGENCE.join(', '));
+  console.log('  divergence allowlist : ' + allowedDivergence(gateway).join(', '));
   console.log('  respond nodes        : all four copied verbatim, codes typed');
   console.log('  production creds     : absent');
   console.log('  production table     : absent');

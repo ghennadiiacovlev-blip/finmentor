@@ -120,9 +120,26 @@ check('the expiry is stamped server-side and is not sliding', () => {
     assert(!/TTL_SECONDS/.test(j), n.name + ' computes a TTL — only Build App Session may');
     assert(!/259200/.test(j), n.name + ' carries the app-session TTL literal');
   }
+  // The response no longer reads Build App Session directly: since cross-reload resume, the answer
+  // may describe an EXISTING session rather than the one just minted, and the expiry it reports is
+  // that session's stored `expires_at`. What must still hold is that the value is READ from a row
+  // and never recomputed — so the two nodes that assemble the answer may copy `row.expires_at` and
+  // must not contain a clock.
   const respond = gw.nodes.find((n) => n.name === 'Respond Bootstrap OK');
-  assert(/\$\(.Build App Session.\)\.first\(\)\.json\.expires_at/.test(JSON.stringify(respond)),
-    'the bootstrap response does not read the minted expiry back — it may only echo it');
+  assert(String(respond.parameters.responseBody).indexOf('__response') !== -1,
+    'the responder no longer serialises the assembled answer');
+  for (const name of ['Resolve Session', 'Finalise Session']) {
+    const n = gw.nodes.find((x) => x.name === name);
+    assert(n, 'the answer is assembled by a node this gate does not know: ' + name);
+    const js = String(n.parameters.jsCode);
+    assert(/expires_at: String\(row\.expires_at\)/.test(js),
+      name + ' does not copy the STORED expiry into the answer');
+    assert(!/TTL_SECONDS|259200|getTime\(\)\s*\+/.test(js),
+      name + ' computes an expiry instead of reading one — the TTL would become sliding');
+  }
+  // And the client is still told an expiry it can only read.
+  assert(!/expires_at/.test(String(gw.nodes.find((x) => x.name === 'Gateway Webhook').parameters.path || '')),
+    'sanity');
 });
 
 check('the client cannot choose or extend the TTL', () => {

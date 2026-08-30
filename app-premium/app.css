@@ -37,6 +37,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
   outline: 2px solid var(--champagne); outline-offset: 2px;
 }
 
+/* Icon spans. This was an inline style on the element, which outranks every rule below and so put
+   a check mark on EVERY row and card, selected or not. As a class it loses to `.row .tick` and
+   `.card .tick`, which is exactly what makes one check mean one selection. */
+.ic { display: flex; }
+
 /* 390px Telegram WebView is the primary target; 22px side padding → 346px content. */
 .shell {
   width: min(100%, 460px); min-height: 100vh; margin: 0 auto;
@@ -93,7 +98,12 @@ h1.lg { font-size: 36px; }
 }
 .row span { flex: 1 1 auto; }
 .row .tick { display: none; color: var(--ivory); }
-.row.is-selected { border-color: var(--line-selected); background: var(--surface-2); color: var(--ivory); font-weight: 600; }
+/* Selected: heavier border, lifted surface, and the only check on the screen. The inset shadow
+   doubles the border weight without a second colour and without moving anything by a pixel. */
+.row.is-selected {
+  border-color: var(--line-selected); box-shadow: inset 0 0 0 1px var(--line-selected);
+  background: var(--surface-2); color: var(--ivory); font-weight: 600;
+}
 .row.is-selected .tick { display: flex; }
 
 .card {
@@ -106,7 +116,10 @@ h1.lg { font-size: 36px; }
 .card i { display: block; font-style: normal; margin-top: 6px; font-size: 13.5px; line-height: 1.5; color: var(--ivory-50); }
 .card .body { flex: 1 1 auto; }
 .card .tick { display: none; color: var(--ivory); margin-top: 2px; }
-.card.is-selected { border-color: var(--line-selected); background: var(--surface-2); }
+.card.is-selected {
+  border-color: var(--line-selected); box-shadow: inset 0 0 0 1px var(--line-selected);
+  background: var(--surface-2);
+}
 .card.is-selected i { color: var(--ivory-70); }
 .card.is-selected .tick { display: flex; }
 

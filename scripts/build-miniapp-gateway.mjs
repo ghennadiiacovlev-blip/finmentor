@@ -83,7 +83,10 @@ export const NODES = [
   'Gateway Webhook', 'Verify InitData', 'IF Verified', 'Respond Rejected',
   'Derive Replay Key', 'G5 Replay Claim', 'Claim Verdict', 'IF Claim Won',
   'Respond Replay Refused', 'Respond Store Unavailable', 'Build App Session',
-  'Create App Session', 'Respond Bootstrap OK'
+  // ── resume, added 2026-08-30 ────────────────────────────────────────────────────────────────
+  'Read User Sessions', 'Resolve Session', 'IF Create Session', 'Build Session Row',
+  'Create App Session', 'Read Back Sessions', 'Finalise Session',
+  'Respond Bootstrap OK'
 ];
 
 // The ONE node permitted to hold the Supabase credential.
@@ -201,6 +204,115 @@ const CLAIM_VERDICT_CODE = [
   "  correlation_id: d.correlation_id,",
   "  locale: d.locale",
   "} }];"
+].join('\n');
+
+// ── THE AUTHORITATIVE SESSION RULE ────────────────────────────────────────────────────────────
+//
+// The approved client copy promises «Можно продолжить с того места, где остановились», and the
+// app session has a 72 h TTL. Minting a new session on every open contradicted both: closing the
+// Mini App and reopening it lost the brief, because a new SIGNED CONTEXT was being treated as a
+// new BUSINESS REQUEST. It is not. A new brief comes from an explicit new application cycle.
+//
+// So after G5 has verified, freshness-checked and CLAIMED the new signed context — none of which
+// changes — the Gateway resolves which session that Telegram user and cycle already own.
+//
+// ── WHY A RULE AND NOT A CONSTRAINT ──────────────────────────────────────────────────────────
+//
+// The n8n Data Table has no unique index, so first-creation cannot be made atomic inside it. Two
+// genuinely concurrent opens can therefore both find nothing and both insert. What CAN be made
+// exact is which row is AUTHORITATIVE, and that is what this rule is: a total order over the
+// user's live rows that every concurrent execution computes identically from the same data.
+//
+//   · rows for THIS telegram_user_id and THIS cycle_id
+//   · not expired
+//   · state draft or submitted   (superseded and anything else is out)
+//   · ordered by created_at DESC, then app_session_id DESC as a total tie-break
+//
+// Both racers return the SAME app_session_id and write to the same draft. The losing row is never
+// handed to anyone, can never win a later evaluation, and expires with its TTL. It is inert, not
+// merely unlikely — which is the difference between arbitration and hoping.
+//
+// A `submitted` session is resolvable so that reopening after a committed submission shows the
+// committed result rather than dropping the client back into qualification.
+const AUTHORITATIVE_RULE = [
+  'function authoritative(rows, userId, cycleId, nowMs) {',
+  '  const live = (rows || [])',
+  "    .filter(r => r && String(r.app_session_id || '').trim() !== '')",
+  '    .filter(r => String(r.telegram_user_id || "") === String(userId))',
+  '    .filter(r => String(r.cycle_id || "") === String(cycleId))',
+  '    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })',
+  '    .filter(r => { const st = String(r.state || ""); return st === "draft" || st === "submitted"; });',
+  '  live.sort((a, b) => {',
+  '    const ta = String(a.created_at || ""), tb = String(b.created_at || "");',
+  '    if (ta !== tb) { return ta < tb ? 1 : -1; }',
+  '    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;',
+  '  });',
+  '  return live[0] || null;',
+  '}',
+  '',
+  '// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently',
+  '// and returns an empty body; this cannot.',
+  'function answer(row, locale, resumed) {',
+  '  let draft = null;',
+  '  try { draft = JSON.parse(String(row.draft_json || "null")); } catch (e) { draft = null; }',
+  '  return {',
+  '    app_session_id: String(row.app_session_id),',
+  '    expires_at: String(row.expires_at),',
+  '    state: String(row.state || "draft"),',
+  '    resumed: resumed ? 1 : 0,',
+  '    __response: {',
+  '      ok: true,',
+  '      app_session_id: String(row.app_session_id),',
+  '      expires_at: String(row.expires_at),',
+  '      locale: String(locale || "ru"),',
+  '      state: String(row.state || "draft"),',
+  '      resumed: !!resumed,',
+  '      // The stored draft, so the client can hydrate without a second round trip. It is the',
+  '      // The stored draft. It is the client own material returning to it, and nothing else.',
+  '      draft: draft && draft.fields ? draft : null',
+  '    }',
+  '  };',
+  '}'
+].join('\n');
+
+const RESOLVE_SESSION_CODE = [
+  AUTHORITATIVE_RULE,
+  '',
+  "const c = $('Claim Verdict').first().json;",
+  "const cand = $('Build App Session').first().json;",
+  'const rows = $input.all().map(i => i.json);',
+  'const found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());',
+  '',
+  '// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by',
+  '// nothing else, so it never reaches the Data Table.',
+  'if (!found) { return [{ json: { create: 1 } }]; }',
+  'return [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];'
+].join('\n');
+
+// After the insert, the SAME rule is applied to a fresh read. In the ordinary case the candidate
+// is the only live row and wins trivially. Under a concurrent open there are two, and both
+// executions arrive here, read both, and return the same winner.
+const FINALISE_SESSION_CODE = [
+  AUTHORITATIVE_RULE,
+  '',
+  "const c = $('Claim Verdict').first().json;",
+  "const cand = $('Build App Session').first().json;",
+  'const rows = $input.all().map(i => i.json);',
+  'const found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());',
+  '',
+  '// The read cannot come back empty — this execution inserted a row a moment ago. If it does,',
+  '// the store is not answering and the honest reply is the candidate we hold, which is also the',
+  '// row we just wrote.',
+  'const row = found || cand;',
+  'const resumed = String(row.app_session_id) !== String(cand.app_session_id);',
+  'return [{ json: answer(row, c.locale, resumed) }];'
+].join('\n');
+
+const BUILD_SESSION_ROW_CODE = [
+  '// The Data Table insert uses autoMapInputData, so its input must be EXACTLY the row and',
+  '// nothing else. Resolve Session carries a control flag, so the row is re-emitted here rather',
+  '// than that node being taught to hide it.',
+  "return [{ json: $('Build App Session').first().json }];"
 ].join('\n');
 
 const BUILD_SESSION_CODE = [
@@ -330,15 +442,60 @@ export function buildGateway(options) {
         id: 'gw-08-buildsession', name: 'Build App Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [920, -320] },
 
+      // Read every row this Telegram user owns. `returnAll` matters: without it the node answers
+      // with the first match only and the rule would order a set of one.
+      { parameters: { resource: 'row', operation: 'get',
+          dataTableId: { __rl: true, mode: 'name', value: APP_SESSION_TABLE },
+          matchType: 'allConditions',
+          filters: { conditions: [{ keyName: 'telegram_user_id', condition: 'eq',
+            keyValue: '={{ $json.telegram_user_id }}' }] },
+          returnAll: true },
+        id: 'gw-08a-readsessions', name: 'Read User Sessions', type: 'n8n-nodes-base.dataTable',
+        typeVersion: 1, position: [1040, -320],
+        // A user with no rows yet must still produce an item, or the resolver never runs and the
+        // caller gets an empty 200. Safe with continueRegularOutput: one output, always.
+        alwaysOutputData: true, onError: 'continueRegularOutput' },
+
+      { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: RESOLVE_SESSION_CODE },
+        id: 'gw-08b-resolve', name: 'Resolve Session', type: 'n8n-nodes-base.code',
+        typeVersion: 2, position: [1140, -320] },
+
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-create-session', leftValue: '={{ $json.create }}', rightValue: 1,
+            operator: { type: 'number', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-08c-ifcreate', name: 'IF Create Session', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1240, -320] },
+
+      { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: BUILD_SESSION_ROW_CODE },
+        id: 'gw-08d-buildrow', name: 'Build Session Row', type: 'n8n-nodes-base.code',
+        typeVersion: 2, position: [1340, -400] },
+
       { parameters: { operation: 'insert',
           dataTableId: { __rl: true, mode: 'name', value: APP_SESSION_TABLE },
           columns: { mappingMode: 'autoMapInputData', matchingColumns: [], schema: [], value: {} },
           options: {} },
         id: 'gw-09-createsession', name: 'Create App Session', type: 'n8n-nodes-base.dataTable',
-        typeVersion: 1, position: [1140, -320] },
+        typeVersion: 1, position: [1440, -400] },
 
-      respond('Respond Bootstrap OK', 'gw-10-ok', 1360, -320, 200,
-        '={{ JSON.stringify({ ok: true, app_session_id: $(\'Build App Session\').first().json.app_session_id, expires_at: $(\'Build App Session\').first().json.expires_at, locale: $(\'Claim Verdict\').first().json.locale }) }}'),
+      { parameters: { resource: 'row', operation: 'get',
+          dataTableId: { __rl: true, mode: 'name', value: APP_SESSION_TABLE },
+          matchType: 'allConditions',
+          filters: { conditions: [{ keyName: 'telegram_user_id', condition: 'eq',
+            keyValue: '={{ $(\'Build App Session\').first().json.telegram_user_id }}' }] },
+          returnAll: true },
+        id: 'gw-09a-readback', name: 'Read Back Sessions', type: 'n8n-nodes-base.dataTable',
+        typeVersion: 1, position: [1540, -400],
+        alwaysOutputData: true, onError: 'continueRegularOutput' },
+
+      { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: FINALISE_SESSION_CODE },
+        id: 'gw-09b-finalise', name: 'Finalise Session', type: 'n8n-nodes-base.code',
+        typeVersion: 2, position: [1640, -400] },
+
+      // The whole answer is assembled in JavaScript by Resolve Session or Finalise Session and
+      // merely serialised here — the two nodes emit the same `__response` shape, so this responder
+      // does not need to know which path reached it.
+      respond('Respond Bootstrap OK', 'gw-10-ok', 1760, -320, 200,
+        '={{ JSON.stringify($json.__response) }}'),
 
       respond('Respond Rejected', 'gw-11-rejected', 40, 140,
         '={{ $json.statusCode }}',
@@ -368,8 +525,18 @@ export function buildGateway(options) {
         [{ node: 'Build App Session', type: 'main', index: 0 }],
         [{ node: 'Respond Replay Refused', type: 'main', index: 0 }]
       ] },
-      'Build App Session': { main: [[{ node: 'Create App Session', type: 'main', index: 0 }]] },
-      'Create App Session': { main: [[{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]] }
+      'Build App Session': { main: [[{ node: 'Read User Sessions', type: 'main', index: 0 }]] },
+      'Read User Sessions': { main: [[{ node: 'Resolve Session', type: 'main', index: 0 }]] },
+      'Resolve Session': { main: [[{ node: 'IF Create Session', type: 'main', index: 0 }]] },
+      // TRUE: nothing live for this user and cycle -> mint. FALSE: resume, and answer directly.
+      'IF Create Session': { main: [
+        [{ node: 'Build Session Row', type: 'main', index: 0 }],
+        [{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]
+      ] },
+      'Build Session Row': { main: [[{ node: 'Create App Session', type: 'main', index: 0 }]] },
+      'Create App Session': { main: [[{ node: 'Read Back Sessions', type: 'main', index: 0 }]] },
+      'Read Back Sessions': { main: [[{ node: 'Finalise Session', type: 'main', index: 0 }]] },
+      'Finalise Session': { main: [[{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]] }
     },
     settings: {
       executionOrder: 'v1',

@@ -172,6 +172,101 @@
     },
     {
       "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_App_Sessions"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telegram_user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.telegram_user_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "gw-08a-readsessions",
+      "name": "Read User Sessions",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        -320
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
+      },
+      "id": "gw-08b-resolve",
+      "name": "Resolve Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-create-session",
+              "leftValue": "={{ $json.create }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08c-ifcreate",
+      "name": "IF Create Session",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1240,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The Data Table insert uses autoMapInputData, so its input must be EXACTLY the row and\n// nothing else. Resolve Session carries a control flag, so the row is re-emitted here rather\n// than that node being taught to hide it.\nreturn [{ json: $('Build App Session').first().json }];"
+      },
+      "id": "gw-08d-buildrow",
+      "name": "Build Session Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        -400
+      ]
+    },
+    {
+      "parameters": {
         "operation": "insert",
         "dataTableId": {
           "__rl": true,
@@ -191,14 +286,61 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1,
       "position": [
-        1140,
-        -320
+        1440,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_App_Sessions"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telegram_user_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Build App Session').first().json.telegram_user_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "gw-09a-readback",
+      "name": "Read Back Sessions",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        -400
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nconst row = found || cand;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
+      },
+      "id": "gw-09b-finalise",
+      "name": "Finalise Session",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1640,
+        -400
       ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: true, app_session_id: $('Build App Session').first().json.app_session_id, expires_at: $('Build App Session').first().json.expires_at, locale: $('Claim Verdict').first().json.locale }) }}",
+        "responseBody": "={{ JSON.stringify($json.__response) }}",
         "options": {
           "responseCode": 200
         }
@@ -208,7 +350,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        1360,
+        1760,
         -320
       ]
     },
@@ -367,6 +509,57 @@
       "main": [
         [
           {
+            "node": "Read User Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read User Sessions": {
+      "main": [
+        [
+          {
+            "node": "Resolve Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Session": {
+      "main": [
+        [
+          {
+            "node": "IF Create Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Create Session": {
+      "main": [
+        [
+          {
+            "node": "Build Session Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Session Row": {
+      "main": [
+        [
+          {
             "node": "Create App Session",
             "type": "main",
             "index": 0
@@ -375,6 +568,28 @@
       ]
     },
     "Create App Session": {
+      "main": [
+        [
+          {
+            "node": "Read Back Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Back Sessions": {
+      "main": [
+        [
+          {
+            "node": "Finalise Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalise Session": {
       "main": [
         [
           {

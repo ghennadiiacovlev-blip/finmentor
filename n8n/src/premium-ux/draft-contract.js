@@ -50,7 +50,14 @@ const FIELDS = {
   contact_channel:           { kind: 'enum',  values: () => B.CONTACT.options.map((o) => o.id) },
   contact_value:             { kind: 'text',  max: MAX_SHORT_TEXT },
   important_context:         { kind: 'text',  max: MAX_FREE_TEXT },
-  locale:                    { kind: 'enum',  values: () => ['ru', 'ro'] }
+  locale:                    { kind: 'enum',  values: () => ['ru', 'ro'] },
+  // APPROVED_CARRIED names contact_name as a field that may skip on telegram_carried, which only
+  // means anything if the draft may HOLD it. It could not: the map below omitted it, so
+  // validateDraft rejected every draft the Mini App produced as UNKNOWN_FIELD:contact_name — and
+  // assertSubmittable runs validateDraft, so every submission would have been refused with an
+  // empty-draft error that named the wrong cause. Found by executing the endpoint, not by reading
+  // it. qa/premium-ux-draft.test.mjs now holds the two field lists against each other.
+  contact_name:              { kind: 'text',  max: MAX_SHORT_TEXT }
 };
 const FIELD_NAMES = Object.keys(FIELDS);
 

@@ -22,7 +22,7 @@
 // project a Gateway that answered 409 to an outage and a Lead Intake that reached a write on one.
 // The gate below refuses to emit a candidate that reintroduces the pair.
 
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -38,6 +38,13 @@ export const SUBMIT_NAME = '[CANDIDATE] FINMENTOR Mini App Submit';
 export const LEAD_INTAKE_PLACEHOLDER = '__LEAD_INTAKE_WORKFLOW_ID__';
 export const PRIVACY_CRED_PLACEHOLDER = '__PRIVACY_AUDIT_CREDENTIAL_ID__';
 export const SESSION_TABLE = 'MiniApp_App_Sessions';
+// The SAME receipt store the Concierge preallocates into. Not a Mini App table: Lead Intake
+// reads exactly one store, and a second one would be a second contract to drift.
+const RECEIPT_TABLE = 'Submission_Receipts';
+// The eleven columns, in the order the live Concierge Receipt Preallocate declares them.
+const RECEIPT_COLUMNS = ['submission_key', 'commit_state', 'canonical_lead_id', 'lead_mode',
+  'lead_priority', 'financial_zone', 'created_at', 'claimed_at', 'settled_at', 'abort_reason',
+  'correlation_id'];
 
 // OWNER-ONLY UAT GATE.
 //
@@ -115,12 +122,45 @@ function respond(name, statusCode, body) {
 // cosmetic: it makes the app retry something it must not, or give up on something it should retry.
 const echoBody =
   '={{ JSON.stringify({ ok: false, error_code: String($json.error_code || "UNSPECIFIED"), retryable: $json.retryable === true }) }}';
+
+// D7, AND WHY IT IS A SEPARATE BODY FROM `echoBody`.
+//
+// `Submit State` answers a submit against an already-`submitted` session with already:1 and the
+// canonical lead id. The old responder flattened that to { ok:false, error_code:"ALREADY_SUBMITTED" }
+// with HTTP 200, and the client — which did not know that code — downgraded it to BAD_RESPONSE and
+// rendered «Заявка пока не отправлена» over a brief the server had accepted. The mirror image of
+// showing «Обращение передано» over a failed write, and just as wrong. The truthful answer is
+// ok:true with the lead.
+//
+// It is NOT folded into echoBody because echoBody is shared with the DRAFT endpoint, which has no
+// business mentioning a lead id — and the session gate caught exactly that the moment it was.
+// THE TERMINAL RESPONSE IS BUILT IN JAVASCRIPT AND MERELY SERIALISED HERE.
+//
+// It began as a ternary inside the template. The LIVE probe found it answering HTTP 200 with an
+// EMPTY BODY: an n8n expression that fails does not fail loudly, it produces nothing — and a 200
+// carrying nothing is exactly the shape `verdict()` refuses and the owner sees as an unexplained
+// error. Found by probing the deployed endpoint, not by reading it.
+//
+// So the branch lives where branches belong. Every node that can reach this responder emits
+// `__status` and `__response`, and the responder does the one thing it cannot get wrong.
+const terminalBody = '={{ JSON.stringify($json.__response) }}';
+const terminalCode = '={{ Number($json.__status || 400) }}';
 const echoCode = '={{ Number($json.status || 400) }}';
 
 function respondEcho(name, fallbackCode) {
   y += 1;
   return {
     parameters: { respondWith: 'json', responseBody: echoBody, options: { responseCode: echoCode } },
+    id: 'pux-r-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    name: name, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [y * 220, 0]
+  };
+}
+
+// Submit only. See terminalBody.
+function respondTerminal(name) {
+  y += 1;
+  return {
+    parameters: { respondWith: 'json', responseBody: terminalBody, options: { responseCode: terminalCode } },
     id: 'pux-r-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     name: name, type: 'n8n-nodes-base.respondToWebhook', typeVersion: 1, position: [y * 220, 0]
   };
@@ -198,6 +238,9 @@ function sessionWorkflow() {
     { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
       filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $json.app_session_id }}' }] } },
       id: 'pux-read-session', name: 'Read App Session', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [660, 0],
+      // Same hole as the submit read: a no-match must still produce an item, or Session Verdict
+      // never runs and an unknown or expired session answers HTTP 200 with an empty body.
+      alwaysOutputData: true,
       onError: 'continueRegularOutput' },
     code('Session Verdict', SESSION_VERDICT),
     ifNode('IF Session Valid', '={{ $json.ok }}', 1),
@@ -240,36 +283,78 @@ const SUBMIT_GUARD = [
   'const id = String(body.app_session_id || "").trim();',
   'const ack = body.privacy_ack || {};',
   'const iso = v => typeof v === "string" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);',
-  'if (!/^AS-[0-9a-f]{64}$/.test(id)) { return [{ json: { ok: 0, error_code: "BAD_REQUEST", status: 400 } }]; }',
+  '// EVERY REFUSAL CARRIES ITS OWN RESPONSE. The shape branch used to end at a responder that',
+  '// answered a hard-coded BAD_REQUEST 400 to everything, so a client that had not acknowledged',
+  '// the privacy notice was told its REQUEST was malformed. The live probe confirmed it.',
+  'if (!/^AS-[0-9a-f]{64}$/.test(id)) {',
+  '  return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: "BAD_REQUEST", retryable: false } } }];',
+  '}',
   'if (!String(ack.notice_version || "").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {',
-  '  return [{ json: { ok: 0, error_code: "CONSENT_REQUIRED", status: 409 } }];',
+  '  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: "CONSENT_REQUIRED", retryable: false } } }];',
   '}',
   'return [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || "ru"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];'
 ].join('\n');
 
+// ── THE SUBMISSION IDENTITY, AND WHY IT IS ONE MECHANISM RATHER THAN FIVE PATCHES ─────────────
+//
+// D3-D7 were reported as five defects. They are one: NOTHING DERIVED A SUBMISSION IDENTITY.
+//
+//   D4  submission_key was READ from this node and never emitted, so every submission of every
+//       session shared the empty string against a UNIQUE index.
+//   D5  the privacy insert had no way to recognise its own prior row, and its failure was
+//       swallowed, letting a lead be created with no acknowledgement behind it.
+//   D3  the Lead Intake payload was a literal placeholder, so the call had no key to dedupe on.
+//   D6  the session row had nowhere to record which lead a committed submission produced.
+//   D7  a replay of a committed submission was reported to the client as a failure.
+//
+// One derivation closes all five. The key is a pure function of the app session:
+//
+//     sub_ + sha256('miniapp:' + app_session_id) truncated to 32 hex characters
+//
+// STABLE across retries, because the session does not change when the client presses Retry.
+// DISTINCT across sessions, because the session id is 32 random bytes from the Gateway.
+// DERIVED, never minted and never stored: there is no row to lose, no counter to race, and a
+// retry cannot invent a second identity because there is nothing to invent from. It matches the
+// shape Lead Intake's own receipt machine already enforces, so the EXISTING idempotency receipt
+// does the exactly-once work rather than a second mechanism being built beside it.
 const SUBMIT_STATE = [
   '// Idempotency, resolved from server state BEFORE the irreversible call.',
   '//',
   '// A retry after an ambiguous outcome must return the PRIOR canonical success rather than',
   '// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.',
+  'const crypto = require("crypto");',
   'const rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || "").trim() !== "");',
-  'if (rows.length !== 1) { return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }]; }',
+  'const R = (status, code) => [{ json: { ok: 0, __status: status,',
+  '  __response: { ok: false, error_code: code, retryable: false } } }];',
+  'if (rows.length !== 1) { return R(401, "SESSION_INVALID"); }',
   'const s = rows[0];',
   '',
   '// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the',
   '// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.',
   'const OWNER_TELEGRAM_ID = ' + JSON.stringify(OWNER_TELEGRAM_PLACEHOLDER) + ';',
-  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) {',
-  '  return [{ json: { ok: 0, error_code: "NOT_AUTHORISED", status: 403 } }];',
-  '}',
-  'if (new Date(String(s.expires_at)).getTime() <= Date.now()) { return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }]; }',
+  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) { return R(403, "NOT_AUTHORISED"); }',
+  '',
+  '// THE SUBMISSION IDENTITY. Derived, not minted and not stored.',
+  'const submission_key = "sub_" + crypto.createHash("sha256")',
+  '  .update("miniapp:" + String(s.app_session_id)).digest("hex").slice(0, 32);',
+  '',
+  '// COMMITTED IS CHECKED FIRST, BEFORE EXPIRY. A session that was submitted and has since aged',
+  '// past its TTL is still a committed submission, and the truthful answer is the lead it',
+  '// produced rather than "expired". This branch answers ok:TRUE — see Respond Submit Terminal.',
   'if (String(s.state) === "submitted") {',
-  '  return [{ json: { ok: 0, already: 1, error_code: "ALREADY_SUBMITTED", status: 200, lead_id: String(s.lead_id || "") } }];',
+  '  return [{ json: { ok: 0, already: 1, submission_key: submission_key,',
+  '    __status: 200,',
+  '    __response: { ok: true, already: true, lead_id: String(s.lead_id || ""), submit_state: "submitted" } } }];',
   '}',
+  'if (new Date(String(s.expires_at)).getTime() <= Date.now()) { return R(401, "SESSION_EXPIRED"); }',
   'let draft = null;',
   'try { draft = JSON.parse(String(s.draft_json || "null")); } catch (e) { draft = null; }',
-  'if (!draft || !draft.fields) { return [{ json: { ok: 0, error_code: "BAD_REQUEST", status: 400 } }]; }',
-  'return [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id, cycle_id: String(s.cycle_id || ""), draft: draft } }];'
+  '// An empty draft is its own refusal. Calling it BAD_REQUEST told the client its request was',
+  '// malformed when what actually happened is that no answers ever reached the server.',
+  'if (!draft || !draft.fields || !Object.keys(draft.fields).length) { return R(409, "DRAFT_EMPTY"); }',
+  'return [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id,',
+  '  chat_id: String(s.chat_id || s.telegram_user_id || ""), cycle_id: String(s.cycle_id || ""),',
+  '  contact_name: String(s.contact_name || ""), submission_key: submission_key, draft: draft } }];'
 ].join('\n');
 
 const SUBMIT_PRIVACY = [
@@ -296,6 +381,214 @@ const SUBMIT_PRIVACY = [
   '} }];'
 ].join('\n');
 
+// ── THE PRIVACY VERDICT, AND WHY THE UNIQUE INDEX IS THE READ ─────────────────────────────────
+//
+// `privacy_audit_writer` holds INSERT and nothing else. Measured, not assumed:
+// information_schema.role_table_grants lists exactly one privilege for it. So this endpoint
+// CANNOT read the privacy store to find out whether a row already exists, and it cannot use
+// ON CONFLICT DO UPDATE either, which would need SELECT on the referenced columns.
+//
+// What it can do is insert and read the outcome. The unique index on submission_key turns that
+// into a complete answer:
+//
+//   insert succeeded   -> this attempt created the one row
+//   23505              -> a previous attempt already created it
+//   anything else      -> UNKNOWN, and the flow stops
+//
+// Both of the first two mean EXACTLY ONE ROW EXISTS, which is the invariant. The index is the
+// read, performed by the database under a role that cannot read — which is a better place for it
+// than any query this workflow could run.
+//
+// AND IT STOPS. The old graph had onError: continueRegularOutput on the insert and nothing
+// downstream that looked at the outcome, so a failed acknowledgement flowed straight on into the
+// irreversible Lead Intake call. A lead could be created with no consent row behind it — the one
+// thing a separate privacy store exists to make impossible.
+const SUBMIT_PRIVACY_VERDICT = [
+  'const v = $("Submit State").first().json;',
+  'const items = $input.all();',
+  'let created = 0; let already = 0; let fault = "";',
+  'for (const it of items) {',
+  '  const j = (it && it.json) || {};',
+  '  const raw = j.error !== undefined ? j.error : (it && it.error !== undefined ? it.error : null);',
+  '  if (raw === null || raw === undefined) { created = 1; continue; }',
+  '  // The unique-index refusal arrives on json.message; json.error carries no code and no',
+  '  // message of its own, so classifying json.error alone never sees the duplicate.',
+  '  const parts = [];',
+  '  if (j.message !== undefined && j.message !== null) { parts.push(typeof j.message === "string" ? j.message : JSON.stringify(j.message)); }',
+  '  parts.push(typeof raw === "string" ? raw : JSON.stringify(raw));',
+  '  const txt = parts.join(" | ");',
+  '  if (/23505|duplicate key|privacy_ack_submission_key_uidx/i.test(txt)) { already = 1; continue; }',
+  '  fault = txt.slice(0, 200);',
+  '}',
+  '// FAIL CLOSED. No items at all, or an error that is not the unique-index refusal, means the',
+  '// acknowledgement is UNPROVEN and the irreversible call must not happen. It is retryable: the',
+  '// same derived key makes the next attempt land on the same row or the same refusal.',
+  'if (!created && !already) {',
+  '  return [{ json: { ok: 0, error_code: "PRIVACY_UNRESOLVED", status: 503, retryable: true, detail: fault } }];',
+  '}',
+  'return [{ json: Object.assign({}, v, { ok: 1, privacy_state: already ? "already_recorded" : "recorded" }) }];'
+].join('\n');
+
+const SUBMIT_RECEIPT_PROBE = [
+  '// Does a receipt already exist for this submission key?',
+  'const v = $("Submit State").first().json;',
+  'const raw = $input.all().map(function (i) { return i.json; })',
+  '  .filter(function (r) { return r && typeof r === "object" && !Array.isArray(r); });',
+  'const storeError = raw.some(function (r) { return r.error || r.errorMessage; });',
+  '// A zero-match arrives as ONE EMPTY ITEM because the read carries alwaysOutputData, and an',
+  '// empty item is not a row. Discriminate by KEY COUNT — never by truthiness, which an empty',
+  '// object passes.',
+  'const rows = raw.filter(function (r) {',
+  '  return Object.keys(r).length > 0 && !r.error && !r.errorMessage;',
+  '});',
+  '// PREALLOCATE ONLY ON A CLEAN READ OF ZERO ROWS. A store we could not read is NOT a store',
+  '// with no row in it, and inserting on that reading is exactly how a second receipt appears',
+  '// for a key that already had one. Anything else passes through untouched and is judged by',
+  '// the readback, which fails closed.',
+  'const needed = (!storeError && rows.length === 0) ? 1 : 0;',
+  'return [{ json: Object.assign({}, v, { __receipt_needed: needed,',
+  '  __probe_rows: rows.length, __probe_store_error: storeError ? 1 : 0 }) }];'
+].join('\n');
+
+// THE EXISTENCE VERDICT, and what it deliberately does NOT copy from the Concierge.
+//
+// The Concierge mints a key that has never existed, so its Issuance Verdict additionally demands
+// a PRISTINE row: empty canonical_lead_id, claimed_at, settled_at, lead_mode, lead_priority,
+// financial_zone and correlation_id. That check is right there and wrong here. The Mini App key is
+// STABLE across retries, so on the second attempt the row may legitimately be IN_FLIGHT or
+// COMMITTED with a canonical lead on it. Demanding pristine would refuse precisely the replay the
+// receipt exists to make safe.
+//
+// So this proves PRESENCE and IDENTITY — exactly one row, exact raw key, a non-empty state, a
+// parseable created_at — and leaves the interpretation of commit_state to Lead Intake, which is
+// the authority on it and already classifies READY, IN_FLIGHT and COMMITTED. One decision site.
+const SUBMIT_RECEIPT_VERDICT = [
+  'const v = $("Submit State").first().json;',
+  'const key = String(v.submission_key || "");',
+  'const raw = $input.all().map(function (i) { return i.json; })',
+  '  .filter(function (r) { return r && typeof r === "object" && !Array.isArray(r); });',
+  'const storeError = raw.some(function (r) { return r.error || r.errorMessage; });',
+  'const rows = raw.filter(function (r) {',
+  '  return Object.keys(r).length > 0 && !r.error && !r.errorMessage;',
+  '});',
+  'function refuse(reason) {',
+  '  return [{ json: { ok: 0, error_code: "SUBMIT_UNRESOLVED", status: 503, retryable: true,',
+  '    receipt_reason: reason } }];',
+  '}',
+  'if (!/^sub_[0-9a-f]{32}$/.test(key)) { return refuse("SUBMISSION_KEY_INVALID"); }',
+  '// "We could not look" and "it is there" must never collapse into one outcome.',
+  'if (storeError) { return refuse("READBACK_STORE_ERROR"); }',
+  '// RAW equality, deliberately not a trim. A trim is a REPAIR, and a stored key that is not',
+  '// byte-identical is evidence the store is holding something the deriver never produced.',
+  'for (var i = 0; i < rows.length; i++) {',
+  '  if (typeof rows[i].submission_key !== "string" || rows[i].submission_key !== key) {',
+  '    return refuse("READBACK_WRONG_KEY");',
+  '  }',
+  '}',
+  'if (rows.length === 0) { return refuse("READBACK_ABSENT"); }',
+  'if (rows.length > 1) { return refuse("DUPLICATE_RECEIPTS"); }',
+  'const state = String(rows[0].commit_state || "").trim();',
+  'if (state === "") { return refuse("RECEIPT_STATE_EMPTY"); }',
+  'const created = rows[0].created_at;',
+  'if (typeof created !== "string" || created.trim() === "" ||',
+  '    !Number.isFinite(Date.parse(created))) { return refuse("READBACK_CREATED_AT_INVALID"); }',
+  'return [{ json: Object.assign({}, v, { ok: 1, receipt_state: state }) }];'
+].join('\n');
+
+// The preallocation row, field for field and value for value as the live Concierge writes it.
+// Only the source of submission_key differs: the Concierge reads its minted key off the issuance
+// gate, the Mini App derives its own from app_session_id. Same store, same columns, same initial
+// state, same emptiness.
+function receiptInsert(name) {
+  y += 1;
+  const value = {
+    submission_key: '={{ $(\'Submit State\').first().json.submission_key }}',
+    commit_state: 'READY',
+    canonical_lead_id: '', lead_mode: '', lead_priority: '', financial_zone: '',
+    created_at: '={{ $now.toISO() }}',
+    claimed_at: '', settled_at: '', abort_reason: '', correlation_id: ''
+  };
+  const schema = RECEIPT_COLUMNS.map((c) => ({ id: c, displayName: c, required: false,
+    defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true }));
+  return { parameters: { resource: 'row', operation: 'insert',
+    dataTableId: { __rl: true, mode: 'name', value: RECEIPT_TABLE },
+    columns: { mappingMode: 'defineBelow', matchingColumns: [], value: value, schema: schema } },
+    id: 'pux-receipt-insert', name: name, type: 'n8n-nodes-base.dataTable', typeVersion: 1.1,
+    position: [y * 220, 0], alwaysOutputData: true, onError: 'continueRegularOutput' };
+}
+
+// An exact-key read of the receipt store. alwaysOutputData is LOAD-BEARING: a zero match returns
+// main[0] === [] and skips every downstream node, so without it the fail-closed branch could
+// never run. The cost — 'no match' arriving as one empty item — is handled by key count above.
+function receiptRead(name, id) {
+  y += 1;
+  return { parameters: { resource: 'row', operation: 'get',
+    dataTableId: { __rl: true, mode: 'name', value: RECEIPT_TABLE },
+    matchType: 'allConditions',
+    filters: { conditions: [{ keyName: 'submission_key', condition: 'eq',
+      keyValue: '={{ $(\'Submit State\').first().json.submission_key }}' }] },
+    returnAll: true },
+    id: id, name: name, type: 'n8n-nodes-base.dataTable', typeVersion: 1.1,
+    position: [y * 220, 0], alwaysOutputData: true, onError: 'continueRegularOutput' };
+}
+
+// ── D3. THE REAL PROJECTION ────────────────────────────────────────────────────────────────────
+//
+// The deployed node returned a literal placeholder object, so Lead Intake was called with
+// { placeholder: "built from ..." } and could not have produced a lead from it.
+//
+// n8n/src/premium-ux/submit-projection.js is the gated statement of this projection and
+// qa/premium-ux-submit.test.mjs drives it. A Code node cannot require a repo file, so the module
+// and its two dependencies are INLINED verbatim at deploy time by resolveEndpoint() and the gate
+// requires a byte match — the same generate-rather-than-retype discipline the Mini App content
+// bundle already uses. The marker below is replaced with the three modules and never ships as
+// itself: verifyEndpoint refuses a candidate that still carries it unresolved... in the DEPLOYED
+// artifact, while the tracked candidate keeps it, exactly like the owner id and the credential.
+const PROJECTION_PLACEHOLDER = '__PREMIUM_SUBMIT_PROJECTION__';
+
+const SUBMIT_PAYLOAD = [
+  PROJECTION_PLACEHOLDER,
+  '',
+  '// The answers come from the STORED draft. Nothing in the request body is read: the browser',
+  '// posts a session id and an acknowledgement, and neither can steer this.',
+  'const v = $("Submit State").first().json;',
+  '',
+  '// The draft must be COMPLETE before an irreversible call. `assertSubmittable` re-runs the same',
+  '// required-field and provenance rules the client mirrors, on the server, where they are rules',
+  '// rather than a convenience.',
+  'const ready = SP.assertSubmittable(v.draft);',
+  'if (!ready.ok) {',
+  '  return [{ json: { __build_ok: 0, __status: 409, detail: String(ready.detail || ""),',
+  '    __response: { ok: false, error_code: "DRAFT_EMPTY", retryable: false } } }];',
+  '}',
+  '',
+  '// THE CORRELATION IS THE SUBMISSION KEY. A retry correlates to the submission it replays,',
+  '// which is the whole point of deriving the key from the session rather than minting one.',
+  'const built = SP.buildLeadIntakePayload({',
+  '  draft: v.draft,',
+  '  telegramUserId: String(v.telegram_user_id || ""),',
+  '  // contact_name is a DRAFT field, not a session column: Telegram supplies the first name and',
+  '  // the client carries it into the draft with telegram_carried provenance.',
+  '  contactName: (v.draft && v.draft.fields && v.draft.fields.contact_name && v.draft.fields.contact_name.value) || "",',
+  '  nowIso: new Date().toISOString(),',
+  '  correlationId: String(v.submission_key || ""),',
+  '  clientVersion: SP.ALLOWED_CLIENT_VERSIONS[0]',
+  '});',
+  'if (!built || built.ok === false) {',
+  '  return [{ json: { __build_ok: 0, __status: 409,',
+  '    __response: { ok: false, error_code: String((built && built.error_code) || "BAD_REQUEST"), retryable: false } } }];',
+  '}',
+  '',
+  '// The INTERNAL envelope Lead Intake authenticates. buildLeadIntakePayload already assembles',
+  '// it — source marker and all — so this wraps rather than rebuilds: a second construction here',
+  '// would be a second contract, and the one that is gated would stop being the one that ships.',
+  '// `submission_key` is what Lead Intake\'s idempotency receipt claims on.',
+  'return [{ json: {',
+  '  submission_key: String(v.submission_key || ""),',
+  '  envelope: built.envelope',
+  '} }];'
+].join('\n');
+
 const SUBMIT_RESULT = [
   '// Success is `ok === true` and nothing else. Not HTTP 2xx, not a parseable body, not the',
   '// absence of an exception — the rule Lead Intake already enforces, restated where it is read.',
@@ -316,6 +609,10 @@ function submitWorkflow() {
     { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
       filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $json.app_session_id }}' }] } },
       id: 'pux-submit-read', name: 'Read Submit Session', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [660, 0],
+      // See the note above: no match must still produce an item, or the verdict never runs and
+      // the caller gets an empty 200. Safe here because onError is continueRegularOutput, not
+      // continueErrorOutput — the flag is not the P9-R2 hazard, the pair is.
+      alwaysOutputData: true,
       onError: 'continueRegularOutput' },
     code('Submit State', SUBMIT_STATE),
     ifNode('IF Submit Allowed', '={{ $json.ok }}', 1),
@@ -325,11 +622,31 @@ function submitWorkflow() {
       // Parse Privacy Result — NOT `on conflict do nothing`, which needs a SELECT the writer is
       // deliberately not granted. Measured against the real role; see the privacy store proof.
       query: 'insert into privacy.privacy_acknowledgements\n  (submission_key, cycle_id, privacy_notice_version, privacy_locale,\n   privacy_notice_shown_at, privacy_notice_acknowledged_at, privacy_legal_basis)\nvalues ($1, nullif($2, \'\'), $3, $4, $5::timestamptz, $6::timestamptz, $7)',
-      options: {} },
+      // The seven values Build Privacy Record emits, bound positionally. n8n splits this
+      // field on commas BEFORE resolving each segment, which is why every segment carries
+      // its own leading '=' and why a comma inside a resolved VALUE cannot shift the
+      // binding. Proved on a disposable table with the same node type and typeVersion.
+      options: { queryReplacement: '={{ $json.submission_key }},={{ $json.cycle_id }},={{ $json.privacy_notice_version }},={{ $json.privacy_locale }},={{ $json.privacy_notice_shown_at }},={{ $json.privacy_notice_acknowledged_at }},={{ $json.privacy_legal_basis }}' } },
       id: 'pux-privacy-write', name: 'Write Privacy Acknowledgement', type: 'n8n-nodes-base.postgres', typeVersion: 2.4, position: [1320, 0],
       credentials: { postgres: { id: PRIVACY_CRED_PLACEHOLDER, name: 'FINMENTOR Privacy Audit (writer)' } },
       onError: 'continueRegularOutput' },
-    code('Build Intake Payload', '// Deployed form of n8n/src/premium-ux/submit-projection.js buildLeadIntakePayload.\n// The answers come from the STORED draft, never from the request body.\nreturn [{ json: { placeholder: "built from $(\'Submit State\').first().json.draft" } }];'),
+    code('Privacy Verdict', SUBMIT_PRIVACY_VERDICT),
+    ifNode('IF Privacy Recorded', '={{ $json.ok }}', 1),
+    // THE CALLER-SIDE RECEIPT CONTRACT. Lead Intake has no insert: every one of its receipt
+    // writes is an UPDATE filtered on submission_key plus a commit_state, and it treats a
+    // missing row as RECEIPT_ABSENT_INVARIANT_BROKEN. The Concierge satisfies that contract
+    // with Receipt Preallocate; the Mini App never did, which is why the second live submit
+    // reached the receipt gate and was refused. Read, insert only on a clean absence, then
+    // prove presence before the irreversible call.
+    receiptRead('Receipt Probe', 'pux-receipt-probe'),
+    code('Receipt Probe Verdict', SUBMIT_RECEIPT_PROBE),
+    ifNode('IF Receipt Needed', '={{ $json.__receipt_needed }}', 1),
+    receiptInsert('Preallocate Receipt'),
+    receiptRead('Receipt Readback', 'pux-receipt-readback'),
+    code('Receipt Verdict', SUBMIT_RECEIPT_VERDICT),
+    ifNode('IF Receipt Present', '={{ $json.ok }}', 1),
+    code('Build Intake Payload', SUBMIT_PAYLOAD),
+    ifNode('IF Payload Built', '={{ $json.__build_ok === undefined ? 1 : $json.__build_ok }}', 1),
     { parameters: { workflowId: { __rl: true, mode: 'id', value: LEAD_INTAKE_PLACEHOLDER }, options: { waitForSubWorkflow: true } },
       id: 'pux-intake', name: 'Call Lead Intake', type: 'n8n-nodes-base.executeWorkflow', typeVersion: 1.2, position: [1760, 0],
       onError: 'continueRegularOutput' },
@@ -337,24 +654,43 @@ function submitWorkflow() {
     ifNode('IF Intake OK', '={{ $json.ok }}', 1),
     { parameters: { operation: 'update', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
       filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $(\'Submit State\').first().json.app_session_id }}' }] },
-      columns: { mappingMode: 'defineBelow', value: { state: 'submitted', updated_at: '={{ new Date().toISOString() }}' }, schema: [] } },
+      // D6. The session row is where a REPLAY finds the canonical lead id, so a committed
+      // submission that is submitted again can be answered with the lead it produced instead of
+      // an empty string. Without this column the terminal branch had nothing truthful to say.
+      columns: { mappingMode: 'defineBelow', value: { state: 'submitted',
+        lead_id: '={{ $(\'Parse Intake Result\').first().json.lead_id }}',
+        updated_at: '={{ new Date().toISOString() }}' }, schema: [] } },
       id: 'pux-mark-submitted', name: 'Mark Submitted', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [2200, 0],
       onError: 'continueRegularOutput' },
     respond('Respond Submit OK', 200, '={{ JSON.stringify({ ok: true, lead_id: $(\'Parse Intake Result\').first().json.lead_id, priority: $(\'Parse Intake Result\').first().json.priority, financial_zone: $(\'Parse Intake Result\').first().json.financial_zone, submit_state: \'submitted\' }) }}'),
-    respond('Respond Submit Rejected', 400, errBody('BAD_REQUEST', false)),
-    respondEcho('Respond Submit Session Invalid', 401),
+    // NO separate 'Rejected' responder. It answered a hard-coded BAD_REQUEST 400 to everything on
+    // the shape branch, which is the exact flattening this file warns about above respondEcho —
+    // in the one place the warning had not been applied.
+    respondTerminal('Respond Submit Terminal'),
     respond('Respond Submit Unresolved', 503, errBody('SUBMIT_UNRESOLVED', true))
   ];
   const connections = {
     'Submit Webhook': { main: [[{ node: 'Submit Guard', type: 'main', index: 0 }]] },
     'Submit Guard': { main: [[{ node: 'IF Submit Shape', type: 'main', index: 0 }]] },
-    'IF Submit Shape': { main: [[{ node: 'Read Submit Session', type: 'main', index: 0 }], [{ node: 'Respond Submit Rejected', type: 'main', index: 0 }]] },
+    'IF Submit Shape': { main: [[{ node: 'Read Submit Session', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] },
     'Read Submit Session': { main: [[{ node: 'Submit State', type: 'main', index: 0 }]] },
     'Submit State': { main: [[{ node: 'IF Submit Allowed', type: 'main', index: 0 }]] },
-    'IF Submit Allowed': { main: [[{ node: 'Build Privacy Record', type: 'main', index: 0 }], [{ node: 'Respond Submit Session Invalid', type: 'main', index: 0 }]] },
+    'IF Submit Allowed': { main: [[{ node: 'Build Privacy Record', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] },
     'Build Privacy Record': { main: [[{ node: 'Write Privacy Acknowledgement', type: 'main', index: 0 }]] },
-    'Write Privacy Acknowledgement': { main: [[{ node: 'Build Intake Payload', type: 'main', index: 0 }]] },
-    'Build Intake Payload': { main: [[{ node: 'Call Lead Intake', type: 'main', index: 0 }]] },
+    'Write Privacy Acknowledgement': { main: [[{ node: 'Privacy Verdict', type: 'main', index: 0 }]] },
+    'Privacy Verdict': { main: [[{ node: 'IF Privacy Recorded', type: 'main', index: 0 }]] },
+    'IF Privacy Recorded': { main: [[{ node: 'Receipt Probe', type: 'main', index: 0 }], [{ node: 'Respond Submit Unresolved', type: 'main', index: 0 }]] },
+    'Receipt Probe': { main: [[{ node: 'Receipt Probe Verdict', type: 'main', index: 0 }]] },
+    'Receipt Probe Verdict': { main: [[{ node: 'IF Receipt Needed', type: 'main', index: 0 }]] },
+    // Both branches converge on the readback: whether we inserted or found one already, the
+    // only thing allowed to authorise the Lead Intake call is a fresh read of the STATE.
+    'IF Receipt Needed': { main: [[{ node: 'Preallocate Receipt', type: 'main', index: 0 }], [{ node: 'Receipt Readback', type: 'main', index: 0 }]] },
+    'Preallocate Receipt': { main: [[{ node: 'Receipt Readback', type: 'main', index: 0 }]] },
+    'Receipt Readback': { main: [[{ node: 'Receipt Verdict', type: 'main', index: 0 }]] },
+    'Receipt Verdict': { main: [[{ node: 'IF Receipt Present', type: 'main', index: 0 }]] },
+    'IF Receipt Present': { main: [[{ node: 'Build Intake Payload', type: 'main', index: 0 }], [{ node: 'Respond Submit Unresolved', type: 'main', index: 0 }]] },
+    'Build Intake Payload': { main: [[{ node: 'IF Payload Built', type: 'main', index: 0 }]] },
+    'IF Payload Built': { main: [[{ node: 'Call Lead Intake', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] },
     'Call Lead Intake': { main: [[{ node: 'Parse Intake Result', type: 'main', index: 0 }]] },
     'Parse Intake Result': { main: [[{ node: 'IF Intake OK', type: 'main', index: 0 }]] },
     'IF Intake OK': { main: [[{ node: 'Mark Submitted', type: 'main', index: 0 }], [{ node: 'Respond Submit Unresolved', type: 'main', index: 0 }]] },
@@ -365,6 +701,67 @@ function submitWorkflow() {
 
 // ---------------------------------------------------------------- gate
 
+// ── RESOLUTION ────────────────────────────────────────────────────────────────────────────────
+//
+// The tracked candidate carries placeholders and nothing else — no owner id, no workflow id, no
+// credential id, and no projection source. Resolution happens once, HERE, so the gate and the
+// deploy script cannot disagree about what actually ships: the gate executes exactly the code the
+// deploy script writes.
+
+// n8n/src/premium-ux/submit-projection.js and its two dependencies, as one IIFE bound to `SP`.
+//
+// A Code node cannot require a repo file. Rather than retype 1 100 lines of gated projection into
+// a workflow parameter — a second copy that nothing watches, which is precisely how a client ends
+// up seeing a label nobody approved — the modules are inlined verbatim and the gate requires a
+// byte match against them.
+export function projectionSource() {
+  const read = (f) => readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', f), 'utf8');
+  const strip = (src, name) => {
+    const i = src.lastIndexOf('module.exports = ');
+    if (i === -1) { throw new Error(name + ': no module.exports'); }
+    const body = src.slice(0, i).replace(/^\s*const [A-Z] = require\([^)]*\);\s*$/gm, '');
+    const exported = src.slice(i + 'module.exports = '.length).replace(/;\s*$/, '');
+    return { body, exported };
+  };
+  const parts = [
+    '// ─── INLINED, VERBATIM, FROM n8n/src/premium-ux/. DO NOT EDIT HERE. ─────────────────────────',
+    '// scripts/build-premium-endpoints.mjs regenerates this block at deploy time. An edit made in',
+    '// the n8n editor is lost on the next deploy and is invisible to qa/premium-ux-submit.test.mjs.'
+  ];
+  for (const [name, file] of [['B', 'branches.js'], ['D', 'draft-contract.js'], ['SP', 'submit-projection.js']]) {
+    const { body, exported } = strip(read(file), file);
+    parts.push('const ' + name + ' = (function () {', body, 'return ' + exported + ';', '})();');
+  }
+  return parts.join('\n');
+}
+
+export const PROJECTION_MARKER = '__PREMIUM_SUBMIT_PROJECTION__';
+
+// Substitutes every placeholder and returns a workflow ready to PUT. Refuses on any survivor: a
+// placeholder that reaches the tenant is either an owner gate that cannot match (locking the
+// owner out) or a credential that is not attached (a write that cannot happen).
+export function resolveEndpoint(wf, opts) {
+  const o = opts || {};
+  let text = JSON.stringify(wf);
+  if (o.ownerId) { text = text.split(OWNER_TELEGRAM_PLACEHOLDER).join(String(o.ownerId)); }
+  if (o.leadIntakeId) { text = text.split(LEAD_INTAKE_PLACEHOLDER).join(String(o.leadIntakeId)); }
+  if (o.privacyCredId) { text = text.split(PRIVACY_CRED_PLACEHOLDER).join(String(o.privacyCredId)); }
+  const resolved = JSON.parse(text);
+  // The projection is substituted on the PARSED workflow, not on the JSON string: the module
+  // source contains quotes, backslashes and newlines that a string splice would have to escape,
+  // and getting that wrong silently produces a Code node that does not parse.
+  const src = projectionSource();
+  for (const n of resolved.nodes) {
+    const js = (n.parameters && n.parameters.jsCode) || '';
+    if (js.indexOf(PROJECTION_MARKER) !== -1) {
+      n.parameters.jsCode = js.split(PROJECTION_MARKER).join(src);
+    }
+  }
+  const leftovers = JSON.stringify(resolved).match(/__[A-Z_]{4,}__/g);
+  if (leftovers) { throw new Error('unresolved placeholders: ' + [...new Set(leftovers)].join(', ')); }
+  return resolved;
+}
+
 export function verifyEndpoint(wf, kind) {
   const f = [];
   const json = JSON.stringify(wf);
@@ -374,13 +771,21 @@ export function verifyEndpoint(wf, kind) {
     if (n.alwaysOutputData === true && n.onError === 'continueErrorOutput') {
       f.push('P9-R2 FLAG PAIR on ' + n.name + ' — a failure would fire the success branch too');
     }
-    if (n.alwaysOutputData === true) { f.push('alwaysOutputData on ' + n.name + '; no node here needs it'); }
+    // NOT a blanket ban. P9-R2's hazard is the PAIR above — alwaysOutputData with an ERROR output
+    // fires both branches on a failure. With continueRegularOutput there is one output, and the
+    // flag is the only way to make a no-match read produce an item at all. Banning the flag
+    // outright is what left an unknown session answering HTTP 200 with an empty body.
+    if (n.alwaysOutputData === true && n.onError !== 'continueRegularOutput') {
+      f.push('alwaysOutputData on ' + n.name + ' without continueRegularOutput');
+    }
   }
   // Bootstrap must not be touched or duplicated.
   for (const forbidden of ['Verify InitData', 'G5 Replay Claim', 'Derive Replay Key', 'Build App Session', 'telegram_initdata_replays']) {
     if (json.indexOf(forbidden) !== -1) { f.push('candidate touches closed bootstrap/G5 surface: ' + forbidden); }
   }
-  if (json.indexOf('init_data') !== -1) { f.push('candidate reads init_data after bootstrap'); }
+  // A READ or a SEND, never a mention. The inlined projection lists 'init_data' among the body
+  // keys it REFUSES; a blanket match would reject the code that exists to reject it.
+  if (/body\.init_data|\binit_data\s*:/.test(json)) { f.push('candidate reads or sends init_data after bootstrap'); }
   if (json.indexOf('finmentor-miniapp-gateway') !== -1) { f.push('candidate would seize the bootstrap route'); }
 
   const paths = wf.nodes.filter((n) => n.type === 'n8n-nodes-base.webhook').map((n) => n.parameters.path);
