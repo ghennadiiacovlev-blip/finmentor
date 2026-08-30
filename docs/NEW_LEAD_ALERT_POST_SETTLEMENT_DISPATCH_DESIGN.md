@@ -1,9 +1,80 @@
 # NEW LEAD owner alert — post-settlement dispatch. DESIGN ONLY, NOT DEPLOYED.
 
-**Date:** 2026-08-30
-**Status:** candidate architecture and exact diff. **Nothing built, nothing deployed.**
+**Date:** 2026-08-30 (§0 added on the implementation attempt, same day)
+**Status:** **STOPPED at the durability boundary — see §0.** Architecture and diff below stand;
+nothing built, nothing deployed.
 **Depends on:** the measured n8n return semantics recorded in
 `docs/POST_E2E_PIPELINE_PROJECTION_AND_ALERT_AUTHORITY.md` §Defect 2.
+
+---
+
+## 0. STOPPED — a durable retry needs a payload store, and that needs a decision
+
+Implementation was authorised and begun. It stops here, at the point the authorising instruction
+named: *"If a new durable store/schema is actually required, STOP before creating it and report
+why."* It is required. This is why.
+
+### What CAN be done with no new store
+
+The durable **intent** needs no new store and no schema change. `Submission_Receipts` already
+provides the exact primitive, proven in production:
+
+```
+Receipt Claim   update WHERE submission_key = X AND commit_state = 'READY'  SET 'IN_FLIGHT'
+Claim Verdict   reads the UPDATED ROW COUNT — 1 means this executor won
+```
+
+That is a real compare-and-set on an n8n Data Table. A notification intent can live in the same
+table under a **disjoint key namespace** — `NEW_LEAD:<lead_id>` — because `Receipt Gate` pins the
+lead-receipt namespace to `^sub_[0-9a-f]{32}$`, so the two can never collide, and the lead-receipt
+machine reads only by exact key. Claim/settle/abort reuse the columns already there:
+`commit_state`, `claimed_at`, `settled_at`, `abort_reason`, `correlation_id`, `canonical_lead_id`.
+
+So: one intent per first settlement, an atomic claim, at most one successful send. **No new store,
+no new column, no second settlement authority.**
+
+### What CANNOT
+
+A retry has to render the approved message again, and **the content is not durably anywhere.**
+Measured on the live workflow:
+
+```
+Build Premium Telegram Brief reads 29 item fields.
+The Pipeline row carries 62 columns.
+NINE of the renderer's fields are not among them:
+    city, country, diagnostic_score, lead_temperature, raw_json, risk_zone, score_zone, tool, urgency
+```
+
+`raw_json` is the important one — the renderer reads the original payload out of it. A retry
+rebuilt from the Pipeline row would send a **degraded message**, which is altering the approved
+NEW LEAD presentation by the back door. And `Save Lead to CRM` (which does carry a payload) is on
+the public branch only: **the internal route never reaches it**, so for exactly the Mini App and
+Concierge leads this whole change exists to serve, no second copy of the payload exists at all.
+
+Retained n8n executions hold the payload, but retention on the endpoints is deliberately OFF and
+Lead Intake's retention is not a contract — it is a setting, and building recovery on it would make
+owner notification depend on a debugging convenience.
+
+### The decision required
+
+| option | what it costs | what it buys |
+|---|---|---|
+| **A — ship without automatic retry** | on an extended Telegram outage the intent stays `READY` and visible, and re-sending is an operator action driven from the retained execution (the method used for the UAT row repair) | no new store; one intent; atomic claim; at most one successful send; client fully independent; transient failures covered by `retryOnFail` on the Telegram node |
+| **B — add the minimum dispatch ledger** | ONE new n8n Data Table, e.g. `Alert_Dispatch` — `dispatch_key`, `state`, `payload_json`, `claimed_at`, `settled_at`, `attempts`, `last_error` — holding the renderer's input verbatim | everything in A, plus a faithful automatic retry: the approved message is re-rendered from the same bytes that would have produced it the first time |
+
+**B is what the stated invariant actually asks for.** A satisfies every clause except automatic
+recovery, which the instruction lists explicitly. A new store is not being proposed for
+convenience: it is the only place the *content* can live, and without content there is no faithful
+retry.
+
+Not built. Awaiting the choice.
+
+### Also found while attempting it, and folded into the design below
+
+All three Telegram nodes resolve the owner's chat id through **`$('Settings to Object')`** — a hard
+node reference. Moving them into any new workflow breaks it silently unless that workflow also
+carries `Read Settings` + `Settings to Object`. The §4 diff below is corrected accordingly: nine
+nodes, not seven.
 
 ---
 
@@ -78,7 +149,9 @@ FINMENTOR NEW LEAD Alert Dispatch            (new workflow, executeWorkflowTrigg
         └ INCOMPLETE→ Build Incomplete Telegram Alert MOVED → Telegram Incomplete Alert
 ```
 
-Seven nodes move. **No builder is duplicated, no approved copy or `callback_data` is edited**, and
+Seven nodes move; two more (Read Settings, Settings to Object) are COPIED, because the Telegram
+nodes resolve the owner chat id through $('Settings to Object') and that reference must resolve in
+the new host. They are config plumbing, not the alert builder, and Lead Intake keeps its own. **No builder is duplicated, no approved copy or `callback_data` is edited**, and
 the three builders read `$json` only — no hard node references — so they work unchanged behind a
 new trigger. That is asserted today by `qa/lead-intake-new-lead-alert-routing.test.mjs`.
 
@@ -122,6 +195,9 @@ Priority` with no such marker; this is the one semantic addition.
 **New workflow** — `FINMENTOR NEW LEAD Alert Dispatch`
 ```
 + Dispatch Trigger                 executeWorkflowTrigger
++ Read Settings                    COPIED from Lead Intake — the three Telegram nodes resolve
++ Settings to Object               COPIED — owner_chat_id through $('Settings to Object'), a hard
+                                   reference that breaks silently in a new host without these two
 ~ Route by Lead Priority           moved from Lead Intake, parameters byte-identical
 ~ Build Premium Telegram Brief     moved, jsCode byte-identical
 ~ Build Warm Telegram Alert        moved, jsCode byte-identical
