@@ -64,6 +64,7 @@ const GATES = [
   ['Premium UX submit idempotency (executed)', 'premium-ux-submit-idempotency.test.mjs'],
   ['Premium UX submit in-flight lock', 'premium-ux-submit-lock.test.mjs'],
   ['Premium UX receipt contract (executed)', 'premium-ux-receipt-contract.test.mjs'],
+  ['Premium UX success screen', 'premium-ux-success-screen.test.mjs'],
   ['Premium UX extraction quality', 'premium-ux-extraction-quality.test.mjs'],
   ['Premium UX new-request path', 'premium-ux-new-request.test.mjs'],
   ['Premium Telegram presentation', 'premium-ux-tg-presentation.test.mjs'],

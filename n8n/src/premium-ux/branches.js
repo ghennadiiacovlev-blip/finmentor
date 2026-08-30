@@ -330,8 +330,9 @@ const REVIEW = {
   primary: 'Передать консультанту',
   secondary: 'Изменить',
   tertiary: 'Добавить важное',
-  // §27 — factual only. Never «частично», never «готовы».
-  materialsStatus: { present: 'Материалы — приложены', absent: 'Материалы — не приложены' }
+  // §27 — factual only. Never «частично», never «готовы», and never «приложены»: the client
+  // declared what is AVAILABLE, and no file crossed. The field and its values are unchanged.
+  materialsStatus: { present: 'Материалы — указаны', absent: 'Материалы — не указаны' }
 };
 
 // spec §17 — the controlled advisory map. Exactly eight keys, three lines each. NOT a diagnosis
@@ -382,18 +383,29 @@ const EDIT = {
 };
 
 // spec §21 — shown ONLY after authoritative committed success.
+//
+// The middle sentence is NOT a constant. v1 records document AVAILABILITY and never an upload
+// (OWNER DECISION A), so the screen may say what the consultant will SEE and may never say that
+// anything was attached. Which of the two sentences appears is decided by the draft — see §21.1.
+// Rendering an empty «материалы» concept is not an option: the sentence is replaced, not emptied.
 const SUCCESS = {
   title: 'Принято',
   status: 'Передано консультанту',
-  lines: [
-    'Контекст передан команде FINMENTOR.',
-    'Консультант увидит информацию о компании, вашу задачу и приложенные материалы до первого разговора.',
-    'Повторять всё сначала не потребуется.'
-  ],
+  lead: 'Контекст передан команде FINMENTOR.',
+  materials: {
+    declared: 'Консультант увидит информацию о компании, вашу задачу и какие материалы доступны до первого разговора.',
+    none: 'Консультант увидит информацию о компании и вашу задачу до первого разговора.'
+  },
+  tail: 'Повторять всё сначала не потребуется.',
   nextTitle: 'Что дальше',
-  next: ['FINMENTOR изучит brief.', 'При необходимости уточним детали.', 'Согласуем следующий контакт.'],
+  next: ['FINMENTOR изучит бриф.', 'При необходимости уточним детали.', 'Согласуем следующий контакт.'],
   primary: 'Вернуться в Telegram'
 };
+
+// spec §21.2 — shown ONLY after a close the Telegram client did not act on. Never part of a
+// screen as first rendered, and never a reason to offer a second way out: the close is the
+// Telegram Web App close and nothing else.
+const CLOSE_HINT = 'Если окно не закрылось, закройте его в верхней части экрана Telegram.';
 
 // spec §22 — must never resemble success.
 const FAILURE = {
@@ -617,6 +629,6 @@ module.exports = {
   OUTCOMES, OUTCOME_FREE_TEXT_OPTION,
   COMPANY_SCREEN, SCALE_OPTIONS, CURRENT_SETUP, DECISION_HORIZON, DOCUMENTS,
   CONTACT, IMPORTANT_CONTEXT, REVIEW, FOCUS_MAP, FOCUS_DISCLAIMER,
-  PRIVACY, EDIT, SUCCESS, FAILURE, BOOTSTRAP_FAILURE, SESSION_EXPIRED, RESUME, STAGES, TG_COPY,
+  PRIVACY, EDIT, SUCCESS, CLOSE_HINT, FAILURE, BOOTSTRAP_FAILURE, SESSION_EXPIRED, RESUME, STAGES, TG_COPY,
   objectiveById, objectiveByLabel, problemLabels, outcomeLabels, isFreeTextProblem
 };

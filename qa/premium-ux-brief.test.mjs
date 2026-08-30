@@ -91,11 +91,18 @@ check('МАТЕРИАЛЫ is omitted when nothing was indicated', () => {
   assert(labels(b).indexOf('МАТЕРИАЛЫ') === -1, 'empty materials section rendered');
 });
 
-check('materials readiness is factual only (spec §27)', () => {
-  eq(MB.buildBrief(row()).readiness[2].state, 'Материалы — приложены', 'present');
-  eq(MB.buildBrief(row({ selected_documents: '' })).readiness[2].state, 'Материалы — не приложены', 'absent');
+check('materials readiness is factual only, and claims no attachment (spec §27)', () => {
+  eq(MB.buildBrief(row()).readiness[2].state, 'Материалы — указаны', 'present');
+  eq(MB.buildBrief(row({ selected_documents: '' })).readiness[2].state, 'Материалы — не указаны', 'absent');
   const j = JSON.stringify(MB.buildBrief(row()).readiness);
   assert(!/частично|готовы/.test(j), 'subjective materials state reappeared');
+  // The consultant reads this line before the first call. Until 2026-08-30 it said «приложены»,
+  // which would have had them looking for a file that does not exist — v1 declares availability
+  // and uploads nothing. The DECLARED list itself is untouched and still reaches the brief.
+  assert(!/прилож/i.test(j), 'the brief tells the consultant a file was attached');
+  const facts = MB.buildBrief(row()).client_facts;
+  assert(labels(MB.buildBrief(row())).indexOf('МАТЕРИАЛЫ') !== -1, 'the materials section left the brief');
+  assert(JSON.stringify(facts).indexOf('Cash Flow') !== -1, 'the declared materials left the consultant brief');
 });
 
 // ---------------------------------------------------------------- the separation

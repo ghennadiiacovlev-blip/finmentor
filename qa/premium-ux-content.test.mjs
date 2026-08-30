@@ -194,7 +194,10 @@ check('focus map: frozen, exactly eight keys, exactly three lines each, all in t
 // ---------------------------------------------------------------- terminal + privacy copy
 
 check('success, failure, review and privacy copy are the spec wording', () => {
-  for (const s of B.SUCCESS.lines.concat([B.SUCCESS.title, B.SUCCESS.status, B.SUCCESS.primary, B.SUCCESS.nextTitle]).concat(B.SUCCESS.next)) {
+  const successCopy = [B.SUCCESS.title, B.SUCCESS.status, B.SUCCESS.lead, B.SUCCESS.tail,
+    B.SUCCESS.primary, B.SUCCESS.nextTitle, B.SUCCESS.materials.declared, B.SUCCESS.materials.none,
+    B.CLOSE_HINT].concat(B.SUCCESS.next);
+  for (const s of successCopy) {
     assert(inSpec(s), 'success copy not in spec: ' + s);
   }
   for (const s of B.FAILURE.lines.concat([B.FAILURE.title, B.FAILURE.primary, B.FAILURE.secondary])) {
@@ -215,11 +218,14 @@ check('failure copy can never read as success', () => {
   assert(B.FAILURE.title !== B.SUCCESS.title, 'failure and success share a title');
 });
 
-check('materials status is factual only (spec §27)', () => {
-  eq(B.REVIEW.materialsStatus.present, 'Материалы — приложены', 'present wording');
-  eq(B.REVIEW.materialsStatus.absent, 'Материалы — не приложены', 'absent wording');
+check('materials status is factual only, and claims no attachment (spec §27)', () => {
+  eq(B.REVIEW.materialsStatus.present, 'Материалы — указаны', 'present wording');
+  eq(B.REVIEW.materialsStatus.absent, 'Материалы — не указаны', 'absent wording');
   const j = JSON.stringify(B.REVIEW.materialsStatus);
   assert(!/частично|готовы/.test(j), 'subjective materials state reappeared');
+  // It said «приложены» until 2026-08-30, which claimed a file had crossed. Nothing uploads in
+  // v1, so the readiness block may report what was DECLARED and nothing more.
+  assert(!/прилож/i.test(j), 'the readiness block claims an attachment again');
 });
 
 check('four stages, no numbers', () => {

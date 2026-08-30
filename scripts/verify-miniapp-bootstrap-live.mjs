@@ -215,10 +215,84 @@ const codeOf = (w, n) => String((w.nodes.find((x) => x.name === n) || { paramete
     'D3 — the placeholder payload object is gone');
   want(bp.indexOf('SP.buildLeadIntakePayload') !== -1, 'and the real projection is called');
   want(bp.indexOf('DO NOT EDIT HERE') !== -1, 'the inlined modules carry their warning');
-  for (const f of ['branches.js', 'draft-contract.js', 'submit-projection.js']) {
+  // The endpoint inlines three modules VERBATIM, and the byte match is what makes "the deployed
+  // logic IS the gated logic" a fact rather than a hope.
+  //
+  // branches.js needs one qualification, in one direction only. It is the single source of the
+  // CLIENT copy as well as of the server taxonomy, so a success-screen wording change moves a file
+  // this endpoint also carries — and the endpoint's copy lags until the endpoint is next deployed.
+  // That lag is inert IF, and only if, nothing the endpoint executes reads those constants. So the
+  // client-only blocks are cut out of the comparison and their unreachability is ASSERTED. Every
+  // other byte still has to match, in order.
+  const modBody = (f) => {
     const src = readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', f), 'utf8');
-    const body2 = src.slice(0, src.lastIndexOf('module.exports = ')).replace(/^\s*const [A-Z] = require\([^)]*\);\s*$/gm, '');
-    want(bp.indexOf(body2) !== -1, f + ' is inlined byte-for-byte, not retyped');
+    return src.slice(0, src.lastIndexOf('module.exports = '))
+      .replace(/^\s*const [A-Z] = require\([^)]*\);\s*$/gm, '');
+  };
+  // Rendered by app.js. Never read by draft-contract.js or submit-projection.js — asserted below.
+  const CLIENT_ONLY = ['SUCCESS', 'CLOSE_HINT', 'REVIEW'];
+  // Cut from the blank line before the declaration's comment block through its terminating `;`,
+  // so a rewritten comment above a client constant is excluded with it.
+  function cutOut(text, name) {
+    const decl = text.indexOf('\nconst ' + name + ' = ');
+    if (decl === -1) { return null; }
+    let start = decl;
+    for (;;) {
+      const prev = text.lastIndexOf('\n', start - 1);
+      if (prev === -1) { break; }
+      const line = text.slice(prev + 1, start);
+      if (!/^\s*\/\//.test(line)) { break; }
+      start = prev;
+    }
+    let depth = 0, i = text.indexOf('=', decl) + 1;
+    for (; i < text.length; i++) {
+      const c = text[i];
+      if (c === '{' || c === '[') { depth++; }
+      else if (c === '}' || c === ']') { depth--; }
+      else if (c === ';' && depth === 0) { break; }
+    }
+    return [text.slice(0, start), text.slice(i + 1)];
+  }
+  for (const f of ['draft-contract.js', 'submit-projection.js']) {
+    want(bp.indexOf(modBody(f)) !== -1, f + ' is inlined byte-for-byte, not retyped');
+  }
+  {
+    const repo = modBody('branches.js');
+    const exact = bp.indexOf(repo) !== -1;
+    let segments = [repo];
+    let cuts = 0;
+    for (const n of CLIENT_ONLY) {
+      segments = segments.reduce((acc, part) => {
+        const c = cutOut(part, n);
+        if (c) { cuts++; return acc.concat(c); }
+        return acc.concat([part]);
+      }, []);
+    }
+    // If a constant were renamed, nothing would be excluded and this exemption would quietly
+    // become a blanket one. Every named block must actually have been found and cut.
+    want(cuts === CLIENT_ONLY.length, 'every client-only block was located and excluded, none silently skipped');
+    segments = segments.filter((s) => s.trim().length > 200);
+    // Ordered containment: every surviving segment appears, and appears after the previous one.
+    let at = 0, ordered = true;
+    for (const seg of segments) {
+      const i = bp.indexOf(seg, at);
+      if (i === -1) { ordered = false; break; }
+      at = i + seg.length;
+    }
+    want(exact || (segments.length >= 2 && ordered),
+      'branches.js is inlined byte-for-byte outside the client-only copy, and in order');
+    const server = readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', 'draft-contract.js'), 'utf8') +
+      readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', 'submit-projection.js'), 'utf8');
+    want(CLIENT_ONLY.every((n) => server.indexOf('B.' + n) === -1),
+      'the client-only constants are unreachable from the projection, so excluding them is sound');
+    want(exact || bp.indexOf('Материалы — приложены') !== -1,
+      'the endpoint carries neither the current copy nor the copy it was deployed with');
+    if (!exact) {
+      console.log('  NOTE  the endpoint carries the CLIENT copy as of its last deploy (' +
+        CLIENT_ONLY.join(', ') + ').');
+      console.log('        Inert: nothing it executes reads them, and the projection is byte-identical.');
+      console.log('        Cleared by the next submit-endpoint deploy; no endpoint write is needed for it.');
+    }
   }
 
   const mark = JSON.stringify(sub.nodes.find((n) => n.name === 'Mark Submitted').parameters);

@@ -30,6 +30,35 @@
   });
   function tgUser() { return (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null; }
 
+  // THE ONLY WAY OUT OF THE APP, AND THE ONLY TELEGRAM CLOSE IN THE CLIENT.
+  //
+  // Every terminal screen routes its CTA through here, so there is one integration point rather
+  // than one per screen: one place a client quirk can be handled, and one thing for the gate to
+  // count. It performs no request, touches no draft and changes no state — leaving is not a
+  // business event.
+  //
+  // If the Telegram client does not act on the close — some builds ignore it — the screen says
+  // how to leave instead of presenting a control that looks dead. The hint is presentation only
+  // and appears solely on that path; a successful close takes the page with it first.
+  function closeApp(hintHost) {
+    safe(function () {
+      if (tg && typeof tg.close === 'function') { tg.close(); }
+    });
+    if (!hintHost || hintHost.__fmCloseHinted) { return; }
+    safe(function () {
+      setTimeout(function () {
+        safe(function () {
+          if (hintHost.__fmCloseHinted) { return; }
+          // A screen that has already been replaced must not sprout a hint. Where the host gives
+          // us no body to ask — the offline harness — there is nothing to have replaced it.
+          if (document.body && !document.body.contains(hintHost)) { return; }
+          hintHost.__fmCloseHinted = 1;
+          hintHost.appendChild(el('div', 'quiet-hint', C.CLOSE_HINT));
+        });
+      }, 900);
+    });
+  }
+
   // ---------------------------------------------------------------- draft + provenance
   // Mirrors n8n/src/premium-ux/draft-contract.js. The server re-validates everything.
   var APPROVED_CARRIED = ['contact_name', 'locale', 'contact_channel'];
@@ -337,7 +366,7 @@
     s.appendChild(title(C.BOOTSTRAP_FAILURE.title, 'sm'));
     C.BOOTSTRAP_FAILURE.lines.forEach(function (l) { s.appendChild(lead(l)); });
     s.appendChild(grow());
-    s.appendChild(actions(btn(C.BOOTSTRAP_FAILURE.primary, function () { if (tg && tg.close) { tg.close(); } })));
+    s.appendChild(actions(btn(C.BOOTSTRAP_FAILURE.primary, function () { closeApp(s); })));
     return s;
   }
 
@@ -351,7 +380,7 @@
     s.appendChild(title(C.SESSION_EXPIRED.title, 'sm'));
     C.SESSION_EXPIRED.lines.forEach(function (l) { s.appendChild(lead(l)); });
     s.appendChild(grow());
-    s.appendChild(actions(btn(C.SESSION_EXPIRED.primary, function () { if (tg && tg.close) { tg.close(); } })));
+    s.appendChild(actions(btn(C.SESSION_EXPIRED.primary, function () { closeApp(s); })));
     return s;
   }
 
@@ -1045,7 +1074,14 @@
     st.appendChild(el('span', null, 'Статус:'));
     st.appendChild(el('b', null, C.SUCCESS.status));
     s.appendChild(st);
-    C.SUCCESS.lines.forEach(function (l) { s.appendChild(lead(l)); });
+    s.appendChild(lead(C.SUCCESS.lead));
+    // §21.1. The client DECLARED which materials exist; nothing was uploaded, and no upload
+    // control exists anywhere in this build. So the sentence names what the consultant will see,
+    // and the draft decides which of the two is true. An empty materials concept is never shown —
+    // the sentence is replaced, not emptied.
+    var declared = get('documents');
+    s.appendChild(lead(declared && declared.length ? C.SUCCESS.materials.declared : C.SUCCESS.materials.none));
+    s.appendChild(lead(C.SUCCESS.tail));
     var sp3 = el('div'); sp3.style.height = '34px'; s.appendChild(sp3);
     s.appendChild(el('div', 'kicker', C.SUCCESS.nextTitle));
     var steps = el('div', 'steps');
@@ -1058,7 +1094,7 @@
     s.appendChild(steps);
     s.appendChild(grow());
     // Terminal: the only action is leaving. No new questionnaire is offered here.
-    s.appendChild(actions(btn(C.SUCCESS.primary, function () { if (tg && tg.close) { tg.close(); } })));
+    s.appendChild(actions(btn(C.SUCCESS.primary, function () { closeApp(s); })));
     return s;
   }
 

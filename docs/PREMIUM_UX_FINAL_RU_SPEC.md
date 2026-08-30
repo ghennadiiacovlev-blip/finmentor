@@ -411,19 +411,53 @@ internal IDs exposed. Exactly:
 
     Контекст передан команде FINMENTOR.
 
-    Консультант увидит информацию о компании, вашу задачу и приложенные материалы
-    до первого разговора.
+    ← the materials sentence, chosen by the draft (§21.1)
 
     Повторять всё сначала не потребуется.
 
     Что дальше
-    1. FINMENTOR изучит brief.
+    1. FINMENTOR изучит бриф.
     2. При необходимости уточним детали.
     3. Согласуем следующий контакт.
 
     [ Вернуться в Telegram ]
 
 No further questionnaire is offered on this screen.
+
+### 21.1 The materials sentence is chosen by the draft, not written into the copy
+
+v1 records **availability**, never an upload (OWNER DECISION A, §26). The screen may say what the
+consultant will SEE. It may never say that anything was attached. Two sentences, and the draft
+decides which one appears:
+
+Materials were declared (`documents` holds one or more values):
+
+    Консультант увидит информацию о компании, вашу задачу и какие материалы доступны
+    до первого разговора.
+
+No materials were declared:
+
+    Консультант увидит информацию о компании и вашу задачу до первого разговора.
+
+There is no third variant. An empty «материалы» concept is never rendered — the sentence is
+replaced, not emptied.
+
+Wording such as **приложенные материалы**, **приложенные файлы**, **файлы приложены** or
+**документы загружены** is FORBIDDEN on every customer-facing screen for as long as the product
+has no uploaded-file artifacts. Only an authoritative uploaded-file artifact may license it, and
+the sentence would then have to be added here first.
+
+### 21.2 «Вернуться в Telegram» closes the Mini App and does nothing else
+
+The CTA calls the Telegram Web App close, through the client's single Telegram integration point.
+It performs no request, mutates no session, opens no new cycle and starts no new request. If the
+Telegram client does not act on the close, the screen states how to leave rather than leaving a
+control that appears dead:
+
+    Если окно не закрылось, закройте его в верхней части экрана Telegram.
+
+That line is shown only after a close that did not happen. It is never part of the screen as
+first rendered.
 
 ## 22. Failure copy
 
@@ -494,8 +528,15 @@ Four distinct concepts; never collapsed.
 Document completeness is never inferred. The **ПОДГОТОВКА К ВСТРЕЧЕ** block uses factual states
 only:
 
-- **Материалы — приложены**
-- **Материалы — не приложены**
+- **Материалы — указаны**
+- **Материалы — не указаны**
 
 Subjective states such as *частично* or *готовы* are not used. Completeness is never claimed
 unless a future explicit completeness rule exists.
+
+The states say what the client DECLARED, because that is the only thing the product knows. They
+said *приложены* / *не приложены* until 2026-08-30, which claimed an attachment that cannot exist
+in v1 — the same false claim §21.1 forbids on the success screen, in the one place a consultant
+would read it as a fact about files. The underlying field and its selected values are unchanged:
+`documents` still carries «Бюджет», «Cash Flow» and the rest into the brief, and still means
+*the client says this is available*.
