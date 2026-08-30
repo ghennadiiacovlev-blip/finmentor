@@ -1,0 +1,929 @@
+{
+  "name": "FINMENTOR SLA Lead Watch PREMIUM FINAL",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "798f3855-4744-4960-b6b2-d978c13246df",
+      "name": "Hourly SLA Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1424,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        128
+      ],
+      "id": "f1a46327-e398-4001-b0a0-80963a77affd",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '551662084',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '551662084'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "f94ad885-33c1-4030-a672-a55280085c9e",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        128
+      ],
+      "id": "b39e4cd0-fb8a-42c2-955b-f2a3753c1e22",
+      "name": "Get Pipeline Rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// SLA Select (Premium) — одна запись на лид, под новую схему Pipeline/Settings.\nconst cfg = $('Settings to Object').first().json.settings || {};\nconst rows = $input.all().map(i => i.json);\nconst now = new Date();\n\nfunction val(r, ...keys){ for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&String(r[k]).trim()!=='') return String(r[k]).trim(); } return ''; }\nfunction hoursSince(ts){ const d=new Date(ts); return Number.isNaN(d.getTime())?Infinity:(now-d)/36e5; }\n\nconst STOP_STAGES = ['won','lost','closed','nurture','incomplete','закрыт'];\nconst out = [];\nfor (const r of rows) {\n  const priority = val(r,'priority').toUpperCase();\n  if (priority !== 'HOT' && priority !== 'WARM') continue;            // только HOT/WARM\n\n  const stage = val(r,'deal_stage').toLowerCase();\n  if (STOP_STAGES.some(x => stage.includes(x))) continue;            // не Won/Lost/Nurture/Incomplete\n\n  const sla = val(r,'sla_status').toLowerCase();\n  if (sla === 'done' || sla === 'nurture') continue;                 // не Done/Nurture\n  if (sla === 'snoozed') {                                           // не Snoozed в будущее\n    const until = new Date(val(r,'sla_snooze_until'));\n    if (!Number.isNaN(until.getTime()) && until > now) continue;\n  }\n\n  const slaHours = priority === 'HOT' ? Number(cfg.sla_hot_hours||4) : Number(cfg.sla_warm_hours||24);\n  const follow = val(r,'next_follow_up_at');\n  const overdueByFollow = follow ? (new Date(follow) < now) : false;\n  const createdAt = val(r,'created_at');\n  const overdueByAge = createdAt ? hoursSince(createdAt) >= slaHours : false;\n  if (!overdueByFollow && !overdueByAge) continue;                   // просрочка по follow-up или по возрасту\n\n  const repeat = Number(cfg.sla_repeat_hours||6);\n  if (hoursSince(val(r,'last_sla_alert_at')) < repeat) continue;     // анти-спам\n\n  const company = val(r,'company')||'—';\n  const name = val(r,'name')||'—';\n  const zone = val(r,'financial_zone')||'—';\n  const contact = [val(r,'phone'), val(r,'telegram'), val(r,'email')].filter(Boolean).join(' · ')||'нет контакта';\n  const action = val(r,'next_action')||'связаться с лидом';\n  const leadId = val(r,'lead_id');\n  if (!leadId) continue;\n\n  const msg =\n`SLA НАПОМИНАНИЕ — ${priority}/${zone}\nКомпания: ${company}\nКонтакт: ${name} (${contact})\nСтадия: ${val(r,'deal_stage')||'New'}\nПросрочено: ${overdueByFollow ? 'follow-up' : 'нет ответа > '+slaHours+'ч'}\nСледующий шаг: ${action}\nLead ID: ${leadId}`;\n\n  out.push({ json: { lead_id: leadId, company, name, financial_zone: zone, priority, sla_message: msg, sla_alert_at: now.toISOString() } });\n}\nreturn out;  // пусто -> Telegram не получит items -> пустые сообщения не отправляются\n"
+      },
+      "id": "f383b9a4-3496-4b9d-8bdb-8a2a17e578df",
+      "name": "SLA Select",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ String($json.sla_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Done",
+                    "additionalFields": {
+                      "callback_data": "=done|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "⏰ Snooze 24h",
+                    "additionalFields": {
+                      "callback_data": "=snooze|{{$json.lead_id}}|24"
+                    }
+                  },
+                  {
+                    "text": "📞 Discovery",
+                    "additionalFields": {
+                      "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled"
+                    }
+                  },
+                  {
+                    "text": "📄 Docs",
+                    "additionalFields": {
+                      "callback_data": "=docs|{{$json.lead_id}}"
+                    }
+                  },
+                  {
+                    "text": "💤 Nurture",
+                    "additionalFields": {
+                      "callback_data": "=nurture|{{$json.lead_id}}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "b8e3816c-0950-4676-80a1-39f8140a9987",
+      "name": "Telegram SLA Alert",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mark SLA: запускается ПОСЛЕ успешного Telegram. Данные берём из SLA Select.\nconst selected = $('SLA Select').all().map(i => i.json);\nconst now = new Date().toISOString();\nreturn selected.map(i => ({ json: {\n  lead_id: i.lead_id,\n  priority: i.priority,\n  financial_zone: i.financial_zone,\n  company: i.company,\n  name: i.name,\n  last_sla_alert_at: i.sla_alert_at || now,\n  last_activity_at: now\n}}));\n"
+      },
+      "id": "bb00a050-12f2-4bbf-9500-600f46c0c116",
+      "name": "Mark SLA Alerted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1883973304"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deal_stage",
+              "displayName": "deal_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "next_follow_up_at",
+              "displayName": "next_follow_up_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_hours",
+              "displayName": "sla_hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "responsible",
+              "displayName": "responsible",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "business_model",
+              "displayName": "business_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "industry_category",
+              "displayName": "industry_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "turnover_range",
+              "displayName": "turnover_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "employees_range",
+              "displayName": "employees_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "main_pain",
+              "displayName": "main_pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_problems",
+              "displayName": "selected_problems",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_goals",
+              "displayName": "selected_goals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "work_interest",
+              "displayName": "work_interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "documents_status",
+              "displayName": "documents_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_documents",
+              "displayName": "selected_documents",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preferred_meeting_format",
+              "displayName": "preferred_meeting_format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority_reason",
+              "displayName": "priority_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "critical_flags",
+              "displayName": "critical_flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_page",
+              "displayName": "source_page",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_source",
+              "displayName": "utm_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_medium",
+              "displayName": "utm_medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_campaign",
+              "displayName": "utm_campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "comment",
+              "displayName": "comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_contacted_at",
+              "displayName": "last_contacted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "meeting_date",
+              "displayName": "meeting_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "documents_requested_at",
+              "displayName": "documents_requested_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "proposal_sent_at",
+              "displayName": "proposal_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deal_value_estimate",
+              "displayName": "deal_value_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "close_reason",
+              "displayName": "close_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_status",
+              "displayName": "sla_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_snooze_until",
+              "displayName": "sla_snooze_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner_note",
+              "displayName": "owner_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_activity_at",
+              "displayName": "last_activity_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ai_plan_ready",
+              "displayName": "ai_plan_ready",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_sla_alert_at",
+              "displayName": "last_sla_alert_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first_response_at",
+              "displayName": "first_response_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first_response_minutes",
+              "displayName": "first_response_minutes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_breach",
+              "displayName": "sla_breach",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "days_in_stage",
+              "displayName": "days_in_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ab5f78f2-d5e5-434c-be7a-28864b3dd300",
+      "name": "Update Pipeline SLA",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// SLA Activity — управленческий detail.\nreturn $input.all().map(i => ({ json: {\n  activity_id: `${i.json.lead_id}-${Date.now()}-${Math.floor(Math.random()*1000)}`,\n  ts: new Date().toISOString(),\n  lead_id: i.json.lead_id,\n  actor: 'system:sla',\n  channel: 'telegram',\n  action: 'sla_alert_sent',\n  detail: `SLA alert sent: priority=${i.json.priority||'-'}; zone=${i.json.financial_zone||'-'}; company=${i.json.company||'-'}; contact=${i.json.name||'-'}`\n}}));\n"
+      },
+      "id": "9a08a5cc-358e-4dc0-a614-e0ffaa6ea5d7",
+      "name": "Build SLA Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list",
+          "cachedResultName": "Activities",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=623316892"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        240
+      ],
+      "id": "ab6cdd25-61b8-4d6b-a08c-54bfb8d5b150",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "Hourly SLA Check": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Get Pipeline Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline Rows": {
+      "main": [
+        [
+          {
+            "node": "SLA Select",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SLA Select": {
+      "main": [
+        [
+          {
+            "node": "Telegram SLA Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark SLA Alerted": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline SLA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build SLA Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SLA Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram SLA Alert": {
+      "main": [
+        [
+          {
+            "node": "Mark SLA Alerted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "errorWorkflow": "RBiFLhVjizMkAzrK"
+  }
+}
