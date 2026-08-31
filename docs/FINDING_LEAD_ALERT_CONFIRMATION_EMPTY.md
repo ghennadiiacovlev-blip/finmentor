@@ -3,7 +3,8 @@
 **Found:** 2026-08-31, by the first real tap of the Stage 2 action lifecycle
 **Execution:** `5055` — `FINMENTOR Lead Command Center SECURE CANDIDATE` (`qF9tonlHHIxc8MDd`), status `error`
 **Severity:** presentation only. No CRM data is wrong, and no write is lost.
-**Status:** FIXED and deployed 2026-08-31T14:51:08Z. See [Resolution](#resolution).
+**Status:** FIXED and deployed 2026-08-31T14:51:08Z — but **OPEN** until a confirming tap proves
+n8n executes it. See [Resolution](#resolution) and [How this gets closed](#closing).
 **Fixed by:** `scripts/deploy-lead-alert-ack-fix.mjs` — one expression, one node.
 **Gated by:** `qa/lead-alerts-ack-expression.test.mjs`, which fails on the pre-fix graph.
 
@@ -165,7 +166,81 @@ the same limit that let `5055` through in the first place. Re-running the tap ve
 execution `5055` will still report its 2 failures: that execution is immutable evidence of the
 defect, not a check of the fix.
 
-Only a **new** tap closes it. Note the previous tap already advanced this lead
-(`Qualified` -> `Documents Requested`), so a confirming tap should use a different lead, or a
-repeatable action such as snooze — which also has the advantage of landing on a non-zero branch,
-where the defect actually lived.
+Only a **new** tap closes it, and **as of 2026-08-31T15:30Z no tap has arrived** — `5055` is still
+the most recent Command Center execution on the tenant. The finding therefore stays OPEN, and
+everything below is the apparatus that closes it the moment one lands.
+
+---
+
+<a id="closing"></a>
+
+## How this gets closed
+
+### The tap: ⏰ На 24 часа, on the alert already in the owner's Telegram
+
+Open the NEW LEAD alert for **Mega Parc SRL** (message `145`) and tap **⏰ На 24 часа**. That alert
+now carries exactly three buttons, which is what the `5055` edit left behind:
+
+```
+📞 Discovery   |   ⏰ На 24 часа
+🗂 В Nurture
+```
+
+Snooze rather than anything else, for three reasons, each of which is a property of the code and
+not a preference:
+
+* **it is repeatable.** `alreadyApplied()` returns `false` for snooze by design — «отложить ещё на
+  24 часа» is a real instruction — so the tap is not refused, and it can be repeated if anything
+  needs re-running. Every other remaining action would move the lead somewhere it cannot be
+  cheaply moved back from.
+* **it changes nothing that matters.** Snooze owns `sla_snooze_until` and `next_follow_up_at` and
+  nothing else. `deal_stage` does not move again, so proving the fix does not cost another step of
+  this lead's real pipeline position.
+* **it lands where the defect lived.** The lead is `Documents Requested`, so the refreshed keyboard
+  is `KB21` — **branch 2**, not branch 0. Branch 0 (`KB221`) worked before the fix and works after
+  it; a confirmation observed there would prove nothing.
+
+Rollback, should it ever be wanted, is two values: `sla_snooze_until` back to empty and
+`next_follow_up_at` back to `2026-09-02T14:19:14.875Z`.
+
+### The verifier: `scripts/verify-lead-alert-ack-tap-live.mjs`
+
+```
+node scripts/verify-lead-alert-ack-tap-live.mjs
+```
+
+Read-only, no arguments. It finds whichever Command Center execution arrived after the ack fix,
+derives the action and the lead **from the execution** rather than from a constant, and asks the
+four questions this finding leaves open:
+
+| | asserted from |
+|---|---|
+| did it run the **fixed** graph? | the expression on the execution's own `workflowData` snapshot, plus a graph-wide re-scan for bare accessors |
+| did it land on a branch the defect **broke**? | `Route Edit Shape`'s per-branch item counts; **branch 0 fails the run** |
+| would it have **failed before**? | the pre-fix expression, replayed through `qa/n8n-expression.js` against this execution's own data |
+| was the acknowledgement **sent, non-empty, and right**? | Telegram's returned `Message`, round-tripped back to HTML through its entities and compared to the `reply_text` the decision produced |
+
+With no tap yet on the tenant it exits `2` and prints the tap instructions above rather than
+reporting a pass on nothing. It refuses `--execution 5055` — a pre-fix execution cannot confirm a
+fix — and it refuses to read a real execution payload as a rehearsal.
+
+### It was rehearsed, both ways, before the tap was spent
+
+The confirming tap costs the owner a real action on a real lead, and the verifier gets one chance
+to be right when it lands. A verifier that has never executed its own assertions is not worth that.
+`scripts/build-ack-tap-rehearsal.mjs` builds a synthetic execution from `5055` and the verifier runs
+against it:
+
+* **positive** — `5055` with the deployed expression and the Message it would then have returned:
+  **56 assertions reachable, 0 failed.**
+* **negative** — `5055` with *only* its timestamp moved, so the pre-fix expression and the real
+  empty-text failure are kept verbatim: **7 failed**, and they are the seven that name this defect
+  — the expression still addressing the Switch, the graph-wide scan finding it, the live expression
+  rendering 0 characters, and `Bad Request: message text is empty`.
+
+A rehearsal is never evidence and cannot become any: the file is stamped `_rehearsal: true` and
+refused without it, the run writes no `.uat` record, and it always exits non-zero. The one piece
+that is fabricated — the Message Telegram never sent — is fabricated as narrowly as possible, from
+`5055`'s own `reply_text` through the same emulator the offline gate uses.
+
+62/62 gates, 2228 assertions, unchanged by any of this.
