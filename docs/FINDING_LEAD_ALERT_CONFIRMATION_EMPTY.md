@@ -3,7 +3,9 @@
 **Found:** 2026-08-31, by the first real tap of the Stage 2 action lifecycle
 **Execution:** `5055` — `FINMENTOR Lead Command Center SECURE CANDIDATE` (`qF9tonlHHIxc8MDd`), status `error`
 **Severity:** presentation only. No CRM data is wrong, and no write is lost.
-**Status:** OPEN. Not fixed, on the owner's instruction to stop after reporting.
+**Status:** FIXED and deployed 2026-08-31T14:51:08Z. See [Resolution](#resolution).
+**Fixed by:** `scripts/deploy-lead-alert-ack-fix.mjs` — one expression, one node.
+**Gated by:** `qa/lead-alerts-ack-expression.test.mjs`, which fails on the pre-fix graph.
 
 ---
 
@@ -65,7 +67,7 @@ graph's wiring. It does not evaluate n8n **expressions** on Telegram nodes, and 
 semantics — specifically what `.first()` means on a multi-output node — are exactly what no offline
 harness models. This is the class of defect a live tap exists to find.
 
-## The fix, not applied
+## The fix
 
 `Find & Build Update` is on **both** paths into `Route Edit Shape` — the refusal path
 (`IF Action Allowed` false) and the verified path (`IF Verified` true) — and carries both
@@ -78,6 +80,12 @@ single-output Code node, so `.first()` is unambiguous there:
 ```
 
 One expression on one node. No graph change, no new node, no schema change.
+
+This was confirmed by tracing rather than asserted: the only two feeders of `Route Edit Shape` are
+`IF Action Allowed` (output 1, refusal) and `IF Verified` (output 0, success), and every path from
+`Find & Build Update` reaches the router through one of them. `Verify Mutation` would have been
+**wrong** — it is not on the refusal path, so the reference would name a node that never executed
+for a refused tap.
 
 Checked and **not** part of this finding: the `$json.error` discriminator is correct. The
 `Edit Alert (*)` nodes carry `onError: continueRegularOutput`, so a failed edit reaches
@@ -105,3 +113,59 @@ node scripts/verify-lead-alert-tap-live.mjs --execution 5055
 ```
 
 Read-only. 70 assertions pass; 2 fail, both naming this defect.
+
+---
+
+<a id="resolution"></a>
+
+## Resolution
+
+**Deployed** 2026-08-31T14:51:08Z to `qF9tonlHHIxc8MDd`. The delta was exactly one parameter on
+one node: 33 nodes before and after, connections byte-identical, Google Sheets nodes untouched,
+credentials untouched, and all 32 unrelated nodes byte-identical to the frozen pre-image. The live
+graph was then pulled back and compared to the gated candidate — every node matches.
+
+Rollback: `PUT /api/v1/workflows/qF9tonlHHIxc8MDd` with `.uat/qF9tonlHHIxc8MDd.pre-ack-fix.json`.
+
+### The blind spot mattered more than the defect
+
+Every offline gate passed on the broken graph, because every offline gate either executes Code
+nodes or reads graph wiring — and a Telegram node's `text` expression is neither. `qa/n8n-expression.js`
+closes that class by evaluating n8n parameter expressions the way n8n evaluates them, and it is
+faithful on the single rule that mattered:
+
+> `$('Node').first(branchIndex = 0)` reads the node's **first output branch**.
+
+Modelling `.first()` as "the item, wherever it went" would have produced a green run for a graph
+that fails in production — the one way that file could have been worse than useless.
+
+`qa/lead-alerts-ack-expression.test.mjs` (23 assertions) drives the candidate's own Code nodes for
+five keyboard shapes chosen to land on **all four** switch branches, routes each through the Switch
+the way n8n routes it, and asserts the acknowledgement is non-empty and is the copy the decision
+produced — plus the four refusals, the unverified write, and every button label and `callback_data`
+on each edit node.
+
+### It pins the defect by failing on it
+
+The pre-fix candidate is kept as a fixture and re-run every time the suite runs. The gate requires
+that the static scan flag `Telegram Update Reply -> Route Edit Shape`; that driving it off branch 0
+reproduces an **empty** acknowledgement while `reply_text` is demonstrably present; and that branch
+0 still works — which is precisely why the defect survived review. A gate that cannot fail on the
+graph that actually broke is not evidence.
+
+The scan also runs graph-wide, so no future parameter can address any multi-output node with a bare
+accessor. Re-scanned against the live tenant after the deploy: six multi-output nodes
+(`Route Command Mode`, `IF Row Found`, `IF Has Callback`, `IF Action Allowed`, `IF Verified`,
+`Route Edit Shape`), **zero** bare accessors.
+
+### What is still not proven
+
+That n8n *executes* the corrected expression. This gate is bytes and evaluation, not execution —
+the same limit that let `5055` through in the first place. Re-running the tap verifier against
+execution `5055` will still report its 2 failures: that execution is immutable evidence of the
+defect, not a check of the fix.
+
+Only a **new** tap closes it. Note the previous tap already advanced this lead
+(`Qualified` -> `Documents Requested`), so a confirming tap should use a different lead, or a
+repeatable action such as snooze — which also has the advantage of landing on a non-zero branch,
+where the defect actually lived.
