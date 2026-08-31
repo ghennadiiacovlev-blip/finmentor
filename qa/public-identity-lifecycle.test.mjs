@@ -29,6 +29,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import vm from 'node:vm';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -36,6 +37,8 @@ const read = (p) => readFileSync(join(ROOT, p), 'utf8').replace(/\r\n/g, '\n');
 
 const TRANSPORT = read('lead-transport.js');
 const TRANSPORT_PRE = read('qa/fixtures/lead-transport.pre-identity.js');
+// The Romanian home page has no submit code of its own; main.js owns its consultation form.
+const MAIN_JS = read('main.js');
 
 let pass = 0;
 const failures = [];
@@ -108,6 +111,104 @@ const URL_OK = 'https://example.invalid/webhook/lead';
 const fails = (p) => p.then(() => { throw new Error('expected a rejection'); }, (e) => e);
 const idOf = (calls, i) => calls[i].body.meta.request_id;
 const payload = (over) => Object.assign({ tool: 'contact', lead: { name: 'Иван', email: 'i@alfa.md' }, meta: {} }, over || {});
+
+// ── the Romanian home page, driven for real ────────────────────────────────────────────────────
+//
+// `ro/index.html` has no submit code of its own: `main.js` owns `#consultForm` on both home pages.
+// So the only way to prove the Romanian form reaches FMLeadTransport is to RUN main.js against an
+// RO-shaped DOM and watch what leaves through `fetch`.
+//
+// The shim is deliberately minimal — enough surface for `initForm()` to bind and for its promise
+// chain to resolve. `withTransport` models the two states of `ro/index.html`: with the script tag,
+// and without it (which is what shipped until this change).
+async function runRoConsultForm(opts) {
+  const calls = [];
+  const listeners = {};
+  const el = (over) => Object.assign({
+    value: '', checked: false, hidden: true, disabled: false,
+    classList: { add() {}, remove() {}, contains: () => false, toggle() {} },
+    style: {}, parentNode: { classList: { add() {}, remove() {} } },
+    closest: () => ({ classList: { add() {}, remove() {} } }),
+    focus() {}, scrollIntoView() {}, appendChild() {}, removeChild() {},
+    addEventListener(t, f) { listeners[t] = f; },
+    querySelector: () => null, querySelectorAll: () => [],
+    setAttribute() {}, getAttribute: () => null,
+    set innerHTML(v) { this.__html = v; }, get innerHTML() { return this.__html || ''; }
+  }, over || {});
+
+  const fields = {
+    '[name="name"]': el({ value: 'Ion Popescu' }),
+    '[name="contact"]': el({ value: 'ion@alfa.md' }),
+    '[name="consent"]': el({ checked: true }),
+    '[name="business"]': el({ value: 'Alfa SRL' }),
+    '[name="message"]': el({ value: 'Probleme cu fluxul de numerar' }),
+    '.form__submit': el({})
+  };
+  const form = el({ querySelector: (s) => fields[s] || null });
+  const success = el({});
+  const store = new Map();
+
+  const win = {
+    // main.js sets this itself; it is restated so `webhookUrl()` resolves and the FIRST guard —
+    // `webhook_not_configured` — cannot be what fires. Otherwise this case could pass for the
+    // wrong reason.
+    WEBHOOK_URL: 'https://ghennadi.app.n8n.cloud/webhook/finmentor-lead-intake',
+    FM_I18N: { strings: {} },
+    location: { href: 'https://www.finmentor.md/ro/', search: '', pathname: '/ro/' },
+    document: {
+      documentElement: { lang: 'ro', classList: { add() {}, remove() {}, contains: () => false }, getAttribute: () => 'ro' },
+      readyState: 'complete', referrer: '', title: 'FINMENTOR',
+      getElementById: (id) => (id === 'consultForm' ? form : id === 'formSuccess' ? success : null),
+      querySelector: () => null, querySelectorAll: () => [],
+      addEventListener() {}, createElement: () => el({}),
+      body: { classList: { add() {}, remove() {} }, appendChild() {} },
+      head: { appendChild() {} }
+    },
+    crypto: { getRandomValues: (b) => { for (let i = 0; i < b.length; i++) { b[i] = Math.floor(Math.random() * 256); } return b; } },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    sessionStorage: {
+      getItem: (k) => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k)
+    },
+    matchMedia: () => ({ matches: false, addEventListener() {}, addListener() {} }),
+    addEventListener() {}, removeEventListener() {},
+    setTimeout: (f, ms) => setTimeout(f, ms), clearTimeout: (t) => clearTimeout(t),
+    setInterval: () => 1, clearInterval() {},
+    requestAnimationFrame: () => 1, cancelAnimationFrame() {},
+    AbortController: class { constructor() { this.signal = {}; } abort() {} },
+    URLSearchParams, URL, Promise, console,
+    navigator: { userAgent: 'node', clipboard: null },
+    IntersectionObserver: class { observe() {} unobserve() {} disconnect() {} }
+  };
+  win.window = win;
+  const fetchImpl = (url, init) => {
+    calls.push({ url, body: JSON.parse(init.body), headers: init.headers });
+    return Promise.resolve({
+      ok: true, status: 200,
+      text: () => Promise.resolve('{"ok":true,"lead_id":"FIN-1788000000000-909","mode":"new"}')
+    });
+  };
+  win.fetch = fetchImpl;
+
+  // ro/index.html loads ../lead-transport.js BEFORE ../main.js, so the transport is on the window
+  // by the time initForm() binds. Without the script tag it simply never appears — which is the
+  // whole defect.
+  if (opts && opts.withTransport) {
+    new Function('window', 'fetch', 'document', TRANSPORT)(win, fetchImpl, win.document);
+  }
+  // main.js navigates on success; the shim must not follow it.
+  win.location.href = 'https://www.finmentor.md/ro/';
+
+  const ctx = vm.createContext(win);
+  try { vm.runInContext(MAIN_JS, ctx, { filename: 'main.js' }); }
+  catch (e) { /* unrelated page features may throw against a minimal shim */ }
+
+  if (typeof listeners.submit !== 'function') { throw new Error('main.js did not bind a submit handler'); }
+  listeners.submit({ preventDefault() {} });
+  await new Promise((r) => setTimeout(r, 250));
+
+  return { calls, rendered: success.__html || '' };
+}
 
 console.log('');
 console.log('FINMENTOR public lead identity lifecycle');
@@ -345,32 +446,64 @@ check('two tools in one tab are two logical submissions', async () => {
 console.log('');
 console.log('THE CALL GRAPH: every public lead goes through this transport');
 
-const PAGES = ['index.html', 'questionnaire.html', 'ro/questionnaire.html',
+// All six public pages that carry a lead form. `ro/index.html` joined this list when its missing
+// transport was fixed; before that it was pinned as a known defect by CG-1b.
+const PAGES = ['index.html', 'ro/index.html', 'questionnaire.html', 'ro/questionnaire.html',
   'working-capital-scan.html', 'ro/working-capital-scan.html'];
+// The files that CONTAIN submit code. `ro/index.html` is deliberately absent: it has no submit
+// logic of its own — `main.js` owns the consultation form on both home pages.
 const SUBMITTERS = ['main.js', 'questionnaire.html', 'ro/questionnaire.html',
   'working-capital-scan.html', 'ro/working-capital-scan.html'];
 
-check('CG-1 exactly these five pages load the transport', () => {
+check('CG-1 exactly these six pages load the transport', () => {
   for (const p of PAGES) { assert(read(p).includes('lead-transport.js'), p + ' does not load the transport'); }
 });
 
-// KNOWN OPEN DEFECT, recorded rather than fixed.
+// CLOSED. This assertion used to pin the DEFECT: `ro/index.html` carried `#consultForm` and loaded
+// `../main.js`, so `initForm()` bound to it — but it did NOT load `../lead-transport.js`.
+// `postLeadPayload()` rejected with `transport_unavailable` on every submit, and the Romanian home
+// page had never delivered a lead to the CRM. It failed visibly and closed, showing the
+// Telegram/email fallback copy, and it issued zero network calls.
 //
-// `ro/index.html` carries `#consultForm` and loads `../main.js`, so `initForm()` binds to it — but
-// it does NOT load `../lead-transport.js`. `postLeadPayload()` therefore rejects with
-// `transport_unavailable` on every submit, and the Romanian home page has never delivered a lead to
-// the CRM. It fails visibly and closed: the visitor gets the Telegram/email fallback copy.
+// It was pinned red-on-fix deliberately, so that closing it had to be a considered act rather than
+// a drive-by. That act is this change, and the assertion is now inverted: loading the transport is
+// the protected contract, and REMOVING it is what turns this gate red.
 //
-// It is one `<script src>` away from working, and that line would turn a page which has never
-// produced leads into one that does. Pinned here so it cannot be forgotten AND so that fixing it
-// turns this gate red, forcing the fix to be a deliberate, documented act.
-check('CG-1b ro/index.html still cannot submit: transport absent (KNOWN OPEN DEFECT)', () => {
+// `ro/index.html` is in PAGES above, so CG-1 already requires the script tag. What this adds is the
+// two facts a bare script tag does not prove: that the page still owns the form `main.js` binds to,
+// and that the path it loads is the correct relative one from `/ro/`.
+check('CG-1b ro/index.html reaches the transport: form + main.js + ../lead-transport.js', () => {
   const ro = read('ro/index.html');
   assert(ro.includes('id="consultForm"'), 'ro/index.html no longer has the consultation form');
-  assert(ro.includes('main.js'), 'ro/index.html no longer loads main.js');
-  assert(!ro.includes('lead-transport.js'),
-    'ro/index.html now loads the transport — the known defect was fixed; update the record and '
-    + 'move this page into PAGES');
+  assert(/<script src="\.\.\/main\.js"><\/script>/.test(ro), 'ro/index.html no longer loads ../main.js');
+  assert(/<script src="\.\.\/lead-transport\.js"><\/script>/.test(ro),
+    'ro/index.html does not load ../lead-transport.js — the Romanian home page cannot submit');
+  // One transport, shared. A second copy under ro/ would be a second identity policy.
+  assert(!/src="lead-transport\.js"/.test(ro), 'ro/index.html loads a ro-local transport copy');
+});
+
+// The contract PHASE 3 actually asks for, proven by EXECUTION rather than by a script tag: the
+// Romanian consultation form reaches FMLeadTransport and emits a canonical identity.
+//
+// It runs the real `main.js` against an RO-shaped DOM with the real `lead-transport.js` on the
+// window, and watches what leaves through `fetch`. Before this change the same harness produced
+// zero network calls and the fallback copy; that contrast is what the case is for.
+check('CG-1c EXECUTED: the RO consultation form submits through FMLeadTransport', async () => {
+  const { calls, rendered } = await runRoConsultForm({ withTransport: true });
+  eq(calls.length, 1, 'the RO form did not reach the network');
+  const id = calls[0].body.meta.request_id;
+  assert(CANONICAL.test(id), 'the RO form sent a non-canonical identity: ' + id);
+  eq(calls[0].headers['X-FINMENTOR-Request-Id'], id, 'header and body identity disagree');
+  eq(calls[0].body.tool, 'contact', 'the RO form submitted the wrong tool');
+  assert(!rendered, 'the failure copy was rendered on a successful submit');
+});
+
+check('CG-1d EXECUTED: without the transport the same form fails closed (the old behaviour)', async () => {
+  const { calls, rendered } = await runRoConsultForm({ withTransport: false });
+  eq(calls.length, 0, 'a request escaped without the transport');
+  assert(rendered, 'nothing was shown to the visitor');
+  assert(/nu a reușit|FINMENTOR Bot|cfo@finmentor\.md/.test(rendered),
+    'the fallback copy is not what the visitor saw');
 });
 
 check('CG-2 no submitter reaches the lead webhook except through postLead', () => {
@@ -392,7 +525,7 @@ check('CG-3 every submitter handles the terminal conflict and offers a new reque
 });
 
 check('CG-4 the frozen fixture is not served, and the low-entropy fallback is gone', () => {
-  for (const p of PAGES.concat(['ro/index.html'])) {
+  for (const p of PAGES) {
     assert(!read(p).includes('pre-identity'), p + ' references the frozen fixture');
   }
   assert(TRANSPORT !== TRANSPORT_PRE, 'the deployed transport is still the pre-identity one');
