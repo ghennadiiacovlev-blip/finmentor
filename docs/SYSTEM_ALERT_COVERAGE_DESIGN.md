@@ -193,3 +193,90 @@ Two live failures on the way, both worth recording:
 `.uat/<id>.pre-system-alert.json` for all five callers, frozen with this pass's nodes stripped —
 PUT one back to undo it. Deleting or deactivating `ID700kTo6EXffwry` makes every emit a no-op,
 because no caller waits on it.
+
+---
+
+# PERMANENT ENGINEERING RECORD — two implementation incidents
+
+Recorded in full, at owner instruction, because both were caught by production rather than by a
+gate, and both produced a permanent rule. Neither is softened here.
+
+## INCIDENT A — execution `5071`: the build node failed with «LA is not defined»
+
+**What happened.** The first live invocation of the deployed SYSTEM ALERT workflow failed inside
+`Build System Alert`. `n8n/src/lead-alerts/presenter.js` is a CommonJS module ending in
+`module.exports = {…}`; it was inlined into the Code node **raw**. A Code node has no `module`, so
+the const `LA` was never defined and the node threw on the first line that used it.
+
+**Root cause — the assertion was source-presence, not execution.** The gate asserted that the
+candidate contained the module byte-for-byte. That assertion **passed**, and was worthless:
+inlining the raw source *does* match byte-for-byte. The correct inline is an IIFE — everything up
+to `module.exports`, wrapped and returning the exported object, which is what
+`scripts/build-lead-alerts-presentation.mjs` had always done and what this pass failed to copy.
+
+A byte-comparison proves the shipped copy equals the tested copy. It proves **nothing** about
+whether the node runs. This is the same blind spot that let executions `5055` and `5062` through,
+found for a third time.
+
+**Permanent gate added.** `qa/system-alert.test.mjs` — *"the candidate BUILD node actually runs and
+renders the alert"* — executes the candidate's own `Build System Alert` source with a shimmed `$`
+and `require`, and asserts the rendered HTML carries the approved chrome, the operation headline,
+the class-A statement and the alert key. It fails on the graph that produced `5071`.
+
+**The rule:** *a candidate node is proven by executing it, never by comparing its source.*
+
+## INCIDENT B — the first `--apply`: n8n persisted a PUT whose publish step failed
+
+**What happened.** The first `--apply` created the SYSTEM ALERT workflow (unpublished), then PUT
+the first caller. n8n returned **HTTP 400** — *"Cannot publish workflow: Node "Emit System Alert
+(Submit)" references workflow ID700kTo6EXffwry which is not published"* — and the script stopped.
+
+**The 400 was not a rejection of the write.** n8n had already **persisted** the nodes: Mini App
+Submit went from 26 to 28 nodes and stayed active. The error was raised by the publish step, after
+the save. The remaining four callers were untouched, verified by fresh read.
+
+**Two failures followed from treating the error as "nothing happened".** The re-run appended a
+second copy of the same nodes and was rejected for duplicate node names. Worse, the re-run had
+already re-frozen its "pre-image" **from the modified tenant** — a rollback body containing the
+first attempt's nodes, which does not roll back.
+
+**Permanent deploy invariant.** Deployment must be **convergent**:
+
+```
+fresh-read production
+  → strip this pass's own already-applied nodes and edges
+  → reconstruct the desired candidate from the stripped original
+  → apply
+  → fresh read-back
+  → prove exactly one intended instance
+```
+
+`scripts/deploy-system-alert.mjs` implements this in `stripSystemAlert()`, which runs before the
+pre-image is frozen. Running the deploy twice now produces exactly the same tenant as running it
+once, and the frozen pre-image is a real rollback body.
+
+**The rule:** *an n8n API error does not mean the write did not land. Re-read before re-applying,
+and make every deploy idempotent rather than assuming it runs once.*
+
+---
+
+# LEAD ALERT CANDIDATES — state note
+
+Owner decision: **keep the regenerated candidates.** They are honest derivatives of the current
+presenter source, which changed intentionally.
+
+```
+LEAD ALERT CANDIDATES
+  SOURCE-CURRENT                  = YES   regenerated from n8n/src/lead-alerts/presenter.js
+  TENANT-BYTE-EQUAL               = NO    the live workflows carry the pre-delta inline
+  BEHAVIOURAL LEGACY OUTPUT       = EQUIVALENT PASS   asserted in qa/system-alert.test.mjs —
+                                          a model without operation/sideEffectClass renders
+                                          byte-identically, including the legacy «Данные» card
+  DEPLOYED IN SYSTEM ALERT PHASE  = NO    no Lead Alerts production deploy occurred
+```
+
+**A future Lead Alert deployment must treat this presenter delta as an explicit part of its
+candidate diff.** It may not assume tenant parity: the diff will show the two new optional model
+fields and three optional technical lines in every rewritten builder node, and that is expected,
+intended, and behaviourally inert for the existing models. Reviewing it as an unexplained
+difference — or worse, regenerating around it — would be the wrong reading.
