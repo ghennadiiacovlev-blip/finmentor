@@ -258,7 +258,15 @@ say('3. the old expression, replayed against this tap\'s own data');
   want(before.rendered === '', 'the OLD expression renders EMPTY on this execution — Telegram would have answered 400'
     + (before.rendered === '' ? '' : ' (it rendered ' + JSON.stringify(before.rendered.slice(0, 60)) + ')'));
   want(after.rendered.length > 0, 'the LIVE expression renders ' + after.rendered.length + ' characters');
-  eqw(after.rendered, String(DECIDED.reply_text || ''), 'and it renders exactly the copy the decision produced');
+
+  // WHICH copy is correct is decided by the same discriminator the expression itself uses: an
+  // item carrying `.error` means the edit failed, and the presentation-failure copy is then the
+  // RIGHT answer, not a wrong one. Comparing unconditionally against reply_text would fail the
+  // graph for behaving correctly on the harder of its two branches.
+  const editFailed = !!(current && current.error);
+  const expectedCopy = String((editFailed ? DECIDED.reply_text_presentation_failed : DECIDED.reply_text) || '');
+  eqw(after.rendered, expectedCopy, 'and it renders exactly the copy the decision produced for this outcome ('
+    + (editFailed ? 'edit FAILED -> presentation-failure copy' : 'edit succeeded -> confirmation copy') + ')');
 }
 
 // ── 4. the write ──────────────────────────────────────────────────────────────────────────────
@@ -324,9 +332,20 @@ let EDITED = null;
   want(!!editNode, 'an Edit Alert node ran' + (editNode ? ': ' + editNode : ''));
   if (editNode) {
     const envelope = outOf(editNode)[0] || {};
-    eqw(envelope.ok, true, 'Telegram accepted the edit (ok:true)');
-    EDITED = envelope.result || {};
     eqw(String(editNode), SHAPE_NODE[SHAPE], 'the shape router sent ' + SHAPE + ' to the edit node that renders it');
+
+    // A failed edit is ONE fact, not six. Reporting the six downstream absences as separate
+    // failures buries the Telegram error that caused all of them, so it is named here and the
+    // assertions that read the returned Message are skipped rather than failed a second time.
+    if (envelope.error || envelope.ok !== true) {
+      bad('the Telegram EDIT FAILED: ' + JSON.stringify(String(envelope.error || envelope.description
+        || 'no ok:true and no error on the item')).slice(0, 300));
+      say('');
+      say('        The six assertions that read the returned Message are SKIPPED — there is no');
+      say('        Message to read. They would restate this one failure, not add to it.');
+      say('        The keyboard on the original alert is therefore whatever it already carried.');
+    } else {
+    EDITED = envelope.result || {};
     want(typeof EDITED.edit_date === 'number' && EDITED.edit_date > 0,
       'Telegram stamped the edit: edit_date ' + EDITED.edit_date + ' (' + new Date((EDITED.edit_date || 0) * 1000).toISOString() + ')');
     eqw(Number(EDITED.message_id), Number(IDENT.message_id), 'it edited the message the tap came from, not a new one');
@@ -344,6 +363,7 @@ let EDITED = null;
     eqw(JSON.stringify(kb.map((r) => r.length)), JSON.stringify(expect.map((r) => r.length)), 'and in the approved row shape');
     say('');
     say('        ' + kb.map((r) => r.map((b) => b.text).join(' | ')).join('\n        '));
+    }
   }
 }
 
@@ -493,11 +513,20 @@ if (REHEARSE) {
   say('  SYNTHETIC execution. Nothing here is a statement about the tenant. The finding stays');
   say('  open until a real tap lands and this script is run with no arguments.');
   process.exitCode = failures.length ? 1 : 3;
-} else if (!failures.length && BRANCH > 0 && ACK && String(ACK.text || '').length > 0) {
-  say('  FINDING CLOSED. Execution ' + EX.id + ' ran the corrected expression on branch ' + BRANCH
-    + ' (' + SHAPE + '), and Telegram delivered a non-empty confirmation as message ' + ACK.message_id + '.');
 } else {
-  say('  FINDING NOT CLOSED by this execution.');
+  // Two verdicts, deliberately separate. The ACK finding is about one thing: whether n8n executes
+  // the corrected expression and Telegram receives non-empty text. A failure elsewhere in the
+  // lifecycle does not un-close it, and reporting one number for both would hide whichever
+  // question the reader came for.
+  const ackClosed = BRANCH > 0 && ACK && String(ACK.text || '').length > 0;
+  if (ackClosed) {
+    say('  ACK FINDING CLOSED. Execution ' + EX.id + ' ran the corrected expression on branch ' + BRANCH
+      + ' (' + SHAPE + '), and Telegram delivered a non-empty confirmation as message ' + ACK.message_id + '.');
+  } else {
+    say('  ACK FINDING NOT CLOSED by this execution.');
+  }
+  say('  LIFECYCLE: ' + (failures.length ? failures.length + ' failure(s) above — the tap is NOT a clean pass.'
+    : 'every assertion passed.'));
 }
 say('');
 say('  Read-only: no PUT, no POST, no restore, no tap. The row is left as the tap left it.');

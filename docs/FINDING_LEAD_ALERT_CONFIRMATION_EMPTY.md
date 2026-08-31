@@ -3,8 +3,8 @@
 **Found:** 2026-08-31, by the first real tap of the Stage 2 action lifecycle
 **Execution:** `5055` — `FINMENTOR Lead Command Center SECURE CANDIDATE` (`qF9tonlHHIxc8MDd`), status `error`
 **Severity:** presentation only. No CRM data is wrong, and no write is lost.
-**Status:** FIXED and deployed 2026-08-31T14:51:08Z — but **OPEN** until a confirming tap proves
-n8n executes it. See [Resolution](#resolution) and [How this gets closed](#closing).
+**Status:** **CLOSED** 2026-08-31T15:37:33Z by execution `5062`. Deployed 2026-08-31T14:51:08Z and
+proven live by a real tap. See [Resolution](#resolution) and [Closed](#closed).
 **Fixed by:** `scripts/deploy-lead-alert-ack-fix.mjs` — one expression, one node.
 **Gated by:** `qa/lead-alerts-ack-expression.test.mjs`, which fails on the pre-fix graph.
 
@@ -244,3 +244,44 @@ that is fabricated — the Message Telegram never sent — is fabricated as narr
 `5055`'s own `reply_text` through the same emulator the offline gate uses.
 
 62/62 gates, 2228 assertions, unchanged by any of this.
+
+---
+
+<a id="closed"></a>
+
+## CLOSED — 2026-08-31T15:37:33Z, execution `5062`
+
+The owner tapped **⏰ На 24 часа** on the fresh PRIORITY alert (message `147`), exactly once.
+`scripts/verify-lead-alert-ack-tap-live.mjs` reports **49 passed, 1 failed** — and the one failure
+is a *different* defect, recorded separately in
+[FINDING_LEAD_ALERT_EDIT_NOT_MODIFIED.md](FINDING_LEAD_ALERT_EDIT_NOT_MODIFIED.md).
+
+**The acknowledgement was delivered.** 143 characters, message `148`, to the verified private chat,
+after the write, the read-back, the mutation proof and the edit — in that order. Execution `5055`
+sent zero.
+
+**It closed on the failure branch, which is stronger than the happy path.** The edit returned
+Telegram's benign `message is not modified`, so `$json.error` was TRUE and the expression took the
+`reply_text_presentation_failed` path. Both halves of the corrected expression are now proven live:
+`5062` exercised the error branch, and the branch each half reads from is the same single-output
+node.
+
+**The old expression, replayed against this execution's own data, renders EMPTY.** The item went
+down `Route Edit Shape` branch **1** (`KB22`); branch 0 was empty, exactly as it was in `5055`. The
+pre-fix graph would have sent nothing here too — so this tap is not merely a pass, it is a
+before-and-after on the same bytes.
+
+| | `5055` (pre-fix) | `5062` (post-fix) |
+|---|---|---|
+| branch taken | 2 (`KB21`) | 1 (`KB22`) |
+| old expression renders | empty | empty |
+| live expression renders | — | 178 chars |
+| `Telegram Update Reply` | `400 message text is empty` | `ok:true`, message `148` |
+| SYSTEM ALERT raised | yes (`5056`) | **no** |
+
+The write was correct and sparse: `sla_snooze_until` and `next_follow_up_at` both set to tap + 24 h
+exactly, `deal_stage`, `sla_status` and `last_contacted_at` unchanged, 68 unrelated columns
+byte-identical, `_verified=true`, `_mismatched=[]`.
+
+Exactly one callback execution reached the tenant. No duplicate write, no second tap, no new lead,
+no Error Monitor execution.
