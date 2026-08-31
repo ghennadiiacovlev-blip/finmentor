@@ -268,6 +268,89 @@ const LAA = (function () {
       LA.esc('Изменения не внесены. Попробуйте ещё раз.')]);
   }
 
+  // ── EDITING THE ORIGINAL ALERT — and the constraint that forced this ─────────────────────────
+  //
+  // The approved design says: after a successful mutation, edit the ORIGINAL alert's keyboard, and
+  // do not edit the message text unless structurally necessary.
+  //
+  // IT IS STRUCTURALLY NECESSARY. Telegram has `editMessageReplyMarkup`, which edits the keyboard
+  // and nothing else — but the n8n Telegram node does not expose it. Its only edit operation is
+  // `editMessageText`, whose `text` parameter is REQUIRED. Verified against the node's own type
+  // definition (v1.2, resource=message): the message operations are send*, editMessageText,
+  // deleteChatMessage, pin/unpin. There is no reply-markup-only edit, and reaching the raw Bot API
+  // would mean putting the bot token in an HTTP Request URL — a secret in a workflow parameter,
+  // which this repository does not do.
+  //
+  // So the edit must re-send the text. Telegram hands the callback the message as PLAIN text plus
+  // an `entities` array; re-sending that plain text would strip every <b> and <code> and visibly
+  // downgrade a premium alert. This rebuilds the HTML from text + entities so the edited message is
+  // byte-identical to the original, and the gate proves that round-trip on the real rendered
+  // alerts rather than on a sample.
+  //
+  // Offsets are UTF-16 code units, which is exactly how JavaScript indexes strings, so they map
+  // directly — no conversion, and no place for an off-by-one to hide.
+  var ENTITY_TAG = {
+    bold: 'b', italic: 'i', underline: 'u', strikethrough: 's',
+    code: 'code', pre: 'pre', spoiler: 'tg-spoiler'
+  };
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function openTag(e) {
+    if (e.type === 'text_link') { return '<a href="' + escHtml(e.url || '') + '">'; }
+    var t = ENTITY_TAG[e.type];
+    return t ? '<' + t + '>' : '';
+  }
+  function closeTag(e) {
+    if (e.type === 'text_link') { return '</a>'; }
+    var t = ENTITY_TAG[e.type];
+    return t ? '</' + t + '>' : '';
+  }
+
+  // Rebuild Telegram HTML from the plain text and entities of a message the bot sent.
+  // An entity type this does not know is SKIPPED rather than guessed at — the text survives
+  // unstyled, which is a visible but harmless degradation, where inventing a tag would not be.
+  function htmlFromTelegram(text, entities) {
+    var s = String(text == null ? '' : text);
+    var list = (entities || []).filter(function (e) {
+      return e && typeof e.offset === 'number' && typeof e.length === 'number'
+        && (ENTITY_TAG[e.type] || e.type === 'text_link');
+    });
+    if (list.length === 0) { return escHtml(s); }
+
+    var events = [];
+    for (var i = 0; i < list.length; i++) {
+      events.push({ pos: list[i].offset, kind: 1, len: list[i].length, e: list[i], i: i });
+      events.push({ pos: list[i].offset + list[i].length, kind: 0, len: list[i].length, e: list[i], i: i });
+    }
+    // Closes before opens at the same position; longer opens first and shorter closes first, so
+    // nested entities produce correctly nested tags rather than crossed ones.
+    events.sort(function (a, b) {
+      if (a.pos !== b.pos) { return a.pos - b.pos; }
+      if (a.kind !== b.kind) { return a.kind - b.kind; }
+      if (a.kind === 1) { return b.len - a.len || a.i - b.i; }
+      return a.len - b.len || a.i - b.i;
+    });
+
+    var out = '';
+    var cursor = 0;
+    for (var k = 0; k < events.length; k++) {
+      var ev = events[k];
+      if (ev.pos > cursor) { out += escHtml(s.slice(cursor, ev.pos)); cursor = ev.pos; }
+      out += ev.kind === 1 ? openTag(ev.e) : closeTag(ev.e);
+    }
+    if (cursor < s.length) { out += escHtml(s.slice(cursor)); }
+    return out;
+  }
+
+  // Which action set the ORIGINAL alert was rendered with, derived from the keyboard it carried
+  // rather than from a new field in callback_data. A NEW LEAD alert never offers «Обработано», so
+  // the presence of a `done|` button is the discriminator — and it needs one boolean carried
+  // through the callback path, not the whole keyboard.
+  function originKind(hadDone) { return hadDone ? 'priority' : 'new_lead'; }
+
   // ── D10, stated rather than claimed ──────────────────────────────────────────────────────────
   //
   // The Pipeline is a Google Sheet. `Update Pipeline Row` matches on `lead_id` and writes the keys
@@ -306,6 +389,9 @@ const LAA = (function () {
     buildUpdate: buildUpdate,
     alreadyApplied: alreadyApplied,
     refuseReason: refuseReason,
+    htmlFromTelegram: htmlFromTelegram,
+    originKind: originKind,
+    ENTITY_TAG: ENTITY_TAG,
     confirm: confirm,
     refusal: refusal
   };

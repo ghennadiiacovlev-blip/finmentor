@@ -407,6 +407,123 @@ check('D11 the refusals are premium, harmless and leak nothing', () => {
   }
 });
 
+// ══════════════════════════════════════════════ editing the original alert
+
+console.log('');
+console.log('D8 — rebuilding the alert HTML so the keyboard can be edited without downgrading it');
+
+// n8n's Telegram node has no reply-markup-only edit; `editMessageText` REQUIRES `text`. Telegram
+// hands the callback plain text plus entities, so the edit has to rebuild the HTML — and if that
+// rebuild is not byte-exact the owner watches a premium alert lose its formatting the moment they
+// press a button. These cases prove the round-trip on the REAL renderer output.
+//
+// This helper models what Telegram does to an outgoing HTML message: strips the tags, records
+// offsets in UTF-16 code units, unescapes entities. It exists only in the gate.
+function toTelegram(html) {
+  const TAG = { b: 'bold', i: 'italic', u: 'underline', s: 'strikethrough', code: 'code', pre: 'pre' };
+  const entities = [];
+  const open = [];
+  let text = '';
+  let i = 0;
+  while (i < html.length) {
+    if (html[i] === '<') {
+      const close = html.indexOf('>', i);
+      if (close === -1) { text += html[i]; i++; continue; }
+      const raw = html.slice(i + 1, close).trim();
+      const isEnd = raw.startsWith('/');
+      const name = (isEnd ? raw.slice(1) : raw.split(/\s/)[0]).toLowerCase();
+      if (TAG[name]) {
+        if (isEnd) {
+          for (let k = open.length - 1; k >= 0; k--) {
+            if (open[k].name === name) {
+              entities.push({ type: TAG[name], offset: open[k].offset, length: text.length - open[k].offset });
+              open.splice(k, 1);
+              break;
+            }
+          }
+        } else { open.push({ name, offset: text.length }); }
+        i = close + 1;
+        continue;
+      }
+      text += html[i]; i++; continue;
+    }
+    if (html.startsWith('&amp;', i)) { text += '&'; i += 5; continue; }
+    if (html.startsWith('&lt;', i)) { text += '<'; i += 4; continue; }
+    if (html.startsWith('&gt;', i)) { text += '>'; i += 4; continue; }
+    text += html[i]; i++;
+  }
+  entities.sort((a, b) => a.offset - b.offset || b.length - a.length);
+  return { text, entities };
+}
+
+const SAMPLE = {
+  'NEW LEAD': LA.renderNewLead({
+    company: 'Mega Parc SRL', role: 'Генеральный директор',
+    objective: 'Нет своевременной управленческой отчётности',
+    situation: 'Retail · Retail · €500 тыс. – €2 млн', priority: 'HOT', zone: 'UNKNOWN',
+    nextAction: 'Ответить сегодня / предложить Discovery Call',
+    source: 'miniapp_diagnostic', contactChannel: 'telegram', contactValue: '551662084',
+    leadId: 'FIN-1788113619104-582'
+  }),
+  PRIORITY: LA.renderPriority({
+    company: 'Alfa & <Grup> SRL', reason: 'Запланированный контакт просрочен.',
+    nextAction: 'Ответить сегодня', dueAt: '2026-08-30T09:00:00.000Z',
+    now: '2026-09-01T09:00:00.000Z', offsetMinutes: 180, leadId: 'FIN-1'
+  }),
+  'FOLLOW-UP': LA.renderFollowUp({
+    now: '2026-09-01T09:00:00.000Z', offsetMinutes: 180,
+    items: [{ company: 'Vinaria Bostavan', action: 'Запросить документы', dueAt: '2026-09-01T12:00:00.000Z', leadId: 'FIN-2' }]
+  })
+};
+
+check('D8 every real alert survives the text→entities→HTML round-trip byte-identically', () => {
+  for (const [name, html] of Object.entries(SAMPLE)) {
+    const { text, entities } = toTelegram(html);
+    const back = A.htmlFromTelegram(text, entities);
+    eq(back, html, name + ' did not round-trip');
+    assert(entities.length > 0, name + ' produced no entities — the helper is not exercising anything');
+  }
+});
+
+check('D8 the round-trip preserves the characters that break naive rebuilds', () => {
+  // A company name with & and angle brackets is the classic way a rebuild corrupts a message.
+  const html = LA.renderNewLead({
+    company: 'Alfa & <Grup> "Co"', role: '', objective: 'a < b & c > d', situation: '',
+    priority: 'WARM', zone: 'RED', nextAction: '', source: 'contact',
+    contactChannel: 'email', contactValue: 'x@y.md', leadId: 'FIN-3'
+  });
+  const { text, entities } = toTelegram(html);
+  eq(A.htmlFromTelegram(text, entities), html, 'escaping did not survive the round-trip');
+  assert(/&amp;/.test(html) && /&lt;/.test(html), 'the fixture did not actually contain escapes');
+});
+
+check('D8 nested and adjacent entities nest correctly, and unknown types degrade to plain text', () => {
+  const nested = A.htmlFromTelegram('abcdef', [
+    { type: 'bold', offset: 0, length: 6 }, { type: 'italic', offset: 2, length: 2 }
+  ]);
+  eq(nested, '<b>ab<i>cd</i>ef</b>', 'nesting is wrong');
+  const adjacent = A.htmlFromTelegram('abcd', [
+    { type: 'bold', offset: 0, length: 2 }, { type: 'code', offset: 2, length: 2 }
+  ]);
+  eq(adjacent, '<b>ab</b><code>cd</code>', 'adjacent entities are wrong');
+  // An unrecognised entity must not invent a tag; the text survives unstyled.
+  eq(A.htmlFromTelegram('abc', [{ type: 'custom_emoji', offset: 0, length: 3 }]), 'abc',
+    'an unknown entity type produced markup');
+  eq(A.htmlFromTelegram('a<b', []), 'a&lt;b', 'plain text was not escaped');
+});
+
+check('D8 the origin action set is derived from the keyboard, not from callback_data', () => {
+  // A NEW LEAD alert never offers «Обработано», so a `done|` button is the discriminator. This is
+  // one boolean carried through the callback path — not a new callback vocabulary, and not the
+  // whole keyboard.
+  eq(A.originKind(false), 'new_lead', 'no done button should mean the NEW LEAD set');
+  eq(A.originKind(true), 'priority', 'a done button should mean the PRIORITY/FOLLOW-UP set');
+  const nl = A.keyboard('new_lead', { deal_stage: 'Qualified' }, 'FIN-1').flat();
+  assert(!nl.some((b) => b.callback_data.startsWith('done|')), 'the NEW LEAD set contains done — the discriminator is invalid');
+  const pr = A.keyboard('priority', { deal_stage: 'Qualified' }, 'FIN-1').flat();
+  assert(pr.some((b) => b.callback_data.startsWith('done|')), 'the PRIORITY set lacks done — the discriminator is invalid');
+});
+
 // ══════════════════════════════════════════════ the module is one source of truth
 
 console.log('');
