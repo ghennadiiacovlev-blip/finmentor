@@ -220,15 +220,29 @@ transportCases.push(['network failure is rejected', async () => {
   const t = loadTransport(() => Promise.reject(new Error('boom')));
   await expectReject(t.postLead('https://example.test/hook', {}), 'network');
 }]);
-transportCases.push(['request id is stable across a retry of the same payload', async () => {
-  const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true}')));
-  const payload = { tool: 'contact' };
-  const a = await t.postLead('https://example.test/hook', payload);
-  const b = await t.postLead('https://example.test/hook', payload);
-  assert(a.requestId === b.requestId, 'request id changed on retry of the same payload');
+// The identity is stable across a RETRY, and a retry is an attempt that did NOT settle. The old
+// version of this case reused one payload OBJECT across two SUCCESSFUL posts and read the id
+// surviving as proof of retry safety — but it survived only because postLead had mutated that
+// object, and no submitter reuses its payload object: all four build a fresh one inside the submit
+// handler. The case proved a property the site never had. The full lifecycle is gated in
+// qa/lead-intake-request-identity.test.mjs (cases M–U).
+transportCases.push(['request id is stable across a retry of the same submission', async () => {
+  let n = 0;
+  const t = loadTransport(() => {
+    n++;
+    return n === 1
+      ? Promise.reject(new Error('boom'))
+      : Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}'));
+  });
+  let held = '';
+  try { await t.postLead('https://example.test/hook', { tool: 'contact' }); }
+  catch (e) { held = t.submissionToken('contact'); }
+  assert(held.length > 8, 'no identity was held after the failed attempt');
+  const b = await t.postLead('https://example.test/hook', { tool: 'contact' });
+  assert(b.requestId === held, 'the retry did not carry the held identity');
 }]);
 transportCases.push(['distinct submissions get distinct request ids', async () => {
-  const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true}')));
+  const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}')));
   const a = await t.postLead('https://example.test/hook', { tool: 'contact' });
   const b = await t.postLead('https://example.test/hook', { tool: 'contact' });
   assert(a.requestId !== b.requestId, 'two submissions shared a request id');
@@ -239,14 +253,14 @@ transportCases.push(['request id is sent as header and in meta', async () => {
   const t = loadTransport((url, init) => {
     seen = init.headers['X-FINMENTOR-Request-Id'];
     sentBody = JSON.parse(init.body);
-    return Promise.resolve(jsonResponse(200, '{"ok":true}'));
+    return Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}'));
   });
   const r = await t.postLead('https://example.test/hook', { tool: 'contact' });
   assert(seen === r.requestId, 'header request id mismatch');
   assert(sentBody.meta.request_id === r.requestId, 'meta.request_id mismatch');
 }]);
 transportCases.push(['thankYouUrl carries tool and sid', async () => {
-  const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true}')));
+  const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}')));
   const u = t.thankYouUrl('mini_scan', 'fmr_abc');
   assert(u === 'thank-you.html?tool=mini_scan&sid=fmr_abc', 'unexpected url: ' + u);
 }]);

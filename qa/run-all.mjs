@@ -20,6 +20,7 @@ const GATES = [
   ['AI safe projection', 'ai-safe-projection.test.mjs'],
   ['Error Monitor alert', 'error-alert.test.mjs'],
   ['Website contract', 'website-contract.test.mjs'],
+  ['Public lead identity lifecycle', 'public-identity-lifecycle.test.mjs'],
   ['n8n export hygiene', 'n8n-manifest-drift.test.mjs'],
   ['Mini App read-model consistency', 'miniapp-readmodel.test.mjs'],
   ['Mini App consent and submit', 'miniapp-submit.test.mjs']

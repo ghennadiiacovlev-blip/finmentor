@@ -675,13 +675,22 @@
           });
         }
         thankYou('contact', result && result.requestId);
-      }).catch(function () {
+      }).catch(function (err) {
         if (submit) submit.disabled = false;
-        if (success) {
-          success.hidden = false;
+        if (!success) return;
+        success.hidden = false;
+        // IDEMPOTENCY_CONFLICT is terminal: this submission's identity is already settled against
+        // different content. The transport has sealed the slot, so pressing send again sends
+        // nothing. The only way forward is a deliberate new request, and that is the button.
+        if (window.FMLeadTransport && window.FMLeadTransport.isIdentityConflict(err)) {
+          success.innerHTML = tr('formConflict', '<strong>Эта заявка уже обработана.</strong> Данные изменились с момента отправки, поэтому она не была принята повторно. Начните новую заявку.');
+          window.FMLeadTransport.newRequestControl(success, 'contact',
+            tr('formNewRequest', 'Начать новую заявку'),
+            function () { success.hidden = true; });
+        } else {
           success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
-          success.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        success.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
 

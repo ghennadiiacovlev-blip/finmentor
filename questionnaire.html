@@ -1613,8 +1613,16 @@
           ? window.FMLeadTransport.thankYouUrl('xray_extended', result && result.requestId)
           : 'thank-you.html?tool=xray_extended';
       })
-      .catch(function () {
+      .catch(function (err) {
         setSubmitting(false);
+        // IDEMPOTENCY_CONFLICT is terminal: the transport has sealed this slot, so pressing send
+        // again sends nothing. Only a deliberate new request mints a new identity.
+        if (window.FMLeadTransport && window.FMLeadTransport.isIdentityConflict(err)) {
+          showSuccess(false, 'Эта заявка уже обработана. Данные изменились с момента отправки, поэтому она не была принята повторно. Начните новую заявку.');
+          window.FMLeadTransport.newRequestControl(success, 'xray_extended',
+            'Начать новую заявку', function () { success.hidden = true; });
+          return;
+        }
         showSuccess(false);
       });
   });
