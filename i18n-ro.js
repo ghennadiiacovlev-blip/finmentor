@@ -39,6 +39,8 @@
 
       /* ---- forms / cookies ---- */
       formFail: '<strong>Trimiterea automată a solicitării nu a reușit.</strong> Copiați textul solicitării și trimiteți-l în <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> sau la <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.',
+      formConflict: '<strong>Această solicitare a fost deja procesată.</strong> Datele s-au schimbat față de momentul trimiterii, așa că nu a fost acceptată din nou. Începeți o solicitare nouă.',
+      formNewRequest: 'Începeți o solicitare nouă',
       cookieAria: 'Setările cookies FINMENTOR',
       cookieTitle: 'Cookies și analitică',
       cookieText: 'FINMENTOR folosește cookies tehnice și analitică anonimizată. Datele personale nu se trimit în GA4.',
