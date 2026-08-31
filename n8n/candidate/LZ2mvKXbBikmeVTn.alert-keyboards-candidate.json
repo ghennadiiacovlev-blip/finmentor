@@ -1,0 +1,1067 @@
+{
+  "name": "FINMENTOR SLA Lead Watch PREMIUM FINAL",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "798f3855-4744-4960-b6b2-d978c13246df",
+      "name": "Hourly SLA Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1424,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        128
+      ],
+      "id": "f1a46327-e398-4001-b0a0-80963a77affd",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '551662084',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '551662084'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "f94ad885-33c1-4030-a672-a55280085c9e",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -816,
+        128
+      ],
+      "id": "b39e4cd0-fb8a-42c2-955b-f2a3753c1e22",
+      "name": "Get Pipeline Rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// ─── INLINED FROM n8n/src/lead-alerts/tz.js — DO NOT EDIT HERE ───────────────────────────────\n// scripts/build-lead-alerts-presentation.mjs regenerates this block. An edit made in the n8n\n// editor is lost on the next build and is invisible to qa/lead-alerts-presentation.test.mjs.\nconst LATZ = (function () {\n// FINMENTOR — the one clock helper the alert workflows share.\n//\n// SEPARATE FROM presenter.js ON PURPOSE.\n//\n// The renderer is asserted to touch no clock, no locale and no `Intl`, because a message whose\n// bytes depend on the runtime's ICU build is not reproducible and cannot be gated. But the\n// workflows genuinely do hold a timezone — `settings.timezone`, `Europe/Chisinau` — and Chisinau is\n// UTC+3 in summer and UTC+2 in winter, so a hard-coded offset would print the wrong hour for five\n// months of the year.\n//\n// So the offset is resolved HERE, once, and handed to the renderer as a number. `Intl` is used in\n// exactly this file, where its only output is an integer that the gate can pin.\n\n'use strict';\n\n// Minutes to ADD to UTC to get local time in `tz` at the instant `at`. Returns `fallback` (default\n// +180, Chisinau summer time) when the runtime cannot resolve the zone, because an alert with a\n// slightly wrong hour is worth more than no alert.\nfunction tzOffsetMinutes(tz, at, fallback) {\n  const when = at instanceof Date ? at : new Date(at);\n  const def = fallback === undefined ? 180 : fallback;\n  if (Number.isNaN(when.getTime())) { return def; }\n  try {\n    const dtf = new Intl.DateTimeFormat('en-US', {\n      timeZone: String(tz || 'Europe/Chisinau'), hour12: false,\n      year: 'numeric', month: '2-digit', day: '2-digit',\n      hour: '2-digit', minute: '2-digit', second: '2-digit'\n    });\n    const p = {};\n    for (const part of dtf.formatToParts(when)) { p[part.type] = part.value; }\n    // hour comes back as 24 at midnight under hour12:false on some ICU builds.\n    const hour = Number(p.hour) % 24;\n    const asIfUtc = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day),\n      hour, Number(p.minute), Number(p.second));\n    const diff = Math.round((asIfUtc - when.getTime()) / 60000);\n    // A sane zone is within ±14 h of UTC. Anything else means the runtime answered nonsense.\n    return Math.abs(diff) <= 840 ? diff : def;\n  } catch (e) {\n    return def;\n  }\n}\n\n\nreturn { tzOffsetMinutes };\n})();\n\n// ─── INLINED FROM n8n/src/lead-alerts/presenter.js — DO NOT EDIT HERE ────────────────────────\nconst LA = (function () {\n// FINMENTOR — Lead Alerts, the owner-facing presentation layer.\n//\n// ONE SOURCE OF TRUTH FOR EVERY OWNER-FACING ALERT STRING.\n//\n// This module renders. It does not decide. Nothing here reads the Pipeline, chooses which leads\n// are overdue, or fires anything: every render function takes an already-decided model and returns\n// Telegram HTML. That separation is the whole point of the pass — the alerts read like developer\n// logs today, and the fix for that is presentation, so the selection logic in each workflow stays\n// byte-for-byte what it is and only the last step changes.\n//\n// ── WHY IT LIVES IN THE REPO AND IS INLINED INTO THE CODE NODES ────────────────────────────────\n//\n// An n8n Code node cannot `require` a repo file, so scripts/build-lead-alerts-presentation.mjs\n// inlines this source into each builder node — the same generate-rather-than-retype pattern\n// app-premium/content.js already uses. qa/lead-alerts-presentation.test.mjs drives THIS file, and\n// the builder refuses to emit a candidate whose inlined copy differs from it, so the gate is\n// always watching the strings that actually ship.\n//\n// ── THE FIVE RULES ─────────────────────────────────────────────────────────────────────────────\n//\n//   1. An empty section is OMITTED, never rendered with a dash. A section header with nothing\n//      under it is noise that costs the owner a line of reading and returns nothing.\n//   2. A zero counter is OMITTED unless the message is specifically about data quality. Five lines\n//      of \"Overdue: 0 / No next action: 0 / No contact: 0\" is the exact texture this pass exists\n//      to remove.\n//   3. Business and system NEVER mix. A lead digest carries no workflow names; a system alert\n//      carries no lead.\n//   4. Data minimisation applies even on an owner-only channel. Phone, email and free text do not\n//      belong in a routine alert. The lead id is enough to open the row.\n//   5. Nothing is stated as proven unless the model proves it. In particular the system alert must\n//      not claim \"no side effects\": the n8n error payload carries no execution data at all, so\n//      that sentence would be invention. See IMPACT below.\n\n'use strict';\n\n// ── Telegram HTML ──────────────────────────────────────────────────────────────────────────────\n//\n// Telegram's HTML parse mode accepts a small tag set and requires &, < and > escaped everywhere\n// else. Every value that reaches a message goes through esc(); the tags are written by this file\n// and never come from data. That ordering is what stops a company called \"Alfa <Grup> & Co\" from\n// producing a 400 \"can't parse entities\" and silently losing the alert.\nconst ALLOWED_TAGS = ['b', 'i', 'u', 's', 'code', 'pre', 'a', 'blockquote', 'tg-spoiler'];\n\nfunction esc(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n// Collapse whitespace and bound the length. Owner alerts are read on a phone; a 600-character\n// \"main pain\" paste is not a summary, it is the raw field with a label on it.\nfunction tidy(v, max) {\n  const s = String(v === undefined || v === null ? '' : v).replace(/\\s+/g, ' ').trim();\n  if (!max || s.length <= max) { return s; }\n  return s.slice(0, max).replace(/[\\s,.;:—-]+$/, '') + '…';\n}\n\nconst present = (v) => String(v === undefined || v === null ? '' : v).trim() !== '';\n\n// One lead, one entry. A roster that lists the same company twice reads as a rendering fault\n// whatever produced it, and the owner counts it twice. Identity is the lead id where there is\n// one and the company name where there is not; `leadId` on a brief entry exists ONLY for this —\n// it is never rendered, because B11 keeps internal ids out of the digest body.\nfunction dedupe(items) {\n  const seen = {};\n  const out = [];\n  for (const it of (items || [])) {\n    if (!it) { continue; }\n    const key = present(it.leadId) ? 'id:' + String(it.leadId).trim().toLowerCase()\n      : 'co:' + String(it.company || '').trim().toLowerCase();\n    if (key === 'co:') { out.push(it); continue; }   // nothing to key on; keep it rather than drop it\n    if (seen[key]) { continue; }\n    seen[key] = 1;\n    out.push(it);\n  }\n  return out;\n}\n\n// ── B10. Presentation vocabulary ───────────────────────────────────────────────────────────────\n//\n// TWO DIMENSIONS, AND THEY ARE NOT THE SAME DIMENSION.\n//\n//   priority        HOT / WARM / COLD / INCOMPLETE\n//                   How the OWNER should queue this lead. Derived at intake from intent,\n//                   completeness and commercial signal. It is about the owner's calendar.\n//\n//   financial_zone  GREEN / YELLOW / ORANGE / RED\n//                   What the DIAGNOSTIC said about the client's finances, from the 0–100\n//                   diagnostic score. It is about the client's business.\n//\n// A COLD lead can be RED (a struggling company that is not ready to buy) and a HOT lead can be\n// GREEN (a healthy company that wants to start on Monday). Merging them into one \"status\" would\n// destroy information the owner uses to decide what to say in the first call, so they render as\n// two separate, differently-labelled lines and never as one badge.\n//\n// The Russian wordings below are not new semantics. zoneLabel() in the deployed Lead Intake brief\n// already says exactly these things in a longer form; this shortens them and stops there.\nconst PRIORITY_LABEL = {\n  HOT: 'Высокий приоритет',\n  WARM: 'Требует внимания',\n  COLD: 'Низкий приоритет',\n  INCOMPLETE: 'Нужны данные'\n};\n\nconst ZONE_LABEL = {\n  RED: 'Критическая зона',\n  ORANGE: 'Повышенный риск',\n  YELLOW: 'Есть зоны риска',\n  GREEN: 'Устойчиво'\n};\n\n// An unrecognised value is NOT silently mapped to something plausible. It returns '' and the line\n// is omitted, because inventing \"Низкий приоритет\" for a value nobody recognises is worse than\n// saying nothing: the owner would act on a label the data never carried.\nconst SOURCE_LABEL = [\n  [/xrayextended/, 'Финансовый рентген — расширенная анкета'],\n  [/xrayquick/, 'Финансовый рентген — быстрый рентген'],\n  [/miniscan/, 'Мини-скан оборотного капитала'],\n  [/miniapp|telegram/, 'Telegram Mini App'],\n  [/contact/, 'Контактная форма сайта']\n];\n\n// An unrecognised slug is NOT printed raw — «xray_extended» tells the owner nothing a label\n// would not. It degrades to the one true generic statement instead.\n//\n// IDEMPOTENT, and that is load-bearing. The deployed Lead Intake brief has a sourceLabel of its\n// own that runs BEFORE this one, so `source` can arrive already translated. Passing a Russian\n// label through a slug matcher used to fall through to «Сайт FINMENTOR» and quietly destroy the\n// real source — which is exactly what the live verification caught. Recognising this function's\n// own output closes the class rather than the instance: every caller is now safe, including the\n// ones nobody has written yet.\nfunction sourceLabel(tool) {\n  const raw = String(tool === undefined || tool === null ? '' : tool).trim();\n  if (!raw) { return ''; }\n  for (const [, label] of SOURCE_LABEL) { if (raw === label) { return label; } }\n  const t = raw.toLowerCase().replace(/[_\\s-]/g, '');\n  for (const [re, label] of SOURCE_LABEL) { if (re.test(t)) { return label; } }\n  return 'Сайт FINMENTOR';\n}\n\n// ── the preferred contact channel, and its value ───────────────────────────────────────────────\n//\n// OWNER DECISION, 2026-08-30. Not the old \"print every contact we hold\", and not the previous\n// pass's \"print no contact at all\" either. ONE channel — the one the client chose — with its\n// value, so the owner can act without opening the CRM, and nothing else.\n//\n// Phone and email are NEVER rendered together. If a future decision changes that, it changes\n// here, once.\n//\n// Telegram is the exception that proves the rule: the bot can reach the client through the chat\n// whether or not a @handle exists, so Telegram with no handle is still a usable channel and\n// renders bare. A handle is never invented. Phone or email with no value is NOT reachable, so it\n// renders «Не указана» rather than a label that promises a contact route the record does not have.\nconst CONTACT_CHANNELS = {\n  telegram: 'Telegram',\n  phone: 'Телефон',\n  email: 'Email'\n};\n\n// Accepts the id the Mini App stores and the label the legacy intake carries, so one function\n// serves both paths without either of them normalising first.\nfunction contactChannelKey(v) {\n  const t = String(v === undefined || v === null ? '' : v).trim().toLowerCase();\n  if (!t) { return ''; }\n  if (t.indexOf('telegram') !== -1) { return 'telegram'; }\n  if (t.indexOf('email') !== -1 || t.indexOf('mail') !== -1) { return 'email'; }\n  if (t.indexOf('phone') !== -1 || t.indexOf('телефон') !== -1 || t.indexOf('тел') === 0) { return 'phone'; }\n  return '';\n}\n\n// Returns the rendered value for the «Связь» block. Already escaped — it is the one line in the\n// system that may legitimately carry a client contact, and validate() exempts exactly this line\n// and no other.\nfunction contactLine(channel, value) {\n  const key = contactChannelKey(channel);\n  const v = tidy(value, 60);\n  if (key === 'telegram') { return v ? 'Telegram · ' + esc(v) : 'Telegram'; }\n  if (key === 'phone' && v) { return 'Телефон · ' + esc(v); }\n  if (key === 'email' && v) { return 'Email · ' + esc(v); }\n  // No channel, or a channel with no reachable value.\n  return 'Не указана';\n}\n\nfunction priorityLabel(v) { return PRIORITY_LABEL[String(v || '').trim().toUpperCase()] || ''; }\nfunction zoneLabel(v) { return ZONE_LABEL[String(v || '').trim().toUpperCase()] || ''; }\n\n// ── dates ──────────────────────────────────────────────────────────────────────────────────────\n//\n// Written out rather than taken from Intl. A Code node's ICU data is not something this repo\n// controls, and a digest whose date silently renders as \"August 30\" on one runtime and\n// \"30 августа\" on another is not deterministic. qa asserts the table.\nconst MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',\n  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];\n\n// Parses to Y/M/D/H/M in a fixed offset. Chisinau is UTC+3 in summer and UTC+2 in winter; the\n// caller passes the offset it already computed, because the workflows already hold a timezone\n// setting and this file must not become a second, disagreeing clock.\nfunction parts(iso, offsetMinutes) {\n  const d = new Date(iso);\n  if (Number.isNaN(d.getTime())) { return null; }\n  const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n  return {\n    y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate(),\n    hh: String(t.getUTCHours()).padStart(2, '0'), mm: String(t.getUTCMinutes()).padStart(2, '0')\n  };\n}\n\nfunction longDate(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] : '';\n}\n\nfunction dateTime(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] + ' · ' + p.hh + ':' + p.mm : '';\n}\n\n// A deadline the owner can act on without arithmetic. «просрочено на 3 дн.» is a decision;\n// «Due: 2026-08-27T09:00:00.000Z» is homework.\nfunction deadline(dueIso, nowIso, offsetMinutes) {\n  const due = new Date(dueIso);\n  const now = new Date(nowIso);\n  if (Number.isNaN(due.getTime()) || Number.isNaN(now.getTime())) { return ''; }\n  const dayOf = (d) => {\n    const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n    return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());\n  };\n  const days = Math.round((dayOf(due) - dayOf(now)) / 86400000);\n  if (days === 0) { return 'сегодня'; }\n  if (days === 1) { return 'завтра'; }\n  if (days === -1) { return 'просрочено на 1 день'; }\n  if (days < -1) { return 'просрочено на ' + (-days) + ' ' + plural(-days, 'день', 'дня', 'дней'); }\n  return longDate(dueIso, offsetMinutes);\n}\n\nfunction plural(n, one, few, many) {\n  const a = Math.abs(n) % 100;\n  const b = a % 10;\n  if (a > 10 && a < 20) { return many; }\n  if (b > 1 && b < 5) { return few; }\n  if (b === 1) { return one; }\n  return many;\n}\n\n// ── block assembly ─────────────────────────────────────────────────────────────────────────────\n//\n// `block` is the rule \"an empty section is omitted\" made structural rather than remembered. A\n// caller cannot render a header with nothing under it, because a header with no surviving lines\n// returns null and null is dropped.\n// THE DAILY BRIEF IS A DOCUMENT; EVERY OTHER MESSAGE IS A CARD.\n//\n// A document has bold section headings the eye can jump between, because the owner scans it for\n// the section they want. A card is read top to bottom in five seconds, and bolding both the label\n// and the value there leaves nothing quiet enough to make the value stand out. So `block` bolds\n// its heading and `card` does not, and the value each one wraps in <b> is the answer, not the\n// question.\nfunction assemble(heading, lines, bold) {\n  const kept = (Array.isArray(lines) ? lines : [lines]).filter(present);\n  if (!kept.length) { return null; }\n  const h = heading ? (bold ? '<b>' + esc(heading) + '</b>' : esc(heading)) + '\\n' : '';\n  return h + kept.join('\\n');\n}\nfunction block(heading, lines) { return assemble(heading, lines, true); }\nfunction card(heading, lines) { return assemble(heading, lines, false); }\n\nfunction join(blocks) {\n  return blocks.filter((b) => present(b)).join('\\n\\n');\n}\n\n// «Метка: значение», dropped entirely when the value is missing.\nfunction line(label, value) {\n  return present(value) ? esc(label) + ': ' + esc(value) : '';\n}\n\n// A counter that renders only when it is worth a line. This is B11 in one function: a run of\n// zeroes is not information, it is furniture. `always` is for the one anchor number a section\n// would be meaningless without.\nfunction counter(label, n, always) {\n  const v = Number(n) || 0;\n  if (!v && !always) { return ''; }\n  return esc(label) + ': ' + v;\n}\n\nconst header = (kind, sub) =>\n  '<b>FINMENTOR · ' + esc(kind) + '</b>' + (present(sub) ? '\\n<i>' + esc(sub) + '</i>' : '');\n\n// ── B3. OWNER DAILY BRIEF ──────────────────────────────────────────────────────────────────────\n//\n// model = {\n//   now, offsetMinutes,\n//   counts: { active, newToday, needAttention, overdue },\n//   leads:  [{ company, descriptor, priority, objective, nextAction, dueAt }],\n//   moreLeads: n,\n//   decisions: [ '…', '…' ]\n// }\nfunction renderDailyBrief(model) {\n  const m = model || {};\n  const c = m.counts || {};\n  const off = m.offsetMinutes;\n\n  const today = block('Сегодня', [\n    counter('Активных лидов', c.active, true),\n    counter('Новых', c.newToday),\n    counter('Требуют внимания', c.needAttention),\n    counter('Просрочено', c.overdue)\n  ]);\n\n  // Five, not ten. A brief the owner scrolls is a report, and a report gets read later.\n  const leads = dedupe(m.leads).slice(0, 5).map((l, i) => {\n    const head = (i + 1) + '. <b>' + esc(tidy(l.company, 60) || '—') + '</b>'\n      + (present(l.descriptor) ? '\\n' + esc(tidy(l.descriptor, 60)) : '');\n    const body = [\n      line('Статус', priorityLabel(l.priority)),\n      line('Задача', tidy(l.objective, 90)),\n      line('Следующее действие', tidy(l.nextAction, 90)),\n      line('Срок', l.dueAt ? deadline(l.dueAt, m.now, off) : '')\n    ].filter(present);\n    return body.length ? head + '\\n\\n' + body.join('\\n') : head;\n  });\n  if (leads.length && Number(m.moreLeads) > 0) {\n    leads.push('<i>И ещё ' + Number(m.moreLeads) + ' в работе.</i>');\n  }\n  const priority = leads.length ? '<b>Приоритет</b>\\n\\n' + leads.join('\\n\\n') : null;\n\n  // Five, like the roster. A brief that lists thirty decisions has made none of them, and forty\n  // of them cleared the 4096-character limit outright — the message would not have been sent.\n  const open = (m.decisions || []).filter(present);\n  const decisions = block('Что требует решения',\n    open.slice(0, 5).map((d) => '• ' + esc(tidy(d, 110)))\n      .concat(open.length > 5 ? ['<i>И ещё ' + (open.length - 5) + '.</i>'] : []));\n\n  const body = join([today, priority, decisions]);\n  // Nothing urgent is a RESULT, and saying so plainly is worth more than a page of zeroes.\n  const tail = (priority || decisions) ? '' : '<b>Критичных действий нет.</b>';\n  return join([header('OWNER DAILY BRIEF', dateTime(m.now, off)), body, tail]);\n}\n\n// ── B4. NEW LEAD ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, role, objective, situation, priority, zone, nextAction, source,\n//           contactChannel, leadId }\n//\n// NO PHONE, NO EMAIL, NO FREE-TEXT PASTE. The owner opens the row to call; the alert exists to\n// say whether the row is worth opening now. The contact CHANNEL is carried because it changes how\n// the owner plans the callback, and the channel is not personal data.\nfunction renderNewLead(model) {\n  const m = model || {};\n  const ident = '<b>' + esc(tidy(m.company, 70) || '—') + '</b>'\n    + (present(m.role) ? '\\n' + esc(tidy(m.role, 60)) : '');\n\n  return join([\n    header('NEW LEAD'),\n    ident,\n    card('Задача', present(m.objective) ? '<b>' + esc(tidy(m.objective, 120)) + '</b>' : ''),\n    card('Ситуация', esc(tidy(m.situation, 220))),\n    card('Приоритет', [\n      present(priorityLabel(m.priority)) ? '<b>' + esc(priorityLabel(m.priority)) + '</b>' : '',\n      // The second dimension, labelled so it can never be read as the first.\n      line('Финансовая зона', zoneLabel(m.zone))\n    ]),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Связь', '<b>' + contactLine(m.contactChannel, m.contactValue) + '</b>'),\n    card(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B5. PRIORITY ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, reason, nextAction, dueAt, now, offsetMinutes, leadId }\n//\n// Deliberately NOT the lead card again. The owner already received the card when the lead landed;\n// repeating it here would mean re-reading everything to find the one new fact, which is why the\n// deployed SLA reminder gets skimmed.\nfunction renderPriority(model) {\n  const m = model || {};\n  return join([\n    header('PRIORITY'),\n    '<b>' + esc(tidy(m.company, 70) || '—') + '</b>',\n    card('Почему требует внимания', esc(tidy(m.reason, 140))),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Срок', present(m.dueAt) ? '<b>' + esc(deadline(m.dueAt, m.now, m.offsetMinutes)) + '</b>' : ''),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B6. FOLLOW-UP DUE ──────────────────────────────────────────────────────────────────────────\n//\n// model = { now, offsetMinutes, items: [{ company, action, dueAt, leadId }] }\n//\n// Takes a LIST. The deployed workflow emits one message per due follow-up, so it passes one item\n// and the message reads correctly for one. The day an aggregation step is approved, the same\n// renderer produces the numbered list without a second template existing.\nfunction renderFollowUp(model) {\n  const m = model || {};\n  const items = dedupe((m.items || []).filter((x) => x && present(x.company)));\n  if (!items.length) { return ''; }   // never send an empty operational message\n\n  const rows = items.slice(0, 10).map((it, i) => [\n    (i + 1) + '. <b>' + esc(tidy(it.company, 60)) + '</b>',\n    present(it.action) ? esc(tidy(it.action, 100)) : '',\n    present(it.dueAt) ? 'Срок: ' + esc(deadline(it.dueAt, m.now, m.offsetMinutes)) : '',\n    present(it.leadId) ? '<code>' + esc(tidy(it.leadId, 40)) + '</code>' : ''\n  ].filter(present).join('\\n'));\n\n  return join([\n    header('FOLLOW-UP'),\n    'Просрочено: <b>' + items.length + '</b>',\n    rows.join('\\n\\n'),\n    items.length > 10 ? '<i>И ещё ' + (items.length - 10) + '.</i>' : ''\n  ]);\n}\n\n// ── B1 type 5. LEAD INCOMPLETE ─────────────────────────────────────────────────────────────────\n//\n// model = { company, missing: ['контакт', 'согласие'], reason, source, leadId }\n//\n// Its own type because the owner action is different in kind: nothing here can be sold until the\n// record is repaired, so it must not sit in the same queue as a lead that can be called.\n// OWNER DECISION, 2026-08-30. The reason and the next step are PINNED HERE and are not taken\n// from the model.\n//\n// The previous copy said «Форма отправлена без контакта и без согласия.» — which reads as a\n// legal conclusion about consent while the Moldovan legal basis is still\n// PENDING_LEGAL_REVIEW. An owner message is not the place to settle that, and a sentence the\n// builder could vary is a sentence that could drift into settling it. So the message describes\n// the OPERATIONAL problem only.\n//\n// The underlying rule is untouched: whatever blocked this lead — missing contact, missing\n// consent — still blocks it, and `priority_reason` still travels in the item for the internal\n// record. It simply is not restated to the owner as a finding.\nfunction renderIncomplete(model) {\n  const m = model || {};\n  return join([\n    header('LEAD INCOMPLETE'),\n    '<b>' + esc(tidy(m.company, 70) || 'Компания не указана') + '</b>',\n    card('Чего не хватает', (m.missing || []).filter(present).map((x) => '• ' + esc(tidy(x, 60)))),\n    card('Причина', 'Недостаточно данных для полноценной обработки обращения.'),\n    card('Следующий шаг', '<b>Проверить данные обращения вручную.</b>'),\n    block(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B7/B8. SYSTEM ALERT ────────────────────────────────────────────────────────────────────────\n//\n// model = { workflowName, nodeName, errorClass, message, executionId }\n//\n// ── WHAT THIS MESSAGE MAY AND MAY NOT CLAIM ────────────────────────────────────────────────────\n//\n// n8n's error trigger delivers `{ execution: { id, url, error }, workflow: { id, name } }` and\n// NOTHING ELSE — verified against execution 4240, which alerted on failure 4239. There is no\n// runData, no node output, no record of which writes had already committed.\n//\n// So this message CANNOT say «Обращение не создано. Pipeline не изменён. Privacy-запись не\n// создана.» Those three sentences would be invention dressed as a finding, and an owner who\n// trusted them once would trust them the time they were wrong. What it says instead is what is\n// true: the run stopped, here is where, and the consequences for stored data have not been\n// checked. Making the stronger statement requires reading the failed execution back through the\n// n8n API — a new capability, not a new sentence.\n//\n// IMPACT is derived from the workflow NAME, which the payload does carry. Each entry states what\n// stopped, never what was written.\nconst IMPACT = [\n  [/mini app|miniapp|gateway|submit|session/i, 'Заявка из Mini App не была принята.'],\n  [/concierge|transport/i, 'Ответ клиенту в Telegram не был отправлен.'],\n  [/lead intake/i, 'Приём заявки прерван.'],\n  [/digest/i, 'Ежедневный дайджест не сформирован.'],\n  [/sla/i, 'Проверка SLA не выполнена.'],\n  [/followup|follow-up/i, 'Напоминания не разосланы.'],\n  [/command center/i, 'Команда владельца не выполнена.']\n];\n\nfunction impactOf(workflowName) {\n  const n = String(workflowName || '');\n  for (const [re, text] of IMPACT) { if (re.test(n)) { return text; } }\n  return 'Выполнение остановлено.';\n}\n\n// The tenant's naming convention is loud on purpose; the owner does not need it shouted back.\n// Order matters: the bracketed tag comes off FIRST, or a name like \"[CANDIDATE] FINMENTOR Mini\n// App Submit\" keeps its prefix because the prefix was never at the start.\nfunction shortWorkflow(name) {\n  return tidy(String(name || '')\n    .replace(/\\s*\\[(UAT|CANDIDATE|TEMP|TEST)\\]\\s*/gi, ' ')\n    .replace(/^\\s*FINMENTOR\\s+/i, '')\n    .replace(/\\s+(PREMIUM|FINAL|SECURE|CANDIDATE|GUARDED|AI GUARDED|v\\d+)\\b/gi, ''), 60);\n}\n\n// A class is worth a line only when it says more than the message already does. ERROR and a\n// bare exception name say nothing an owner can act on.\nconst USEFUL_CLASSES = ['SHEET_LOCATOR', 'RATE_LIMIT', 'UPSTREAM_TRANSIENT', 'AUTH', 'DATA_SHAPE'];\n\n// One human sentence for the classes that have one. This is the difference between an owner who\n// knows to wait and an owner who opens n8n at midnight.\nconst CLASS_HINT = {\n  RATE_LIMIT: 'Превышен лимит запросов к внешнему сервису.',\n  UPSTREAM_TRANSIENT: 'Внешний сервис временно недоступен.',\n  AUTH: 'Проблема с доступом к внешнему сервису.',\n  SHEET_LOCATOR: 'Таблица или диапазон не найдены.',\n  DATA_SHAPE: 'Данные пришли не в том формате.'\n};\n\n// DEFENCE IN DEPTH ON THE ONE FREE-TEXT FIELD.\n//\n// The Error Monitor already scrubs URLs, emails and phone numbers out of the error text before\n// it reaches here, and that scrubber is untouched and asserted. This scrubs again anyway.\n//\n// The reason is that the workflow's scrubber protects the path it is on, and this renderer is\n// reachable from anywhere a future alert path is added. An error message is the ONE field in the\n// whole system produced by arbitrary code at the moment of failure, and the moment of failure is\n// exactly when a payload holding a client's phone number is in scope. Scrubbing twice costs one\n// pass over 200 characters; scrubbing once costs a leak the first time someone adds a second\n// caller. The owner asked for no contact information in technical diagnostics, and \"the other\n// half already handles it\" is not how that gets guaranteed.\nconst SCRUB_URL = /(?:[a-z][a-z0-9+.-]*:)?\\/\\/\\S+|\\bwww\\.\\S+/gi;\nconst SCRUB_EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi;\nconst SCRUB_PHONE = /(?<![\\w-])\\+?\\d[\\d\\s().-]{5,13}\\d(?![\\w-])/g;\n\nfunction scrubContact(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(SCRUB_URL, '[ссылка удалена]')\n    .replace(SCRUB_EMAIL, '[контакт удалён]')\n    .replace(SCRUB_PHONE, '[контакт удалён]');\n}\n\nfunction renderSystemAlert(model) {\n  const m = model || {};\n  const cls = String(m.errorClass || '').toUpperCase();\n  const useful = USEFUL_CLASSES.indexOf(cls) !== -1;\n  const node = tidy(m.nodeName, 60);\n\n  return join([\n    header('SYSTEM ALERT'),\n\n    // The headline is the business consequence, not the exception. It is derived from the\n    // workflow name, which the payload carries, and it states only that the work did not finish.\n    '<b>' + esc(impactOf(m.workflowName)) + '</b>',\n\n    card('Влияние', [\n      'Операция не завершена.',\n      present(node) ? 'Сбой на этапе «' + esc(node) + '».' : '',\n      useful && CLASS_HINT[cls] ? esc(CLASS_HINT[cls]) : ''\n    ]),\n\n    // The one place this message could lie, and does not. See the note above IMPACT.\n    card('Данные', [\n      'Последствия для записей автоматически не проверены.',\n      'Лид, Pipeline и privacy-запись нужно проверить вручную.'\n    ]),\n\n    card('Статус', '<b>Требует проверки</b>'),\n\n    // Quiet, last, and small. Everything an engineer needs to open the execution; nothing an\n    // owner has to read to decide whether to care.\n    block(null, [\n      '<i>Технические данные</i>',\n      line('Workflow', shortWorkflow(m.workflowName)),\n      line('Node', node),\n      useful ? line('Класс', cls) : '',\n      present(m.executionId) ? 'Execution: <code>' + esc(tidy(m.executionId, 20)) + '</code>' : '',\n      line('Сообщение', tidy(scrubContact(m.message), 200))\n    ])\n  ]);\n}\n\n// ── B9. SYSTEM RECOVERED ───────────────────────────────────────────────────────────────────────\n//\n// The copy exists. THE TRIGGER DOES NOT, AND IS NOT CREATED BY THIS PASS.\n//\n// n8n's error trigger fires on failure and has no counterpart that fires when a workflow starts\n// succeeding again. Closing an alert would need an open-incident store plus a scheduled poller\n// that reads /executions for the workflows currently marked open — new state and a new trigger,\n// which is a business-rule change this pass is explicitly not making. Rendered here so the copy is\n// reviewed with the rest, and left unwired so nothing can send it on a signal that does not exist.\n//\n// model = { problem, evidence }\nfunction renderSystemRecovered(model) {\n  const m = model || {};\n  return join([\n    header('SYSTEM RECOVERED'),\n    '<b>' + esc(tidy(m.problem, 120) || 'Сбой устранён.') + '</b>',\n    'Работа восстановлена.',\n    card('Проверено', esc(tidy(m.evidence, 200))),\n    '<i>Действий не требуется.</i>'\n  ]);\n}\n\n// ── B1 type 8. DATA / INTEGRITY WARNING ────────────────────────────────────────────────────────\n//\n// Also unwired. Nothing in the tenant fires on data quality today: the counters exist only as five\n// lines buried in the daily digest, which is precisely the noise B11 asks to remove. Giving them\n// their own message needs a trigger, and a trigger is a rule change.\n//\n// This is the ONE message where a zero may be rendered — a data-quality report that hides its\n// zeroes cannot tell the owner the data is clean.\n//\n// model = { items: [{ label, count }], checkedAt, offsetMinutes }\nfunction renderDataIntegrity(model) {\n  const m = model || {};\n  const items = (m.items || []).filter((x) => x && present(x.label));\n  const nonZero = items.filter((x) => Number(x.count) > 0);\n  return join([\n    header('DATA / INTEGRITY WARNING', dateTime(m.checkedAt, m.offsetMinutes)),\n    nonZero.length\n      ? card('Требует исправления', nonZero.map((x) => '• ' + esc(x.label) + ': <b>' + Number(x.count) + '</b>'))\n      : '<b>Данные в порядке.</b>',\n    nonZero.length ? card('Статус', '<b>Требует проверки</b>') : ''\n  ]);\n}\n\n// ── the gate's own helper ──────────────────────────────────────────────────────────────────────\n//\n// Structural validation of a rendered message, used by qa/lead-alerts-presentation.test.mjs. It is\n// exported rather than duplicated in the test so the definition of \"valid\" has one home.\n//\n// Returns [] for a clean message, or a list of problems.\n// The section headings this module can emit. validate() checks emptiness against THIS list rather\n// than guessing from shape: «<b>Статус</b>» is a heading and «<b>Требует проверки</b>» is the value\n// under it, and no amount of pattern-matching on bold text can tell those apart.\nconst HEADINGS = ['Сегодня', 'Приоритет', 'Что требует решения', 'Задача', 'Ситуация',\n  'Следующий шаг', 'Следующее действие', 'Почему требует внимания', 'Срок', 'Чего не хватает',\n  'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь'];\n\nconst SECRET_PATTERNS = [\n  [/\\b\\d{6,}:[A-Za-z0-9_-]{30,}\\b/, 'a Telegram bot token'],\n  [/init[_ ]?data|query_id=|auth_date=/i, 'initData'],\n  [/\\bpassword\\b|\\bpasswd\\b|\\bsecret\\b|\\bapi[_ ]?key\\b|\\bbearer\\b/i, 'a credential word'],\n  [/\\bat [A-Za-z]+ \\(|\\n\\s+at .+:\\d+:\\d+|node_modules/i, 'a stack trace'],\n  [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i, 'an email address'],\n  [/(?<![\\w-])\\+?\\d[\\d\\s().-]{8,13}\\d(?![\\w-])/, 'a phone-shaped number']\n];\n\nfunction validate(html) {\n  const problems = [];\n  const s = String(html === undefined || html === null ? '' : html);\n  if (!s.trim()) { return ['the message is empty']; }\n\n  // 1. Telegram HTML: known tags only, each one closed, and no stray angle brackets.\n  const tags = s.match(/<\\/?[^>]*>/g) || [];\n  const stack = [];\n  for (const t of tags) {\n    const m = /^<(\\/?)([a-zA-Z-]+)[^>]*>$/.exec(t);\n    if (!m) { problems.push('malformed tag ' + t); continue; }\n    const name = m[2].toLowerCase();\n    if (ALLOWED_TAGS.indexOf(name) === -1) { problems.push('tag <' + name + '> is not valid Telegram HTML'); continue; }\n    if (m[1]) {\n      if (stack.pop() !== name) { problems.push('</' + name + '> does not close the open tag'); }\n    } else { stack.push(name); }\n  }\n  if (stack.length) { problems.push('unclosed tag <' + stack[stack.length - 1] + '>'); }\n  // Anything angle-bracketed that is not a tag must have been escaped.\n  const withoutTags = s.replace(/<\\/?[^>]*>/g, '');\n  if (/[<>]/.test(withoutTags)) { problems.push('an unescaped < or > survived into the text'); }\n\n  // 2. No Markdown mixed into HTML. Telegram parses one or the other, never both.\n  if (/\\*\\*|__|\\[[^\\]]+\\]\\([^)]+\\)/.test(withoutTags)) { problems.push('Markdown syntax is mixed into HTML'); }\n\n  // 3. No empty section: a bold heading with nothing under it, or a label with no value.\n  const lines = s.split('\\n');\n  const headingOf = (l) => {\n    const t = String(l).trim();\n    const m2 = /^<b>([^<]+)<\\/b>$/.exec(t);\n    const name = m2 ? m2[1] : t;\n    return HEADINGS.indexOf(name) !== -1 ? name : null;\n  };\n  for (let i = 0; i < lines.length; i++) {\n    const h = headingOf(lines[i]);\n    if (h) {\n      let j = i + 1;\n      while (j < lines.length && !lines[j].trim()) { j++; }\n      const next = (lines[j] || '').trim();\n      if (!next || headingOf(next)) { problems.push('empty section: ' + h); }\n    }\n    if (/^[^:<]+:\\s*$/.test(lines[i])) { problems.push('label with no value: ' + lines[i].trim()); }\n    if (/:\\s*(—|-|n\\/a|null|undefined)\\s*$/i.test(lines[i])) { problems.push('placeholder value: ' + lines[i].trim()); }\n  }\n\n  // 4. No zero-only noise. One zero is a fact; three in a row is furniture.\n  const zeros = lines.filter((l) => /^[^:]+:\\s*0\\s*$/.test(l.trim()));\n  if (zeros.length > 1) { problems.push(zeros.length + ' zero-valued counter lines'); }\n\n  // 5. Nothing that must never leave the tenant.\n  //\n  // ONE EXEMPTION, AND IT IS NARROW. The «Связь» value in a NEW LEAD alert is the single place a\n  // client contact may appear, by owner decision. It is exempted from the contact patterns — and\n  // only from those two — and only one such line may exist. Everything else in the message,\n  // including the technical block of a system alert, is scanned as before.\n  const contactValues = lines.filter((l, i) => headingOf(lines[i - 1]) === 'Связь').map((l) => l.trim());\n  if (contactValues.length > 1) { problems.push(contactValues.length + ' «Связь» lines — a message may carry at most one contact'); }\n  let scanned = withoutTags;\n  for (const cv of contactValues) {\n    scanned = scanned.split(cv.replace(/<\\/?[^>]*>/g, '')).join(' ');\n  }\n  for (const [re, what] of SECRET_PATTERNS) {\n    const contactPattern = /email address|phone-shaped/.test(what);\n    if (re.test(contactPattern ? scanned : withoutTags)) { problems.push('the message contains ' + what); }\n  }\n\n  // 6. Telegram's own limit, with room for the caption Telegram adds on some paths.\n  if (s.length > 4000) { problems.push('the message is ' + s.length + ' characters, over the 4096 limit'); }\n\n  return problems;\n}\n\n\nreturn {\n  ALLOWED_TAGS, PRIORITY_LABEL, ZONE_LABEL, MONTHS_GEN, IMPACT, USEFUL_CLASSES, CLASS_HINT,\n  esc, tidy, present, plural, priorityLabel, zoneLabel,\n  parts, longDate, dateTime, deadline, block, card, join, line, counter, header, HEADINGS,\n  impactOf, shortWorkflow, sourceLabel, SOURCE_LABEL, validate, dedupe, scrubContact,\n  CONTACT_CHANNELS, contactChannelKey, contactLine,\n  renderDailyBrief, renderNewLead, renderPriority, renderFollowUp, renderIncomplete,\n  renderSystemAlert, renderSystemRecovered, renderDataIntegrity\n};\n})();\n\n// SLA Select (Premium) — одна запись на лид, под новую схему Pipeline/Settings.\nconst cfg = $('Settings to Object').first().json.settings || {};\nconst rows = $input.all().map(i => i.json);\nconst now = new Date();\n\nfunction val(r, ...keys){ for(const k of keys){ if(r[k]!==undefined&&r[k]!==null&&String(r[k]).trim()!=='') return String(r[k]).trim(); } return ''; }\nfunction hoursSince(ts){ const d=new Date(ts); return Number.isNaN(d.getTime())?Infinity:(now-d)/36e5; }\n\nconst STOP_STAGES = ['won','lost','closed','nurture','incomplete','закрыт'];\nconst out = [];\nfor (const r of rows) {\n  const priority = val(r,'priority').toUpperCase();\n  if (priority !== 'HOT' && priority !== 'WARM') continue;            // только HOT/WARM\n\n  const stage = val(r,'deal_stage').toLowerCase();\n  if (STOP_STAGES.some(x => stage.includes(x))) continue;            // не Won/Lost/Nurture/Incomplete\n\n  const sla = val(r,'sla_status').toLowerCase();\n  if (sla === 'done' || sla === 'nurture') continue;                 // не Done/Nurture\n  if (sla === 'snoozed') {                                           // не Snoozed в будущее\n    const until = new Date(val(r,'sla_snooze_until'));\n    if (!Number.isNaN(until.getTime()) && until > now) continue;\n  }\n\n  const slaHours = priority === 'HOT' ? Number(cfg.sla_hot_hours||4) : Number(cfg.sla_warm_hours||24);\n  const follow = val(r,'next_follow_up_at');\n  const overdueByFollow = follow ? (new Date(follow) < now) : false;\n  const createdAt = val(r,'created_at');\n  const overdueByAge = createdAt ? hoursSince(createdAt) >= slaHours : false;\n  if (!overdueByFollow && !overdueByAge) continue;                   // просрочка по follow-up или по возрасту\n\n  const repeat = Number(cfg.sla_repeat_hours||6);\n  if (hoursSince(val(r,'last_sla_alert_at')) < repeat) continue;     // анти-спам\n\n  const company = val(r,'company')||'—';\n  const name = val(r,'name')||'—';\n  const zone = val(r,'financial_zone')||'—';\n  const contact = [val(r,'phone'), val(r,'telegram'), val(r,'email')].filter(Boolean).join(' · ')||'нет контакта';\n  const action = val(r,'next_action')||'связаться с лидом';\n  const leadId = val(r,'lead_id');\n  if (!leadId) continue;\n\n  // ─── PRESENTATION ONLY. Which leads reach this point, and why, is decided above and is\n  // unchanged: HOT/WARM only, stop-stages excluded, snooze respected, anti-spam window kept.\n  const OFFSET = LATZ.tzOffsetMinutes(cfg.timezone || 'Europe/Chisinau', now);\n\n  // ONE reason, in the owner's language. The SLA arithmetic that produced it is above.\n  const reason = overdueByFollow\n    ? 'Запланированный контакт просрочен.'\n    : 'Нет ответа больше ' + slaHours + ' ' + LA.plural(slaHours, 'часа', 'часов', 'часов') + '.';\n\n  // The deadline the owner is actually late against.\n  const dueAt = overdueByFollow ? follow\n    : (createdAt ? new Date(new Date(createdAt).getTime() + slaHours * 36e5).toISOString() : '');\n\n  const alert_html = LA.renderPriority({\n    company: company,\n    reason: reason,\n    nextAction: action,\n    dueAt: dueAt,\n    now: now.toISOString(),\n    offsetMinutes: OFFSET,\n    leadId: leadId\n  });\n\n  out.push({ json: { lead_id: leadId, company, name, financial_zone: zone, priority,\n    alert_html: alert_html, sla_alert_at: now.toISOString() } });\n}\nreturn out;  // пусто -> Telegram не получит items -> пустые сообщения не отправляются\n"
+      },
+      "id": "f383b9a4-3496-4b9d-8bdb-8a2a17e578df",
+      "name": "SLA Select",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ $json.alert_html }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[1][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        128
+      ],
+      "id": "b8e3816c-0950-4676-80a1-39f8140a9987",
+      "name": "Telegram SLA Alert",
+      "webhookId": "33081169-f4d4-4ae8-aef7-f941eb02d11d",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mark SLA: запускается ПОСЛЕ успешного Telegram. Данные берём из SLA Select.\nconst selected = $('SLA Select').all().map(i => i.json);\nconst now = new Date().toISOString();\nreturn selected.map(i => ({ json: {\n  lead_id: i.lead_id,\n  priority: i.priority,\n  financial_zone: i.financial_zone,\n  company: i.company,\n  name: i.name,\n  last_sla_alert_at: i.sla_alert_at || now,\n  last_activity_at: now\n}}));\n"
+      },
+      "id": "bb00a050-12f2-4bbf-9500-600f46c0c116",
+      "name": "Mark SLA Alerted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deal_stage",
+              "displayName": "deal_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "next_action",
+              "displayName": "next_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "next_follow_up_at",
+              "displayName": "next_follow_up_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_hours",
+              "displayName": "sla_hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "responsible",
+              "displayName": "responsible",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "telegram",
+              "displayName": "telegram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "business_model",
+              "displayName": "business_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "industry_category",
+              "displayName": "industry_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "turnover_range",
+              "displayName": "turnover_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "employees_range",
+              "displayName": "employees_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "main_pain",
+              "displayName": "main_pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_problems",
+              "displayName": "selected_problems",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_goals",
+              "displayName": "selected_goals",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "work_interest",
+              "displayName": "work_interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "documents_status",
+              "displayName": "documents_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selected_documents",
+              "displayName": "selected_documents",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preferred_meeting_format",
+              "displayName": "preferred_meeting_format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "priority_reason",
+              "displayName": "priority_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "critical_flags",
+              "displayName": "critical_flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_page",
+              "displayName": "source_page",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_source",
+              "displayName": "utm_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_medium",
+              "displayName": "utm_medium",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "utm_campaign",
+              "displayName": "utm_campaign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "comment",
+              "displayName": "comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_contacted_at",
+              "displayName": "last_contacted_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "meeting_date",
+              "displayName": "meeting_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "documents_requested_at",
+              "displayName": "documents_requested_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "proposal_sent_at",
+              "displayName": "proposal_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deal_value_estimate",
+              "displayName": "deal_value_estimate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "close_reason",
+              "displayName": "close_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_status",
+              "displayName": "sla_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_snooze_until",
+              "displayName": "sla_snooze_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "owner_note",
+              "displayName": "owner_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_activity_at",
+              "displayName": "last_activity_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ai_plan_ready",
+              "displayName": "ai_plan_ready",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_sla_alert_at",
+              "displayName": "last_sla_alert_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first_response_at",
+              "displayName": "first_response_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "first_response_minutes",
+              "displayName": "first_response_minutes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sla_breach",
+              "displayName": "sla_breach",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "days_in_stage",
+              "displayName": "days_in_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ab5f78f2-d5e5-434c-be7a-28864b3dd300",
+      "name": "Update Pipeline SLA",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// SLA Activity — управленческий detail.\nreturn $input.all().map(i => ({ json: {\n  activity_id: `${i.json.lead_id}-${Date.now()}-${Math.floor(Math.random()*1000)}`,\n  ts: new Date().toISOString(),\n  lead_id: i.json.lead_id,\n  actor: 'system:sla',\n  channel: 'telegram',\n  action: 'sla_alert_sent',\n  detail: `SLA alert sent: priority=${i.json.priority||'-'}; zone=${i.json.financial_zone||'-'}; company=${i.json.company||'-'}; contact=${i.json.name||'-'}`\n}}));\n"
+      },
+      "id": "9a08a5cc-358e-4dc0-a614-e0ffaa6ea5d7",
+      "name": "Build SLA Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        240
+      ],
+      "id": "ab6cdd25-61b8-4d6b-a08c-54bfb8d5b150",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// ===================== FINMENTOR LEAD ALERT ACTIONS — one decision module =====================\n//\n// Spliced into the alert renderers (which actions, which keyboard shape) and into the Command\n// Center (which columns an action owns, what the owner is told). One module, because the button a\n// tap came from and the write that tap performs are two halves of one contract, and they drifted\n// once already: the deployed keyboard offered «✅ Done» while the mutation only closed an SLA.\n//\n// It depends on the presenter for escaping and date rendering — `LA` must be in scope. It never\n// re-implements `esc`, `card`, `join` or `dateTime`: a second date formatter is a second clock.\n//\n// ── WHAT THE AUDIT MEASURED, AND WHAT THIS CHANGES ─────────────────────────────────────────────\n//\n// Nothing here invents a business action. Every mutation below is the one already deployed in\n// `Find & Build Update`, narrowed to the columns it actually owns. The labels change, the layout\n// changes, the confirmations become truthful, and the writes stop carrying fifteen pre-read\n// columns. The callback_data strings are byte-identical to what is already in production, so every\n// historical Telegram message keeps working.\nconst LAA = (function () {\n  'use strict';\n\n  // ── D3 — the owner-facing labels, exactly as approved ────────────────────────────────────────\n  //\n  // Icons are permitted in buttons only; the alert body stays emoji-free. «Обработано», not\n  // «Выполнено» (D7): the measured action closes SLA handling, it does not close the deal.\n  var LABEL = {\n    done: '✅ Обработано',\n    snooze: '⏰ На 24 часа',\n    discovery: '📞 Discovery',\n    docs: '📄 Документы',\n    nurture: '🗂 В Nurture'\n  };\n\n  // ── callback_data is PRESERVED VERBATIM ──────────────────────────────────────────────────────\n  //\n  // The handler contract is already correct, so renaming a callback for presentation would break\n  // every alert already sitting in the owner's Telegram history for nothing. `won|` is deliberately\n  // absent from the emitters and deliberately still routed by the Command Center (D1).\n  function callbackData(action, leadId) {\n    var id = String(leadId == null ? '' : leadId);\n    if (action === 'done') { return 'done|' + id; }\n    if (action === 'snooze') { return 'snooze|' + id + '|24'; }\n    if (action === 'discovery') { return 'stage|' + id + '|Discovery Scheduled'; }\n    if (action === 'docs') { return 'docs|' + id; }\n    if (action === 'nurture') { return 'nurture|' + id; }\n    return '';\n  }\n\n  // ── D2 — the owner-approved action sets, in the owner's order ────────────────────────────────\n  //\n  // NEW LEAD deliberately omits «Обработано»: a lead that arrived seconds ago has not been\n  // handled, and offering the SLA-closing action as a first response invites closing an SLA that\n  // never opened. It also omits Won (D1).\n  var SET = {\n    new_lead: ['discovery', 'docs', 'snooze', 'nurture'],\n    priority: ['done', 'snooze', 'discovery', 'docs', 'nurture'],\n    followup: ['done', 'snooze', 'discovery', 'docs', 'nurture']\n  };\n\n  // Terminal states carry NO keyboard. Only existing Pipeline values are read — no new taxonomy,\n  // no new column.\n  var TERMINAL_SLA = ['done', 'nurture'];\n  var TERMINAL_STAGE = ['nurture', 'won'];\n\n  // The state an action would set. An action whose result is already the current state is hidden\n  // from the keyboard and refused harmlessly by the handler (D11) — the two must agree, which is\n  // why they read the same table.\n  var CURRENT_STATE_OF = {\n    discovery: { field: 'deal_stage', value: 'discovery scheduled' },\n    docs: { field: 'deal_stage', value: 'documents requested' }\n  };\n\n  function norm(v) { return String(v === undefined || v === null ? '' : v).trim().toLowerCase(); }\n\n  function isTerminal(state) {\n    var s = state || {};\n    return TERMINAL_SLA.indexOf(norm(s.sla_status)) !== -1\n      || TERMINAL_STAGE.indexOf(norm(s.deal_stage)) !== -1;\n  }\n\n  // The actions this alert should offer, given what the lead already is.\n  function chooseActions(kind, state) {\n    if (isTerminal(state)) { return []; }\n    var set = SET[kind] || [];\n    var s = state || {};\n    var out = [];\n    for (var i = 0; i < set.length; i++) {\n      var a = set[i];\n      var cur = CURRENT_STATE_OF[a];\n      if (cur && norm(s[cur.field]) === cur.value) { continue; }\n      out.push(a);\n    }\n    return out;\n  }\n\n  // ── D3 — never more than two buttons in a row ────────────────────────────────────────────────\n  //\n  // Straight two-packing in the owner's order reproduces every approved layout exactly:\n  //   NEW LEAD  discovery, docs, snooze, nurture      -> [2][2]\n  //   PRIORITY  done, snooze, discovery, docs, nurture -> [2][2][1]\n  // and it degrades correctly when one action is hidden, which the approved layouts do not\n  // themselves specify: five minus one is [2][2], four minus one is [2][1]. Both stay within the\n  // rule that matters — two per row — which is what stops Telegram truncating labels to «D…».\n  function keyboard(kind, state, leadId) {\n    var actions = chooseActions(kind, state);\n    var rows = [];\n    for (var i = 0; i < actions.length; i += 2) {\n      var row = [];\n      for (var j = i; j < i + 2 && j < actions.length; j++) {\n        row.push({ action: actions[j], text: LABEL[actions[j]], callback_data: callbackData(actions[j], leadId) });\n      }\n      rows.push(row);\n    }\n    return rows;\n  }\n\n  // The renderer picks a node by SHAPE, because an n8n Telegram node has a fixed number of rows\n  // and a fixed number of buttons in each. `NONE` means send the alert with no keyboard at all.\n  function shape(rows) {\n    if (!rows || rows.length === 0) { return 'NONE'; }\n    return 'KB' + rows.map(function (r) { return r.length; }).join('');\n  }\n\n  // ── D10 — SPARSE, ACTION-OWNED UPDATES ───────────────────────────────────────────────────────\n  //\n  // The deployed builder carried FIFTEEN pre-read columns into an autoMap update, so two taps\n  // seconds apart wrote each other's stale values back over anything that had changed in between.\n  // Each action now writes only the columns it owns. `lead_id` is present because it is the match\n  // key, not because it is written.\n  //\n  // This removes the lost update of UNRELATED columns. It does NOT make two taps that both target\n  // `deal_stage` atomic — see RESIDUAL_RACE below.\n  var OWNED = {\n    done: ['sla_status', 'last_contacted_at'],\n    snooze: ['sla_status', 'sla_snooze_until', 'next_follow_up_at'],\n    discovery: ['deal_stage'],\n    docs: ['deal_stage', 'documents_requested_at', 'next_follow_up_at'],\n    nurture: ['deal_stage', 'sla_status']\n  };\n\n  // The callback verb the handler receives -> the action this module reasons about. `stage` is the\n  // deployed verb for Discovery and carries its target stage as an argument.\n  function actionOfCommand(command, stageValue) {\n    var c = norm(command);\n    if (c === 'done') { return 'done'; }\n    if (c === 'snooze') { return 'snooze'; }\n    if (c === 'docs') { return 'docs'; }\n    if (c === 'nurture') { return 'nurture'; }\n    if (c === 'stage' && norm(stageValue) === 'discovery scheduled') { return 'discovery'; }\n    return '';\n  }\n\n  var HOUR = 3600000;\n\n  // Builds the update. `nowIso` is passed in rather than read from the clock so the gate can prove\n  // the arithmetic instead of tolerating it.\n  function buildUpdate(action, leadId, nowIso) {\n    var now = new Date(nowIso);\n    var iso = now.toISOString();\n    var upd = { lead_id: String(leadId == null ? '' : leadId) };\n    if (action === 'done') {\n      upd.sla_status = 'Done';\n      upd.last_contacted_at = iso;\n    } else if (action === 'snooze') {\n      // D4 — the measured business action, unchanged: tap time + 24 hours. Storage stays UTC.\n      var until = new Date(now.getTime() + 24 * HOUR).toISOString();\n      upd.sla_status = 'Snoozed';\n      upd.sla_snooze_until = until;\n      upd.next_follow_up_at = until;\n    } else if (action === 'discovery') {\n      // D5 — stage only. No calendar event, no follow-up, no due date, and the confirmation must\n      // not pretend otherwise.\n      upd.deal_stage = 'Discovery Scheduled';\n    } else if (action === 'docs') {\n      upd.deal_stage = 'Documents Requested';\n      upd.documents_requested_at = iso;\n      upd.next_follow_up_at = new Date(now.getTime() + 48 * HOUR).toISOString();\n    } else if (action === 'nurture') {\n      upd.deal_stage = 'Nurture';\n      upd.sla_status = 'Nurture';\n    } else {\n      return null;\n    }\n    return upd;\n  }\n\n  // ── D11 — is this tap a no-op? ───────────────────────────────────────────────────────────────\n  //\n  // Read from the freshly-read row, never from the alert the tap came from. An already-applied\n  // action is acknowledged harmlessly and performs NO write, which is what stops a duplicate tap\n  // moving `documents_requested_at` or re-basing a snooze the owner did not ask to move.\n  function alreadyApplied(action, row) {\n    var r = row || {};\n    if (action === 'done') { return norm(r.sla_status) === 'done'; }\n    if (action === 'discovery') { return norm(r.deal_stage) === 'discovery scheduled'; }\n    if (action === 'docs') { return norm(r.deal_stage) === 'documents requested'; }\n    if (action === 'nurture') { return norm(r.deal_stage) === 'nurture' && norm(r.sla_status) === 'nurture'; }\n    // Snooze is deliberately NOT idempotent-by-state: «отложить ещё на 24 часа» is a real\n    // instruction, and refusing it because the lead is already Snoozed would be wrong. It is safe\n    // to repeat because it re-bases from the tap time rather than compounding.\n    return false;\n  }\n\n  // A tap on an alert whose lead has since reached a terminal state is refused rather than applied.\n  function refuseReason(action, row) {\n    if (!action) { return 'UNKNOWN_ACTION'; }\n    if (isTerminal(row)) { return 'TERMINAL'; }\n    if (alreadyApplied(action, row)) { return 'ALREADY_APPLIED'; }\n    return '';\n  }\n\n  // ── the owner-facing confirmation ────────────────────────────────────────────────────────────\n  //\n  // Rendered only AFTER the authoritative Pipeline write succeeds (D8/D9). Every date is shown in\n  // Europe/Chisinau via the presenter's own formatter; storage stays UTC (D4).\n  var TITLE = {\n    done: 'ACTION UPDATED',\n    snooze: 'FOLLOW-UP UPDATED',\n    discovery: 'STAGE UPDATED',\n    docs: 'ACTION UPDATED',\n    nurture: 'STAGE UPDATED'\n  };\n\n  function confirm(LA, action, company, upd, offsetMinutes) {\n    var name = LA.tidy(company, 70) || '—';\n    var head = LA.header('FINMENTOR · ' + (TITLE[action] || 'ACTION UPDATED'));\n    var ident = '<b>' + LA.esc(name) + '</b>';\n    var body = [];\n\n    if (action === 'done') {\n      body.push(LA.card('Статус', '<b>Обработано</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA закрыт. Лид остаётся в работе.')));\n    } else if (action === 'snooze') {\n      body.push(LA.card('Статус', '<b>Отложено</b>'));\n      body.push(LA.card('Вернуться к контакту',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'discovery') {\n      // D5 — truthful. The action moves a stage; it schedules nothing.\n      body.push(LA.card('Стадия', '<b>Discovery</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('Лид переведён в стадию Discovery. Встреча не назначена.')));\n    } else if (action === 'docs') {\n      body.push(LA.card('Стадия', '<b>Запрошены документы</b>'));\n      body.push(LA.card('Следующий контакт',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'nurture') {\n      body.push(LA.card('Стадия', '<b>Nurture</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA-напоминания по этому лиду отключены.')));\n    }\n\n    return LA.join([head, ident].concat(body));\n  }\n\n  // The refusals, in the same voice. No stack trace, no lead data the owner did not already have.\n  function refusal(LA, reason, company) {\n    var name = LA.tidy(company, 70);\n    var ident = name ? '<b>' + LA.esc(name) + '</b>' : '';\n    if (reason === 'ALREADY_APPLIED') {\n      return LA.join([LA.header('FINMENTOR · ACTION'), ident, '<b>Действие уже применено.</b>']);\n    }\n    if (reason === 'TERMINAL') {\n      return LA.join([LA.header('FINMENTOR · ACTION'), ident,\n        '<b>Лид закрыт для действий.</b>', LA.esc('Статус уже финальный — изменения не внесены.')]);\n    }\n    if (reason === 'NOT_FOUND') {\n      return LA.join([LA.header('FINMENTOR · ACTION'), '<b>Лид не найден.</b>',\n        LA.esc('Изменения не внесены.')]);\n    }\n    return LA.join([LA.header('FINMENTOR · ACTION'), ident, '<b>Не удалось применить действие.</b>',\n      LA.esc('Изменения не внесены. Попробуйте ещё раз.')]);\n  }\n\n  // ── D10, stated rather than claimed ──────────────────────────────────────────────────────────\n  //\n  // The Pipeline is a Google Sheet. `Update Pipeline Row` matches on `lead_id` and writes the keys\n  // present on its input item; there is no conditional update, no row version and no\n  // compare-and-set anywhere in the stack. So:\n  //\n  //   * two taps on DIFFERENT columns are now safe — each writes only what it owns;\n  //   * two taps racing on the SAME column (Discovery and Documents both writing `deal_stage`)\n  //     resolve last-writer-wins, and this design does NOT prevent that.\n  //\n  // It is reported rather than papered over, because the honest mitigation — a version column and\n  // a conditional write — is a Pipeline schema change, and no schema change is authorised here.\n  var RESIDUAL_RACE = {\n    scope: 'two simultaneous taps whose actions write the SAME field',\n    example: 'Discovery and Documents both set deal_stage',\n    behaviour: 'last writer wins',\n    prevented: false,\n    why_not: 'Google Sheets offers no atomic compare-and-set here, and a version column would be a '\n      + 'Pipeline schema change, which is not authorised in this pass',\n    unrelated_columns: 'NOT affected — sparse updates mean an action never writes a column it does not own'\n  };\n\n  return {\n    LABEL: LABEL,\n    SET: SET,\n    OWNED: OWNED,\n    TERMINAL_SLA: TERMINAL_SLA,\n    TERMINAL_STAGE: TERMINAL_STAGE,\n    RESIDUAL_RACE: RESIDUAL_RACE,\n    callbackData: callbackData,\n    isTerminal: isTerminal,\n    chooseActions: chooseActions,\n    keyboard: keyboard,\n    shape: shape,\n    actionOfCommand: actionOfCommand,\n    buildUpdate: buildUpdate,\n    alreadyApplied: alreadyApplied,\n    refuseReason: refuseReason,\n    confirm: confirm,\n    refusal: refusal\n  };\n})();\n// =================== END FINMENTOR LEAD ALERT ACTIONS ===================\n\n// STAGE 1 — presentation only. Adds `kb` and `kb_shape`; changes nothing else on the item.\n//\n// State comes from the Pipeline rows this workflow already read upstream, so no selection\n// node is edited and no additional Sheets read is performed. A lead that cannot be found\n// falls back to the FULL keyboard, which is exactly what production shows today.\nfunction __state(leadId) {\n  try {\n    const rows = $('Get Pipeline Rows').all().map((i) => i.json);\n    const t = String(leadId == null ? '' : leadId).trim().toLowerCase();\n    const r = rows.find((x) => String(x.lead_id == null ? '' : x.lead_id).trim().toLowerCase() === t);\n    return r ? { deal_stage: r.deal_stage, sla_status: r.sla_status } : {};\n  } catch (e) { return {}; }\n}\nreturn $input.all().map(function (i) {\n  const j = i.json;\n  const rows = LAA.keyboard('priority', __state(j.lead_id), j.lead_id);\n  return { json: Object.assign({}, j, { kb: rows, kb_shape: LAA.shape(rows) }) };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        308
+      ],
+      "id": "kb-build-priority",
+      "name": "Build SLA Alert Keyboard"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "kb-shape-cond",
+              "leftValue": "={{ String($json.kb_shape) }}",
+              "rightValue": "KB221",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -440,
+        308
+      ],
+      "id": "kb-shape-if-sla-keyboard-shape",
+      "name": "SLA Keyboard Shape"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
+        "text": "={{ $json.alert_html }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[1][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        348
+      ],
+      "id": "kb-tg-4-priority",
+      "name": "Telegram SLA Alert (4)",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Hourly SLA Check": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Get Pipeline Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline Rows": {
+      "main": [
+        [
+          {
+            "node": "SLA Select",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SLA Select": {
+      "main": [
+        [
+          {
+            "node": "Build SLA Alert Keyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark SLA Alerted": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline SLA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build SLA Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SLA Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram SLA Alert": {
+      "main": [
+        [
+          {
+            "node": "Mark SLA Alerted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build SLA Alert Keyboard": {
+      "main": [
+        [
+          {
+            "node": "SLA Keyboard Shape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SLA Keyboard Shape": {
+      "main": [
+        [
+          {
+            "node": "Telegram SLA Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram SLA Alert (4)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "errorWorkflow": "RBiFLhVjizMkAzrK"
+  }
+}
