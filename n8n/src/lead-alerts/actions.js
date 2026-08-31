@@ -323,6 +323,76 @@ const LAA = (function () {
     return LA.join([done, '<b>Не удалось обновить кнопки в сообщении.</b>']);
   }
 
+  // ── A NO-OP EDIT IS NOT A FAILURE ────────────────────────────────────────────────────────────
+  //
+  // Execution 5062: the owner snoozed a PRIORITY alert. The write was correct and verified, and the
+  // keyboard the post-write state allows was IDENTICAL to the one already on the message — snooze
+  // is deliberately not idempotent-by-state, and `deal_stage` did not move, so nothing about the
+  // presentation changed. `editMessageText` was therefore a no-op and Telegram answered
+  // «message is not modified». The owner was told the buttons could not be updated, when in truth
+  // they were already right.
+  //
+  // The copy states what is true and nothing more: the action landed, and the presentation was
+  // already current. It does NOT claim Telegram changed the message. The authority for the action
+  // remains the write, the read-back and the verification — never the edit.
+  function presentationNoop(LA, action, company, upd, offsetMinutes) {
+    var done = confirm(LA, action, company, upd, offsetMinutes);
+    return LA.join([done, LA.esc('Кнопки уже актуальны — обновление не потребовалось.')]);
+  }
+
+  // ── CLASSIFYING THE EDIT ─────────────────────────────────────────────────────────────────────
+  //
+  // Three outcomes, and only three. Two of them may speak success.
+  //
+  //   EDIT_UPDATED  the edit changed the message
+  //   EDIT_NOOP     Telegram answered "message is not modified" — there was nothing to change
+  //   EDIT_FAILED   anything else, without exception
+  //
+  // THE EXCEPTION IS EXACT AND IT FAILS CLOSED. Only Telegram's own «Bad Request: message is not
+  // modified» class is a no-op, matched at the START of the message so no other error can carry
+  // the phrase in. Everything else stays a failure: «message to edit not found», «can't parse
+  // entities», «chat not found», «Unauthorized», «Forbidden: bot was blocked by the user», any
+  // other 400, and an error object this cannot read at all. There is no blanket 400 rule and no
+  // substring search that could catch a different error by accident.
+  //
+  // Note what is NOT required here: re-deriving that the keyboards matched. Telegram returns this
+  // error ONLY when the new content and reply markup are identical to what is already displayed —
+  // that answer IS the proof, from the side that holds the truth. `sameKeyboard` below would
+  // re-derive it from data the callback does not carry, which is why it stays unused.
+  var EDIT_OUTCOME = { UPDATED: 'EDIT_UPDATED', NOOP: 'EDIT_NOOP', FAILED: 'EDIT_FAILED' };
+  var EDIT_NOOP_PREFIX = 'Bad Request: message is not modified';
+
+  // n8n surfaces a failed node's error as a STRING on some versions and as an OBJECT on others —
+  // execution 5062 carried a string, the offline fixtures carried `{message}`. Both must classify
+  // the same way, so the message is extracted through one chain, and the acknowledgement
+  // expression on `Telegram Update Reply` implements this exact chain.
+  function editErrorText(item) {
+    var it = item || {};
+    var e = it.error;
+    var m = (e && e.message) || (e && e.description) || e || '';
+    return String(m);
+  }
+
+  function classifyEdit(item) {
+    var it = item || {};
+    var e = it.error;
+    if (e === undefined || e === null || e === '') { return EDIT_OUTCOME.UPDATED; }
+    // indexOf === 0, never a bare search: an error that merely MENTIONS the phrase is still a
+    // failure.
+    return editErrorText(it).indexOf(EDIT_NOOP_PREFIX) === 0
+      ? EDIT_OUTCOME.NOOP : EDIT_OUTCOME.FAILED;
+  }
+
+  // Which of the three copies an outcome speaks. EDIT_UPDATED and EDIT_NOOP both acknowledge
+  // success, because in both the business result is done and proven; only the sentence about the
+  // buttons differs.
+  var EDIT_COPY_KEY = {
+    EDIT_UPDATED: 'reply_text',
+    EDIT_NOOP: 'reply_text_presentation_noop',
+    EDIT_FAILED: 'reply_text_presentation_failed'
+  };
+  function editCopyKey(outcome) { return EDIT_COPY_KEY[outcome] || EDIT_COPY_KEY.EDIT_FAILED; }
+
   // Telegram answers "message is not modified" when an edit would change nothing. That is only
   // acceptable when the keyboard we computed is provably identical to the one already shown —
   // otherwise an arbitrary edit error would be laundered into success.
@@ -487,6 +557,13 @@ const LAA = (function () {
     verifyMutation: verifyMutation,
     untouchedFields: untouchedFields,
     presentationFailure: presentationFailure,
+    presentationNoop: presentationNoop,
+    EDIT_OUTCOME: EDIT_OUTCOME,
+    EDIT_NOOP_PREFIX: EDIT_NOOP_PREFIX,
+    EDIT_COPY_KEY: EDIT_COPY_KEY,
+    editErrorText: editErrorText,
+    classifyEdit: classifyEdit,
+    editCopyKey: editCopyKey,
     sameKeyboard: sameKeyboard,
     entitiesCross: entitiesCross,
     refusal: refusal
