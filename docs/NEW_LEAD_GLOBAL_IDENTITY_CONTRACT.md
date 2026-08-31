@@ -1,8 +1,10 @@
-# The global NEW-event identity contract — measured, closed, and deployed
+# The global NEW-event identity contract — measured, built, and half-deployed
 
 **Date:** 2026-08-31
-**Status:** **SERVER AND CLIENT DEPLOYED.** No DDL applied. No Alert Outbox. `lead_id` untouched.
-Pipeline schema untouched. No historical row backfilled. No lead created to prove any of it.
+**Status:** **SERVER DEPLOYED AND VERIFIED LIVE. CLIENT COMMITTED AND PUSHED BUT NOT PUBLISHED —
+the site has not deployed since 2026-08-26, see §8.1.** The global contract is therefore **NOT
+PASS**: one side is live. No DDL applied. No Alert Outbox. `lead_id` untouched. Pipeline schema
+untouched. No historical row backfilled. No lead created to prove any of it.
 
 Supersedes, precisely:
 
@@ -241,11 +243,46 @@ immediately.
 | | what | how | evidence |
 |---|---|---|---|
 | 1 | **SERVER** — `QmIyEW2ZEqKregmN`, 102 → 106 nodes | `scripts/deploy-lead-intake-request-identity.mjs --confirm`. It applies the **same transform functions** the candidate generator uses, to the **live body**, so what is gated offline and what is deployed cannot diverge. Four `jsCode` fields changed, four nodes appended, one connection rewired, two added; settings byte-identical; Gateway, submit endpoint and Concierge re-hashed before and after and unmoved | `.uat/QmIyEW2ZEqKregmN.post-request-identity.json` |
-| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | published by pushing this branch; `www.finmentor.md` serves `feat/miniapp-b21c-live-prereqs`, verified by hash against a file that differs from `main` | `scripts/verify-request-identity-live.mjs` fetches the published bytes and executes them |
+| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | committed as `016bba3` and pushed to `feat/miniapp-b21c-live-prereqs`. **NOT PUBLISHED** — §8.1 | `scripts/verify-request-identity-live.mjs` fetches the published bytes; it reports the mismatch and SKIPS the lifecycle cases rather than executing a client that has none of the functions they call |
 
 **The contract is PASS only with both sides live.** The server alone validates, canonicalises,
 refuses and detects conflict but cannot make a retry carry the same identity; the client alone
-carries one identity per submission into a server that would still advance it on merge.
+carries one identity per submission into a server that would still advance it on merge. **Today
+only the server is live, so `GLOBAL NEW-EVENT IDENTITY CONTRACT = FAIL (deployed).**
+
+The two are independent and the half that is live is strictly an improvement: identities are now
+validated, canonicalised, route-scoped, immutable on merge, and conflicting reuse is refused. What
+the missing half costs is retry *stability* — a public visitor who retries after a lost response
+still sends a fresh identity, exactly as before, so the lost-response case is no better than it was.
+Nothing is worse than it was.
+
+### 8.1 The site has not published since 2026-08-26 — this is the blocker, and it predates this work
+
+Measured, not inferred:
+
+| evidence | value |
+|---|---|
+| `last-modified` on **every** asset (`/lead-transport.js`, `/index.html`, `/main.js`, `/questionnaire.html`, `/ro/working-capital-scan.html`) | `Wed, 26 Aug 2026 08:09:59 GMT` — one uniform deploy stamp |
+| `/ro/working-capital-scan.html` live content | matches commit `74e345d`, 2026-08-26 **03:54 UTC** — before that stamp |
+| `/app-premium/index.html`, `/app-premium/app.js` (added 2026-08-28) | **HTTP 404**, with `age=0`, so the ORIGIN lacks them — not a CDN artifact |
+| branch commits after the deploy stamp | **70**, none of them published |
+| server | `GitHub.com` via Fastly, `cache-control: max-age=600` |
+
+So `www.finmentor.md` is a frozen snapshot of this branch as of 2026-08-26 08:09:59 UTC. Pushing
+does not publish, and has not for five days. **The identity client is one of seventy commits sitting
+behind that.**
+
+This is a hosting/build failure, not an identity failure, and it predates this work by five days —
+the Mini App owner-UAT build has been unpublished the whole time too. The likely cause is a failing
+Jekyll build: the repository has **no `.nojekyll` and no `_config.yml`**, so GitHub Pages runs Jekyll
+over everything, and Jekyll's Liquid parser chokes on `{{ … }}`, which the n8n JSON artifacts and
+the Gateway test pages are full of. **Not investigated further and not touched**: adding `.nojekyll`
+or changing the Pages source is a site-infrastructure change, not an identity remediation, and it
+needs the Pages build log — which requires repository-admin access this pass does not have.
+
+**Owner action required to finish the contract.** Nothing else is blocking it: the code is committed,
+pushed and gated, and the moment the site publishes, `scripts/verify-request-identity-live.mjs` goes
+green with no further change.
 
 **ROLLBACK.**
 Server: `PUT /api/v1/workflows/QmIyEW2ZEqKregmN` with
@@ -295,6 +332,8 @@ table, applied a migration, or issued SQL.
 - **SYSTEM ALERT COVERAGE GAP = OPEN.**
 - **AUTHORITATIVE CYCLE PROJECTION = OPEN.**
 - **`ro/index.html` transport = OPEN** (§9).
+- **SITE PUBLISHING = BLOCKED, OWNER ACTION** (§8.1). Five days and seventy commits unpublished,
+  which is what holds the global contract at FAIL.
 - **CUSTOMER PRODUCTION = BLOCKED.**
 
 ## 11. Artifacts

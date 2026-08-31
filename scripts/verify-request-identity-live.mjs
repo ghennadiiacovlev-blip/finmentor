@@ -76,7 +76,12 @@ want(js('Dedup Guard').includes("consider(corroborated, 'request_id+identity', '
 want(!/upd\.request_id/.test(js('Build Merge Update')), 'Build Merge Update no longer writes request_id');
 want(js('Normalize + Score Lead').includes('FIN-${Date.now()}-${Math.floor(Math.random() * 1000)}'),
   'lead_id generation unchanged');
-want(!js('Normalize + Score Lead').includes('incoming.request_id'), 'the second identity source is gone');
+// Comments stripped: the replacement explains WHY the second source is gone, and a naive scan
+// reads that explanation as the thing it documents.
+const code = (n) => js(n).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\n)\s*\/\/[^\n]*/g, '$1');
+want(!code('Normalize + Score Lead').includes('incoming.request_id'), 'the second identity source is gone');
+want(code('Normalize + Score Lead').includes("const requestId = String(meta.request_id ?? '').trim();"),
+  'the identity is read from exactly one location');
 console.log('');
 
 console.log('THE 409 RESPONDER, AND ITS WIRING');
@@ -234,7 +239,17 @@ console.log('THE PUBLISHED CLIENT, FETCHED FROM ' + SITE + ' AND EXECUTED');
   const published = await fetchText(SITE + '/lead-transport.js');
   const local = readFileSync(join(ROOT, 'lead-transport.js'), 'utf8').replace(/\r\n/g, '\n');
   const norm = (s) => s.replace(/\r\n/g, '\n');
+  const inSync = sha(norm(published)) === sha(local);
   eqw(sha(norm(published)), sha(local), 'the published transport is byte-identical to the repository');
+
+  // A stale publish is a legitimate transient — GitHub Pages sits behind a Fastly cache with a
+  // ten-minute TTL. It must report as one clear failure, not as a stack trace from executing a
+  // client that has none of the functions the cases below call.
+  if (!inSync) {
+    bad('the published client is NOT the identity client yet — CDN cache or Pages build pending; '
+      + 'the lifecycle cases below were SKIPPED, re-run when the hashes match');
+  }
+  if (!inSync) { console.log(''); } else {
 
   const store = new Map();
   const calls = [];
@@ -296,6 +311,7 @@ console.log('THE PUBLISHED CLIENT, FETCHED FROM ' + SITE + ' AND EXECUTED');
   eqw(calls.length, n0, 'and no request was sent');
   T.beginNewSubmission('xray_extended');
   eqw(T.slotState('xray_extended'), 'idle', 'U — the explicit new-request action clears the conflict');
+  }
 }
 console.log('');
 
