@@ -523,3 +523,123 @@ Offline against a schema fixture, plus SQL-level tests when the migration is app
 
 Gates 4, 5, 7 and 8 are the ones that must run against **real Postgres** — `SKIP LOCKED` and
 partial-index semantics cannot be proven by a fixture.
+
+---
+
+# 14. EMAIL PROVIDER — owner decision, 2026-08-31
+
+```
+PROVIDER  = Microsoft 365 / Exchange Online
+TRANSPORT = Microsoft Graph, OAuth / modern auth (client credentials)
+RECIPIENT = cfo@finmentor.md
+SENDER    = alerts@finmentor.md  (dedicated/shared sender mailbox)
+FORBIDDEN = Basic Auth SMTP; a mailbox password stored in n8n
+STATUS    = PROVIDER SELECTED / CREDENTIAL PENDING — nothing configured, no credential created,
+            no test message sent
+```
+
+## 14.1 The database does not change
+
+**No DDL change. Not one column, constraint, index or grant.** The §4 forward migration as
+reviewed is the migration that would be applied.
+
+That was the point of designing it provider-neutral before the provider was known, and the
+decision is now the test of it: the only provider-shaped field is `provider_message_id text NULL`,
+which stays opaque. Nothing Microsoft-specific enters the schema — no tenant id, no mailbox id, no
+Graph request id, no `internetMessageId` column of its own. A future move off Microsoft 365 would
+change the dispatcher and touch no table.
+
+`provider_message_id` **must stay nullable**, and Graph is the reason: `POST /users/{id}/sendMail`
+answers **202 Accepted with no body and no message id**. A dispatcher that expected an id from
+every provider would have been wrong on the very provider that was chosen.
+
+## 14.2 Least-privilege Graph permission
+
+Application permissions, client-credentials flow, **certificate preferred over a client secret**:
+
+| permission | why | scope |
+|---|---|---|
+| `Mail.Send` | send as `alerts@finmentor.md` | **must** be constrained by an Application Access Policy to that one mailbox |
+| `Mail.ReadBasic` *(or `Mail.Read`)* | resolve `DELIVERY_UNKNOWN` — see 14.3 | same policy, same single mailbox |
+
+**The Application Access Policy is not optional.** `Mail.Send` as an *application* permission
+grants send-as **any** mailbox in the tenant by default. Without
+`New-ApplicationAccessPolicy` restricting the app registration to `alerts@finmentor.md`, an
+alert dispatcher would hold tenant-wide send rights — a far larger grant than "notify the owner
+about a lead". The same policy covers the read permission.
+
+`Mail.ReadBasic` is preferred over `Mail.Read` if it proves sufficient for the 14.3 lookup:
+`ReadBasic` excludes message bodies, and the dispatcher only needs to know *whether* a message
+exists. **To be confirmed against the tenant before the permission is requested.**
+
+Delegated permissions are wrong here — there is no signed-in user — and any flow requiring a
+stored mailbox password is excluded by owner decision.
+
+## 14.3 DELIVERY_UNKNOWN for email — better than Telegram, and why
+
+§7 set both channels to "never auto-resend" because no provider was selected. **Microsoft Graph
+changes what is achievable for email**, and this is the one place the provider decision reaches the
+design.
+
+Graph's `message` resource exposes `internetMessageId` — the RFC 5322 `Message-ID`. The approach
+worth pursuing:
+
+1. create a **draft** (`POST /users/alerts@finmentor.md/messages`) with a deterministic
+   `internetMessageId` derived from the dispatch key —
+   `<new-lead.{sha256(dispatch_key)}@finmentor.md>`
+2. send it (`POST /users/.../messages/{id}/send`)
+3. on `DELIVERY_UNKNOWN`, query Sent Items filtered on that exact `internetMessageId`
+
+A hit proves the message was sent and the row is promoted to `SENT`; a miss proves it was not and
+the row returns to `RETRYABLE_FAILED`. That converts a coin flip into a **determination** — and it
+is why the outbox stores a deterministic `dispatch_key` rather than a random one.
+
+**Two honest caveats, neither resolved here.** Whether `internetMessageId` is writable on draft
+creation, and whether Sent Items is filterable on it, must be **verified against the actual tenant**
+before this policy is adopted — it is proposed, not proven, and this pass created no credential to
+prove it with. And the two-step draft-then-send flow is a different Graph call pattern from
+`sendMail`; the simpler `sendMail` returns no id at all and therefore supports **no** recovery
+better than Telegram's.
+
+Until that verification happens, **the deployed policy remains §7 as written: no auto-resend on
+either channel, surfaced to the owner by SYSTEM ALERT.** Nothing about the database changes either
+way; this is dispatcher behaviour.
+
+Telegram is unchanged and unimprovable by this decision: `sendMessage` is not idempotent and
+exposes no lookup by our key. The asymmetry is real and is not a defect — email will simply be
+recoverable where Telegram is not.
+
+## 14.4 Graph failure classification
+
+Mapping onto the §7 states, so the dispatcher has no room to invent one:
+
+| Graph outcome | state | note |
+|---|---|---|
+| `202 Accepted` (or send returns success) | `SENT` | `sent_at` stamped; `provider_message_id` only if the flow yields one |
+| `429 Too Many Requests` | `RETRYABLE_FAILED` | `next_attempt_at` from the `Retry-After` header, never a guessed backoff |
+| `503` / `504` / transport timeout | `RETRYABLE_FAILED` | standard backoff |
+| network drop after the request was issued | `DELIVERY_UNKNOWN` | the case 14.3 exists to resolve |
+| `401` / `403` — token or policy | `PERMANENT_FAILED` | a credential or Application Access Policy problem; retrying cannot fix it, and it must reach the owner as a SYSTEM ALERT |
+| `400` — malformed message | `PERMANENT_FAILED` | a defect in our own rendering |
+| mailbox not found / disabled | `PERMANENT_FAILED` | configuration |
+
+`last_error_code` stores a **classified code** (`GRAPH_THROTTLED`, `GRAPH_AUTH_DENIED`,
+`GRAPH_MAILBOX_INVALID`, …), never a raw provider error object, never a token, never a URL —
+matching the existing `^[A-Z][A-Z0-9_]{2,39}$` constraint.
+
+## 14.5 Sender, deliverability and what is still owner/admin work
+
+`alerts@finmentor.md` as sender with `Reply-To: cfo@finmentor.md` keeps a failed alert out of the
+mailbox the owner reads and keeps replies where they belong.
+
+Still required before any email is sent, and **none of it done here**:
+
+* create/confirm the `alerts@finmentor.md` mailbox and whether its type (shared vs. licensed) suits
+  Graph application send in this tenant — an admin question, not a design one
+* register the app, choose certificate over secret, grant the two permissions with admin consent
+* **apply the Application Access Policy** scoping the app to that single mailbox
+* confirm SPF, DKIM and DMARC for `finmentor.md` under Exchange Online — with Microsoft 365 as the
+  host these are ordinarily satisfied by the tenant's own records, but "ordinarily" is not
+  "verified", and it stays a prerequisite rather than an assumption
+* the premium HTML + plain-text NEW LEAD email itself: HTML with inline styles, no remote fonts, no
+  JavaScript, no tracking pixel, recipient `cfo@finmentor.md`. Designed, **not implemented**.
