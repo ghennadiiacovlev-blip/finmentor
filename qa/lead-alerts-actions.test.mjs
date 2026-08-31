@@ -25,6 +25,7 @@ const require_ = createRequire(import.meta.url);
 const LA = require_(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'));
 const ACTIONS_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n');
 const A = new Function(ACTIONS_SRC + '; return LAA;')();
+const { toTelegram } = require_(join(HERE, 'telegram-emulator.js'));
 
 let pass = 0;
 const failures = [];
@@ -419,44 +420,10 @@ console.log('D8 — rebuilding the alert HTML so the keyboard can be edited with
 // rebuild is not byte-exact the owner watches a premium alert lose its formatting the moment they
 // press a button. These cases prove the round-trip on the REAL renderer output.
 //
-// This helper models what Telegram does to an outgoing HTML message: strips the tags, records
-// offsets in UTF-16 code units, unescapes entities. It exists only in the gate.
-function toTelegram(html) {
-  const TAG = { b: 'bold', i: 'italic', u: 'underline', s: 'strikethrough', code: 'code', pre: 'pre' };
-  const entities = [];
-  const open = [];
-  let text = '';
-  let i = 0;
-  while (i < html.length) {
-    if (html[i] === '<') {
-      const close = html.indexOf('>', i);
-      if (close === -1) { text += html[i]; i++; continue; }
-      const raw = html.slice(i + 1, close).trim();
-      const isEnd = raw.startsWith('/');
-      const name = (isEnd ? raw.slice(1) : raw.split(/\s/)[0]).toLowerCase();
-      if (TAG[name]) {
-        if (isEnd) {
-          for (let k = open.length - 1; k >= 0; k--) {
-            if (open[k].name === name) {
-              entities.push({ type: TAG[name], offset: open[k].offset, length: text.length - open[k].offset });
-              open.splice(k, 1);
-              break;
-            }
-          }
-        } else { open.push({ name, offset: text.length }); }
-        i = close + 1;
-        continue;
-      }
-      text += html[i]; i++; continue;
-    }
-    if (html.startsWith('&amp;', i)) { text += '&'; i += 5; continue; }
-    if (html.startsWith('&lt;', i)) { text += '<'; i += 4; continue; }
-    if (html.startsWith('&gt;', i)) { text += '>'; i += 4; continue; }
-    text += html[i]; i++;
-  }
-  entities.sort((a, b) => a.offset - b.offset || b.length - a.length);
-  return { text, entities };
-}
+// `toTelegram` models what Telegram does to an outgoing HTML message: strips the tags, records
+// offsets in UTF-16 code units, unescapes entities. It lives in qa/telegram-emulator.js so that the
+// live verifier drives the deployed nodes with the SAME emulator this gate proves the round trip
+// against — two emulators would let the gate pass on bytes the tenant never sees.
 
 const SAMPLE = {
   'NEW LEAD': LA.renderNewLead({
