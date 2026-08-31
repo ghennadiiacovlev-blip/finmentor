@@ -1,10 +1,10 @@
-# The global NEW-event identity contract — measured, built, and half-deployed
+# The global NEW-event identity contract — measured, built, and DEPLOYED
 
 **Date:** 2026-08-31
-**Status:** **SERVER DEPLOYED AND VERIFIED LIVE. CLIENT NOT IN PRODUCTION — GitHub Pages serves
-`main`, and the client exists only on the feature branch. A focused release candidate is cut from
-`main` and awaits review; see §8.1–8.2.** The global contract is therefore **NOT
-PASS**: one side is live. No DDL applied. No Alert Outbox. `lead_id` untouched. Pipeline schema
+**Status:** **BOTH SIDES DEPLOYED AND VERIFIED LIVE — `GLOBAL NEW-EVENT IDENTITY CONTRACT =
+DEPLOYED PASS`.** Server on the n8n Lead Intake workflow (106 nodes, `versionId e151f124`); client
+published to `www.finmentor.md` by PR #18, merged to `main` as `19e8b2cb` and built by GitHub Pages
+in 48 s with no error. Verified against the bytes production serves, read-only. No DDL applied. No Alert Outbox. `lead_id` untouched. Pipeline schema
 untouched. No historical row backfilled. No lead created to prove any of it.
 
 Supersedes, precisely:
@@ -244,18 +244,14 @@ immediately.
 | | what | how | evidence |
 |---|---|---|---|
 | 1 | **SERVER** — `QmIyEW2ZEqKregmN`, 102 → 106 nodes | `scripts/deploy-lead-intake-request-identity.mjs --confirm`. It applies the **same transform functions** the candidate generator uses, to the **live body**, so what is gated offline and what is deployed cannot diverge. Four `jsCode` fields changed, four nodes appended, one connection rewired, two added; settings byte-identical; Gateway, submit endpoint and Concierge re-hashed before and after and unmoved | `.uat/QmIyEW2ZEqKregmN.post-request-identity.json` |
-| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | on the feature branch as `016bba3`, and cut into the focused candidate `release/public-request-identity` (`e1da4d3`) from `main`. **NOT IN PRODUCTION** — Pages serves `main`; see §8.1–8.2 | `scripts/verify-request-identity-live.mjs` fetches the published bytes; it reports the mismatch and SKIPS the lifecycle cases rather than executing a client that has none of the functions they call |
+| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | focused candidate `release/public-request-identity` (`e1da4d3`) cut from `main`, opened as **PR #18**, owner-approved, merged as `19e8b2cb`. Pages built that SHA at 2026-08-31T11:18:50Z, 48.2 s, no error. **LIVE** | `scripts/verify-request-identity-live.mjs` fetches the published bytes; it reports the mismatch and SKIPS the lifecycle cases rather than executing a client that has none of the functions they call |
 
 **The contract is PASS only with both sides live.** The server alone validates, canonicalises,
 refuses and detects conflict but cannot make a retry carry the same identity; the client alone
-carries one identity per submission into a server that would still advance it on merge. **Today
-only the server is live, so `GLOBAL NEW-EVENT IDENTITY CONTRACT = FAIL (deployed).**
+carries one identity per submission into a server that would still advance it on merge. **Both are now live, so `GLOBAL NEW-EVENT IDENTITY CONTRACT = DEPLOYED PASS`.**
 
-The two are independent and the half that is live is strictly an improvement: identities are now
-validated, canonicalised, route-scoped, immutable on merge, and conflicting reuse is refused. What
-the missing half costs is retry *stability* — a public visitor who retries after a lost response
-still sends a fresh identity, exactly as before, so the lost-response case is no better than it was.
-Nothing is worse than it was.
+The two remain independent, and either can be rolled back alone without incoherence — see the
+rollback note above.
 
 ### 8.1 The client is not in production because Pages serves `main` — CORRECTED
 
@@ -328,6 +324,32 @@ Verified on the candidate exactly as CI runs it: **9/9 gates, 485 assertions**, 
 46 tracked JavaScript sources parse, secret-scan self-test 17/17 and the scan itself clean over
 210 tracked files.
 
+### 8.3 Published, and verified against what production serves
+
+PR #18 merged 2026-08-31T11:18:00Z as `19e8b2cb`; the Pages build of that exact SHA finished at
+11:18:50Z, status `built`, 48.2 s, **no error**. Both PR workflows were green on `e1da4d3` before
+the merge (FINMENTOR Quality Gates, Mini App B.2.0 QA).
+
+`LIVE == NEW MAIN` = **9/9** public assets by content hash, `lead-transport.js` included.
+
+The published transport was then **fetched from `www.finmentor.md` and executed** — not inspected
+for strings, run — and every lifecycle property holds on the production bytes: the identity survives
+retry and reload; `ok:true` without a canonical `lead_id` and `ok:false` at HTTP 200 are both
+non-settlements that retain it; an authoritative settlement retires it and the next genuine
+submission gets a different one; a 409 seals the slot, refuses the next send **before the network**,
+does not auto-rotate, and survives a reload, with the explicit new-request action the only exit; and
+there is no `Math.random` or `Date.now` identity fallback in the shipped bytes. All five public
+submitters still route through `FMLeadTransport.postLead` and all five handle the terminal conflict.
+
+**No lead was created to prove any of this.** The transport was executed in-process against a fake
+`fetch`, exactly as the offline gate does, on the source production serves.
+
+Post-publish regression: the merge changed exactly 12 files on `main`, none of them Mini App,
+`app-premium`, Gateway, n8n, Lead Alerts, Outbox, cycle projection, SQL or `ro/index.html`. All
+eight live n8n workflows are unchanged and active, Lead Intake still at `versionId e151f124` with the
+409 responder, the conflict verdict and merge immutability intact, and `Save to Pipeline` still an
+append with `defineBelow` and its 62 columns. The deployment issued no Sheets write.
+
 **GLOBAL NEW-EVENT IDENTITY CONTRACT = FAIL** until that candidate is merged to `main` and the
 resulting Pages build publishes. Nothing else blocks it: the server half is live and verified, and
 `scripts/verify-request-identity-live.mjs` goes green with no further change the moment the client
@@ -338,8 +360,9 @@ Server: `PUT /api/v1/workflows/QmIyEW2ZEqKregmN` with
 `.uat/QmIyEW2ZEqKregmN.pre-request-identity.json` — the exact pre-image, captured before the write.
 `.uat/` is gitignored, so that body lives only on the owner's machine: it is the unredacted live
 export and carries the production spreadsheet URL, which is precisely why it is not committed.
-Client: nothing to roll back — it is not in production. Once the focused candidate is merged,
-`git revert` it on `main` and the next Pages build follows.
+Client: `git revert -m 1 19e8b2cb` on `main`; the next Pages build republishes the pre-identity
+client. The two halves are independent — reverting either alone leaves a coherent system, degraded
+to the previous behaviour on that side only.
 The two are independent: reverting either alone leaves a coherent system, degraded to the
 pre-identity behaviour on that side.
 
@@ -382,8 +405,7 @@ table, applied a migration, or issued SQL.
 - **SYSTEM ALERT COVERAGE GAP = OPEN.**
 - **AUTHORITATIVE CYCLE PROJECTION = OPEN.**
 - **`ro/index.html` transport = OPEN** (§9).
-- **PUBLIC CLIENT RELEASE = AWAITING OWNER REVIEW** (§8.2). `release/public-request-identity` is
-  cut from `main`, gated, and local. Merging it is what moves the contract to PASS.
+- ~~PUBLIC CLIENT RELEASE~~ — **CLOSED.** PR #18 merged as `19e8b2cb` and published.
 - **CUSTOMER PRODUCTION = BLOCKED.**
 
 ## 11. Artifacts
