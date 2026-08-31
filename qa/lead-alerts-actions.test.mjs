@@ -228,7 +228,7 @@ const NOW = '2026-09-01T12:30:00.000Z';
 check('D10 each action writes exactly the owner-approved column set', () => {
   const want = {
     done: ['lead_id', 'sla_status', 'last_contacted_at'],
-    snooze: ['lead_id', 'sla_status', 'sla_snooze_until', 'next_follow_up_at'],
+    snooze: ['lead_id', 'sla_snooze_until', 'next_follow_up_at'],
     discovery: ['lead_id', 'deal_stage'],
     docs: ['lead_id', 'deal_stage', 'documents_requested_at', 'next_follow_up_at'],
     nurture: ['lead_id', 'deal_stage', 'sla_status']
@@ -279,6 +279,7 @@ check('D10 unrelated columns survive an action, proven by applying it to a full 
 check('D10 the arithmetic is the measured business action, unchanged', () => {
   eq(A.buildUpdate('snooze', LEAD, NOW).next_follow_up_at, '2026-09-02T12:30:00.000Z', 'snooze +24h');
   eq(A.buildUpdate('snooze', LEAD, NOW).sla_snooze_until, '2026-09-02T12:30:00.000Z', 'snooze until');
+  assert(!('sla_status' in A.buildUpdate('snooze', LEAD, NOW)), 'snooze still writes sla_status');
   eq(A.buildUpdate('docs', LEAD, NOW).next_follow_up_at, '2026-09-03T12:30:00.000Z', 'docs +48h');
   eq(A.buildUpdate('discovery', LEAD, NOW).deal_stage, 'Discovery Scheduled', 'discovery stage');
   // D5 — Discovery creates no follow-up and no due date. That is the measured behaviour.
@@ -522,6 +523,211 @@ check('D8 the origin action set is derived from the keyboard, not from callback_
   assert(!nl.some((b) => b.callback_data.startsWith('done|')), 'the NEW LEAD set contains done — the discriminator is invalid');
   const pr = A.keyboard('priority', { deal_stage: 'Qualified' }, 'FIN-1').flat();
   assert(pr.some((b) => b.callback_data.startsWith('done|')), 'the PRIORITY set lacks done — the discriminator is invalid');
+});
+
+// ══════════════════════════════════════════════ STAGE 2 — the callback lifecycle
+
+console.log('');
+console.log('STAGE 2 — the gates named in requirement 12');
+
+// Pinned fixtures. Each exists because it is a way the reconstruction could plausibly break, and
+// the round-trip must hold for every one of them.
+const FIXTURES = {
+  bold: '<b>Mega Parc SRL</b>',
+  code: '<code>FIN-1788113619104-582</code>',
+  'mixed Cyrillic/Latin': '<b>Vinaria Bostavan · Кишинёв</b>\nRetail · Розница',
+  ampersand: '<b>Alfa &amp; Co</b>\nP&amp;L и cash flow',
+  'angle brackets': '<b>Alfa &lt;Grup&gt; SRL</b>\na &lt; b &gt; c',
+  'emoji in text': '<b>Mega Parc</b>\n★ приоритет · €500 тыс.',
+  'nested entities': '<b>Всё <i>очень</i> срочно</b>',
+  'adjacent entities': '<b>abc</b><code>def</code>',
+  'no entities at all': 'просто текст без разметки'
+};
+
+check('HTML ROUND TRIP — every pinned fixture reproduces byte-identically', () => {
+  for (const [name, html] of Object.entries(FIXTURES)) {
+    const { text, entities } = toTelegram(html);
+    eq(A.htmlFromTelegram(text, entities), html, 'fixture did not round-trip: ' + name);
+  }
+});
+
+check('TEXT PRESERVATION — the visible characters are untouched by the round-trip', () => {
+  for (const [name, html] of Object.entries(FIXTURES)) {
+    const before = toTelegram(html);
+    const after = toTelegram(A.htmlFromTelegram(before.text, before.entities));
+    eq(after.text, before.text, 'visible text changed for: ' + name);
+  }
+});
+
+check('ENTITY PRESERVATION — offsets, lengths and types survive unchanged', () => {
+  for (const [name, html] of Object.entries(FIXTURES)) {
+    const before = toTelegram(html);
+    const after = toTelegram(A.htmlFromTelegram(before.text, before.entities));
+    eq(JSON.stringify(after.entities), JSON.stringify(before.entities), 'entities changed for: ' + name);
+  }
+});
+
+check('CLIENT TEXT ESCAPING — client-controlled text is escaped before any tag is added', () => {
+  eq(A.htmlFromTelegram('<script>alert(1)</script>', []), '&lt;script&gt;alert(1)&lt;/script&gt;', 'raw markup survived');
+  eq(A.htmlFromTelegram('a & b', []), 'a &amp; b', 'ampersand not escaped');
+  // Escaping happens on the text INSIDE an entity too, not only outside it.
+  eq(A.htmlFromTelegram('<b>x', [{ type: 'bold', offset: 0, length: 4 }]), '<b>&lt;b&gt;x</b>', 'text inside an entity was not escaped');
+});
+
+check('MALFORMED ENTITY FAIL-SAFE — bad ranges degrade to safe plain text, never to broken markup', () => {
+  // Crossing ranges are something Telegram never emits; producing crossed tags would make the
+  // edit fail and strand the owner's keyboard, so the whole message degrades to escaped text.
+  eq(A.htmlFromTelegram('abcdef', [{ type: 'bold', offset: 0, length: 4 }, { type: 'italic', offset: 2, length: 4 }]),
+    'abcdef', 'crossing entities did not fail safe');
+  // Out-of-range, negative and zero-length entities are dropped rather than clamped: clamping
+  // would silently move formatting onto different characters.
+  eq(A.htmlFromTelegram('abc', [{ type: 'bold', offset: 1, length: 99 }]), 'abc', 'overlong range not dropped');
+  eq(A.htmlFromTelegram('abc', [{ type: 'bold', offset: -1, length: 2 }]), 'abc', 'negative offset not dropped');
+  eq(A.htmlFromTelegram('abc', [{ type: 'bold', offset: 0, length: 0 }]), 'abc', 'zero length not dropped');
+  // The fail-safe still escapes. Both ranges are individually VALID here and genuinely cross, so
+  // nothing is dropped and the whole message degrades. (An earlier version of this case used an
+  // out-of-range entity, which is dropped rather than crossing — it proved the wrong thing.)
+  eq(A.htmlFromTelegram('a<bcde', [{ type: 'bold', offset: 0, length: 4 }, { type: 'italic', offset: 2, length: 4 }]),
+    'a&lt;bcde', 'the fail-safe did not escape');
+  // and a dropped-but-not-crossing entity leaves the remaining valid formatting intact
+  eq(A.htmlFromTelegram('a<b', [{ type: 'bold', offset: 0, length: 3 }, { type: 'italic', offset: 1, length: 99 }]),
+    '<b>a&lt;b</b>', 'a dropped entity wrongly discarded the valid one');
+  assert(A.entitiesCross([{ offset: 0, length: 4 }, { offset: 2, length: 4 }]), 'crossing not detected');
+  assert(!A.entitiesCross([{ offset: 0, length: 6 }, { offset: 2, length: 2 }]), 'containment misread as crossing');
+});
+
+check('NO HTML RECONSTRUCTION SHORTCUT — Markdown is never produced', () => {
+  for (const html of Object.values(FIXTURES)) {
+    const { text, entities } = toTelegram(html);
+    const out = A.htmlFromTelegram(text, entities);
+    assert(!/\*\*|__|\[.*\]\(.*\)/.test(out), 'markdown appeared in the output');
+  }
+});
+
+check('FRESH READ BEFORE WRITE — every verdict is computed from the row, not from the alert', () => {
+  // The same tap, judged against two different fresh rows, must give two different verdicts.
+  eq(A.refuseReason('docs', { deal_stage: 'Qualified', sla_status: 'Active' }, 'new_lead'), '', 'allowed on a fresh lead');
+  eq(A.refuseReason('docs', { deal_stage: 'Documents Requested' }, 'new_lead'), 'ALREADY_APPLIED', 'already applied');
+  eq(A.refuseReason('docs', { deal_stage: 'Won' }, 'new_lead'), 'TERMINAL', 'terminal');
+  eq(A.refuseReason('done', { deal_stage: 'Qualified', sla_status: 'Active' }, 'new_lead'), 'STATE_CHANGED',
+    'an action outside the current set is not flagged as stale');
+});
+
+check('SPARSE UPDATE — requirement 5, field for field', () => {
+  const want = {
+    discovery: ['lead_id', 'deal_stage'],
+    docs: ['lead_id', 'deal_stage', 'documents_requested_at', 'next_follow_up_at'],
+    snooze: ['lead_id', 'sla_snooze_until', 'next_follow_up_at'],
+    nurture: ['lead_id', 'deal_stage', 'sla_status']
+  };
+  for (const [action, cols] of Object.entries(want)) {
+    eq(JSON.stringify(Object.keys(A.buildUpdate(action, LEAD, NOW)).sort()), JSON.stringify([...cols].sort()),
+      action + ' does not match requirement 5');
+  }
+});
+
+check('POST-WRITE READBACK — a mutation is only successful if the row proves it', () => {
+  const upd = A.buildUpdate('docs', LEAD, NOW);
+  const good = Object.assign({ company: 'Mega Parc SRL' }, upd);
+  eq(A.verifyMutation(upd, good).ok, true, 'a correct row was rejected');
+  const partial = Object.assign({}, good, { next_follow_up_at: '' });
+  eq(A.verifyMutation(upd, partial).ok, false, 'a partial write was accepted');
+  eq(JSON.stringify(A.verifyMutation(upd, partial).mismatched), JSON.stringify(['next_follow_up_at']), 'wrong mismatch');
+  eq(A.verifyMutation(upd, {}).ok, false, 'an empty row was accepted');
+});
+
+check('UNRELATED FIELD PRESERVATION — proven against the real pre-image of the test lead', () => {
+  const pre = JSON.parse(readFileSync(join(ROOT, '.uat', 'pipeline-row-FIN-1788113619104-582.pre-stage2.json'), 'utf8'));
+  for (const action of ['discovery', 'docs', 'snooze', 'nurture', 'done']) {
+    const upd = A.buildUpdate(action, pre.lead_id, NOW);
+    const after = Object.assign({}, pre, upd);
+    for (const k of A.untouchedFields(action, pre)) {
+      eq(after[k], pre[k], action + ' changed the unrelated column ' + k);
+    }
+    // and it really is a big row, so this is not a vacuous check
+    assert(A.untouchedFields(action, pre).length > 50, 'the pre-image is too small to prove anything');
+  }
+});
+
+check('ACK AFTER WRITE — the success copy is a function of the verified update, not of the tap', () => {
+  // confirm() takes the update that was written and read back. There is no code path that renders
+  // a success message without one.
+  const upd = A.buildUpdate('docs', LEAD, '2026-08-31T12:30:00.000Z');
+  const html = A.confirm(LA, 'docs', 'Mega Parc SRL', upd, 180);
+  assert(/2 сентября · 15:30/.test(html), 'the confirmation does not carry the written value');
+  eq(A.confirm(LA, 'docs', 'Mega Parc SRL', { lead_id: LEAD }, 180).includes('undefined'), false,
+    'a missing value rendered as undefined');
+});
+
+check('CURRENT ACTION REMOVED — after the write, the action just taken is gone', () => {
+  for (const [action, post] of [
+    ['discovery', { deal_stage: 'Discovery Scheduled', sla_status: 'Active' }],
+    ['docs', { deal_stage: 'Documents Requested', sla_status: 'Active' }]
+  ]) {
+    for (const kind of ['new_lead', 'priority']) {
+      const after = A.keyboard(kind, post, LEAD).flat().map((b) => b.action);
+      assert(!after.includes(action), kind + ': ' + action + ' survived its own action');
+      assert(after.length > 0, kind + ': the keyboard emptied unexpectedly');
+    }
+  }
+});
+
+check('TERMINAL KEYBOARD EMPTY — nurture and done clear the keyboard entirely', () => {
+  eq(A.shape(A.keyboard('new_lead', { deal_stage: 'Nurture', sla_status: 'Nurture' }, LEAD)), 'NONE', 'after nurture');
+  eq(A.shape(A.keyboard('priority', { deal_stage: 'Qualified', sla_status: 'Done' }, LEAD)), 'NONE', 'after done');
+});
+
+check('SNOOZE REBASE — a second snooze re-bases from the second tap and writes no status', () => {
+  const a = A.buildUpdate('snooze', LEAD, '2026-09-01T12:00:00.000Z');
+  const b = A.buildUpdate('snooze', LEAD, '2026-09-01T12:05:00.000Z');
+  eq(a.next_follow_up_at, '2026-09-02T12:00:00.000Z', 'first');
+  eq(b.next_follow_up_at, '2026-09-02T12:05:00.000Z', 'second compounded rather than re-based');
+  assert(!('sla_status' in b), 'snooze writes sla_status, which requirement 5 excludes');
+  eq(A.refuseReason('snooze', { deal_stage: 'Qualified', sla_status: 'Active', sla_snooze_until: a.sla_snooze_until }, 'priority'),
+    '', 'a deliberate second snooze was refused');
+});
+
+check('DUPLICATE TAP NO WRITE / STALE TAP NO WRITE — the refusals carry no update', () => {
+  for (const [reason, row] of [
+    ['ALREADY_APPLIED', { deal_stage: 'Documents Requested' }],
+    ['TERMINAL', { deal_stage: 'Won' }],
+    ['STATE_CHANGED', { deal_stage: 'Qualified', sla_status: 'Active' }]
+  ]) {
+    const action = reason === 'STATE_CHANGED' ? 'done' : 'docs';
+    eq(A.refuseReason(action, row, 'new_lead'), reason, 'wrong reason for ' + reason);
+    const copy = A.refusal(LA, reason, 'Mega Parc SRL');
+    assert(!/undefined|NaN/.test(copy), reason + ': a formatting hole is visible');
+    assert(!/qF9tonlHHIxc8MDd|execution|workflow/i.test(copy), reason + ': internal identifiers leaked');
+  }
+  assert(/Действие уже применено/.test(A.refusal(LA, 'ALREADY_APPLIED', 'X')), 'duplicate copy');
+  assert(/Статус лида уже изменился/.test(A.refusal(LA, 'STATE_CHANGED', 'X')), 'stale copy');
+});
+
+check('PRESENTATION FAILURE != BUSINESS FAILURE', () => {
+  const upd = A.buildUpdate('docs', LEAD, '2026-08-31T12:30:00.000Z');
+  const html = A.presentationFailure(LA, 'docs', 'Mega Parc SRL', upd, 180);
+  assert(/Запрошены документы/.test(html), 'the applied action is not reported');
+  assert(/Не удалось обновить кнопки/.test(html), 'the presentation failure is not reported');
+  assert(!/не удалось применить|изменения не внесены/i.test(html), 'it reads as a business failure');
+});
+
+check('MESSAGE-NOT-MODIFIED is only accepted when the keyboard is provably identical', () => {
+  const a = A.keyboard('priority', { deal_stage: 'Qualified', sla_status: 'Active' }, LEAD);
+  const b = A.keyboard('priority', { deal_stage: 'Qualified', sla_status: 'Active' }, LEAD);
+  const c = A.keyboard('priority', { deal_stage: 'Discovery Scheduled', sla_status: 'Active' }, LEAD);
+  eq(A.sameKeyboard(a, b), true, 'identical keyboards not recognised');
+  eq(A.sameKeyboard(a, c), false, 'different keyboards treated as identical');
+  eq(A.sameKeyboard(a, []), false, 'an empty keyboard treated as identical');
+});
+
+check('CALLBACK VOCABULARY UNCHANGED — the verbs are exactly the deployed five', () => {
+  const verbs = new Set();
+  for (const kind of ['new_lead', 'priority', 'followup']) {
+    for (const state of [{ deal_stage: 'New' }, { deal_stage: 'Discovery Scheduled' }, { deal_stage: 'Documents Requested' }]) {
+      for (const b of A.keyboard(kind, state, LEAD).flat()) { verbs.add(b.callback_data.split('|')[0]); }
+    }
+  }
+  eq([...verbs].sort().join(','), 'docs,done,nurture,snooze,stage', 'the callback vocabulary changed');
 });
 
 // ══════════════════════════════════════════════ the module is one source of truth

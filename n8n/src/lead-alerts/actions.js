@@ -131,7 +131,11 @@ const LAA = (function () {
   // `deal_stage` atomic — see RESIDUAL_RACE below.
   var OWNED = {
     done: ['sla_status', 'last_contacted_at'],
-    snooze: ['sla_status', 'sla_snooze_until', 'next_follow_up_at'],
+    // NARROWED by owner requirement 5: snooze owns the two date fields and NOTHING else.
+    // sla_status is deliberately absent — SLA Select already skips a lead whose
+    // sla_snooze_until is in the future, so writing 'Snoozed' was cosmetic, and writing a
+    // status the action does not need is exactly the drift this pass removes.
+    snooze: ['sla_snooze_until', 'next_follow_up_at'],
     discovery: ['deal_stage'],
     docs: ['deal_stage', 'documents_requested_at', 'next_follow_up_at'],
     nurture: ['deal_stage', 'sla_status']
@@ -163,7 +167,6 @@ const LAA = (function () {
     } else if (action === 'snooze') {
       // D4 — the measured business action, unchanged: tap time + 24 hours. Storage stays UTC.
       var until = new Date(now.getTime() + 24 * HOUR).toISOString();
-      upd.sla_status = 'Snoozed';
       upd.sla_snooze_until = until;
       upd.next_follow_up_at = until;
     } else if (action === 'discovery') {
@@ -200,12 +203,47 @@ const LAA = (function () {
     return false;
   }
 
-  // A tap on an alert whose lead has since reached a terminal state is refused rather than applied.
-  function refuseReason(action, row) {
+  // Decided against the FRESHLY READ row, never against the state the alert was rendered with.
+  //
+  // Three distinct refusals, because the owner is told three different things (D10):
+  //   TERMINAL         the lead is closed for actions
+  //   ALREADY_APPLIED  this exact action is already the current state
+  //   STATE_CHANGED    the lead moved on, and this action is no longer one of the valid ones
+  function refuseReason(action, row, kind) {
     if (!action) { return 'UNKNOWN_ACTION'; }
     if (isTerminal(row)) { return 'TERMINAL'; }
     if (alreadyApplied(action, row)) { return 'ALREADY_APPLIED'; }
+    if (kind && chooseActions(kind, row).indexOf(action) === -1) { return 'STATE_CHANGED'; }
     return '';
+  }
+
+  // ── POST-WRITE VERIFICATION ──────────────────────────────────────────────────────────────────
+  //
+  // The owner is not told an action succeeded because a Sheets node did not throw. The row is read
+  // back and every field the action claimed to write is compared to what it intended. A mismatch
+  // is a failed action, and it is reported as one.
+  function verifyMutation(upd, row) {
+    var mismatched = [];
+    var r = row || {};
+    for (var k in upd) {
+      if (!Object.prototype.hasOwnProperty.call(upd, k)) { continue; }
+      if (k === 'lead_id') { continue; }
+      if (String(r[k] == null ? '' : r[k]) !== String(upd[k] == null ? '' : upd[k])) {
+        mismatched.push(k);
+      }
+    }
+    return { ok: mismatched.length === 0, mismatched: mismatched };
+  }
+
+  // Which fields an action must leave alone — everything on the row it does not own. Used by the
+  // gate to prove preservation against a real pre-image rather than against a short allow-list.
+  function untouchedFields(action, row) {
+    var owned = (OWNED[action] || []).concat(['lead_id']);
+    var out = [];
+    for (var k in (row || {})) {
+      if (Object.prototype.hasOwnProperty.call(row, k) && owned.indexOf(k) === -1) { out.push(k); }
+    }
+    return out;
   }
 
   // ── the owner-facing confirmation ────────────────────────────────────────────────────────────
@@ -249,23 +287,49 @@ const LAA = (function () {
     return LA.join([head, ident].concat(body));
   }
 
-  // The refusals, in the same voice. No stack trace, no lead data the owner did not already have.
+  // The refusals, in the same voice. No stack trace, no workflow id, no execution id, and no lead
+  // data the owner did not already have in the alert they tapped.
   function refusal(LA, reason, company) {
     var name = LA.tidy(company, 70);
     var ident = name ? '<b>' + LA.esc(name) + '</b>' : '';
+    var head = LA.header('FINMENTOR · ACTION');
     if (reason === 'ALREADY_APPLIED') {
-      return LA.join([LA.header('FINMENTOR · ACTION'), ident, '<b>Действие уже применено.</b>']);
+      return LA.join([head, ident, '<b>Действие уже применено.</b>']);
+    }
+    if (reason === 'STATE_CHANGED') {
+      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>']);
     }
     if (reason === 'TERMINAL') {
-      return LA.join([LA.header('FINMENTOR · ACTION'), ident,
-        '<b>Лид закрыт для действий.</b>', LA.esc('Статус уже финальный — изменения не внесены.')]);
+      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>',
+        LA.esc('Лид закрыт для действий — изменения не внесены.')]);
     }
     if (reason === 'NOT_FOUND') {
-      return LA.join([LA.header('FINMENTOR · ACTION'), '<b>Лид не найден.</b>',
-        LA.esc('Изменения не внесены.')]);
+      return LA.join([head, '<b>Лид не найден.</b>', LA.esc('Изменения не внесены.')]);
     }
-    return LA.join([LA.header('FINMENTOR · ACTION'), ident, '<b>Не удалось применить действие.</b>',
+    return LA.join([head, ident, '<b>Не удалось применить действие.</b>',
       LA.esc('Изменения не внесены. Попробуйте ещё раз.')]);
+  }
+
+  // ── PRESENTATION FAILURE IS NOT BUSINESS FAILURE ─────────────────────────────────────────────
+  //
+  // The Pipeline write succeeded and was verified; only the Telegram edit failed. The owner must
+  // not be told the action failed, and the mutation must NOT be retried — repeating it would move
+  // a timestamp for a presentation problem.
+  function presentationFailure(LA, action, company, upd, offsetMinutes) {
+    var done = confirm(LA, action, company, upd, offsetMinutes);
+    return LA.join([done, '<b>Не удалось обновить кнопки в сообщении.</b>']);
+  }
+
+  // Telegram answers "message is not modified" when an edit would change nothing. That is only
+  // acceptable when the keyboard we computed is provably identical to the one already shown —
+  // otherwise an arbitrary edit error would be laundered into success.
+  function sameKeyboard(a, b) {
+    var norm2 = function (rows) {
+      return JSON.stringify((rows || []).map(function (r) {
+        return (r || []).map(function (x) { return [String(x.text), String(x.callback_data)]; });
+      }));
+    };
+    return norm2(a) === norm2(b);
   }
 
   // ── EDITING THE ORIGINAL ALERT — and the constraint that forced this ─────────────────────────
@@ -312,13 +376,37 @@ const LAA = (function () {
   // Rebuild Telegram HTML from the plain text and entities of a message the bot sent.
   // An entity type this does not know is SKIPPED rather than guessed at — the text survives
   // unstyled, which is a visible but harmless degradation, where inventing a tag would not be.
+  // Two entities CROSS when they partially overlap without one containing the other. Telegram
+  // never emits that, so seeing it means the input is not what it claims to be — and emitting
+  // crossed tags would produce markup Telegram rejects, which would fail the edit and strand the
+  // owner's keyboard. The fail-safe is the whole message as escaped plain text: visibly unstyled,
+  // never corrupt, and never invented.
+  function entitiesCross(list) {
+    for (var i = 0; i < list.length; i++) {
+      for (var j = i + 1; j < list.length; j++) {
+        var a = list[i];
+        var b = list[j];
+        var aEnd = a.offset + a.length;
+        var bEnd = b.offset + b.length;
+        var overlaps = a.offset < bEnd && b.offset < aEnd;
+        var contains = (a.offset <= b.offset && bEnd <= aEnd) || (b.offset <= a.offset && aEnd <= bEnd);
+        if (overlaps && !contains) { return true; }
+      }
+    }
+    return false;
+  }
+
   function htmlFromTelegram(text, entities) {
     var s = String(text == null ? '' : text);
     var list = (entities || []).filter(function (e) {
+      // Range sanity first: a negative offset, a non-positive length or a range past the end of
+      // the string is dropped rather than clamped. Clamping would silently move formatting.
       return e && typeof e.offset === 'number' && typeof e.length === 'number'
+        && e.offset >= 0 && e.length > 0 && (e.offset + e.length) <= s.length
         && (ENTITY_TAG[e.type] || e.type === 'text_link');
     });
     if (list.length === 0) { return escHtml(s); }
+    if (entitiesCross(list)) { return escHtml(s); }
 
     var events = [];
     for (var i = 0; i < list.length; i++) {
@@ -393,6 +481,11 @@ const LAA = (function () {
     originKind: originKind,
     ENTITY_TAG: ENTITY_TAG,
     confirm: confirm,
+    verifyMutation: verifyMutation,
+    untouchedFields: untouchedFields,
+    presentationFailure: presentationFailure,
+    sameKeyboard: sameKeyboard,
+    entitiesCross: entitiesCross,
     refusal: refusal
   };
 })();
