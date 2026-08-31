@@ -70,6 +70,7 @@ const GATES = [
   ['Premium Telegram presentation', 'premium-ux-tg-presentation.test.mjs'],
   ['Premium UX contact channel', 'premium-ux-contact-channel.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
+  ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],
   ['Lead Alerts candidates (executed)', 'lead-alerts-candidates.test.mjs'],
   ['Premium Concierge candidate (executed)', 'premium-ux-concierge-candidate.test.mjs'],
   ['Lead Intake projection candidate (executed)', 'premium-ux-projection-candidate.test.mjs'],
