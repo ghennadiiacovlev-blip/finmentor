@@ -4,7 +4,9 @@
 **Execution:** `5062` — `FINMENTOR Lead Command Center SECURE CANDIDATE` (`qF9tonlHHIxc8MDd`), status `success`
 **Severity:** presentation only. The write is correct, the acknowledgement is correct, and the
 keyboard the owner is looking at is correct. What is wrong is that the owner is told it is not.
-**Status:** FIXED and deployed 2026-08-31T15:55:38Z. AWAITING the confirming tap. See [Resolution](#resolution).
+**Status:** CLOSED. Fixed, deployed 2026-08-31T15:55:38Z, and **proven live by execution `5068`**
+(2026-08-31T16:09:32Z) — 55/55 assertions. See [Resolution](#resolution) and
+[the confirming tap](#closed--the-confirming-tap-execution-5068).
 
 ---
 
@@ -164,11 +166,59 @@ And it **fails on the pre-fix candidate** — the graph `5062` actually ran, kep
 
 63/63 gates, 2245 assertions.
 
-### What is still not proven
+## CLOSED — the confirming tap, execution `5068`
 
-That n8n executes the new classification. Bytes and evaluation, not execution — the same limit that
-let `5055` and `5062` through. Only a new tap closes it. Alert message `149` is in place for exactly
-that: tapping **⏰ На 24 часа** reproduces the no-op — snooze changes no button and `deal_stage` does
-not move — so the confirming tap lands on the very case this fix classifies.
+The one thing the fix's own gate could not reach was whether **n8n executes** the new
+classification. Bytes and evaluation, not execution — the same limit that let `5055` and `5062`
+through. The owner tapped **⏰ На 24 часа** on alert `149` at **2026-08-31T16:09:32Z**, and that
+tap reproduced the no-op exactly as intended: snooze changes no button, `deal_stage` did not move,
+so `editMessageText` sent content and markup identical to what was displayed.
+
+`node scripts/verify-lead-alert-ack-tap-live.mjs` — **55 passed, 0 failed**, read-only:
+
+* the execution ran the **three-way** expression, read out of the execution's own snapshot
+* it landed on **branch 1 (KB22)** — a branch the defect broke, not the branch that always worked
+* Telegram answered `Bad Request: message is not modified: …`, and `classifyEdit()` returned
+  `EDIT_NOOP` **by prefix** (`indexOf === 0`), not by substring
+* the acknowledgement Telegram delivered — message `150`, 155 characters — is
+  `reply_text_presentation_noop`, entity for entity: «Кнопки уже актуальны — обновление не
+  потребовалось.» The owner was **not** told of a failure
+* the write is intact and proven: `sla_snooze_until` and `next_follow_up_at` both
+  `2026-09-01T16:09:36.436Z`, 68 unrelated columns byte-identical, `Verify Mutation` agreeing with
+  a recomputation, and the confirmation ordered strictly after all of it
+* the **old** expression, replayed against this tap's own live data, renders **empty** — this tap
+  would have sent a 400 before the fix
+
+### What the no-op path proves about the keyboard
+
+Telegram returns this error *only* when the content and markup sent are identical to what is
+displayed, so there is no returned `Message` to read — the six assertions that read one cannot
+run. They are replaced by a two-link chain that needs no data the graph does not hold:
+
+1. the keyboard the node **attempted** (the branch item's `kb`) is exactly what the post-write
+   state allows, recomputed from the module — `✅ Обработано | ⏰ На 24 часа` / `📞 Discovery | 🗂 В Nurture`
+2. Telegram says what is displayed is identical to what was attempted
+
+Therefore what is displayed is exactly what the post-write state allows. The attempted HTML also
+came back byte-identical to the origin message round-tripped through its own entities — so
+`htmlFromTelegram()` agrees with Telegram's own verdict, judged by Telegram.
+
+### The verifier was updated, and it still fails on the graph that broke
+
+`scripts/verify-lead-alert-ack-tap-live.mjs` was written for the **ack** fix and carried its
+two-way rule: any edit error meant the presentation-failure copy. Against `5068` it therefore
+reported four failures for a graph behaving **correctly**. It now classifies through
+`A.classifyEdit()` / `A.editCopyKey()` — the same module the graph's expression implements — so it
+cannot be satisfied by a graph that classifies differently, and `EDIT_FAILED` remains a failure
+without exception.
+
+Its baseline was also pinned to execution `5055`, which reported `5062`'s own legitimate writes as
+unexplained drift; it now chains to the newest prior record for the same lead (`5062`).
+
+The negative control: run against **`5062`**, the pre-fix execution, the same verifier reports
+**53 passed, 2 failed** and withholds the closure — the graph that ran carries no
+`reply_text_presentation_noop` and cannot speak this outcome.
+
+Record: `.uat/lead-alert-ack-tap-5068.json`.
 
 Rollback: `PUT /api/v1/workflows/qF9tonlHHIxc8MDd` with `.uat/qF9tonlHHIxc8MDd.pre-edit-noop.json`.

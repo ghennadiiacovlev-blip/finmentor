@@ -28,6 +28,13 @@
 //   3. was the acknowledgement actually SENT, non-empty?   (Telegram's own returned Message)
 //   4. is the text the copy the decision produced?         (round-tripped through entities)
 //
+// Question 4 is answered by the MODULE, never by this script's own reading of the item:
+// A.classifyEdit() names one of three outcomes — EDIT_UPDATED, EDIT_NOOP, EDIT_FAILED — and
+// A.editCopyKey() names the copy each one speaks. The graph's expression is that same decision
+// written for n8n. Asserting against the module is what keeps this honest: a graph that
+// classifies differently cannot satisfy it, and EDIT_FAILED remains a failure without exception.
+// See docs/FINDING_LEAD_ALERT_EDIT_NOT_MODIFIED.md.
+//
 // Question 2 matters as much as question 3. Branch 0 (KB221, the 2+2+1 PRIORITY keyboard) worked
 // before the fix and works after it — a green run on branch 0 would be a green run that proves
 // nothing. This script says so and exits non-zero rather than letting it read as a closure.
@@ -35,7 +42,7 @@
 // It also replays the OLD expression against the very same live data, so the run states, from the
 // tenant's own bytes, that this tap WOULD have failed before the fix.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -242,6 +249,22 @@ let BRANCH = -1;
 }
 
 // ── 3. the OLD expression, replayed against this very execution ───────────────────────────────
+//
+// This block also classifies the edit ONCE, through the module, for sections 5 and 6 to read.
+// One classification, one authority — two independent readings of the same item could disagree
+// and the run would still look green.
+let EDIT_OUTCOME = null;
+let EDIT_ERR_TEXT = '';
+
+// The copy an outcome speaks, named by the module and looked up in the decision the graph
+// actually produced. `present` distinguishes "the graph rendered the wrong copy" from "the graph
+// does not carry this copy at all" — two different defects that must not read alike.
+const COPY_FOR = (outcome) => {
+  const key = A.editCopyKey(outcome);
+  const v = DECIDED[key];
+  return { key, text: String(v || ''), present: typeof v === 'string' && v.length > 0 };
+};
+
 say('');
 say('3. the old expression, replayed against this tap\'s own data');
 {
@@ -259,14 +282,25 @@ say('3. the old expression, replayed against this tap\'s own data');
     + (before.rendered === '' ? '' : ' (it rendered ' + JSON.stringify(before.rendered.slice(0, 60)) + ')'));
   want(after.rendered.length > 0, 'the LIVE expression renders ' + after.rendered.length + ' characters');
 
-  // WHICH copy is correct is decided by the same discriminator the expression itself uses: an
-  // item carrying `.error` means the edit failed, and the presentation-failure copy is then the
-  // RIGHT answer, not a wrong one. Comparing unconditionally against reply_text would fail the
-  // graph for behaving correctly on the harder of its two branches.
-  const editFailed = !!(current && current.error);
-  const expectedCopy = String((editFailed ? DECIDED.reply_text_presentation_failed : DECIDED.reply_text) || '');
-  eqw(after.rendered, expectedCopy, 'and it renders exactly the copy the decision produced for this outcome ('
-    + (editFailed ? 'edit FAILED -> presentation-failure copy' : 'edit succeeded -> confirmation copy') + ')');
+  // WHICH copy is correct is decided by the module the expression implements — never by this
+  // script's own reading of the item, and never by whatever the graph happens to have rendered.
+  // A.classifyEdit() returns one of three outcomes and A.editCopyKey() names the copy each one
+  // speaks; the graph's expression is the same decision written as an n8n expression. Asserting
+  // against the module is what keeps this check honest: it cannot be satisfied by a graph that
+  // classifies differently, and EDIT_FAILED stays a failure.
+  EDIT_OUTCOME = A.classifyEdit(current);
+  EDIT_ERR_TEXT = String(A.editErrorText(current) || '');
+  const wantCopy = COPY_FOR(EDIT_OUTCOME);
+  if (!wantCopy.present) {
+    // A graph from before the fix emits no `reply_text_presentation_noop` at all. Comparing
+    // against the empty string would report it as "want \"\"" — which reads as though the
+    // verifier expected nothing. Name the real defect instead.
+    bad('the graph that ran does not carry the copy this outcome requires: ' + wantCopy.key
+      + ' is absent from the decision (outcome ' + EDIT_OUTCOME + ')');
+  } else {
+    eqw(after.rendered, wantCopy.text, 'and it renders exactly the copy the decision produced for this outcome ('
+      + EDIT_OUTCOME + ' -> ' + wantCopy.key + ')');
+  }
 }
 
 // ── 4. the write ──────────────────────────────────────────────────────────────────────────────
@@ -334,10 +368,50 @@ let EDITED = null;
     const envelope = outOf(editNode)[0] || {};
     eqw(String(editNode), SHAPE_NODE[SHAPE], 'the shape router sent ' + SHAPE + ' to the edit node that renders it');
 
-    // A failed edit is ONE fact, not six. Reporting the six downstream absences as separate
-    // failures buries the Telegram error that caused all of them, so it is named here and the
-    // assertions that read the returned Message are skipped rather than failed a second time.
-    if (envelope.error || envelope.ok !== true) {
+    // THREE OUTCOMES. Telegram returns a Message only when it actually changed something, so the
+    // six assertions below can only run on EDIT_UPDATED. The other two paths are NOT the same
+    // thing and must not be reported as one:
+    //
+    //   EDIT_NOOP    the content and markup sent were already what the message displays. There is
+    //                no Message to read, but the keyboard is provably right — see below.
+    //   EDIT_FAILED  a real failure, and still a failure here, without exception.
+    //
+    if (EDIT_OUTCOME === A.EDIT_OUTCOME.NOOP) {
+      // Telegram returns this error ONLY when the content and reply markup sent are identical to
+      // what is displayed. So the displayed keyboard is proven correct by a two-link chain, with
+      // no re-derivation from data the graph does not hold:
+      //   (a) the keyboard this node ATTEMPTED — the incoming item's `kb`, which is what the
+      //       node's parameters read — is exactly what the POST-WRITE state allows, recomputed
+      //       here from the module;
+      //   (b) Telegram says what was displayed is identical to what was attempted.
+      // Together: what is displayed is exactly what the post-write state allows.
+      want(EDIT_ERR_TEXT.indexOf(A.EDIT_NOOP_PREFIX) === 0,
+        'the edit was a NO-OP, by prefix and not by substring: ' + JSON.stringify(EDIT_ERR_TEXT.slice(0, 120)));
+
+      const attempted = (branchesOf('Route Edit Shape')[BRANCH] || [])[0] || {};
+      const akb = attempted.kb || [];
+      const aflat = akb.flat();
+      const expect = A.keyboard(ORIGIN_KIND, REFUSED ? (PRE || {}) : POST, LEAD_ID);
+      eqw(JSON.stringify(aflat.map((b) => b.callback_data)), JSON.stringify(expect.flat().map((b) => b.callback_data)),
+        'the keyboard the node ATTEMPTED is exactly what the ' + (REFUSED ? 'CURRENT' : 'POST-WRITE') + ' state allows');
+      eqw(JSON.stringify(akb.map((r) => r.length)), JSON.stringify(expect.map((r) => r.length)), 'and in the approved row shape');
+      want(akb.every((r) => r.length <= 2), 'no attempted row carries more than 2 buttons');
+      want(!aflat.some((b) => String(b.callback_data || '').startsWith('won|')), 'no won button was attempted');
+
+      // The attempted HTML against the origin message round-tripped through its own entities.
+      // Telegram's verdict is that these two rendered identically — so this asserts our entity
+      // round-trip agrees with Telegram's, judged by Telegram.
+      eqw(String(attempted.edit_html || ''), A.htmlFromTelegram(String(IDENT.message_text || ''), IDENT.message_entities || []),
+        'the attempted HTML is byte-identical to the message the owner is reading — which is WHY Telegram changed nothing');
+
+      say('');
+      say('        Telegram returned no Message, because there was nothing to change. That is the');
+      say('        business fact, not a failure: the buttons were already correct.');
+      say('        ' + akb.map((r) => r.map((b) => b.text).join(' | ')).join('\n        '));
+    } else if (envelope.error || envelope.ok !== true) {
+      // A failed edit is ONE fact, not six. Reporting the six downstream absences as separate
+      // failures buries the Telegram error that caused all of them, so it is named here and the
+      // assertions that read the returned Message are skipped rather than failed a second time.
       bad('the Telegram EDIT FAILED: ' + JSON.stringify(String(envelope.error || envelope.description
         || 'no ok:true and no error on the item')).slice(0, 300));
       say('');
@@ -397,10 +471,16 @@ let ACK = null;
     // The decisive one: the message Telegram rendered, converted back to HTML through its own
     // entities, is the copy the decision produced. Comparing the rendered text to the HTML source
     // directly would fail on markup alone and prove nothing.
-    const expected = String((replyRun.error || (outOf(editNode || '')[0] || {}).error)
-      ? DECIDED.reply_text_presentation_failed : DECIDED.reply_text || '');
+    // The copy is named by the module's classification of the edit — the same decision the
+    // graph's expression implements — never by this script's own reading of the item.
+    const expected = COPY_FOR(EDIT_OUTCOME);
     const back = A.htmlFromTelegram(sent, ACK.entities || []);
-    eqw(back, expected, 'the delivered message IS the copy the decision produced, entity for entity');
+    if (!expected.present) {
+      bad('the owner was sent ' + JSON.stringify(back.slice(-60)) + ', but the graph that ran carries no '
+        + expected.key + ' — it cannot speak this outcome');
+    } else {
+      eqw(back, expected.text, 'the delivered message IS the copy the decision produced for ' + EDIT_OUTCOME + ', entity for entity');
+    }
 
     // and it is the copy for THIS action, recomputed rather than trusted
     want(sent.length > 20 && !/undefined|null|\[object/i.test(sent), 'no placeholder or undefined leaked into the owner-facing text');
@@ -424,27 +504,41 @@ say('');
 say('7. exact before / after');
 say('='.repeat(78));
 {
-  // The baseline is the last read-back the tenant itself produced for this lead — execution
-  // 5055's `Get Pipeline (Verify)`, recorded when that tap was verified. Derived from the record
-  // rather than kept as a second hand-written file, so there is one artifact and no chance of the
-  // two disagreeing. A lead with no prior record simply has no baseline, and the check is skipped.
-  const LAST = join(OUT_DIR, 'pipeline-row-' + LEAD_ID + '.post-5055.json');
-  const REC5055 = join(OUT_DIR, 'lead-alert-tap-5055.json');
+  // The baseline is the last read-back the tenant itself produced FOR THIS LEAD — the newest
+  // prior tap record, not a pinned execution. Pinning it to 5055 was right while 5055 was the
+  // only tap; once 5062 wrote to the same row, a 5055 baseline reported that tap's own writes as
+  // unexplained drift. So: every record this script has ever written, filtered to this lead and
+  // to executions BEFORE this one, newest wins.
+  //
+  // Derived from the records rather than kept as a second hand-written file, so there is one
+  // artifact and no chance of the two disagreeing. A lead with no prior record simply has no
+  // baseline, and the check is skipped rather than faked.
   let KNOWN = {};
-  if (existsSync(LAST)) {
-    KNOWN = JSON.parse(readFileSync(LAST, 'utf8'));
-  } else if (existsSync(REC5055)) {
-    const r5055 = JSON.parse(readFileSync(REC5055, 'utf8')) || {};
-    // Only for the lead 5055 actually touched. Comparing one lead's row to another's would be a
-    // confident assertion about nothing.
-    if (String(r5055.lead_id || '') === LEAD_ID) { KNOWN = r5055.post_image || {}; }
+  let KNOWN_FROM = '';
+  {
+    const PINNED = join(OUT_DIR, 'pipeline-row-' + LEAD_ID + '.post-5055.json');
+    let best = -1;
+    for (const f of (existsSync(OUT_DIR) ? readdirSync(OUT_DIR) : [])) {
+      if (!/^lead-alert-(ack-)?tap-\d+\.json$/.test(f)) { continue; }
+      let r = null;
+      try { r = JSON.parse(readFileSync(join(OUT_DIR, f), 'utf8')); } catch { continue; }
+      // Only for the lead that record actually touched. Comparing one lead's row to another's
+      // would be a confident assertion about nothing.
+      if (!r || String(r.lead_id || '') !== LEAD_ID) { continue; }
+      const eid = Number(r.execution_id);
+      if (!(eid < Number(EX.id)) || !(eid > best) || !r.post_image) { continue; }
+      best = eid; KNOWN = r.post_image; KNOWN_FROM = 'execution ' + eid;
+    }
+    if (!KNOWN_FROM && existsSync(PINNED)) {
+      KNOWN = JSON.parse(readFileSync(PINNED, 'utf8')); KNOWN_FROM = 'pipeline-row-' + LEAD_ID + '.post-5055.json';
+    }
   }
   if (PRE && Object.keys(KNOWN).length) {
     // Bookkeeping columns are written by SLA Lead Watch and Followup Sequence on their own
     // schedules, so drift there is expected and is not evidence of anything.
     const BOOKKEEPING = ['last_activity_at', 'last_sla_alert_at', 'days_in_stage', 'updated_at'];
     const drifted = Object.keys(KNOWN).filter((k) => k in PRE && String(KNOWN[k]) !== String(PRE[k]) && !BOOKKEEPING.includes(k));
-    const claim = 'the pre-image this tap saw matches the last authoritative read-back (execution 5055)'
+    const claim = 'the pre-image this tap saw matches the last authoritative read-back (' + KNOWN_FROM + ')'
       + (drifted.length ? ' EXCEPT: ' + drifted.join(', ') : '');
     if (REHEARSE) {
       // The rehearsal's source IS 5055, so its pre-image necessarily differs from the read-back
@@ -453,7 +547,7 @@ say('='.repeat(78));
       // asserting that a write did not happen.
       say('');
       say('  (rehearsal: comparison run, not asserted — ' + (drifted.length
-        ? 'differs on ' + drifted.join(', ') + ', which is exactly what 5055 wrote'
+        ? 'differs on ' + drifted.join(', ') + ', which is exactly what ' + (KNOWN_FROM || 'the baseline') + ' wrote'
         : 'no drift') + ')');
     } else {
       want(drifted.length === 0, claim);
@@ -462,7 +556,8 @@ say('='.repeat(78));
   const watch = ['deal_stage', 'sla_status', 'sla_snooze_until', 'next_follow_up_at',
     'documents_requested_at', 'last_contacted_at', 'status', 'priority', 'company'];
   say('');
-  say('  column                     after 5055                pre-image (tap)           post-image (read-back)');
+  say('  column                     ' + ('after ' + (KNOWN_FROM || 'n/a')).slice(0, 24).padEnd(26)
+    + 'pre-image (tap)           post-image (read-back)');
   say('  ' + '-'.repeat(104));
   for (const k of watch) {
     const c = (v) => (v === '' || v == null ? '(empty)' : String(v)).slice(0, 24).padEnd(26);
@@ -522,6 +617,15 @@ if (REHEARSE) {
   if (ackClosed) {
     say('  ACK FINDING CLOSED. Execution ' + EX.id + ' ran the corrected expression on branch ' + BRANCH
       + ' (' + SHAPE + '), and Telegram delivered a non-empty confirmation as message ' + ACK.message_id + '.');
+    // Gated on a CLEAN run. The ack claim above is narrow and survives unrelated failures — a
+    // non-empty confirmation was either delivered or it was not. This one is a claim about the
+    // CLASSIFICATION, so any failed assertion is enough to withhold it.
+    if (EDIT_OUTCOME === A.EDIT_OUTCOME.NOOP && failures.length === 0) {
+      say('  EDIT-NOOP FINDING CLOSED. The edit was a no-op — the buttons were already correct — and');
+      say('  the graph classified it as one, live: the owner was told so, not told of a failure.');
+    } else if (EDIT_OUTCOME === A.EDIT_OUTCOME.NOOP) {
+      say('  EDIT-NOOP FINDING NOT CLOSED: the edit was a no-op, but this run did not pass clean.');
+    }
   } else {
     say('  ACK FINDING NOT CLOSED by this execution.');
   }
