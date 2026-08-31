@@ -176,10 +176,21 @@ say('');
 // ── 2. the body to send: the live workflow through the SAME transforms ─────────────────────────
 say('STEP 2 — the delta');
 const next = build(live, { preserveCaches: true });
+// THE NAME IS NOT PART OF THE DELTA, and this line is a repair.
+//
+// `build()` labels its output '[CANDIDATE] … — request identity', which is right for a tracked
+// artifact and wrong for a live PUT. The first run of this script sent that name, and the live
+// production workflow was renamed to '[CANDIDATE] …' until it was spotted during the Lead Alerts
+// audit. The read-back verified nodes, connections and settings — it never checked the name, which
+// is exactly how a field nobody asserts gets changed by accident.
+next.name = live.name;
 {
   const problems = verify(live, build(live));
   if (problems.length) { die('the candidate invariants do not hold: ' + problems.join(' | ')); }
   ok('every candidate invariant holds against the live export');
+
+  if (next.name !== live.name) { die('the body to send renames the live workflow'); }
+  ok('workflow name unchanged: ' + JSON.stringify(next.name));
 
   // Node-level diff, positionally, so a reorder is caught as well as an edit.
   const a = live.nodes;
@@ -323,6 +334,9 @@ const after = await api('GET', '/workflows/' + LEAD_INTAKE_ID);
 
   if (after.active !== true) { die('the workflow is no longer active — ROLLBACK'); }
   ok('workflow still active');
+
+  if (after.name !== live.name) { die('the tenant renamed the workflow to ' + JSON.stringify(after.name) + ' — ROLLBACK'); }
+  ok('workflow name on the tenant is unchanged');
 }
 say('');
 
