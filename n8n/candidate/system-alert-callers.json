@@ -1,0 +1,213 @@
+{
+  "emits": [
+    {
+      "workflow": "miniapp-submit",
+      "node": "Emit System Alert (Submit)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "miniapp-session",
+      "node": "Emit System Alert (Session)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Emit System Alert (Claim)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Emit System Alert (Session Store)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Emit System Alert (Pipeline)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Emit System Alert (Merge)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Emit System Alert (Infra)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": true
+    },
+    {
+      "workflow": "concierge",
+      "node": "Emit System Alert (Concierge)",
+      "waitForSubWorkflow": false,
+      "onError": "continueRegularOutput",
+      "credentials": 0,
+      "after_responder": false
+    }
+  ],
+  "responder_hashes": [
+    {
+      "workflow": "miniapp-submit",
+      "node": "Respond Submit OK",
+      "before": "370b98d017f63e7048f04f6a0ed184eaf97be12a4a8ddf12003fb1dbd2fefc42",
+      "after": "370b98d017f63e7048f04f6a0ed184eaf97be12a4a8ddf12003fb1dbd2fefc42"
+    },
+    {
+      "workflow": "miniapp-submit",
+      "node": "Respond Submit Terminal",
+      "before": "c5df19435a1e0976058cd5ce63f68ce5d90a240ce5004ac9e2d90e3a8317497c",
+      "after": "c5df19435a1e0976058cd5ce63f68ce5d90a240ce5004ac9e2d90e3a8317497c"
+    },
+    {
+      "workflow": "miniapp-submit",
+      "node": "Respond Submit Unresolved",
+      "before": "aaf492bd31a4982ca522d6360f98340d09f2b2fefcdafe06c84b4fbf868c711d",
+      "after": "aaf492bd31a4982ca522d6360f98340d09f2b2fefcdafe06c84b4fbf868c711d"
+    },
+    {
+      "workflow": "miniapp-session",
+      "node": "Respond Draft OK",
+      "before": "2d1aaec864561d4046448ec4d505980e755296fc5e018bb8d35777e3fc852983",
+      "after": "2d1aaec864561d4046448ec4d505980e755296fc5e018bb8d35777e3fc852983"
+    },
+    {
+      "workflow": "miniapp-session",
+      "node": "Respond Draft Rejected",
+      "before": "5b4045ecea1cbcfcf4f71dd614b38a0a7491af1aebf93cb012f78c2e5011b5a3",
+      "after": "5b4045ecea1cbcfcf4f71dd614b38a0a7491af1aebf93cb012f78c2e5011b5a3"
+    },
+    {
+      "workflow": "miniapp-session",
+      "node": "Respond Session Invalid",
+      "before": "669013f2368e8a3a496ef1240706d08be4a44365ad9a40d10ccea068cf21f4cd",
+      "after": "669013f2368e8a3a496ef1240706d08be4a44365ad9a40d10ccea068cf21f4cd"
+    },
+    {
+      "workflow": "miniapp-session",
+      "node": "Respond Draft Unavailable",
+      "before": "61921ce045327b7fabcb98d0240cb629872ed15d4d7107e517377c5ffc5fc3c0",
+      "after": "61921ce045327b7fabcb98d0240cb629872ed15d4d7107e517377c5ffc5fc3c0"
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Respond Bootstrap OK",
+      "before": "5d28ec8336330ae1e40145763947ced097e0e8a09ba8486dee1c61d469d828eb",
+      "after": "5d28ec8336330ae1e40145763947ced097e0e8a09ba8486dee1c61d469d828eb"
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Respond Rejected",
+      "before": "19ccb99c77a573821b600a85e8001fca59c742a023e274cb8812ffd9a4a526f1",
+      "after": "19ccb99c77a573821b600a85e8001fca59c742a023e274cb8812ffd9a4a526f1"
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Respond Replay Refused",
+      "before": "83e670192730d6cdcd59f6634790f855d1acd86641804d16a6b9976ab365530e",
+      "after": "83e670192730d6cdcd59f6634790f855d1acd86641804d16a6b9976ab365530e"
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "node": "Respond Store Unavailable",
+      "before": "ca1359e6749c381ef78c793d9297cf9a1863de634597beb4b7a50dd79aad9553",
+      "after": "ca1359e6749c381ef78c793d9297cf9a1863de634597beb4b7a50dd79aad9553"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Invalid",
+      "before": "bc3dc1eae0b794581a2119e4a2e70fca176fc9a3b50013497ce3f353c6a1ba2a",
+      "after": "bc3dc1eae0b794581a2119e4a2e70fca176fc9a3b50013497ce3f353c6a1ba2a"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond New Lead",
+      "before": "22a4c2f77a252c569073ad0e30488687040df4a6d972239be62c8b56b5600083",
+      "after": "22a4c2f77a252c569073ad0e30488687040df4a6d972239be62c8b56b5600083"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Pipeline Failed",
+      "before": "31be46e89061d3e831545bb63f28c767d8b5da1f917c3b5f4aa73d8463335507",
+      "after": "31be46e89061d3e831545bb63f28c767d8b5da1f917c3b5f4aa73d8463335507"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Retry",
+      "before": "b733b08dcd479ce016472271021d842e60b2c4a0f913cf7bef419ac91c45b64d",
+      "after": "b733b08dcd479ce016472271021d842e60b2c4a0f913cf7bef419ac91c45b64d"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Merged",
+      "before": "c7803ec9023769af54a46c7cfb627a2fad9da90de36b8d382e3fdfbc3ece2538",
+      "after": "c7803ec9023769af54a46c7cfb627a2fad9da90de36b8d382e3fdfbc3ece2538"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Merge Failed",
+      "before": "8c3f64f2ad7609bab66e70947de8ab03d38ef61b05edab1853a9685b3dab3c1a",
+      "after": "8c3f64f2ad7609bab66e70947de8ab03d38ef61b05edab1853a9685b3dab3c1a"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Infra Failed",
+      "before": "b494acfdf411a06fbad7f52bc312018a09a8f3b6bd25c0e383318dcc6d124e8c",
+      "after": "b494acfdf411a06fbad7f52bc312018a09a8f3b6bd25c0e383318dcc6d124e8c"
+    },
+    {
+      "workflow": "lead-intake",
+      "node": "Respond Identity Conflict",
+      "before": "4622c3d677432868ea5a55f317133b6b6f65d4d6ad1f6c40f91f63adcdd32902",
+      "after": "4622c3d677432868ea5a55f317133b6b6f65d4d6ad1f6c40f91f63adcdd32902"
+    }
+  ],
+  "settings": [
+    {
+      "workflow": "miniapp-submit",
+      "before": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveExecutionProgress\":false,\"saveManualExecutions\":false,\"saveDataErrorExecution\":\"none\",\"saveDataSuccessExecution\":\"none\"}",
+      "after": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveExecutionProgress\":false,\"saveManualExecutions\":false,\"saveDataErrorExecution\":\"none\",\"saveDataSuccessExecution\":\"none\"}"
+    },
+    {
+      "workflow": "miniapp-session",
+      "before": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveExecutionProgress\":false,\"saveManualExecutions\":false,\"saveDataErrorExecution\":\"none\",\"saveDataSuccessExecution\":\"none\"}",
+      "after": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveExecutionProgress\":false,\"saveManualExecutions\":false,\"saveDataErrorExecution\":\"none\",\"saveDataSuccessExecution\":\"none\"}"
+    },
+    {
+      "workflow": "miniapp-gateway",
+      "before": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveDataSuccessExecution\":\"none\",\"saveDataErrorExecution\":\"none\",\"saveManualExecutions\":false,\"saveExecutionProgress\":false}",
+      "after": "{\"executionOrder\":\"v1\",\"availableInMCP\":false,\"saveDataSuccessExecution\":\"none\",\"saveDataErrorExecution\":\"none\",\"saveManualExecutions\":false,\"saveExecutionProgress\":false}"
+    },
+    {
+      "workflow": "lead-intake",
+      "before": "{\"executionOrder\":\"v1\",\"binaryMode\":\"separate\",\"availableInMCP\":false,\"errorWorkflow\":\"RBiFLhVjizMkAzrK\"}",
+      "after": "{\"executionOrder\":\"v1\",\"binaryMode\":\"separate\",\"availableInMCP\":false,\"errorWorkflow\":\"RBiFLhVjizMkAzrK\"}"
+    },
+    {
+      "workflow": "concierge",
+      "before": "{\"executionOrder\":\"v1\",\"binaryMode\":\"separate\",\"availableInMCP\":false,\"errorWorkflow\":\"RBiFLhVjizMkAzrK\"}",
+      "after": "{\"executionOrder\":\"v1\",\"binaryMode\":\"separate\",\"availableInMCP\":false,\"errorWorkflow\":\"RBiFLhVjizMkAzrK\"}"
+    }
+  ],
+  "credential_delta": 0,
+  "alert_workflow_id": "ID700kTo6EXffwry"
+}

@@ -525,18 +525,46 @@ function scrubContact(v) {
     .replace(SCRUB_PHONE, '[контакт удалён]');
 }
 
+// ── THE SIDE-EFFECT STATEMENT ──────────────────────────────────────────────────────────────────
+//
+// ADDITIVE, 2026-08-31. The errorTrigger path still knows nothing about what was written, and
+// keeps saying exactly that — `sideEffectClass` absent renders the original two lines, byte for
+// byte, so every existing SYSTEM ALERT is unchanged.
+//
+// A verdict raised INSIDE a graph knows more, and the class is derived from that route's proven
+// node order — never from the error_code, which is shared across routes with different durable
+// state. Class A is the only one permitted to say a write was not reached, and it is emitted
+// only where the graph proves the verdict precedes every irreversible write.
+const SIDE_EFFECT_TEXT = {
+  A: ['Необратимая бизнес-запись не была достигнута.'],
+  B: ['Состояние связанных записей требует проверки.'],
+  C: ['До сбоя часть данных уже была сохранена.', 'Требуется проверка связанных записей.'],
+  D: ['Операция уже была завершена, не удалось только доставить ответ.']
+};
+
+function sideEffectLines(cls) {
+  const k = String(cls || '').toUpperCase();
+  return SIDE_EFFECT_TEXT[k] || [
+    'Последствия для записей автоматически не проверены.',
+    'Лид, Pipeline и privacy-запись нужно проверить вручную.'
+  ];
+}
+
 function renderSystemAlert(model) {
   const m = model || {};
   const cls = String(m.errorClass || '').toUpperCase();
   const useful = USEFUL_CLASSES.indexOf(cls) !== -1;
   const node = tidy(m.nodeName, 60);
+  // The operation, when the caller knows it. `impactOf` derives it from the workflow name and
+  // stays the fallback, so the errorTrigger path is untouched.
+  const headline = present(m.operation) ? tidy(m.operation, 120) : impactOf(m.workflowName);
 
   return join([
     header('SYSTEM ALERT'),
 
     // The headline is the business consequence, not the exception. It is derived from the
     // workflow name, which the payload carries, and it states only that the work did not finish.
-    '<b>' + esc(impactOf(m.workflowName)) + '</b>',
+    '<b>' + esc(headline) + '</b>',
 
     card('Влияние', [
       'Операция не завершена.',
@@ -545,10 +573,7 @@ function renderSystemAlert(model) {
     ]),
 
     // The one place this message could lie, and does not. See the note above IMPACT.
-    card('Данные', [
-      'Последствия для записей автоматически не проверены.',
-      'Лид, Pipeline и privacy-запись нужно проверить вручную.'
-    ]),
+    card('Данные', sideEffectLines(m.sideEffectClass)),
 
     card('Статус', '<b>Требует проверки</b>'),
 
@@ -558,6 +583,11 @@ function renderSystemAlert(model) {
       '<i>Технические данные</i>',
       line('Workflow', shortWorkflow(m.workflowName)),
       line('Node', node),
+      // ADDITIVE. Every one of these is dropped when absent, so the errorTrigger model — which
+      // carries none of them — renders exactly the bytes it always did.
+      line('Код', tidy(m.errorCode, 40)),
+      m.retryable === true ? 'Повтор: возможен' : (m.retryable === false ? 'Повтор: невозможен' : ''),
+      present(m.routeIdentity) ? 'Идентификатор: <code>' + esc(tidy(m.routeIdentity, 40)) + '</code>' : '',
       useful ? line('Класс', cls) : '',
       present(m.executionId) ? 'Execution: <code>' + esc(tidy(m.executionId, 20)) + '</code>' : '',
       line('Сообщение', tidy(scrubContact(m.message), 200))

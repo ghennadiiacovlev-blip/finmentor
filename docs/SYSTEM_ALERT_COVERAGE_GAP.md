@@ -1,5 +1,10 @@
 # SYSTEM ALERT COVERAGE GAP
 
+**CLOSED 2026-08-31T17:52:17Z** — see `docs/SYSTEM_ALERT_COVERAGE_DESIGN.md`. One dedicated
+`FINMENTOR SYSTEM ALERT` workflow now receives the authoritative business verdict from ten routes
+and delivered a live owner alert (message 152). The diagnosis below stands unchanged; retention
+and errorWorkflow were deliberately NOT enabled (owner decisions D1/D2).
+
 **Recorded 2026-08-30. Not fixed in this pass, by instruction — the binding fix does not wire
 `errorWorkflow`.**
 
