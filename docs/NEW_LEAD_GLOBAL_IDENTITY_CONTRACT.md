@@ -1,8 +1,9 @@
 # The global NEW-event identity contract — measured, built, and half-deployed
 
 **Date:** 2026-08-31
-**Status:** **SERVER DEPLOYED AND VERIFIED LIVE. CLIENT COMMITTED AND PUSHED BUT NOT PUBLISHED —
-the site has not deployed since 2026-08-26, see §8.1.** The global contract is therefore **NOT
+**Status:** **SERVER DEPLOYED AND VERIFIED LIVE. CLIENT NOT IN PRODUCTION — GitHub Pages serves
+`main`, and the client exists only on the feature branch. A focused release candidate is cut from
+`main` and awaits review; see §8.1–8.2.** The global contract is therefore **NOT
 PASS**: one side is live. No DDL applied. No Alert Outbox. `lead_id` untouched. Pipeline schema
 untouched. No historical row backfilled. No lead created to prove any of it.
 
@@ -243,7 +244,7 @@ immediately.
 | | what | how | evidence |
 |---|---|---|---|
 | 1 | **SERVER** — `QmIyEW2ZEqKregmN`, 102 → 106 nodes | `scripts/deploy-lead-intake-request-identity.mjs --confirm`. It applies the **same transform functions** the candidate generator uses, to the **live body**, so what is gated offline and what is deployed cannot diverge. Four `jsCode` fields changed, four nodes appended, one connection rewired, two added; settings byte-identical; Gateway, submit endpoint and Concierge re-hashed before and after and unmoved | `.uat/QmIyEW2ZEqKregmN.post-request-identity.json` |
-| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | committed as `016bba3` and pushed to `feat/miniapp-b21c-live-prereqs`. **NOT PUBLISHED** — §8.1 | `scripts/verify-request-identity-live.mjs` fetches the published bytes; it reports the mismatch and SKIPS the lifecycle cases rather than executing a client that has none of the functions they call |
+| 2 | **CLIENT** — `lead-transport.js` plus the five submitters | on the feature branch as `016bba3`, and cut into the focused candidate `release/public-request-identity` (`e1da4d3`) from `main`. **NOT IN PRODUCTION** — Pages serves `main`; see §8.1–8.2 | `scripts/verify-request-identity-live.mjs` fetches the published bytes; it reports the mismatch and SKIPS the lifecycle cases rather than executing a client that has none of the functions they call |
 
 **The contract is PASS only with both sides live.** The server alone validates, canonicalises,
 refuses and detects conflict but cannot make a retry carry the same identity; the client alone
@@ -256,40 +257,89 @@ the missing half costs is retry *stability* — a public visitor who retries aft
 still sends a fresh identity, exactly as before, so the lost-response case is no better than it was.
 Nothing is worse than it was.
 
-### 8.1 The site has not published since 2026-08-26 — this is the blocker, and it predates this work
+### 8.1 The client is not in production because Pages serves `main` — CORRECTED
 
-Measured, not inferred:
+**An earlier revision of this section claimed the site had "not published since 2026-08-26" and
+guessed at a failing Jekyll build. That was wrong, and the error was mine: I compared the live site
+against a STALE LOCAL `main` (`cab2328`, 2026-08-25) and never fetched. `origin/main` had moved to
+`d69e2e8` on 2026-08-26 and I did not have it.** The Jekyll hypothesis is **DISPROVEN** and no
+`.nojekyll` was added.
 
-| evidence | value |
+Measured with authenticated access to the repository's Pages configuration:
+
+| | |
 |---|---|
-| `last-modified` on **every** asset (`/lead-transport.js`, `/index.html`, `/main.js`, `/questionnaire.html`, `/ro/working-capital-scan.html`) | `Wed, 26 Aug 2026 08:09:59 GMT` — one uniform deploy stamp |
-| `/ro/working-capital-scan.html` live content | matches commit `74e345d`, 2026-08-26 **03:54 UTC** — before that stamp |
-| `/app-premium/index.html`, `/app-premium/app.js` (added 2026-08-28) | **HTTP 404**, with `age=0`, so the ORIGIN lacks them — not a CDN artifact |
-| branch commits after the deploy stamp | **70**, none of them published |
-| server | `GitHub.com` via Fastly, `cache-control: max-age=600` |
+| `build_type` | `legacy` |
+| `source.branch` / `source.path` | **`main`** / `/` |
+| `cname` / `https_enforced` | `www.finmentor.md` / `true` |
+| `status` | `built` |
+| latest build | `d69e2e8`, **status `built`**, created `2026-08-26T08:09:24Z`, finished `08:10:01Z`, 37.4 s, **no error** |
+| last ten builds | nine `built`; the one `errored` is `de76ec9a` from 2026-08-25, superseded by a successful build 22 seconds later |
+| deployments | every one `ref=main` |
 
-So `www.finmentor.md` is a frozen snapshot of this branch as of 2026-08-26 08:09:59 UTC. Pushing
-does not publish, and has not for five days. **The identity client is one of seventy commits sitting
-behind that.**
+The site's uniform `last-modified` of `08:09:59 GMT` is simply **that successful build finishing**.
+`main` has not changed since, so the site has had nothing to publish. Pages is healthy.
 
-This is a hosting/build failure, not an identity failure, and it predates this work by five days —
-the Mini App owner-UAT build has been unpublished the whole time too. The likely cause is a failing
-Jekyll build: the repository has **no `.nojekyll` and no `_config.yml`**, so GitHub Pages runs Jekyll
-over everything, and Jekyll's Liquid parser chokes on `{{ … }}`, which the n8n JSON artifacts and
-the Gateway test pages are full of. **Not investigated further and not touched**: adding `.nojekyll`
-or changing the Pages source is a site-infrastructure change, not an identity remediation, and it
-needs the Pages build log — which requires repository-admin access this pass does not have.
+Content confirms it, by hash rather than by timestamp — nine public assets fetched live and compared
+against both refs:
 
-**Owner action required to finish the contract.** Nothing else is blocking it: the code is committed,
-pushed and gated, and the moment the site publishes, `scripts/verify-request-identity-live.mjs` goes
-green with no further change.
+```
+live == origin/main (d69e2e8)          9 / 9
+live == feat/miniapp-b21c-live-prereqs 4 / 9   (the four that are identical on both refs)
+
+discriminating assets (main != feature): 5
+  lead-transport.js  main.js  questionnaire.html
+  working-capital-scan.html   ro/working-capital-scan.html
+  live == main: 5 / 5      live == feature: 0 / 5
+```
+
+**ROOT CAUSE: the public identity client exists only on the feature branch, which Pages does not
+serve.** Not a build failure, not a cache, not an infrastructure defect.
+
+**And the feature branch must NOT be merged to fix it.** It carries the Mini App and app-premium
+owner-UAT build, the Gateway, n8n exports, Lead Alerts work and the identity design documents —
+none of which is authorised for customer production. The release is instead a **focused candidate
+cut from `main`**: branch `release/public-request-identity` (`e1da4d3`), **12 files**, the public
+website client and its QA and nothing else. See §8.2.
+
+### 8.2 The focused release candidate
+
+`release/public-request-identity`, cut from `main` at `d69e2e8`. Committed locally; **not pushed, not
+merged, no PR** — that is the owner's call.
+
+| file | why it is required |
+|---|---|
+| `lead-transport.js` | the lifecycle itself |
+| `main.js`, `questionnaire.html`, `working-capital-scan.html`, `ro/questionnaire.html`, `ro/working-capital-scan.html` | the five submitters that can actually post a lead. Without their conflict branch a 409 shows the generic failure copy and the visitor has **no exit** — the slot is sealed and pressing send does nothing |
+| `qa/website-contract.test.mjs` | **mandatory**: main's existing gate asserts the old success contract and goes red against the new transport, so CI on `main` would break without it |
+| `qa/fixtures/lead-transport.pre-identity.js` | the frozen pre-identity file the defect proof executes |
+| `qa/public-identity-lifecycle.test.mjs` | new, 25 assertions, client-only — **no n8n dependency**, so it can live on `main` |
+| `qa/run-all.mjs`, `qa/assertion-baseline.json` | register the gate and raise the floor |
+| `.github/workflows/finmentor-quality-gates.yml` | `ASSERTION_BASELINE` 460 → 485, and the cwd-independence step hardcoded `8/8 gates passed` — it would have failed on the ninth gate |
+
+**Deliberately excluded**, and each was checked rather than assumed: every n8n artifact
+(candidate JSON, `n8n/src/`, the build/deploy/verify scripts), all four identity design documents,
+`app-premium/`, the Gateway, Lead Alerts, the Alert Outbox, cycle projection, and `i18n-ro.js` —
+whose only new keys feed `main.js`'s conflict branch on `ro/index.html`, a page that cannot submit
+at all (§9), so they are unreachable. Excluding it leaves `main.js` falling back to its Russian
+default on that one unreachable path.
+
+Verified on the candidate exactly as CI runs it: **9/9 gates, 485 assertions**, cwd-independent,
+46 tracked JavaScript sources parse, secret-scan self-test 17/17 and the scan itself clean over
+210 tracked files.
+
+**GLOBAL NEW-EVENT IDENTITY CONTRACT = FAIL** until that candidate is merged to `main` and the
+resulting Pages build publishes. Nothing else blocks it: the server half is live and verified, and
+`scripts/verify-request-identity-live.mjs` goes green with no further change the moment the client
+is served.
 
 **ROLLBACK.**
 Server: `PUT /api/v1/workflows/QmIyEW2ZEqKregmN` with
 `.uat/QmIyEW2ZEqKregmN.pre-request-identity.json` — the exact pre-image, captured before the write.
 `.uat/` is gitignored, so that body lives only on the owner's machine: it is the unredacted live
 export and carries the production spreadsheet URL, which is precisely why it is not committed.
-Client: `git revert` the commit; the published site follows the branch.
+Client: nothing to roll back — it is not in production. Once the focused candidate is merged,
+`git revert` it on `main` and the next Pages build follows.
 The two are independent: reverting either alone leaves a coherent system, degraded to the
 pre-identity behaviour on that side.
 
@@ -332,8 +382,8 @@ table, applied a migration, or issued SQL.
 - **SYSTEM ALERT COVERAGE GAP = OPEN.**
 - **AUTHORITATIVE CYCLE PROJECTION = OPEN.**
 - **`ro/index.html` transport = OPEN** (§9).
-- **SITE PUBLISHING = BLOCKED, OWNER ACTION** (§8.1). Five days and seventy commits unpublished,
-  which is what holds the global contract at FAIL.
+- **PUBLIC CLIENT RELEASE = AWAITING OWNER REVIEW** (§8.2). `release/public-request-identity` is
+  cut from `main`, gated, and local. Merging it is what moves the contract to PASS.
 - **CUSTOMER PRODUCTION = BLOCKED.**
 
 ## 11. Artifacts
