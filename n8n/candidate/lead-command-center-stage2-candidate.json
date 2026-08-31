@@ -1,0 +1,1490 @@
+{
+  "name": "FINMENTOR Lead Command Center SECURE CANDIDATE",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        304
+      ],
+      "id": "61d5192b-ecbe-41e1-9cb6-460953f6f25d",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// FINMENTOR Command Center — Settings sheet rows to a config object.\n//\n// Deployed as the n8n Code node \"Settings to Object\".\n//\n// Divergence from the shared version used by other workflows: the hardcoded owner chat id\n// fallback has been removed. A literal id baked into code is an authorisation bypass — it\n// keeps granting access even if the owner clears or changes the allowlist in Settings.\n// The Settings sheet is now the only policy source, and an unset allowlist denies everyone.\n\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '',\n  manager_chat_id: settings.manager_chat_id || '',\n  // No literal fallback. Empty here means deny-all downstream.\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || ''),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "243fb47e-430a-429c-8ce6-a51257d403d8",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FINMENTOR Command Center v3 — authorisation and command parsing.\n//\n// Deployed as the n8n Code node \"Parse Lead Command v2\".\n//\n// Identity comes ONLY from \"Verify Telegram Identity\", which derives it from the\n// authenticated Telegram Trigger update. No value here originates from a caller-supplied\n// HTTP body, and there is no hardcoded owner fallback: the Settings sheet is the single\n// authorisation policy source. An absent or empty allowlist denies everyone.\n//\n// Unauthorised updates return [] — a silent drop. Nothing downstream executes, so there\n// are zero Pipeline reads, zero CRM writes and no CRM data in any Telegram reply.\n\nconst v = $('Verify Telegram Identity').first().json;\nif (!v || v.verified !== true) return [];\n\nconst cfg = $('Settings to Object').first().json.settings || {};\n\n// Policy source of truth. Deny-all when unset — never allow-all.\nconst allowed = String(cfg.allowed_chat_ids ?? '')\n  .split(',')\n  .map(s => s.trim())\n  .filter(Boolean);\nif (allowed.length === 0) return [];\n\nconst fromId = String(v.verified_from_id);\nconst chatId = String(v.verified_chat_id);\n\n// Re-assert the private-chat invariant at the authorisation boundary. Defence in depth:\n// authorisation and reply destination must be the same identity, checked again here so a\n// future change upstream cannot silently reintroduce the from/chat split.\nif (!chatId || chatId !== fromId) return [];\n\n// Exact match only. No prefix, substring or numeric coercion.\nif (!allowed.includes(fromId)) return [];\n\nconst text = String(v.text ?? '').trim();\nif (!text) return [];\n\nconst isCb = v.is_callback === true;\nconst cbId = String(v.callback_query_id ?? '');\n\nfunction base(extra) {\n  return Object.assign({\n    mode: 'noop', query_type: '', command: '', lead_id: '', args: [],\n    snooze_hours: 24, stage_value: '', note_text: '', deal_value: '', close_reason: '', meeting_date: '',\n    chat_id: chatId, from_id: fromId, callback_query_id: cbId, is_callback: isCb,\n    // STAGE 2 — carried through untouched from the authenticated identity gate. Nothing here is\n    // read from the message body, and none of it participates in authorisation.\n    message_id: v.message_id ?? null,\n    message_chat_id: String(v.message_chat_id ?? ''),\n    message_text: String(v.message_text ?? ''),\n    message_entities: Array.isArray(v.message_entities) ? v.message_entities : [],\n    origin_had_done: v.origin_had_done === true,\n    allowed: true, reply_text: ''\n  }, extra || {});\n}\n\n// callback_data: \"cmd|lead|arg\" ; text: \"cmd lead arg...\"\nconst parts = isCb\n  ? text.split('|').map(s => s.trim())\n  : text.replace(/^\\//, '/').split(/\\s+/);\n\nconst cmd = (parts[0] || '').toLowerCase().replace(/^\\//, '');\nconst rest = parts.slice(1);\n\nconst HELP =\n`FINMENTOR Command Center\n\nЗапросы:\n/today — новые лиды сегодня\n/overdue — просроченные follow-up\n/hot — горячие лиды\n/pipeline — сводка воронки\n/lead <ID> — карточка лида\n\nДействия (<ID> = FIN-/fm-/FM-...):\ndone <ID> — закрыть SLA\nsnooze <ID> <часы> — отложить\nstage <ID> <стадия> — сменить стадию\nmeeting <ID> <дата> — назначить встречу\ndocs <ID> — запросить документы\nproposal <ID> — отправлено предложение\nnurture <ID> — в подогрев\nwon <ID> <сумма> — сделка выиграна\nlost <ID> <причина> — сделка проиграна\nnote <ID> <текст> — заметка`;\n\nconst queryCmds = { today: 'today', overdue: 'overdue', hot: 'hot', pipeline: 'pipeline' };\nconst updateCmds = ['done', 'snooze', 'stage', 'meeting', 'docs', 'proposal', 'nurture', 'won', 'lost', 'note'];\n\nif (cmd === 'help' || cmd === 'start') {\n  return [base({ mode: 'help', reply_text: HELP })];\n}\n\nif (queryCmds[cmd]) {\n  return [base({ mode: 'query', query_type: queryCmds[cmd] })];\n}\n\nif (cmd === 'lead') {\n  const id = rest[0] || '';\n  if (!id) return [base({ mode: 'help', reply_text: 'Укажи Lead ID: /lead FIN-...' })];\n  return [base({ mode: 'query', query_type: 'lead', lead_id: id })];\n}\n\nif (updateCmds.includes(cmd)) {\n  const id = rest[0] || '';\n  if (!id) return [base({ mode: 'help', reply_text: `Укажи Lead ID: ${cmd} FIN-...` })];\n  const o = base({ mode: 'update', command: cmd, lead_id: id, args: rest.slice(1) });\n  if (cmd === 'snooze') o.snooze_hours = Number(rest[1]) > 0 ? Number(rest[1]) : 24;\n  if (cmd === 'stage') o.stage_value = rest.slice(1).join(' ') || 'Discovery Scheduled';\n  if (cmd === 'meeting') o.meeting_date = rest.slice(1).join(' ');\n  if (cmd === 'won') o.deal_value = rest[1] || '';\n  if (cmd === 'lost') o.close_reason = rest.slice(1).join(' ');\n  if (cmd === 'note') o.note_text = rest.slice(1).join(' ');\n  return [o];\n}\n\n// Unknown command: help text only. No CRM read, no CRM write.\nreturn [base({ mode: 'help', reply_text: 'Неизвестная команда. Напиши /help для списка.' })];\n"
+      },
+      "id": "bbdc5f33-9aeb-44ee-92e1-64755ae00a3d",
+      "name": "Parse Lead Command v2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query_id }}",
+        "additionalFields": {
+          "text": "Обрабатываю…"
+        },
+        "path": "42767436-5a4b-4643-9c3d-53b56eb299ef"
+      },
+      "id": "2f830f5e-cb70-4205-be6e-5d57c7d2fd32",
+      "name": "Answer Callback Query",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        304,
+        -112
+      ],
+      "webhookId": "42767436-5a4b-4643-9c3d-53b56eb299ef",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3c0b0d74-0be8-4bc8-99a1-527592348889",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "62f62a06-fc90-435c-8f0b-a98561b65835",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "query",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f44cac77-1634-40e1-a09c-fcf1c7ae2759",
+                    "leftValue": "={{ $json.mode }}",
+                    "rightValue": "update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bbf9d78d-6cc0-41fc-9cf8-0eac8091666a",
+      "name": "Route Command Mode",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        },
+        "path": "c06132ae-98f4-4720-84b5-cea3ada32aa0"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        128
+      ],
+      "id": "856fc261-8b5e-45bf-ab7e-a292c0da9985",
+      "name": "Telegram Command Reply",
+      "webhookId": "c06132ae-98f4-4720-84b5-cea3ada32aa0",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        368
+      ],
+      "id": "01b742e9-8faf-4577-aa3c-ab5f9e590cc9",
+      "name": "Get Pipeline (Query)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Формирует ответ на /today /overdue /hot /pipeline /lead\nconst cmd = $('Parse Lead Command v2').first().json;\nconst cfg = $('Settings to Object').first().json.settings || {};\nconst rows = $input.all().map(i => i.json);\nconst TZ = cfg.timezone || 'Europe/Chisinau';\nconst now = new Date();\n\nfunction val(r,...k){ for(const x of k){ if(r[x]!==undefined&&r[x]!==null&&String(r[x]).trim()!=='') return String(r[x]).trim(); } return ''; }\nfunction dkey(v){ const d=new Date(v); return Number.isNaN(d.getTime())?'':d.toLocaleDateString('en-CA',{timeZone:TZ}); }\nfunction today(){ return now.toLocaleDateString('en-CA',{timeZone:TZ}); }\nfunction isClosed(s){ s=s.toLowerCase(); return ['won','lost','closed','nurture','закрыт'].some(x=>s.includes(x)); }\nfunction line(r,i){ return `${i}. ${val(r,'company')||'—'} / ${val(r,'name')||'—'} [${val(r,'priority')||'—'}/${val(r,'financial_zone')||'—'}]\\n   ${val(r,'next_action')||'—'} | ${val(r,'lead_id')}`; }\n\nfunction slaStatus(r) { return val(r,'sla_status').toLowerCase(); }\nfunction isSnoozedFuture(r) {\n  const s = slaStatus(r);\n  const until = val(r,'sla_snooze_until');\n  if (s !== 'snoozed' || !until) return false;\n  const d = new Date(until);\n  return !Number.isNaN(d.getTime()) && d > now;\n}\nfunction isInactiveForOverdue(r) {\n  const stage = val(r,'deal_stage').toLowerCase();\n  const sla = slaStatus(r);\n  return (\n    ['won','lost','closed','nurture','incomplete','закрыт'].some(x => stage.includes(x)) ||\n    sla === 'done' ||\n    sla === 'nurture' ||\n    isSnoozedFuture(r)\n  );\n}\n\nlet msg = '';\nconst t = cmd.query_type;\n\nif (t === 'lead') {\n  const r = rows.find(x => val(x,'lead_id').toLowerCase() === String(cmd.lead_id).toLowerCase());\n  if (!r) msg = `Lead ID не найден: ${cmd.lead_id}`;\n  else msg =\n`Карточка лида ${val(r,'lead_id')}\nКомпания: ${val(r,'company')||'—'}\nКонтакт: ${val(r,'name')||'—'} | ${[val(r,'phone'),val(r,'telegram'),val(r,'email')].filter(Boolean).join(' · ')||'—'}\nПриоритет/Зона: ${val(r,'priority')||'—'} / ${val(r,'financial_zone')||'—'}\nСтадия: ${val(r,'deal_stage')||'New'}\nБоль: ${val(r,'main_pain')||'—'}\nNext action: ${val(r,'next_action')||'—'}\nFollow-up: ${val(r,'next_follow_up_at')||'—'}\nSLA: ${val(r,'sla_status')||'—'}\nAI-план: ${val(r,'ai_plan_ready')||'—'}`;\n} else if (t === 'today') {\n  const list = rows.filter(r => dkey(val(r,'created_at')) === today());\n  msg = `Новые лиды сегодня: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'overdue') {\n  const list = rows.filter(r => {\n    const f = val(r,'next_follow_up_at');\n    if (!f || isInactiveForOverdue(r)) return false;\n    const d = new Date(f);\n    return !Number.isNaN(d.getTime()) && d < now;\n  })\n    .sort((a,b)=>new Date(val(a,'next_follow_up_at'))-new Date(val(b,'next_follow_up_at')));\n  msg = `Просроченные follow-up: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'hot') {\n  const list = rows.filter(r => val(r,'priority').toUpperCase()==='HOT' && !isClosed(val(r,'deal_stage')));\n  msg = `HOT лиды: ${list.length}\\n\\n` + (list.length ? list.slice(0,15).map((r,i)=>line(r,i+1)).join('\\n') : '—');\n} else if (t === 'pipeline') {\n  const active = rows.filter(r => !isClosed(val(r,'deal_stage')));\n  const byP = p => active.filter(r => val(r,'priority').toUpperCase()===p).length;\n  const stages = {};\n  for (const r of active){ const s=val(r,'deal_stage')||'New'; stages[s]=(stages[s]||0)+1; }\n  const red = active.filter(r => ['RED','ORANGE'].includes(val(r,'financial_zone').toUpperCase())).length;\n  msg = `Воронка (активных: ${active.length})\nHOT ${byP('HOT')} · WARM ${byP('WARM')} · COLD ${byP('COLD')} · INCOMPLETE ${byP('INCOMPLETE')}\nRED/ORANGE: ${red}\n\nПо стадиям:\n${Object.entries(stages).map(([k,v])=>`• ${k}: ${v}`).join('\\n')||'—'}`;\n} else {\n  msg = 'Нет данных.';\n}\n\nif (msg.length > 3800) msg = msg.slice(0,3800) + '\\n...\\nПолный список в Google Sheets.';\nreturn [{ json: { reply_text: msg, chat_id: cmd.chat_id, callback_query_id: cmd.callback_query_id } }];\n"
+      },
+      "id": "8498fa62-65fc-4344-9b64-25bee13eb9f8",
+      "name": "Build Query Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        },
+        "path": "f8e374bd-f144-4c77-89ce-2083357e434b"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        368
+      ],
+      "id": "4cf4f02f-248b-448c-aaf8-f86be5b319b4",
+      "name": "Telegram Query Reply",
+      "webhookId": "f8e374bd-f144-4c77-89ce-2083357e434b",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        592
+      ],
+      "id": "7c4d3b6e-81c3-4ebf-805b-5c4eab777094",
+      "name": "Get Pipeline (Update)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===================== FINMENTOR LEAD ALERT ACTIONS — one decision module =====================\n//\n// Spliced into the alert renderers (which actions, which keyboard shape) and into the Command\n// Center (which columns an action owns, what the owner is told). One module, because the button a\n// tap came from and the write that tap performs are two halves of one contract, and they drifted\n// once already: the deployed keyboard offered «✅ Done» while the mutation only closed an SLA.\n//\n// It depends on the presenter for escaping and date rendering — `LA` must be in scope. It never\n// re-implements `esc`, `card`, `join` or `dateTime`: a second date formatter is a second clock.\n//\n// ── WHAT THE AUDIT MEASURED, AND WHAT THIS CHANGES ─────────────────────────────────────────────\n//\n// Nothing here invents a business action. Every mutation below is the one already deployed in\n// `Find & Build Update`, narrowed to the columns it actually owns. The labels change, the layout\n// changes, the confirmations become truthful, and the writes stop carrying fifteen pre-read\n// columns. The callback_data strings are byte-identical to what is already in production, so every\n// historical Telegram message keeps working.\nconst LAA = (function () {\n  'use strict';\n\n  // ── D3 — the owner-facing labels, exactly as approved ────────────────────────────────────────\n  //\n  // Icons are permitted in buttons only; the alert body stays emoji-free. «Обработано», not\n  // «Выполнено» (D7): the measured action closes SLA handling, it does not close the deal.\n  var LABEL = {\n    done: '✅ Обработано',\n    snooze: '⏰ На 24 часа',\n    discovery: '📞 Discovery',\n    docs: '📄 Документы',\n    nurture: '🗂 В Nurture'\n  };\n\n  // ── callback_data is PRESERVED VERBATIM ──────────────────────────────────────────────────────\n  //\n  // The handler contract is already correct, so renaming a callback for presentation would break\n  // every alert already sitting in the owner's Telegram history for nothing. `won|` is deliberately\n  // absent from the emitters and deliberately still routed by the Command Center (D1).\n  function callbackData(action, leadId) {\n    var id = String(leadId == null ? '' : leadId);\n    if (action === 'done') { return 'done|' + id; }\n    if (action === 'snooze') { return 'snooze|' + id + '|24'; }\n    if (action === 'discovery') { return 'stage|' + id + '|Discovery Scheduled'; }\n    if (action === 'docs') { return 'docs|' + id; }\n    if (action === 'nurture') { return 'nurture|' + id; }\n    return '';\n  }\n\n  // ── D2 — the owner-approved action sets, in the owner's order ────────────────────────────────\n  //\n  // NEW LEAD deliberately omits «Обработано»: a lead that arrived seconds ago has not been\n  // handled, and offering the SLA-closing action as a first response invites closing an SLA that\n  // never opened. It also omits Won (D1).\n  var SET = {\n    new_lead: ['discovery', 'docs', 'snooze', 'nurture'],\n    priority: ['done', 'snooze', 'discovery', 'docs', 'nurture'],\n    followup: ['done', 'snooze', 'discovery', 'docs', 'nurture']\n  };\n\n  // Terminal states carry NO keyboard. Only existing Pipeline values are read — no new taxonomy,\n  // no new column.\n  var TERMINAL_SLA = ['done', 'nurture'];\n  var TERMINAL_STAGE = ['nurture', 'won'];\n\n  // The state an action would set. An action whose result is already the current state is hidden\n  // from the keyboard and refused harmlessly by the handler (D11) — the two must agree, which is\n  // why they read the same table.\n  var CURRENT_STATE_OF = {\n    discovery: { field: 'deal_stage', value: 'discovery scheduled' },\n    docs: { field: 'deal_stage', value: 'documents requested' }\n  };\n\n  function norm(v) { return String(v === undefined || v === null ? '' : v).trim().toLowerCase(); }\n\n  function isTerminal(state) {\n    var s = state || {};\n    return TERMINAL_SLA.indexOf(norm(s.sla_status)) !== -1\n      || TERMINAL_STAGE.indexOf(norm(s.deal_stage)) !== -1;\n  }\n\n  // The actions this alert should offer, given what the lead already is.\n  function chooseActions(kind, state) {\n    if (isTerminal(state)) { return []; }\n    var set = SET[kind] || [];\n    var s = state || {};\n    var out = [];\n    for (var i = 0; i < set.length; i++) {\n      var a = set[i];\n      var cur = CURRENT_STATE_OF[a];\n      if (cur && norm(s[cur.field]) === cur.value) { continue; }\n      out.push(a);\n    }\n    return out;\n  }\n\n  // ── D3 — never more than two buttons in a row ────────────────────────────────────────────────\n  //\n  // Straight two-packing in the owner's order reproduces every approved layout exactly:\n  //   NEW LEAD  discovery, docs, snooze, nurture      -> [2][2]\n  //   PRIORITY  done, snooze, discovery, docs, nurture -> [2][2][1]\n  // and it degrades correctly when one action is hidden, which the approved layouts do not\n  // themselves specify: five minus one is [2][2], four minus one is [2][1]. Both stay within the\n  // rule that matters — two per row — which is what stops Telegram truncating labels to «D…».\n  function keyboard(kind, state, leadId) {\n    var actions = chooseActions(kind, state);\n    var rows = [];\n    for (var i = 0; i < actions.length; i += 2) {\n      var row = [];\n      for (var j = i; j < i + 2 && j < actions.length; j++) {\n        row.push({ action: actions[j], text: LABEL[actions[j]], callback_data: callbackData(actions[j], leadId) });\n      }\n      rows.push(row);\n    }\n    return rows;\n  }\n\n  // The renderer picks a node by SHAPE, because an n8n Telegram node has a fixed number of rows\n  // and a fixed number of buttons in each. `NONE` means send the alert with no keyboard at all.\n  function shape(rows) {\n    if (!rows || rows.length === 0) { return 'NONE'; }\n    return 'KB' + rows.map(function (r) { return r.length; }).join('');\n  }\n\n  // ── D10 — SPARSE, ACTION-OWNED UPDATES ───────────────────────────────────────────────────────\n  //\n  // The deployed builder carried FIFTEEN pre-read columns into an autoMap update, so two taps\n  // seconds apart wrote each other's stale values back over anything that had changed in between.\n  // Each action now writes only the columns it owns. `lead_id` is present because it is the match\n  // key, not because it is written.\n  //\n  // This removes the lost update of UNRELATED columns. It does NOT make two taps that both target\n  // `deal_stage` atomic — see RESIDUAL_RACE below.\n  var OWNED = {\n    done: ['sla_status', 'last_contacted_at'],\n    // NARROWED by owner requirement 5: snooze owns the two date fields and NOTHING else.\n    // sla_status is deliberately absent — SLA Select already skips a lead whose\n    // sla_snooze_until is in the future, so writing 'Snoozed' was cosmetic, and writing a\n    // status the action does not need is exactly the drift this pass removes.\n    snooze: ['sla_snooze_until', 'next_follow_up_at'],\n    discovery: ['deal_stage'],\n    docs: ['deal_stage', 'documents_requested_at', 'next_follow_up_at'],\n    nurture: ['deal_stage', 'sla_status']\n  };\n\n  // The callback verb the handler receives -> the action this module reasons about. `stage` is the\n  // deployed verb for Discovery and carries its target stage as an argument.\n  function actionOfCommand(command, stageValue) {\n    var c = norm(command);\n    if (c === 'done') { return 'done'; }\n    if (c === 'snooze') { return 'snooze'; }\n    if (c === 'docs') { return 'docs'; }\n    if (c === 'nurture') { return 'nurture'; }\n    if (c === 'stage' && norm(stageValue) === 'discovery scheduled') { return 'discovery'; }\n    return '';\n  }\n\n  var HOUR = 3600000;\n\n  // Builds the update. `nowIso` is passed in rather than read from the clock so the gate can prove\n  // the arithmetic instead of tolerating it.\n  function buildUpdate(action, leadId, nowIso) {\n    var now = new Date(nowIso);\n    var iso = now.toISOString();\n    var upd = { lead_id: String(leadId == null ? '' : leadId) };\n    if (action === 'done') {\n      upd.sla_status = 'Done';\n      upd.last_contacted_at = iso;\n    } else if (action === 'snooze') {\n      // D4 — the measured business action, unchanged: tap time + 24 hours. Storage stays UTC.\n      var until = new Date(now.getTime() + 24 * HOUR).toISOString();\n      upd.sla_snooze_until = until;\n      upd.next_follow_up_at = until;\n    } else if (action === 'discovery') {\n      // D5 — stage only. No calendar event, no follow-up, no due date, and the confirmation must\n      // not pretend otherwise.\n      upd.deal_stage = 'Discovery Scheduled';\n    } else if (action === 'docs') {\n      upd.deal_stage = 'Documents Requested';\n      upd.documents_requested_at = iso;\n      upd.next_follow_up_at = new Date(now.getTime() + 48 * HOUR).toISOString();\n    } else if (action === 'nurture') {\n      upd.deal_stage = 'Nurture';\n      upd.sla_status = 'Nurture';\n    } else {\n      return null;\n    }\n    return upd;\n  }\n\n  // ── D11 — is this tap a no-op? ───────────────────────────────────────────────────────────────\n  //\n  // Read from the freshly-read row, never from the alert the tap came from. An already-applied\n  // action is acknowledged harmlessly and performs NO write, which is what stops a duplicate tap\n  // moving `documents_requested_at` or re-basing a snooze the owner did not ask to move.\n  function alreadyApplied(action, row) {\n    var r = row || {};\n    if (action === 'done') { return norm(r.sla_status) === 'done'; }\n    if (action === 'discovery') { return norm(r.deal_stage) === 'discovery scheduled'; }\n    if (action === 'docs') { return norm(r.deal_stage) === 'documents requested'; }\n    if (action === 'nurture') { return norm(r.deal_stage) === 'nurture' && norm(r.sla_status) === 'nurture'; }\n    // Snooze is deliberately NOT idempotent-by-state: «отложить ещё на 24 часа» is a real\n    // instruction, and refusing it because the lead is already Snoozed would be wrong. It is safe\n    // to repeat because it re-bases from the tap time rather than compounding.\n    return false;\n  }\n\n  // Decided against the FRESHLY READ row, never against the state the alert was rendered with.\n  //\n  // Three distinct refusals, because the owner is told three different things (D10):\n  //   TERMINAL         the lead is closed for actions\n  //   ALREADY_APPLIED  this exact action is already the current state\n  //   STATE_CHANGED    the lead moved on, and this action is no longer one of the valid ones\n  function refuseReason(action, row, kind) {\n    if (!action) { return 'UNKNOWN_ACTION'; }\n    if (isTerminal(row)) { return 'TERMINAL'; }\n    if (alreadyApplied(action, row)) { return 'ALREADY_APPLIED'; }\n    if (kind && chooseActions(kind, row).indexOf(action) === -1) { return 'STATE_CHANGED'; }\n    return '';\n  }\n\n  // ── POST-WRITE VERIFICATION ──────────────────────────────────────────────────────────────────\n  //\n  // The owner is not told an action succeeded because a Sheets node did not throw. The row is read\n  // back and every field the action claimed to write is compared to what it intended. A mismatch\n  // is a failed action, and it is reported as one.\n  function verifyMutation(upd, row) {\n    var mismatched = [];\n    var r = row || {};\n    for (var k in upd) {\n      if (!Object.prototype.hasOwnProperty.call(upd, k)) { continue; }\n      if (k === 'lead_id') { continue; }\n      if (String(r[k] == null ? '' : r[k]) !== String(upd[k] == null ? '' : upd[k])) {\n        mismatched.push(k);\n      }\n    }\n    return { ok: mismatched.length === 0, mismatched: mismatched };\n  }\n\n  // Which fields an action must leave alone — everything on the row it does not own. Used by the\n  // gate to prove preservation against a real pre-image rather than against a short allow-list.\n  function untouchedFields(action, row) {\n    var owned = (OWNED[action] || []).concat(['lead_id']);\n    var out = [];\n    for (var k in (row || {})) {\n      if (Object.prototype.hasOwnProperty.call(row, k) && owned.indexOf(k) === -1) { out.push(k); }\n    }\n    return out;\n  }\n\n  // ── the owner-facing confirmation ────────────────────────────────────────────────────────────\n  //\n  // Rendered only AFTER the authoritative Pipeline write succeeds (D8/D9). Every date is shown in\n  // Europe/Chisinau via the presenter's own formatter; storage stays UTC (D4).\n  var TITLE = {\n    done: 'ACTION UPDATED',\n    snooze: 'FOLLOW-UP UPDATED',\n    discovery: 'STAGE UPDATED',\n    docs: 'ACTION UPDATED',\n    nurture: 'STAGE UPDATED'\n  };\n\n  function confirm(LA, action, company, upd, offsetMinutes) {\n    var name = LA.tidy(company, 70) || '—';\n    // LA.header() already prefixes «FINMENTOR · ». Passing the prefix again produced\n    // «FINMENTOR · FINMENTOR · ACTION UPDATED», which the first live execution of the deployed\n    // node body showed before anything was written.\n    var head = LA.header(TITLE[action] || 'ACTION UPDATED');\n    var ident = '<b>' + LA.esc(name) + '</b>';\n    var body = [];\n\n    if (action === 'done') {\n      body.push(LA.card('Статус', '<b>Обработано</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA закрыт. Лид остаётся в работе.')));\n    } else if (action === 'snooze') {\n      body.push(LA.card('Статус', '<b>Отложено</b>'));\n      body.push(LA.card('Вернуться к контакту',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'discovery') {\n      // D5 — truthful. The action moves a stage; it schedules nothing.\n      body.push(LA.card('Стадия', '<b>Discovery</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('Лид переведён в стадию Discovery. Встреча не назначена.')));\n    } else if (action === 'docs') {\n      body.push(LA.card('Стадия', '<b>Запрошены документы</b>'));\n      body.push(LA.card('Следующий контакт',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'nurture') {\n      body.push(LA.card('Стадия', '<b>Nurture</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA-напоминания по этому лиду отключены.')));\n    }\n\n    return LA.join([head, ident].concat(body));\n  }\n\n  // The refusals, in the same voice. No stack trace, no workflow id, no execution id, and no lead\n  // data the owner did not already have in the alert they tapped.\n  function refusal(LA, reason, company) {\n    var name = LA.tidy(company, 70);\n    var ident = name ? '<b>' + LA.esc(name) + '</b>' : '';\n    var head = LA.header('ACTION');\n    if (reason === 'ALREADY_APPLIED') {\n      return LA.join([head, ident, '<b>Действие уже применено.</b>']);\n    }\n    if (reason === 'STATE_CHANGED') {\n      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>']);\n    }\n    if (reason === 'TERMINAL') {\n      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>',\n        LA.esc('Лид закрыт для действий — изменения не внесены.')]);\n    }\n    if (reason === 'NOT_FOUND') {\n      return LA.join([head, '<b>Лид не найден.</b>', LA.esc('Изменения не внесены.')]);\n    }\n    return LA.join([head, ident, '<b>Не удалось применить действие.</b>',\n      LA.esc('Изменения не внесены. Попробуйте ещё раз.')]);\n  }\n\n  // ── PRESENTATION FAILURE IS NOT BUSINESS FAILURE ─────────────────────────────────────────────\n  //\n  // The Pipeline write succeeded and was verified; only the Telegram edit failed. The owner must\n  // not be told the action failed, and the mutation must NOT be retried — repeating it would move\n  // a timestamp for a presentation problem.\n  function presentationFailure(LA, action, company, upd, offsetMinutes) {\n    var done = confirm(LA, action, company, upd, offsetMinutes);\n    return LA.join([done, '<b>Не удалось обновить кнопки в сообщении.</b>']);\n  }\n\n  // Telegram answers \"message is not modified\" when an edit would change nothing. That is only\n  // acceptable when the keyboard we computed is provably identical to the one already shown —\n  // otherwise an arbitrary edit error would be laundered into success.\n  function sameKeyboard(a, b) {\n    var norm2 = function (rows) {\n      return JSON.stringify((rows || []).map(function (r) {\n        return (r || []).map(function (x) { return [String(x.text), String(x.callback_data)]; });\n      }));\n    };\n    return norm2(a) === norm2(b);\n  }\n\n  // ── EDITING THE ORIGINAL ALERT — and the constraint that forced this ─────────────────────────\n  //\n  // The approved design says: after a successful mutation, edit the ORIGINAL alert's keyboard, and\n  // do not edit the message text unless structurally necessary.\n  //\n  // IT IS STRUCTURALLY NECESSARY. Telegram has `editMessageReplyMarkup`, which edits the keyboard\n  // and nothing else — but the n8n Telegram node does not expose it. Its only edit operation is\n  // `editMessageText`, whose `text` parameter is REQUIRED. Verified against the node's own type\n  // definition (v1.2, resource=message): the message operations are send*, editMessageText,\n  // deleteChatMessage, pin/unpin. There is no reply-markup-only edit, and reaching the raw Bot API\n  // would mean putting the bot token in an HTTP Request URL — a secret in a workflow parameter,\n  // which this repository does not do.\n  //\n  // So the edit must re-send the text. Telegram hands the callback the message as PLAIN text plus\n  // an `entities` array; re-sending that plain text would strip every <b> and <code> and visibly\n  // downgrade a premium alert. This rebuilds the HTML from text + entities so the edited message is\n  // byte-identical to the original, and the gate proves that round-trip on the real rendered\n  // alerts rather than on a sample.\n  //\n  // Offsets are UTF-16 code units, which is exactly how JavaScript indexes strings, so they map\n  // directly — no conversion, and no place for an off-by-one to hide.\n  var ENTITY_TAG = {\n    bold: 'b', italic: 'i', underline: 'u', strikethrough: 's',\n    code: 'code', pre: 'pre', spoiler: 'tg-spoiler'\n  };\n\n  function escHtml(s) {\n    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  }\n\n  function openTag(e) {\n    if (e.type === 'text_link') { return '<a href=\"' + escHtml(e.url || '') + '\">'; }\n    var t = ENTITY_TAG[e.type];\n    return t ? '<' + t + '>' : '';\n  }\n  function closeTag(e) {\n    if (e.type === 'text_link') { return '</a>'; }\n    var t = ENTITY_TAG[e.type];\n    return t ? '</' + t + '>' : '';\n  }\n\n  // Rebuild Telegram HTML from the plain text and entities of a message the bot sent.\n  // An entity type this does not know is SKIPPED rather than guessed at — the text survives\n  // unstyled, which is a visible but harmless degradation, where inventing a tag would not be.\n  // Two entities CROSS when they partially overlap without one containing the other. Telegram\n  // never emits that, so seeing it means the input is not what it claims to be — and emitting\n  // crossed tags would produce markup Telegram rejects, which would fail the edit and strand the\n  // owner's keyboard. The fail-safe is the whole message as escaped plain text: visibly unstyled,\n  // never corrupt, and never invented.\n  function entitiesCross(list) {\n    for (var i = 0; i < list.length; i++) {\n      for (var j = i + 1; j < list.length; j++) {\n        var a = list[i];\n        var b = list[j];\n        var aEnd = a.offset + a.length;\n        var bEnd = b.offset + b.length;\n        var overlaps = a.offset < bEnd && b.offset < aEnd;\n        var contains = (a.offset <= b.offset && bEnd <= aEnd) || (b.offset <= a.offset && aEnd <= bEnd);\n        if (overlaps && !contains) { return true; }\n      }\n    }\n    return false;\n  }\n\n  function htmlFromTelegram(text, entities) {\n    var s = String(text == null ? '' : text);\n    var list = (entities || []).filter(function (e) {\n      // Range sanity first: a negative offset, a non-positive length or a range past the end of\n      // the string is dropped rather than clamped. Clamping would silently move formatting.\n      return e && typeof e.offset === 'number' && typeof e.length === 'number'\n        && e.offset >= 0 && e.length > 0 && (e.offset + e.length) <= s.length\n        && (ENTITY_TAG[e.type] || e.type === 'text_link');\n    });\n    if (list.length === 0) { return escHtml(s); }\n    if (entitiesCross(list)) { return escHtml(s); }\n\n    var events = [];\n    for (var i = 0; i < list.length; i++) {\n      events.push({ pos: list[i].offset, kind: 1, len: list[i].length, e: list[i], i: i });\n      events.push({ pos: list[i].offset + list[i].length, kind: 0, len: list[i].length, e: list[i], i: i });\n    }\n    // Closes before opens at the same position; longer opens first and shorter closes first, so\n    // nested entities produce correctly nested tags rather than crossed ones.\n    events.sort(function (a, b) {\n      if (a.pos !== b.pos) { return a.pos - b.pos; }\n      if (a.kind !== b.kind) { return a.kind - b.kind; }\n      if (a.kind === 1) { return b.len - a.len || a.i - b.i; }\n      return a.len - b.len || a.i - b.i;\n    });\n\n    var out = '';\n    var cursor = 0;\n    for (var k = 0; k < events.length; k++) {\n      var ev = events[k];\n      if (ev.pos > cursor) { out += escHtml(s.slice(cursor, ev.pos)); cursor = ev.pos; }\n      out += ev.kind === 1 ? openTag(ev.e) : closeTag(ev.e);\n    }\n    if (cursor < s.length) { out += escHtml(s.slice(cursor)); }\n    return out;\n  }\n\n  // Which action set the ORIGINAL alert was rendered with, derived from the keyboard it carried\n  // rather than from a new field in callback_data. A NEW LEAD alert never offers «Обработано», so\n  // the presence of a `done|` button is the discriminator — and it needs one boolean carried\n  // through the callback path, not the whole keyboard.\n  function originKind(hadDone) { return hadDone ? 'priority' : 'new_lead'; }\n\n  // ── D10, stated rather than claimed ──────────────────────────────────────────────────────────\n  //\n  // The Pipeline is a Google Sheet. `Update Pipeline Row` matches on `lead_id` and writes the keys\n  // present on its input item; there is no conditional update, no row version and no\n  // compare-and-set anywhere in the stack. So:\n  //\n  //   * two taps on DIFFERENT columns are now safe — each writes only what it owns;\n  //   * two taps racing on the SAME column (Discovery and Documents both writing `deal_stage`)\n  //     resolve last-writer-wins, and this design does NOT prevent that.\n  //\n  // It is reported rather than papered over, because the honest mitigation — a version column and\n  // a conditional write — is a Pipeline schema change, and no schema change is authorised here.\n  var RESIDUAL_RACE = {\n    scope: 'two simultaneous taps whose actions write the SAME field',\n    example: 'Discovery and Documents both set deal_stage',\n    behaviour: 'last writer wins',\n    prevented: false,\n    why_not: 'Google Sheets offers no atomic compare-and-set here, and a version column would be a '\n      + 'Pipeline schema change, which is not authorised in this pass',\n    unrelated_columns: 'NOT affected — sparse updates mean an action never writes a column it does not own'\n  };\n\n  return {\n    LABEL: LABEL,\n    SET: SET,\n    OWNED: OWNED,\n    TERMINAL_SLA: TERMINAL_SLA,\n    TERMINAL_STAGE: TERMINAL_STAGE,\n    RESIDUAL_RACE: RESIDUAL_RACE,\n    callbackData: callbackData,\n    isTerminal: isTerminal,\n    chooseActions: chooseActions,\n    keyboard: keyboard,\n    shape: shape,\n    actionOfCommand: actionOfCommand,\n    buildUpdate: buildUpdate,\n    alreadyApplied: alreadyApplied,\n    refuseReason: refuseReason,\n    htmlFromTelegram: htmlFromTelegram,\n    originKind: originKind,\n    ENTITY_TAG: ENTITY_TAG,\n    confirm: confirm,\n    verifyMutation: verifyMutation,\n    untouchedFields: untouchedFields,\n    presentationFailure: presentationFailure,\n    sameKeyboard: sameKeyboard,\n    entitiesCross: entitiesCross,\n    refusal: refusal\n  };\n})();\n// =================== END FINMENTOR LEAD ALERT ACTIONS ===================\n\nconst LA = (function () {\n// FINMENTOR — Lead Alerts, the owner-facing presentation layer.\n//\n// ONE SOURCE OF TRUTH FOR EVERY OWNER-FACING ALERT STRING.\n//\n// This module renders. It does not decide. Nothing here reads the Pipeline, chooses which leads\n// are overdue, or fires anything: every render function takes an already-decided model and returns\n// Telegram HTML. That separation is the whole point of the pass — the alerts read like developer\n// logs today, and the fix for that is presentation, so the selection logic in each workflow stays\n// byte-for-byte what it is and only the last step changes.\n//\n// ── WHY IT LIVES IN THE REPO AND IS INLINED INTO THE CODE NODES ────────────────────────────────\n//\n// An n8n Code node cannot `require` a repo file, so scripts/build-lead-alerts-presentation.mjs\n// inlines this source into each builder node — the same generate-rather-than-retype pattern\n// app-premium/content.js already uses. qa/lead-alerts-presentation.test.mjs drives THIS file, and\n// the builder refuses to emit a candidate whose inlined copy differs from it, so the gate is\n// always watching the strings that actually ship.\n//\n// ── THE FIVE RULES ─────────────────────────────────────────────────────────────────────────────\n//\n//   1. An empty section is OMITTED, never rendered with a dash. A section header with nothing\n//      under it is noise that costs the owner a line of reading and returns nothing.\n//   2. A zero counter is OMITTED unless the message is specifically about data quality. Five lines\n//      of \"Overdue: 0 / No next action: 0 / No contact: 0\" is the exact texture this pass exists\n//      to remove.\n//   3. Business and system NEVER mix. A lead digest carries no workflow names; a system alert\n//      carries no lead.\n//   4. Data minimisation applies even on an owner-only channel. Phone, email and free text do not\n//      belong in a routine alert. The lead id is enough to open the row.\n//   5. Nothing is stated as proven unless the model proves it. In particular the system alert must\n//      not claim \"no side effects\": the n8n error payload carries no execution data at all, so\n//      that sentence would be invention. See IMPACT below.\n\n'use strict';\n\n// ── Telegram HTML ──────────────────────────────────────────────────────────────────────────────\n//\n// Telegram's HTML parse mode accepts a small tag set and requires &, < and > escaped everywhere\n// else. Every value that reaches a message goes through esc(); the tags are written by this file\n// and never come from data. That ordering is what stops a company called \"Alfa <Grup> & Co\" from\n// producing a 400 \"can't parse entities\" and silently losing the alert.\nconst ALLOWED_TAGS = ['b', 'i', 'u', 's', 'code', 'pre', 'a', 'blockquote', 'tg-spoiler'];\n\nfunction esc(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n// Collapse whitespace and bound the length. Owner alerts are read on a phone; a 600-character\n// \"main pain\" paste is not a summary, it is the raw field with a label on it.\nfunction tidy(v, max) {\n  const s = String(v === undefined || v === null ? '' : v).replace(/\\s+/g, ' ').trim();\n  if (!max || s.length <= max) { return s; }\n  return s.slice(0, max).replace(/[\\s,.;:—-]+$/, '') + '…';\n}\n\nconst present = (v) => String(v === undefined || v === null ? '' : v).trim() !== '';\n\n// One lead, one entry. A roster that lists the same company twice reads as a rendering fault\n// whatever produced it, and the owner counts it twice. Identity is the lead id where there is\n// one and the company name where there is not; `leadId` on a brief entry exists ONLY for this —\n// it is never rendered, because B11 keeps internal ids out of the digest body.\nfunction dedupe(items) {\n  const seen = {};\n  const out = [];\n  for (const it of (items || [])) {\n    if (!it) { continue; }\n    const key = present(it.leadId) ? 'id:' + String(it.leadId).trim().toLowerCase()\n      : 'co:' + String(it.company || '').trim().toLowerCase();\n    if (key === 'co:') { out.push(it); continue; }   // nothing to key on; keep it rather than drop it\n    if (seen[key]) { continue; }\n    seen[key] = 1;\n    out.push(it);\n  }\n  return out;\n}\n\n// ── B10. Presentation vocabulary ───────────────────────────────────────────────────────────────\n//\n// TWO DIMENSIONS, AND THEY ARE NOT THE SAME DIMENSION.\n//\n//   priority        HOT / WARM / COLD / INCOMPLETE\n//                   How the OWNER should queue this lead. Derived at intake from intent,\n//                   completeness and commercial signal. It is about the owner's calendar.\n//\n//   financial_zone  GREEN / YELLOW / ORANGE / RED\n//                   What the DIAGNOSTIC said about the client's finances, from the 0–100\n//                   diagnostic score. It is about the client's business.\n//\n// A COLD lead can be RED (a struggling company that is not ready to buy) and a HOT lead can be\n// GREEN (a healthy company that wants to start on Monday). Merging them into one \"status\" would\n// destroy information the owner uses to decide what to say in the first call, so they render as\n// two separate, differently-labelled lines and never as one badge.\n//\n// The Russian wordings below are not new semantics. zoneLabel() in the deployed Lead Intake brief\n// already says exactly these things in a longer form; this shortens them and stops there.\nconst PRIORITY_LABEL = {\n  HOT: 'Высокий приоритет',\n  WARM: 'Требует внимания',\n  COLD: 'Низкий приоритет',\n  INCOMPLETE: 'Нужны данные'\n};\n\nconst ZONE_LABEL = {\n  RED: 'Критическая зона',\n  ORANGE: 'Повышенный риск',\n  YELLOW: 'Есть зоны риска',\n  GREEN: 'Устойчиво'\n};\n\n// An unrecognised value is NOT silently mapped to something plausible. It returns '' and the line\n// is omitted, because inventing \"Низкий приоритет\" for a value nobody recognises is worse than\n// saying nothing: the owner would act on a label the data never carried.\nconst SOURCE_LABEL = [\n  [/xrayextended/, 'Финансовый рентген — расширенная анкета'],\n  [/xrayquick/, 'Финансовый рентген — быстрый рентген'],\n  [/miniscan/, 'Мини-скан оборотного капитала'],\n  [/miniapp|telegram/, 'Telegram Mini App'],\n  [/contact/, 'Контактная форма сайта']\n];\n\n// An unrecognised slug is NOT printed raw — «xray_extended» tells the owner nothing a label\n// would not. It degrades to the one true generic statement instead.\n//\n// IDEMPOTENT, and that is load-bearing. The deployed Lead Intake brief has a sourceLabel of its\n// own that runs BEFORE this one, so `source` can arrive already translated. Passing a Russian\n// label through a slug matcher used to fall through to «Сайт FINMENTOR» and quietly destroy the\n// real source — which is exactly what the live verification caught. Recognising this function's\n// own output closes the class rather than the instance: every caller is now safe, including the\n// ones nobody has written yet.\nfunction sourceLabel(tool) {\n  const raw = String(tool === undefined || tool === null ? '' : tool).trim();\n  if (!raw) { return ''; }\n  for (const [, label] of SOURCE_LABEL) { if (raw === label) { return label; } }\n  const t = raw.toLowerCase().replace(/[_\\s-]/g, '');\n  for (const [re, label] of SOURCE_LABEL) { if (re.test(t)) { return label; } }\n  return 'Сайт FINMENTOR';\n}\n\n// ── the preferred contact channel, and its value ───────────────────────────────────────────────\n//\n// OWNER DECISION, 2026-08-30. Not the old \"print every contact we hold\", and not the previous\n// pass's \"print no contact at all\" either. ONE channel — the one the client chose — with its\n// value, so the owner can act without opening the CRM, and nothing else.\n//\n// Phone and email are NEVER rendered together. If a future decision changes that, it changes\n// here, once.\n//\n// Telegram is the exception that proves the rule: the bot can reach the client through the chat\n// whether or not a @handle exists, so Telegram with no handle is still a usable channel and\n// renders bare. A handle is never invented. Phone or email with no value is NOT reachable, so it\n// renders «Не указана» rather than a label that promises a contact route the record does not have.\nconst CONTACT_CHANNELS = {\n  telegram: 'Telegram',\n  phone: 'Телефон',\n  email: 'Email'\n};\n\n// Accepts the id the Mini App stores and the label the legacy intake carries, so one function\n// serves both paths without either of them normalising first.\nfunction contactChannelKey(v) {\n  const t = String(v === undefined || v === null ? '' : v).trim().toLowerCase();\n  if (!t) { return ''; }\n  if (t.indexOf('telegram') !== -1) { return 'telegram'; }\n  if (t.indexOf('email') !== -1 || t.indexOf('mail') !== -1) { return 'email'; }\n  if (t.indexOf('phone') !== -1 || t.indexOf('телефон') !== -1 || t.indexOf('тел') === 0) { return 'phone'; }\n  return '';\n}\n\n// Returns the rendered value for the «Связь» block. Already escaped — it is the one line in the\n// system that may legitimately carry a client contact, and validate() exempts exactly this line\n// and no other.\nfunction contactLine(channel, value) {\n  const key = contactChannelKey(channel);\n  const v = tidy(value, 60);\n  if (key === 'telegram') { return v ? 'Telegram · ' + esc(v) : 'Telegram'; }\n  if (key === 'phone' && v) { return 'Телефон · ' + esc(v); }\n  if (key === 'email' && v) { return 'Email · ' + esc(v); }\n  // No channel, or a channel with no reachable value.\n  return 'Не указана';\n}\n\nfunction priorityLabel(v) { return PRIORITY_LABEL[String(v || '').trim().toUpperCase()] || ''; }\nfunction zoneLabel(v) { return ZONE_LABEL[String(v || '').trim().toUpperCase()] || ''; }\n\n// ── dates ──────────────────────────────────────────────────────────────────────────────────────\n//\n// Written out rather than taken from Intl. A Code node's ICU data is not something this repo\n// controls, and a digest whose date silently renders as \"August 30\" on one runtime and\n// \"30 августа\" on another is not deterministic. qa asserts the table.\nconst MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',\n  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];\n\n// Parses to Y/M/D/H/M in a fixed offset. Chisinau is UTC+3 in summer and UTC+2 in winter; the\n// caller passes the offset it already computed, because the workflows already hold a timezone\n// setting and this file must not become a second, disagreeing clock.\nfunction parts(iso, offsetMinutes) {\n  const d = new Date(iso);\n  if (Number.isNaN(d.getTime())) { return null; }\n  const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n  return {\n    y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate(),\n    hh: String(t.getUTCHours()).padStart(2, '0'), mm: String(t.getUTCMinutes()).padStart(2, '0')\n  };\n}\n\nfunction longDate(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] : '';\n}\n\nfunction dateTime(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] + ' · ' + p.hh + ':' + p.mm : '';\n}\n\n// A deadline the owner can act on without arithmetic. «просрочено на 3 дн.» is a decision;\n// «Due: 2026-08-27T09:00:00.000Z» is homework.\nfunction deadline(dueIso, nowIso, offsetMinutes) {\n  const due = new Date(dueIso);\n  const now = new Date(nowIso);\n  if (Number.isNaN(due.getTime()) || Number.isNaN(now.getTime())) { return ''; }\n  const dayOf = (d) => {\n    const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n    return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());\n  };\n  const days = Math.round((dayOf(due) - dayOf(now)) / 86400000);\n  if (days === 0) { return 'сегодня'; }\n  if (days === 1) { return 'завтра'; }\n  if (days === -1) { return 'просрочено на 1 день'; }\n  if (days < -1) { return 'просрочено на ' + (-days) + ' ' + plural(-days, 'день', 'дня', 'дней'); }\n  return longDate(dueIso, offsetMinutes);\n}\n\nfunction plural(n, one, few, many) {\n  const a = Math.abs(n) % 100;\n  const b = a % 10;\n  if (a > 10 && a < 20) { return many; }\n  if (b > 1 && b < 5) { return few; }\n  if (b === 1) { return one; }\n  return many;\n}\n\n// ── block assembly ─────────────────────────────────────────────────────────────────────────────\n//\n// `block` is the rule \"an empty section is omitted\" made structural rather than remembered. A\n// caller cannot render a header with nothing under it, because a header with no surviving lines\n// returns null and null is dropped.\n// THE DAILY BRIEF IS A DOCUMENT; EVERY OTHER MESSAGE IS A CARD.\n//\n// A document has bold section headings the eye can jump between, because the owner scans it for\n// the section they want. A card is read top to bottom in five seconds, and bolding both the label\n// and the value there leaves nothing quiet enough to make the value stand out. So `block` bolds\n// its heading and `card` does not, and the value each one wraps in <b> is the answer, not the\n// question.\nfunction assemble(heading, lines, bold) {\n  const kept = (Array.isArray(lines) ? lines : [lines]).filter(present);\n  if (!kept.length) { return null; }\n  const h = heading ? (bold ? '<b>' + esc(heading) + '</b>' : esc(heading)) + '\\n' : '';\n  return h + kept.join('\\n');\n}\nfunction block(heading, lines) { return assemble(heading, lines, true); }\nfunction card(heading, lines) { return assemble(heading, lines, false); }\n\nfunction join(blocks) {\n  return blocks.filter((b) => present(b)).join('\\n\\n');\n}\n\n// «Метка: значение», dropped entirely when the value is missing.\nfunction line(label, value) {\n  return present(value) ? esc(label) + ': ' + esc(value) : '';\n}\n\n// A counter that renders only when it is worth a line. This is B11 in one function: a run of\n// zeroes is not information, it is furniture. `always` is for the one anchor number a section\n// would be meaningless without.\nfunction counter(label, n, always) {\n  const v = Number(n) || 0;\n  if (!v && !always) { return ''; }\n  return esc(label) + ': ' + v;\n}\n\nconst header = (kind, sub) =>\n  '<b>FINMENTOR · ' + esc(kind) + '</b>' + (present(sub) ? '\\n<i>' + esc(sub) + '</i>' : '');\n\n// ── B3. OWNER DAILY BRIEF ──────────────────────────────────────────────────────────────────────\n//\n// model = {\n//   now, offsetMinutes,\n//   counts: { active, newToday, needAttention, overdue },\n//   leads:  [{ company, descriptor, priority, objective, nextAction, dueAt }],\n//   moreLeads: n,\n//   decisions: [ '…', '…' ]\n// }\nfunction renderDailyBrief(model) {\n  const m = model || {};\n  const c = m.counts || {};\n  const off = m.offsetMinutes;\n\n  const today = block('Сегодня', [\n    counter('Активных лидов', c.active, true),\n    counter('Новых', c.newToday),\n    counter('Требуют внимания', c.needAttention),\n    counter('Просрочено', c.overdue)\n  ]);\n\n  // Five, not ten. A brief the owner scrolls is a report, and a report gets read later.\n  const leads = dedupe(m.leads).slice(0, 5).map((l, i) => {\n    const head = (i + 1) + '. <b>' + esc(tidy(l.company, 60) || '—') + '</b>'\n      + (present(l.descriptor) ? '\\n' + esc(tidy(l.descriptor, 60)) : '');\n    const body = [\n      line('Статус', priorityLabel(l.priority)),\n      line('Задача', tidy(l.objective, 90)),\n      line('Следующее действие', tidy(l.nextAction, 90)),\n      line('Срок', l.dueAt ? deadline(l.dueAt, m.now, off) : '')\n    ].filter(present);\n    return body.length ? head + '\\n\\n' + body.join('\\n') : head;\n  });\n  if (leads.length && Number(m.moreLeads) > 0) {\n    leads.push('<i>И ещё ' + Number(m.moreLeads) + ' в работе.</i>');\n  }\n  const priority = leads.length ? '<b>Приоритет</b>\\n\\n' + leads.join('\\n\\n') : null;\n\n  // Five, like the roster. A brief that lists thirty decisions has made none of them, and forty\n  // of them cleared the 4096-character limit outright — the message would not have been sent.\n  const open = (m.decisions || []).filter(present);\n  const decisions = block('Что требует решения',\n    open.slice(0, 5).map((d) => '• ' + esc(tidy(d, 110)))\n      .concat(open.length > 5 ? ['<i>И ещё ' + (open.length - 5) + '.</i>'] : []));\n\n  const body = join([today, priority, decisions]);\n  // Nothing urgent is a RESULT, and saying so plainly is worth more than a page of zeroes.\n  const tail = (priority || decisions) ? '' : '<b>Критичных действий нет.</b>';\n  return join([header('OWNER DAILY BRIEF', dateTime(m.now, off)), body, tail]);\n}\n\n// ── B4. NEW LEAD ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, role, objective, situation, priority, zone, nextAction, source,\n//           contactChannel, leadId }\n//\n// NO PHONE, NO EMAIL, NO FREE-TEXT PASTE. The owner opens the row to call; the alert exists to\n// say whether the row is worth opening now. The contact CHANNEL is carried because it changes how\n// the owner plans the callback, and the channel is not personal data.\nfunction renderNewLead(model) {\n  const m = model || {};\n  const ident = '<b>' + esc(tidy(m.company, 70) || '—') + '</b>'\n    + (present(m.role) ? '\\n' + esc(tidy(m.role, 60)) : '');\n\n  return join([\n    header('NEW LEAD'),\n    ident,\n    card('Задача', present(m.objective) ? '<b>' + esc(tidy(m.objective, 120)) + '</b>' : ''),\n    card('Ситуация', esc(tidy(m.situation, 220))),\n    card('Приоритет', [\n      present(priorityLabel(m.priority)) ? '<b>' + esc(priorityLabel(m.priority)) + '</b>' : '',\n      // The second dimension, labelled so it can never be read as the first.\n      line('Финансовая зона', zoneLabel(m.zone))\n    ]),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Связь', '<b>' + contactLine(m.contactChannel, m.contactValue) + '</b>'),\n    card(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B5. PRIORITY ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, reason, nextAction, dueAt, now, offsetMinutes, leadId }\n//\n// Deliberately NOT the lead card again. The owner already received the card when the lead landed;\n// repeating it here would mean re-reading everything to find the one new fact, which is why the\n// deployed SLA reminder gets skimmed.\nfunction renderPriority(model) {\n  const m = model || {};\n  return join([\n    header('PRIORITY'),\n    '<b>' + esc(tidy(m.company, 70) || '—') + '</b>',\n    card('Почему требует внимания', esc(tidy(m.reason, 140))),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Срок', present(m.dueAt) ? '<b>' + esc(deadline(m.dueAt, m.now, m.offsetMinutes)) + '</b>' : ''),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B6. FOLLOW-UP DUE ──────────────────────────────────────────────────────────────────────────\n//\n// model = { now, offsetMinutes, items: [{ company, action, dueAt, leadId }] }\n//\n// Takes a LIST. The deployed workflow emits one message per due follow-up, so it passes one item\n// and the message reads correctly for one. The day an aggregation step is approved, the same\n// renderer produces the numbered list without a second template existing.\nfunction renderFollowUp(model) {\n  const m = model || {};\n  const items = dedupe((m.items || []).filter((x) => x && present(x.company)));\n  if (!items.length) { return ''; }   // never send an empty operational message\n\n  const rows = items.slice(0, 10).map((it, i) => [\n    (i + 1) + '. <b>' + esc(tidy(it.company, 60)) + '</b>',\n    present(it.action) ? esc(tidy(it.action, 100)) : '',\n    present(it.dueAt) ? 'Срок: ' + esc(deadline(it.dueAt, m.now, m.offsetMinutes)) : '',\n    present(it.leadId) ? '<code>' + esc(tidy(it.leadId, 40)) + '</code>' : ''\n  ].filter(present).join('\\n'));\n\n  return join([\n    header('FOLLOW-UP'),\n    'Просрочено: <b>' + items.length + '</b>',\n    rows.join('\\n\\n'),\n    items.length > 10 ? '<i>И ещё ' + (items.length - 10) + '.</i>' : ''\n  ]);\n}\n\n// ── B1 type 5. LEAD INCOMPLETE ─────────────────────────────────────────────────────────────────\n//\n// model = { company, missing: ['контакт', 'согласие'], reason, source, leadId }\n//\n// Its own type because the owner action is different in kind: nothing here can be sold until the\n// record is repaired, so it must not sit in the same queue as a lead that can be called.\n// OWNER DECISION, 2026-08-30. The reason and the next step are PINNED HERE and are not taken\n// from the model.\n//\n// The previous copy said «Форма отправлена без контакта и без согласия.» — which reads as a\n// legal conclusion about consent while the Moldovan legal basis is still\n// PENDING_LEGAL_REVIEW. An owner message is not the place to settle that, and a sentence the\n// builder could vary is a sentence that could drift into settling it. So the message describes\n// the OPERATIONAL problem only.\n//\n// The underlying rule is untouched: whatever blocked this lead — missing contact, missing\n// consent — still blocks it, and `priority_reason` still travels in the item for the internal\n// record. It simply is not restated to the owner as a finding.\nfunction renderIncomplete(model) {\n  const m = model || {};\n  return join([\n    header('LEAD INCOMPLETE'),\n    '<b>' + esc(tidy(m.company, 70) || 'Компания не указана') + '</b>',\n    card('Чего не хватает', (m.missing || []).filter(present).map((x) => '• ' + esc(tidy(x, 60)))),\n    card('Причина', 'Недостаточно данных для полноценной обработки обращения.'),\n    card('Следующий шаг', '<b>Проверить данные обращения вручную.</b>'),\n    block(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B7/B8. SYSTEM ALERT ────────────────────────────────────────────────────────────────────────\n//\n// model = { workflowName, nodeName, errorClass, message, executionId }\n//\n// ── WHAT THIS MESSAGE MAY AND MAY NOT CLAIM ────────────────────────────────────────────────────\n//\n// n8n's error trigger delivers `{ execution: { id, url, error }, workflow: { id, name } }` and\n// NOTHING ELSE — verified against execution 4240, which alerted on failure 4239. There is no\n// runData, no node output, no record of which writes had already committed.\n//\n// So this message CANNOT say «Обращение не создано. Pipeline не изменён. Privacy-запись не\n// создана.» Those three sentences would be invention dressed as a finding, and an owner who\n// trusted them once would trust them the time they were wrong. What it says instead is what is\n// true: the run stopped, here is where, and the consequences for stored data have not been\n// checked. Making the stronger statement requires reading the failed execution back through the\n// n8n API — a new capability, not a new sentence.\n//\n// IMPACT is derived from the workflow NAME, which the payload does carry. Each entry states what\n// stopped, never what was written.\nconst IMPACT = [\n  [/mini app|miniapp|gateway|submit|session/i, 'Заявка из Mini App не была принята.'],\n  [/concierge|transport/i, 'Ответ клиенту в Telegram не был отправлен.'],\n  [/lead intake/i, 'Приём заявки прерван.'],\n  [/digest/i, 'Ежедневный дайджест не сформирован.'],\n  [/sla/i, 'Проверка SLA не выполнена.'],\n  [/followup|follow-up/i, 'Напоминания не разосланы.'],\n  [/command center/i, 'Команда владельца не выполнена.']\n];\n\nfunction impactOf(workflowName) {\n  const n = String(workflowName || '');\n  for (const [re, text] of IMPACT) { if (re.test(n)) { return text; } }\n  return 'Выполнение остановлено.';\n}\n\n// The tenant's naming convention is loud on purpose; the owner does not need it shouted back.\n// Order matters: the bracketed tag comes off FIRST, or a name like \"[CANDIDATE] FINMENTOR Mini\n// App Submit\" keeps its prefix because the prefix was never at the start.\nfunction shortWorkflow(name) {\n  return tidy(String(name || '')\n    .replace(/\\s*\\[(UAT|CANDIDATE|TEMP|TEST)\\]\\s*/gi, ' ')\n    .replace(/^\\s*FINMENTOR\\s+/i, '')\n    .replace(/\\s+(PREMIUM|FINAL|SECURE|CANDIDATE|GUARDED|AI GUARDED|v\\d+)\\b/gi, ''), 60);\n}\n\n// A class is worth a line only when it says more than the message already does. ERROR and a\n// bare exception name say nothing an owner can act on.\nconst USEFUL_CLASSES = ['SHEET_LOCATOR', 'RATE_LIMIT', 'UPSTREAM_TRANSIENT', 'AUTH', 'DATA_SHAPE'];\n\n// One human sentence for the classes that have one. This is the difference between an owner who\n// knows to wait and an owner who opens n8n at midnight.\nconst CLASS_HINT = {\n  RATE_LIMIT: 'Превышен лимит запросов к внешнему сервису.',\n  UPSTREAM_TRANSIENT: 'Внешний сервис временно недоступен.',\n  AUTH: 'Проблема с доступом к внешнему сервису.',\n  SHEET_LOCATOR: 'Таблица или диапазон не найдены.',\n  DATA_SHAPE: 'Данные пришли не в том формате.'\n};\n\n// DEFENCE IN DEPTH ON THE ONE FREE-TEXT FIELD.\n//\n// The Error Monitor already scrubs URLs, emails and phone numbers out of the error text before\n// it reaches here, and that scrubber is untouched and asserted. This scrubs again anyway.\n//\n// The reason is that the workflow's scrubber protects the path it is on, and this renderer is\n// reachable from anywhere a future alert path is added. An error message is the ONE field in the\n// whole system produced by arbitrary code at the moment of failure, and the moment of failure is\n// exactly when a payload holding a client's phone number is in scope. Scrubbing twice costs one\n// pass over 200 characters; scrubbing once costs a leak the first time someone adds a second\n// caller. The owner asked for no contact information in technical diagnostics, and \"the other\n// half already handles it\" is not how that gets guaranteed.\nconst SCRUB_URL = /(?:[a-z][a-z0-9+.-]*:)?\\/\\/\\S+|\\bwww\\.\\S+/gi;\nconst SCRUB_EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi;\nconst SCRUB_PHONE = /(?<![\\w-])\\+?\\d[\\d\\s().-]{5,13}\\d(?![\\w-])/g;\n\nfunction scrubContact(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(SCRUB_URL, '[ссылка удалена]')\n    .replace(SCRUB_EMAIL, '[контакт удалён]')\n    .replace(SCRUB_PHONE, '[контакт удалён]');\n}\n\nfunction renderSystemAlert(model) {\n  const m = model || {};\n  const cls = String(m.errorClass || '').toUpperCase();\n  const useful = USEFUL_CLASSES.indexOf(cls) !== -1;\n  const node = tidy(m.nodeName, 60);\n\n  return join([\n    header('SYSTEM ALERT'),\n\n    // The headline is the business consequence, not the exception. It is derived from the\n    // workflow name, which the payload carries, and it states only that the work did not finish.\n    '<b>' + esc(impactOf(m.workflowName)) + '</b>',\n\n    card('Влияние', [\n      'Операция не завершена.',\n      present(node) ? 'Сбой на этапе «' + esc(node) + '».' : '',\n      useful && CLASS_HINT[cls] ? esc(CLASS_HINT[cls]) : ''\n    ]),\n\n    // The one place this message could lie, and does not. See the note above IMPACT.\n    card('Данные', [\n      'Последствия для записей автоматически не проверены.',\n      'Лид, Pipeline и privacy-запись нужно проверить вручную.'\n    ]),\n\n    card('Статус', '<b>Требует проверки</b>'),\n\n    // Quiet, last, and small. Everything an engineer needs to open the execution; nothing an\n    // owner has to read to decide whether to care.\n    block(null, [\n      '<i>Технические данные</i>',\n      line('Workflow', shortWorkflow(m.workflowName)),\n      line('Node', node),\n      useful ? line('Класс', cls) : '',\n      present(m.executionId) ? 'Execution: <code>' + esc(tidy(m.executionId, 20)) + '</code>' : '',\n      line('Сообщение', tidy(scrubContact(m.message), 200))\n    ])\n  ]);\n}\n\n// ── B9. SYSTEM RECOVERED ───────────────────────────────────────────────────────────────────────\n//\n// The copy exists. THE TRIGGER DOES NOT, AND IS NOT CREATED BY THIS PASS.\n//\n// n8n's error trigger fires on failure and has no counterpart that fires when a workflow starts\n// succeeding again. Closing an alert would need an open-incident store plus a scheduled poller\n// that reads /executions for the workflows currently marked open — new state and a new trigger,\n// which is a business-rule change this pass is explicitly not making. Rendered here so the copy is\n// reviewed with the rest, and left unwired so nothing can send it on a signal that does not exist.\n//\n// model = { problem, evidence }\nfunction renderSystemRecovered(model) {\n  const m = model || {};\n  return join([\n    header('SYSTEM RECOVERED'),\n    '<b>' + esc(tidy(m.problem, 120) || 'Сбой устранён.') + '</b>',\n    'Работа восстановлена.',\n    card('Проверено', esc(tidy(m.evidence, 200))),\n    '<i>Действий не требуется.</i>'\n  ]);\n}\n\n// ── B1 type 8. DATA / INTEGRITY WARNING ────────────────────────────────────────────────────────\n//\n// Also unwired. Nothing in the tenant fires on data quality today: the counters exist only as five\n// lines buried in the daily digest, which is precisely the noise B11 asks to remove. Giving them\n// their own message needs a trigger, and a trigger is a rule change.\n//\n// This is the ONE message where a zero may be rendered — a data-quality report that hides its\n// zeroes cannot tell the owner the data is clean.\n//\n// model = { items: [{ label, count }], checkedAt, offsetMinutes }\nfunction renderDataIntegrity(model) {\n  const m = model || {};\n  const items = (m.items || []).filter((x) => x && present(x.label));\n  const nonZero = items.filter((x) => Number(x.count) > 0);\n  return join([\n    header('DATA / INTEGRITY WARNING', dateTime(m.checkedAt, m.offsetMinutes)),\n    nonZero.length\n      ? card('Требует исправления', nonZero.map((x) => '• ' + esc(x.label) + ': <b>' + Number(x.count) + '</b>'))\n      : '<b>Данные в порядке.</b>',\n    nonZero.length ? card('Статус', '<b>Требует проверки</b>') : ''\n  ]);\n}\n\n// ── the gate's own helper ──────────────────────────────────────────────────────────────────────\n//\n// Structural validation of a rendered message, used by qa/lead-alerts-presentation.test.mjs. It is\n// exported rather than duplicated in the test so the definition of \"valid\" has one home.\n//\n// Returns [] for a clean message, or a list of problems.\n// The section headings this module can emit. validate() checks emptiness against THIS list rather\n// than guessing from shape: «<b>Статус</b>» is a heading and «<b>Требует проверки</b>» is the value\n// under it, and no amount of pattern-matching on bold text can tell those apart.\nconst HEADINGS = ['Сегодня', 'Приоритет', 'Что требует решения', 'Задача', 'Ситуация',\n  'Следующий шаг', 'Следующее действие', 'Почему требует внимания', 'Срок', 'Чего не хватает',\n  'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь'];\n\nconst SECRET_PATTERNS = [\n  [/\\b\\d{6,}:[A-Za-z0-9_-]{30,}\\b/, 'a Telegram bot token'],\n  [/init[_ ]?data|query_id=|auth_date=/i, 'initData'],\n  [/\\bpassword\\b|\\bpasswd\\b|\\bsecret\\b|\\bapi[_ ]?key\\b|\\bbearer\\b/i, 'a credential word'],\n  [/\\bat [A-Za-z]+ \\(|\\n\\s+at .+:\\d+:\\d+|node_modules/i, 'a stack trace'],\n  [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i, 'an email address'],\n  [/(?<![\\w-])\\+?\\d[\\d\\s().-]{8,13}\\d(?![\\w-])/, 'a phone-shaped number']\n];\n\nfunction validate(html) {\n  const problems = [];\n  const s = String(html === undefined || html === null ? '' : html);\n  if (!s.trim()) { return ['the message is empty']; }\n\n  // 1. Telegram HTML: known tags only, each one closed, and no stray angle brackets.\n  const tags = s.match(/<\\/?[^>]*>/g) || [];\n  const stack = [];\n  for (const t of tags) {\n    const m = /^<(\\/?)([a-zA-Z-]+)[^>]*>$/.exec(t);\n    if (!m) { problems.push('malformed tag ' + t); continue; }\n    const name = m[2].toLowerCase();\n    if (ALLOWED_TAGS.indexOf(name) === -1) { problems.push('tag <' + name + '> is not valid Telegram HTML'); continue; }\n    if (m[1]) {\n      if (stack.pop() !== name) { problems.push('</' + name + '> does not close the open tag'); }\n    } else { stack.push(name); }\n  }\n  if (stack.length) { problems.push('unclosed tag <' + stack[stack.length - 1] + '>'); }\n  // Anything angle-bracketed that is not a tag must have been escaped.\n  const withoutTags = s.replace(/<\\/?[^>]*>/g, '');\n  if (/[<>]/.test(withoutTags)) { problems.push('an unescaped < or > survived into the text'); }\n\n  // 2. No Markdown mixed into HTML. Telegram parses one or the other, never both.\n  if (/\\*\\*|__|\\[[^\\]]+\\]\\([^)]+\\)/.test(withoutTags)) { problems.push('Markdown syntax is mixed into HTML'); }\n\n  // 3. No empty section: a bold heading with nothing under it, or a label with no value.\n  const lines = s.split('\\n');\n  const headingOf = (l) => {\n    const t = String(l).trim();\n    const m2 = /^<b>([^<]+)<\\/b>$/.exec(t);\n    const name = m2 ? m2[1] : t;\n    return HEADINGS.indexOf(name) !== -1 ? name : null;\n  };\n  for (let i = 0; i < lines.length; i++) {\n    const h = headingOf(lines[i]);\n    if (h) {\n      let j = i + 1;\n      while (j < lines.length && !lines[j].trim()) { j++; }\n      const next = (lines[j] || '').trim();\n      if (!next || headingOf(next)) { problems.push('empty section: ' + h); }\n    }\n    if (/^[^:<]+:\\s*$/.test(lines[i])) { problems.push('label with no value: ' + lines[i].trim()); }\n    if (/:\\s*(—|-|n\\/a|null|undefined)\\s*$/i.test(lines[i])) { problems.push('placeholder value: ' + lines[i].trim()); }\n  }\n\n  // 4. No zero-only noise. One zero is a fact; three in a row is furniture.\n  const zeros = lines.filter((l) => /^[^:]+:\\s*0\\s*$/.test(l.trim()));\n  if (zeros.length > 1) { problems.push(zeros.length + ' zero-valued counter lines'); }\n\n  // 5. Nothing that must never leave the tenant.\n  //\n  // ONE EXEMPTION, AND IT IS NARROW. The «Связь» value in a NEW LEAD alert is the single place a\n  // client contact may appear, by owner decision. It is exempted from the contact patterns — and\n  // only from those two — and only one such line may exist. Everything else in the message,\n  // including the technical block of a system alert, is scanned as before.\n  const contactValues = lines.filter((l, i) => headingOf(lines[i - 1]) === 'Связь').map((l) => l.trim());\n  if (contactValues.length > 1) { problems.push(contactValues.length + ' «Связь» lines — a message may carry at most one contact'); }\n  let scanned = withoutTags;\n  for (const cv of contactValues) {\n    scanned = scanned.split(cv.replace(/<\\/?[^>]*>/g, '')).join(' ');\n  }\n  for (const [re, what] of SECRET_PATTERNS) {\n    const contactPattern = /email address|phone-shaped/.test(what);\n    if (re.test(contactPattern ? scanned : withoutTags)) { problems.push('the message contains ' + what); }\n  }\n\n  // 6. Telegram's own limit, with room for the caption Telegram adds on some paths.\n  if (s.length > 4000) { problems.push('the message is ' + s.length + ' characters, over the 4096 limit'); }\n\n  return problems;\n}\n\nreturn {\n  ALLOWED_TAGS, PRIORITY_LABEL, ZONE_LABEL, MONTHS_GEN, IMPACT, USEFUL_CLASSES, CLASS_HINT,\n  esc, tidy, present, plural, priorityLabel, zoneLabel,\n  parts, longDate, dateTime, deadline, block, card, join, line, counter, header, HEADINGS,\n  impactOf, shortWorkflow, sourceLabel, SOURCE_LABEL, validate, dedupe, scrubContact,\n  CONTACT_CHANNELS, contactChannelKey, contactLine,\n  renderDailyBrief, renderNewLead, renderPriority, renderFollowUp, renderIncomplete,\n  renderSystemAlert, renderSystemRecovered, renderDataIntegrity\n};\n\n})();\nconst LATZ = (function () {\n// FINMENTOR — the one clock helper the alert workflows share.\n//\n// SEPARATE FROM presenter.js ON PURPOSE.\n//\n// The renderer is asserted to touch no clock, no locale and no `Intl`, because a message whose\n// bytes depend on the runtime's ICU build is not reproducible and cannot be gated. But the\n// workflows genuinely do hold a timezone — `settings.timezone`, `Europe/Chisinau` — and Chisinau is\n// UTC+3 in summer and UTC+2 in winter, so a hard-coded offset would print the wrong hour for five\n// months of the year.\n//\n// So the offset is resolved HERE, once, and handed to the renderer as a number. `Intl` is used in\n// exactly this file, where its only output is an integer that the gate can pin.\n\n'use strict';\n\n// Minutes to ADD to UTC to get local time in `tz` at the instant `at`. Returns `fallback` (default\n// +180, Chisinau summer time) when the runtime cannot resolve the zone, because an alert with a\n// slightly wrong hour is worth more than no alert.\nfunction tzOffsetMinutes(tz, at, fallback) {\n  const when = at instanceof Date ? at : new Date(at);\n  const def = fallback === undefined ? 180 : fallback;\n  if (Number.isNaN(when.getTime())) { return def; }\n  try {\n    const dtf = new Intl.DateTimeFormat('en-US', {\n      timeZone: String(tz || 'Europe/Chisinau'), hour12: false,\n      year: 'numeric', month: '2-digit', day: '2-digit',\n      hour: '2-digit', minute: '2-digit', second: '2-digit'\n    });\n    const p = {};\n    for (const part of dtf.formatToParts(when)) { p[part.type] = part.value; }\n    // hour comes back as 24 at midnight under hour12:false on some ICU builds.\n    const hour = Number(p.hour) % 24;\n    const asIfUtc = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day),\n      hour, Number(p.minute), Number(p.second));\n    const diff = Math.round((asIfUtc - when.getTime()) / 60000);\n    // A sane zone is within ±14 h of UTC. Anything else means the runtime answered nonsense.\n    return Math.abs(diff) <= 840 ? diff : def;\n  } catch (e) {\n    return def;\n  }\n}\n\nreturn { tzOffsetMinutes };\n\n})();\n\n// ── STAGE 2 — decide, from the FRESHLY READ row, what this tap is allowed to do ───────────────\n//\n// The input is the Pipeline read that ran for THIS callback. Nothing is judged against the state\n// the alert was rendered with, which is what makes a stale tap safe.\n//\n// This node performs NO write and knows nothing about how the message is edited.\nconst cmd = $('Parse Lead Command v2').first().json;\nconst rows = $input.all().map((i) => i.json);\nconst norm = (v) => String(v == null ? '' : v).trim().toLowerCase();\nconst row = rows.find((r) => norm(r.lead_id) === norm(cmd.lead_id));\n\nconst OFFSET = (function () {\n  try { return LATZ.tzOffsetMinutes(($('Settings to Object').first().json.settings || {}).timezone || 'Europe/Chisinau', new Date()); }\n  catch (e) { return 180; }\n})();\n\nconst base = {\n  chat_id: cmd.chat_id,\n  callback_query_id: cmd.callback_query_id,\n  command: cmd.command,\n  lead_id: cmd.lead_id,\n  message_id: cmd.message_id,\n  message_chat_id: cmd.message_chat_id,\n  is_callback: cmd.is_callback === true,\n  // the logger contract, unchanged\n  from_stage: row ? String(row.deal_stage || 'New') : '',\n  to_stage: row ? String(row.deal_stage || 'New') : '',\n  stage_changed: false\n};\n\nif (!row) {\n  return [{ json: Object.assign({}, base, {\n    _found: false, _allowed: false, _reason: 'NOT_FOUND',\n    company: '', kb: [], kb_shape: 'NONE', edit_html: '',\n    reply_text: LAA.refusal(LA, 'NOT_FOUND', ''),\n    reply_text_presentation_failed: LAA.refusal(LA, 'NOT_FOUND', '')\n  }) }];\n}\n\nconst kind = LAA.originKind(cmd.origin_had_done === true);\nconst action = LAA.actionOfCommand(cmd.command, cmd.stage_value);\nconst reason = LAA.refuseReason(action, row, kind);\nconst company = String(row.company || '');\nconst editHtml = LAA.htmlFromTelegram(cmd.message_text, cmd.message_entities);\n\nif (reason) {\n  // Refused: ZERO business write. The keyboard is still refreshed from the current state, so the\n  // owner stops looking at actions that are no longer possible.\n  const kb = LAA.keyboard(kind, row, row.lead_id);\n  const text = LAA.refusal(LA, reason, company);\n  return [{ json: Object.assign({}, base, {\n    _found: true, _allowed: false, _reason: reason, company: company,\n    kb: kb, kb_shape: LAA.shape(kb), edit_html: editHtml,\n    reply_text: text, reply_text_presentation_failed: text\n  }) }];\n}\n\n// Allowed. The sparse update is built here and projected by the next node; this node never\n// touches the sheet.\nconst nowIso = new Date().toISOString();\nconst upd = LAA.buildUpdate(action, row.lead_id, nowIso);\nconst toStage = upd.deal_stage != null ? String(upd.deal_stage) : String(row.deal_stage || 'New');\nreturn [{ json: Object.assign({}, base, {\n  _found: true, _allowed: true, _reason: '', _action: action, _kind: kind,\n  _upd: upd, _offset: OFFSET, company: company,\n  from_stage: String(row.deal_stage || 'New'),\n  to_stage: toStage,\n  stage_changed: toStage !== String(row.deal_stage || 'New'),\n  edit_html: editHtml,\n  reply_text: LAA.confirm(LA, action, company, upd, OFFSET),\n  reply_text_presentation_failed: LAA.presentationFailure(LA, action, company, upd, OFFSET)\n}) }];\n"
+      },
+      "id": "0dec6d1b-947c-4d1b-9a28-1d2b77fd3747",
+      "name": "Find & Build Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c882fcd5-8c32-45e5-8dbd-0eebec146edf",
+              "leftValue": "={{ String($json._found) }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1d4bf390-3ebc-4b3e-9ef3-4002ca91aefe",
+      "name": "IF Row Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        528
+      ],
+      "id": "ba115b3b-afb6-4e01-8b75-db1992d5ee60",
+      "name": "Update Pipeline Row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Пишет строку Status_Log только при смене стадии.\nconst item = $('Find & Build Update').first().json;\nif (!item.stage_changed) return [];\nreturn [{ json: {\n  log_id: `${item.lead_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: item.lead_id,\n  from_stage: item.from_stage || '',\n  to_stage: item.to_stage || '',\n  actor: 'telegram:owner',\n  reason: `command:${item.command}`\n}}];\n"
+      },
+      "id": "6ef15920-bb33-49ee-b5f7-39545b1df15b",
+      "name": "Build Status Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1810362432,
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        464
+      ],
+      "id": "e0bd8761-f1bf-4006-84ef-454fb0a08fd2",
+      "name": "Save Status_Log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('Find & Build Update').first().json;\nreturn [{ json: {\n  activity_id: `${item.lead_id}-${Date.now()}`,\n  ts: new Date().toISOString(),\n  lead_id: item.lead_id,\n  actor: 'telegram:owner',\n  channel: 'telegram',\n  action: `command:${item.command}`,\n  detail: item.stage_changed ? `stage ${item.from_stage} -> ${item.to_stage}` : (item.reply_text || '').split('\\n')[0]\n}}];\n"
+      },
+      "id": "084726cc-2add-4419-a74e-45278e212c40",
+      "name": "Build CC Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 623316892,
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        608
+      ],
+      "id": "00b924d4-e3b8-486a-a91b-3bdd898a6773",
+      "name": "Save Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Find & Build Update').first().json.chat_id }}",
+        "text": "={{ $json.error ? $('Route Edit Shape').first().json.reply_text_presentation_failed : $('Route Edit Shape').first().json.reply_text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "path": "b3c7b0f0-b68b-4437-be23-8e0a39891804"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2512,
+        792
+      ],
+      "id": "6a0df791-88a4-4eaa-b720-48e8f09c5381",
+      "name": "Telegram Update Reply",
+      "webhookId": "b3c7b0f0-b68b-4437-be23-8e0a39891804",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ String($json.reply_text || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        },
+        "path": "1cb4811c-28fe-40b0-8f9e-34e24dea9d65"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        752
+      ],
+      "id": "0e64c7a1-ecaa-4f8e-804c-8766276228fd",
+      "name": "Telegram Not Found Reply",
+      "webhookId": "1cb4811c-28fe-40b0-8f9e-34e24dea9d65",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9199ecbf-421b-4f79-824d-991ce0424b9c",
+              "leftValue": "={{ String($json.callback_query_id || '') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3ea18f08-2346-427f-93f5-1adc53fb57e9",
+      "name": "IF Has Callback",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -980,
+        304
+      ],
+      "id": "a3b9b5df-99a9-43d4-a976-f883ae3cee16",
+      "name": "Telegram Command Trigger",
+      "webhookId": "33aaf46c-a59c-4358-a0ae-f392748e6eb3",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// FINMENTOR Command Center — authenticated Telegram identity gate.\n//\n// Deployed as the n8n Code node \"Verify Telegram Identity\". Its only upstream is the\n// Telegram Trigger, which registers the webhook with Telegram using a secret_token and\n// rejects any request whose X-Telegram-Bot-Api-Secret-Token does not match before the\n// update ever reaches this workflow. Nothing below trusts a caller-supplied HTTP body.\n//\n// This node runs BEFORE Settings and before any Pipeline node, so a rejected update\n// performs zero Sheets reads, zero CRM writes and produces zero Telegram output.\n// Rejection is a silent drop (return []), which also denies an attacker an oracle.\n\nconst u = $input.first().json ?? {};\n\nconst isCallback = Object.prototype.hasOwnProperty.call(u, 'callback_query');\nconst cq = isCallback ? u.callback_query : null;\nconst msg = isCallback ? cq && cq.message : u.message;\nconst from = isCallback ? cq && cq.from : u.message && u.message.from;\n\n// 1. Sender and chat must both exist and be genuine Telegram numeric ids.\nconst fromId = from && from.id;\nconst chatId = msg && msg.chat && msg.chat.id;\nif (typeof fromId !== 'number' || !Number.isFinite(fromId)) return [];\nif (typeof chatId !== 'number' || !Number.isFinite(chatId)) return [];\n\n// 2. Bots may never drive the Command Center.\nif (from.is_bot === true) return [];\n\n// 3. Private chat only. group / supergroup / channel updates are rejected outright.\nif (!msg.chat || msg.chat.type !== 'private') return [];\n\n// 4. Owner-private invariant. In a Telegram private chat the chat id always equals the\n//    sender id. Enforcing it collapses authorisation identity and reply destination into\n//    a single value, which is what removes the from/chat confused-deputy exfiltration:\n//    an attacker can no longer authorise as the owner while replying to their own chat.\nif (String(chatId) !== String(fromId)) return [];\n\n// 5. Payload must be usable before anything downstream runs.\nconst text = isCallback ? (cq.data ?? '') : (u.message.text ?? '');\nif (typeof text !== 'string' || !text.trim()) return [];\n\nconst out = [{\n  json: {\n    verified: true,\n    verified_from_id: String(fromId),\n    verified_chat_id: String(chatId),\n    is_callback: isCallback,\n    callback_query_id: isCallback ? String(cq.id ?? '') : '',\n    text: text.trim(),\n    update_id: typeof u.update_id === 'number' ? u.update_id : null\n  }\n}];\n\n// ── STAGE 2 — the MINIMUM Telegram identifiers needed to edit the originating message ────────\n//\n// All of it comes from the update the Telegram Trigger authenticated with its secret token. None\n// of it is accepted from an HTTP body, and none of it is used for authorisation: the owner check\n// above is unchanged and still decides everything.\n//\n// Why each field is here, and why nothing else is:\n//   message_id        the edit target\n//   message_chat_id   the edit target's chat; taken from the message, not from the caller\n//   message_text      Telegram gives the bot's own message as PLAIN text\n//   message_entities  ...plus the formatting, which is the only way to rebuild it unchanged\n//   origin_had_done   ONE boolean: did the alert offer «Обработано»? That distinguishes a NEW LEAD\n//                     keyboard from a PRIORITY/FOLLOW-UP one without touching callback_data.\nconst __m = isCallback ? (cq && cq.message) : null;\nconst __rm = __m && __m.reply_markup && Array.isArray(__m.reply_markup.inline_keyboard)\n  ? __m.reply_markup.inline_keyboard : [];\nlet __hadDone = false;\nfor (const __row of __rm) {\n  for (const __b of (__row || [])) {\n    if (__b && typeof __b.callback_data === 'string' && __b.callback_data.indexOf('done|') === 0) { __hadDone = true; }\n  }\n}\nout[0].json.message_id = __m && typeof __m.message_id === 'number' ? __m.message_id : null;\nout[0].json.message_chat_id = __m && __m.chat && __m.chat.id != null ? String(__m.chat.id) : '';\nout[0].json.message_text = __m && typeof __m.text === 'string' ? __m.text : '';\nout[0].json.message_entities = __m && Array.isArray(__m.entities) ? __m.entities : [];\nout[0].json.origin_had_done = __hadDone;\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        304
+      ],
+      "id": "265a333f-3d36-4866-a144-902216638a6b",
+      "name": "Verify Telegram Identity"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "s2-if-allowed-c",
+              "leftValue": "={{ $json._allowed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        732,
+        792
+      ],
+      "id": "s2-if-allowed",
+      "name": "IF Action Allowed"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// STAGE 2 — the ONLY item that reaches the Sheets writer.\n//\n// `Update Pipeline Row` maps with autoMapInputData, so it writes exactly the keys present here.\n// Projecting to lead_id plus the action's owned columns is what makes the write sparse: the\n// previous builder carried fifteen pre-read columns and two taps seconds apart overwrote each\n// other's unrelated values.\nconst d = $('Find & Build Update').first().json;\nreturn [{ json: d._upd }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        952,
+        792
+      ],
+      "id": "s2-sparse",
+      "name": "Build Sparse Update"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1883973304,
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        792
+      ],
+      "id": "s2-verify-read",
+      "name": "Get Pipeline (Verify)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// ===================== FINMENTOR LEAD ALERT ACTIONS — one decision module =====================\n//\n// Spliced into the alert renderers (which actions, which keyboard shape) and into the Command\n// Center (which columns an action owns, what the owner is told). One module, because the button a\n// tap came from and the write that tap performs are two halves of one contract, and they drifted\n// once already: the deployed keyboard offered «✅ Done» while the mutation only closed an SLA.\n//\n// It depends on the presenter for escaping and date rendering — `LA` must be in scope. It never\n// re-implements `esc`, `card`, `join` or `dateTime`: a second date formatter is a second clock.\n//\n// ── WHAT THE AUDIT MEASURED, AND WHAT THIS CHANGES ─────────────────────────────────────────────\n//\n// Nothing here invents a business action. Every mutation below is the one already deployed in\n// `Find & Build Update`, narrowed to the columns it actually owns. The labels change, the layout\n// changes, the confirmations become truthful, and the writes stop carrying fifteen pre-read\n// columns. The callback_data strings are byte-identical to what is already in production, so every\n// historical Telegram message keeps working.\nconst LAA = (function () {\n  'use strict';\n\n  // ── D3 — the owner-facing labels, exactly as approved ────────────────────────────────────────\n  //\n  // Icons are permitted in buttons only; the alert body stays emoji-free. «Обработано», not\n  // «Выполнено» (D7): the measured action closes SLA handling, it does not close the deal.\n  var LABEL = {\n    done: '✅ Обработано',\n    snooze: '⏰ На 24 часа',\n    discovery: '📞 Discovery',\n    docs: '📄 Документы',\n    nurture: '🗂 В Nurture'\n  };\n\n  // ── callback_data is PRESERVED VERBATIM ──────────────────────────────────────────────────────\n  //\n  // The handler contract is already correct, so renaming a callback for presentation would break\n  // every alert already sitting in the owner's Telegram history for nothing. `won|` is deliberately\n  // absent from the emitters and deliberately still routed by the Command Center (D1).\n  function callbackData(action, leadId) {\n    var id = String(leadId == null ? '' : leadId);\n    if (action === 'done') { return 'done|' + id; }\n    if (action === 'snooze') { return 'snooze|' + id + '|24'; }\n    if (action === 'discovery') { return 'stage|' + id + '|Discovery Scheduled'; }\n    if (action === 'docs') { return 'docs|' + id; }\n    if (action === 'nurture') { return 'nurture|' + id; }\n    return '';\n  }\n\n  // ── D2 — the owner-approved action sets, in the owner's order ────────────────────────────────\n  //\n  // NEW LEAD deliberately omits «Обработано»: a lead that arrived seconds ago has not been\n  // handled, and offering the SLA-closing action as a first response invites closing an SLA that\n  // never opened. It also omits Won (D1).\n  var SET = {\n    new_lead: ['discovery', 'docs', 'snooze', 'nurture'],\n    priority: ['done', 'snooze', 'discovery', 'docs', 'nurture'],\n    followup: ['done', 'snooze', 'discovery', 'docs', 'nurture']\n  };\n\n  // Terminal states carry NO keyboard. Only existing Pipeline values are read — no new taxonomy,\n  // no new column.\n  var TERMINAL_SLA = ['done', 'nurture'];\n  var TERMINAL_STAGE = ['nurture', 'won'];\n\n  // The state an action would set. An action whose result is already the current state is hidden\n  // from the keyboard and refused harmlessly by the handler (D11) — the two must agree, which is\n  // why they read the same table.\n  var CURRENT_STATE_OF = {\n    discovery: { field: 'deal_stage', value: 'discovery scheduled' },\n    docs: { field: 'deal_stage', value: 'documents requested' }\n  };\n\n  function norm(v) { return String(v === undefined || v === null ? '' : v).trim().toLowerCase(); }\n\n  function isTerminal(state) {\n    var s = state || {};\n    return TERMINAL_SLA.indexOf(norm(s.sla_status)) !== -1\n      || TERMINAL_STAGE.indexOf(norm(s.deal_stage)) !== -1;\n  }\n\n  // The actions this alert should offer, given what the lead already is.\n  function chooseActions(kind, state) {\n    if (isTerminal(state)) { return []; }\n    var set = SET[kind] || [];\n    var s = state || {};\n    var out = [];\n    for (var i = 0; i < set.length; i++) {\n      var a = set[i];\n      var cur = CURRENT_STATE_OF[a];\n      if (cur && norm(s[cur.field]) === cur.value) { continue; }\n      out.push(a);\n    }\n    return out;\n  }\n\n  // ── D3 — never more than two buttons in a row ────────────────────────────────────────────────\n  //\n  // Straight two-packing in the owner's order reproduces every approved layout exactly:\n  //   NEW LEAD  discovery, docs, snooze, nurture      -> [2][2]\n  //   PRIORITY  done, snooze, discovery, docs, nurture -> [2][2][1]\n  // and it degrades correctly when one action is hidden, which the approved layouts do not\n  // themselves specify: five minus one is [2][2], four minus one is [2][1]. Both stay within the\n  // rule that matters — two per row — which is what stops Telegram truncating labels to «D…».\n  function keyboard(kind, state, leadId) {\n    var actions = chooseActions(kind, state);\n    var rows = [];\n    for (var i = 0; i < actions.length; i += 2) {\n      var row = [];\n      for (var j = i; j < i + 2 && j < actions.length; j++) {\n        row.push({ action: actions[j], text: LABEL[actions[j]], callback_data: callbackData(actions[j], leadId) });\n      }\n      rows.push(row);\n    }\n    return rows;\n  }\n\n  // The renderer picks a node by SHAPE, because an n8n Telegram node has a fixed number of rows\n  // and a fixed number of buttons in each. `NONE` means send the alert with no keyboard at all.\n  function shape(rows) {\n    if (!rows || rows.length === 0) { return 'NONE'; }\n    return 'KB' + rows.map(function (r) { return r.length; }).join('');\n  }\n\n  // ── D10 — SPARSE, ACTION-OWNED UPDATES ───────────────────────────────────────────────────────\n  //\n  // The deployed builder carried FIFTEEN pre-read columns into an autoMap update, so two taps\n  // seconds apart wrote each other's stale values back over anything that had changed in between.\n  // Each action now writes only the columns it owns. `lead_id` is present because it is the match\n  // key, not because it is written.\n  //\n  // This removes the lost update of UNRELATED columns. It does NOT make two taps that both target\n  // `deal_stage` atomic — see RESIDUAL_RACE below.\n  var OWNED = {\n    done: ['sla_status', 'last_contacted_at'],\n    // NARROWED by owner requirement 5: snooze owns the two date fields and NOTHING else.\n    // sla_status is deliberately absent — SLA Select already skips a lead whose\n    // sla_snooze_until is in the future, so writing 'Snoozed' was cosmetic, and writing a\n    // status the action does not need is exactly the drift this pass removes.\n    snooze: ['sla_snooze_until', 'next_follow_up_at'],\n    discovery: ['deal_stage'],\n    docs: ['deal_stage', 'documents_requested_at', 'next_follow_up_at'],\n    nurture: ['deal_stage', 'sla_status']\n  };\n\n  // The callback verb the handler receives -> the action this module reasons about. `stage` is the\n  // deployed verb for Discovery and carries its target stage as an argument.\n  function actionOfCommand(command, stageValue) {\n    var c = norm(command);\n    if (c === 'done') { return 'done'; }\n    if (c === 'snooze') { return 'snooze'; }\n    if (c === 'docs') { return 'docs'; }\n    if (c === 'nurture') { return 'nurture'; }\n    if (c === 'stage' && norm(stageValue) === 'discovery scheduled') { return 'discovery'; }\n    return '';\n  }\n\n  var HOUR = 3600000;\n\n  // Builds the update. `nowIso` is passed in rather than read from the clock so the gate can prove\n  // the arithmetic instead of tolerating it.\n  function buildUpdate(action, leadId, nowIso) {\n    var now = new Date(nowIso);\n    var iso = now.toISOString();\n    var upd = { lead_id: String(leadId == null ? '' : leadId) };\n    if (action === 'done') {\n      upd.sla_status = 'Done';\n      upd.last_contacted_at = iso;\n    } else if (action === 'snooze') {\n      // D4 — the measured business action, unchanged: tap time + 24 hours. Storage stays UTC.\n      var until = new Date(now.getTime() + 24 * HOUR).toISOString();\n      upd.sla_snooze_until = until;\n      upd.next_follow_up_at = until;\n    } else if (action === 'discovery') {\n      // D5 — stage only. No calendar event, no follow-up, no due date, and the confirmation must\n      // not pretend otherwise.\n      upd.deal_stage = 'Discovery Scheduled';\n    } else if (action === 'docs') {\n      upd.deal_stage = 'Documents Requested';\n      upd.documents_requested_at = iso;\n      upd.next_follow_up_at = new Date(now.getTime() + 48 * HOUR).toISOString();\n    } else if (action === 'nurture') {\n      upd.deal_stage = 'Nurture';\n      upd.sla_status = 'Nurture';\n    } else {\n      return null;\n    }\n    return upd;\n  }\n\n  // ── D11 — is this tap a no-op? ───────────────────────────────────────────────────────────────\n  //\n  // Read from the freshly-read row, never from the alert the tap came from. An already-applied\n  // action is acknowledged harmlessly and performs NO write, which is what stops a duplicate tap\n  // moving `documents_requested_at` or re-basing a snooze the owner did not ask to move.\n  function alreadyApplied(action, row) {\n    var r = row || {};\n    if (action === 'done') { return norm(r.sla_status) === 'done'; }\n    if (action === 'discovery') { return norm(r.deal_stage) === 'discovery scheduled'; }\n    if (action === 'docs') { return norm(r.deal_stage) === 'documents requested'; }\n    if (action === 'nurture') { return norm(r.deal_stage) === 'nurture' && norm(r.sla_status) === 'nurture'; }\n    // Snooze is deliberately NOT idempotent-by-state: «отложить ещё на 24 часа» is a real\n    // instruction, and refusing it because the lead is already Snoozed would be wrong. It is safe\n    // to repeat because it re-bases from the tap time rather than compounding.\n    return false;\n  }\n\n  // Decided against the FRESHLY READ row, never against the state the alert was rendered with.\n  //\n  // Three distinct refusals, because the owner is told three different things (D10):\n  //   TERMINAL         the lead is closed for actions\n  //   ALREADY_APPLIED  this exact action is already the current state\n  //   STATE_CHANGED    the lead moved on, and this action is no longer one of the valid ones\n  function refuseReason(action, row, kind) {\n    if (!action) { return 'UNKNOWN_ACTION'; }\n    if (isTerminal(row)) { return 'TERMINAL'; }\n    if (alreadyApplied(action, row)) { return 'ALREADY_APPLIED'; }\n    if (kind && chooseActions(kind, row).indexOf(action) === -1) { return 'STATE_CHANGED'; }\n    return '';\n  }\n\n  // ── POST-WRITE VERIFICATION ──────────────────────────────────────────────────────────────────\n  //\n  // The owner is not told an action succeeded because a Sheets node did not throw. The row is read\n  // back and every field the action claimed to write is compared to what it intended. A mismatch\n  // is a failed action, and it is reported as one.\n  function verifyMutation(upd, row) {\n    var mismatched = [];\n    var r = row || {};\n    for (var k in upd) {\n      if (!Object.prototype.hasOwnProperty.call(upd, k)) { continue; }\n      if (k === 'lead_id') { continue; }\n      if (String(r[k] == null ? '' : r[k]) !== String(upd[k] == null ? '' : upd[k])) {\n        mismatched.push(k);\n      }\n    }\n    return { ok: mismatched.length === 0, mismatched: mismatched };\n  }\n\n  // Which fields an action must leave alone — everything on the row it does not own. Used by the\n  // gate to prove preservation against a real pre-image rather than against a short allow-list.\n  function untouchedFields(action, row) {\n    var owned = (OWNED[action] || []).concat(['lead_id']);\n    var out = [];\n    for (var k in (row || {})) {\n      if (Object.prototype.hasOwnProperty.call(row, k) && owned.indexOf(k) === -1) { out.push(k); }\n    }\n    return out;\n  }\n\n  // ── the owner-facing confirmation ────────────────────────────────────────────────────────────\n  //\n  // Rendered only AFTER the authoritative Pipeline write succeeds (D8/D9). Every date is shown in\n  // Europe/Chisinau via the presenter's own formatter; storage stays UTC (D4).\n  var TITLE = {\n    done: 'ACTION UPDATED',\n    snooze: 'FOLLOW-UP UPDATED',\n    discovery: 'STAGE UPDATED',\n    docs: 'ACTION UPDATED',\n    nurture: 'STAGE UPDATED'\n  };\n\n  function confirm(LA, action, company, upd, offsetMinutes) {\n    var name = LA.tidy(company, 70) || '—';\n    // LA.header() already prefixes «FINMENTOR · ». Passing the prefix again produced\n    // «FINMENTOR · FINMENTOR · ACTION UPDATED», which the first live execution of the deployed\n    // node body showed before anything was written.\n    var head = LA.header(TITLE[action] || 'ACTION UPDATED');\n    var ident = '<b>' + LA.esc(name) + '</b>';\n    var body = [];\n\n    if (action === 'done') {\n      body.push(LA.card('Статус', '<b>Обработано</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA закрыт. Лид остаётся в работе.')));\n    } else if (action === 'snooze') {\n      body.push(LA.card('Статус', '<b>Отложено</b>'));\n      body.push(LA.card('Вернуться к контакту',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'discovery') {\n      // D5 — truthful. The action moves a stage; it schedules nothing.\n      body.push(LA.card('Стадия', '<b>Discovery</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('Лид переведён в стадию Discovery. Встреча не назначена.')));\n    } else if (action === 'docs') {\n      body.push(LA.card('Стадия', '<b>Запрошены документы</b>'));\n      body.push(LA.card('Следующий контакт',\n        '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));\n    } else if (action === 'nurture') {\n      body.push(LA.card('Стадия', '<b>Nurture</b>'));\n      body.push(LA.card('Что изменилось', LA.esc('SLA-напоминания по этому лиду отключены.')));\n    }\n\n    return LA.join([head, ident].concat(body));\n  }\n\n  // The refusals, in the same voice. No stack trace, no workflow id, no execution id, and no lead\n  // data the owner did not already have in the alert they tapped.\n  function refusal(LA, reason, company) {\n    var name = LA.tidy(company, 70);\n    var ident = name ? '<b>' + LA.esc(name) + '</b>' : '';\n    var head = LA.header('ACTION');\n    if (reason === 'ALREADY_APPLIED') {\n      return LA.join([head, ident, '<b>Действие уже применено.</b>']);\n    }\n    if (reason === 'STATE_CHANGED') {\n      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>']);\n    }\n    if (reason === 'TERMINAL') {\n      return LA.join([head, ident, '<b>Статус лида уже изменился. Доступные действия обновлены.</b>',\n        LA.esc('Лид закрыт для действий — изменения не внесены.')]);\n    }\n    if (reason === 'NOT_FOUND') {\n      return LA.join([head, '<b>Лид не найден.</b>', LA.esc('Изменения не внесены.')]);\n    }\n    return LA.join([head, ident, '<b>Не удалось применить действие.</b>',\n      LA.esc('Изменения не внесены. Попробуйте ещё раз.')]);\n  }\n\n  // ── PRESENTATION FAILURE IS NOT BUSINESS FAILURE ─────────────────────────────────────────────\n  //\n  // The Pipeline write succeeded and was verified; only the Telegram edit failed. The owner must\n  // not be told the action failed, and the mutation must NOT be retried — repeating it would move\n  // a timestamp for a presentation problem.\n  function presentationFailure(LA, action, company, upd, offsetMinutes) {\n    var done = confirm(LA, action, company, upd, offsetMinutes);\n    return LA.join([done, '<b>Не удалось обновить кнопки в сообщении.</b>']);\n  }\n\n  // Telegram answers \"message is not modified\" when an edit would change nothing. That is only\n  // acceptable when the keyboard we computed is provably identical to the one already shown —\n  // otherwise an arbitrary edit error would be laundered into success.\n  function sameKeyboard(a, b) {\n    var norm2 = function (rows) {\n      return JSON.stringify((rows || []).map(function (r) {\n        return (r || []).map(function (x) { return [String(x.text), String(x.callback_data)]; });\n      }));\n    };\n    return norm2(a) === norm2(b);\n  }\n\n  // ── EDITING THE ORIGINAL ALERT — and the constraint that forced this ─────────────────────────\n  //\n  // The approved design says: after a successful mutation, edit the ORIGINAL alert's keyboard, and\n  // do not edit the message text unless structurally necessary.\n  //\n  // IT IS STRUCTURALLY NECESSARY. Telegram has `editMessageReplyMarkup`, which edits the keyboard\n  // and nothing else — but the n8n Telegram node does not expose it. Its only edit operation is\n  // `editMessageText`, whose `text` parameter is REQUIRED. Verified against the node's own type\n  // definition (v1.2, resource=message): the message operations are send*, editMessageText,\n  // deleteChatMessage, pin/unpin. There is no reply-markup-only edit, and reaching the raw Bot API\n  // would mean putting the bot token in an HTTP Request URL — a secret in a workflow parameter,\n  // which this repository does not do.\n  //\n  // So the edit must re-send the text. Telegram hands the callback the message as PLAIN text plus\n  // an `entities` array; re-sending that plain text would strip every <b> and <code> and visibly\n  // downgrade a premium alert. This rebuilds the HTML from text + entities so the edited message is\n  // byte-identical to the original, and the gate proves that round-trip on the real rendered\n  // alerts rather than on a sample.\n  //\n  // Offsets are UTF-16 code units, which is exactly how JavaScript indexes strings, so they map\n  // directly — no conversion, and no place for an off-by-one to hide.\n  var ENTITY_TAG = {\n    bold: 'b', italic: 'i', underline: 'u', strikethrough: 's',\n    code: 'code', pre: 'pre', spoiler: 'tg-spoiler'\n  };\n\n  function escHtml(s) {\n    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n  }\n\n  function openTag(e) {\n    if (e.type === 'text_link') { return '<a href=\"' + escHtml(e.url || '') + '\">'; }\n    var t = ENTITY_TAG[e.type];\n    return t ? '<' + t + '>' : '';\n  }\n  function closeTag(e) {\n    if (e.type === 'text_link') { return '</a>'; }\n    var t = ENTITY_TAG[e.type];\n    return t ? '</' + t + '>' : '';\n  }\n\n  // Rebuild Telegram HTML from the plain text and entities of a message the bot sent.\n  // An entity type this does not know is SKIPPED rather than guessed at — the text survives\n  // unstyled, which is a visible but harmless degradation, where inventing a tag would not be.\n  // Two entities CROSS when they partially overlap without one containing the other. Telegram\n  // never emits that, so seeing it means the input is not what it claims to be — and emitting\n  // crossed tags would produce markup Telegram rejects, which would fail the edit and strand the\n  // owner's keyboard. The fail-safe is the whole message as escaped plain text: visibly unstyled,\n  // never corrupt, and never invented.\n  function entitiesCross(list) {\n    for (var i = 0; i < list.length; i++) {\n      for (var j = i + 1; j < list.length; j++) {\n        var a = list[i];\n        var b = list[j];\n        var aEnd = a.offset + a.length;\n        var bEnd = b.offset + b.length;\n        var overlaps = a.offset < bEnd && b.offset < aEnd;\n        var contains = (a.offset <= b.offset && bEnd <= aEnd) || (b.offset <= a.offset && aEnd <= bEnd);\n        if (overlaps && !contains) { return true; }\n      }\n    }\n    return false;\n  }\n\n  function htmlFromTelegram(text, entities) {\n    var s = String(text == null ? '' : text);\n    var list = (entities || []).filter(function (e) {\n      // Range sanity first: a negative offset, a non-positive length or a range past the end of\n      // the string is dropped rather than clamped. Clamping would silently move formatting.\n      return e && typeof e.offset === 'number' && typeof e.length === 'number'\n        && e.offset >= 0 && e.length > 0 && (e.offset + e.length) <= s.length\n        && (ENTITY_TAG[e.type] || e.type === 'text_link');\n    });\n    if (list.length === 0) { return escHtml(s); }\n    if (entitiesCross(list)) { return escHtml(s); }\n\n    var events = [];\n    for (var i = 0; i < list.length; i++) {\n      events.push({ pos: list[i].offset, kind: 1, len: list[i].length, e: list[i], i: i });\n      events.push({ pos: list[i].offset + list[i].length, kind: 0, len: list[i].length, e: list[i], i: i });\n    }\n    // Closes before opens at the same position; longer opens first and shorter closes first, so\n    // nested entities produce correctly nested tags rather than crossed ones.\n    events.sort(function (a, b) {\n      if (a.pos !== b.pos) { return a.pos - b.pos; }\n      if (a.kind !== b.kind) { return a.kind - b.kind; }\n      if (a.kind === 1) { return b.len - a.len || a.i - b.i; }\n      return a.len - b.len || a.i - b.i;\n    });\n\n    var out = '';\n    var cursor = 0;\n    for (var k = 0; k < events.length; k++) {\n      var ev = events[k];\n      if (ev.pos > cursor) { out += escHtml(s.slice(cursor, ev.pos)); cursor = ev.pos; }\n      out += ev.kind === 1 ? openTag(ev.e) : closeTag(ev.e);\n    }\n    if (cursor < s.length) { out += escHtml(s.slice(cursor)); }\n    return out;\n  }\n\n  // Which action set the ORIGINAL alert was rendered with, derived from the keyboard it carried\n  // rather than from a new field in callback_data. A NEW LEAD alert never offers «Обработано», so\n  // the presence of a `done|` button is the discriminator — and it needs one boolean carried\n  // through the callback path, not the whole keyboard.\n  function originKind(hadDone) { return hadDone ? 'priority' : 'new_lead'; }\n\n  // ── D10, stated rather than claimed ──────────────────────────────────────────────────────────\n  //\n  // The Pipeline is a Google Sheet. `Update Pipeline Row` matches on `lead_id` and writes the keys\n  // present on its input item; there is no conditional update, no row version and no\n  // compare-and-set anywhere in the stack. So:\n  //\n  //   * two taps on DIFFERENT columns are now safe — each writes only what it owns;\n  //   * two taps racing on the SAME column (Discovery and Documents both writing `deal_stage`)\n  //     resolve last-writer-wins, and this design does NOT prevent that.\n  //\n  // It is reported rather than papered over, because the honest mitigation — a version column and\n  // a conditional write — is a Pipeline schema change, and no schema change is authorised here.\n  var RESIDUAL_RACE = {\n    scope: 'two simultaneous taps whose actions write the SAME field',\n    example: 'Discovery and Documents both set deal_stage',\n    behaviour: 'last writer wins',\n    prevented: false,\n    why_not: 'Google Sheets offers no atomic compare-and-set here, and a version column would be a '\n      + 'Pipeline schema change, which is not authorised in this pass',\n    unrelated_columns: 'NOT affected — sparse updates mean an action never writes a column it does not own'\n  };\n\n  return {\n    LABEL: LABEL,\n    SET: SET,\n    OWNED: OWNED,\n    TERMINAL_SLA: TERMINAL_SLA,\n    TERMINAL_STAGE: TERMINAL_STAGE,\n    RESIDUAL_RACE: RESIDUAL_RACE,\n    callbackData: callbackData,\n    isTerminal: isTerminal,\n    chooseActions: chooseActions,\n    keyboard: keyboard,\n    shape: shape,\n    actionOfCommand: actionOfCommand,\n    buildUpdate: buildUpdate,\n    alreadyApplied: alreadyApplied,\n    refuseReason: refuseReason,\n    htmlFromTelegram: htmlFromTelegram,\n    originKind: originKind,\n    ENTITY_TAG: ENTITY_TAG,\n    confirm: confirm,\n    verifyMutation: verifyMutation,\n    untouchedFields: untouchedFields,\n    presentationFailure: presentationFailure,\n    sameKeyboard: sameKeyboard,\n    entitiesCross: entitiesCross,\n    refusal: refusal\n  };\n})();\n// =================== END FINMENTOR LEAD ALERT ACTIONS ===================\n\nconst LA = (function () {\n// FINMENTOR — Lead Alerts, the owner-facing presentation layer.\n//\n// ONE SOURCE OF TRUTH FOR EVERY OWNER-FACING ALERT STRING.\n//\n// This module renders. It does not decide. Nothing here reads the Pipeline, chooses which leads\n// are overdue, or fires anything: every render function takes an already-decided model and returns\n// Telegram HTML. That separation is the whole point of the pass — the alerts read like developer\n// logs today, and the fix for that is presentation, so the selection logic in each workflow stays\n// byte-for-byte what it is and only the last step changes.\n//\n// ── WHY IT LIVES IN THE REPO AND IS INLINED INTO THE CODE NODES ────────────────────────────────\n//\n// An n8n Code node cannot `require` a repo file, so scripts/build-lead-alerts-presentation.mjs\n// inlines this source into each builder node — the same generate-rather-than-retype pattern\n// app-premium/content.js already uses. qa/lead-alerts-presentation.test.mjs drives THIS file, and\n// the builder refuses to emit a candidate whose inlined copy differs from it, so the gate is\n// always watching the strings that actually ship.\n//\n// ── THE FIVE RULES ─────────────────────────────────────────────────────────────────────────────\n//\n//   1. An empty section is OMITTED, never rendered with a dash. A section header with nothing\n//      under it is noise that costs the owner a line of reading and returns nothing.\n//   2. A zero counter is OMITTED unless the message is specifically about data quality. Five lines\n//      of \"Overdue: 0 / No next action: 0 / No contact: 0\" is the exact texture this pass exists\n//      to remove.\n//   3. Business and system NEVER mix. A lead digest carries no workflow names; a system alert\n//      carries no lead.\n//   4. Data minimisation applies even on an owner-only channel. Phone, email and free text do not\n//      belong in a routine alert. The lead id is enough to open the row.\n//   5. Nothing is stated as proven unless the model proves it. In particular the system alert must\n//      not claim \"no side effects\": the n8n error payload carries no execution data at all, so\n//      that sentence would be invention. See IMPACT below.\n\n'use strict';\n\n// ── Telegram HTML ──────────────────────────────────────────────────────────────────────────────\n//\n// Telegram's HTML parse mode accepts a small tag set and requires &, < and > escaped everywhere\n// else. Every value that reaches a message goes through esc(); the tags are written by this file\n// and never come from data. That ordering is what stops a company called \"Alfa <Grup> & Co\" from\n// producing a 400 \"can't parse entities\" and silently losing the alert.\nconst ALLOWED_TAGS = ['b', 'i', 'u', 's', 'code', 'pre', 'a', 'blockquote', 'tg-spoiler'];\n\nfunction esc(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n}\n\n// Collapse whitespace and bound the length. Owner alerts are read on a phone; a 600-character\n// \"main pain\" paste is not a summary, it is the raw field with a label on it.\nfunction tidy(v, max) {\n  const s = String(v === undefined || v === null ? '' : v).replace(/\\s+/g, ' ').trim();\n  if (!max || s.length <= max) { return s; }\n  return s.slice(0, max).replace(/[\\s,.;:—-]+$/, '') + '…';\n}\n\nconst present = (v) => String(v === undefined || v === null ? '' : v).trim() !== '';\n\n// One lead, one entry. A roster that lists the same company twice reads as a rendering fault\n// whatever produced it, and the owner counts it twice. Identity is the lead id where there is\n// one and the company name where there is not; `leadId` on a brief entry exists ONLY for this —\n// it is never rendered, because B11 keeps internal ids out of the digest body.\nfunction dedupe(items) {\n  const seen = {};\n  const out = [];\n  for (const it of (items || [])) {\n    if (!it) { continue; }\n    const key = present(it.leadId) ? 'id:' + String(it.leadId).trim().toLowerCase()\n      : 'co:' + String(it.company || '').trim().toLowerCase();\n    if (key === 'co:') { out.push(it); continue; }   // nothing to key on; keep it rather than drop it\n    if (seen[key]) { continue; }\n    seen[key] = 1;\n    out.push(it);\n  }\n  return out;\n}\n\n// ── B10. Presentation vocabulary ───────────────────────────────────────────────────────────────\n//\n// TWO DIMENSIONS, AND THEY ARE NOT THE SAME DIMENSION.\n//\n//   priority        HOT / WARM / COLD / INCOMPLETE\n//                   How the OWNER should queue this lead. Derived at intake from intent,\n//                   completeness and commercial signal. It is about the owner's calendar.\n//\n//   financial_zone  GREEN / YELLOW / ORANGE / RED\n//                   What the DIAGNOSTIC said about the client's finances, from the 0–100\n//                   diagnostic score. It is about the client's business.\n//\n// A COLD lead can be RED (a struggling company that is not ready to buy) and a HOT lead can be\n// GREEN (a healthy company that wants to start on Monday). Merging them into one \"status\" would\n// destroy information the owner uses to decide what to say in the first call, so they render as\n// two separate, differently-labelled lines and never as one badge.\n//\n// The Russian wordings below are not new semantics. zoneLabel() in the deployed Lead Intake brief\n// already says exactly these things in a longer form; this shortens them and stops there.\nconst PRIORITY_LABEL = {\n  HOT: 'Высокий приоритет',\n  WARM: 'Требует внимания',\n  COLD: 'Низкий приоритет',\n  INCOMPLETE: 'Нужны данные'\n};\n\nconst ZONE_LABEL = {\n  RED: 'Критическая зона',\n  ORANGE: 'Повышенный риск',\n  YELLOW: 'Есть зоны риска',\n  GREEN: 'Устойчиво'\n};\n\n// An unrecognised value is NOT silently mapped to something plausible. It returns '' and the line\n// is omitted, because inventing \"Низкий приоритет\" for a value nobody recognises is worse than\n// saying nothing: the owner would act on a label the data never carried.\nconst SOURCE_LABEL = [\n  [/xrayextended/, 'Финансовый рентген — расширенная анкета'],\n  [/xrayquick/, 'Финансовый рентген — быстрый рентген'],\n  [/miniscan/, 'Мини-скан оборотного капитала'],\n  [/miniapp|telegram/, 'Telegram Mini App'],\n  [/contact/, 'Контактная форма сайта']\n];\n\n// An unrecognised slug is NOT printed raw — «xray_extended» tells the owner nothing a label\n// would not. It degrades to the one true generic statement instead.\n//\n// IDEMPOTENT, and that is load-bearing. The deployed Lead Intake brief has a sourceLabel of its\n// own that runs BEFORE this one, so `source` can arrive already translated. Passing a Russian\n// label through a slug matcher used to fall through to «Сайт FINMENTOR» and quietly destroy the\n// real source — which is exactly what the live verification caught. Recognising this function's\n// own output closes the class rather than the instance: every caller is now safe, including the\n// ones nobody has written yet.\nfunction sourceLabel(tool) {\n  const raw = String(tool === undefined || tool === null ? '' : tool).trim();\n  if (!raw) { return ''; }\n  for (const [, label] of SOURCE_LABEL) { if (raw === label) { return label; } }\n  const t = raw.toLowerCase().replace(/[_\\s-]/g, '');\n  for (const [re, label] of SOURCE_LABEL) { if (re.test(t)) { return label; } }\n  return 'Сайт FINMENTOR';\n}\n\n// ── the preferred contact channel, and its value ───────────────────────────────────────────────\n//\n// OWNER DECISION, 2026-08-30. Not the old \"print every contact we hold\", and not the previous\n// pass's \"print no contact at all\" either. ONE channel — the one the client chose — with its\n// value, so the owner can act without opening the CRM, and nothing else.\n//\n// Phone and email are NEVER rendered together. If a future decision changes that, it changes\n// here, once.\n//\n// Telegram is the exception that proves the rule: the bot can reach the client through the chat\n// whether or not a @handle exists, so Telegram with no handle is still a usable channel and\n// renders bare. A handle is never invented. Phone or email with no value is NOT reachable, so it\n// renders «Не указана» rather than a label that promises a contact route the record does not have.\nconst CONTACT_CHANNELS = {\n  telegram: 'Telegram',\n  phone: 'Телефон',\n  email: 'Email'\n};\n\n// Accepts the id the Mini App stores and the label the legacy intake carries, so one function\n// serves both paths without either of them normalising first.\nfunction contactChannelKey(v) {\n  const t = String(v === undefined || v === null ? '' : v).trim().toLowerCase();\n  if (!t) { return ''; }\n  if (t.indexOf('telegram') !== -1) { return 'telegram'; }\n  if (t.indexOf('email') !== -1 || t.indexOf('mail') !== -1) { return 'email'; }\n  if (t.indexOf('phone') !== -1 || t.indexOf('телефон') !== -1 || t.indexOf('тел') === 0) { return 'phone'; }\n  return '';\n}\n\n// Returns the rendered value for the «Связь» block. Already escaped — it is the one line in the\n// system that may legitimately carry a client contact, and validate() exempts exactly this line\n// and no other.\nfunction contactLine(channel, value) {\n  const key = contactChannelKey(channel);\n  const v = tidy(value, 60);\n  if (key === 'telegram') { return v ? 'Telegram · ' + esc(v) : 'Telegram'; }\n  if (key === 'phone' && v) { return 'Телефон · ' + esc(v); }\n  if (key === 'email' && v) { return 'Email · ' + esc(v); }\n  // No channel, or a channel with no reachable value.\n  return 'Не указана';\n}\n\nfunction priorityLabel(v) { return PRIORITY_LABEL[String(v || '').trim().toUpperCase()] || ''; }\nfunction zoneLabel(v) { return ZONE_LABEL[String(v || '').trim().toUpperCase()] || ''; }\n\n// ── dates ──────────────────────────────────────────────────────────────────────────────────────\n//\n// Written out rather than taken from Intl. A Code node's ICU data is not something this repo\n// controls, and a digest whose date silently renders as \"August 30\" on one runtime and\n// \"30 августа\" on another is not deterministic. qa asserts the table.\nconst MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',\n  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];\n\n// Parses to Y/M/D/H/M in a fixed offset. Chisinau is UTC+3 in summer and UTC+2 in winter; the\n// caller passes the offset it already computed, because the workflows already hold a timezone\n// setting and this file must not become a second, disagreeing clock.\nfunction parts(iso, offsetMinutes) {\n  const d = new Date(iso);\n  if (Number.isNaN(d.getTime())) { return null; }\n  const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n  return {\n    y: t.getUTCFullYear(), m: t.getUTCMonth(), d: t.getUTCDate(),\n    hh: String(t.getUTCHours()).padStart(2, '0'), mm: String(t.getUTCMinutes()).padStart(2, '0')\n  };\n}\n\nfunction longDate(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] : '';\n}\n\nfunction dateTime(iso, offsetMinutes) {\n  const p = parts(iso, offsetMinutes);\n  return p ? p.d + ' ' + MONTHS_GEN[p.m] + ' · ' + p.hh + ':' + p.mm : '';\n}\n\n// A deadline the owner can act on without arithmetic. «просрочено на 3 дн.» is a decision;\n// «Due: 2026-08-27T09:00:00.000Z» is homework.\nfunction deadline(dueIso, nowIso, offsetMinutes) {\n  const due = new Date(dueIso);\n  const now = new Date(nowIso);\n  if (Number.isNaN(due.getTime()) || Number.isNaN(now.getTime())) { return ''; }\n  const dayOf = (d) => {\n    const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);\n    return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());\n  };\n  const days = Math.round((dayOf(due) - dayOf(now)) / 86400000);\n  if (days === 0) { return 'сегодня'; }\n  if (days === 1) { return 'завтра'; }\n  if (days === -1) { return 'просрочено на 1 день'; }\n  if (days < -1) { return 'просрочено на ' + (-days) + ' ' + plural(-days, 'день', 'дня', 'дней'); }\n  return longDate(dueIso, offsetMinutes);\n}\n\nfunction plural(n, one, few, many) {\n  const a = Math.abs(n) % 100;\n  const b = a % 10;\n  if (a > 10 && a < 20) { return many; }\n  if (b > 1 && b < 5) { return few; }\n  if (b === 1) { return one; }\n  return many;\n}\n\n// ── block assembly ─────────────────────────────────────────────────────────────────────────────\n//\n// `block` is the rule \"an empty section is omitted\" made structural rather than remembered. A\n// caller cannot render a header with nothing under it, because a header with no surviving lines\n// returns null and null is dropped.\n// THE DAILY BRIEF IS A DOCUMENT; EVERY OTHER MESSAGE IS A CARD.\n//\n// A document has bold section headings the eye can jump between, because the owner scans it for\n// the section they want. A card is read top to bottom in five seconds, and bolding both the label\n// and the value there leaves nothing quiet enough to make the value stand out. So `block` bolds\n// its heading and `card` does not, and the value each one wraps in <b> is the answer, not the\n// question.\nfunction assemble(heading, lines, bold) {\n  const kept = (Array.isArray(lines) ? lines : [lines]).filter(present);\n  if (!kept.length) { return null; }\n  const h = heading ? (bold ? '<b>' + esc(heading) + '</b>' : esc(heading)) + '\\n' : '';\n  return h + kept.join('\\n');\n}\nfunction block(heading, lines) { return assemble(heading, lines, true); }\nfunction card(heading, lines) { return assemble(heading, lines, false); }\n\nfunction join(blocks) {\n  return blocks.filter((b) => present(b)).join('\\n\\n');\n}\n\n// «Метка: значение», dropped entirely when the value is missing.\nfunction line(label, value) {\n  return present(value) ? esc(label) + ': ' + esc(value) : '';\n}\n\n// A counter that renders only when it is worth a line. This is B11 in one function: a run of\n// zeroes is not information, it is furniture. `always` is for the one anchor number a section\n// would be meaningless without.\nfunction counter(label, n, always) {\n  const v = Number(n) || 0;\n  if (!v && !always) { return ''; }\n  return esc(label) + ': ' + v;\n}\n\nconst header = (kind, sub) =>\n  '<b>FINMENTOR · ' + esc(kind) + '</b>' + (present(sub) ? '\\n<i>' + esc(sub) + '</i>' : '');\n\n// ── B3. OWNER DAILY BRIEF ──────────────────────────────────────────────────────────────────────\n//\n// model = {\n//   now, offsetMinutes,\n//   counts: { active, newToday, needAttention, overdue },\n//   leads:  [{ company, descriptor, priority, objective, nextAction, dueAt }],\n//   moreLeads: n,\n//   decisions: [ '…', '…' ]\n// }\nfunction renderDailyBrief(model) {\n  const m = model || {};\n  const c = m.counts || {};\n  const off = m.offsetMinutes;\n\n  const today = block('Сегодня', [\n    counter('Активных лидов', c.active, true),\n    counter('Новых', c.newToday),\n    counter('Требуют внимания', c.needAttention),\n    counter('Просрочено', c.overdue)\n  ]);\n\n  // Five, not ten. A brief the owner scrolls is a report, and a report gets read later.\n  const leads = dedupe(m.leads).slice(0, 5).map((l, i) => {\n    const head = (i + 1) + '. <b>' + esc(tidy(l.company, 60) || '—') + '</b>'\n      + (present(l.descriptor) ? '\\n' + esc(tidy(l.descriptor, 60)) : '');\n    const body = [\n      line('Статус', priorityLabel(l.priority)),\n      line('Задача', tidy(l.objective, 90)),\n      line('Следующее действие', tidy(l.nextAction, 90)),\n      line('Срок', l.dueAt ? deadline(l.dueAt, m.now, off) : '')\n    ].filter(present);\n    return body.length ? head + '\\n\\n' + body.join('\\n') : head;\n  });\n  if (leads.length && Number(m.moreLeads) > 0) {\n    leads.push('<i>И ещё ' + Number(m.moreLeads) + ' в работе.</i>');\n  }\n  const priority = leads.length ? '<b>Приоритет</b>\\n\\n' + leads.join('\\n\\n') : null;\n\n  // Five, like the roster. A brief that lists thirty decisions has made none of them, and forty\n  // of them cleared the 4096-character limit outright — the message would not have been sent.\n  const open = (m.decisions || []).filter(present);\n  const decisions = block('Что требует решения',\n    open.slice(0, 5).map((d) => '• ' + esc(tidy(d, 110)))\n      .concat(open.length > 5 ? ['<i>И ещё ' + (open.length - 5) + '.</i>'] : []));\n\n  const body = join([today, priority, decisions]);\n  // Nothing urgent is a RESULT, and saying so plainly is worth more than a page of zeroes.\n  const tail = (priority || decisions) ? '' : '<b>Критичных действий нет.</b>';\n  return join([header('OWNER DAILY BRIEF', dateTime(m.now, off)), body, tail]);\n}\n\n// ── B4. NEW LEAD ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, role, objective, situation, priority, zone, nextAction, source,\n//           contactChannel, leadId }\n//\n// NO PHONE, NO EMAIL, NO FREE-TEXT PASTE. The owner opens the row to call; the alert exists to\n// say whether the row is worth opening now. The contact CHANNEL is carried because it changes how\n// the owner plans the callback, and the channel is not personal data.\nfunction renderNewLead(model) {\n  const m = model || {};\n  const ident = '<b>' + esc(tidy(m.company, 70) || '—') + '</b>'\n    + (present(m.role) ? '\\n' + esc(tidy(m.role, 60)) : '');\n\n  return join([\n    header('NEW LEAD'),\n    ident,\n    card('Задача', present(m.objective) ? '<b>' + esc(tidy(m.objective, 120)) + '</b>' : ''),\n    card('Ситуация', esc(tidy(m.situation, 220))),\n    card('Приоритет', [\n      present(priorityLabel(m.priority)) ? '<b>' + esc(priorityLabel(m.priority)) + '</b>' : '',\n      // The second dimension, labelled so it can never be read as the first.\n      line('Финансовая зона', zoneLabel(m.zone))\n    ]),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Связь', '<b>' + contactLine(m.contactChannel, m.contactValue) + '</b>'),\n    card(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B5. PRIORITY ───────────────────────────────────────────────────────────────────────────────\n//\n// model = { company, reason, nextAction, dueAt, now, offsetMinutes, leadId }\n//\n// Deliberately NOT the lead card again. The owner already received the card when the lead landed;\n// repeating it here would mean re-reading everything to find the one new fact, which is why the\n// deployed SLA reminder gets skimmed.\nfunction renderPriority(model) {\n  const m = model || {};\n  return join([\n    header('PRIORITY'),\n    '<b>' + esc(tidy(m.company, 70) || '—') + '</b>',\n    card('Почему требует внимания', esc(tidy(m.reason, 140))),\n    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),\n    card('Срок', present(m.dueAt) ? '<b>' + esc(deadline(m.dueAt, m.now, m.offsetMinutes)) + '</b>' : ''),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B6. FOLLOW-UP DUE ──────────────────────────────────────────────────────────────────────────\n//\n// model = { now, offsetMinutes, items: [{ company, action, dueAt, leadId }] }\n//\n// Takes a LIST. The deployed workflow emits one message per due follow-up, so it passes one item\n// and the message reads correctly for one. The day an aggregation step is approved, the same\n// renderer produces the numbered list without a second template existing.\nfunction renderFollowUp(model) {\n  const m = model || {};\n  const items = dedupe((m.items || []).filter((x) => x && present(x.company)));\n  if (!items.length) { return ''; }   // never send an empty operational message\n\n  const rows = items.slice(0, 10).map((it, i) => [\n    (i + 1) + '. <b>' + esc(tidy(it.company, 60)) + '</b>',\n    present(it.action) ? esc(tidy(it.action, 100)) : '',\n    present(it.dueAt) ? 'Срок: ' + esc(deadline(it.dueAt, m.now, m.offsetMinutes)) : '',\n    present(it.leadId) ? '<code>' + esc(tidy(it.leadId, 40)) + '</code>' : ''\n  ].filter(present).join('\\n'));\n\n  return join([\n    header('FOLLOW-UP'),\n    'Просрочено: <b>' + items.length + '</b>',\n    rows.join('\\n\\n'),\n    items.length > 10 ? '<i>И ещё ' + (items.length - 10) + '.</i>' : ''\n  ]);\n}\n\n// ── B1 type 5. LEAD INCOMPLETE ─────────────────────────────────────────────────────────────────\n//\n// model = { company, missing: ['контакт', 'согласие'], reason, source, leadId }\n//\n// Its own type because the owner action is different in kind: nothing here can be sold until the\n// record is repaired, so it must not sit in the same queue as a lead that can be called.\n// OWNER DECISION, 2026-08-30. The reason and the next step are PINNED HERE and are not taken\n// from the model.\n//\n// The previous copy said «Форма отправлена без контакта и без согласия.» — which reads as a\n// legal conclusion about consent while the Moldovan legal basis is still\n// PENDING_LEGAL_REVIEW. An owner message is not the place to settle that, and a sentence the\n// builder could vary is a sentence that could drift into settling it. So the message describes\n// the OPERATIONAL problem only.\n//\n// The underlying rule is untouched: whatever blocked this lead — missing contact, missing\n// consent — still blocks it, and `priority_reason` still travels in the item for the internal\n// record. It simply is not restated to the owner as a finding.\nfunction renderIncomplete(model) {\n  const m = model || {};\n  return join([\n    header('LEAD INCOMPLETE'),\n    '<b>' + esc(tidy(m.company, 70) || 'Компания не указана') + '</b>',\n    card('Чего не хватает', (m.missing || []).filter(present).map((x) => '• ' + esc(tidy(x, 60)))),\n    card('Причина', 'Недостаточно данных для полноценной обработки обращения.'),\n    card('Следующий шаг', '<b>Проверить данные обращения вручную.</b>'),\n    block(null, line('Источник', sourceLabel(m.source))),\n    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''\n  ]);\n}\n\n// ── B7/B8. SYSTEM ALERT ────────────────────────────────────────────────────────────────────────\n//\n// model = { workflowName, nodeName, errorClass, message, executionId }\n//\n// ── WHAT THIS MESSAGE MAY AND MAY NOT CLAIM ────────────────────────────────────────────────────\n//\n// n8n's error trigger delivers `{ execution: { id, url, error }, workflow: { id, name } }` and\n// NOTHING ELSE — verified against execution 4240, which alerted on failure 4239. There is no\n// runData, no node output, no record of which writes had already committed.\n//\n// So this message CANNOT say «Обращение не создано. Pipeline не изменён. Privacy-запись не\n// создана.» Those three sentences would be invention dressed as a finding, and an owner who\n// trusted them once would trust them the time they were wrong. What it says instead is what is\n// true: the run stopped, here is where, and the consequences for stored data have not been\n// checked. Making the stronger statement requires reading the failed execution back through the\n// n8n API — a new capability, not a new sentence.\n//\n// IMPACT is derived from the workflow NAME, which the payload does carry. Each entry states what\n// stopped, never what was written.\nconst IMPACT = [\n  [/mini app|miniapp|gateway|submit|session/i, 'Заявка из Mini App не была принята.'],\n  [/concierge|transport/i, 'Ответ клиенту в Telegram не был отправлен.'],\n  [/lead intake/i, 'Приём заявки прерван.'],\n  [/digest/i, 'Ежедневный дайджест не сформирован.'],\n  [/sla/i, 'Проверка SLA не выполнена.'],\n  [/followup|follow-up/i, 'Напоминания не разосланы.'],\n  [/command center/i, 'Команда владельца не выполнена.']\n];\n\nfunction impactOf(workflowName) {\n  const n = String(workflowName || '');\n  for (const [re, text] of IMPACT) { if (re.test(n)) { return text; } }\n  return 'Выполнение остановлено.';\n}\n\n// The tenant's naming convention is loud on purpose; the owner does not need it shouted back.\n// Order matters: the bracketed tag comes off FIRST, or a name like \"[CANDIDATE] FINMENTOR Mini\n// App Submit\" keeps its prefix because the prefix was never at the start.\nfunction shortWorkflow(name) {\n  return tidy(String(name || '')\n    .replace(/\\s*\\[(UAT|CANDIDATE|TEMP|TEST)\\]\\s*/gi, ' ')\n    .replace(/^\\s*FINMENTOR\\s+/i, '')\n    .replace(/\\s+(PREMIUM|FINAL|SECURE|CANDIDATE|GUARDED|AI GUARDED|v\\d+)\\b/gi, ''), 60);\n}\n\n// A class is worth a line only when it says more than the message already does. ERROR and a\n// bare exception name say nothing an owner can act on.\nconst USEFUL_CLASSES = ['SHEET_LOCATOR', 'RATE_LIMIT', 'UPSTREAM_TRANSIENT', 'AUTH', 'DATA_SHAPE'];\n\n// One human sentence for the classes that have one. This is the difference between an owner who\n// knows to wait and an owner who opens n8n at midnight.\nconst CLASS_HINT = {\n  RATE_LIMIT: 'Превышен лимит запросов к внешнему сервису.',\n  UPSTREAM_TRANSIENT: 'Внешний сервис временно недоступен.',\n  AUTH: 'Проблема с доступом к внешнему сервису.',\n  SHEET_LOCATOR: 'Таблица или диапазон не найдены.',\n  DATA_SHAPE: 'Данные пришли не в том формате.'\n};\n\n// DEFENCE IN DEPTH ON THE ONE FREE-TEXT FIELD.\n//\n// The Error Monitor already scrubs URLs, emails and phone numbers out of the error text before\n// it reaches here, and that scrubber is untouched and asserted. This scrubs again anyway.\n//\n// The reason is that the workflow's scrubber protects the path it is on, and this renderer is\n// reachable from anywhere a future alert path is added. An error message is the ONE field in the\n// whole system produced by arbitrary code at the moment of failure, and the moment of failure is\n// exactly when a payload holding a client's phone number is in scope. Scrubbing twice costs one\n// pass over 200 characters; scrubbing once costs a leak the first time someone adds a second\n// caller. The owner asked for no contact information in technical diagnostics, and \"the other\n// half already handles it\" is not how that gets guaranteed.\nconst SCRUB_URL = /(?:[a-z][a-z0-9+.-]*:)?\\/\\/\\S+|\\bwww\\.\\S+/gi;\nconst SCRUB_EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi;\nconst SCRUB_PHONE = /(?<![\\w-])\\+?\\d[\\d\\s().-]{5,13}\\d(?![\\w-])/g;\n\nfunction scrubContact(v) {\n  return String(v === undefined || v === null ? '' : v)\n    .replace(SCRUB_URL, '[ссылка удалена]')\n    .replace(SCRUB_EMAIL, '[контакт удалён]')\n    .replace(SCRUB_PHONE, '[контакт удалён]');\n}\n\nfunction renderSystemAlert(model) {\n  const m = model || {};\n  const cls = String(m.errorClass || '').toUpperCase();\n  const useful = USEFUL_CLASSES.indexOf(cls) !== -1;\n  const node = tidy(m.nodeName, 60);\n\n  return join([\n    header('SYSTEM ALERT'),\n\n    // The headline is the business consequence, not the exception. It is derived from the\n    // workflow name, which the payload carries, and it states only that the work did not finish.\n    '<b>' + esc(impactOf(m.workflowName)) + '</b>',\n\n    card('Влияние', [\n      'Операция не завершена.',\n      present(node) ? 'Сбой на этапе «' + esc(node) + '».' : '',\n      useful && CLASS_HINT[cls] ? esc(CLASS_HINT[cls]) : ''\n    ]),\n\n    // The one place this message could lie, and does not. See the note above IMPACT.\n    card('Данные', [\n      'Последствия для записей автоматически не проверены.',\n      'Лид, Pipeline и privacy-запись нужно проверить вручную.'\n    ]),\n\n    card('Статус', '<b>Требует проверки</b>'),\n\n    // Quiet, last, and small. Everything an engineer needs to open the execution; nothing an\n    // owner has to read to decide whether to care.\n    block(null, [\n      '<i>Технические данные</i>',\n      line('Workflow', shortWorkflow(m.workflowName)),\n      line('Node', node),\n      useful ? line('Класс', cls) : '',\n      present(m.executionId) ? 'Execution: <code>' + esc(tidy(m.executionId, 20)) + '</code>' : '',\n      line('Сообщение', tidy(scrubContact(m.message), 200))\n    ])\n  ]);\n}\n\n// ── B9. SYSTEM RECOVERED ───────────────────────────────────────────────────────────────────────\n//\n// The copy exists. THE TRIGGER DOES NOT, AND IS NOT CREATED BY THIS PASS.\n//\n// n8n's error trigger fires on failure and has no counterpart that fires when a workflow starts\n// succeeding again. Closing an alert would need an open-incident store plus a scheduled poller\n// that reads /executions for the workflows currently marked open — new state and a new trigger,\n// which is a business-rule change this pass is explicitly not making. Rendered here so the copy is\n// reviewed with the rest, and left unwired so nothing can send it on a signal that does not exist.\n//\n// model = { problem, evidence }\nfunction renderSystemRecovered(model) {\n  const m = model || {};\n  return join([\n    header('SYSTEM RECOVERED'),\n    '<b>' + esc(tidy(m.problem, 120) || 'Сбой устранён.') + '</b>',\n    'Работа восстановлена.',\n    card('Проверено', esc(tidy(m.evidence, 200))),\n    '<i>Действий не требуется.</i>'\n  ]);\n}\n\n// ── B1 type 8. DATA / INTEGRITY WARNING ────────────────────────────────────────────────────────\n//\n// Also unwired. Nothing in the tenant fires on data quality today: the counters exist only as five\n// lines buried in the daily digest, which is precisely the noise B11 asks to remove. Giving them\n// their own message needs a trigger, and a trigger is a rule change.\n//\n// This is the ONE message where a zero may be rendered — a data-quality report that hides its\n// zeroes cannot tell the owner the data is clean.\n//\n// model = { items: [{ label, count }], checkedAt, offsetMinutes }\nfunction renderDataIntegrity(model) {\n  const m = model || {};\n  const items = (m.items || []).filter((x) => x && present(x.label));\n  const nonZero = items.filter((x) => Number(x.count) > 0);\n  return join([\n    header('DATA / INTEGRITY WARNING', dateTime(m.checkedAt, m.offsetMinutes)),\n    nonZero.length\n      ? card('Требует исправления', nonZero.map((x) => '• ' + esc(x.label) + ': <b>' + Number(x.count) + '</b>'))\n      : '<b>Данные в порядке.</b>',\n    nonZero.length ? card('Статус', '<b>Требует проверки</b>') : ''\n  ]);\n}\n\n// ── the gate's own helper ──────────────────────────────────────────────────────────────────────\n//\n// Structural validation of a rendered message, used by qa/lead-alerts-presentation.test.mjs. It is\n// exported rather than duplicated in the test so the definition of \"valid\" has one home.\n//\n// Returns [] for a clean message, or a list of problems.\n// The section headings this module can emit. validate() checks emptiness against THIS list rather\n// than guessing from shape: «<b>Статус</b>» is a heading and «<b>Требует проверки</b>» is the value\n// under it, and no amount of pattern-matching on bold text can tell those apart.\nconst HEADINGS = ['Сегодня', 'Приоритет', 'Что требует решения', 'Задача', 'Ситуация',\n  'Следующий шаг', 'Следующее действие', 'Почему требует внимания', 'Срок', 'Чего не хватает',\n  'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь'];\n\nconst SECRET_PATTERNS = [\n  [/\\b\\d{6,}:[A-Za-z0-9_-]{30,}\\b/, 'a Telegram bot token'],\n  [/init[_ ]?data|query_id=|auth_date=/i, 'initData'],\n  [/\\bpassword\\b|\\bpasswd\\b|\\bsecret\\b|\\bapi[_ ]?key\\b|\\bbearer\\b/i, 'a credential word'],\n  [/\\bat [A-Za-z]+ \\(|\\n\\s+at .+:\\d+:\\d+|node_modules/i, 'a stack trace'],\n  [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i, 'an email address'],\n  [/(?<![\\w-])\\+?\\d[\\d\\s().-]{8,13}\\d(?![\\w-])/, 'a phone-shaped number']\n];\n\nfunction validate(html) {\n  const problems = [];\n  const s = String(html === undefined || html === null ? '' : html);\n  if (!s.trim()) { return ['the message is empty']; }\n\n  // 1. Telegram HTML: known tags only, each one closed, and no stray angle brackets.\n  const tags = s.match(/<\\/?[^>]*>/g) || [];\n  const stack = [];\n  for (const t of tags) {\n    const m = /^<(\\/?)([a-zA-Z-]+)[^>]*>$/.exec(t);\n    if (!m) { problems.push('malformed tag ' + t); continue; }\n    const name = m[2].toLowerCase();\n    if (ALLOWED_TAGS.indexOf(name) === -1) { problems.push('tag <' + name + '> is not valid Telegram HTML'); continue; }\n    if (m[1]) {\n      if (stack.pop() !== name) { problems.push('</' + name + '> does not close the open tag'); }\n    } else { stack.push(name); }\n  }\n  if (stack.length) { problems.push('unclosed tag <' + stack[stack.length - 1] + '>'); }\n  // Anything angle-bracketed that is not a tag must have been escaped.\n  const withoutTags = s.replace(/<\\/?[^>]*>/g, '');\n  if (/[<>]/.test(withoutTags)) { problems.push('an unescaped < or > survived into the text'); }\n\n  // 2. No Markdown mixed into HTML. Telegram parses one or the other, never both.\n  if (/\\*\\*|__|\\[[^\\]]+\\]\\([^)]+\\)/.test(withoutTags)) { problems.push('Markdown syntax is mixed into HTML'); }\n\n  // 3. No empty section: a bold heading with nothing under it, or a label with no value.\n  const lines = s.split('\\n');\n  const headingOf = (l) => {\n    const t = String(l).trim();\n    const m2 = /^<b>([^<]+)<\\/b>$/.exec(t);\n    const name = m2 ? m2[1] : t;\n    return HEADINGS.indexOf(name) !== -1 ? name : null;\n  };\n  for (let i = 0; i < lines.length; i++) {\n    const h = headingOf(lines[i]);\n    if (h) {\n      let j = i + 1;\n      while (j < lines.length && !lines[j].trim()) { j++; }\n      const next = (lines[j] || '').trim();\n      if (!next || headingOf(next)) { problems.push('empty section: ' + h); }\n    }\n    if (/^[^:<]+:\\s*$/.test(lines[i])) { problems.push('label with no value: ' + lines[i].trim()); }\n    if (/:\\s*(—|-|n\\/a|null|undefined)\\s*$/i.test(lines[i])) { problems.push('placeholder value: ' + lines[i].trim()); }\n  }\n\n  // 4. No zero-only noise. One zero is a fact; three in a row is furniture.\n  const zeros = lines.filter((l) => /^[^:]+:\\s*0\\s*$/.test(l.trim()));\n  if (zeros.length > 1) { problems.push(zeros.length + ' zero-valued counter lines'); }\n\n  // 5. Nothing that must never leave the tenant.\n  //\n  // ONE EXEMPTION, AND IT IS NARROW. The «Связь» value in a NEW LEAD alert is the single place a\n  // client contact may appear, by owner decision. It is exempted from the contact patterns — and\n  // only from those two — and only one such line may exist. Everything else in the message,\n  // including the technical block of a system alert, is scanned as before.\n  const contactValues = lines.filter((l, i) => headingOf(lines[i - 1]) === 'Связь').map((l) => l.trim());\n  if (contactValues.length > 1) { problems.push(contactValues.length + ' «Связь» lines — a message may carry at most one contact'); }\n  let scanned = withoutTags;\n  for (const cv of contactValues) {\n    scanned = scanned.split(cv.replace(/<\\/?[^>]*>/g, '')).join(' ');\n  }\n  for (const [re, what] of SECRET_PATTERNS) {\n    const contactPattern = /email address|phone-shaped/.test(what);\n    if (re.test(contactPattern ? scanned : withoutTags)) { problems.push('the message contains ' + what); }\n  }\n\n  // 6. Telegram's own limit, with room for the caption Telegram adds on some paths.\n  if (s.length > 4000) { problems.push('the message is ' + s.length + ' characters, over the 4096 limit'); }\n\n  return problems;\n}\n\nreturn {\n  ALLOWED_TAGS, PRIORITY_LABEL, ZONE_LABEL, MONTHS_GEN, IMPACT, USEFUL_CLASSES, CLASS_HINT,\n  esc, tidy, present, plural, priorityLabel, zoneLabel,\n  parts, longDate, dateTime, deadline, block, card, join, line, counter, header, HEADINGS,\n  impactOf, shortWorkflow, sourceLabel, SOURCE_LABEL, validate, dedupe, scrubContact,\n  CONTACT_CHANNELS, contactChannelKey, contactLine,\n  renderDailyBrief, renderNewLead, renderPriority, renderFollowUp, renderIncomplete,\n  renderSystemAlert, renderSystemRecovered, renderDataIntegrity\n};\n\n})();\n\n// ── STAGE 2 — prove the mutation from a FRESH read-back ───────────────────────────────────────\n//\n// The owner is not told an action succeeded because a Sheets node did not throw. Every field the\n// action claimed to write is compared against the row as it now reads.\nconst d = $('Find & Build Update').first().json;\nconst rows = $input.all().map((i) => i.json);\nconst norm = (v) => String(v == null ? '' : v).trim().toLowerCase();\nconst row = rows.find((r) => norm(r.lead_id) === norm(d.lead_id));\n\nif (!row) {\n  return [{ json: Object.assign({}, d, { _verified: false, _mismatched: ['row disappeared'],\n    reply_text: LAA.refusal(LA, '', d.company) }) }];\n}\nconst v = LAA.verifyMutation(d._upd, row);\nif (!v.ok) {\n  return [{ json: Object.assign({}, d, { _verified: false, _mismatched: v.mismatched,\n    reply_text: LAA.refusal(LA, '', d.company) }) }];\n}\n// Verified. The keyboard is recomputed from the POST-WRITE row, so the action just taken\n// disappears and a terminal state clears the keyboard entirely.\nconst kb = LAA.keyboard(d._kind, row, row.lead_id);\nreturn [{ json: Object.assign({}, d, {\n  _verified: true, _mismatched: [],\n  kb: kb, kb_shape: LAA.shape(kb)\n}) }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1612,
+        792
+      ],
+      "id": "s2-verify",
+      "name": "Verify Mutation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "s2-if-verified-c",
+              "leftValue": "={{ $json._verified }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1832,
+        792
+      ],
+      "id": "s2-if-verified",
+      "name": "IF Verified"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s2-shape-0",
+                    "leftValue": "={{ String($json.kb_shape) }}",
+                    "rightValue": "KB221",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "KB221"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s2-shape-1",
+                    "leftValue": "={{ String($json.kb_shape) }}",
+                    "rightValue": "KB22",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "KB22"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s2-shape-2",
+                    "leftValue": "={{ String($json.kb_shape) }}",
+                    "rightValue": "KB21",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "KB21"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "s2-shape-3",
+                    "leftValue": "={{ String($json.kb_shape) }}",
+                    "rightValue": "NONE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "outputKey": "NONE"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": 3
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2052,
+        792
+      ],
+      "id": "s2-shape",
+      "name": "Route Edit Shape"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "messageType": "message",
+        "chatId": "={{ $json.message_chat_id }}",
+        "messageId": "={{ $json.message_id }}",
+        "text": "={{ $json.edit_html }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[1][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[2][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[2][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2292,
+        652
+      ],
+      "id": "s2-edit-5",
+      "name": "Edit Alert (5)",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "messageType": "message",
+        "chatId": "={{ $json.message_chat_id }}",
+        "messageId": "={{ $json.message_id }}",
+        "text": "={{ $json.edit_html }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[1][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2292,
+        772
+      ],
+      "id": "s2-edit-4",
+      "name": "Edit Alert (4)",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "messageType": "message",
+        "chatId": "={{ $json.message_chat_id }}",
+        "messageId": "={{ $json.message_id }}",
+        "text": "={{ $json.edit_html }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        },
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[0][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][0].callback_data }}"
+                    }
+                  },
+                  {
+                    "text": "={{ $json.kb[0][1].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[0][1].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ $json.kb[1][0].text }}",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.kb[1][0].callback_data }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2292,
+        892
+      ],
+      "id": "s2-edit-3",
+      "name": "Edit Alert (3)",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "editMessageText",
+        "messageType": "message",
+        "chatId": "={{ $json.message_chat_id }}",
+        "messageId": "={{ $json.message_id }}",
+        "text": "={{ $json.edit_html }}",
+        "replyMarkup": "none",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2292,
+        1012
+      ],
+      "id": "s2-edit-0",
+      "name": "Edit Alert (0)",
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Find & Build Update').first().json.chat_id }}",
+        "text": "={{ String($('Verify Mutation').first().json.reply_text || '').replace(/<[^>]+>/g, '').replace(/\\r/g, '').trim() }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": ""
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2052,
+        1012
+      ],
+      "id": "s2-write-failed",
+      "name": "Telegram Write Failed Reply",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Parse Lead Command v2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Lead Command v2": {
+      "main": [
+        [
+          {
+            "node": "IF Has Callback",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route Command Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Command Mode": {
+      "main": [
+        [
+          {
+            "node": "Telegram Command Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Pipeline (Query)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Pipeline (Update)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline (Query)": {
+      "main": [
+        [
+          {
+            "node": "Build Query Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Query Reply": {
+      "main": [
+        [
+          {
+            "node": "Telegram Query Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline (Update)": {
+      "main": [
+        [
+          {
+            "node": "Find & Build Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find & Build Update": {
+      "main": [
+        [
+          {
+            "node": "IF Row Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Row Found": {
+      "main": [
+        [
+          {
+            "node": "IF Action Allowed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Not Found Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Pipeline Row": {
+      "main": [
+        [
+          {
+            "node": "Build Status Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build CC Activity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Pipeline (Verify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Status Log": {
+      "main": [
+        [
+          {
+            "node": "Save Status_Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build CC Activity": {
+      "main": [
+        [
+          {
+            "node": "Save Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Has Callback": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Command Trigger": {
+      "main": [
+        [
+          {
+            "node": "Verify Telegram Identity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Telegram Identity": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Action Allowed": {
+      "main": [
+        [
+          {
+            "node": "Build Sparse Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Route Edit Shape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sparse Update": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pipeline (Verify)": {
+      "main": [
+        [
+          {
+            "node": "Verify Mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Mutation": {
+      "main": [
+        [
+          {
+            "node": "IF Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Verified": {
+      "main": [
+        [
+          {
+            "node": "Route Edit Shape",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram Write Failed Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Edit Shape": {
+      "main": [
+        [
+          {
+            "node": "Edit Alert (5)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Alert (4)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Alert (3)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Alert (0)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Alert (5)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Update Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Alert (4)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Update Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Alert (3)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Update Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Alert (0)": {
+      "main": [
+        [
+          {
+            "node": "Telegram Update Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "errorWorkflow": "RBiFLhVjizMkAzrK"
+  }
+}

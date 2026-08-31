@@ -260,7 +260,10 @@ const LAA = (function () {
 
   function confirm(LA, action, company, upd, offsetMinutes) {
     var name = LA.tidy(company, 70) || '—';
-    var head = LA.header('FINMENTOR · ' + (TITLE[action] || 'ACTION UPDATED'));
+    // LA.header() already prefixes «FINMENTOR · ». Passing the prefix again produced
+    // «FINMENTOR · FINMENTOR · ACTION UPDATED», which the first live execution of the deployed
+    // node body showed before anything was written.
+    var head = LA.header(TITLE[action] || 'ACTION UPDATED');
     var ident = '<b>' + LA.esc(name) + '</b>';
     var body = [];
 
@@ -292,7 +295,7 @@ const LAA = (function () {
   function refusal(LA, reason, company) {
     var name = LA.tidy(company, 70);
     var ident = name ? '<b>' + LA.esc(name) + '</b>' : '';
-    var head = LA.header('FINMENTOR · ACTION');
+    var head = LA.header('ACTION');
     if (reason === 'ALREADY_APPLIED') {
       return LA.join([head, ident, '<b>Действие уже применено.</b>']);
     }

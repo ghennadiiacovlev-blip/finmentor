@@ -388,6 +388,7 @@ check('D4–D7 every confirmation is premium, escaped and emoji-free in the body
   for (const action of ['done', 'snooze', 'discovery', 'docs', 'nurture']) {
     const html = A.confirm(LA, action, '<script>Alfa & Co</script>', A.buildUpdate(action, LEAD, NOW), CHISINAU);
     assert(/^<b>FINMENTOR · /.test(html), action + ': no premium header');
+    assert(!/FINMENTOR · FINMENTOR/.test(html), action + ': the FINMENTOR prefix is doubled');
     assert(!/<script>/.test(html), action + ': the company name was not escaped');
     assert(/&lt;script&gt;/.test(html), action + ': escaping did not happen');
     assert(!/[✅⏰📞📄🗂🏆]/.test(html), action + ': an icon leaked into the body');
