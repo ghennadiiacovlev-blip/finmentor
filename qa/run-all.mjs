@@ -75,6 +75,7 @@ const GATES = [
   ['Lead Intake projection candidate (executed)', 'premium-ux-projection-candidate.test.mjs'],
   ['Lead Intake premium projection SOURCE (executed)', 'lead-intake-premium-source.test.mjs'],
   ['Lead Intake NEW LEAD alert routing', 'lead-intake-new-lead-alert-routing.test.mjs'],
+  ['GLOBAL NEW-EVENT identity (candidate)', 'lead-intake-request-identity.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
