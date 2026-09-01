@@ -1,0 +1,3608 @@
+{
+  "started": "2026-09-01T15:51:09.256Z",
+  "finished": "2026-09-01T15:51:52.933Z",
+  "database": "fm_outbox_nonprod",
+  "server_version": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
+  "gates": [
+    {
+      "id": "PRE",
+      "title": "the section 8 precondition holds on the target database",
+      "ok": true,
+      "checks": [
+        {
+          "name": "alerts schema absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 present",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts role exists yet",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "PostgreSQL 13 or later",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migrator is NOT a superuser",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "A",
+      "title": "CLEAN APPLY on an empty target, as a non-superuser migrator",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the forward migration applies without error",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the alerts schema exists",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the three tables exist",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the two audit views exist",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the six group roles exist",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 is untouched",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "title": "after CLEAN APPLY: the migrator holds no usable membership in alerts_owner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no alerts_* membership grants the migrator SET ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* membership grants the migrator inherited privileges",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migrator does not hold the privileges of alerts_owner (pg_has_role USAGE)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "SET ROLE alerts_owner is refused for the migrator",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_owner\""
+        },
+        {
+          "name": "the migrator cannot even reach the schema it created",
+          "pass": true,
+          "detail": "42501 permission denied for schema alerts"
+        },
+        {
+          "name": "the migrator keeps ADMIN OPTION on alerts_owner, which is what makes the migration re-runnable",
+          "pass": true,
+          "detail": "[{\"rolname\":\"alerts_audit\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_dispatcher\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":false,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_reconciler\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_retention\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_writer\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false}]"
+        }
+      ]
+    },
+    {
+      "id": "HASH",
+      "title": "the hash and UUID dependencies, and whether the migration mutates extensions",
+      "ok": true,
+      "checks": [
+        {
+          "name": "every hash/UUID primitive the DDL uses lives in pg_catalog",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "sha256(bytea) is a built-in",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "gen_random_uuid() is a built-in",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration installs no extension",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the only extension present is plpgsql",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "digest() -- the pgcrypto entry point -- is NOT present, and is NOT needed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the fingerprint works with no extension installed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration text contains no CREATE EXTENSION",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "IDEMPOTENT REAPPLY over a populated schema",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the same migration applies a second time without error",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "reapply does not change tables",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change functions",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change constraints",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change triggers",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change policies",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change tableAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change fnAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change schemaAcl",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change defaultAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change rls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "reapply does not change roles",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no duplicate role was created",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the seeded outbox rows are untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the seeded delivery rows are untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the retention policy row is not reset or duplicated",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 is still untouched",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "title": "after IDEMPOTENT REAPPLY: the migrator holds no usable membership in alerts_owner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no alerts_* membership grants the migrator SET ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* membership grants the migrator inherited privileges",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migrator does not hold the privileges of alerts_owner (pg_has_role USAGE)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "SET ROLE alerts_owner is refused for the migrator",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_owner\""
+        },
+        {
+          "name": "the migrator cannot even reach the schema it created",
+          "pass": true,
+          "detail": "42501 permission denied for schema alerts"
+        },
+        {
+          "name": "the migrator keeps ADMIN OPTION on alerts_owner, which is what makes the migration re-runnable",
+          "pass": true,
+          "detail": "[{\"rolname\":\"alerts_audit\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_dispatcher\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":false,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_reconciler\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_retention\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_writer\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false}]"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "enqueue atomically creates 1 event + 1 telegram + 1 email",
+      "ok": true,
+      "checks": [
+        {
+          "name": "outcome CREATED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "telegram created",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "email created",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "dispatch_key is the derived key",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the injected failure aborts the call",
+          "pass": true,
+          "detail": "ZZ_INJECTED_DELIVERY_FAILURE"
+        },
+        {
+          "name": "nothing at all survives the aborted enqueue",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "concurrent enqueue for the same canonical request -> exactly 1 + 1 + 1",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the second session blocks while the first holds the insert",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "exactly one CREATED and one ALREADY_PRESENT",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "1 + 1 + 1 after the race",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: exactly one CREATED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: every other call is ALREADY_PRESENT, or the declared retryable 40001",
+          "pass": true,
+          "detail": "{\"ok\":[\"CREATED\",\"ALREADY_PRESENT\",\"ALREADY_PRESENT\",\"ALREADY_PRESENT\",\"ALREADY_PRESENT\",\"ALREADY_PRESENT\"],\"failed\":[]}"
+        },
+        {
+          "name": "burst: 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "abnormal historical state is convergently repaired, and only that",
+      "ok": true,
+      "checks": [
+        {
+          "name": "outcome REPAIRED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "only the missing email row is recreated",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the surviving telegram row is untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "both rows restored",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "exactly two restored, not four",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher claimed the repaired telegram row",
+          "pass": true,
+          "detail": "{\"out_dispatch_key\":\"NEW_LEAD:f6d02280bbf90719753f9fa337676dd19041de9530bde6471979bfc657b924aa\",\"out_channel\":\"telegram\",\"out_claim_token\":\"3d47b826-a63e-4233-a16e-775391bd80fb\",\"out_attempt_count\":1,\"out_lead_id\":\"SYNTH-LEAD-00008\",\"out_request_route\":\"public\",\"out_settled_at\":\"2026-09-01T15:51:13.908Z\",\"out_payload_json\":{\"role\":\"CFO\",\"zone\":\"RED\",\"source\":\"validation-harness\",\"company\":\"Synthetic SRL\",\"priority\":\"high\",\"objective\":\"cash visibility\",\"situation\":\"synthetic fixture row\",\"next_action\":\"call\",\"contact_value\":\"@synthetic_handle_only\",\"contact_channel\":\"telegram\"}}"
+        },
+        {
+          "name": "the telegram row is SENT",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an existing SENT row is never reset",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "the raw Concierge request_id is not persisted anywhere in alerts.*",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the synthetic Concierge identity enqueues",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts table or view column holds the raw id, the chat id or the epoch",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no column is even named for a raw identity",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the function output carries the fingerprint, not the identifier",
+          "pass": true,
+          "detail": "{\"out_dispatch_key\":\"NEW_LEAD:891f347cfb4d78f1f5dbe56603063938ce94943f5baf8b5a949bb771b22b11e7\",\"out_request_fingerprint\":\"891f347cfb4d78f1f5dbe56603063938ce94943f5baf8b5a949bb771b22b11e7\",\"out_outcome\":\"CREATED\",\"out_telegram_created\":true,\"out_email_created\":true}"
+        },
+        {
+          "name": "the stored fingerprint equals the independently computed SHA-256",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an error returned to the caller never echoes the identifier",
+          "pass": true,
+          "detail": "{\"message\":\"ALERTS_LEAD_ID_INVALID\",\"code\":\"22023\"}"
+        },
+        {
+          "name": "a shape rejection echoes only the route name",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "the fingerprint is database-computed; the caller cannot supply or spoof one",
+      "ok": true,
+      "checks": [
+        {
+          "name": "exactly the five declared inputs, and no fingerprint parameter",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the comma-safe wrapper has no fingerprint parameter either",
+          "pass": true,
+          "detail": "p_request_route text, p_request_id text, p_lead_id text, p_settled_at timestamp with time zone, p_payload_b64 text"
+        },
+        {
+          "name": "dispatch_key is GENERATED ALWAYS from the fingerprint",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "request_fingerprint is itself not a generated column",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the derivation contract holds against an independent hash",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer cannot execute request_fingerprint (no hashing oracle)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher cannot execute request_fingerprint (no hashing oracle)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_reconciler cannot execute request_fingerprint (no hashing oracle)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_retention cannot execute request_fingerprint (no hashing oracle)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_audit cannot execute request_fingerprint (no hashing oracle)",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "the caller cannot choose dispatch_key",
+      "ok": true,
+      "checks": [
+        {
+          "name": "even a superuser insert is refused with 428C9",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the key cannot be rewritten either",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "the writer holds no direct SELECT/INSERT/UPDATE/DELETE on the event tables",
+      "ok": true,
+      "checks": [
+        {
+          "name": "SELECT on alerts.new_lead_outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "INSERT on alerts.new_lead_outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "UPDATE on alerts.new_lead_outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "DELETE on alerts.new_lead_outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "SELECT on alerts.new_lead_delivery is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "INSERT on alerts.new_lead_delivery is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "UPDATE on alerts.new_lead_delivery is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "DELETE on alerts.new_lead_delivery is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "SELECT on alerts.retention_policy is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "INSERT on alerts.retention_policy is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "UPDATE on alerts.retention_policy is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "DELETE on alerts.retention_policy is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "re-enqueue with a different payload does not update the event",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "lead_id is not overwritten either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the outcome reports ALREADY_PRESENT",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no function in the schema uses ON CONFLICT DO UPDATE",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "title": "the dispatcher cannot arbitrarily mutate the Outbox event",
+      "ok": true,
+      "checks": [
+        {
+          "name": "SELECT on the outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "INSERT on the outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "UPDATE on the outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "DELETE on the outbox is denied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.enqueue_new_lead(text,text,text,timestamptz,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.enqueue_new_lead_b64(text,text,text,timestamptz,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.repair_new_lead_deliveries(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.purge_new_lead_payloads()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.purge_new_lead_deliveries()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher holds no EXECUTE on alerts.purge_new_lead_keys()",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "title": "the real role + RLS + SECURITY DEFINER combination works for every runtime role",
+      "ok": true,
+      "checks": [
+        {
+          "name": "RLS is enabled and FORCE is off on all three tables",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "there are zero policies",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_owner does NOT hold BYPASSRLS (the exemption comes from ownership)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer: enqueue returns a row, not zero rows",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer: the comma-safe b64 wrapper returns a row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer: the b64 wrapper produced the same key",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: claim returns a row, not zero rows",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: the claim carries the payload it must render",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: finalise returns OK",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: expire_stale_claims runs",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: the email channel claims independently",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: a dead claim becomes DELIVERY_UNKNOWN, not RETRYABLE_FAILED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the expired row is DELIVERY_UNKNOWN",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher: the attention feed returns rows",
+          "pass": true,
+          "detail": "rows=1"
+        },
+        {
+          "name": "the attention feed carries no payload column",
+          "pass": true,
+          "detail": "[\"out_dispatch_key\",\"out_channel\",\"out_status\",\"out_reason\",\"out_attempt_count\",\"out_last_error_code\",\"out_request_route\",\"out_settled_at\",\"out_updated_at\"]"
+        },
+        {
+          "name": "alerts_reconciler: events_present returns two rows",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_reconciler: it finds the present one and misses the absent one",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_reconciler: repair returns a row and recreates only the missing channel",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_reconciler: it may also re-enqueue",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_retention: purge_new_lead_payloads runs",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_retention: purge_new_lead_deliveries runs",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_retention: purge_new_lead_keys REFUSES while the horizon is undecided",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        },
+        {
+          "name": "alerts_audit: the outbox audit view returns rows, not zero rows",
+          "pass": true,
+          "detail": "rows=12"
+        },
+        {
+          "name": "alerts_audit: the delivery audit view returns rows, not zero rows",
+          "pass": true,
+          "detail": "rows=24"
+        },
+        {
+          "name": "alerts_audit: the base table itself stays denied",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "title": "PUBLIC / anon / authenticated / service_role cannot execute the privileged functions",
+      "ok": true,
+      "checks": [
+        {
+          "name": "PUBLIC holds EXECUTE on no function in the schema",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.request_fingerprint(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.enqueue_new_lead(text,text,text,timestamp with time zone,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.enqueue_new_lead_b64(text,text,text,timestamp with time zone,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.claim_new_lead_delivery(text,integer)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.finalise_new_lead_delivery(text,text,uuid,text,text,text,interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.expire_stale_claims(interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.new_lead_attention()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.new_lead_events_present(text[])",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.repair_new_lead_deliveries(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.purge_new_lead_payloads()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.purge_new_lead_deliveries()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.purge_new_lead_keys()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied on alerts.touch_updated_at()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied SELECT on alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied SELECT on alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied SELECT on alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied SELECT on alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "anon denied SELECT on alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.request_fingerprint(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.enqueue_new_lead(text,text,text,timestamp with time zone,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.enqueue_new_lead_b64(text,text,text,timestamp with time zone,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.claim_new_lead_delivery(text,integer)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.finalise_new_lead_delivery(text,text,uuid,text,text,text,interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.expire_stale_claims(interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.new_lead_attention()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.new_lead_events_present(text[])",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.repair_new_lead_deliveries(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.purge_new_lead_payloads()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.purge_new_lead_deliveries()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.purge_new_lead_keys()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied on alerts.touch_updated_at()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied SELECT on alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied SELECT on alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied SELECT on alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied SELECT on alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "authenticated denied SELECT on alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.request_fingerprint(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.enqueue_new_lead(text,text,text,timestamp with time zone,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.enqueue_new_lead_b64(text,text,text,timestamp with time zone,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.claim_new_lead_delivery(text,integer)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.finalise_new_lead_delivery(text,text,uuid,text,text,text,interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.expire_stale_claims(interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.new_lead_attention()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.new_lead_events_present(text[])",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.repair_new_lead_deliveries(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.purge_new_lead_payloads()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.purge_new_lead_deliveries()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.purge_new_lead_keys()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied on alerts.touch_updated_at()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied SELECT on alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied SELECT on alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied SELECT on alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied SELECT on alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role denied SELECT on alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "service_role really does carry BYPASSRLS -- and still reaches nothing",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.request_fingerprint(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.enqueue_new_lead(text,text,text,timestamp with time zone,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.enqueue_new_lead_b64(text,text,text,timestamp with time zone,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.claim_new_lead_delivery(text,integer)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.finalise_new_lead_delivery(text,text,uuid,text,text,text,interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an unprivileged login is denied on alerts.expire_stale_claims(interval)",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "the G5 authority cannot execute any alerts function",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the G5 authority really can reach G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.request_fingerprint(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.enqueue_new_lead(text,text,text,timestamp with time zone,jsonb)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.enqueue_new_lead_b64(text,text,text,timestamp with time zone,text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.claim_new_lead_delivery(text,integer)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.finalise_new_lead_delivery(text,text,uuid,text,text,text,interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.expire_stale_claims(interval)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.new_lead_attention()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.new_lead_events_present(text[])",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.repair_new_lead_deliveries(text)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.purge_new_lead_payloads()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.purge_new_lead_deliveries()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.purge_new_lead_keys()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied on alerts.touch_updated_at()",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied SELECT on alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied SELECT on alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied SELECT on alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied SELECT on alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "g5_authority denied SELECT on alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "no alerts role can reach the G5 replay ledger",
+      "ok": true,
+      "checks": [
+        {
+          "name": "fm_writer denied SELECT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_writer denied INSERT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_writer denied UPDATE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_writer denied DELETE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_dispatcher denied SELECT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_dispatcher denied INSERT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_dispatcher denied UPDATE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_dispatcher denied DELETE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_reconciler denied SELECT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_reconciler denied INSERT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_reconciler denied UPDATE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_reconciler denied DELETE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_retention denied SELECT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_retention denied INSERT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_retention denied UPDATE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_retention denied DELETE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_audit denied SELECT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_audit denied INSERT on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_audit denied UPDATE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_audit denied DELETE on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* grantee appears on the G5 table",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no membership edge exists between alerts_* and any G5 role",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the G5 ledger still holds its 8 synthetic rows, untouched",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "title": "the 30-day payload purge leaves the durable identity internally consistent",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the aged event starts with 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the purge reports at least one row purged",
+          "pass": true,
+          "detail": "n=1"
+        },
+        {
+          "name": "payload_json is emptied to {}",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "payload_purged_at is stamped",
+          "pass": true,
+          "detail": "Tue Sep 01 2026 18:51:16 GMT+0300 (Восточная Европа, летнее время)"
+        },
+        {
+          "name": "the durable identity is unchanged",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the fingerprint still satisfies its own CHECK",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "both delivery rows survive with a valid foreign key",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no orphan delivery row exists anywhere",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a purged event is not claimable on telegram",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a purged event is not claimable on email",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "it surfaces as UNDELIVERED_PAYLOAD_PURGED",
+          "pass": true,
+          "detail": "[{\"out_dispatch_key\":\"NEW_LEAD:d90aefb09d59b0b8886d18ddcd697bb4372750a8a9d6c63e4b854b86e8cb06f2\",\"out_channel\":\"email\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-23T15:51:16.199Z\",\"out_updated_at\":\"2026-09-01T15:51:16.353Z\"},{\"out_dispatch_key\":\"NEW_LEAD:d90aefb09d59b0b8886d18ddcd697bb4372750a8a9d6c63e4b854b86e8cb06f2\",\"out_channel\":\"telegram\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-23T15:51:16.199Z\",\"out_updated_at\":\"2026-09-01T15:51:16.353Z\"}]"
+        },
+        {
+          "name": "re-enqueue after purge does not resurrect anything",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "still exactly 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and a deleted delivery row is NOT silently recreated after the horizon",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the email row stays absent",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "zero Microsoft-specific schema coupling",
+      "ok": true,
+      "checks": [
+        {
+          "name": "new_lead_outbox columns are exactly the frozen set",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "new_lead_delivery columns are exactly the frozen set",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "retention_policy columns are exactly the frozen set",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no object name anywhere in the schema is provider-specific",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no CHECK constraint mentions a provider",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no function body mentions a provider",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "provider_message_id is nullable and provider-neutral",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the channel CHECK names only telegram and email",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "title": "a malformed route identity is rejected before any insert",
+      "ok": true,
+      "checks": [
+        {
+          "name": "rejected: wrong alphabet",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "rejected: too short",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "rejected: a Mini App identity on the public route",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "rejected: a public identity on the Mini App route",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=miniapp)"
+        },
+        {
+          "name": "rejected: a public identity on the Concierge route",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "rejected: a non-numeric chat id",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "rejected: an epoch that is too short",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "rejected: an empty identity",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "rejected: a null identity",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "an unknown route \"PUBLIC\" is rejected first",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "an unknown route \"web\" is rejected first",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "an unknown route \"\" is rejected first",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "an unknown route \"null\" is rejected first",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "an unknown route \"concierge \" is rejected first",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "no rejected call left a row behind",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "title": "a malformed or forbidden payload rolls the whole enqueue transaction back",
+      "ok": true,
+      "checks": [
+        {
+          "name": "rejected: a forbidden key",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "nothing committed for: a forbidden key",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no payload VALUE is echoed for: a forbidden key",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "no payload KEY NAME is echoed for: a forbidden key (amendment 2.2-D)",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "rejected: two forbidden keys",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=2)"
+        },
+        {
+          "name": "nothing committed for: two forbidden keys",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no payload VALUE is echoed for: two forbidden keys",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=2)"
+        },
+        {
+          "name": "no payload KEY NAME is echoed for: two forbidden keys (amendment 2.2-D)",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=2)"
+        },
+        {
+          "name": "rejected: an unknown contact channel",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "nothing committed for: an unknown contact channel",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no payload VALUE is echoed for: an unknown contact channel",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "no payload KEY NAME is echoed for: an unknown contact channel (amendment 2.2-D)",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "rejected: a JSON array",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "nothing committed for: a JSON array",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "rejected: a JSON string",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "nothing committed for: a JSON string",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "rejected: JSON null",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "nothing committed for: JSON null",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the allowlist CHECK refuses a forbidden key even from the owner",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "title": "a failure while creating ONE delivery row rolls the whole transaction back",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the email-row failure aborts the call",
+          "pass": true,
+          "detail": "ZZ_EMAIL_ROW_FAILED"
+        },
+        {
+          "name": "event = 0, telegram = 0, email = 0 -- the successful telegram insert is rolled back too",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a retry after the failure creates the complete set",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "1 + 1 + 1 on retry",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "title": "finalise requires the correct claim_token",
+      "ok": true,
+      "checks": [
+        {
+          "name": "claimed the seeded row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the correct token succeeds",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the row is SENT with sent_at set and the token cleared",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "replaying the same token after finalise is refused",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "title": "a wrong claim_token changes zero rows",
+      "ok": true,
+      "checks": [
+        {
+          "name": "a random token is refused",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a null token is refused",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the right token on the WRONG channel is refused",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the right token on the WRONG key is refused",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the row is byte-for-byte unchanged by every refused finalise",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "title": "two dispatchers racing for one delivery produce exactly one claim winner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the first dispatcher wins the row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the second gets zero rows while the row is locked (SKIP LOCKED)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and zero rows after the commit, because the row is CLAIMED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "attempt_count advanced exactly once",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: exactly one winner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: nobody errored",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: attempt_count advanced exactly once",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "burst: exactly one distinct claim token exists",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "title": "a SENT delivery can never be reclaimed",
+      "ok": true,
+      "checks": [
+        {
+          "name": "a SENT telegram row is never returned by the claim",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT telegram row keeps attempt_count = 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT telegram row cannot be forced back by a stale token",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT telegram row is still SENT",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a SENT email row is never returned by the claim",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT email row keeps attempt_count = 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT email row cannot be forced back by a stale token",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the SENT email row is still SENT",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a SENT row without sent_at is refused by CHECK",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "DELIVERY_UNKNOWN is never automatically reclaimed",
+      "ok": true,
+      "checks": [
+        {
+          "name": "finalise can declare DELIVERY_UNKNOWN",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a DELIVERY_UNKNOWN row is not returned by the claim",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "not even with next_attempt_at far in the past",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "claimed a second row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "an expired claim becomes DELIVERY_UNKNOWN, not RETRYABLE_FAILED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it is not reclaimed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "it appears in the owner attention feed instead",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "expire_stale_claims refuses a sub-minute window",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "title": "RETRYABLE_FAILED cannot be reclaimed before next_attempt_at",
+      "ok": true,
+      "checks": [
+        {
+          "name": "finalise records a retryable failure",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the row is RETRYABLE_FAILED with the token cleared",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "next_attempt_at was pushed into the future",
+          "pass": true,
+          "detail": "Tue Sep 01 2026 18:53:20 GMT+0300 (Восточная Европа, летнее время)"
+        },
+        {
+          "name": "the backoff floor of 30 seconds is applied",
+          "pass": true,
+          "detail": "Tue Sep 01 2026 18:53:20 GMT+0300 (Восточная Европа, летнее время)"
+        },
+        {
+          "name": "it is not claimable while next_attempt_at is in the future",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "title": "RETRYABLE_FAILED becomes claimable after next_attempt_at",
+      "ok": true,
+      "checks": [
+        {
+          "name": "once next_attempt_at has passed it is claimable again",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it is the same row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "attempt_count advanced to 2",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a row at the attempt ceiling is not claimed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "but a caller may raise the ceiling explicitly",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "title": "a telegram claim cannot mutate the email row, and the reverse",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the telegram claim touched the telegram row only",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the telegram finalise touched the telegram row only",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the telegram row really did change",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the email claim picked the email row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the email claim touched the email row only",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the email finalise touched the email row only",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a channel is refused outright if it is not one of the two",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and by CHECK constraint as well",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "title": "the outbox payload after purge contains no contact_value",
+      "ok": true,
+      "checks": [
+        {
+          "name": "a purged event from gate 31 is available",
+          "pass": true,
+          "detail": "NEW_LEAD:d90aefb09d59b0b8886d18ddcd697bb4372750a8a9d6c63e4b854b86e8cb06f2"
+        },
+        {
+          "name": "the payload is exactly {}",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the payload holds no keys at all",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no purged row anywhere retains a contact_value",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no purged row retains any other key either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the synthetic contact value is gone from that row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the purge CHECK refuses to put a payload back on a purged row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the audit view reports the purged row as carrying no contact value",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "title": "the audit views expose no raw request_id",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the outbox audit view does not select payload_json itself",
+          "pass": true,
+          "detail": " SELECT dispatch_key,\n    request_fingerprint,\n    fingerprint_version,\n    event_type,\n    request_route,\n    lead_id,\n    schema_version,\n    settled_at,\n    created_at,\n    payload_purged_at,\n    payload_json ? 'contact_value'::text AS has_contact_value,\n    payload_json <> '{}'::jsonb AS payload_present\n   FROM alerts.new_lead_outbox;"
+        },
+        {
+          "name": "the outbox audit view exposes a frozen, payload-free column set",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_outbox_audit contains no raw identifier",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_outbox_audit contains no chat id",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_outbox_audit contains no raw identifier",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_outbox_audit carries no contact value",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_delivery_audit contains no raw identifier",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_delivery_audit contains no chat id",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_delivery_audit contains no raw identifier",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.new_lead_delivery_audit carries no contact value",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the delivery audit view has no payload column",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "title": "SECURITY DEFINER controls: owner, pinned search_path, no dynamic SQL, no PUBLIC EXECUTE",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the schema contains exactly the 13 expected functions",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every function is owned by alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every function pins search_path = pg_catalog",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "PUBLIC holds EXECUTE on none of them",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no function body contains dynamic SQL",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "exactly the runtime-facing functions are SECURITY DEFINER",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the three that are not SECURITY DEFINER are the b64 wrapper, the hash and the trigger",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every object in the schema is owned by alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the schema itself is owned by alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "PUBLIC holds nothing on the schema",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "title": "no runtime login inherits alerts_owner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no login role at all inherits alerts_owner -- the migrator included, after 2.2-A",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "none of the five runtime group roles is a member of alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_writer does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_dispatcher does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_reconciler does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_retention does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_audit does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "fm_nobody does not have alerts_owner",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "not even the migrator inherits it",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "title": "the migration creates no LOGIN credential and stores no password or secret",
+      "ok": true,
+      "checks": [
+        {
+          "name": "exactly the six group roles exist",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "none can log in",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "none holds a password",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "none is superuser or BYPASSRLS",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "none can create roles",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration added no role beyond those six",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no secret-shaped literal appears in any function body",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the schema declares no foreign server or user mapping",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "W7",
+      "title": "the approved 7-day repair window: inside repairs, outside refuses, reconciler still can",
+      "ok": true,
+      "checks": [
+        {
+          "name": "day 0: a missing delivery is repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 3: a missing delivery is repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 6.99: a missing delivery is repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 7.01: ordinary enqueue does NOT resurrect the delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 7.01: the email row is still absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 7.01: only the explicit reconciler authority repairs it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 7.01: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10: ordinary enqueue does NOT resurrect the delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10: the email row is still absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10: only the explicit reconciler authority repairs it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45: ordinary enqueue does NOT resurrect the delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45: the email row is still absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45: only the explicit reconciler authority repairs it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the reconciler cannot repair an event that does not exist",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "the window is NOT a hard-coded constant in the function body",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts.retention_policy holds the repair window as data",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "RET",
+      "title": "retention windows are policy data, and no horizon defaults to forever",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the singleton policy row holds the approved windows and an UNDECIDED key horizon",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "there is exactly one policy row and a second cannot be added",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a bounded key decision cannot be recorded without a horizon",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "nothing in the schema says \"forever\"",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "updated_at could only be backdated with the trigger disabled -- the trigger owns it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the 180-day sweep deletes terminal rows",
+          "pass": true,
+          "detail": "n=1"
+        },
+        {
+          "name": "a SENT row past the horizon is swept",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a DELIVERY_UNKNOWN row awaiting an owner decision is NEVER swept",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the key row survives the delivery sweep",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "title": "the automatic repair window is policy DATA, not a literal in the function",
+      "ok": true,
+      "checks": [
+        {
+          "name": "alerts.retention_policy carries automatic_repair_days",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the shipped value is the owner-approved 7 days",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no interval literal for the repair window survives in enqueue_new_lead",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "enqueue_new_lead reads the column instead",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the window is bounded, so a typo cannot make it a century",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it cannot be set to zero either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "with no policy row the enqueue REFUSES rather than assuming a default",
+          "pass": true,
+          "detail": "ALERTS_REPAIR_POLICY_MISSING"
+        },
+        {
+          "name": "and it wrote nothing at all",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "title": "changing the policy 7 -> 5 changes behaviour with NO function migration",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the policy is changed by an UPDATE of one integer",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 6, which repaired at 7, now refuses at 5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 4 still repairs at 5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the function was not migrated: same oid",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the function was not migrated: byte-identical body",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the function row was not even rewritten: same xmin",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "restored to the owner-approved 7",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "title": "inside the policy window an ordinary enqueue repairs a missing delivery",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the window in force is the approved 7",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 0 <= 7: repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 0: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 3 <= 7: repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 3: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 6.9 <= 7: repaired",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 6.9: back to 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "title": "outside the policy window an ordinary enqueue refuses resurrection",
+      "ok": true,
+      "checks": [
+        {
+          "name": "day 7.1 > 7: no resurrection",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 7.1: the email row is still absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10 > 7: no resurrection",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 10: the email row is still absent",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45 > 7: no resurrection",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "day 45: the email row is still absent",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "title": "outside the window only the explicit reconciler authority repairs",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the reconciler repairs beyond the automatic window",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and leaves exactly 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the reconciler repairs beyond the automatic window",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and leaves exactly 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the reconciler repairs beyond the automatic window",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and leaves exactly 1 + 1 + 1",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "but it cannot conjure an event that never existed",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "the writer holds no EXECUTE on the reconciler repair authority",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "title": "the payload still purges while a DELIVERY_UNKNOWN stays unresolved",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the 30-day payload purge runs and touches rows",
+          "pass": true,
+          "detail": "n=3"
+        },
+        {
+          "name": "the payload is emptied even though the delivery is unresolved",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "payload_purged_at is stamped",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "contact_value is gone from the row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the DELIVERY_UNKNOWN row is still there, still unresolved",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "400 days later the unresolved DELIVERY_UNKNOWN is STILL not swept",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "recording a DELIVERY_UNKNOWN horizon makes the sweep REFUSE, not silently do nothing",
+          "pass": true,
+          "detail": "0A000 ALERTS_DELIVERY_UNKNOWN_HORIZON_NOT_IMPLEMENTED (status=DECIDED_BOUNDED)"
+        },
+        {
+          "name": "the unresolved row survives that too",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a bounded decision cannot be recorded without a horizon",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "back to PENDING_OWNER, which is the shipped state",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "title": "no alerts exception carries the raw request id",
+      "ok": true,
+      "checks": [
+        {
+          "name": "ALERTS_ROUTE_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_ROUTE_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "ALERTS_ROUTE_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "ALERTS_ROUTE_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_SETTLED_AT_INVALID"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_SETTLED_AT_INVALID"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_SETTLED_AT_INVALID"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_OUTCOME_INVALID"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_OUTCOME_INVALID"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_OUTCOME_INVALID"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_ERROR_CODE_INVALID"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_ERROR_CODE_INVALID"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_ERROR_CODE_INVALID"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_PROVIDER_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_PROVIDER_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_PROVIDER_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: raises",
+          "pass": true,
+          "detail": "the call SUCCEEDED, so the path was not exercised"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: the error carries no raw request id",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: the error carries no chat id fragment",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: the error is a stable ALERTS_* code",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        },
+        {
+          "name": "the forbidden-key error reports a COUNT, never the key names",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the maximal-logging control is ARMED at the cluster -- see db/validation/README.md",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "positive control: under maximal logging the scan DOES find the identifier in the log",
+          "pass": true,
+          "detail": "the scan found the identifier NOWHERE in the log, so every \"no line carries it\" assertion below is vacuous -- the cluster is not logging, or the log is not being read"
+        },
+        {
+          "name": "under log_statement=all, NO line the schema itself writes carries the raw id or contact value",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and no ERROR line -- the text of our own RAISE -- carries them either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every line that does carry them is attributable to a named logging setting",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "with finmentor-prod's logging settings, the raw id reaches the server log ZERO times",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and neither does contact_value",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "title": "no alerts exception carries contact_value or any payload value",
+      "ok": true,
+      "checks": [
+        {
+          "name": "ALERTS_ROUTE_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "ALERTS_ROUTE_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_ROUTE_INVALID"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=public)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "ALERTS_REQUEST_ID_SHAPE_INVALID/malformed: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_REQUEST_ID_SHAPE_INVALID (route=concierge)"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_LEAD_ID_INVALID/long: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_LEAD_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_SETTLED_AT_INVALID"
+        },
+        {
+          "name": "ALERTS_SETTLED_AT_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_SETTLED_AT_INVALID"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_NOT_OBJECT: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/key-is-the-secret: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_PAYLOAD_KEY_FORBIDDEN/contact-in-key: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_KEY_FORBIDDEN (n=1)"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CONTACT_CHANNEL_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_CONTACT_CHANNEL_INVALID"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "b64/ALERTS_PAYLOAD_NOT_OBJECT: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_PAYLOAD_NOT_OBJECT"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_CHANNEL_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_CHANNEL_INVALID"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_OUTCOME_INVALID"
+        },
+        {
+          "name": "ALERTS_OUTCOME_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_OUTCOME_INVALID"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_ERROR_CODE_INVALID"
+        },
+        {
+          "name": "ALERTS_ERROR_CODE_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_ERROR_CODE_INVALID"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_PROVIDER_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_PROVIDER_ID_INVALID: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_PROVIDER_ID_INVALID"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        },
+        {
+          "name": "ALERTS_EXPIRY_TOO_SHORT: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_EXPIRY_TOO_SHORT"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "ALERTS_EVENT_NOT_FOUND: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_EVENT_NOT_FOUND"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: the error carries no contact_value",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        },
+        {
+          "name": "ALERTS_KEY_RETENTION_PENDING: the error carries no \"Failing row contains\" dump",
+          "pass": true,
+          "detail": "ALERTS_KEY_RETENTION_PENDING_LEGAL_PRIVACY_FINALISATION (status=PENDING_LEGAL_PRIVACY_FINALISATION)"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "title": "after every failure path, no alerts table or view holds the raw request id",
+      "ok": true,
+      "checks": [
+        {
+          "name": "every text and jsonb column of every alerts table and view was scanned",
+          "pass": true,
+          "detail": "columns=23"
+        },
+        {
+          "name": "the raw request id appears in no alerts column",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the chat id fragment appears in no alerts column",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the contact value appears in no alerts column",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no outbox row was created by any failure path",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the fingerprint of the secret identity is not present either",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "title": "auto_explain: a slow but SUCCESSFUL enqueue, and the mitigation that closes it",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the slow enqueue SUCCEEDED -- this is not an error path",
+          "pass": true,
+          "detail": "{\"out_dispatch_key\":\"NEW_LEAD:54c6e655f0b5a16c66d00ec2fb06002c35f7664e16cac70983e61e0063df68c7\",\"out_request_fingerprint\":\"54c6e655f0b5a16c66d00ec2fb06002c35f7664e16cac70983e61e0063df68c7\",\"out_outcome\":\"CREATED\",\"out_telegram_created\":true,\"out_email_created\":true}"
+        },
+        {
+          "name": "auto_explain fired at the 10 s threshold",
+          "pass": true,
+          "detail": "2026-09-01 18:51:38.128 EEST [10028] LOG:  duration: 11038.868 ms  plan:"
+        },
+        {
+          "name": "CONFIRMED: with prod's auto_explain settings the raw request id IS written to the server log by a SUCCESSFUL enqueue that crosses 10 s",
+          "pass": true,
+          "detail": "lines=1"
+        },
+        {
+          "name": "and it arrives as auto_explain's \"Query Parameters\", not as anything the schema wrote",
+          "pass": true,
+          "detail": "[]"
+        },
+        {
+          "name": "with statement_timeout below the threshold the contended enqueue is aborted, not logged",
+          "pass": true,
+          "detail": "55P03 canceling statement due to lock timeout"
+        },
+        {
+          "name": "auto_explain never fires, because no statement ever reaches 10 s",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the raw request id appears in the server log ZERO times",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the aborted attempt committed nothing",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "title": "the rollback REFUSES to cascade through an object it does not own",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the rollback fails rather than dropping an unknown object",
+          "pass": true,
+          "detail": "2BP01 cannot drop schema alerts because other objects depend on it"
+        },
+        {
+          "name": "the failure is on the schema drop, not a silent cascade",
+          "pass": true,
+          "detail": "cannot drop schema alerts because other objects depend on it :: table alerts.zz_stray_object depends on schema alerts"
+        },
+        {
+          "name": "the whole rollback transaction rolled back -- the schema is intact",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the stray object survives too",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "title": "ROLLBACK removes only migration-owned objects",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the rollback runs cleanly once the schema holds only its own objects",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the alerts schema is gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every alerts_* role is gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no default ACL for the schema survives",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 survives untouched, all 8 rows",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the unrelated schema survives",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the unrelated public table survives",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every non-alerts role survives",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and no extra role is left behind",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "title": "after ROLLBACK: the migrator holds no usable membership in alerts_owner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no alerts_* membership grants the migrator SET ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* membership grants the migrator inherited privileges",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migrator does not hold the privileges of alerts_owner (pg_has_role USAGE)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* role exists, so no membership in one can survive either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the catalog agrees",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "title": "REAPPLY AFTER ROLLBACK from a clean database",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the forward migration applies again cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: tables",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: functions",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: constraints",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: triggers",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: policies",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: rls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: roles",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: tableAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: fnAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: schemaAcl",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the rebuilt schema matches the first apply: defaultAcls",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the retention policy is back at its approved values and undecided horizons",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the outbox is empty -- the rollback really did destroy the keys",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "title": "after REAPPLY AFTER ROLLBACK: the migrator holds no usable membership in alerts_owner",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no alerts_* membership grants the migrator SET ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no alerts_* membership grants the migrator inherited privileges",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migrator does not hold the privileges of alerts_owner (pg_has_role USAGE)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "SET ROLE alerts_owner is refused for the migrator",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_owner\""
+        },
+        {
+          "name": "the migrator cannot even reach the schema it created",
+          "pass": true,
+          "detail": "42501 permission denied for schema alerts"
+        },
+        {
+          "name": "the migrator keeps ADMIN OPTION on alerts_owner, which is what makes the migration re-runnable",
+          "pass": true,
+          "detail": "[{\"rolname\":\"alerts_audit\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_dispatcher\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_owner\",\"admin_option\":false,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_reconciler\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_retention\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"rolname\":\"alerts_writer\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false}]"
+        }
+      ]
+    }
+  ],
+  "assertions": 644,
+  "notes": [
+    "gate 47: the revision-2.1 residual is CLOSED. The migration now revokes the migrator SET and INHERIT on alerts_owner before COMMIT (2.2-A). What it keeps is ADMIN OPTION, which confers neither -- it is what makes the migration re-runnable and rollback-able without a superuser. Gates 49-52.",
+    "REPAIR WINDOW = 7 DAYS, OWNER-APPROVED 2026-09-01, with the operational rationale recorded in docs 12: a NEW LEAD alert older than seven days must not be resurrected and sent as if it were fresh. It is held in alerts.retention_policy.automatic_repair_days, so changing it is an UPDATE, not a migration (gates 53-57).",
+    "DELIVERY_UNKNOWN maximum retention is still PENDING OWNER: purge_new_lead_deliveries sweeps only SENT and PERMANENT_FAILED, so nothing removes an unresolved row. Revision 2.2-C makes that a RECORDED pending decision rather than an omission -- the horizon is a NULL column with a PENDING_OWNER status, and the sweep RAISES if the status ever changes without the deletion code being written (gate 58). The payload behind such a row is still purged at 30 days, so an unresolved delivery does not preserve contact_value (gate 58).",
+    "server log under DELIBERATELY MAXIMAL logging (log_statement=all, log_min_duration_statement=0, log_parameter_max_length=-1, log_parameter_max_length_on_error=-1, log_error_verbosity=verbose): 140 lines carry the raw identifier or the contact value -- 0 statement lines (log_statement / log_min_duration_statement), 124 bind-parameter DETAIL lines (log_parameter_max_length), 16 on-error parameter dumps (log_parameter_max_length_on_error). NONE is authored by an alerts RAISE. This is the worst case, provoked on purpose; finmentor-prod's own settings are replayed below.",
+    "Replayed with finmentor-prod's effective logging settings (log_statement=ddl, log_min_duration_statement=-1, log_duration=off, log_parameter_max_length_on_error=0): the raw canonical request id appeared in the server log ZERO times, on the successful path and on both failure paths.",
+    "RAW REQUEST ID ORDINARY-STATEMENT LOG RISK, PROVEN NOT INFERRED: with finmentor-prod's exact settings (auto_explain preloaded, log_min_duration 10 000 ms, log_parameter_max_length -1, log_nested_statements off) a SUCCESSFUL enqueue that crosses 10 s writes the raw canonical request id and contact_value to the server log as auto_explain \"Query Parameters\". It is NOT reachable in normal operation -- an enqueue is sub-millisecond -- but it is reachable under lock contention, and prod has lock_timeout = 0 with statement_timeout = 120 s, so the 10-120 s window is open. MITIGATION PROVEN in the same run: ALTER ROLE <runtime login> SET statement_timeout = '8s', lock_timeout = '5s' -- the same values Supabase already sets for its own `authenticator` role -- caps every statement below the threshold, auto_explain never fires, and the identifier reaches the log zero times. This is a RUNTIME CREDENTIAL precondition, not a DDL change, and it changes NO database logging setting."
+  ]
+}

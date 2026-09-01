@@ -1,3 +1,8 @@
 
 # owner-only UAT deployment artifacts (rollback bodies, resolved values)
 .uat/
+
+# non-production DDL validation harness deps (never shipped, never deployed)
+db/validation/node_modules/
+db/validation/package-lock.json
+db/validation/.pgdata/

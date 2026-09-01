@@ -1,0 +1,61 @@
+PASS  A          CLEAN APPLY on an empty target, as a non-superuser migrator
+PASS  B          IDEMPOTENT REAPPLY over a populated schema
+PASS  HASH       the hash and UUID dependencies, and whether the migration mutates extensions
+PASS  PRE        the section 8 precondition holds on the target database
+PASS  RET        retention windows are policy data, and no horizon defaults to forever
+PASS  C1         the rollback REFUSES to cascade through an object it does not own
+PASS  C2         ROLLBACK removes only migration-owned objects
+PASS  C3         REAPPLY AFTER ROLLBACK from a clean database
+PASS  W7         the approved 7-day repair window: inside repairs, outside refuses, reconciler still can
+PASS  19         enqueue atomically creates 1 event + 1 telegram + 1 email
+PASS  20         concurrent enqueue for the same canonical request -> exactly 1 + 1 + 1
+PASS  21         abnormal historical state is convergently repaired, and only that
+PASS  22         the raw Concierge request_id is not persisted anywhere in alerts.*
+PASS  23         the fingerprint is database-computed; the caller cannot supply or spoof one
+PASS  24         the caller cannot choose dispatch_key
+PASS  25         the writer holds no direct SELECT/INSERT/UPDATE/DELETE on the event tables
+PASS  26         the dispatcher cannot arbitrarily mutate the Outbox event
+PASS  27         the real role + RLS + SECURITY DEFINER combination works for every runtime role
+PASS  28         PUBLIC / anon / authenticated / service_role cannot execute the privileged functions
+PASS  29         the G5 authority cannot execute any alerts function
+PASS  30         no alerts role can reach the G5 replay ledger
+PASS  31         the 30-day payload purge leaves the durable identity internally consistent
+PASS  32         zero Microsoft-specific schema coupling
+PASS  33         a malformed route identity is rejected before any insert
+PASS  34         a malformed or forbidden payload rolls the whole enqueue transaction back
+PASS  35         a failure while creating ONE delivery row rolls the whole transaction back
+PASS  36         finalise requires the correct claim_token
+PASS  37         a wrong claim_token changes zero rows
+PASS  38         two dispatchers racing for one delivery produce exactly one claim winner
+PASS  39         a SENT delivery can never be reclaimed
+PASS  40         DELIVERY_UNKNOWN is never automatically reclaimed
+PASS  41         RETRYABLE_FAILED cannot be reclaimed before next_attempt_at
+PASS  42         RETRYABLE_FAILED becomes claimable after next_attempt_at
+PASS  43         a telegram claim cannot mutate the email row, and the reverse
+PASS  44         the outbox payload after purge contains no contact_value
+PASS  45         the audit views expose no raw request_id
+PASS  46         SECURITY DEFINER controls: owner, pinned search_path, no dynamic SQL, no PUBLIC EXECUTE
+PASS  47         no runtime login inherits alerts_owner
+PASS  48         the migration creates no LOGIN credential and stores no password or secret
+PASS  49         after CLEAN APPLY: the migrator holds no usable membership in alerts_owner
+PASS  50         after IDEMPOTENT REAPPLY: the migrator holds no usable membership in alerts_owner
+PASS  51         after ROLLBACK: the migrator holds no usable membership in alerts_owner
+PASS  52         after REAPPLY AFTER ROLLBACK: the migrator holds no usable membership in alerts_owner
+PASS  53         the automatic repair window is policy DATA, not a literal in the function
+PASS  54         changing the policy 7 -> 5 changes behaviour with NO function migration
+PASS  55         inside the policy window an ordinary enqueue repairs a missing delivery
+PASS  56         outside the policy window an ordinary enqueue refuses resurrection
+PASS  57         outside the window only the explicit reconciler authority repairs
+PASS  58         the payload still purges while a DELIVERY_UNKNOWN stays unresolved
+PASS  59         no alerts exception carries the raw request id
+PASS  60         no alerts exception carries contact_value or any payload value
+PASS  61         after every failure path, no alerts table or view holds the raw request id
+PASS  62         auto_explain: a slow but SUCCESSFUL enqueue, and the mitigation that closes it
+
+gates: 53   failed: 0   assertions: 644
+NOTE  gate 47: the revision-2.1 residual is CLOSED. The migration now revokes the migrator SET and INHERIT on alerts_owner before COMMIT (2.2-A). What it keeps is ADMIN OPTION, which confers neither -- it is what makes the migration re-runnable and rollback-able without a superuser. Gates 49-52.
+NOTE  REPAIR WINDOW = 7 DAYS, OWNER-APPROVED 2026-09-01, with the operational rationale recorded in docs 12: a NEW LEAD alert older than seven days must not be resurrected and sent as if it were fresh. It is held in alerts.retention_policy.automatic_repair_days, so changing it is an UPDATE, not a migration (gates 53-57).
+NOTE  DELIVERY_UNKNOWN maximum retention is still PENDING OWNER: purge_new_lead_deliveries sweeps only SENT and PERMANENT_FAILED, so nothing removes an unresolved row. Revision 2.2-C makes that a RECORDED pending decision rather than an omission -- the horizon is a NULL column with a PENDING_OWNER status, and the sweep RAISES if the status ever changes without the deletion code being written (gate 58). The payload behind such a row is still purged at 30 days, so an unresolved delivery does not preserve contact_value (gate 58).
+NOTE  server log under DELIBERATELY MAXIMAL logging (log_statement=all, log_min_duration_statement=0, log_parameter_max_length=-1, log_parameter_max_length_on_error=-1, log_error_verbosity=verbose): 140 lines carry the raw identifier or the contact value -- 0 statement lines (log_statement / log_min_duration_statement), 124 bind-parameter DETAIL lines (log_parameter_max_length), 16 on-error parameter dumps (log_parameter_max_length_on_error). NONE is authored by an alerts RAISE. This is the worst case, provoked on purpose; finmentor-prod's own settings are replayed below.
+NOTE  Replayed with finmentor-prod's effective logging settings (log_statement=ddl, log_min_duration_statement=-1, log_duration=off, log_parameter_max_length_on_error=0): the raw canonical request id appeared in the server log ZERO times, on the successful path and on both failure paths.
+NOTE  RAW REQUEST ID ORDINARY-STATEMENT LOG RISK, PROVEN NOT INFERRED: with finmentor-prod's exact settings (auto_explain preloaded, log_min_duration 10 000 ms, log_parameter_max_length -1, log_nested_statements off) a SUCCESSFUL enqueue that crosses 10 s writes the raw canonical request id and contact_value to the server log as auto_explain "Query Parameters". It is NOT reachable in normal operation -- an enqueue is sub-millisecond -- but it is reachable under lock contention, and prod has lock_timeout = 0 with statement_timeout = 120 s, so the 10-120 s window is open. MITIGATION PROVEN in the same run: ALTER ROLE <runtime login> SET statement_timeout = '8s', lock_timeout = '5s' -- the same values Supabase already sets for its own `authenticator` role -- caps every statement below the threshold, auto_explain never fires, and the identifier reaches the log zero times. This is a RUNTIME CREDENTIAL precondition, not a DDL change, and it changes NO database logging setting.
