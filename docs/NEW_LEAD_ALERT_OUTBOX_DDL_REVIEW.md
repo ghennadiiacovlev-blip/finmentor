@@ -1857,11 +1857,29 @@ READY FOR OWNER DDL APPROVAL = YES, FOR THE PRODUCTION DDL DECISION — NOT AS T
          KEY RETENTION remains PENDING LEGAL / PRIVACY FINALISATION either way; it does not block
          applying the schema, because the schema does not assume an answer.
 
-NOT DONE, BY INSTRUCTION:
+NOT DONE, BY INSTRUCTION  (as of the review; superseded on the first line only — see below):
     nothing applied to finmentor-prod · no production schema or role created · no workflow deployed
     · no n8n credential created · no Microsoft Graph credential created · no Telegram or Email sent
     · G5 untouched · SYSTEM ALERT untouched · cycle projection untouched · customer production not
     activated.
+
+PRODUCTION DDL APPLIED = 2026-09-01, revision 2.2, ACCEPTED PASS
+    Owner approval was given separately and revision 2.2 was applied to finmentor-prod.
+        COMMIT           3182ff98e71098d7af977589cf271ee9fd4e52f2
+        SHA256           b7e35dcbebe96e82d011ad88563a405cc7be1d462fcf4bcc8a40969a36af39cb
+        LEDGER           20260901171454_new_lead_alert_outbox
+        RESULT           OUTBOX PRODUCTION DDL = PASS
+                         OUTBOX DATABASE FOUNDATION = READY
+    Every other line of NOT DONE still holds: no runtime login, no n8n credential, no Microsoft
+    Graph credential, no workflow, no schedule, no Telegram or Email sent, G5 byte-identical before
+    and after, cycle projection untouched, customer production NOT activated. The database is
+    dormant: the schema exists and nothing can call it.
+
+    Three production-only findings, and one runtime precondition that is NOT satisfied, are
+    recorded in docs/NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md. The first finding CORRECTS a claim
+    in the non-production record: on finmentor-prod the migrator CAN read alerts data, because
+    postgres inherits pg_read_all_data from the Supabase platform. It still cannot SET ROLE
+    alerts_owner, cannot EXECUTE any alerts function, and cannot write.
 ```
 
 ---

@@ -1,7 +1,13 @@
 # NEW LEAD ALERT OUTBOX — NON-PRODUCTION DDL VALIDATION
 
-**Status: OUTBOX DDL NON-PROD VALIDATION = PASS. READY FOR PRODUCTION DDL APPROVAL = YES.
-PRODUCTION DDL NOT APPLIED, and it will not be without separate owner approval.**
+**Status: OUTBOX DDL NON-PROD VALIDATION = PASS. READY FOR PRODUCTION DDL APPROVAL = YES.**
+
+> **SUPERSEDED ON THE PRODUCTION QUESTION, 2026-09-01.** When written, this document ended
+> "PRODUCTION DDL NOT APPLIED, and it will not be without separate owner approval." That approval was
+> given and revision 2.2 **has since been applied to `finmentor-prod` and accepted**
+> (`OUTBOX PRODUCTION DDL = PASS`, `OUTBOX DATABASE FOUNDATION = READY`). This document remains the
+> authority on the *non-production* validation only. Production corrects one of its claims — see the
+> correction in §7 and [`NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md`](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md).
 
 Executed 2026-08-31 under the owner authorisation *OUTBOX REVISION 2 NON-PRODUCTION VALIDATION*,
 and extended 2026-09-01 by the owner's pre-production hardening pass (**revision 2.2**).
@@ -267,7 +273,7 @@ suite re-run end to end — the same 53 / 644 / 0, and the same 140 / 0 / 124 / 
 | 46 | SECURITY DEFINER controls | **PASS** — exactly 13 functions; **every one** owned by `alerts_owner` with `search_path=pg_catalog` pinned; PUBLIC holds `EXECUTE` on none; **no body contains dynamic SQL**. The 10 runtime-facing functions are `SECURITY DEFINER`; the three that are not are the b64 wrapper, the hash and the trigger — by design. Schema and every relation owned by `alerts_owner`; PUBLIC has nothing on the schema |
 | 47 | no runtime login inherits `alerts_owner` | **PASS** — and the revision-2.1 residual is now **CLOSED** by amendment 2.2-A; see gates 49–52 and §7 |
 | 48 | no LOGIN credential, no stored secret | **PASS** — exactly the six group roles; none can log in, none holds a password, none is superuser or `BYPASSRLS`, none can create roles. The migration added no role beyond those six, no function body contains a secret-shaped literal, and the schema declares no foreign server or user mapping |
-| 49–52 | the migrator holds no usable membership in `alerts_owner` — after clean apply, after idempotent reapply, after rollback, after reapply-after-rollback | **PASS** — at all four lifecycle points: no `alerts_*` membership carries `SET` or `INHERIT`, `pg_has_role(…,'USAGE')` is false, `SET ROLE alerts_owner` is refused `42501`, and the migrator **cannot even reach the schema it just created** (`42501 permission denied for schema alerts`). What it keeps is `ADMIN OPTION`, which confers neither — and is what makes the migration re-runnable and rollback-able without a superuser |
+| 49–52 | the migrator holds no usable membership in `alerts_owner` — after clean apply, after idempotent reapply, after rollback, after reapply-after-rollback | **PASS** — at all four lifecycle points: no `alerts_*` membership carries `SET` or `INHERIT`, `pg_has_role(…,'USAGE')` is false, `SET ROLE alerts_owner` is refused `42501`, and the migrator **cannot even reach the schema it just created** (`42501 permission denied for schema alerts`). What it keeps is `ADMIN OPTION`, which confers neither — and is what makes the migration re-runnable and rollback-able without a superuser. **CORRECTED ON PRODUCTION, 2026-09-01: the "cannot even reach the schema" clause is TRUE of this disposable cluster and FALSE of `finmentor-prod`, where `postgres` inherits `pg_read_all_data` from the Supabase platform and can therefore `SELECT` `alerts` data. The `42501` on `SET ROLE` still holds, and there is still no `EXECUTE` and no write. See [`NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md`](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md) §3.** |
 | 53 | the repair window is policy DATA, not a literal | **PASS** — `automatic_repair_days` is in `alerts.retention_policy` at the approved **7**; no interval literal for it survives in `enqueue_new_lead`; the column is bounded 1–365 so a typo cannot make it a century, and cannot be zero. With the policy row missing the enqueue **refuses** (`ALERTS_REPAIR_POLICY_MISSING`) rather than assuming a default, and writes nothing |
 | 54 | changing the policy 7 → 5 changes behaviour with **no function migration** | **PASS** — one integer `UPDATE`: day 6 repaired at 7 and refuses at 5, day 4 still repairs. The function was not migrated — same oid, byte-identical body, and **the catalog row was not even rewritten (same `xmin`)**. Restored to the approved 7 |
 | 55 | inside the window an ordinary enqueue repairs a missing delivery | **PASS** — day 0, 3 and 6.9 each repaired back to exactly 1 + 1 + 1 |
@@ -395,6 +401,18 @@ reapply after rollback — the migrator cannot `SET ROLE alerts_owner` (`42501`)
 reach the schema it just created**. Amendment 2.2-E adds the matching post-condition on the
 rollback: it *asserts* that no `alerts_*` role survives, rather than commenting that it dropped them.
 
+> **CORRECTION, PRODUCTION APPLY 2026-09-01.** "Cannot even reach the schema it just created" is a
+> property of *this disposable cluster*, not of the schema. On `finmentor-prod` the migrator **can**
+> read `alerts` data, because `postgres` inherits the platform role `pg_read_all_data` from
+> `supabase_admin` — a grant that predates this migration, is read-only, confers no function
+> `EXECUTE` and no table write, and does not restore `SET ROLE`. The `42501` refusal on
+> `SET ROLE alerts_owner` is unchanged and was re-proven live.
+> Full statement: [`NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md`](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md) §3.
+>
+> Production also shows **two** `alerts_owner → postgres` membership rows with different grantors,
+> not one — both denying `SET` and `INHERIT`. The invariant is that **every** membership row must
+> deny both, which is what the §4.7 post-condition actually asserts. See that record's §4.
+
 The distinction that makes this work is the one defect 1 turned on, read the other way:
 `ADMIN OPTION` without `SET`/`INHERIT` is administrative capability without standing privilege.
 
@@ -414,6 +432,20 @@ DELIVERY_UNKNOWN RETENTION         = PENDING OWNER / RECORDED AND FAIL-SAFE  (2.
 AUTOMATIC REPAIR WINDOW            = APPROVED 7 DAYS, HELD AS POLICY DATA    (2.2-B)
 MIGRATOR STANDING PRIVILEGE        = RESOLVED                                (2.2-A)
 ```
+
+**Superseded 2026-09-01 by the production apply.** Revision 2.2 was applied to `finmentor-prod`
+(ledger `20260901171454_new_lead_alert_outbox`, SHA256 `b7e35dcb…36af39cb`) and accepted.
+`OUTBOX PRODUCTION DDL = PASS`, `OUTBOX DATABASE FOUNDATION = READY`. Two entries above changed
+status there, and one line has to be added that this document could not have written:
+
+```
+MIGRATOR STANDING PRIVILEGE        = RESOLVED for SET ROLE / EXECUTE / WRITE
+SUPABASE ADMIN READ ISOLATION      = NOT APPLICABLE / PLATFORM ADMIN READ EXISTS  (pg_read_all_data)
+OUTBOX RAW REQUEST_ID IN SERVER LOG = STILL OPEN — the runtime login that would carry
+                                      statement_timeout 8s / lock_timeout 5s does not exist yet
+```
+
+The record is [`NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md`](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md).
 
 ---
 
@@ -435,6 +467,11 @@ MIGRATOR STANDING PRIVILEGE        = RESOLVED                                (2.
 OUTBOX DDL NON-PROD VALIDATION   = PASS
 READY FOR PRODUCTION DDL APPROVAL = YES
 ```
+
+> **HISTORICAL FROM HERE.** The paragraphs below were true when written and are kept unedited as the
+> record of what this run did and did not authorise. Production DDL **was** subsequently approved
+> separately and applied on 2026-09-01 — see
+> [`NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md`](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md).
 
 **STOP. Production DDL is NOT applied and will not be applied on the strength of this run.**
 Every gate passing is a statement about **revision 2.2** on a disposable PostgreSQL 17.6 cluster. It

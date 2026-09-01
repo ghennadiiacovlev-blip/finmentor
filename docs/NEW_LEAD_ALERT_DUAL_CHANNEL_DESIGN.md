@@ -439,3 +439,12 @@ the RO transport release. No backfill. `lead_id` untouched.
 **Open, and unchanged by this pass:** `ALERT OUTBOX DDL APPROVAL = PENDING`,
 `SYSTEM ALERT COVERAGE GAP = OPEN`, `AUTHORITATIVE CYCLE PROJECTION = OPEN`,
 `LEAD_ID UNIQUE AUTHORITY = OPEN`, `CUSTOMER PRODUCTION = BLOCKED`.
+
+**Updated 2026-09-01.** `ALERT OUTBOX DDL APPROVAL` is no longer pending: revision 2.2 was approved
+and applied to `finmentor-prod`, and accepted —
+`OUTBOX PRODUCTION DATABASE FOUNDATION = CLOSED / READY`
+([record](NEW_LEAD_ALERT_OUTBOX_PRODUCTION_APPLY.md)). The database is **dormant**: no runtime
+login, no n8n credential, no writer, no dispatcher, no reconciler schedule, no Microsoft Graph
+credential, and nothing sent on either channel. `TELEGRAM DURABLE NEW LEAD DELIVERY` is the next
+engineering phase; `EMAIL DURABLE NEW LEAD DELIVERY` stays blocked on that runtime proof plus Graph
+setup. Every other status on this line is unchanged, `CUSTOMER PRODUCTION = BLOCKED` included.
