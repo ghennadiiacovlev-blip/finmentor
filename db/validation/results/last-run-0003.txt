@@ -1,0 +1,19 @@
+PASS  R1         CLEAN APPLY 0001 -> 0002 -> 0003, as the non-superuser migrator
+PASS  R2         IDEMPOTENT REAPPLY, and CONVERGENCE from a hand-altered state
+PASS  R2b        a grant the migration CANNOT repair -- a stranger's -- makes it REFUSE
+PASS  R23        0002's rollback is INDEPENDENT -- it must not remove the relay login
+PASS  R24        0001's rollback REFUSES while the relay login exists (amendment 2.3-A)
+PASS  R26        REAPPLY AFTER ROLLBACK, and 0001 rollback works once the relay is gone
+PASS  R28        the migration creates no secret and no external object
+PASS  R3-R12     the relay role contract, measured from the catalog rather than trusted
+PASS  R13-R16    the relay can do its own job and NOTHING else
+PASS  R18-R19    SET ROLE is denied -- proven by ATTEMPTING it, not by asking the catalog
+PASS  R20-R21    the n8n identities are STRANGERS to the relay, and 0003 did not touch them
+PASS  R22-R25    0003 rollback removes the relay and NOTHING else
+
+gates: 12   failed: 0   assertions: 69
+NOTE  clean slate: dropped databases ["fm_outbox_nonprod"] and leftover roles ["alerts_owner","alerts_writer","alerts_dispatcher","alerts_reconciler","alerts_retention","alerts_audit"]
+NOTE  0001 rollback with the relay login present: ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_relay_rt, alerts_writer_rt) -- roll back 0002 first
+NOTE  pg_authid readable by the migrator on this cluster: false; the migration's own password post-condition was SKIPPED, with a NOTICE
+NOTE  alerts_writer_rt = n8n Postgres identity; alerts_writer_relay_rt = Cloud Run relay identity. Shared authority = inherited membership in the NOLOGIN group alerts_writer, and nothing else.
+NOTE  Cloud Run europe-west3 (Frankfurt) and Supabase eu-central-1 (Frankfurt) are the same metro, which is a GEOGRAPHIC statement only: the path still crosses Google Cloud to Supabase/AWS, and live latency and egress cost remain UNMEASURED until the hosted probe runs.

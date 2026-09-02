@@ -24,7 +24,16 @@ can settle: that a `PASSWORD NULL` login is **refused** by the server, that the 
 the dispatcher cannot enqueue *through their own credentials*, that a re-run repairs its own drift
 but refuses a stranger's grant, and that a re-run never disarms a password the owner has set.
 
-Both migrations are **generated** from their design documents, never hand-written:
+`db/migrations/0003_alerts_writer_relay_login.{up,down}.sql` — the **Cloud Run relay** identity
+`alerts_writer_relay_rt` — against the same cluster: gates R1–R30 of
+`docs/TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md` §8. The relay is a deliberately SEPARATE login
+from the n8n identity `alerts_writer_rt`; the two share only inherited membership in the NOLOGIN
+group `alerts_writer`. The gates prove they are strangers in both directions, that `0002`'s
+rollback leaves the relay standing and `0003`'s leaves both n8n logins standing, and that `0001`'s
+2.3-A guard refuses while the relay exists — the guard matches on `alerts\_%\_rt`, so it covered
+the new name without amendment.
+
+All three migrations are **generated** from their design documents, never hand-written:
 
 ```
 node db/validation/extract-migration.mjs   # then `git diff` must be empty
@@ -80,10 +89,11 @@ must be refused — so a `trust` cluster **fails** the gate instead of passing i
 ```bash
 node db/validation/run-validation.mjs          # 0001; writes db/validation/results/last-run.*
 node db/validation/run-validation-0002.mjs     # 0002; writes results/last-run-0002.*
+node db/validation/run-validation-0003.mjs     # 0003; writes results/last-run-0003.*
 node db/validation/bisect-apply.mjs up --fresh --twice   # names the exact failing statement
 ```
 
-The two suites share one cluster and both start from `cleanSlate`, so they must not run
+The three suites share one cluster and all start from `cleanSlate`, so they must not run
 concurrently. Run 0001 last if you want its `results/` to be the one on disk.
 
 | variable | default | meaning |
@@ -105,6 +115,7 @@ concurrently. Run 0001 last if you want its `results/` to be the one on disk.
 | `gates-d.mjs` | the revision-2.2 gates 49–62: migrator standing privilege at all four lifecycle points, the repair window as policy data, `DELIVERY_UNKNOWN` fail-safe, and the server-log measurements |
 | `run-validation.mjs` | phases: precondition, clean apply, hash/extension dependency, idempotent reapply, the gate set, rollback refusal, rollback, reapply |
 | `run-validation-0002.mjs` | the runtime-login suite: gates PRE, E1–E3 and E7–E13 — apply, the post-conditions re-measured from the catalog, convergence, refusal, rollback and rollback ORDER |
+| `run-validation-0003.mjs` | the relay-identity suite: gates R1-R30 - the alerts_writer_relay_rt contract, its isolation from both n8n logins, convergence, a stranger grant refused, and three-way rollback independence |
 | `gates-e.mjs` | gates E4–E6, the ones that need a live session: the authentication control, the timeouts as the role delivers them, each credential exercised end to end, and disarming |
 | `bisect-apply.mjs` + `split-sql.mjs` | statement-by-statement apply, honouring dollar quoting |
 

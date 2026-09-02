@@ -1,0 +1,445 @@
+{
+  "started": "2026-09-02T16:28:59.685Z",
+  "finished": "2026-09-02T16:29:02.668Z",
+  "database": "fm_outbox_relay_nonprod",
+  "server_version": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
+  "gates": [
+    {
+      "id": "R1",
+      "title": "CLEAN APPLY 0001 -> 0002 -> 0003, as the non-superuser migrator",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the migrator is NOT a superuser",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "0001 applies cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "0002 applies cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "0003 applies cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "all three runtime logins now exist, and only those three",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the six group roles are untouched",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R3-R12",
+      "title": "the relay role contract, measured from the catalog rather than trusted",
+      "ok": true,
+      "checks": [
+        {
+          "name": "R3 the relay role exists exactly once",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R4 PASSWORD NULL -- the migration created no secret",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R5 it can log in and inherits nothing by default",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R5 it holds no role attribute at all",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R6/R7/R8/R9 exactly one membership: alerts_writer, inherit yes, set no, admin no",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R10/R11/R12 the timeouts and search_path are ON THE ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R17 no alerts_owner membership, direct or inherited",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "nothing can SET ROLE into the relay or inherit from it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "USAGE on the alerts schema, and no CREATE anywhere",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R27 the migration wrote no password verifier for any runtime login this run",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R13-R16",
+      "title": "the relay can do its own job and NOTHING else",
+      "ok": true,
+      "checks": [
+        {
+          "name": "R13/R14 EXECUTE on the two enqueue functions, and on nothing else in the schema",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R15 no direct table privilege anywhere in alerts, by any verb",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R16 nothing at all on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R30 G5 rows are byte-identical to before the migration",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R18-R19",
+      "title": "SET ROLE is denied -- proven by ATTEMPTING it, not by asking the catalog",
+      "ok": true,
+      "checks": [
+        {
+          "name": "pg_has_role MEMBER is true -- and does NOT mean SET ROLE is permitted (PG16+ set_option)",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the grant itself says set_option = false",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R19 SET ROLE alerts_writer is REFUSED from a real session",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_writer\""
+        },
+        {
+          "name": "R18 SET ROLE alerts_owner is REFUSED",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_owner\""
+        },
+        {
+          "name": "and it is still itself afterwards",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the role settings reach the session",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the relay is INERT again -- the harness left no armed credential behind",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "it is a member of no platform role",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R20-R21",
+      "title": "the n8n identities are STRANGERS to the relay, and 0003 did not touch them",
+      "ok": true,
+      "checks": [
+        {
+          "name": "alerts_writer_rt: still exactly one membership, into its own group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: role settings untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: still has no password verifier -- 0003 did not arm or disarm it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: still exactly one membership, into its own group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: role settings untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: still has no password verifier -- 0003 did not arm or disarm it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no membership exists between the relay and either n8n login, in either direction",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "title": "IDEMPOTENT REAPPLY, and CONVERGENCE from a hand-altered state",
+      "ok": true,
+      "checks": [
+        {
+          "name": "a second apply succeeds and changes nothing",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "still exactly one relay role",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "drift planted: SET ROLE is now possible",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration re-applies over the drift",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and CONVERGES: set_option is back to false",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R2b",
+      "title": "a grant the migration CANNOT repair -- a stranger's -- makes it REFUSE",
+      "ok": true,
+      "checks": [
+        {
+          "name": "a second membership row now exists, same role, different grantor",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration REFUSES to commit",
+          "pass": true,
+          "detail": "42501 ALERTS_RELAY_POSTCONDITION_FAILED ( relay:extra_membership)"
+        },
+        {
+          "name": "and it names the reason",
+          "pass": true,
+          "detail": "ALERTS_RELAY_POSTCONDITION_FAILED ( relay:extra_membership)"
+        },
+        {
+          "name": "after the stranger grant is removed, the migration converges again",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R24",
+      "title": "0001's rollback REFUSES while the relay login exists (amendment 2.3-A)",
+      "ok": true,
+      "checks": [
+        {
+          "name": "it refuses, by name",
+          "pass": true,
+          "detail": "2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_relay_rt, alerts_writer_rt) -- roll back 0002 first"
+        },
+        {
+          "name": "and the message names the relay login specifically",
+          "pass": true,
+          "detail": "ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_relay_rt, alerts_writer_rt) -- roll back 0002 first"
+        },
+        {
+          "name": "nothing was dropped",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R23",
+      "title": "0002's rollback is INDEPENDENT -- it must not remove the relay login",
+      "ok": true,
+      "checks": [
+        {
+          "name": "0002 rolls back cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "both n8n runtime logins are gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the relay login SURVIVED 0002 rollback",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it is unchanged: same membership, same settings",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the six group roles are intact",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R22-R25",
+      "title": "0003 rollback removes the relay and NOTHING else",
+      "ok": true,
+      "checks": [
+        {
+          "name": "R22 the rollback applies without error",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "R22 the relay login is gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R25 the six group roles survive",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R29 no alerts function was added or removed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R29 the outbox is untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R30 G5 is still byte-identical",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R26",
+      "title": "REAPPLY AFTER ROLLBACK, and 0001 rollback works once the relay is gone",
+      "ok": true,
+      "checks": [
+        {
+          "name": "0003 re-applies cleanly on a rolled-back database",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the contract is identical to the first apply",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "0003 rolls back again",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "0001's rollback now SUCCEEDS, with no runtime login left anywhere",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "every alerts role is gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "R30 G5 SURVIVED the full teardown -- it was never 0003 or 0001 business",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "R28",
+      "title": "the migration creates no secret and no external object",
+      "ok": true,
+      "checks": [
+        {
+          "name": "no PASSWORD literal anywhere in either file",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "PASSWORD NULL is the only password statement",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no GCP / Secret Manager / HTTP reference",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the n8n identities appear ONLY as quoted literals -- never as an identifier acted on",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the password post-condition is either taken or announced -- never silently passed",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    }
+  ],
+  "assertions": 69,
+  "notes": [
+    "clean slate: dropped databases [\"fm_outbox_nonprod\"] and leftover roles [\"alerts_owner\",\"alerts_writer\",\"alerts_dispatcher\",\"alerts_reconciler\",\"alerts_retention\",\"alerts_audit\"]",
+    "0001 rollback with the relay login present: ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_relay_rt, alerts_writer_rt) -- roll back 0002 first",
+    "pg_authid readable by the migrator on this cluster: false; the migration's own password post-condition was SKIPPED, with a NOTICE",
+    "alerts_writer_rt = n8n Postgres identity; alerts_writer_relay_rt = Cloud Run relay identity. Shared authority = inherited membership in the NOLOGIN group alerts_writer, and nothing else.",
+    "Cloud Run europe-west3 (Frankfurt) and Supabase eu-central-1 (Frankfurt) are the same metro, which is a GEOGRAPHIC statement only: the path still crosses Google Cloud to Supabase/AWS, and live latency and egress cost remain UNMEASURED until the hosted probe runs."
+  ]
+}

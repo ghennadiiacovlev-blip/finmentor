@@ -33,6 +33,14 @@ const MIGRATIONS = [
     down: { title: 'FINMENTOR ALERTS RUNTIME LOGINS - rollback (doc section 2.7)',
             headings: ['### 2.7'] },
   },
+  {
+    doc: 'docs/TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md',
+    base: '0003_alerts_writer_relay_login',
+    up: { title: 'FINMENTOR ALERTS WRITER RELAY LOGIN - forward migration (doc section 8.1)',
+          headings: ['### 8.1'] },
+    down: { title: 'FINMENTOR ALERTS WRITER RELAY LOGIN - rollback (doc section 8.2)',
+            headings: ['### 8.2'] },
+  },
 ];
 
 function fenceUnder(lines, headingPrefix, doc) {

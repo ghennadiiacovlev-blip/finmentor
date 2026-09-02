@@ -1,6 +1,6 @@
 {
-  "started": "2026-09-02T02:25:22.616Z",
-  "finished": "2026-09-02T02:26:06.062Z",
+  "started": "2026-09-02T16:28:02.351Z",
+  "finished": "2026-09-02T16:28:45.368Z",
   "database": "fm_outbox_nonprod",
   "server_version": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
   "gates": [
@@ -403,7 +403,7 @@
         {
           "name": "the dispatcher claimed the repaired telegram row",
           "pass": true,
-          "detail": "{\"out_dispatch_key\":\"NEW_LEAD:4cac4bafd2acac85e7c481c33feeaddf3ce229ee7a5a3b79a93f184a9a941d68\",\"out_channel\":\"telegram\",\"out_claim_token\":\"ed239851-0acc-4076-9014-267431743d75\",\"out_attempt_count\":1,\"out_lead_id\":\"SYNTH-LEAD-00008\",\"out_request_route\":\"public\",\"out_settled_at\":\"2026-09-02T02:25:27.596Z\",\"out_payload_json\":{\"role\":\"CFO\",\"zone\":\"RED\",\"source\":\"validation-harness\",\"company\":\"Synthetic SRL\",\"priority\":\"high\",\"objective\":\"cash visibility\",\"situation\":\"synthetic fixture row\",\"next_action\":\"call\",\"contact_value\":\"@synthetic_handle_only\",\"contact_channel\":\"telegram\"}}"
+          "detail": "{\"out_dispatch_key\":\"NEW_LEAD:7b5cdc968189627a74b5b47efb060801e6e9652467d602f4af69a5c40c8aa34e\",\"out_channel\":\"telegram\",\"out_claim_token\":\"fb92d70f-d74e-4d20-884e-a9948e3d37ad\",\"out_attempt_count\":1,\"out_lead_id\":\"SYNTH-LEAD-00008\",\"out_request_route\":\"public\",\"out_settled_at\":\"2026-09-02T16:28:07.255Z\",\"out_payload_json\":{\"role\":\"CFO\",\"zone\":\"RED\",\"source\":\"validation-harness\",\"company\":\"Synthetic SRL\",\"priority\":\"high\",\"objective\":\"cash visibility\",\"situation\":\"synthetic fixture row\",\"next_action\":\"call\",\"contact_value\":\"@synthetic_handle_only\",\"contact_channel\":\"telegram\"}}"
         },
         {
           "name": "the telegram row is SENT",
@@ -1373,7 +1373,7 @@
         {
           "name": "payload_purged_at is stamped",
           "pass": true,
-          "detail": "Wed Sep 02 2026 05:25:30 GMT+0300 (Восточная Европа, летнее время)"
+          "detail": "Wed Sep 02 2026 19:28:09 GMT+0300 (Восточная Европа, летнее время)"
         },
         {
           "name": "the durable identity is unchanged",
@@ -1408,7 +1408,7 @@
         {
           "name": "it surfaces as UNDELIVERED_PAYLOAD_PURGED",
           "pass": true,
-          "detail": "[{\"out_dispatch_key\":\"NEW_LEAD:fc3815786509831b033a7d61b6afc2e41f5eaab2b3e56e52c5dabdb1c1df769d\",\"out_channel\":\"email\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-24T02:25:30.285Z\",\"out_updated_at\":\"2026-09-02T02:25:30.450Z\"},{\"out_dispatch_key\":\"NEW_LEAD:fc3815786509831b033a7d61b6afc2e41f5eaab2b3e56e52c5dabdb1c1df769d\",\"out_channel\":\"telegram\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-24T02:25:30.285Z\",\"out_updated_at\":\"2026-09-02T02:25:30.450Z\"}]"
+          "detail": "[{\"out_dispatch_key\":\"NEW_LEAD:e8a19c67ad899442f6e06bd51766a5017d017c3f3e7d7714b9ecf08b1d51475e\",\"out_channel\":\"email\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-24T16:28:09.818Z\",\"out_updated_at\":\"2026-09-02T16:28:09.978Z\"},{\"out_dispatch_key\":\"NEW_LEAD:e8a19c67ad899442f6e06bd51766a5017d017c3f3e7d7714b9ecf08b1d51475e\",\"out_channel\":\"telegram\",\"out_status\":\"PENDING\",\"out_reason\":\"UNDELIVERED_PAYLOAD_PURGED\",\"out_attempt_count\":0,\"out_last_error_code\":null,\"out_request_route\":\"concierge\",\"out_settled_at\":\"2026-07-24T16:28:09.818Z\",\"out_updated_at\":\"2026-09-02T16:28:09.978Z\"}]"
         },
         {
           "name": "re-enqueue after purge does not resurrect anything",
@@ -1913,12 +1913,12 @@
         {
           "name": "next_attempt_at was pushed into the future",
           "pass": true,
-          "detail": "Wed Sep 02 2026 05:27:33 GMT+0300 (Восточная Европа, летнее время)"
+          "detail": "Wed Sep 02 2026 19:30:13 GMT+0300 (Восточная Европа, летнее время)"
         },
         {
           "name": "the backoff floor of 30 seconds is applied",
           "pass": true,
-          "detail": "Wed Sep 02 2026 05:27:33 GMT+0300 (Восточная Европа, летнее время)"
+          "detail": "Wed Sep 02 2026 19:30:13 GMT+0300 (Восточная Европа, летнее время)"
         },
         {
           "name": "it is not claimable while next_attempt_at is in the future",
@@ -2014,7 +2014,7 @@
         {
           "name": "a purged event from gate 31 is available",
           "pass": true,
-          "detail": "NEW_LEAD:fc3815786509831b033a7d61b6afc2e41f5eaab2b3e56e52c5dabdb1c1df769d"
+          "detail": "NEW_LEAD:e8a19c67ad899442f6e06bd51766a5017d017c3f3e7d7714b9ecf08b1d51475e"
         },
         {
           "name": "the payload is exactly {}",
@@ -3336,7 +3336,7 @@
         {
           "name": "auto_explain fired at the 10 s threshold",
           "pass": true,
-          "detail": "2026-09-02 05:25:51.122 EEST [9280] LOG:  duration: 11022.583 ms  plan:"
+          "detail": "2026-09-02 19:28:30.314 EEST [22356] LOG:  duration: 11025.604 ms  plan:"
         },
         {
           "name": "CONFIRMED: with prod's auto_explain settings the raw request id IS written to the server log by a SUCCESSFUL enqueue that crosses 10 s",
@@ -3598,7 +3598,7 @@
   ],
   "assertions": 644,
   "notes": [
-    "clean slate: dropped databases [\"fm_outbox_rt_nonprod\"] and leftover roles []",
+    "clean slate: dropped databases [\"fm_outbox_nonprod\"] and leftover roles [\"alerts_retention\",\"alerts_owner\",\"alerts_writer\",\"alerts_dispatcher\",\"alerts_reconciler\",\"alerts_audit\"]",
     "gate 47: the revision-2.1 residual is CLOSED. The migration now revokes the migrator SET and INHERIT on alerts_owner before COMMIT (2.2-A). What it keeps is ADMIN OPTION, which confers neither -- it is what makes the migration re-runnable and rollback-able without a superuser. Gates 49-52.",
     "REPAIR WINDOW = 7 DAYS, OWNER-APPROVED 2026-09-01, with the operational rationale recorded in docs 12: a NEW LEAD alert older than seven days must not be resurrected and sent as if it were fresh. It is held in alerts.retention_policy.automatic_repair_days, so changing it is an UPDATE, not a migration (gates 53-57).",
     "DELIVERY_UNKNOWN maximum retention is still PENDING OWNER: purge_new_lead_deliveries sweeps only SENT and PERMANENT_FAILED, so nothing removes an unresolved row. Revision 2.2-C makes that a RECORDED pending decision rather than an omission -- the horizon is a NULL column with a PENDING_OWNER status, and the sweep RAISES if the status ever changes without the deletion code being written (gate 58). The payload behind such a row is still purged at 30 days, so an unresolved delivery does not preserve contact_value (gate 58).",

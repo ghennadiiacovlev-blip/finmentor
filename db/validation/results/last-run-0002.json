@@ -1,6 +1,6 @@
 {
-  "started": "2026-09-02T02:25:01.058Z",
-  "finished": "2026-09-02T02:25:13.389Z",
+  "started": "2026-09-02T16:23:58.745Z",
+  "finished": "2026-09-02T16:24:10.853Z",
   "database": "fm_outbox_rt_nonprod",
   "server_version": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
   "gates": [
@@ -710,6 +710,7 @@
   ],
   "assertions": 121,
   "notes": [
+    "clean slate: dropped databases [\"fm_outbox_relay_nonprod\"] and leftover roles []",
     "pg_authid readable by the migrator on this cluster: false; the migration's own password post-condition was SKIPPED, with a NOTICE",
     "migrator memberships after 0002: [{\"in_role\":\"alerts_audit\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_dispatcher\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_dispatcher_rt\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_owner\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_owner\",\"admin_option\":false,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_reconciler\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_retention\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_writer\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_writer_rt\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false}]",
     "0001 rollback with runtime logins present: 2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first; runtime logins left = [\"alerts_dispatcher_rt\",\"alerts_writer_rt\"]; group roles left = [\"alerts_audit\",\"alerts_dispatcher\",\"alerts_owner\",\"alerts_reconciler\",\"alerts_retention\",\"alerts_writer\"]"

@@ -783,3 +783,277 @@ CUSTOMER PRODUCTION                = BLOCKED
 Unchanged and still open: `KEY RETENTION = PENDING LEGAL / PRIVACY`,
 `DELIVERY_UNKNOWN RETENTION = PENDING OWNER`, `PIPELINE RAW REQUEST_ID RETENTION = OPEN`,
 `AUTHORITATIVE CYCLE PROJECTION = OPEN`, `EMAIL DURABLE NEW LEAD DELIVERY = BLOCKED`.
+
+---
+
+# 8. The Cloud Run relay identity — migration 0003
+
+**Opened 2026-09-02.** GATE 1B could not be completed through the n8n Postgres node: n8n Cloud's
+Postgres credential has no field for a CA certificate (measured — its entire TLS surface is `ssl`
+and `allowUnauthorizedCerts`), and Supavisor presents a certificate signed by Supabase's own CA.
+Three alternatives were audited and rejected — `allowUnauthorizedCerts` (unverified TLS), PostgREST
+RPC (needs project-wide JWT signing authority), and a Supabase Edge Function (the platform injects
+`SUPABASE_DB_URL` and RLS-bypassing keys into every function and reserves the `SUPABASE_` prefix, so
+they cannot be removed or even shadowed).
+
+The accepted architecture is an **external least-privilege relay** on Google Cloud Run. Its TLS
+model is proven: the published **Supabase Root 2021 CA** validates `CN=*.pooler.supabase.com`
+through `Supabase Intermediate 2021 CA` with hostname verification — `Verify return code: 0 (ok)`.
+Nothing is downgraded anywhere.
+
+### 8.0 Two identities, one group — and why
+
+| identity | runtime | credential lives in |
+|---|---|---|
+| `alerts_writer_rt` | the n8n Postgres path | n8n credential `FINMENTOR Alerts Writer` |
+| `alerts_writer_relay_rt` | the Cloud Run relay | Google Secret Manager |
+
+**The only authority they share is inherited membership in the NOLOGIN group `alerts_writer`.**
+Their passwords are independent, rotate independently and revoke independently; neither is a member
+of the other; compromise of one reveals nothing about the other. `0003` never names
+`alerts_writer_rt` except to assert that no membership exists between them, and it never touches
+its password.
+
+**Geography, stated separately from network and billing claims.** The relay targets Cloud Run
+`europe-west3` (Frankfurt) and the database is Supabase `eu-central-1` (Frankfurt): the same metro,
+which is the sensible low-latency pairing. That is a statement about geography only. **The path
+still crosses Google Cloud to Supabase/AWS infrastructure**, and neither live latency nor egress
+cost has been measured. Both remain open until the hosted probe runs.
+
+### 8.1 The forward migration, exactly
+
+`db/migrations/0003_alerts_writer_relay_login.up.sql` is generated verbatim from this fence.
+**`0002` is deliberately NOT a precondition:** the relay identity depends only on `0001`'s
+`alerts_writer` group, so the two runtimes stay independent in both directions.
+
+```sql
+-- ============================================================================
+-- FINMENTOR — ALERTS WRITER RELAY LOGIN         forward migration
+-- PRECONDITION: 0001_new_lead_alert_outbox is applied. 0002 is NOT required.
+-- This file carries NO password: the login it creates exists and CANNOT
+-- AUTHENTICATE until the owner arms it out of band (§2.2 applies unchanged).
+-- ============================================================================
+BEGIN;
+
+-- Which login THIS run created. "the password is still NULL" is a post-condition only for a
+-- login the owner has not armed yet. ON COMMIT DROP: nothing survives.
+CREATE TEMP TABLE alerts_relay_created (login name PRIMARY KEY) ON COMMIT DROP;
+
+DO $mig$
+DECLARE r record;
+BEGIN
+  FOR r IN SELECT * FROM (VALUES
+      ('alerts_writer_relay_rt', 'alerts_writer')) AS v(login, grp)
+  LOOP
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r.grp) THEN
+      RAISE EXCEPTION 'ALERTS_RELAY_GROUP_MISSING (%)', r.grp USING ERRCODE = '42704';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r.login) THEN
+      EXECUTE format('CREATE ROLE %I LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB '
+                     'NOCREATEROLE NOREPLICATION PASSWORD NULL', r.login);
+      INSERT INTO alerts_relay_created VALUES (r.login);
+    END IF;
+
+    -- BEFORE the role can ever authenticate. PASSWORD NULL is written by the CREATE above and
+    -- NOWHERE ELSE: a re-run must never wipe the password the owner has set (0002 note 4).
+    EXECUTE format('ALTER ROLE %I SET statement_timeout = %L', r.login, '8s');
+    EXECUTE format('ALTER ROLE %I SET lock_timeout      = %L', r.login, '5s');
+    EXECUTE format('ALTER ROLE %I SET search_path       = %L', r.login, 'pg_catalog');
+
+    -- One option per statement; named options so a re-run CONVERGES rather than no-opping.
+    EXECUTE format('GRANT %I TO %I WITH INHERIT TRUE', r.grp, r.login);
+    EXECUTE format('GRANT %I TO %I WITH SET FALSE',    r.grp, r.login);
+
+    IF EXISTS (SELECT 1 FROM pg_auth_members m
+                 JOIN pg_roles t ON t.oid = m.roleid
+                 JOIN pg_roles g ON g.oid = m.member
+                WHERE t.rolname = r.login AND g.rolname = current_user
+                  AND (m.set_option OR m.inherit_option)) THEN
+      EXECUTE format('REVOKE SET OPTION FOR %I FROM %I',     r.login, current_user);
+      EXECUTE format('REVOKE INHERIT OPTION FOR %I FROM %I', r.login, current_user);
+    END IF;
+  END LOOP;
+END $mig$;
+
+DO $chk$
+DECLARE
+  r        record;
+  v_bad    text := '';
+  v_login  text := 'alerts_writer_relay_rt';
+  v_alerts oid  := (SELECT oid FROM pg_namespace WHERE nspname = 'alerts');
+BEGIN
+  IF v_alerts IS NULL THEN
+    RAISE EXCEPTION 'ALERTS_RELAY_SCHEMA_MISSING' USING ERRCODE = '3F000';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_roles
+                  WHERE rolname = v_login AND rolcanlogin AND NOT rolinherit AND NOT rolsuper
+                    AND NOT rolbypassrls AND NOT rolcreaterole AND NOT rolcreatedb
+                    AND NOT rolreplication) THEN
+    v_bad := v_bad || ' relay:attributes';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = v_login
+                   AND rolconfig @> ARRAY['statement_timeout=8s','lock_timeout=5s',
+                                          'search_path=pg_catalog']) THEN
+    v_bad := v_bad || ' relay:rolconfig';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM alerts_relay_created c WHERE c.login = v_login) THEN
+    IF has_table_privilege(current_user, 'pg_authid', 'SELECT') THEN
+      IF EXISTS (SELECT 1 FROM pg_authid WHERE rolname = v_login AND rolpassword IS NOT NULL) THEN
+        v_bad := v_bad || ' relay:password_not_null';
+      END IF;
+    ELSE
+      RAISE NOTICE 'ALERTS_RELAY_PASSWORD_CHECK_SKIPPED (%): pg_authid is not readable by %',
+                   v_login, current_user;
+    END IF;
+  END IF;
+
+  -- Membership: alerts_writer ONLY, inherit yes, set no, admin no.
+  IF NOT EXISTS (SELECT 1 FROM pg_auth_members m
+                   JOIN pg_roles t ON t.oid = m.roleid
+                   JOIN pg_roles g ON g.oid = m.member
+                  WHERE g.rolname = v_login AND t.rolname = 'alerts_writer'
+                    AND m.inherit_option AND NOT m.set_option AND NOT m.admin_option) THEN
+    v_bad := v_bad || ' relay:own_membership';
+  END IF;
+
+  IF (SELECT count(*) FROM pg_auth_members m JOIN pg_roles g ON g.oid = m.member
+       WHERE g.rolname = v_login) <> 1 THEN
+    v_bad := v_bad || ' relay:extra_membership';
+  END IF;
+
+  -- The two runtimes must be strangers: no membership between the LOGIN roles, either way.
+  IF EXISTS (SELECT 1 FROM pg_auth_members m
+               JOIN pg_roles t ON t.oid = m.roleid
+               JOIN pg_roles g ON g.oid = m.member
+              WHERE (t.rolname = v_login AND g.rolname IN ('alerts_writer_rt','alerts_dispatcher_rt'))
+                 OR (g.rolname = v_login AND t.rolname IN ('alerts_writer_rt','alerts_dispatcher_rt'))) THEN
+    v_bad := v_bad || ' relay:membership_with_an_n8n_login';
+  END IF;
+
+  IF NOT has_schema_privilege(v_login, v_alerts, 'USAGE')  THEN v_bad := v_bad || ' relay:no_schema_usage'; END IF;
+  IF     has_schema_privilege(v_login, v_alerts, 'CREATE') THEN v_bad := v_bad || ' relay:schema_create';   END IF;
+  IF     has_schema_privilege(v_login, 'public', 'CREATE') THEN v_bad := v_bad || ' relay:public_create';   END IF;
+
+  -- EXECUTE, both ways round, by OID: 0001 leaves the migrator without USAGE on alerts, so
+  -- every name-taking overload would raise 42501 here (0002 finding 1).
+  FOR r IN
+    SELECT v.proname, p.oid AS fnoid, v.expected,
+           (SELECT count(*) FROM pg_proc x
+             WHERE x.pronamespace = v_alerts AND x.proname = v.proname) AS n
+      FROM (VALUES
+        ('enqueue_new_lead',            true),
+        ('enqueue_new_lead_b64',        true),
+        ('claim_new_lead_delivery',     false),
+        ('finalise_new_lead_delivery',  false),
+        ('expire_stale_claims',         false),
+        ('new_lead_attention',          false),
+        ('request_fingerprint',         false),
+        ('new_lead_events_present',     false),
+        ('repair_new_lead_deliveries',  false),
+        ('purge_new_lead_payloads',     false),
+        ('purge_new_lead_deliveries',   false),
+        ('purge_new_lead_keys',         false)) AS v(proname, expected)
+      LEFT JOIN pg_proc p ON p.pronamespace = v_alerts AND p.proname = v.proname
+  LOOP
+    IF r.n <> 1 THEN
+      v_bad := v_bad || format(' alerts.%s:resolves_to_%s', r.proname, r.n);
+    ELSIF has_function_privilege(v_login, r.fnoid, 'EXECUTE') <> r.expected THEN
+      v_bad := v_bad || format(' relay:EXECUTE(%s)<>%s', r.proname, r.expected);
+    END IF;
+  END LOOP;
+
+  FOR r IN
+    SELECT t.relname, c.oid AS reloid, p.priv
+      FROM (VALUES ('new_lead_outbox'), ('new_lead_delivery'), ('retention_policy'),
+                   ('new_lead_outbox_audit'), ('new_lead_delivery_audit')) AS t(relname)
+      CROSS JOIN (VALUES ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE')) AS p(priv)
+      LEFT JOIN pg_class c ON c.relnamespace = v_alerts AND c.relname = t.relname
+  LOOP
+    IF r.reloid IS NULL THEN
+      v_bad := v_bad || format(' alerts.%s:missing', r.relname);
+    ELSIF has_table_privilege(v_login, r.reloid, r.priv) THEN
+      v_bad := v_bad || format(' relay:%s_ON_%s', r.priv, r.relname);
+    END IF;
+  END LOOP;
+
+  FOR r IN
+    SELECT p.priv, c.oid AS reloid
+      FROM (VALUES ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE')) AS p(priv)
+      JOIN pg_class c ON c.relname = 'telegram_initdata_replays'
+      JOIN pg_namespace g5 ON g5.oid = c.relnamespace AND g5.nspname = 'public'
+  LOOP
+    IF has_table_privilege(v_login, r.reloid, r.priv) THEN
+      v_bad := v_bad || format(' relay:G5_%s', r.priv);
+    END IF;
+  END LOOP;
+
+  IF EXISTS (SELECT 1 FROM pg_auth_members m JOIN pg_roles t ON t.oid = m.roleid
+              WHERE t.rolname = v_login AND (m.set_option OR m.inherit_option)) THEN
+    v_bad := v_bad || ' any_role:set_or_inherit_on_the_relay_login';
+  END IF;
+
+  IF v_bad <> '' THEN
+    RAISE EXCEPTION 'ALERTS_RELAY_POSTCONDITION_FAILED (%)', v_bad USING ERRCODE = '42501';
+  END IF;
+END $chk$;
+
+COMMIT;
+```
+
+### 8.2 The rollback, exactly
+
+Removes the relay login and **nothing else**. The `alerts_writer` group, the five `alerts_*`
+siblings, both n8n runtime logins and G5 belong to `0001`/`0002` and are left exactly as they were.
+
+```sql
+-- ============================================================================
+-- FINMENTOR — ALERTS WRITER RELAY LOGIN         rollback
+-- Removes ONLY alerts_writer_relay_rt. 0001 and 0002 objects are untouched.
+-- ORDERING: run this BEFORE 0001's rollback, which refuses while any
+-- alerts_*_rt login exists (0001 amendment 2.3-A covers this name too).
+-- ============================================================================
+BEGIN;
+
+-- The state this rollback promises not to disturb, captured BEFORE it acts. "we only dropped
+-- the relay" is otherwise a claim; here it is compared.
+CREATE TEMP TABLE alerts_relay_pre ON COMMIT DROP AS
+  SELECT rolname FROM pg_roles
+   WHERE rolname IN ('alerts_owner','alerts_writer','alerts_dispatcher','alerts_reconciler',
+                     'alerts_retention','alerts_audit','alerts_writer_rt','alerts_dispatcher_rt');
+
+DO $rb$
+DECLARE r text := 'alerts_writer_relay_rt';
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
+    -- DROP OWNED BY needs the PRIVILEGES of the role (0001 amendment 2.1-D). The grant lives
+    -- for the length of this transaction; DROP ROLE destroys it.
+    EXECUTE format('GRANT %I TO %I WITH INHERIT TRUE', r, current_user);
+    EXECUTE format('DROP OWNED BY %I', r);
+    EXECUTE format('DROP ROLE %I', r);
+  END IF;
+END $rb$;
+
+DO $rb$
+DECLARE v_missing text;
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'alerts_writer_relay_rt') THEN
+    RAISE EXCEPTION 'ALERTS_RELAY_ROLLBACK_RESIDUAL' USING ERRCODE = '42501';
+  END IF;
+
+  -- Everything that existed before must still exist: the six group roles AND, if 0002 is
+  -- applied, both n8n runtime logins. A rollback that quietly took a neighbour with it is
+  -- the same class of defect as 0001 amendment 2.3-A.
+  SELECT string_agg(p.rolname, ', ' ORDER BY p.rolname) INTO v_missing
+    FROM alerts_relay_pre p
+   WHERE NOT EXISTS (SELECT 1 FROM pg_roles x WHERE x.rolname = p.rolname);
+  IF v_missing IS NOT NULL THEN
+    RAISE EXCEPTION 'ALERTS_RELAY_ROLLBACK_DAMAGED_NEIGHBOURS (%)', v_missing USING ERRCODE = '42501';
+  END IF;
+END $rb$;
+
+COMMIT;
+```

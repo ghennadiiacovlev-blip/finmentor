@@ -11,6 +11,8 @@ export const UP_SQL = path.join(ROOT, 'db', 'migrations', '0001_new_lead_alert_o
 export const DOWN_SQL = path.join(ROOT, 'db', 'migrations', '0001_new_lead_alert_outbox.down.sql');
 export const UP2_SQL = path.join(ROOT, 'db', 'migrations', '0002_alerts_runtime_logins.up.sql');
 export const DOWN2_SQL = path.join(ROOT, 'db', 'migrations', '0002_alerts_runtime_logins.down.sql');
+export const UP3_SQL = path.join(ROOT, 'db', 'migrations', '0003_alerts_writer_relay_login.up.sql');
+export const DOWN3_SQL = path.join(ROOT, 'db', 'migrations', '0003_alerts_writer_relay_login.down.sql');
 
 export const HOST = process.env.FM_PGHOST || '127.0.0.1';
 export const PORT = Number(process.env.FM_PGPORT || 55432);
@@ -125,6 +127,8 @@ export const readUp = () => fs.readFileSync(process.env.FM_UP_FILE || UP_SQL, 'u
 export const readDown = () => fs.readFileSync(process.env.FM_DOWN_FILE || DOWN_SQL, 'utf8');
 export const readUp2 = () => fs.readFileSync(process.env.FM_UP2_FILE || UP2_SQL, 'utf8');
 export const readDown2 = () => fs.readFileSync(process.env.FM_DOWN2_FILE || DOWN2_SQL, 'utf8');
+export const readUp3 = () => fs.readFileSync(process.env.FM_UP3_FILE || UP3_SQL, 'utf8');
+export const readDown3 = () => fs.readFileSync(process.env.FM_DOWN3_FILE || DOWN3_SQL, 'utf8');
 
 // Attempts a REAL connection and returns the error instead of throwing. "a PASSWORD NULL role
 // cannot authenticate" is not a catalog fact; it is only true if the server refuses the login,
