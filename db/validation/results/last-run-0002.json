@@ -1,0 +1,717 @@
+{
+  "started": "2026-09-02T02:25:01.058Z",
+  "finished": "2026-09-02T02:25:13.389Z",
+  "database": "fm_outbox_rt_nonprod",
+  "server_version": "PostgreSQL 17.6 on x86_64-windows, compiled by msvc-19.44.35213, 64-bit",
+  "gates": [
+    {
+      "id": "PRE",
+      "title": "GATE 1 starts where GATE 0 finished: 0001 applied, and no runtime login anywhere",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the migrator is NOT a superuser",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "0001 applies cleanly first",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the six group roles exist",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and no runtime login exists yet",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the outbox is empty",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "title": "CLEAN APPLY of 0002, as the non-superuser migrator",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the forward migration applies without error",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "both runtime logins exist, and only those two",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "0001 is untouched: still exactly six group roles",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 is untouched",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "title": "the §2.4 post-conditions, measured from the catalog rather than trusted",
+      "ok": true,
+      "checks": [
+        {
+          "name": "alerts_writer_rt: it can log in and inherits nothing by default",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: it holds no role attribute at all",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: the timeouts are ON THE ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: it has NO password verifier -- it cannot be used yet",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: exactly one membership, into its own group, INHERIT yes / SET no",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: nothing can SET ROLE into it or inherit from it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: USAGE on the schema, and no CREATE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: it can log in and inherits nothing by default",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: it holds no role attribute at all",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: the timeouts are ON THE ROLE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: it has NO password verifier -- it cannot be used yet",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: exactly one membership, into its own group, INHERIT yes / SET no",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: nothing can SET ROLE into it or inherit from it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: USAGE on the schema, and no CREATE",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "every EXECUTE grant is exactly right, and every denial with it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "no table privilege in the schema, and nothing at all on G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the password post-condition is either taken or announced -- never silently passed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the harness takes it regardless, as a superuser",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "title": "the migrator keeps ADMIN and nothing else -- it cannot BECOME a credential it made",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the migrator holds SET or INHERIT on nothing in the alerts family",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "it does hold ADMIN on both runtime logins -- that is what makes 0002 re-runnable",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and SET ROLE into the credential is refused",
+          "pass": true,
+          "detail": "42501 permission denied to set role \"alerts_writer_rt\""
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "title": "the credential is INERT until the owner arms it -- and the timeouts arrive with it",
+      "ok": true,
+      "checks": [
+        {
+          "name": "CONTROL: authentication is actually enforced on this cluster (a wrong password is refused)",
+          "pass": true,
+          "detail": "28P01 password authentication failed for user \"postgres\""
+        },
+        {
+          "name": "alerts_writer_rt cannot authenticate while its password is NULL",
+          "pass": true,
+          "detail": "28P01 password authentication failed for user \"alerts_writer_rt\""
+        },
+        {
+          "name": "alerts_dispatcher_rt cannot authenticate while its password is NULL",
+          "pass": true,
+          "detail": "28P01 password authentication failed for user \"alerts_dispatcher_rt\""
+        },
+        {
+          "name": "once armed it connects, and it connects AS ITSELF",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "statement_timeout is 8s from the first statement of the session",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "lock_timeout is 5s from the first statement of the session",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "search_path is pg_catalog",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it comes from the ROLE, not from a default or the client",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the 8s statement_timeout actually fires",
+          "pass": true,
+          "detail": "57014 canceling statement due to statement timeout"
+        },
+        {
+          "name": "a client CAN raise it -- a role setting is a default, not a cap",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and RESET returns to the ROLE value, not to the cluster default",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "title": "each credential can do its own job and NOTHING ELSE -- measured per login",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the writer can enqueue through its own credential",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "one event row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "one telegram row and one email row",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer CANNOT claim",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer CANNOT finalise",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer CANNOT expire stale claims",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher claims exactly one row through its own credential",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and it is the row the writer just enqueued",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher finalises it",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the telegram row is SENT with attempt_count 1, and EMAIL IS UNTOUCHED",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher CANNOT enqueue",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher CANNOT enqueue through the jsonb entry point either",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SELECT alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SELECT alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SELECT alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SELECT alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SELECT alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot read G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot write G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SET ROLE into its own group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot SET ROLE into the OTHER group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the writer cannot create anything in the alerts schema",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SELECT alerts.new_lead_outbox",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SELECT alerts.new_lead_delivery",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SELECT alerts.retention_policy",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SELECT alerts.new_lead_outbox_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SELECT alerts.new_lead_delivery_audit",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot read G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot write G5",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SET ROLE into its own group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot SET ROLE into the OTHER group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the dispatcher cannot create anything in the alerts schema",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "title": "DISARMING is a single statement, and it is complete",
+      "ok": true,
+      "checks": [
+        {
+          "name": "alerts_writer_rt cannot authenticate once its password is set back to NULL",
+          "pass": true,
+          "detail": "28P01 password authentication failed for user \"alerts_writer_rt\""
+        },
+        {
+          "name": "alerts_dispatcher_rt cannot authenticate once its password is set back to NULL",
+          "pass": true,
+          "detail": "28P01 password authentication failed for user \"alerts_dispatcher_rt\""
+        },
+        {
+          "name": "and the row it already delivered is untouched by any of this",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "title": "IDEMPOTENT REAPPLY, and CONVERGENCE from a hand-altered state",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the same migration applies a second time without error",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and a third time",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "nothing about either login changed",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "planted: the writer can now SET ROLE its group",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration re-runs over the altered state",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and it is REPAIRED -- named grant options update an existing membership",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "planted: the dispatcher has lost its statement_timeout",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration re-runs",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and the timeout is back",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "title": "a grant the migration CANNOT repair -- a stranger's -- makes it REFUSE",
+      "ok": true,
+      "checks": [
+        {
+          "name": "planted, by a different grantor: the writer is also a member of alerts_dispatcher",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration ABORTS rather than committing a credential nobody approved",
+          "pass": true,
+          "detail": "42501 ALERTS_RT_POSTCONDITION_FAILED ( alerts_writer_rt:extra_membership)"
+        },
+        {
+          "name": "and the failure names the reason",
+          "pass": true,
+          "detail": "ALERTS_RT_POSTCONDITION_FAILED ( alerts_writer_rt:extra_membership)"
+        },
+        {
+          "name": "the aborted run changed nothing",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "a stranger's grant of the SAME group is a SECOND row, not an update",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the migration refuses that too",
+          "pass": true,
+          "detail": "42501 ALERTS_RT_POSTCONDITION_FAILED ( alerts_writer_rt:extra_membership)"
+        },
+        {
+          "name": "once the stranger's grant is gone it applies again",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and the migration's own membership was never disturbed by any of it",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "title": "a re-run must NEVER disarm a credential the owner has armed",
+      "ok": true,
+      "checks": [
+        {
+          "name": "armed out of band, as the owner would",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the migration re-runs",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the password survives the re-run",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the live credential still works after the re-run",
+          "pass": true,
+          "detail": "null"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "title": "ROLLBACK removes the two logins and NOTHING ELSE",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the rollback runs cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "both runtime logins are gone",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the six group roles survive",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the schema still holds its three tables",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the delivered rows survive -- a credential rollback is not a data rollback",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 is untouched",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "and the temporary membership the rollback granted itself is gone with the role",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "title": "REAPPLY AFTER ROLLBACK",
+      "ok": true,
+      "checks": [
+        {
+          "name": "the forward migration applies again cleanly",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "alerts_writer_rt: rebuilt with no password",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: rebuilt with its timeouts",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_writer_rt: rebuilt with the same single membership",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: rebuilt with no password",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: rebuilt with its timeouts",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "alerts_dispatcher_rt: rebuilt with the same single membership",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "title": "ROLLBACK ORDERING is enforced, not documented (0001 amendment 2.3-A)",
+      "ok": true,
+      "checks": [
+        {
+          "name": "0001's rollback REFUSES while a runtime login exists",
+          "pass": true,
+          "detail": "2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first"
+        },
+        {
+          "name": "and it names both logins and what to do",
+          "pass": true,
+          "detail": "ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first"
+        },
+        {
+          "name": "nothing was dropped by the refusal",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "the schema is intact",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "0002 rolls back first",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "and then 0001 rolls back",
+          "pass": true,
+          "detail": "null"
+        },
+        {
+          "name": "the cluster is back to nothing-applied",
+          "pass": true,
+          "detail": null
+        },
+        {
+          "name": "G5 survived every rollback in this run",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "title": "0002 REFUSES to create a credential when 0001 is not applied",
+      "ok": true,
+      "checks": [
+        {
+          "name": "it aborts with ALERTS_RT_GROUP_MISSING",
+          "pass": true,
+          "detail": "42704 ALERTS_RT_GROUP_MISSING (alerts_writer)"
+        },
+        {
+          "name": "and no login was left behind by the attempt",
+          "pass": true,
+          "detail": null
+        }
+      ]
+    }
+  ],
+  "assertions": 121,
+  "notes": [
+    "pg_authid readable by the migrator on this cluster: false; the migration's own password post-condition was SKIPPED, with a NOTICE",
+    "migrator memberships after 0002: [{\"in_role\":\"alerts_audit\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_dispatcher\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_dispatcher_rt\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_owner\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_owner\",\"admin_option\":false,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_reconciler\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_retention\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_writer\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false},{\"in_role\":\"alerts_writer_rt\",\"admin_option\":true,\"inherit_option\":false,\"set_option\":false}]",
+    "0001 rollback with runtime logins present: 2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first; runtime logins left = [\"alerts_dispatcher_rt\",\"alerts_writer_rt\"]; group roles left = [\"alerts_audit\",\"alerts_dispatcher\",\"alerts_owner\",\"alerts_reconciler\",\"alerts_retention\",\"alerts_writer\"]"
+  ]
+}

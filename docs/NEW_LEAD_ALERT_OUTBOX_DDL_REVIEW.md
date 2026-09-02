@@ -1133,6 +1133,24 @@ role in this design holds a bypass attribute, and dropping ownership drops the e
 -- what the forward migration created, and it never touches public.*.
 BEGIN;
 
+-- AMENDMENT 2.3-A (real-Postgres proof, gate E12 of the 0002 suite). A later migration grants
+-- these groups to runtime LOGIN roles, and DROP ROLE removes a membership SILENTLY. Measured:
+-- with alerts_writer_rt and alerts_dispatcher_rt present, this rollback SUCCEEDED and left them
+-- behind -- two logins, each with whatever password the owner had set, now members of nothing,
+-- pointing at a schema that no longer exists. Nothing failed and nothing said so.
+-- Rollback ORDER is therefore not a convention to be written in a runbook. It is checked here,
+-- before anything is dropped.
+DO $$
+DECLARE v_rt text;
+BEGIN
+  SELECT string_agg(rolname, ', ' ORDER BY rolname) INTO v_rt
+    FROM pg_roles WHERE rolname LIKE 'alerts\_%\_rt';
+  IF v_rt IS NOT NULL THEN
+    RAISE EXCEPTION 'ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (%) -- roll back 0002 first', v_rt
+      USING ERRCODE = '2BP01';
+  END IF;
+END $$;
+
 -- AMENDMENT 2.2-A. The forward migration ends by handing the migrator's working membership back
 -- (§4.7), so at this point the migrator holds ADMIN OPTION on alerts_owner and nothing else: no
 -- SET, no INHERIT, and therefore not even USAGE on the alerts schema. Every DROP below needs
@@ -1904,3 +1922,32 @@ PRODUCTION        = NOT APPLIED
 
 Reproduce it: `db/validation/README.md`. The migration files are generated from this document —
 `node db/validation/extract-migration.mjs` and `git diff` must be empty.
+
+---
+
+# 17. AMENDMENT 2.3-A — the rollback now refuses to orphan a runtime credential
+
+**2026-09-01. The FORWARD DDL of §4 is UNCHANGED and still byte-identical to what is deployed on
+`finmentor-prod`** — `db/migrations/0001_new_lead_alert_outbox.up.sql` regenerates with an empty
+`git diff`. Only the **rollback** of §5 changed, and it has never been applied anywhere.
+
+The next migration, `0002_alerts_runtime_logins`, grants these group roles to two LOGIN roles.
+Gate E12 of that migration's suite ran §5 with those logins present:
+
+```
+BEFORE 2.3-A:  the rollback SUCCEEDED.
+               alerts_writer_rt and alerts_dispatcher_rt were left behind — logins carrying
+               whatever password the owner had set, now members of nothing, pointing at a schema
+               that had just been dropped. DROP ROLE removes a membership silently; nothing
+               failed, and nothing said so.
+AFTER  2.3-A:  2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT
+               (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first
+               Nothing is dropped. Six group roles and five relations intact, G5 intact.
+```
+
+Rollback order was going to be a sentence in a runbook. It is now a statement in the migration,
+checked before anything is dropped, and proven both ways round: refused in the wrong order, clean
+in the right one.
+
+The 0001 suite was re-run in full after the amendment: **53 gates, 644 assertions, 0 failures**,
+unchanged apart from run-to-run identifiers.

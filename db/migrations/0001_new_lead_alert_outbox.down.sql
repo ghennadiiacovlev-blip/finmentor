@@ -8,6 +8,24 @@
 -- what the forward migration created, and it never touches public.*.
 BEGIN;
 
+-- AMENDMENT 2.3-A (real-Postgres proof, gate E12 of the 0002 suite). A later migration grants
+-- these groups to runtime LOGIN roles, and DROP ROLE removes a membership SILENTLY. Measured:
+-- with alerts_writer_rt and alerts_dispatcher_rt present, this rollback SUCCEEDED and left them
+-- behind -- two logins, each with whatever password the owner had set, now members of nothing,
+-- pointing at a schema that no longer exists. Nothing failed and nothing said so.
+-- Rollback ORDER is therefore not a convention to be written in a runbook. It is checked here,
+-- before anything is dropped.
+DO $$
+DECLARE v_rt text;
+BEGIN
+  SELECT string_agg(rolname, ', ' ORDER BY rolname) INTO v_rt
+    FROM pg_roles WHERE rolname LIKE 'alerts\_%\_rt';
+  IF v_rt IS NOT NULL THEN
+    RAISE EXCEPTION 'ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (%) -- roll back 0002 first', v_rt
+      USING ERRCODE = '2BP01';
+  END IF;
+END $$;
+
 -- AMENDMENT 2.2-A. The forward migration ends by handing the migrator's working membership back
 -- (§4.7), so at this point the migrator holds ADMIN OPTION on alerts_owner and nothing else: no
 -- SET, no INHERIT, and therefore not even USAGE on the alerts schema. Every DROP below needs

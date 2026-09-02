@@ -420,3 +420,38 @@ not activated. G5 untouched, byte-identical before and after. `qa/` untouched.
 OUTBOX PRODUCTION DDL      = PASS
 OUTBOX DATABASE FOUNDATION = READY
 ```
+
+---
+
+**Updated 2026-09-01.** `TELEGRAM DURABLE NEW LEAD DELIVERY` is now planned in
+[TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md](TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md). Nothing in
+that plan has been applied and every line of §11 above still holds — the database is still dormant
+and still holds 0 rows. The plan's first gate is the runtime credential of §8, and it is
+**owner-blocked**: it needs a password, and the two n8n credentials that carry it.
+
+The plan adds one measurement this record did not make. The credential precondition of §8 is stated
+against the *role*, but n8n reaches Postgres through a connection path that has never been measured
+for these roles, and a transaction-mode pooler can change which session settings a client actually
+observes. `statement_timeout = 8s` must therefore be proven **through the n8n node itself** before
+the writer is allowed to enqueue anything; proving it through this MCP session would not be the same
+measurement.
+
+**Updated later the same day.** GATE 1's migration is now written and **proven on the disposable
+PostgreSQL 17.6 cluster — 14 gates, 121 assertions, 0 failures**
+([plan §2.8](TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md)). Three things in that run bear on **this**
+record:
+
+1. **The deployed DDL did not change.** `0001`'s forward migration regenerates byte-identical to
+   what §11 above records as live. What changed is `0001`'s **rollback**, which has never been
+   applied anywhere: it now refuses to run while a runtime login exists, because gate E12 caught it
+   succeeding and leaving two orphaned credentials behind (amendment 2.3-A).
+2. **The §8 credential precondition is satisfiable exactly as written**, and is now a file rather
+   than a paragraph. The two logins are created with no password verifier and cannot authenticate;
+   the timeouts are on them before that changes. Measured, not asserted.
+3. **The `auto_explain` mitigation of §8 is a default, not a cap.** `statement_timeout` is
+   `USERSET`: from inside a session opened as the runtime login, `SET statement_timeout = '90s'` was
+   accepted. The mitigation therefore means *no statement runs long by accident* — which is precisely
+   the exposure §8 measured, a slow enqueue under lock contention — and not *no statement can run
+   long*. The record is corrected here rather than left to be read the stronger way.
+
+The database is still dormant and still holds 0 rows.

@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const UP_SQL = path.join(ROOT, 'db', 'migrations', '0001_new_lead_alert_outbox.up.sql');
 export const DOWN_SQL = path.join(ROOT, 'db', 'migrations', '0001_new_lead_alert_outbox.down.sql');
+export const UP2_SQL = path.join(ROOT, 'db', 'migrations', '0002_alerts_runtime_logins.up.sql');
+export const DOWN2_SQL = path.join(ROOT, 'db', 'migrations', '0002_alerts_runtime_logins.down.sql');
 
 export const HOST = process.env.FM_PGHOST || '127.0.0.1';
 export const PORT = Number(process.env.FM_PGPORT || 55432);
@@ -44,6 +46,21 @@ export async function open(database, user, password) {
   await c.query("SET lock_timeout = '20s'");
   await c.query("SET statement_timeout = '90s'");
   await c.query("SET idle_in_transaction_session_timeout = '120s'");
+  return c;
+}
+
+// A connection with NOTHING set on it. `open` above issues its own lock_timeout and
+// statement_timeout so that a deadlocked gate fails instead of hanging -- which is right for
+// every gate EXCEPT the ones measuring what a role's own `ALTER ROLE ... SET` delivers to a
+// session. Those SETs are `source = session` and they win over `source = user`, so opening a
+// runtime login through `open` measures the harness and reports it as the migration. Measured:
+// it returned 90s/20s, the harness's own values, and the gate failed for the right reason.
+export async function openRaw(database, user, password) {
+  const c = connect(database, user, password);
+  await c.connect();
+  OPEN_CLIENTS.add(c);
+  const origEnd = c.end.bind(c);
+  c.end = async () => { OPEN_CLIENTS.delete(c); return origEnd(); };
   return c;
 }
 
@@ -106,6 +123,18 @@ function cmpGate(a, b) {
 // -------------------------------------------------------------------- helpers
 export const readUp = () => fs.readFileSync(process.env.FM_UP_FILE || UP_SQL, 'utf8');
 export const readDown = () => fs.readFileSync(process.env.FM_DOWN_FILE || DOWN_SQL, 'utf8');
+export const readUp2 = () => fs.readFileSync(process.env.FM_UP2_FILE || UP2_SQL, 'utf8');
+export const readDown2 = () => fs.readFileSync(process.env.FM_DOWN2_FILE || DOWN2_SQL, 'utf8');
+
+// Attempts a REAL connection and returns the error instead of throwing. "a PASSWORD NULL role
+// cannot authenticate" is not a catalog fact; it is only true if the server refuses the login,
+// so the only honest way to assert it is to try. The connection is closed either way.
+export async function attemptConnect(database, user, password) {
+  const c = connect(database, user, password);
+  try { await c.connect(); } catch (e) { return { code: e.code, message: e.message }; }
+  try { await c.end(); } catch {}
+  return null;
+}
 
 export async function expectFail(fn) {
   try { await fn(); return null; }

@@ -53,6 +53,7 @@ PASS  61         after every failure path, no alerts table or view holds the raw
 PASS  62         auto_explain: a slow but SUCCESSFUL enqueue, and the mitigation that closes it
 
 gates: 53   failed: 0   assertions: 644
+NOTE  clean slate: dropped databases ["fm_outbox_rt_nonprod"] and leftover roles []
 NOTE  gate 47: the revision-2.1 residual is CLOSED. The migration now revokes the migrator SET and INHERIT on alerts_owner before COMMIT (2.2-A). What it keeps is ADMIN OPTION, which confers neither -- it is what makes the migration re-runnable and rollback-able without a superuser. Gates 49-52.
 NOTE  REPAIR WINDOW = 7 DAYS, OWNER-APPROVED 2026-09-01, with the operational rationale recorded in docs 12: a NEW LEAD alert older than seven days must not be resurrected and sent as if it were fresh. It is held in alerts.retention_policy.automatic_repair_days, so changing it is an UPDATE, not a migration (gates 53-57).
 NOTE  DELIVERY_UNKNOWN maximum retention is still PENDING OWNER: purge_new_lead_deliveries sweeps only SENT and PERMANENT_FAILED, so nothing removes an unresolved row. Revision 2.2-C makes that a RECORDED pending decision rather than an omission -- the horizon is a NULL column with a PENDING_OWNER status, and the sweep RAISES if the status ever changes without the deletion code being written (gate 58). The payload behind such a row is still purged at 30 days, so an unresolved delivery does not preserve contact_value (gate 58).

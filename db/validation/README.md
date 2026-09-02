@@ -16,7 +16,15 @@ idempotent reapply, rollback, reapply after rollback, and gates 19–48 of
 (`SKIP LOCKED`, `ON CONFLICT` under concurrency, RLS ownership exemption, `GRANT` denial per
 runtime role). Results: `docs/NEW_LEAD_ALERT_OUTBOX_NONPROD_VALIDATION.md`.
 
-The migration is **generated** from the design document, never hand-written:
+`db/migrations/0002_alerts_runtime_logins.{up,down}.sql` — the two runtime LOGIN roles — against
+the same cluster: gates E1–E13 of
+`docs/TELEGRAM_DURABLE_NEW_LEAD_DELIVERY_PLAN.md` §2.8. Those gates cover what no catalog query
+can settle: that a `PASSWORD NULL` login is **refused** by the server, that the role's
+`statement_timeout` actually reaches a session and actually fires, that the writer cannot claim and
+the dispatcher cannot enqueue *through their own credentials*, that a re-run repairs its own drift
+but refuses a stranger's grant, and that a re-run never disarms a password the owner has set.
+
+Both migrations are **generated** from their design documents, never hand-written:
 
 ```
 node db/validation/extract-migration.mjs   # then `git diff` must be empty
@@ -55,12 +63,28 @@ The number of identifier-bearing lines under maximal logging is **run-dependent*
 many statements the suite happens to execute) — it is a control that must be non-zero, not a
 figure to regress against.
 
+**`initdb` writes `trust` for host connections, and the 0002 suite cannot run on that.** Half of
+gate E4 is of the form "this credential is refused", which is unmeasurable on a cluster that
+refuses nothing. Before running it:
+
+```bash
+sed -i -E 's/^(host .*[0-9])[[:space:]]+trust$/\1  scram-sha-256/' /tmp/fmpg/pg_hba.conf
+"$BIN/pg_ctl" -D /tmp/fmpg reload
+```
+
+E4 opens with a negative control — a deliberately wrong password for a role that certainly has one
+must be refused — so a `trust` cluster **fails** the gate instead of passing it vacuously.
+
 ## Running
 
 ```bash
-node db/validation/run-validation.mjs          # the full suite; writes db/validation/results/
+node db/validation/run-validation.mjs          # 0001; writes db/validation/results/last-run.*
+node db/validation/run-validation-0002.mjs     # 0002; writes results/last-run-0002.*
 node db/validation/bisect-apply.mjs up --fresh --twice   # names the exact failing statement
 ```
+
+The two suites share one cluster and both start from `cleanSlate`, so they must not run
+concurrently. Run 0001 last if you want its `results/` to be the one on disk.
 
 | variable | default | meaning |
 |---|---|---|
@@ -80,10 +104,23 @@ node db/validation/bisect-apply.mjs up --fresh --twice   # names the exact faili
 | `gates-a.mjs` / `gates-b.mjs` / `gates-c.mjs` | gates 19–26 / 27–32 / 33–48 plus the repair window and retention |
 | `gates-d.mjs` | the revision-2.2 gates 49–62: migrator standing privilege at all four lifecycle points, the repair window as policy data, `DELIVERY_UNKNOWN` fail-safe, and the server-log measurements |
 | `run-validation.mjs` | phases: precondition, clean apply, hash/extension dependency, idempotent reapply, the gate set, rollback refusal, rollback, reapply |
+| `run-validation-0002.mjs` | the runtime-login suite: gates PRE, E1–E3 and E7–E13 — apply, the post-conditions re-measured from the catalog, convergence, refusal, rollback and rollback ORDER |
+| `gates-e.mjs` | gates E4–E6, the ones that need a live session: the authentication control, the timeouts as the role delivers them, each credential exercised end to end, and disarming |
 | `bisect-apply.mjs` + `split-sql.mjs` | statement-by-statement apply, honouring dollar quoting |
 
 ## The one thing to know before trusting a green run
 
 Run as a **non-superuser** migrator. Three of the four defects this harness found were invisible
 to a superuser and appear only for the `NOSUPERUSER CREATEROLE` role that Supabase's `postgres`
-actually is. `run-validation.mjs` asserts that in the `PRE` gate before anything else.
+actually is. Both runners assert that in the `PRE` gate before anything else. The 0002 suite added
+a fourth of the same kind: `'alerts.f()'::regprocedure` and every `has_*_privilege` overload that
+takes a **qualified name** raise `42501 permission denied for schema alerts` for this migrator,
+because `0001` deliberately leaves it without `USAGE`. OID lookups through `pg_proc`/`pg_class` are
+not privilege-checked; the migration uses those. A superuser run would have passed by name.
+
+## And the one thing to know before trusting a measurement
+
+`open()` sets its own `lock_timeout` and `statement_timeout` on every connection, so a gate that
+deadlocks fails instead of hanging. Those are `source = session` and they **win** over a role's
+`ALTER ROLE ... SET`. Gate E4's first run therefore reported the harness's own `90s` as though it
+were the role's `8s`. Anything measuring what a role delivers to a session must use `openRaw()`.

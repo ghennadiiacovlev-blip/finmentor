@@ -1,0 +1,19 @@
+PASS  PRE        GATE 1 starts where GATE 0 finished: 0001 applied, and no runtime login anywhere
+PASS  E1         CLEAN APPLY of 0002, as the non-superuser migrator
+PASS  E2         the §2.4 post-conditions, measured from the catalog rather than trusted
+PASS  E3         the migrator keeps ADMIN and nothing else -- it cannot BECOME a credential it made
+PASS  E4         the credential is INERT until the owner arms it -- and the timeouts arrive with it
+PASS  E5         each credential can do its own job and NOTHING ELSE -- measured per login
+PASS  E6         DISARMING is a single statement, and it is complete
+PASS  E7         IDEMPOTENT REAPPLY, and CONVERGENCE from a hand-altered state
+PASS  E8         a grant the migration CANNOT repair -- a stranger's -- makes it REFUSE
+PASS  E9         a re-run must NEVER disarm a credential the owner has armed
+PASS  E10        ROLLBACK removes the two logins and NOTHING ELSE
+PASS  E11        REAPPLY AFTER ROLLBACK
+PASS  E12        ROLLBACK ORDERING is enforced, not documented (0001 amendment 2.3-A)
+PASS  E13        0002 REFUSES to create a credential when 0001 is not applied
+
+gates: 14   failed: 0   assertions: 121
+NOTE  pg_authid readable by the migrator on this cluster: false; the migration's own password post-condition was SKIPPED, with a NOTICE
+NOTE  migrator memberships after 0002: [{"in_role":"alerts_audit","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_dispatcher","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_dispatcher_rt","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_owner","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_owner","admin_option":false,"inherit_option":false,"set_option":false},{"in_role":"alerts_reconciler","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_retention","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_writer","admin_option":true,"inherit_option":false,"set_option":false},{"in_role":"alerts_writer_rt","admin_option":true,"inherit_option":false,"set_option":false}]
+NOTE  0001 rollback with runtime logins present: 2BP01 ALERTS_ROLLBACK_RUNTIME_LOGIN_PRESENT (alerts_dispatcher_rt, alerts_writer_rt) -- roll back 0002 first; runtime logins left = ["alerts_dispatcher_rt","alerts_writer_rt"]; group roles left = ["alerts_audit","alerts_dispatcher","alerts_owner","alerts_reconciler","alerts_retention","alerts_writer"]
