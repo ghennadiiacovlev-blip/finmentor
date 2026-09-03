@@ -675,7 +675,7 @@ function submitWorkflow() {
       // binding. Proved on a disposable table with the same node type and typeVersion.
       options: { queryReplacement: '={{ $json.submission_key }},={{ $json.cycle_id }},={{ $json.privacy_notice_version }},={{ $json.privacy_locale }},={{ $json.privacy_notice_shown_at }},={{ $json.privacy_notice_acknowledged_at }},={{ $json.privacy_legal_basis }}' } },
       id: 'pux-privacy-write', name: 'Write Privacy Acknowledgement', type: 'n8n-nodes-base.postgres', typeVersion: 2.4, position: [1320, 0],
-      credentials: { postgres: { id: PRIVACY_CRED_PLACEHOLDER, name: 'FINMENTOR Privacy Audit (writer)' } },
+      credentials: { postgres: { id: PRIVACY_CRED_PLACEHOLDER, name: 'FINMENTOR Privacy Audit Writer' } },
       onError: 'continueRegularOutput' },
     code('Privacy Verdict', SUBMIT_PRIVACY_VERDICT),
     ifNode('IF Privacy Recorded', '={{ $json.ok }}', 1),

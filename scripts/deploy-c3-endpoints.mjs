@@ -206,7 +206,8 @@ if (isMain) {
   for (const { id, kind, cand } of plan) {
     await api('PUT', '/workflows/' + id, importable(cand), 3);
     const after = await api('GET', '/workflows/' + id);
-    const drop = (w) => JSON.stringify(importable(w).nodes.map((n) => { const x = Object.assign({}, n); delete x.webhookId; delete x.position; delete x.id; return x; }));
+    // n8n owns a credential's display name (it rewrites it to the stored name on save); the binding is the id.
+    const drop = (w) => JSON.stringify(importable(w).nodes.map((n) => { const x = Object.assign({}, n); delete x.webhookId; delete x.position; delete x.id; if (x.credentials) { x.credentials = Object.fromEntries(Object.entries(x.credentials).map(([t, c]) => [t, { id: c && c.id }])); } return x; }));
     if (drop(after) !== drop(cand)) { bad(kind + ': the deployed workflow does not match what was sent — roll back from ' + id + '.pre-c3-endpoints.json'); }
     else { ok(kind + ': written and read back (' + after.nodes.length + ' nodes, active ' + after.active + ')'); }
     if (!after.active) { bad(kind + ' is NOT active'); }

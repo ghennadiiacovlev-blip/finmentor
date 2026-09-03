@@ -178,7 +178,7 @@
       "credentials": {
         "postgres": {
           "id": "__PRIVACY_AUDIT_CREDENTIAL_ID__",
-          "name": "FINMENTOR Privacy Audit (writer)"
+          "name": "FINMENTOR Privacy Audit Writer"
         }
       },
       "onError": "continueRegularOutput"

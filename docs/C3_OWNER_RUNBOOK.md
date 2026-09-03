@@ -236,3 +236,15 @@ the NEW cycle, and the submitted draft of `AS-09f4c25b…` (old cycle) must not 
 
 Next owner command (step 3): `! node scripts/deploy-c3-endpoints.mjs --confirm` — then the step 3
 live proof (Save Draft read-back, Submit → «Принято», reopen → committed screen, 403 for non-owners).
+
+## Live proof record — step 3, Session + Submit endpoints (2026-09-03 18:57 UTC, owner `--confirm`, fresh-read)
+
+| time (UTC) | evidence |
+|---|---|
+| 18:57:08 | `deploy-c3-endpoints.mjs --confirm` (owner): Session `Hxje3Kel6nLLod5B` 14 -> 17 nodes, active, versionId `fe51db1a-5098-4891-bebb-f809706d5981` — `written and read back` |
+| 18:57:08 | Submit `ELiPdw4mdxQbBaan` 28 -> 32 nodes, active, versionId `7fbf0695-c194-4313-877e-7227b234ad50`. The script printed `FAIL … does not match what was sent`. Node-by-node diff of `.uat/ELiPdw4mdxQbBaan.deployed-c3-endpoints.json` against the sent candidate: ONE field differs — `Write Privacy Acknowledgement.credentials.postgres.name` (`FINMENTOR Privacy Audit (writer)` sent, `FINMENTOR Privacy Audit Writer` stored; same id `Jsfozg8CsclIdCRo`; the pre-deploy live row already carried the stored name). n8n rewrites the display name on save; the binding landed. **False negative of the verifier, NOT a failed deploy. No rollback performed.** |
+| fix | `build-premium-endpoints.mjs` now emits the provisioned credential name; the candidate was regenerated (one-line change); `deploy-c3-endpoints.mjs` compares credentials by id. `node qa/run-all.mjs` 69/69, 2508 assertions |
+| 19:02:00 | convergence `--dry-run`: session `17 -> 17; rewritten: —`, submit `32 -> 32; rewritten: —` — live IS the corrected candidate on both. Rollback artefacts `pre-c3-endpoints.json` KEPT unchanged (fresh reads saved alongside) |
+| 19:03 | gate liveness, non-owner probes: `PUT /webhook/finmentor-miniapp-session` and `POST /webhook/finmentor-miniapp-submit` with unverifiable initData both answer `400 {"ok":false,"error_code":"BAD_REQUEST","retryable":false}` — refused before any store is touched, no 5xx |
+
+Still owner-only (needs the owner's Telegram identity): fill one screen in the Mini App and reload → the answer is back (Save Draft read-back); Submit → «Принято»; reopen → committed screen with the pending note. Record those three observations here, then step 4.
