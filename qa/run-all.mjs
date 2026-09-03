@@ -47,6 +47,7 @@ const GATES = [
   ['P8.4B Concierge internal handoff', 'concierge-internal-handoff.test.mjs'],
   ['G5 initData replay claim', 'g5-replay-claim.test.mjs'],
   ['C3 immutable cycle projection', 'c3-cycle-projection.test.mjs'],
+  ['C3.2 cycle commit adoption (executed)', 'c3-cycle-commit-adoption.test.mjs'],
   ['P9 Mini App Gateway pre-deploy', 'miniapp-gateway.test.mjs'],
   ['P9-R2 Gateway store-failure harness', 'gateway-store-failure-harness.test.mjs'],
   ['P9-R3 Lead Intake dedup-outage harness', 'lead-intake-dedup-harness.test.mjs'],

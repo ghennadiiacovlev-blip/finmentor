@@ -32,6 +32,27 @@ row is untouched.
 
 Rollback: `PUT /api/v1/workflows/mppzthlkSJFr6Kle` with `.uat/mppzthlkSJFr6Kle.pre-c3-cycle.json`.
 
+## 1b. Concierge — adopt the Mini App commit (C3.2) — DEPLOY BEFORE ANYTHING ELSE
+
+**Why (live defect, 2026-09-03 evening, see ):** a brief
+submitted through the Mini App commits the cycle in  only; Bot_Sessions never
+learns it, so the bot never renders , «Начать новый вопрос» never appears, and the only
+rotation () is unreachable. «Открыть бриф» then (correctly) reopens the submitted cycle.
+
+```
+! node scripts/deploy-c3-concierge-commit.mjs --dry-run
+! node scripts/deploy-c3-concierge-commit.mjs --confirm
+```
+
+Expected: , , legacy branch unchanged, credentials unchanged, , .
+
+Live proof (owner, ONE sequence in the client bot): send  → the bot answers «Последнее обращение
+уже передано FINMENTOR.» with «Добавить к обращению» | «Начать новый вопрос». Tap «Начать новый вопрос»,
+then on «Начать новый вопрос?» tap «Начать новый вопрос» again → «FINMENTOR / Подготовка к первой
+встрече». Tap «Подготовить бриф» → «Открыть бриф». The session then fresh-reads the seven rotation facts.
+
+Rollback:  with .
+
 ## 2. Gateway — server-side cycle, fail-closed stores, proven persistence, customer result read
 
 ```
@@ -133,6 +154,8 @@ acceptance sequence has been performed.
 
 Not yet exercised live: an explicit ROTATION («Начать новый вопрос» → a second projection row with a higher sequence → the Mini App resolves the new cycle and the old draft cannot win). Step 3 (endpoints) not deployed at the owner's request.
 
+**2026-09-03 late — LIVE DEFECT, steps 3–6 ON HOLD.** The owner's customer-flow test showed the rotation is unreachable (no  screen after a Mini App submit). Root cause and the C3.2 correction: , step 1b above. Do not deploy step 3 or release CUSTOMER until  is recorded here.
+
 ## Fresh-read 2026-09-03 ~18:05 UTC — nothing moved, rotation still owner-only
 
 | check | result |
@@ -148,7 +171,7 @@ Not yet exercised live: an explicit ROTATION («Начать новый вопр
 Neither 17:56 turn was a reset, so no rotation was expected and none happened — the same
 authority_key was re-projected in place, which is exactly the P0 guard's contract.
 
-**How to exercise the rotation on the CURRENT bot session.** The Concierge rotates a cycle only on
+**(SUPERSEDED by the live defect below —  cannot rotate either; see step 1b.)** **How to exercise the rotation on the CURRENT bot session.** The Concierge rotates a cycle only on
 `/start`, or on «Начать заново» (`m|diag`) when the session already carries a consent decision, a
 lead, or an ended status. The owner's live bot session right now has `consent ''`, `lead_id ''`,
 `status active` (state `TG_CONFIRM_CONTEXT`), so pressing «Начать заново» would be read as
