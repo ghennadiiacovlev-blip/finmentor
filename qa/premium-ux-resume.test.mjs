@@ -74,7 +74,8 @@ const DRAFT = {
 function run(nodeName, rows, cand, locale) {
   const outputs = {
     'Claim Verdict': [{ telegram_user_id: OWNER, replay_key: 'rk-new', locale: locale || 'ru', claim_won: 1 }],
-    'Build App Session': [cand || candidate()]
+    'Build App Session': [cand || candidate()],
+    'Apply Session Authority': [cand || candidate()]
   };
   const handle = (items) => ({
     first: () => ({ json: items[0] }), all: () => items.map((j) => ({ json: j })), isExecuted: true
@@ -91,6 +92,18 @@ function run(nodeName, rows, cand, locale) {
 const resolve = (rows, cand, locale) => run('Resolve Session', rows, cand, locale);
 const finalise = (rows, cand, locale) => run('Finalise Session', rows, cand, locale);
 
+function applyAuthority(rows, source) {
+  const src = source || candidate();
+  const handle = (items) => ({
+    first: () => ({ json: items[0] }), all: () => items.map((json) => ({ json })), isExecuted: true
+  });
+  const $ = (name) => {
+    if (name !== 'Build App Session') throw new Error("$('" + name + "') not provided");
+    return handle([src]);
+  };
+  return new Function('$', '$input', codeOf('Apply Session Authority'))($, handle(rows || []))[0].json;
+}
+
 console.log('Premium UX — cross-reload draft resume');
 console.log('');
 
@@ -102,10 +115,14 @@ check('the resume path sits AFTER the claim and touches nothing before it', () =
   // gated on a resolved cycle before the resume read runs.
   eq(c['IF Claim Won'].main[0][0].node, 'Read Cycle Projection', 'the claim still gates everything');
   eq(c['Read Cycle Projection'].main[0][0].node, 'Build App Session', 'the projection read feeds the mint');
-  eq(c['Build App Session'].main[0][0].node, 'IF Cycle Resolved', 'the mint is gated on a resolved cycle');
+  eq(c['Build App Session'].main[0][0].node, 'IF Cycle Store Readable', 'the cycle-store verdict follows the mint candidate');
+  eq(c['IF Cycle Store Readable'].main[0][0].node, 'IF Cycle Resolved', 'a readable projection reaches the cycle gate');
   eq(c['IF Cycle Resolved'].main[0][0].node, 'Read User Sessions', 'the read follows the resolved cycle');
   eq(c['Read User Sessions'].main[0][0].node, 'Resolve Session', 'the resolver follows the read');
-  eq(c['IF Create Session'].main[0][0].node, 'Build Session Row', 'create branch');
+  eq(c['IF Create Session'].main[0][0].node, 'Claim Session Authority', 'create branch must claim atomic authority');
+  eq(c['Claim Session Authority'].main[0][0].node, 'Apply Session Authority', 'the claim result is verified');
+  eq(c['Apply Session Authority'].main[0][0].node, 'IF Session Authority Proven', 'authority verification gate');
+  eq(c['IF Session Authority Proven'].main[0][0].node, 'Build Session Row', 'only proven authority is materialised');
   eq(c['IF Create Session'].main[1][0].node, 'IF Session Committed', 'resume branch forks on the stored state (C3.4)');
   eq(c['Create App Session'].main[0][0].node, 'Read Back Sessions', 'the insert is followed by a re-read');
   eq(c['Read Back Sessions'].main[0][0].node, 'Finalise Session', 'and by the same rule again');
@@ -121,7 +138,8 @@ check('the reads return ALL rows and survive a user with none', () => {
     const node = WF.nodes.find((x) => x.name === n);
     eq(node.parameters.returnAll, true, n + ': returnAll — without it the rule orders a set of one');
     eq(node.parameters.operation, 'get', n + ': operation');
-    eq(node.parameters.filters.conditions[0].keyName, 'telegram_user_id', n + ': filter key');
+    eq(node.parameters.filters.conditions[0].keyName,
+      n === 'Read User Sessions' ? 'telegram_user_id' : 'app_session_id', n + ': filter key');
     eq(node.alwaysOutputData, true, n + ': a user with no rows must still produce an item');
     eq(node.onError, 'continueRegularOutput', n + ': one output, so the flag is not the P9-R2 pair');
     assert(!node.credentials, n + ' carries a credential');
@@ -224,7 +242,7 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
   eq(a.__response.app_session_id, resolved.__response.app_session_id, 'the session answer was lost');
   eq(a.__response.state, 'submitted', 'state');
   // never anything that is not human-reviewed, never another lead's, never a broken row
-  for (const bad of [[], [{}], [{ error: 'x' }],
+  for (const bad of [[], [{}],
     [Object.assign({}, ready, { review_status: 'AI_DRAFT' })],
     [Object.assign({}, ready, { review_status: 'OWNER_REVIEW' })],
     [Object.assign({}, ready, { lead_id: 'FIN-2' })],
@@ -234,6 +252,7 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
     eq(r.__response.result, null, 'a result was attached from ' + JSON.stringify(bad).slice(0, 80));
     eq(r.__response.result_state, 'PENDING', 'result_state for ' + JSON.stringify(bad).slice(0, 80));
   }
+  eq(attach([{ error: 'x' }]).result_store_error, 1, 'an unreadable result store did not fail closed');
   // several CLIENT_READY rows: the most recently published wins
   const older = Object.assign({}, ready, { id: 2, result_json: JSON.stringify({ v: 'old' }), published_at: iso(-3 * HOUR) });
   eq(attach([older, ready]).__response.result.score, 47, 'older, newer');
@@ -246,7 +265,9 @@ check('the result lookup sits on the COMMITTED resume branch only, credential-fr
   eq(c['IF Session Committed'].main[0][0].node, 'Read Client Result', 'committed branch');
   eq(c['IF Session Committed'].main[1][0].node, 'Respond Bootstrap OK', 'a draft must answer directly');
   eq(c['Read Client Result'].main[0][0].node, 'Attach Client Result', 'the read feeds the attach');
-  eq(c['Attach Client Result'].main[0][0].node, 'Respond Bootstrap OK', 'the attach feeds the responder');
+  eq(c['Attach Client Result'].main[0][0].node, 'IF Result Store Readable', 'the attach feeds the store gate');
+  eq(c['IF Result Store Readable'].main[0][0].node, 'Respond Bootstrap OK', 'readable result branch');
+  eq(c['IF Result Store Readable'].main[1][0].node, 'Respond Application Store Unavailable', 'result-store outage branch');
   const node = WF.nodes.find((x) => x.name === 'Read Client Result');
   eq(node.parameters.operation, 'get', 'not a read');
   eq(node.parameters.filters.conditions[0].keyName, 'lead_id', 'not keyed by the committed lead');
@@ -292,24 +313,34 @@ check('the tie-break is total, so identical timestamps still yield ONE winner', 
 // ── 4. the race ────────────────────────────────────────────────────────────────────────────────
 
 check('RACE — two concurrent opens converge on ONE authoritative session', () => {
-  // Both executions win their own G5 claim (different signed contexts), both read an empty store,
-  // both mint, both insert, and both then re-read the SAME two rows.
+  // Both executions win their own G5 claim (different signed contexts) and mint candidates, but
+  // PostgreSQL arbitrates the user+cycle pair before either candidate reaches the Data Table.
   const candA = candidate({ app_session_id: 'AS-' + '1'.repeat(64), created_at: iso(0) });
   const candB = candidate({ app_session_id: 'AS-' + '2'.repeat(64), created_at: iso(1) });
 
   eq(resolve([], candA).create, 1, 'A found nothing, as expected');
   eq(resolve([], candB).create, 1, 'B found nothing, as expected');
 
-  const afterBoth = [candA, candB];
-  const a = finalise(afterBoth, candA);
-  const b = finalise(afterBoth, candB);
+  // Whichever INSERT wins, both ON CONFLICT statements return that exact same binding.
+  const authority = {
+    app_session_id: candA.app_session_id, telegram_user_id: OWNER, cycle_id: CYCLE,
+    state: 'draft', created_at: candA.created_at, expires_at: candA.expires_at
+  };
+  const appliedA = applyAuthority([authority], candA);
+  const appliedB = applyAuthority([authority], candB);
+  eq(appliedA.app_session_id, appliedB.app_session_id, 'the two claims did not converge');
+  eq(appliedA.app_session_id, candA.app_session_id, 'the database winner was not preserved');
+
+  // Both materialisations upsert the same key and both read back the same application row.
+  const stored = Object.assign({}, appliedA);
+  const a = finalise([stored], appliedA);
+  const b = finalise([stored], appliedB);
   eq(a.app_session_id, b.app_session_id, 'THE TWO OPENS DISAGREED — there would be two authoritative drafts');
-  eq(a.app_session_id, candB.app_session_id, 'the later mint wins');
-  // The one that lost knows it resumed someone else's row; the winner knows it did not.
-  eq(a.__response.resumed, true, 'the loser is not marked as a resume');
-  eq(b.__response.resumed, false, 'the winner is marked as a resume');
-  // And a THIRD open later resolves to the same row, so the loser never becomes authoritative.
-  eq(resolve(afterBoth).app_session_id, candB.app_session_id, 'a later open picked the orphan');
+  eq(a.__response.resumed, false, 'a fresh atomic materialisation is incorrectly marked resumed');
+  eq(b.__response.resumed, false, 'the converged materialisation is incorrectly marked resumed');
+
+  const mismatch = applyAuthority([{ ...authority, telegram_user_id: '999' }], candA);
+  eq(mismatch.authority_error, 1, 'a mismatched authority row was accepted');
 });
 
 check('RACE — the loser row is inert, not merely unlikely', () => {
@@ -326,12 +357,11 @@ check('RACE — the loser row is inert, not merely unlikely', () => {
   eq(resolve([expiredLoser, candB]).app_session_id, candB.app_session_id, 'after the loser expires');
 });
 
-check('Finalise never answers empty, even if the read-back comes back with nothing', () => {
+check('Finalise fails closed if the materialised authority cannot be read back', () => {
   const cand = candidate();
   const r = finalise([], cand);
-  eq(r.app_session_id, cand.app_session_id, 'it lost the row it had just written');
-  eq(r.__response.ok, true, 'ok');
-  eq(r.__response.resumed, false, 'a fresh mint is not a resume');
+  eq(r.persistence_error, 1, 'an empty readback was reported as success');
+  assert(!r.__response, 'an unproven application row produced a client success body');
 });
 
 // ── 5. provenance ──────────────────────────────────────────────────────────────────────────────
@@ -381,7 +411,7 @@ check('resume performs NO write — the only write node is on the create branch'
   assert(j.indexOf('Pipeline') === -1, 'the Gateway touches Pipeline');
 });
 
-check('G5 and the verification half are untouched by the resume change', () => {
+check('G5 remains intact and first-open authority is the only added credential boundary', () => {
   const claim = WF.nodes.find((n) => n.name === 'G5 Replay Claim');
   assert(/on conflict \(replay_key\) do nothing/i.test(String(claim.parameters.query)), 'the atomic claim');
   assert(/as claimed/i.test(String(claim.parameters.query)), 'the verdict column');
@@ -393,10 +423,11 @@ check('G5 and the verification half are untouched by the resume change', () => {
   const build = String(WF.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode);
   assert(build.indexOf('TTL_SECONDS = 259200') !== -1, 'the 72 h TTL changed');
   assert(build.indexOf('crypto.randomBytes(32)') !== -1, 'the session id stopped being high-entropy');
-  // Exactly one credential, still on the claim.
+  // Exactly two credentials, both on narrow atomic claims and both using the approved binding.
   const cred = WF.nodes.filter((n) => n.credentials);
-  eq(cred.length, 1, 'nodes carrying credentials');
-  eq(cred[0].name, 'G5 Replay Claim', 'the credential moved');
+  eq(cred.map((n) => n.name).sort().join(','),
+    ['G5 Replay Claim', 'Claim Session Authority'].sort().join(','), 'nodes carrying credentials');
+  eq(cred[0].credentials.postgres.id, cred[1].credentials.postgres.id, 'authority claims use different credentials');
   eq(WF.settings.saveDataSuccessExecution, 'none', 'retention is on; raw initData would persist');
   eq(WF.settings.saveDataErrorExecution, 'none', 'error retention is on');
 });
@@ -404,9 +435,9 @@ check('G5 and the verification half are untouched by the resume change', () => {
 check('the client is never asked for an identity, and never given one', () => {
   const j = JSON.stringify(WF);
   // The resume key comes from the SERVER-derived Claim Verdict, never from the request body.
-  for (const n of ['Resolve Session', 'Finalise Session']) {
+  for (const [n, authority] of [['Resolve Session', 'Build App Session'], ['Finalise Session', 'Apply Session Authority']]) {
     const c = codeOf(n);
-    assert(c.indexOf("$('Build App Session')") !== -1, n + ' does not read the server-derived identity');
+    assert(c.indexOf("$('" + authority + "')") !== -1, n + ' does not read the server-derived identity');
     assert(c.indexOf('Gateway Webhook') === -1, n + ' reads the REQUEST BODY to decide what to resume');
     // A READ, not the word. The rule's own comment says "returns an empty body", and a gate that
     // cannot tell prose from a property access is a gate that gets weakened the first time it
@@ -433,8 +464,7 @@ check('the bootstrap answer is assembled in JavaScript, not in a template branch
 
 // ── 7. the recorded customer-production blocker ────────────────────────────────────────────────
 
-check('C3.1 — the cycle blocker is CLOSED: cycle_id is never empty and the record says so', () => {
-  // See docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md (resolution appended 2026-09-03).
+check('C3.1 — cycle authority is closed while customer release remains an explicit deployment choice', () => {
   const build = String(WF.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode);
   const executable = build.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   // The minted session row must carry the RESOLVED cycle; the only '' allowed is the refusal item
@@ -444,17 +474,13 @@ check('C3.1 — the cycle blocker is CLOSED: cycle_id is never empty and the rec
   assert(!/cycle_id:\s*'',\s*\n\s*replay_key/.test(executable), 'Build App Session stamps an empty cycle_id on the session row again — the blocker is back');
   assert(/MiniApp_Cycle_Projection/.test(JSON.stringify(WF)), 'the Gateway no longer reads the cycle projection');
   assert(WF.nodes.some((n) => n.name === 'Respond Cycle Unresolved'), 'the unresolved-cycle refusal is gone');
-  const doc = readFileSync(join(ROOT, 'docs', 'CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md'), 'utf8');
-  assert(doc.indexOf('CUSTOMER PRODUCTION = CYCLE PROJECTION LIVE') !== -1,
-    'the blocker record does not state that the cycle projection is live');
-  assert(doc.indexOf('customer-activation gate') !== -1, 'the activation gate section is gone from the record');
-  // With the cycle resolved, the owner gate is no longer what holds customer activation: the
-  // endpoint candidates are built WITHOUT it. If it ever returns, that is a deliberate rollback
-  // and this line is where it is recorded.
+  // Tracked pre-production candidates remain owner-only. Customer release requires resolving
+  // both placeholders in one explicit, reviewed build; source artifacts never activate it.
   for (const [label, file] of [['session', 'premium-session-endpoint-candidate.json'], ['submit', 'premium-submit-endpoint-candidate.json']]) {
     const raw = readFileSync(join(ROOT, 'n8n', 'candidate', file), 'utf8');
-    assert(raw.indexOf('NOT_AUTHORISED') === -1, label + ' endpoint still carries the owner-only UAT gate');
-    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') === -1, label + ' endpoint still carries the owner placeholder');
+    assert(raw.indexOf('NOT_AUTHORISED') !== -1, label + ' endpoint lost the owner-only pre-production gate');
+    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') !== -1, label + ' endpoint baked in an identity');
+    assert(raw.indexOf('__MINIAPP_RELEASE_MODE__') !== -1, label + ' endpoint lost the explicit release-mode placeholder');
   }
 });
 

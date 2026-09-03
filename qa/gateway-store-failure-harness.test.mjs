@@ -11,7 +11,7 @@
 // nothing about the Gateway. So this gate asserts two things:
 //
 //   1. FIDELITY. Every node outside the declared allowlist is byte-identical to the Gateway
-//      candidate, the connection map is identical, and all four respond nodes — the actual
+//      candidate, the connection map is identical, and all six respond nodes — the actual
 //      subject of the proof — are copied verbatim with TYPED codes.
 //   2. ISOLATION. Neither harness can reach the production G5 credential, the production
 //      app-session table, the production route, or any side-effecting node type.
@@ -25,7 +25,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  buildHarness, verifyHarness, allowedDivergence, dataTableNodes, CLAIM_NODE, SESSION_NODE, VERIFY_NODE,
+  buildHarness, verifyHarness, allowedDivergence, dataTableNodes, CLAIM_NODE, SESSION_AUTHORITY_NODE, SESSION_NODE, VERIFY_NODE,
   WEBHOOK_NODE, H1_PATH, H2_PATH, GATEWAY_PATH, PUBKEY_PLACEHOLDER, CREDENTIAL_PLACEHOLDER,
   PRODUCTION_G5_CREDENTIAL_ID, PRODUCTION_SESSION_TABLE
 } from '../scripts/build-gateway-store-failure-harness.mjs';
@@ -75,15 +75,15 @@ for (const [label, H] of [['H1', H1], ['H2', H2]]) {
       eq(h.type, g.type, 'type of ' + g.name);
     }
   });
-  check(label + ' copies all four respond nodes verbatim', () => {
+  check(label + ' copies all six respond nodes verbatim', () => {
     const respond = GW.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-    eq(respond.length, 4, 'Gateway respond node count');
+    eq(respond.length, 6, 'Gateway respond node count');
     for (const g of respond) {
       eq(JSON.stringify(nodeOf(H, g.name).parameters), JSON.stringify(g.parameters), 'respond ' + g.name);
     }
   });
   // The typed codes, by value and by type. This is the P9-R1 assertion.
-  check(label + ' carries the four TYPED response codes', () => {
+  check(label + ' carries all TYPED response codes', () => {
     const codes = {};
     for (const n of H.nodes.filter((x) => x.type === 'n8n-nodes-base.respondToWebhook')) {
       codes[n.name] = n.parameters.options.responseCode;
@@ -153,6 +153,8 @@ for (const [label, H, path] of [['H1', H1, H1_PATH], ['H2', H2, H2_PATH]]) {
   });
   check(label + ' replaces the session write with a non-writing stand-in', () =>
     eq(nodeOf(H, SESSION_NODE).type, 'n8n-nodes-base.code', 'session node type'));
+  check(label + ' removes the downstream session-authority credential', () =>
+    eq(nodeOf(H, SESSION_AUTHORITY_NODE).type, 'n8n-nodes-base.code', 'session authority node type'));
 }
 
 check('H1 is credential-free', () =>
@@ -228,6 +230,9 @@ check('the verifier differs from production by its trust anchor and nothing else
 const MUTATIONS = [
   ['seize the production Gateway route', 'h1', (h) => { nodeOf(h, WEBHOOK_NODE).parameters.path = GATEWAY_PATH; }],
   ['restore the production G5 credential', 'h2', (h) => { nodeOf(h, CLAIM_NODE).credentials.postgres.id = PRODUCTION_G5_CREDENTIAL_ID; }],
+  ['restore the production session-authority credential', 'h1', (h) => {
+    nodeOf(h, SESSION_AUTHORITY_NODE).credentials = { postgres: { id: PRODUCTION_G5_CREDENTIAL_ID, name: 'production' } };
+  }],
   ['give the credential-free harness a credential', 'h1', (h) => { nodeOf(h, CLAIM_NODE).credentials = { postgres: { id: 'x', name: 'y' } }; }],
   ['restore the production app-session write', 'h1', (h) => {
     const n = nodeOf(h, SESSION_NODE);

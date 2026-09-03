@@ -249,10 +249,10 @@ const CLAIM_VERDICT_CODE = [
 //
 // ── WHY A RULE AND NOT A CONSTRAINT ──────────────────────────────────────────────────────────
 //
-// The n8n Data Table has no unique index, so first-creation cannot be made atomic inside it. Two
-// genuinely concurrent opens can therefore both find nothing and both insert. What CAN be made
-// exact is which row is AUTHORITATIVE, and that is what this rule is: a total order over the
-// user's live rows that every concurrent execution computes identically from the same data.
+// The n8n Data Table has no unique index, so first-creation is arbitrated by the PostgreSQL
+// authority claim below before this application record is materialised. This total-order rule
+// remains load-bearing for pre-authority rows and for deterministic reconciliation if legacy
+// duplicates exist.
 //
 //   · rows for THIS telegram_user_id and THIS cycle_id
 //   · not expired
@@ -331,9 +331,8 @@ const RESOLVE_SESSION_CODE = [
   'return [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];'
 ].join('\n');
 
-// After the insert, the SAME rule is applied to a fresh read. In the ordinary case the candidate
-// is the only live row and wins trivially. Under a concurrent open there are two, and both
-// executions arrive here, read both, and return the same winner.
+// After the idempotent upsert, the SAME rule is applied to a fresh read. PostgreSQL has already
+// made concurrent opens converge on one app_session_id, so anything else is a persistence error.
 const FINALISE_SESSION_CODE = [
   AUTHORITATIVE_RULE,
   '',
@@ -343,9 +342,8 @@ const FINALISE_SESSION_CODE = [
   'if (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { persistence_error: 1 } }]; }',
   'const found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());',
   '',
-  '// The read cannot come back empty — this execution inserted a row a moment ago. If it does,',
-  '// the store is not answering and the honest reply is the candidate we hold, which is also the',
-  '// row we just wrote.',
+  '// The read cannot come back empty — this execution materialised the authority a moment ago.',
+  '// If it does, the store has not proved persistence and the only honest response is 503.',
   'if (!found || String(found.app_session_id) !== String(cand.app_session_id)) { return [{ json: { persistence_error: 1 } }]; }',
   'const row = found;',
   'const resumed = String(row.app_session_id) !== String(cand.app_session_id);',
@@ -869,6 +867,48 @@ export function verifyGateway(wf) {
   const verdict = byName('Claim Verdict');
   if (verdict && !/\bclaimed\b/.test(String((verdict.parameters || {}).jsCode || ''))) {
     failures.push('Claim Verdict does not read the \`claimed\` column');
+  }
+
+  // Atomic first-open authority. The application Data Table has no uniqueness constraint, so
+  // PostgreSQL must arbitrate (telegram_user_id, cycle_id) before any row is materialised.
+  const sessionAuthority = byName('Claim Session Authority');
+  if (sessionAuthority) {
+    if (sessionAuthority.type !== 'n8n-nodes-base.postgres') {
+      failures.push('Claim Session Authority is not a Postgres CAS');
+    }
+    if (sessionAuthority.alwaysOutputData) {
+      failures.push('Claim Session Authority carries alwaysOutputData; an outage could also enter its success path');
+    }
+    if (sessionAuthority.onError !== 'continueErrorOutput') {
+      failures.push('Claim Session Authority does not route an outage to the application-store 503');
+    }
+    const q = String((sessionAuthority.parameters || {}).query || '');
+    if (!new RegExp('insert into public\\.' + APP_SESSION_AUTHORITY_TABLE, 'i').test(q)) {
+      failures.push('Claim Session Authority does not INSERT into the authority ledger');
+    }
+    if (!/on conflict \(telegram_user_id, cycle_id\) do update/i.test(q)) {
+      failures.push('Claim Session Authority lost atomic user+cycle arbitration');
+    }
+    if (!/returning telegram_user_id, cycle_id, app_session_id, state, created_at, expires_at/i.test(q)) {
+      failures.push('Claim Session Authority does not return the authoritative binding');
+    }
+    const insertAt = q.search(/insert\s+into/i);
+    if (insertAt === -1) failures.push('Claim Session Authority has no INSERT');
+    else if (/\bselect\b/i.test(q.slice(0, insertAt))) failures.push('Claim Session Authority SELECTs before INSERT; first-open is racy');
+  }
+  const authorityOut = (((wf.connections || {})['Claim Session Authority'] || {}).main || []);
+  if ((((authorityOut[0] || [])[0] || {}).node) !== 'Apply Session Authority') {
+    failures.push('Claim Session Authority success does not reach its exact-row verifier');
+  }
+  if ((((authorityOut[1] || [])[0] || {}).node) !== 'Respond Application Store Unavailable') {
+    failures.push('Claim Session Authority outage does not fail closed to 503');
+  }
+  const applicationWrite = byName('Create App Session');
+  if (applicationWrite) {
+    const filter = (((applicationWrite.parameters || {}).filters || {}).conditions || [])[0] || {};
+    if ((applicationWrite.parameters || {}).operation !== 'upsert' || filter.keyName !== 'app_session_id') {
+      failures.push('Create App Session is not an idempotent materialisation of the claimed app_session_id');
+    }
   }
 
   return { ok: failures.length === 0, failures };

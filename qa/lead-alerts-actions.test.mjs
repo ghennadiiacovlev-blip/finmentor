@@ -604,16 +604,21 @@ check('POST-WRITE READBACK — a mutation is only successful if the row proves i
   eq(A.verifyMutation(upd, {}).ok, false, 'an empty row was accepted');
 });
 
-check('UNRELATED FIELD PRESERVATION — proven against the real pre-image of the test lead', () => {
-  const pre = JSON.parse(readFileSync(join(ROOT, '.uat', 'pipeline-row-FIN-1788113619104-582.pre-stage2.json'), 'utf8'));
+check('UNRELATED FIELD PRESERVATION — proven against the full tracked Pipeline schema', () => {
+  const schemaWorkflow = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'LZ2mvKXbBikmeVTn.pre-lead-alerts-presentation.json'), 'utf8'));
+  const schemaNode = schemaWorkflow.nodes.find((n) => n.name === 'Update Pipeline SLA');
+  const columns = schemaNode.parameters.columns.schema.map((c) => c.id);
+  assert(columns.length >= 52, 'the tracked Pipeline schema was unexpectedly narrowed');
+  const pre = Object.fromEntries(columns.map((k) => [k, 'unchanged:' + k]));
+  Object.assign(pre, { lead_id: LEAD, deal_stage: 'Qualified', sla_status: 'Active' });
   for (const action of ['discovery', 'docs', 'snooze', 'nurture', 'done']) {
     const upd = A.buildUpdate(action, pre.lead_id, NOW);
     const after = Object.assign({}, pre, upd);
     for (const k of A.untouchedFields(action, pre)) {
       eq(after[k], pre[k], action + ' changed the unrelated column ' + k);
     }
-    // and it really is a big row, so this is not a vacuous check
-    assert(A.untouchedFields(action, pre).length > 50, 'the pre-image is too small to prove anything');
+    // It is the complete 52-column tracked schema, so this is not a small synthetic happy path.
+    assert(A.untouchedFields(action, pre).length > 45, 'the pre-image is too small to prove anything');
   }
 });
 

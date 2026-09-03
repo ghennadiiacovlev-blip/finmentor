@@ -6,13 +6,13 @@
 // Offline. No tenant, no network, no Supabase.
 //
 // WHAT THIS GATE IS FOR. The Gateway is the first PUBLIC surface this project has added, and it
-// holds the only credential that can write the G5 ledger. Three things must be true structurally
+// holds the only credential used by two narrow atomic authority claims. Three things must be true structurally
 // rather than by intention:
 //
 //   1. A REJECTED initData CANNOT CONSUME A KEY. Not "does not" -- cannot. The claim node must be
 //      unreachable from the failure branch, so the guarantee survives someone rewiring later.
-//   2. EXACTLY ONE NODE HOLDS THE CREDENTIAL, and it is the claim. A second credential-bearing
-//      node is a second way to reach the database.
+//   2. EXACTLY TWO NODES HOLD THE SAME APPROVED CREDENTIAL: the replay claim and the atomic
+//      first-open session authority. No general-purpose database node is allowed.
 //   3. THE INLINED DERIVATION AGREES WITH THE MODULE. Two implementations of one digest is the
 //      F10 seam again; this gate EXECUTES both and compares outputs.
 
@@ -30,7 +30,7 @@ import { deriveReplayKey } from '../gateway/g5-replay-claim.mjs';
 import {
   buildGateway, verifyGateway, NODES, G5_CLAIM_NODE, SUPABASE_CREDENTIAL,
   NEON_CREDENTIAL_ID, BOT_ID_SENTINEL, CONFIGURED_BOT_ID, APP_SESSION_TABLE, APP_SESSION_TTL_SECONDS,
-  CYCLE_PROJECTION_TABLE, CLIENT_RESULT_TABLE
+  APP_SESSION_AUTHORITY_TABLE, CYCLE_PROJECTION_TABLE, CLIENT_RESULT_TABLE
 } from '../scripts/build-miniapp-gateway.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -87,20 +87,24 @@ check('exactly ONE public entry point, and it is the Gateway webhook', () => {
 
 console.log('\n-- the credential boundary --');
 
-check('EXACTLY ONE node carries a credential, and it is the G5 claim', () => {
+check('EXACTLY TWO narrow authority claims carry the approved credential', () => {
   const credNodes = WF.nodes.filter((n) => n.credentials);
-  eq(credNodes.length, 1, 'credential-bearing nodes: ' + credNodes.map((n) => n.name).join(', '));
-  eq(credNodes[0].name, G5_CLAIM_NODE, 'the credential is on the wrong node');
-  eq(credNodes[0].credentials.postgres.id, SUPABASE_CREDENTIAL.id, 'not the Supabase credential');
-  eq(credNodes[0].credentials.postgres.name, SUPABASE_CREDENTIAL.name, 'credential name drifted');
+  eq(credNodes.map((n) => n.name).sort().join(','),
+    [G5_CLAIM_NODE, 'Claim Session Authority'].sort().join(','),
+    'credential-bearing nodes: ' + credNodes.map((n) => n.name).join(', '));
+  for (const n of credNodes) {
+    eq(n.credentials.postgres.id, SUPABASE_CREDENTIAL.id, n.name + ': not the Supabase credential');
+    eq(n.credentials.postgres.name, SUPABASE_CREDENTIAL.name, n.name + ': credential name drifted');
+  }
 });
 
 check('the Neon credential appears NOWHERE in the Gateway', () => {
   assert(JSON.stringify(WF).indexOf(NEON_CREDENTIAL_ID) === -1,
     'the Neon credential id is referenced by the Gateway');
-  // and no second postgres node exists to attach one to
+  // and the two Postgres nodes are exactly the two atomic claims
   const pg = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.postgres');
-  eq(pg.length, 1, 'more than one Postgres node: ' + pg.map((n) => n.name).join(', '));
+  eq(pg.map((n) => n.name).sort().join(','), [G5_CLAIM_NODE, 'Claim Session Authority'].sort().join(','),
+    'unexpected Postgres node set: ' + pg.map((n) => n.name).join(', '));
 });
 
 console.log('\n-- a rejected initData CANNOT reach the ledger --');
@@ -150,7 +154,7 @@ check('every response code reaches the HTTP layer as a NUMBER', () => {
   // 409 -> 409. Note a substring test like /503/.test(...) passes for BOTH the broken and
   // the fixed form, which is why the 503 assertion above never caught this.
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 5, 'expected five respond nodes');
+  eq(responders.length, 6, 'expected six respond nodes');
   responders.forEach((n) => {
     const c = (n.parameters.options || {}).responseCode;
     const isNumber = typeof c === 'number';
@@ -363,7 +367,12 @@ console.log('\n-- the app session: a binding with a TTL, not a CRM --');
 // C3.1 — Build App Session now reads the Concierge cycle projection from $input. The harness
 // hands it exactly what the Data Table point read returns.
 const projection = (rows) => ({ all: () => rows.map((j) => ({ json: j })), first: () => ({ json: rows[0] }) });
-const PROJ = { id: 7, telegram_user_id: '551662084', cycle_id: 'C-551662084-1756900000000', cycle_reset: 'bootstrap', projected_at: '2026-09-03T10:00:00.000Z' };
+const projectionRow = (sequence, over) => Object.assign({
+  id: Number(sequence), authority_key: '551662084|C-551662084-' + sequence,
+  telegram_user_id: '551662084', cycle_id: 'C-551662084-' + sequence,
+  cycle_sequence: String(sequence), cycle_reset: 'bootstrap', projected_at: '2026-09-03T10:00:00.000Z'
+}, over || {});
+const PROJ = projectionRow('1756900000000');
 
 check('EXECUTED: the session id is high-entropy and is NOT a storage row id', () => {
   const body = byName('Build App Session').parameters.jsCode;
@@ -405,11 +414,20 @@ const runBuild = (rows, userId) => {
 };
 
 check('EXECUTED: a missing projection resolves to NOTHING — cycle_id is never \'\' on a minted session', () => {
-  for (const rows of [[], [{}], [{ error: 'store down' }], [{ errorMessage: 'timeout' }]]) {
+  for (const rows of [[], [{}]]) {
     const s = runBuild(rows);
     eq(s.cycle_id, '', 'a missing/unreadable projection produced a cycle: ' + JSON.stringify(rows));
     eq(s.cycle_unresolved, 1, 'the refusal marker is absent');
     assert(!('app_session_id' in s), 'a session was minted without an authoritative cycle');
+  }
+});
+
+check('EXECUTED: an unreadable cycle projection fails as a retryable store outage, not as missing data', () => {
+  for (const rows of [[{ error: 'store down' }], [{ errorMessage: 'timeout' }]]) {
+    const s = runBuild(rows);
+    eq(s.cycle_id, '', 'an unreadable projection produced a cycle');
+    eq(s.cycle_store_error, 1, 'the outage marker is absent');
+    assert(!('app_session_id' in s), 'a session was minted during a projection-store outage');
   }
 });
 
@@ -418,16 +436,18 @@ check('EXECUTED: another user\'s projection, an empty cycle or a malformed cycle
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: '' })]).cycle_id, '', 'an empty projected cycle was used');
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: 'garbage' })]).cycle_id, '', 'a malformed cycle was used');
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: "C-1' or 1=1" })]).cycle_id, '', 'an injected cycle was used');
+  eq(runBuild([Object.assign({}, PROJ, { authority_key: '551662084|C-551662084-OTHER' })]).cycle_id, '', 'a mismatched authority key was used');
+  eq(runBuild([Object.assign({}, PROJ, { cycle_sequence: '1' })]).cycle_id, '', 'a mismatched cycle sequence was used');
 });
 
-check('EXECUTED: with several projection rows the most recently projected cycle wins, deterministically', () => {
-  const older = Object.assign({}, PROJ, { id: 1, cycle_id: 'C-551662084-1', projected_at: '2026-09-01T00:00:00.000Z' });
-  const newer = Object.assign({}, PROJ, { id: 2, cycle_id: 'C-551662084-2', projected_at: '2026-09-02T00:00:00.000Z' });
+check('EXECUTED: with several immutable projection rows the highest cycle sequence wins, deterministically', () => {
+  const older = projectionRow('1', { projected_at: '2026-09-03T12:00:00.000Z' });
+  const newer = projectionRow('2', { projected_at: '2026-09-01T00:00:00.000Z' });
   eq(runBuild([older, newer]).cycle_id, newer.cycle_id, 'older, newer');
   eq(runBuild([newer, older]).cycle_id, newer.cycle_id, 'newer, older — read order changed the winner');
-  // identical timestamps: the higher row id (later insert) wins — a total order, never a coin flip
-  const a = Object.assign({}, newer, { id: 10, cycle_id: 'C-551662084-10' });
-  const b = Object.assign({}, newer, { id: 11, cycle_id: 'C-551662084-11' });
+  // Numeric sequence, not lexicographic key or mutable projected_at, is authoritative.
+  const a = projectionRow('9', { id: 100, projected_at: '2099-01-01T00:00:00.000Z' });
+  const b = projectionRow('10', { id: 1, projected_at: '2020-01-01T00:00:00.000Z' });
   eq(runBuild([a, b]).cycle_id, b.cycle_id, 'a,b');
   eq(runBuild([b, a]).cycle_id, b.cycle_id, 'b,a');
 });
@@ -446,7 +466,9 @@ check('the cycle read is a credential-free Data Table point read on the projecti
 });
 
 check('an unresolved cycle answers 409 CYCLE_UNRESOLVED and has NO path to the session store', () => {
-  eq(JSON.stringify(outs('Build App Session')), JSON.stringify([['IF Cycle Resolved']]), 'the resolver does not go through the cycle gate');
+  eq(JSON.stringify(outs('Build App Session')), JSON.stringify([['IF Cycle Store Readable']]), 'the resolver does not go through the store gate');
+  eq(JSON.stringify(outs('IF Cycle Store Readable')[0]), JSON.stringify(['IF Cycle Resolved']), 'readable branch');
+  eq(JSON.stringify(outs('IF Cycle Store Readable')[1]), JSON.stringify(['Respond Application Store Unavailable']), 'outage branch');
   eq(JSON.stringify(outs('IF Cycle Resolved')[0]), JSON.stringify(['Read User Sessions']), 'resolved branch');
   eq(JSON.stringify(outs('IF Cycle Resolved')[1]), JSON.stringify(['Respond Cycle Unresolved']), 'unresolved branch');
   const gate = byName('IF Cycle Resolved').parameters.conditions.conditions[0];
@@ -465,11 +487,53 @@ check('the app session store is the Data Table, and holds no lead content', () =
   const node = byName('Create App Session');
   eq(node.type, 'n8n-nodes-base.dataTable', 'the app session is not stored in a Data Table');
   eq(node.parameters.dataTableId.value, APP_SESSION_TABLE, 'wrong table');
-  eq(node.parameters.operation, 'insert', 'the bootstrap does something other than insert');
+  eq(node.parameters.operation, 'upsert', 'the application record is not idempotently materialised');
+  eq(node.parameters.filters.conditions[0].keyName, 'app_session_id', 'the materialisation is not keyed by the claimed session id');
   const blob = JSON.stringify(WF);
   ['contact_phone', 'contact_email', 'lead_payload', 'answers'].forEach((k) => {
     assert(blob.indexOf(k) === -1, 'the Gateway references lead content: ' + k);
   });
+});
+
+check('first-open authority is an atomic user+cycle claim, verified before materialisation', () => {
+  const node = byName('Claim Session Authority');
+  const q = String(node.parameters.query || '');
+  const migration = readFileSync(join(ROOT, 'db', 'migrations', '0004_preproduction_authority.up.sql'), 'utf8');
+  const ddl = (migration.match(/create table if not exists public\.finmentor_app_session_authority \([\s\S]*?\n\);/i) || [])[0] || '';
+  assert(/primary key \(telegram_user_id, cycle_id\)/i.test(ddl), 'user+cycle authority constraint missing');
+  assert(/app_session_id text not null unique/i.test(ddl), 'session identity uniqueness missing');
+  assert(/alter table public\.finmentor_app_session_authority enable row level security/i.test(migration), 'authority RLS missing');
+  assert(/revoke all on table public\.finmentor_app_session_authority from anon, authenticated/i.test(migration), 'browser roles retain authority access');
+  assert(new RegExp('insert into public\\.' + APP_SESSION_AUTHORITY_TABLE, 'i').test(q), 'wrong authority table');
+  assert(/on conflict \(telegram_user_id, cycle_id\) do update/i.test(q), 'no atomic user+cycle arbitration');
+  assert(/returning telegram_user_id, cycle_id, app_session_id, state, created_at, expires_at/i.test(q), 'authoritative binding not returned');
+  const insertAt = q.search(/insert\s+into/i);
+  assert(insertAt >= 0 && !/\bselect\b/i.test(q.slice(0, insertAt)), 'check-then-act race before INSERT');
+  eq(node.onError, 'continueErrorOutput', 'authority outage is not routed separately');
+  assert(!node.alwaysOutputData, 'authority outage could also enter the success path');
+  eq(JSON.stringify(outs('Claim Session Authority')), JSON.stringify([
+    ['Apply Session Authority'], ['Respond Application Store Unavailable']
+  ]), 'authority claim wiring');
+
+  const body = byName('Apply Session Authority').parameters.jsCode;
+  const source = runBuild([PROJ]);
+  const run = (rows) => {
+    const $ = () => ({ first: () => ({ json: source }) });
+    return new Function('$', '$input', body)($, projection(rows))[0].json;
+  };
+  const authoritative = {
+    app_session_id: source.app_session_id, telegram_user_id: source.telegram_user_id,
+    cycle_id: source.cycle_id, state: 'draft', created_at: source.created_at, expires_at: source.expires_at
+  };
+  eq(run([authoritative]).app_session_id, source.app_session_id, 'valid authority row rejected');
+  for (const rows of [[], [{ ...authoritative, telegram_user_id: '999' }], [{ ...authoritative, cycle_id: 'C-551662084-1' }], [authoritative, authoritative]]) {
+    eq(run(rows).authority_error, 1, 'ambiguous or mismatched authority was accepted');
+  }
+
+  const mutated = buildGateway({ botId: CONFIGURED_BOT_ID });
+  mutated.nodes.find((n) => n.name === 'Claim Session Authority').parameters.query = 'select 1';
+  const verdict = verifyGateway(mutated);
+  assert(!verdict.ok && verdict.failures.some((f) => /Session Authority/.test(f)), 'verifier accepted a removed authority CAS');
 });
 
 console.log('\n-- retention and exposure --');
@@ -483,7 +547,7 @@ check('NO execution data is retained, so raw initData is never persisted', () =>
 check('availableInMCP is false and no response leaks internals', () => {
   eq(WF.settings.availableInMCP, false, 'the Gateway is MCP-exposed');
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 5, 'unexpected responder count');
+  eq(responders.length, 6, 'unexpected responder count');
   responders.forEach((r) => {
     const b = JSON.stringify(r.parameters);
     ['replay_key', 'submission_key', 'init_data', 'telegram_user_id', 'lead_id', 'cycle_id'].forEach((k) => {

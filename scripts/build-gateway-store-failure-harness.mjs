@@ -41,12 +41,13 @@
 //                                              none (claim lost)
 //                                            - H2: the REAL postgres node with the REAL query,
 //                                              pointed at a disposable dead-address credential
-//   4. Create App Session                    - a pass-through, so no row can ever reach the
-//                                              production MiniApp_App_Sessions data table
+//   4. Claim Session Authority + every Data Table node
+//                                            - pass-through Code nodes, so the harness embeds no
+//                                              second production credential or application store
 //
 // EVERY OTHER NODE, and the entire connection map, must be byte-identical to the Gateway
 // candidate - the gate below asserts that node by node and refuses to emit otherwise. In
-// particular all four respond nodes are copied verbatim, so the 503 that comes back is produced
+// particular all six respond nodes are copied verbatim, so the 503 that comes back is produced
 // by the same node, with the same typed numeric code, as the production one.
 //
 // The trust-anchor swap is what lets a synthetic context reach the claim node without any
@@ -84,6 +85,7 @@ export const PRODUCTION_G5_CREDENTIAL_ID = 'B6wRirWfjqoASXU3';
 export const PRODUCTION_SESSION_TABLE = 'MiniApp_App_Sessions';
 
 export const CLAIM_NODE = 'G5 Replay Claim';
+export const SESSION_AUTHORITY_NODE = 'Claim Session Authority';
 export const SESSION_NODE = 'Create App Session';
 
 // EVERY data-table node is replaced, not one named one. The Gateway gained a read/resolve/
@@ -98,7 +100,7 @@ export const WEBHOOK_NODE = 'Gateway Webhook';
 
 // The only nodes this harness may differ from the Gateway in. Anything else must match.
 export const allowedDivergence = (gateway) =>
-  [VERIFY_NODE, CLAIM_NODE, WEBHOOK_NODE].concat(dataTableNodes(gateway));
+  [VERIFY_NODE, CLAIM_NODE, SESSION_AUTHORITY_NODE, WEBHOOK_NODE].concat(dataTableNodes(gateway));
 
 const SETTINGS = {
   executionOrder: 'v1',
@@ -191,6 +193,13 @@ export function buildHarness(gateway, variant) {
       return codeNode(n, n.name, SESSION_PASSTHROUGH_CODE);
     }
 
+    if (n.name === SESSION_AUTHORITY_NODE) {
+      // This claim is downstream of the replay claim under test and is unreachable in the outage
+      // case, but leaving its production credential in a disposable artifact would still violate
+      // the harness boundary. A pure pass-through preserves the connection map without authority.
+      return codeNode(n, n.name, SESSION_PASSTHROUGH_CODE, { onError: n.onError });
+    }
+
     if (n.name === CLAIM_NODE) {
       if (variant === 'h1') {
         // Mirror the flag by COPYING it, in whichever state production holds it. Since P9-R2 it
@@ -235,11 +244,11 @@ export function verifyHarness(gateway, wf, variant) {
     if (!deepEqual(h.onError || null, g.onError || null)) { f.push('undeclared divergence in onError: ' + g.name); }
   }
 
-  // --- the four respond nodes are the thing under test ---------------------
+  // --- the six respond nodes are the thing under test ----------------------
   // Copied verbatim, so the 503 that comes back is emitted by the same node, with the same TYPED
   // code, as the production one. P9-R1: a substring test cannot tell '=503' from 503.
   const respond = gateway.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  if (respond.length !== 4) { f.push('the Gateway does not have the expected four respond nodes'); }
+  if (respond.length !== 6) { f.push('the Gateway does not have the expected six respond nodes'); }
   for (const g of respond) {
     const h = byName(wf, g.name);
     if (!h) { f.push('missing respond node: ' + g.name); continue; }
@@ -348,7 +357,7 @@ if (isMain) {
   console.log('  H1 (credential-free) : n8n/candidate/gw-store-failure-h1-candidate.json  /webhook/' + H1_PATH);
   console.log('  H2 (dead store)      : n8n/candidate/gw-store-failure-h2-candidate.json  /webhook/' + H2_PATH);
   console.log('  divergence allowlist : ' + allowedDivergence(gateway).join(', '));
-  console.log('  respond nodes        : all four copied verbatim, codes typed');
+  console.log('  respond nodes        : all six copied verbatim, codes typed');
   console.log('  production creds     : absent');
   console.log('  production table     : absent');
   console.log('  trust anchor         : placeholder, injected at deploy');

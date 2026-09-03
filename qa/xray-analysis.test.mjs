@@ -101,6 +101,9 @@ check('STATIC+SIMULATED: overlapping sweep claim has one winner for lead_id + an
   const sql = fs.readFileSync(path.join(ROOT, 'db/migrations/0004_preproduction_authority.up.sql'), 'utf8');
   const builder = fs.readFileSync(path.join(ROOT, 'scripts/build-xray-analysis-workflow.mjs'), 'utf8');
   assert(/primary key \(lead_id, analysis_version\)/i.test(sql), 'unique authority missing');
+  assert(/unique \(claim_key\)/i.test(sql) && /unique \(analysis_id\)/i.test(sql), 'claim identity uniqueness missing');
+  assert(/alter table public\.finmentor_xray_analysis_claims enable row level security/i.test(sql), 'authority RLS missing');
+  assert(/revoke all on table public\.finmentor_xray_analysis_claims from anon, authenticated/i.test(sql), 'browser roles retain authority access');
   assert(/on conflict \(lead_id, analysis_version\) do nothing/i.test(builder), 'atomic conflict rule missing');
   const claims = new Set(); const claim = key => claims.has(key) ? 0 : (claims.add(key), 1);
   eq(claim(leadId + '|xray-v2') + claim(leadId + '|xray-v2'), 1, 'winner count');

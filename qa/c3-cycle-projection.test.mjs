@@ -24,8 +24,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 import {
-  splicePremiumSession, patchConcierge, verifyPatched, GUARD_CODE, projectionNode,
-  PREMIUM_SESSION, BUILD_ROW, SAVE_SESSION, PROJECT_NODE, GUARD_NODE, PROJECTION_TABLE
+  splicePremiumSession, patchConcierge, verifyPatched, GUARD_CODE, projectionInputNode, projectionNode,
+  PREMIUM_SESSION, BUILD_ROW, SAVE_SESSION, PREP_NODE, PROJECT_NODE, GUARD_NODE, PROJECTION_TABLE
 } from '../scripts/deploy-c3-concierge-cycle.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -189,19 +189,35 @@ check('a FAILED projection write on a ROTATION turn aborts the turn — the rota
   assert(err, 'a failed projection on a bootstrap mint was tolerated');
 });
 
-check('a FAILED projection write on an ordinary turn is tolerated — the cycle did not move', () => {
+check('a FAILED projection write on an ordinary turn also aborts — projection authority is unavailable', () => {
   const row = { chat_id: CHAT, cycle_id: CYCLE };
-  const out = runGuard({ error: { message: 'store down' } }, row, { cycle_reset: '' });
-  eq(JSON.stringify(out), JSON.stringify(row), 'the row was altered');
+  let err = null;
+  try { runGuard({ error: { message: 'store down' } }, row, { cycle_reset: '' }); } catch (e) { err = e; }
+  assert(err && /CYCLE_PROJECTION_FAILED/.test(err.message), 'the turn continued without durable projection authority');
 });
 
-check('the projection node is an upsert keyed by the Telegram user, on the projection table, with the error output routed', () => {
+check('the projection input creates one immutable user+cycle authority key', () => {
+  const n = projectionInputNode([0, 0]);
+  const row = { chat_id: CHAT, user_id: CHAT, cycle_id: 'C-' + CHAT + '-42' };
+  const $ = (name) => {
+    if (name === BUILD_ROW) return { first: () => ({ json: row }) };
+    if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: { cycle_id: row.cycle_id, cycle_reset: 'restart' } }) };
+    throw new Error("$('" + name + "') not provided");
+  };
+  const out = new Function('$', n.parameters.jsCode)($)[0].json;
+  eq(out.authority_key, CHAT + '|' + row.cycle_id, 'authority key');
+  eq(out.cycle_sequence, '42', 'cycle sequence');
+  eq(out.telegram_user_id, CHAT, 'user binding');
+  eq(out.cycle_id, row.cycle_id, 'cycle binding');
+});
+
+check('the projection node is an upsert keyed by immutable user+cycle authority, with the error output routed', () => {
   const n = projectionNode([0, 0]);
   eq(n.type, 'n8n-nodes-base.dataTable', 'type');
   eq(n.parameters.operation, 'upsert', 'not an upsert');
   eq(n.parameters.dataTableId.value, PROJECTION_TABLE, 'table');
-  eq(n.parameters.filters.conditions[0].keyName, 'telegram_user_id', 'match key');
-  eq(Object.keys(n.parameters.columns.value).sort().join(','), 'cycle_id,cycle_reset,projected_at,telegram_user_id', 'columns');
+  eq(n.parameters.filters.conditions[0].keyName, 'authority_key', 'match key');
+  eq(Object.keys(n.parameters.columns.value).sort().join(','), 'authority_key,cycle_id,cycle_reset,cycle_sequence,projected_at,telegram_user_id', 'columns');
   eq(n.onError, 'continueErrorOutput', 'the error output is not routed');
   assert(!n.alwaysOutputData, 'the P9-R2 flag pair');
   assert(!n.credentials, 'a credential on the projection write');
@@ -229,12 +245,13 @@ function fixtureLive() {
   };
 }
 
-check('the patch changes EXACTLY the premium session node, adds the two nodes, and splits ONE edge', () => {
+check('the patch changes EXACTLY the premium session node, adds three authority nodes, and splits ONE edge', () => {
   const live = fixtureLive();
   const patched = patchConcierge(live);
   const f = verifyPatched(live, patched);
   eq(f.join(' | '), '', 'verification');
-  eq(patched.connections[BUILD_ROW].main[0][0].node, PROJECT_NODE, BUILD_ROW + ' edge');
+  eq(patched.connections[BUILD_ROW].main[0][0].node, PREP_NODE, BUILD_ROW + ' edge');
+  eq(patched.connections[PREP_NODE].main[0][0].node, PROJECT_NODE, 'prepare edge');
   eq(patched.connections[PROJECT_NODE].main[0][0].node, GUARD_NODE, 'success output');
   eq(patched.connections[PROJECT_NODE].main[1][0].node, GUARD_NODE, 'error output');
   eq(patched.connections[GUARD_NODE].main[0][0].node, SAVE_SESSION, 'guard edge');
@@ -244,7 +261,7 @@ check('the patch changes EXACTLY the premium session node, adds the two nodes, a
   const path = [];
   let cur = BUILD_ROW;
   while (cur && path.length < 6) { path.push(cur); cur = ((patched.connections[cur] || {}).main || [[]])[0][0] && patched.connections[cur].main[0][0].node; }
-  eq(path.slice(0, 4).join(' -> '), [BUILD_ROW, PROJECT_NODE, GUARD_NODE, SAVE_SESSION].join(' -> '), 'write order');
+  eq(path.slice(0, 5).join(' -> '), [BUILD_ROW, PREP_NODE, PROJECT_NODE, GUARD_NODE, SAVE_SESSION].join(' -> '), 'write order');
 });
 
 check('the patch REFUSES an unexpected graph and a second application', () => {

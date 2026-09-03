@@ -46,6 +46,7 @@ const GATES = [
   ['Lead Intake COMMITTED replay', 'lead-intake-committed-replay.test.mjs'],
   ['P8.4B Concierge internal handoff', 'concierge-internal-handoff.test.mjs'],
   ['G5 initData replay claim', 'g5-replay-claim.test.mjs'],
+  ['C3 immutable cycle projection', 'c3-cycle-projection.test.mjs'],
   ['P9 Mini App Gateway pre-deploy', 'miniapp-gateway.test.mjs'],
   ['P9-R2 Gateway store-failure harness', 'gateway-store-failure-harness.test.mjs'],
   ['P9-R3 Lead Intake dedup-outage harness', 'lead-intake-dedup-harness.test.mjs'],
@@ -70,6 +71,7 @@ const GATES = [
   ['Premium Telegram presentation', 'premium-ux-tg-presentation.test.mjs'],
   ['Premium UX contact channel', 'premium-ux-contact-channel.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
+  ['CRM stage compatibility map', 'crm-stage-map.test.mjs'],
   ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],
   ['Lead Alert ack expression (evaluated)', 'lead-alerts-ack-expression.test.mjs'],
   ['Lead Alert edit no-op classification', 'lead-alerts-edit-noop.test.mjs'],
@@ -80,6 +82,7 @@ const GATES = [
   ['Lead Intake premium projection SOURCE (executed)', 'lead-intake-premium-source.test.mjs'],
   ['Lead Intake NEW LEAD alert routing', 'lead-intake-new-lead-alert-routing.test.mjs'],
   ['GLOBAL NEW-EVENT identity (candidate)', 'lead-intake-request-identity.test.mjs'],
+  ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
