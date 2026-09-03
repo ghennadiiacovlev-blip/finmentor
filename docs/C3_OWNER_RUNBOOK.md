@@ -132,3 +132,28 @@ acceptance sequence has been performed.
 | — | Error Monitor and SYSTEM ALERT: no execution since 08-31. Legacy session row 1 (`cycle_id ''`, expired 09-02) is unreachable. |
 
 Not yet exercised live: an explicit ROTATION («Начать новый вопрос» → a second projection row with a higher sequence → the Mini App resolves the new cycle and the old draft cannot win). Step 3 (endpoints) not deployed at the owner's request.
+
+## Fresh-read 2026-09-03 ~18:05 UTC — nothing moved, rotation still owner-only
+
+| check | result |
+|---|---|
+| Concierge `mppzthlkSJFr6Kle` | 58 nodes, active, unchanged since 17:38:03 |
+| Gateway `nTZHLbv2KFggdhh5` | 32 nodes, active, unchanged since 17:24:47; still no executions (by design) |
+| Session / Submit / X-Ray / host | 14 / 28 / 29 / 2 nodes — pre-C3, untouched (steps 3–5 not run) |
+| `deploy-c3-endpoints`, `deploy-c3-xray`, `deploy-c3-miniapp-host` `--dry-run` | all PASS against live, same node deltas as recorded above, rollback artefacts intact |
+| `node qa/run-all.mjs` | 68/68, 2493 assertions, floors PASS |
+| Concierge 5313 (17:56:04, callback `p\|describe`) and 5315 (17:56:26, free text) | both ran `Prepare Cycle Projection -> Project Cycle -> Cycle Projection Guard`, `projection_invalid 0`; `MiniApp_Cycle_Projection` still ONE row (id 1), upserted in place, `cycle_sequence 1787947744615` |
+| `MiniApp_App_Sessions` | 2 rows, unchanged since 17:40:14 |
+
+Neither 17:56 turn was a reset, so no rotation was expected and none happened — the same
+authority_key was re-projected in place, which is exactly the P0 guard's contract.
+
+**How to exercise the rotation on the CURRENT bot session.** The Concierge rotates a cycle only on
+`/start`, or on «Начать заново» (`m|diag`) when the session already carries a consent decision, a
+lead, or an ended status. The owner's live bot session right now has `consent ''`, `lead_id ''`,
+`status active` (state `TG_CONFIRM_CONTEXT`), so pressing «Начать заново» would be read as
+"continue", not "restart". To produce the second projection row, send `/start` to the client bot.
+Expected: `MiniApp_Cycle_Projection` gains row 2 with `cycle_reset 'start'`, a NEW
+`authority_key = 551662084|C-551662084-<new ms>` and `cycle_sequence` > `1787947744615`; row 1 is
+untouched. Then open the Mini App from the bot: the Gateway must mint a session whose `cycle_id` is
+the NEW cycle, and the submitted draft of `AS-09f4c25b…` (old cycle) must not be offered.
