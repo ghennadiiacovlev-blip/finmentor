@@ -118,3 +118,17 @@ acceptance sequence has been performed.
 | privacy wording approval (RU + RO) | owner decision |
 | RO questionnaire copy for the Mini App and the Concierge | the content gate binds every client-visible string to an approved spec; RO copy needs the same approval before it can be gated |
 | GA4 C4 UAT | needs the public site and the owner's browser |
+
+## Live proof record — steps 1 and 2 (2026-09-03, fresh-read)
+
+| time (UTC) | evidence |
+|---|---|
+| 17:24:47 | Gateway deployed: 32 nodes, active, one credential, retired nodes absent |
+| 17:38:03 | Concierge upgraded: 58 nodes, `verifyUpgraded(rollback, live)` clean, Prepare/Guard byte-identical to source |
+| 17:39:09, 17:39:19 | Concierge executions 5279, 5281 (owner bot turn) → `MiniApp_Cycle_Projection` row 1: `authority_key = <owner>|C-<owner>-1787947744615`, `cycle_sequence = 1787947744615` |
+| 17:39:25 | Gateway minted `MiniApp_App_Sessions` row 2 with `cycle_id = C-<owner>-1787947744615` — the resolved cycle, never `''`. (The Gateway retains no executions by design; the row is the evidence; zero error executions.) |
+| 17:40:11–14 | Lead Intake 5296 success; session row 2 → `submitted`, `lead_id` = the canonical lead of that cycle (committed replay, same submission key) |
+| 17:45:15, 17:45:32 | Concierge executions 5298, 5300 (confirmation turn) → the projection row was upserted in place (same id, `cycle_reset ''`, no rotation) |
+| — | Error Monitor and SYSTEM ALERT: no execution since 08-31. Legacy session row 1 (`cycle_id ''`, expired 09-02) is unreachable. |
+
+Not yet exercised live: an explicit ROTATION («Начать новый вопрос» → a second projection row with a higher sequence → the Mini App resolves the new cycle and the old draft cannot win). Step 3 (endpoints) not deployed at the owner's request.
