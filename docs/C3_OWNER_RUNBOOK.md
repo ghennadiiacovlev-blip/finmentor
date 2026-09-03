@@ -165,7 +165,34 @@ Not yet exercised live: an explicit ROTATION («Начать новый вопр
 | before | rollback `.uat/mppzthlkSJFr6Kle.pre-c3-commit.json` == `.uat/mppzthlkSJFr6Kle.post-c3-cycle.json` (byte-equal): live was exactly the C3.1 result, nothing drifted; post-deploy snapshot `.uat/mppzthlkSJFr6Kle.post-c3-commit.json` |
 | — | Gateway `nTZHLbv2KFggdhh5` untouched: 32 nodes, active, versionId `d0d093a1…`, updatedAt 17:24:47 |
 
-Not yet exercised live: the seven-point explicit rotation proof (step 1b sequence, `docs/C3_LIVE_DEFECT_CYCLE_COMMIT_ADOPTION.md`). Steps 3–6 remain ON HOLD until `C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS` is recorded here.
+~~Not yet exercised live: the seven-point explicit rotation proof (step 1b sequence, `docs/C3_LIVE_DEFECT_CYCLE_COMMIT_ADOPTION.md`). Steps 3–6 remain ON HOLD until `C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS` is recorded here.~~ Superseded by the proof below.
+
+## C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS (2026-09-03 18:45–18:47 UTC, owner sequence, fresh-read)
+
+Owner turns in the client bot, all Concierge executions `success`, adoption chain ran on every turn:
+
+| exec | time (UTC) | turn | Adopt Cycle Commit | Get Bot Session (Premium) | screen rendered |
+|---|---|---|---|---|---|
+| 5326 | 18:45:32 | `/start` | `ADOPTED` — lead `FIN-1788113619104-582` from `AS-09f4c25b…` (cycle `…1787947744615`), `lead_sent_at 17:40:14` | cycle unchanged, `cycle_reset ''` | «Последнее обращение уже передано FINMENTOR.» — «Добавить к обращению» | «Начать новый вопрос» (the C3.2 defect is closed: `TG_SUBMITTED` renders) |
+| 5328 | 18:45:47 | «Начать новый вопрос» | `ALREADY_COMMITTED` (Bot_Sessions now carries the lead) | `TG_SUBMITTED`, no rotation | «Начать новый вопрос? Текущее обращение останется без изменений.» — «Начать новый вопрос» | «Вернуться» |
+| 5330 | 18:45:55 | confirm «Начать новый вопрос» (`p|new_y`) | `ALREADY_COMMITTED` | **ROTATED**: `cycle_id C-551662084-1788461156146`, `lead_id ''`, `previous_lead_id 'TG-…; FIN-1788113619104-582'`, `cycle_reset restart`, state `MENU` | «FINMENTOR / Подготовка к первой встрече» — «Описать задачу» | «Подготовить бриф» |
+| 5332 | 18:46:01 | «Подготовить бриф» | `NOT_SUBMITTED` (no submitted session for the NEW cycle — nothing re-adopted) | new cycle, `cycle_reset ''`, state `TG_ENTRY` | «Контекст сохранён…» — «Открыть бриф» |
+
+The seven facts:
+
+| # | fact | evidence |
+|---|---|---|
+| 1 | second projection row | `MiniApp_Cycle_Projection` id 2, `authority_key 551662084|C-551662084-1788461156146`, created 18:45:56.585 by 5330 with `cycle_reset restart` (Project Cycle output); 5332 re-projected it in place (same id, `cycle_reset ''`, updatedAt 18:46:03) — the P0 guard contract | PASS |
+| 2 | new sequence > previous | `1788461156146 > 1787947744615` | PASS |
+| 3 | row 1 unchanged | id 1: `cycle_id C-551662084-1787947744615`, `cycle_sequence 1787947744615`, `authority_key` as before; only `projected_at` touched by the pre-rotation turns 5326/5328 (in-place upsert of the same key) | PASS |
+| 4 | new draft session on the new cycle | `MiniApp_App_Sessions` id 3, `AS-c7fabe28…`, `cycle_id C-551662084-1788461156146`, `state draft`, `lead_id null`, created 18:46:07.199 (Gateway mint, 6 s after «Открыть бриф») | PASS |
+| 5 | blank questionnaire | row 3 is a freshly minted session id (not a resume); at creation only `locale` / `contact_name` were `telegram_carried`; the first `user_explicit` field lands at 18:46:53, step then advanced to `APP_CURRENT_SETUP` by 18:47:02 | PASS |
+| 6 | old submitted session not resumed | id 2 `AS-09f4c25b…` keeps `cycle_id C-551662084-1787947744615`, `state submitted`, `updatedAt 17:40:14.413` — untouched; the Gateway minted a new session instead of returning it | PASS |
+| 7 | no error executions | Gateway: zero executions, zero errors (retains none by design); Error Monitor: last execution 08-31 14:19; SYSTEM ALERT: last 08-31 17:52; Concierge 5326–5332 all `success`; legacy `AS-6703ea8d…` (`cycle_id ''`) was read but correctly ignored by the adoption on every turn | PASS |
+
+Steps 3–6 may now proceed in order, each after its own dry-run. Session + Submit (step 3) NOT yet deployed at the time of this record.
+
+
 
 **2026-09-03 late — LIVE DEFECT, steps 3–6 ON HOLD.** The owner's customer-flow test showed the rotation is unreachable (no `TG_SUBMITTED` screen after a Mini App submit). Root cause and the C3.2 correction: `docs/C3_LIVE_DEFECT_CYCLE_COMMIT_ADOPTION.md`, step 1b above. Do not deploy step 3 or release CUSTOMER until `C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS` is recorded here.
 
