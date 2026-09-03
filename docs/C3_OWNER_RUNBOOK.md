@@ -156,6 +156,17 @@ acceptance sequence has been performed.
 
 Not yet exercised live: an explicit ROTATION («Начать новый вопрос» → a second projection row with a higher sequence → the Mini App resolves the new cycle and the old draft cannot win). Step 3 (endpoints) not deployed at the owner's request.
 
+## Live proof record — step 1b, C3.2 Concierge commit adoption (2026-09-03, fresh-read)
+
+| time (UTC) | evidence |
+|---|---|
+| 18:42:37 | `deploy-c3-concierge-commit.mjs --confirm` (owner): Concierge `mppzthlkSJFr6Kle` 58 -> 60 nodes, active, versionId `3fc2c42a-74ff-4ad3-935b-864ec82ec9b1` |
+| 18:42:37 | fresh-read by a separate process: `Premium Owner Gate -> Read Cycle Commit -> Adopt Cycle Commit -> Get Bot Session (Premium)`; legacy branch still `Get Bot Session`; `Read Cycle Commit` = dataTable 1.1 on `MiniApp_App_Sessions`, alwaysOutputData + continueRegularOutput, no credential; `Adopt Cycle Commit` byte-identical to source; credentials and error-monitor binding unchanged |
+| before | rollback `.uat/mppzthlkSJFr6Kle.pre-c3-commit.json` == `.uat/mppzthlkSJFr6Kle.post-c3-cycle.json` (byte-equal): live was exactly the C3.1 result, nothing drifted; post-deploy snapshot `.uat/mppzthlkSJFr6Kle.post-c3-commit.json` |
+| — | Gateway `nTZHLbv2KFggdhh5` untouched: 32 nodes, active, versionId `d0d093a1…`, updatedAt 17:24:47 |
+
+Not yet exercised live: the seven-point explicit rotation proof (step 1b sequence, `docs/C3_LIVE_DEFECT_CYCLE_COMMIT_ADOPTION.md`). Steps 3–6 remain ON HOLD until `C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS` is recorded here.
+
 **2026-09-03 late — LIVE DEFECT, steps 3–6 ON HOLD.** The owner's customer-flow test showed the rotation is unreachable (no `TG_SUBMITTED` screen after a Mini App submit). Root cause and the C3.2 correction: `docs/C3_LIVE_DEFECT_CYCLE_COMMIT_ADOPTION.md`, step 1b above. Do not deploy step 3 or release CUSTOMER until `C3 EXPLICIT CYCLE ROTATION LIVE PROOF = PASS` is recorded here.
 
 ## Fresh-read 2026-09-03 ~18:05 UTC — nothing moved, rotation still owner-only
