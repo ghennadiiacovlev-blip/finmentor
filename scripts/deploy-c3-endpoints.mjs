@@ -71,10 +71,74 @@ async function api(m, p, b, tries) {
   throw last;
 }
 
-// Pure: the candidate as it will be sent, given the live workflow (webhook id carried, name kept).
-export function prepareEndpoint(live, candidateRaw, kind, opts) {
-  const cand = resolveEndpoint(candidateRaw, { ownerId: opts.ownerId, releaseMode: opts.releaseMode, leadIntakeId: LEAD_INTAKE_ID, privacyCredId: PRIVACY_CRED_ID });
+export const SYSTEM_ALERT_ID = 'ID700kTo6EXffwry';
+
+// The live-only SYSTEM ALERT callers (deployed by scripts/deploy-system-alert.mjs, tracked as
+// n8n/candidate/system-alert-caller-miniapp-*.json). The endpoint builder does not model them,
+// so the merge keeps them byte-identical, keeps every edge INTO them, and attaches the new
+// "the store did not prove the commit" responder to the submit route so a persistence failure
+// alerts like any other unresolved submission.
+export const LIVE_ONLY = {
+  session: { nodes: ['Emit System Alert (Session)'], extraEdges: {} },
+  submit: { nodes: ['Alert Route (Submit)', 'Emit System Alert (Submit)'], extraEdges: { 'Respond Submit Persistence Failure': 'Alert Route (Submit)' } }
+};
+
+// A persistence failure reaches the alert route with Mark Submitted's ERROR item (no error_code)
+// or Verify Submitted Persistence's verdict; the live route would label both "Parse Intake
+// Result / SUBMIT_UNRESOLVED". This declared rewrite names them. Everything else is verbatim.
+export const ALERT_ROUTE_PERSISTENCE_SPLICE = [
+  'if (v.receipt_reason !== undefined) { verdict_node = "Receipt Verdict"; }',
+  'if (v.receipt_reason !== undefined) { verdict_node = "Receipt Verdict"; }\n' +
+  '// [C3] the persistence branch: Mark Submitted\'s error item, or the read-back verdict.\n' +
+  'else if (v.__response && String(v.__response.error_code || "") === "SUBMIT_PERSISTENCE_UNCONFIRMED") { verdict_node = "Verify Submitted Persistence"; }\n' +
+  'else if (v.__response && String(v.__response.error_code || "") === "SUBMIT_STORE_UNAVAILABLE") { verdict_node = "Read Back Submitted"; }\n' +
+  'else if (code === "" && (v.error !== undefined || v.errorMessage !== undefined)) { verdict_node = "Mark Submitted"; }'
+];
+
+export function mergeLiveOnly(live, cand, kind) {
+  const spec = LIVE_ONLY[kind];
+  const candNames = new Set(cand.nodes.map((n) => n.name));
+  const out = JSON.parse(JSON.stringify(cand));
   const f = [];
+  for (const name of spec.nodes) {
+    const l = live.nodes.find((n) => n.name === name);
+    if (!l) { f.push('live-only node missing on the tenant: ' + name); continue; }
+    if (candNames.has(name)) { f.push('the candidate models a live-only node: ' + name); continue; }
+    const n = JSON.parse(JSON.stringify(l));
+    if (name === 'Alert Route (Submit)') {
+      const [anchor, replacement] = ALERT_ROUTE_PERSISTENCE_SPLICE;
+      const code = String(n.parameters.jsCode || '');
+      if (code.split(anchor).length !== 2) { f.push('Alert Route (Submit) anchor not found exactly once'); }
+      else if (code.indexOf('Verify Submitted Persistence') === -1) { n.parameters.jsCode = code.replace(anchor, replacement); }
+    }
+    if (n.type === 'n8n-nodes-base.executeWorkflow' && String(((n.parameters || {}).workflowId || {}).value || '') !== SYSTEM_ALERT_ID) { f.push(name + ' calls a workflow other than SYSTEM ALERT'); }
+    out.nodes.push(n);
+  }
+  // every live edge INTO a live-only node is kept, at the same output index
+  for (const [src, c] of Object.entries(live.connections || {})) {
+    (c.main || []).forEach((branch, i) => {
+      for (const e of branch || []) {
+        if (spec.nodes.indexOf(e.node) === -1) { continue; }
+        if (!out.nodes.some((n) => n.name === src)) { f.push('live edge from a node the candidate dropped: ' + src + ' -> ' + e.node); continue; }
+        out.connections[src] = out.connections[src] || { main: [] };
+        while (out.connections[src].main.length <= i) { out.connections[src].main.push([]); }
+        if (!out.connections[src].main[i].some((x) => x.node === e.node)) { out.connections[src].main[i].push({ node: e.node, type: 'main', index: e.index || 0 }); }
+      }
+    });
+  }
+  for (const [src, dst] of Object.entries(spec.extraEdges)) {
+    if (!out.nodes.some((n) => n.name === src)) { f.push('extra edge source missing: ' + src); continue; }
+    out.connections[src] = out.connections[src] || { main: [[]] };
+    if (!out.connections[src].main[0].some((x) => x.node === dst)) { out.connections[src].main[0].push({ node: dst, type: 'main', index: 0 }); }
+  }
+  return { merged: out, failures: f };
+}
+
+// Pure: the candidate as it will be sent, given the live workflow (webhook id carried, name kept,
+// live-only alert callers merged).
+export function prepareEndpoint(live, candidateRaw, kind, opts) {
+  const resolved = resolveEndpoint(candidateRaw, { ownerId: opts.ownerId, releaseMode: opts.releaseMode, leadIntakeId: LEAD_INTAKE_ID, privacyCredId: PRIVACY_CRED_ID });
+  const { merged: cand, failures: f } = mergeLiveOnly(live, resolved, kind);
   const liveHook = live.nodes.find((n) => n.type === 'n8n-nodes-base.webhook');
   const candHook = cand.nodes.find((n) => n.type === 'n8n-nodes-base.webhook');
   if (!liveHook || !candHook) { f.push('no webhook node'); }

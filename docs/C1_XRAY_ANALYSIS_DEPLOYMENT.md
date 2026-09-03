@@ -100,3 +100,20 @@ score and zone intact, a 30-day plan, an owner alert and a one-tap review action
 
 Open for C3: customer notification on `CLIENT_READY` and the Mini App result surface read this
 store by `lead_id` (columns `analysis_json`, `plan_30d_json`, `review_status`).
+
+## C3 amendment — X-Ray v2 (2026-09-03, source-ready, live deploy pending)
+
+The C3 correction review (`docs/C3_CODEX_CORRECTION_REVIEW.md`) changed the analysis contract:
+
+| change | v1 (live) | v2 (tracked, `scripts/deploy-c3-xray.mjs --dry-run` clean) |
+|---|---|---|
+| broken model output | AI_DRAFT with LOW confidence | `ANALYSIS_FAILED` with `validation_errors`; owner notice; deleting the row retries |
+| fabricated figures | flagged, confidence LOW | unchanged (flagged, never failed; KPI fields excluded) |
+| review action | one-tap GET promotes | GET renders a read-only page + confirmation form; POST promotes |
+| review token | 16 bytes, no expiry | 32 bytes, `review_token_expires_at` = +30 days; a row without expiry is refused |
+| customer result | none | `Publish Curated Client Result` upserts `XRay_Client_Results` by `lead_id` on promotion (and on a repeated confirmation, as a repair) |
+| analysis_version | `xray-v1` | `xray-v2` |
+| new sheet columns (autoMap appends) | — | `review_token_expires_at`, `validation_errors` |
+
+Rows analysed under v1 (the two UAT rows) cannot be promoted under v2 — their tokens have no
+expiry. To re-analyse a lead under v2, delete its `XRay_Analysis` row; the next sweep picks it up.

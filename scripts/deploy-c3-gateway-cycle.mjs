@@ -185,7 +185,10 @@ if (isMain) {
   // Live nodes the candidate declares must be either identical to the candidate already, or be
   // exactly the nodes this deploy changes. Anything else is unexpected drift.
   const EXPECTED_CHANGED = ['IF Claim Won', 'Build App Session', 'Read User Sessions', 'Resolve Session', 'Finalise Session', 'IF Create Session', 'Create App Session', 'Read Back Sessions', 'Read Client Result', 'Attach Client Result'];
-  const norm = (n) => JSON.stringify({ p: n.parameters, t: n.type, v: n.typeVersion, a: n.alwaysOutputData === true, e: n.onError || null, d: n.disabled === true });
+  // The live verifier was deployed from a CRLF checkout (LIVE, 2026-09-03: 261 of 262 lines differ
+  // by a trailing \r and nothing else). Line endings are not drift; the candidate wins and
+  // rewrites the node in LF.
+  const norm = (n) => JSON.stringify({ p: n.parameters, t: n.type, v: n.typeVersion, a: n.alwaysOutputData === true, e: n.onError || null, d: n.disabled === true }).split('\\r\\n').join('\\n').split('\\r').join('');
   const liveByName = Object.fromEntries(live.nodes.map((n) => [n.name, n]));
   const drift = [];
   for (const c of candidate.nodes) {

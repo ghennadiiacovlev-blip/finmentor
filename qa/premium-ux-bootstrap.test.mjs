@@ -232,7 +232,10 @@ await check('every bootstrap failure reaches the BOOTSTRAP screen, never the sub
     await h.settle(); await h.settle();
     eq(h.state(), 'APP_BOOT_FAILURE', label);
     const t = all(h.main).map((n) => n.textContent);
-    assert(t.indexOf(h.C.BOOTSTRAP_FAILURE.title) !== -1, label + ': wrong title');
+    // C3.1 — a RETRYABLE store outage carries its own honest copy («temporarily unavailable,
+    // reopen later»); every other bootstrap failure keeps the approved generic copy.
+    const wantTitle = label === 'the replay store down' ? 'Сервис временно недоступен' : h.C.BOOTSTRAP_FAILURE.title;
+    assert(t.indexOf(wantTitle) !== -1, label + ': wrong title');
     // The submission-failure copy must not appear for a submission that never happened.
     assert(t.indexOf(h.C.FAILURE.title) === -1, label + ': the submission failure screen was shown');
     assert(t.indexOf(h.C.FAILURE.primary) === -1, label + ': «Повторить отправку» offered with nothing to send');

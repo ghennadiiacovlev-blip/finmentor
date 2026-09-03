@@ -751,7 +751,10 @@ function submitWorkflow() {
     'Mark Submitted': { main: [[{ node: 'Read Back Submitted', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] },
     'Read Back Submitted': { main: [[{ node: 'Verify Submitted Persistence', type: 'main', index: 0 }]] },
     'Verify Submitted Persistence': { main: [[{ node: 'IF Submitted Persisted', type: 'main', index: 0 }]] },
-    'IF Submitted Persisted': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] }
+    // An unproven or unreadable read-back answers the SAME typed 503 as a failed Mark Submitted:
+    // one responder for the whole "the store did not prove the commit" class, so the live
+    // SYSTEM ALERT caller can be attached to it once (see scripts/deploy-c3-endpoints.mjs).
+    'IF Submitted Persisted': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] }
   };
   return { name: SUBMIT_NAME, nodes: nodes, connections: connections, settings: JSON.parse(JSON.stringify(SETTINGS)) };
 }

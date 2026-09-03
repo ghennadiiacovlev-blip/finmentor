@@ -88,6 +88,16 @@
     // recovery is reopening the Mini App.
     REPLAY_REFUSED: 'REPLAY_REFUSED',
     REPLAY_STORE_UNAVAILABLE: 'REPLAY_STORE_UNAVAILABLE',
+    // C3 — the cycle is resolved server-side from the Concierge projection. Missing: the bot has
+    // not projected a cycle for this user yet (not retryable — reopen from the chat). Unreadable
+    // store: a retryable outage, distinct from "no rows" by design.
+    CYCLE_UNRESOLVED: 'CYCLE_UNRESOLVED',
+    APPLICATION_STORE_UNAVAILABLE: 'APPLICATION_STORE_UNAVAILABLE',
+    SESSION_STORE_UNAVAILABLE: 'SESSION_STORE_UNAVAILABLE',
+    DRAFT_STORE_UNAVAILABLE: 'DRAFT_STORE_UNAVAILABLE',
+    DRAFT_PERSISTENCE_UNCONFIRMED: 'DRAFT_PERSISTENCE_UNCONFIRMED',
+    SUBMIT_STORE_UNAVAILABLE: 'SUBMIT_STORE_UNAVAILABLE',
+    SUBMIT_PERSISTENCE_UNCONFIRMED: 'SUBMIT_PERSISTENCE_UNCONFIRMED',
 
     // ── session and submit ───────────────────────────────────────────────────────────────────
     SESSION_INVALID: 'SESSION_INVALID',
@@ -150,7 +160,7 @@
 
   // `state` and `draft` come back from the Gateway when it RESUMES an existing session rather
   // than minting one. They are the client's own answers returning to it; nothing else crosses.
-  var session = { id: '', expires_at: '', locale: '', state: '', resumed: false, draft: null };
+  var session = { id: '', expires_at: '', locale: '', state: '', resumed: false, draft: null, result: null, result_state: '' };
 
   // The Mini App never mints its own identity. It hands Telegram's initData to the Gateway, which
   // validates the signature, claims the replay ledger and issues an opaque session id. The raw
@@ -210,6 +220,11 @@
       var d = r.body.draft;
       session.draft = (d && typeof d === 'object' && !Array.isArray(d) &&
         d.fields && typeof d.fields === 'object' && !Array.isArray(d.fields)) ? d : null;
+      // C3.4 — the customer result. Present ONLY on a committed session whose analysis the owner
+      // promoted to CLIENT_READY; the Gateway attaches nothing else. Shape-checked and reduced to
+      // the curated keys here, so a malformed or over-wide row never reaches a screen.
+      session.result = curatedResult(r.body.result);
+      session.result_state = session.result ? 'CLIENT_READY' : (r.body.result_state === 'PENDING' ? 'PENDING' : '');
       return { ok: true, body: r.body };
     }, function (e) { body.init_data = ''; throw e; });
   }
@@ -224,6 +239,19 @@
   function wasResumed() { return session.resumed === true; }
   // The stored draft, or null. The app hydrates from it; nothing else reads it.
   function resumedDraft() { return session.draft; }
+
+  var RESULT_KEYS = ['locale', 'labels', 'score', 'zone', 'zone_label', 'maturity', 'summary', 'key_risks',
+    'management_priorities', 'plan_30_days', 'tomorrow_actions', 'recommended_next_step'];
+  function curatedResult(v) {
+    if (!v || typeof v !== 'object' || Array.isArray(v)) { return null; }
+    if (!v.labels || typeof v.labels !== 'object') { return null; }
+    var out = {};
+    for (var i = 0; i < RESULT_KEYS.length; i++) { if (v[RESULT_KEYS[i]] !== undefined) { out[RESULT_KEYS[i]] = v[RESULT_KEYS[i]]; } }
+    return out;
+  }
+  // The curated CLIENT_READY result, or null. Never a draft, never an internal field.
+  function clientResult() { return session.result; }
+  function resultState() { return session.result_state; }
 
   // The server is authoritative on expiry; this is a courtesy check so the app can stop asking
   // questions it already knows will be refused. It is never used to EXTEND anything.
@@ -345,6 +373,8 @@
     sessionState: sessionState,
     wasResumed: wasResumed,
     resumedDraft: resumedDraft,
+    clientResult: clientResult,
+    resultState: resultState,
     expiresAt: expiresAt,
     likelyExpired: likelyExpired,
     saveDraft: saveDraft,

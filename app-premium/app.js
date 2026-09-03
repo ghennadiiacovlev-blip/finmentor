@@ -132,7 +132,7 @@
     APP_OBJECTIVE: 1, APP_PROBLEM: 1, APP_DESIRED_OUTCOME: 1,
     APP_CURRENT_SETUP: 2, APP_DECISION_HORIZON: 2, APP_DOCUMENTS: 2, APP_CONTACT: 2, APP_IMPORTANT_CONTEXT: 2,
     APP_REVIEW: 3, APP_EDIT_SELECTOR: 3, APP_EDIT_FIELD: 3, APP_PRIVACY: 3, APP_SUBMITTING: 3,
-    APP_SUCCESS: -1, APP_FAILURE: -1
+    APP_SUCCESS: -1, APP_FAILURE: -1, APP_RESULT: -1
   };
   function requiredFor(state) {
     if (state === 'APP_COMPANY') { return ['company_name', 'business_activity']; }
@@ -363,10 +363,18 @@
     var sp = el('div'); sp.style.height = '12px'; s.appendChild(sp);
     var orb = el('div', 'orb orb--fail'); orb.appendChild(icon('info')); s.appendChild(orb);
     var sp2 = el('div'); sp2.style.height = '26px'; s.appendChild(sp2);
-    s.appendChild(title(C.BOOTSTRAP_FAILURE.title, 'sm'));
-    C.BOOTSTRAP_FAILURE.lines.forEach(function (l) { s.appendChild(lead(l)); });
+    // C3.1 — two of the Gateway's refusals have their own honest copy. CYCLE_UNRESOLVED: the bot
+    // has not projected a cycle for this user, so nothing can be minted until the next chat turn.
+    // A retryable store outage: temporary, and reopening later is the recovery. Everything else
+    // is the approved generic bootstrap failure.
+    var code = bootFailure && bootFailure.error_code;
+    var copy = code === 'CYCLE_UNRESOLVED' ? ui().cycleUnresolved
+      : (bootFailure && bootFailure.retryable === true && /STORE_UNAVAILABLE|TEMPORARY_BACKEND_ERROR/.test(String(code))) ? ui().outage
+      : C.BOOTSTRAP_FAILURE;
+    s.appendChild(title(copy.title, 'sm'));
+    copy.lines.forEach(function (l) { s.appendChild(lead(l)); });
     s.appendChild(grow());
-    s.appendChild(actions(btn(C.BOOTSTRAP_FAILURE.primary, function () { closeApp(s); })));
+    s.appendChild(actions(btn(copy.primary, function () { closeApp(s); })));
     return s;
   }
 
@@ -1062,6 +1070,140 @@
   var submitted = false;
   var lastLeadId = '';
 
+
+  // ── UI strings outside the gated questionnaire contract ──────────────────────────────────────
+  //
+  // The questionnaire copy is C (branches.js, held against the RU spec). These strings belong
+  // to surfaces the contract predates: the customer RESULT (C3.4), the cycle/outage bootstrap
+  // failures (C3.1) and the pending note. Both product locales are carried; the result's own
+  // section labels come from the server (result.labels), so the analysis reads in the client's
+  // language whichever shell is showing it.
+  var UI = {
+    ru: {
+      result: {
+        kicker: 'Результат', title: 'Результат готов', outOf: 'из 100', outOfFive: 'из 5',
+        summary: 'Кратко', weeks: { days_1_7: 'Дни 1–7', days_8_14: 'Дни 8–14', days_15_21: 'Дни 15–21', days_22_30: 'Дни 22–30' },
+        priority: { HIGH: 'высокий приоритет', MEDIUM: 'средний приоритет', LOW: 'низкий приоритет' },
+        disclaimer: 'Предварительный анализ на основе ваших ответов. Это не аудит и не финансовая отчётность; детали консультант уточнит в разговоре.',
+        primary: 'Вернуться в Telegram'
+      },
+      pending: 'Результат анализа появится здесь после проверки консультантом FINMENTOR.',
+      cycleUnresolved: {
+        title: 'Откройте форму из чата',
+        lines: ['Бот ещё не подготовил вашу заявку для формы.', 'Ничего не было отправлено.', 'Вернитесь в чат с ботом и нажмите «Открыть бриф» ещё раз.'],
+        primary: 'Закрыть'
+      },
+      outage: {
+        title: 'Сервис временно недоступен',
+        lines: ['Возникла временная техническая ошибка.', 'Ничего не было отправлено.', 'Закройте окно и откройте форму заново из чата через минуту.'],
+        primary: 'Закрыть'
+      }
+    },
+    ro: {
+      result: {
+        kicker: 'Rezultat', title: 'Rezultatul este gata', outOf: 'din 100', outOfFive: 'din 5',
+        summary: 'Pe scurt', weeks: { days_1_7: 'Zilele 1–7', days_8_14: 'Zilele 8–14', days_15_21: 'Zilele 15–21', days_22_30: 'Zilele 22–30' },
+        priority: { HIGH: 'prioritate ridicată', MEDIUM: 'prioritate medie', LOW: 'prioritate scăzută' },
+        disclaimer: 'Analiză preliminară pe baza răspunsurilor dumneavoastră. Nu este un audit și nici o situație financiară; detaliile vor fi clarificate de consultant în discuție.',
+        primary: 'Înapoi în Telegram'
+      },
+      pending: 'Rezultatul analizei va apărea aici după verificarea de către consultantul FINMENTOR.',
+      cycleUnresolved: {
+        title: 'Deschideți formularul din chat',
+        lines: ['Botul nu a pregătit încă solicitarea dumneavoastră pentru formular.', 'Nimic nu a fost trimis.', 'Reveniți în chatul cu botul și apăsați din nou «Deschide brief-ul».'],
+        primary: 'Închide'
+      },
+      outage: {
+        title: 'Serviciul este temporar indisponibil',
+        lines: ['A apărut o eroare tehnică temporară.', 'Nimic nu a fost trimis.', 'Închideți fereastra și redeschideți formularul din chat peste un minut.'],
+        primary: 'Închide'
+      }
+    }
+  };
+  // The server decides the locale once a session exists; before that, Telegram's language_code is
+  // the only hint, and it is used for the bootstrap-failure copy alone.
+  function uiLocale() {
+    var l = get('locale');
+    if (!l) { var u = tgUser(); l = u && u.language_code; }
+    return l === 'ro' ? 'ro' : 'ru';
+  }
+  function ui() { return UI[uiLocale()]; }
+
+  // ── THE CUSTOMER RESULT (C3.4) ───────────────────────────────────────────────────────────────
+  //
+  // Rendered ONLY from the curated CLIENT_READY result the Gateway attached to a committed
+  // session. There is no draft, no token, no internal status on this screen because none of
+  // that reaches the client: the server publishes exactly the curated fields, net.js keeps
+  // exactly those keys, and this screen prints what it is given. Terminal: the only action is
+  // leaving.
+  function scrResult() {
+    var r = window.FM_NET.clientResult() || {};
+    var L = r.labels || {};
+    var U = ui().result;
+    var s = screen();
+    var sp0 = el('div'); sp0.style.height = '20px'; s.appendChild(sp0);
+    s.appendChild(el('div', 'kicker', L.product || U.kicker));
+    var sp = el('div'); sp.style.height = '12px'; s.appendChild(sp);
+    s.appendChild(title(U.title, 'lg'));
+    var cond = [];
+    if (typeof r.score === 'number') { cond.push(r.score + ' ' + U.outOf); }
+    if (r.zone_label) { cond.push(r.zone_label); }
+    if (cond.length) { s.appendChild(el('div', 'headline', cond.join(' · '))); }
+    if (L.condition && r.zone_label) {
+      var st = el('div', 'status-line');
+      st.appendChild(el('span', null, L.condition + ':'));
+      st.appendChild(el('b', null, r.zone_label));
+      s.appendChild(st);
+    }
+    if (r.summary) { s.appendChild(el('div', 'kicker', U.summary)); s.appendChild(lead(r.summary)); }
+    if (r.maturity && typeof r.maturity === 'object') {
+      s.appendChild(el('div', 'kicker', L.maturity || ''));
+      s.appendChild(lead((r.maturity.score_1_to_5 !== undefined ? r.maturity.score_1_to_5 + ' ' + U.outOfFive + ' — ' : '') + (r.maturity.label || '')));
+      if (r.maturity.rationale) { s.appendChild(quiet(r.maturity.rationale)); }
+    }
+    function numbered(items, render) {
+      var steps = el('div', 'steps');
+      items.forEach(function (it, i) {
+        var d = el('div', 'step');
+        d.appendChild(el('span', 'n', String(i + 1)));
+        d.appendChild(el('span', 't', render(it)));
+        steps.appendChild(d);
+      });
+      return steps;
+    }
+    var risks = Array.isArray(r.key_risks) ? r.key_risks : [];
+    if (risks.length) {
+      s.appendChild(el('div', 'kicker', L.risks || ''));
+      s.appendChild(numbered(risks, function (k) {
+        var p = U.priority[k.priority] ? ' (' + U.priority[k.priority] + ')' : '';
+        return (k.title || '') + p + (k.evidence ? ' — ' + k.evidence : '');
+      }));
+    }
+    var pri = Array.isArray(r.management_priorities) ? r.management_priorities : [];
+    if (pri.length) { s.appendChild(el('div', 'kicker', L.priorities || '')); s.appendChild(numbered(pri, function (p) { return String(p); })); }
+    var plan = r.plan_30_days && typeof r.plan_30_days === 'object' ? r.plan_30_days : null;
+    if (plan) {
+      s.appendChild(el('div', 'kicker', L.plan || ''));
+      ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'].forEach(function (w) {
+        var acts = Array.isArray(plan[w]) ? plan[w] : [];
+        if (!acts.length) { return; }
+        s.appendChild(el('p', 'quiet', U.weeks[w]));
+        s.appendChild(numbered(acts, function (a) { return (a.action || '') + (a.expected_output ? ' — ' + a.expected_output : ''); }));
+      });
+    }
+    var tom = Array.isArray(r.tomorrow_actions) ? r.tomorrow_actions : [];
+    if (tom.length) { s.appendChild(el('div', 'kicker', L.tomorrow || '')); s.appendChild(numbered(tom, function (t) { return String(t); })); }
+    if (r.recommended_next_step && typeof r.recommended_next_step === 'object') {
+      s.appendChild(el('div', 'kicker', L.next || ''));
+      s.appendChild(lead(r.recommended_next_step.label || ''));
+      if (r.recommended_next_step.rationale) { s.appendChild(quiet(r.recommended_next_step.rationale)); }
+    }
+    s.appendChild(quiet(U.disclaimer));
+    s.appendChild(grow());
+    s.appendChild(actions(btn(U.primary, function () { closeApp(s); })));
+    return s;
+  }
+
   function scrSuccess() {
     var o = objective();
     var s = screen('screen--center');
@@ -1082,6 +1224,9 @@
     var declared = get('documents');
     s.appendChild(lead(declared && declared.length ? C.SUCCESS.materials.declared : C.SUCCESS.materials.none));
     s.appendChild(lead(C.SUCCESS.tail));
+    // C3.4 — where the reviewed analysis will appear. Never a draft: the result screen exists
+    // only once the owner has promoted the analysis, and this line says so.
+    s.appendChild(quiet(ui().pending));
     var sp3 = el('div'); sp3.style.height = '34px'; s.appendChild(sp3);
     s.appendChild(el('div', 'kicker', C.SUCCESS.nextTitle));
     var steps = el('div', 'steps');
@@ -1131,7 +1276,7 @@
     APP_CURRENT_SETUP: scrSetup, APP_DECISION_HORIZON: scrHorizon, APP_DOCUMENTS: scrDocuments,
     APP_CONTACT: scrContact, APP_IMPORTANT_CONTEXT: scrImportant, APP_REVIEW: scrReview,
     APP_EDIT_SELECTOR: scrEditSelector, APP_PRIVACY: scrPrivacy, APP_SUBMITTING: scrSubmitting,
-    APP_SUCCESS: scrSuccess, APP_FAILURE: scrFailure
+    APP_SUCCESS: scrSuccess, APP_FAILURE: scrFailure, APP_RESULT: scrResult
   };
 
   function renderStages() {
@@ -1156,7 +1301,7 @@
     // states outside the ladder have nowhere to go back to.
     backBtn.hidden = (state === 'APP_BOOTSTRAP' || state === 'APP_SUCCESS' || state === 'APP_SUBMITTING' ||
       state === 'APP_STARTING' || state === 'APP_BOOT_FAILURE' || state === 'APP_SESSION_EXPIRED' ||
-      state === 'APP_RESUME');
+      state === 'APP_RESUME' || state === 'APP_RESULT');
     window.scrollTo({ top: 0, behavior: (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth' });
   }
 
@@ -1238,7 +1383,8 @@
       if (window.FM_NET.sessionState() === 'submitted') {
         submitted = true;
         lastLeadId = '';
-        state = 'APP_SUCCESS';
+        // C3.4 — a reviewed analysis, when the owner has promoted it; the committed screen otherwise.
+        state = window.FM_NET.clientResult() ? 'APP_RESULT' : 'APP_SUCCESS';
         render();
         return;
       }

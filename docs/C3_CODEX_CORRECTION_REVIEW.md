@@ -118,3 +118,20 @@ candidate in this checkpoint is regenerated from its builder on an LF tree.
 The §7 "Resolution" appended to `docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md` in the WIP
 checkpoint described the Gateway reader, a completion record and an activation script as done;
 none of the three existed live or in the tree. That section is corrected in this checkpoint.
+
+## 5. Where this stops, and why
+
+Every C3 deploy (Concierge upgrade, Gateway, Session + Submit, X-Ray v2, Mini App host) is built,
+gated and **dry-run clean against the live tenant** with rollback artefacts. None was written:
+in this session the permission classifier refuses the `--confirm` invocations, and the n8n MCP
+connector cannot see the production workflows (only the two Data Table columns could be added
+through it). The exact commands, expected output, live proofs and rollbacks are in
+`docs/C3_OWNER_RUNBOOK.md`. The customer release stays one explicit substitution
+(`--release=CUSTOMER`) behind the privacy approval and the C2 owner acceptance.
+
+Product surface added in this checkpoint on the Mini App (`app-premium/`): the CLIENT_READY
+result screen (curated fields only, server labels, RU/RO shell strings), the pending note on the
+committed screen, and honest copy for `CYCLE_UNRESOLVED` and retryable store outages — executed
+through the real client by `qa/premium-ux-result-screen.test.mjs`. The RO questionnaire copy
+(branches.js) and the RO Concierge copy are NOT translated here: the content gate binds every
+client-visible string to an owner-approved spec, and RO copy needs the same approval first.

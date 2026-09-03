@@ -1173,7 +1173,7 @@
         ],
         [
           {
-            "node": "Respond Submit Terminal",
+            "node": "Respond Submit Persistence Failure",
             "type": "main",
             "index": 0
           }
