@@ -18,6 +18,7 @@
 // SECRETS. N8N_API_KEY (read) / N8N_FIX_API_KEY (write, falls back). Never printed.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { keepRollback } from './lib/rollback-artifact.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { compileFile } from './lib/compile-workflow-sdk.mjs';
@@ -89,8 +90,9 @@ if (isMain) {
     say(DRY ? '  MODE: DRY RUN' : '  MODE: LIVE'); say('');
     const live = await api('GET', '/workflows/' + XRAY_ID);
     if (live.name !== XRAY_NAME) { die('live workflow is not the X-Ray Analysis: ' + live.name); }
-    writeFileSync(join(OUT_DIR, XRAY_ID + '.pre-c3-xray.json'), JSON.stringify(importable(live), null, 2) + '\n', 'utf8');
-    ok('rollback artifact: .uat/' + XRAY_ID + '.pre-c3-xray.json (' + live.nodes.length + ' nodes, active=' + live.active + ')');
+    const rb = keepRollback(join(OUT_DIR, XRAY_ID + '.pre-c3-xray.json'), JSON.stringify(importable(live), null, 2) + '\n');
+    if (rb.aside) { ok('rollback artifact KEPT (live differs from it); fresh read saved to ' + rb.aside.replace(ROOT, '.')); }
+    else { ok('rollback artifact: .uat/' + XRAY_ID + '.pre-c3-xray.json (' + live.nodes.length + ' nodes, active=' + live.active + ')' + (rb.written ? '' : ' — unchanged')); }
     const { cand, failures } = prepareXray(live);
     if (failures.length) { die(failures.join(' | ')); }
     const liveNames = live.nodes.map((n) => n.name); const candNames = cand.nodes.map((n) => n.name);

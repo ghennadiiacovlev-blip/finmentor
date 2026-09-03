@@ -63,6 +63,7 @@
 // SECRETS. N8N_API_KEY from the environment only, never printed.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { keepRollback } from './lib/rollback-artifact.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -365,8 +366,9 @@ if (isMain) {
 
   const live = await api('GET', '/workflows/' + CONCIERGE_ID);
   if (live.name !== CONCIERGE_NAME) { die('live workflow is not the Concierge: ' + live.name); }
-  writeFileSync(join(OUT_DIR, CONCIERGE_ID + '.pre-c3-cycle.json'), JSON.stringify(importable(live), null, 2) + '\n', 'utf8');
-  ok('rollback artifact: .uat/' + CONCIERGE_ID + '.pre-c3-cycle.json (' + live.nodes.length + ' nodes, active=' + live.active + ')');
+  const rb = keepRollback(join(OUT_DIR, CONCIERGE_ID + '.pre-c3-cycle.json'), JSON.stringify(importable(live), null, 2) + '\n');
+  if (rb.aside) { ok('rollback artifact KEPT (live differs from it); fresh read saved to ' + rb.aside.replace(ROOT, '.')); }
+  else { ok('rollback artifact: .uat/' + CONCIERGE_ID + '.pre-c3-cycle.json (' + live.nodes.length + ' nodes, active=' + live.active + ')' + (rb.written ? '' : ' — unchanged')); }
 
   // The projection table must already carry the two per-cycle columns; the upsert would otherwise
   // fail on every turn and the guard would abort every rotation.

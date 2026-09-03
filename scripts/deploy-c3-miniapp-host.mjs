@@ -13,6 +13,7 @@
 // SECRETS. N8N_API_KEY (read) / N8N_FIX_API_KEY (write, falls back). Never printed.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { keepRollback } from './lib/rollback-artifact.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import crypto from 'node:crypto';
@@ -100,8 +101,9 @@ if (isMain) {
     say(DRY ? '  MODE: DRY RUN' : '  MODE: LIVE'); say('');
     const live = await api('GET', '/workflows/' + HOST_ID);
     if (live.nodes.length !== 2) { die('the live host is not the 2-node page server this script knows'); }
-    writeFileSync(join(OUT_DIR, HOST_ID + '.pre-c3-host.json'), JSON.stringify(importable(live), null, 2) + '\n', 'utf8');
-    ok('rollback artifact: .uat/' + HOST_ID + '.pre-c3-host.json (active=' + live.active + ')');
+    const rb = keepRollback(join(OUT_DIR, HOST_ID + '.pre-c3-host.json'), JSON.stringify(importable(live), null, 2) + '\n');
+    if (rb.aside) { ok('rollback artifact KEPT (live differs from it); fresh read saved to ' + rb.aside.replace(ROOT, '.')); }
+    else { ok('rollback artifact: .uat/' + HOST_ID + '.pre-c3-host.json (active=' + live.active + ')' + (rb.written ? '' : ' — unchanged')); }
     const candidate = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-miniapp-host-candidate.json'), 'utf8'));
     const { out, failures, urls, pageSha, livePageSha } = prepareHost(live, candidate);
     if (failures.length) { die(failures.join(' | ')); }

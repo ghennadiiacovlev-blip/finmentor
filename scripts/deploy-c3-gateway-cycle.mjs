@@ -26,6 +26,7 @@
 // scope; N8N_FIX_API_KEY is honoured first for compatibility with the older deploy scripts.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { keepRollback } from './lib/rollback-artifact.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { buildGateway, verifyGateway, NODES, G5_CLAIM_NODE, SUPABASE_CREDENTIAL, CYCLE_PROJECTION_TABLE, CLIENT_RESULT_TABLE } from './build-miniapp-gateway.mjs';
@@ -174,8 +175,9 @@ if (isMain) {
 
   const live = await api('GET', '/workflows/' + GATEWAY_ID);
   if (live.name !== GATEWAY_NAME) { die('live workflow is not the Gateway: ' + live.name); }
-  writeFileSync(join(OUT_DIR, GATEWAY_ID + '.pre-c3-cycle.json'), JSON.stringify(importable(live), null, 2) + '\n', 'utf8');
-  ok('rollback artifact: .uat/' + GATEWAY_ID + '.pre-c3-cycle.json (' + live.nodes.length + ' nodes, active=' + live.active + ')');
+  const rb = keepRollback(join(OUT_DIR, GATEWAY_ID + '.pre-c3-cycle.json'), JSON.stringify(importable(live), null, 2) + '\n');
+  if (rb.aside) { ok('rollback artifact KEPT (live differs from it); fresh read saved to ' + rb.aside.replace(ROOT, '.')); }
+  else { ok('rollback artifact: .uat/' + GATEWAY_ID + '.pre-c3-cycle.json (' + live.nodes.length + ' nodes, active=' + live.active + ')' + (rb.written ? '' : ' — unchanged')); }
 
   const candidate = buildGateway({});
   const v = verifyGateway(candidate);

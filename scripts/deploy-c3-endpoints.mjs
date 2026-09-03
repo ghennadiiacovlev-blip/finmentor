@@ -22,6 +22,7 @@
 // The owner id is read from the live Concierge and withheld from the log.
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { keepRollback } from './lib/rollback-artifact.mjs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import crypto from 'node:crypto';
@@ -182,8 +183,9 @@ if (isMain) {
   for (const [id, kind, file] of [[SESSION_ID, 'session', 'premium-session-endpoint-candidate.json'], [SUBMIT_ID, 'submit', 'premium-submit-endpoint-candidate.json']]) {
     const live = await api('GET', '/workflows/' + id);
     const rollback = join(OUT_DIR, id + '.pre-c3-endpoints.json');
-    writeFileSync(rollback, body(live), 'utf8');
-    ok(kind + ': rollback artifact ' + rollback.replace(ROOT, '.') + ' (' + live.nodes.length + ' nodes, active=' + live.active + ', sha ' + sha(body(live)).slice(0, 12) + ')');
+    const rb = keepRollback(rollback, body(live));
+    if (rb.aside) { ok(kind + ': rollback artifact KEPT (live differs from it); fresh read saved to ' + rb.aside.replace(ROOT, '.')); }
+    else { ok(kind + ': rollback artifact ' + rollback.replace(ROOT, '.') + ' (' + live.nodes.length + ' nodes, active=' + live.active + ', sha ' + sha(body(live)).slice(0, 12) + ')' + (rb.written ? '' : ' — unchanged')); }
     const raw = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', file), 'utf8'));
     const v = verifyEndpoint(raw, kind);
     if (!v.ok) { die(kind + ' tracked candidate fails its own gate: ' + v.failures.join(' | ')); }
