@@ -22,11 +22,11 @@
       navSteps: 'Cum lucrăm',
       navSolutions: 'Soluții',
       navMaterials: 'Materiale',
-      navXray: 'Radiografia Financiară',
+      navXray: 'Test de sănătate financiară',
       navContacts: 'Contacte',
       langLabel: 'Limbă · Язык',
       langAria: 'Selectarea limbii',
-      ctaXray: 'Începeți Radiografia Financiară',
+      ctaXray: 'Începeți Testul de sănătate financiară',
       ctaBot: 'Mai bine scrieți direct → FINMENTOR Bot',
 
       /* ---- cases block ---- */
