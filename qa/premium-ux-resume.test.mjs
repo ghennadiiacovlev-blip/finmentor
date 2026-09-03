@@ -39,6 +39,9 @@ const WF = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'miniapp-gatew
 const codeOf = (n) => String((WF.nodes.find((x) => x.name === n) || { parameters: {} }).parameters.jsCode || '');
 
 const OWNER = '551662084';
+// C3.1 — the authoritative cycle, projected by the Concierge and resolved by the Gateway. Every
+// row and every candidate below carries it; '' is no longer a cycle anything can resume under.
+const CYCLE = 'C-551662084-1756900000000';
 const NOW = Date.now();
 const iso = (msFromNow) => new Date(NOW + msFromNow).toISOString();
 const HOUR = 3600000;
@@ -46,12 +49,12 @@ const HOUR = 3600000;
 // The candidate the Gateway just minted for THIS open.
 const candidate = (over) => Object.assign({
   app_session_id: 'AS-' + 'c'.repeat(64),
-  telegram_user_id: OWNER, chat_id: OWNER, cycle_id: '', replay_key: 'rk-new',
+  telegram_user_id: OWNER, chat_id: OWNER, cycle_id: CYCLE, replay_key: 'rk-new',
   state: 'draft', created_at: iso(0), expires_at: iso(72 * HOUR), updated_at: iso(0), draft_json: ''
 }, over || {});
 
 const row = (id, over) => Object.assign({
-  app_session_id: id, telegram_user_id: OWNER, chat_id: OWNER, cycle_id: '', replay_key: 'rk',
+  app_session_id: id, telegram_user_id: OWNER, chat_id: OWNER, cycle_id: CYCLE, replay_key: 'rk',
   state: 'draft', created_at: iso(-2 * HOUR), expires_at: iso(70 * HOUR), updated_at: iso(-2 * HOUR),
   draft_json: '', lead_id: ''
 }, over || {});
@@ -95,11 +98,15 @@ console.log('');
 
 check('the resume path sits AFTER the claim and touches nothing before it', () => {
   const c = WF.connections;
-  eq(c['IF Claim Won'].main[0][0].node, 'Build App Session', 'the claim still gates everything');
-  eq(c['Build App Session'].main[0][0].node, 'Read User Sessions', 'the read follows the mint');
+  // C3.1 — the cycle projection read sits between the won claim and the mint; the mint is then
+  // gated on a resolved cycle before the resume read runs.
+  eq(c['IF Claim Won'].main[0][0].node, 'Read Cycle Projection', 'the claim still gates everything');
+  eq(c['Read Cycle Projection'].main[0][0].node, 'Build App Session', 'the projection read feeds the mint');
+  eq(c['Build App Session'].main[0][0].node, 'IF Cycle Resolved', 'the mint is gated on a resolved cycle');
+  eq(c['IF Cycle Resolved'].main[0][0].node, 'Read User Sessions', 'the read follows the resolved cycle');
   eq(c['Read User Sessions'].main[0][0].node, 'Resolve Session', 'the resolver follows the read');
   eq(c['IF Create Session'].main[0][0].node, 'Build Session Row', 'create branch');
-  eq(c['IF Create Session'].main[1][0].node, 'Respond Bootstrap OK', 'resume branch answers directly');
+  eq(c['IF Create Session'].main[1][0].node, 'IF Session Committed', 'resume branch forks on the stored state (C3.4)');
   eq(c['Create App Session'].main[0][0].node, 'Read Back Sessions', 'the insert is followed by a re-read');
   eq(c['Read Back Sessions'].main[0][0].node, 'Finalise Session', 'and by the same rule again');
   // Nothing upstream of the claim was rewired.
@@ -144,7 +151,23 @@ check('CASE C — a different cycle is never resumed', () => {
   const other = row('AS-' + 'a'.repeat(64), { cycle_id: 'C-OLD', draft_json: JSON.stringify(DRAFT) });
   eq(resolve([other]).create, 1, 'a session from another cycle was resumed');
   // ...and a session in the SAME cycle is.
-  eq(resolve([Object.assign({}, other, { cycle_id: '' })]).create, 0, 'the same cycle was not resumed');
+  eq(resolve([Object.assign({}, other, { cycle_id: CYCLE })]).create, 0, 'the same cycle was not resumed');
+  // C3.1 — '' is not a cycle. A legacy row stamped '' (pre-projection) can never be resumed, and a
+  // candidate somehow carrying '' resumes nothing either: the key is the PAIR, and half a key is none.
+  eq(resolve([Object.assign({}, other, { cycle_id: '' })]).create, 1, 'a legacy empty-cycle row was resumed');
+  eq(resolve([Object.assign({}, other, { cycle_id: '' })], candidate({ cycle_id: '' })).create, 1, 'an empty candidate cycle resumed an empty row');
+});
+
+check('CASE C2 — an EXPLICIT ROTATION makes the old draft unreachable, with no cleanup needed', () => {
+  // The Concierge rotates the cycle and projects the new one BEFORE persisting the rotation. The
+  // Gateway then bootstraps under the new cycle: the old draft, however fresh, is simply not in
+  // the key space any more. Nothing has to be deleted for this to hold.
+  const oldDraft = row('AS-' + 'a'.repeat(64), { cycle_id: 'C-551662084-1', draft_json: JSON.stringify(DRAFT), created_at: iso(-60000) });
+  const afterRotation = candidate({ cycle_id: 'C-551662084-2' });
+  eq(resolve([oldDraft], afterRotation).create, 1, 'the old-cycle draft won after an explicit rotation');
+  // and the committed request of the OLD cycle is not shown as the new cycle's terminal either
+  const oldDone = Object.assign({}, oldDraft, { state: 'submitted', lead_id: 'FIN-OLD' });
+  eq(resolve([oldDone], afterRotation).create, 1, 'the old cycle committed session leaked into the new cycle');
 });
 
 check('CASE D — an expired session is not revived', () => {
@@ -167,6 +190,72 @@ check('CASE E — a committed session resolves as COMMITTED, never as qualificat
   eq(r.create, 0, 'a committed session was replaced by a fresh empty one');
   eq(r.__response.state, 'submitted', 'the client must be told it is committed');
   eq(r.app_session_id, done.app_session_id, 'the committed session id');
+});
+
+check('CASE E2 — TERMINAL IS TERMINAL beyond the TTL: a committed session outlives expires_at', () => {
+  // The customer's reviewed analysis arrives days later. A committed row that aged past the draft
+  // TTL must still resolve as COMMITTED under its cycle — never as a fresh questionnaire.
+  const aged = row('AS-' + 'a'.repeat(64), {
+    state: 'submitted', lead_id: 'FIN-1', created_at: iso(-200 * HOUR), expires_at: iso(-128 * HOUR), draft_json: JSON.stringify(DRAFT)
+  });
+  const r = resolve([aged]);
+  eq(r.create, 0, 'an aged committed session was replaced by a fresh one');
+  eq(r.__response.state, 'submitted', 'not reported as committed');
+  eq(r.lead_id, 'FIN-1', 'the committed lead is not carried server-side for the result lookup');
+  assert(!('lead_id' in r.__response), 'lead_id leaked into the client response');
+  // a DRAFT that aged the same way is still dead
+  eq(resolve([Object.assign({}, aged, { state: 'draft', lead_id: '' })]).create, 1, 'an aged draft was revived');
+});
+
+check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row for the committed lead', () => {
+  const done = row('AS-' + 'a'.repeat(64), { state: 'submitted', lead_id: 'FIN-1' });
+  const resolved = resolve([done]);
+  const attach = (rows) => {
+    const outputs = { 'Resolve Session': [resolved] };
+    const handle = (items) => ({ first: () => ({ json: items[0] }), all: () => items.map((j) => ({ json: j })), isExecuted: true });
+    const fn = new Function('$', '$input', 'require', codeOf('Attach Client Result'));
+    return fn((n) => handle(outputs[n]), handle(rows), () => { throw new Error('require()'); })[0].json;
+  };
+  const result = { score: 47, zone: 'ORANGE', key_risks: [{ title: 'x' }], plan_30_days: {} };
+  const ready = { id: 1, lead_id: 'FIN-1', analysis_id: 'XA-1', locale: 'ru', review_status: 'CLIENT_READY', score: '47', zone: 'ORANGE', result_json: JSON.stringify(result), published_at: iso(-HOUR) };
+  const a = attach([ready]);
+  eq(JSON.stringify(a.__response.result), JSON.stringify(result), 'the CLIENT_READY result did not come back');
+  eq(a.__response.result_state, 'CLIENT_READY', 'result_state');
+  eq(a.__response.app_session_id, resolved.__response.app_session_id, 'the session answer was lost');
+  eq(a.__response.state, 'submitted', 'state');
+  // never anything that is not human-reviewed, never another lead's, never a broken row
+  for (const bad of [[], [{}], [{ error: 'x' }],
+    [Object.assign({}, ready, { review_status: 'AI_DRAFT' })],
+    [Object.assign({}, ready, { review_status: 'OWNER_REVIEW' })],
+    [Object.assign({}, ready, { lead_id: 'FIN-2' })],
+    [Object.assign({}, ready, { result_json: '{' })],
+    [Object.assign({}, ready, { result_json: '[]' })]]) {
+    const r = attach(bad);
+    eq(r.__response.result, null, 'a result was attached from ' + JSON.stringify(bad).slice(0, 80));
+    eq(r.__response.result_state, 'PENDING', 'result_state for ' + JSON.stringify(bad).slice(0, 80));
+  }
+  // several CLIENT_READY rows: the most recently published wins
+  const older = Object.assign({}, ready, { id: 2, result_json: JSON.stringify({ v: 'old' }), published_at: iso(-3 * HOUR) });
+  eq(attach([older, ready]).__response.result.score, 47, 'older, newer');
+  eq(attach([ready, older]).__response.result.score, 47, 'newer, older');
+});
+
+check('the result lookup sits on the COMMITTED resume branch only, credential-free, and a draft answers as before', () => {
+  const c = WF.connections;
+  eq(c['IF Create Session'].main[1][0].node, 'IF Session Committed', 'the resume branch does not fork on state');
+  eq(c['IF Session Committed'].main[0][0].node, 'Read Client Result', 'committed branch');
+  eq(c['IF Session Committed'].main[1][0].node, 'Respond Bootstrap OK', 'a draft must answer directly');
+  eq(c['Read Client Result'].main[0][0].node, 'Attach Client Result', 'the read feeds the attach');
+  eq(c['Attach Client Result'].main[0][0].node, 'Respond Bootstrap OK', 'the attach feeds the responder');
+  const node = WF.nodes.find((x) => x.name === 'Read Client Result');
+  eq(node.parameters.operation, 'get', 'not a read');
+  eq(node.parameters.filters.conditions[0].keyName, 'lead_id', 'not keyed by the committed lead');
+  eq(node.alwaysOutputData, true, 'no result must still answer the bootstrap');
+  eq(node.onError, 'continueRegularOutput', 'an unreadable result store must still answer the bootstrap');
+  assert(!node.credentials, 'the result read carries a credential');
+  const gate = WF.nodes.find((x) => x.name === 'IF Session Committed').parameters.conditions.conditions[0];
+  eq(gate.leftValue, '={{ $json.state }}', 'the fork reads something other than the stored state');
+  eq(gate.rightValue, 'submitted', 'the fork is not on submitted');
 });
 
 check('a superseded or unknown state is never authoritative', () => {
@@ -344,46 +433,28 @@ check('the bootstrap answer is assembled in JavaScript, not in a template branch
 
 // ── 7. the recorded customer-production blocker ────────────────────────────────────────────────
 
-check('CUSTOMER PRODUCTION IS BLOCKED while cycle_id is empty, and the owner gate is what holds it', () => {
-  // See docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md.
-  //
-  // The resume key is written as (telegram_user_id, cycle_id) and behaves as such — but the Gateway
-  // cannot resolve a cycle, so `cycle_id` is '' and the key is effectively (user, ''). That is
-  // accepted for OWNER-ONLY UAT and is a blocker for customer activation, because an explicit
-  // new-request rotation cannot be seen and an old draft could still be resumed.
-  //
-  // What makes it acceptable meanwhile is that only the owner can reach a session at all. This
-  // check ties the two facts together: while the cycle is unresolved, the owner gate must still be
-  // on both endpoints. Removing it for customer activation without first resolving the cycle turns
-  // this red rather than shipping the limitation to customers.
+check('C3.1 — the cycle blocker is CLOSED: cycle_id is never empty and the record says so', () => {
+  // See docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md (resolution appended 2026-09-03).
   const build = String(WF.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode);
-  const cycleUnresolved = /cycle_id:\s*''/.test(build);
-
+  const executable = build.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  // The minted session row must carry the RESOLVED cycle; the only '' allowed is the refusal item
+  // that never reaches the store (it is gated out by IF Cycle Resolved).
+  assert(/cycle_id:\s*cycleId,/.test(executable), 'the minted session no longer carries the resolved cycle');
+  assert(/cycle_unresolved:\s*1/.test(executable), 'the refusal item is gone');
+  assert(!/cycle_id:\s*'',\s*\n\s*replay_key/.test(executable), 'Build App Session stamps an empty cycle_id on the session row again — the blocker is back');
+  assert(/MiniApp_Cycle_Projection/.test(JSON.stringify(WF)), 'the Gateway no longer reads the cycle projection');
+  assert(WF.nodes.some((n) => n.name === 'Respond Cycle Unresolved'), 'the unresolved-cycle refusal is gone');
   const doc = readFileSync(join(ROOT, 'docs', 'CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md'), 'utf8');
-  assert(doc.indexOf('CUSTOMER PRODUCTION = BLOCKED ON AUTHORITATIVE CYCLE PROJECTION') !== -1,
-    'the blocker record no longer states the agreed status wording');
-  assert(doc.indexOf('RU OWNER UAT       = READY') !== -1 || doc.indexOf('RU OWNER UAT = READY') !== -1,
-    'the blocker record no longer states the UAT status');
-
-  if (!cycleUnresolved) {
-    // The cycle became resolvable. That is the good outcome, and it means this check has done its
-    // job — but the six-point activation gate still has to be worked through deliberately, so the
-    // record must say so rather than being quietly stale.
-    assert(doc.indexOf('customer-activation gate') !== -1,
-      'cycle_id is now resolved: re-read the activation gate in the blocker record before removing the owner gate');
-    return;
-  }
-
-  for (const [label, file] of [['session', 'premium-session-endpoint-candidate.json'],
-    ['submit', 'premium-submit-endpoint-candidate.json']]) {
+  assert(doc.indexOf('CUSTOMER PRODUCTION = CYCLE PROJECTION LIVE') !== -1,
+    'the blocker record does not state that the cycle projection is live');
+  assert(doc.indexOf('customer-activation gate') !== -1, 'the activation gate section is gone from the record');
+  // With the cycle resolved, the owner gate is no longer what holds customer activation: the
+  // endpoint candidates are built WITHOUT it. If it ever returns, that is a deliberate rollback
+  // and this line is where it is recorded.
+  for (const [label, file] of [['session', 'premium-session-endpoint-candidate.json'], ['submit', 'premium-submit-endpoint-candidate.json']]) {
     const raw = readFileSync(join(ROOT, 'n8n', 'candidate', file), 'utf8');
-    assert(raw.indexOf('NOT_AUTHORISED') !== -1,
-      label + ' endpoint: the owner gate is GONE while cycle_id is still empty — that is customer ' +
-      'activation with the cycle blocker unresolved. See docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md');
-    assert(/s\.telegram_user_id/.test(raw),
-      label + ' endpoint: the owner gate no longer reads the SERVER-stored identity');
-    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') !== -1,
-      label + ' endpoint: the owner id is baked into the tracked candidate instead of a placeholder');
+    assert(raw.indexOf('NOT_AUTHORISED') === -1, label + ' endpoint still carries the owner-only UAT gate');
+    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') === -1, label + ' endpoint still carries the owner placeholder');
   }
 });
 

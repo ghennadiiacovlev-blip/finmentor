@@ -16,9 +16,29 @@
 //                -> Claim Verdict
 //                -> IF Claim Won
 //                     false -> Respond Replay Refused   (409)
-//                     true  -> Build App Session
-//                           -> Create App Session        (n8n Data Table)
-//                           -> Respond Bootstrap OK      (200)
+//                     true  -> Read Cycle Projection      (n8n Data Table, point read)
+//                           -> Build App Session          resolves the AUTHORITATIVE cycle
+//                           -> IF Cycle Resolved
+//                                false -> Respond Cycle Unresolved  (409, never cycle_id '')
+//                                true  -> Read User Sessions -> Resolve Session
+//                                      -> IF Create Session
+//                                           true  -> Create App Session (n8n Data Table)
+//                                           false -> IF Session Committed
+//                                                      true  -> Read Client Result -> Attach
+//                                      -> Respond Bootstrap OK  (200)
+//
+// ================================ C3.1 — THE AUTHORITATIVE CYCLE (2026-09-03) ================
+//
+// The resume key is (telegram_user_id, cycle_id). Until C3.1 the Gateway stamped cycle_id ''
+// because the authoritative cycle lived only in Bot_Sessions (Google Sheets), which the Gateway
+// must never read. The Concierge now writes a two-column PROJECTION on every turn, BEFORE it
+// persists the session — n8n Data Table `MiniApp_Cycle_Projection`: telegram_user_id -> cycle_id
+// — and the Gateway performs one point read on it. Nothing else is reachable from here.
+//
+// Fail direction: a missing, empty, malformed or unreadable projection answers 409
+// CYCLE_UNRESOLVED and mints NOTHING. The Gateway never invents a cycle and never falls back to
+// '' — an old draft can therefore never be resumed across an explicit rotation, because the
+// rotation moves the projection first and the resolver filters on the exact cycle.
 //
 // The order is the owner's required order, and it is STRUCTURAL: `Derive Replay Key` is
 // downstream of `IF Verified`, so a forged or stale initData has no path to the claim node. A
@@ -64,6 +84,12 @@ export const BOT_ID_SENTINEL = 'SET_BOT_ID_BEFORE_CANARY';
 export const CONFIGURED_BOT_ID = '8917808598';
 export const G5_TABLE = 'telegram_initdata_replays';
 export const APP_SESSION_TABLE = 'MiniApp_App_Sessions';
+// C3.1 — the Concierge-written cycle projection (two business columns, one row per user) and the
+// X-Ray-written customer result projection (CLIENT_READY rows only). Both are n8n Data Tables:
+// no credential, no Sheets authority, point reads only.
+export const CYCLE_PROJECTION_TABLE = 'MiniApp_Cycle_Projection';
+export const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
+export const CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;
 export const SUPABASE_CREDENTIAL = { id: 'B6wRirWfjqoASXU3', name: 'FINMENTOR Supabase G5' };
 export const NEON_CREDENTIAL_ID = 'LWefMXHbpCWhvobq';
 export const WEBHOOK_PATH = 'finmentor-miniapp-gateway';
@@ -82,10 +108,14 @@ export const APP_SESSION_TTL_SECONDS = 259200; // 72 hours
 export const NODES = [
   'Gateway Webhook', 'Verify InitData', 'IF Verified', 'Respond Rejected',
   'Derive Replay Key', 'G5 Replay Claim', 'Claim Verdict', 'IF Claim Won',
-  'Respond Replay Refused', 'Respond Store Unavailable', 'Build App Session',
+  'Respond Replay Refused', 'Respond Store Unavailable',
+  // ── C3.1 authoritative cycle, added 2026-09-03 ──────────────────────────────────────────────
+  'Read Cycle Projection', 'Build App Session', 'IF Cycle Resolved', 'Respond Cycle Unresolved',
   // ── resume, added 2026-08-30 ────────────────────────────────────────────────────────────────
   'Read User Sessions', 'Resolve Session', 'IF Create Session', 'Build Session Row',
   'Create App Session', 'Read Back Sessions', 'Finalise Session',
+  // ── C3.4 customer result surface, added 2026-09-03 ──────────────────────────────────────────
+  'IF Session Committed', 'Read Client Result', 'Attach Client Result',
   'Respond Bootstrap OK'
 ];
 
@@ -234,14 +264,21 @@ const CLAIM_VERDICT_CODE = [
 //
 // A `submitted` session is resolvable so that reopening after a committed submission shows the
 // committed result rather than dropping the client back into qualification.
+//
+// C3.4 — TERMINAL IS TERMINAL, BEYOND THE TTL. The 72 h TTL bounds a DRAFT. A committed session
+// is the record of a submission the consultant already has, and the customer's analysis reaches
+// them days later, after human review. Letting the committed row age out would turn a reopen
+// into a fresh questionnaire under the same cycle — the exact drop-back the terminal rule forbids
+// — so `submitted` rows stay authoritative for their cycle regardless of expires_at. The Submit
+// endpoint already applies the same rule (committed is checked before expiry).
 const AUTHORITATIVE_RULE = [
   'function authoritative(rows, userId, cycleId, nowMs) {',
   '  const live = (rows || [])',
   "    .filter(r => r && String(r.app_session_id || '').trim() !== '')",
   '    .filter(r => String(r.telegram_user_id || "") === String(userId))',
-  '    .filter(r => String(r.cycle_id || "") === String(cycleId))',
-  '    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })',
-  '    .filter(r => { const st = String(r.state || ""); return st === "draft" || st === "submitted"; });',
+  '    .filter(r => String(r.cycle_id || "") !== "" && String(r.cycle_id || "") === String(cycleId))',
+  '    .filter(r => { const st = String(r.state || ""); return st === "draft" || st === "submitted"; })',
+  '    .filter(r => { if (String(r.state) === "submitted") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });',
   '  live.sort((a, b) => {',
   '    const ta = String(a.created_at || ""), tb = String(b.created_at || "");',
   '    if (ta !== tb) { return ta < tb ? 1 : -1; }',
@@ -260,6 +297,9 @@ const AUTHORITATIVE_RULE = [
   '    expires_at: String(row.expires_at),',
   '    state: String(row.state || "draft"),',
   '    resumed: resumed ? 1 : 0,',
+  '    // Server-side only: the committed lead behind a submitted session, read by the client',
+  '    // result lookup. It is NOT part of __response.',
+  '    lead_id: String(row.lead_id || ""),',
   '    __response: {',
   '      ok: true,',
   '      app_session_id: String(row.app_session_id),',
@@ -315,6 +355,26 @@ const BUILD_SESSION_ROW_CODE = [
   "return [{ json: $('Build App Session').first().json }];"
 ].join('\n');
 
+// C3.4 — the customer result, attached to a COMMITTED session only. The X-Ray workflow writes
+// `XRay_Client_Results` exclusively on CLIENT_READY promotion, so a row here is by construction
+// human-reviewed. Anything else — no row, a row for another lead, a non-CLIENT_READY row, an
+// unparseable JSON — yields result: null and result_state PENDING, never a partial analysis.
+const ATTACH_CLIENT_RESULT_CODE = [
+  "const s = $('Resolve Session').first().json;",
+  "const leadId = String(s.lead_id || '');",
+  "const rows = $input.all().map(i => i.json)",
+  "  .filter(r => r && !r.error && !r.errorMessage)",
+  "  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)",
+  "  .filter(r => String(r.review_status || '') === 'CLIENT_READY');",
+  "rows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);",
+  "let result = null;",
+  "if (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }",
+  "if (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }",
+  "const out = Object.assign({}, s);",
+  "out.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });",
+  "return [{ json: out }];"
+].join('\n');
+
 const BUILD_SESSION_CODE = [
   "// P9 — mint the app session AFTER the replay claim was won, never before.",
   "//",
@@ -325,17 +385,35 @@ const BUILD_SESSION_CODE = [
   "// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity",
   "// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative",
   "// cycle, a state, and a bounded draft.",
+  "//",
+  "// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the",
+  "// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is",
+  "// expected; if several exist the most recently projected wins. A missing, malformed or",
+  "// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session",
+  "// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never",
+  "// mints a cycle and never resumes under ''.",
   "const crypto = require('crypto');",
   "const c = $('Claim Verdict').first().json;",
+  "const CYCLE_ID_RE = " + String(CYCLE_ID_RE) + ";",
+  "const proj = $input.all().map(i => i.json)",
+  "  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)",
+  "  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))",
+  "  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')));",
+  "proj.sort((a, b) => {",
+  "  const ta = String(a.projected_at || ''), tb = String(b.projected_at || '');",
+  "  if (ta !== tb) { return ta < tb ? 1 : -1; }",
+  "  return Number(b.id || 0) - Number(a.id || 0);",
+  "});",
+  "const cycleId = proj[0] ? String(proj[0].cycle_id) : '';",
+  "if (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }",
   "const now = new Date();",
   "const TTL_SECONDS = " + APP_SESSION_TTL_SECONDS + ";",
   "return [{ json: {",
   "  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),",
   "  telegram_user_id: String(c.telegram_user_id),",
   "  chat_id: String(c.telegram_user_id),",
-  "  // Bound at bootstrap; the authoritative cycle is resolved server-side at submit and the",
-  "  // session is invalidated if it has moved on. Empty here means 'not yet bound to a cycle'.",
-  "  cycle_id: '',",
+  "  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.",
+  "  cycle_id: cycleId,",
   "  replay_key: String(c.replay_key),",
   "  state: 'draft',",
   "  created_at: now.toISOString(),",
@@ -438,6 +516,19 @@ export function buildGateway(options) {
         id: 'gw-07-ifclaim', name: 'IF Claim Won', type: 'n8n-nodes-base.if',
         typeVersion: 2.2, position: [700, -220] },
 
+      // C3.1 — the ONE read the Gateway makes outside its own session store: a point read on the
+      // Concierge's cycle projection. No credential. alwaysOutputData so a user with no projection
+      // still reaches Build App Session, which answers CYCLE_UNRESOLVED rather than nothing.
+      { parameters: { resource: 'row', operation: 'get',
+          dataTableId: { __rl: true, mode: 'name', value: CYCLE_PROJECTION_TABLE },
+          matchType: 'allConditions',
+          filters: { conditions: [{ keyName: 'telegram_user_id', condition: 'eq',
+            keyValue: '={{ $json.telegram_user_id }}' }] },
+          returnAll: true },
+        id: 'gw-07b-readcycle', name: 'Read Cycle Projection', type: 'n8n-nodes-base.dataTable',
+        typeVersion: 1, position: [900, -320],
+        alwaysOutputData: true, onError: 'continueRegularOutput' },
+
       { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: BUILD_SESSION_CODE },
         id: 'gw-08-buildsession', name: 'Build App Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [920, -320] },
@@ -455,6 +546,14 @@ export function buildGateway(options) {
         // A user with no rows yet must still produce an item, or the resolver never runs and the
         // caller gets an empty 200. Safe with continueRegularOutput: one output, always.
         alwaysOutputData: true, onError: 'continueRegularOutput' },
+
+      // C3.1 — a non-empty cycle is the ONLY way past this point. String notEmpty on the exact
+      // field the session row carries, so the refusal item (cycle_id '') can never reach the store.
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-cycle-resolved', leftValue: '={{ $json.cycle_id }}', rightValue: '',
+            operator: { type: 'string', operation: 'notEmpty', singleValue: true } }], combinator: 'and' }, options: {} },
+        id: 'gw-08a-ifcycle', name: 'IF Cycle Resolved', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1040, -220] },
 
       { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: RESOLVE_SESSION_CODE },
         id: 'gw-08b-resolve', name: 'Resolve Session', type: 'n8n-nodes-base.code',
@@ -475,7 +574,13 @@ export function buildGateway(options) {
           columns: { mappingMode: 'autoMapInputData', matchingColumns: [], schema: [], value: {} },
           options: {} },
         id: 'gw-09-createsession', name: 'Create App Session', type: 'n8n-nodes-base.dataTable',
-        typeVersion: 1, position: [1440, -400] },
+        typeVersion: 1, position: [1440, -400],
+        // The session-store failure branch (gw-store-failure, live since 2026-08-30): an insert
+        // error leaves on output 1 towards Session Store Verdict -> 503, never onward. No
+        // alwaysOutputData, so this is not the P9-R2 pair. The branch's nodes are live-only and
+        // are preserved by the deploy merge; the flag is modelled here so the candidate node
+        // equals the live node.
+        onError: 'continueErrorOutput' },
 
       { parameters: { resource: 'row', operation: 'get',
           dataTableId: { __rl: true, mode: 'name', value: APP_SESSION_TABLE },
@@ -491,6 +596,28 @@ export function buildGateway(options) {
         id: 'gw-09b-finalise', name: 'Finalise Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [1640, -400] },
 
+      // C3.4 — the resume branch forks on the stored state: a committed session looks up its
+      // customer result; a draft answers directly, exactly as before.
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-session-committed', leftValue: '={{ $json.state }}', rightValue: 'submitted',
+            operator: { type: 'string', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-09c-ifcommitted', name: 'IF Session Committed', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1340, -240] },
+
+      { parameters: { resource: 'row', operation: 'get',
+          dataTableId: { __rl: true, mode: 'name', value: CLIENT_RESULT_TABLE },
+          matchType: 'allConditions',
+          filters: { conditions: [{ keyName: 'lead_id', condition: 'eq',
+            keyValue: '={{ $json.lead_id }}' }] },
+          returnAll: true },
+        id: 'gw-09d-readresult', name: 'Read Client Result', type: 'n8n-nodes-base.dataTable',
+        typeVersion: 1, position: [1460, -240],
+        alwaysOutputData: true, onError: 'continueRegularOutput' },
+
+      { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ATTACH_CLIENT_RESULT_CODE },
+        id: 'gw-09e-attachresult', name: 'Attach Client Result', type: 'n8n-nodes-base.code',
+        typeVersion: 2, position: [1580, -240] },
+
       // The whole answer is assembled in JavaScript by Resolve Session or Finalise Session and
       // merely serialised here — the two nodes emit the same `__response` shape, so this responder
       // does not need to know which path reached it.
@@ -505,7 +632,13 @@ export function buildGateway(options) {
         '={{ JSON.stringify({ ok: false, error_code: \'REPLAY_REFUSED\', retryable: false }) }}'),
 
       respond('Respond Store Unavailable', 'gw-13-store', 480, 40, 503,
-        '={{ JSON.stringify({ ok: false, error_code: \'REPLAY_STORE_UNAVAILABLE\', retryable: true }) }}')
+        '={{ JSON.stringify({ ok: false, error_code: \'REPLAY_STORE_UNAVAILABLE\', retryable: true }) }}'),
+
+      // C3.1 — no authoritative cycle for this user: nothing is minted, nothing is resumed. The
+      // client tells the customer to return to the bot chat; the Concierge projects the cycle on
+      // its next turn. Not retryable: a retry without a bot turn cannot change the answer.
+      respond('Respond Cycle Unresolved', 'gw-14-cycle', 1140, -120, 409,
+        '={{ JSON.stringify({ ok: false, error_code: \'CYCLE_UNRESOLVED\', retryable: false }) }}')
     ],
     connections: {
       'Gateway Webhook': { main: [[{ node: 'Verify InitData', type: 'main', index: 0 }]] },
@@ -522,17 +655,30 @@ export function buildGateway(options) {
       ] },
       'Claim Verdict': { main: [[{ node: 'IF Claim Won', type: 'main', index: 0 }]] },
       'IF Claim Won': { main: [
-        [{ node: 'Build App Session', type: 'main', index: 0 }],
+        [{ node: 'Read Cycle Projection', type: 'main', index: 0 }],
         [{ node: 'Respond Replay Refused', type: 'main', index: 0 }]
       ] },
-      'Build App Session': { main: [[{ node: 'Read User Sessions', type: 'main', index: 0 }]] },
+      'Read Cycle Projection': { main: [[{ node: 'Build App Session', type: 'main', index: 0 }]] },
+      'Build App Session': { main: [[{ node: 'IF Cycle Resolved', type: 'main', index: 0 }]] },
+      // TRUE: an authoritative cycle. FALSE: 409, and nothing is written.
+      'IF Cycle Resolved': { main: [
+        [{ node: 'Read User Sessions', type: 'main', index: 0 }],
+        [{ node: 'Respond Cycle Unresolved', type: 'main', index: 0 }]
+      ] },
       'Read User Sessions': { main: [[{ node: 'Resolve Session', type: 'main', index: 0 }]] },
       'Resolve Session': { main: [[{ node: 'IF Create Session', type: 'main', index: 0 }]] },
-      // TRUE: nothing live for this user and cycle -> mint. FALSE: resume, and answer directly.
+      // TRUE: nothing live for this user and cycle -> mint. FALSE: resume; a committed session
+      // fetches its customer result first, a draft answers directly.
       'IF Create Session': { main: [
         [{ node: 'Build Session Row', type: 'main', index: 0 }],
+        [{ node: 'IF Session Committed', type: 'main', index: 0 }]
+      ] },
+      'IF Session Committed': { main: [
+        [{ node: 'Read Client Result', type: 'main', index: 0 }],
         [{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]
       ] },
+      'Read Client Result': { main: [[{ node: 'Attach Client Result', type: 'main', index: 0 }]] },
+      'Attach Client Result': { main: [[{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]] },
       'Build Session Row': { main: [[{ node: 'Create App Session', type: 'main', index: 0 }]] },
       'Create App Session': { main: [[{ node: 'Read Back Sessions', type: 'main', index: 0 }]] },
       'Read Back Sessions': { main: [[{ node: 'Finalise Session', type: 'main', index: 0 }]] },

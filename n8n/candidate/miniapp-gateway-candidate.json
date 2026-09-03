@@ -157,9 +157,41 @@
     },
     {
       "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_Cycle_Projection"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telegram_user_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.telegram_user_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "gw-07b-readcycle",
+      "name": "Read Cycle Projection",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        900,
+        -320
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // Bound at bootstrap; the authoritative cycle is resolved server-side at submit and the\n  // session is invalidated if it has moved on. Empty here means 'not yet bound to a cycle'.\n  cycle_id: '',\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
+        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\n//\n// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the\n// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is\n// expected; if several exist the most recently projected wins. A missing, malformed or\n// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session\n// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never\n// mints a cycle and never resumes under ''.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;\nconst proj = $input.all().map(i => i.json)\n  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)\n  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))\n  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')));\nproj.sort((a, b) => {\n  const ta = String(a.projected_at || ''), tb = String(b.projected_at || '');\n  if (ta !== tb) { return ta < tb ? 1 : -1; }\n  return Number(b.id || 0) - Number(a.id || 0);\n});\nconst cycleId = proj[0] ? String(proj[0].cycle_id) : '';\nif (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.\n  cycle_id: cycleId,\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
       },
       "id": "gw-08-buildsession",
       "name": "Build App Session",
@@ -204,9 +236,43 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-cycle-resolved",
+              "leftValue": "={{ $json.cycle_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08a-ifcycle",
+      "name": "IF Cycle Resolved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        -220
+      ]
+    },
+    {
+      "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
       },
       "id": "gw-08b-resolve",
       "name": "Resolve Session",
@@ -288,7 +354,8 @@
       "position": [
         1440,
         -400
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -326,7 +393,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; })\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nconst row = found || cand;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nconst row = found || cand;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
       },
       "id": "gw-09b-finalise",
       "name": "Finalise Session",
@@ -335,6 +402,86 @@
       "position": [
         1640,
         -400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-session-committed",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "submitted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-09c-ifcommitted",
+      "name": "IF Session Committed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1340,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "XRay_Client_Results"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.lead_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "gw-09d-readresult",
+      "name": "Read Client Result",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        -240
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const s = $('Resolve Session').first().json;\nconst leadId = String(s.lead_id || '');\nconst rows = $input.all().map(i => i.json)\n  .filter(r => r && !r.error && !r.errorMessage)\n  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)\n  .filter(r => String(r.review_status || '') === 'CLIENT_READY');\nrows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);\nlet result = null;\nif (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }\nif (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }\nconst out = Object.assign({}, s);\nout.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });\nreturn [{ json: out }];"
+      },
+      "id": "gw-09e-attachresult",
+      "name": "Attach Client Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        -240
       ]
     },
     {
@@ -403,6 +550,23 @@
       "position": [
         480,
         40
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'CYCLE_UNRESOLVED', retryable: false }) }}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "id": "gw-14-cycle",
+      "name": "Respond Cycle Unresolved",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        -120
       ]
     }
   ],
@@ -491,7 +655,7 @@
       "main": [
         [
           {
-            "node": "Build App Session",
+            "node": "Read Cycle Projection",
             "type": "main",
             "index": 0
           }
@@ -505,11 +669,40 @@
         ]
       ]
     },
+    "Read Cycle Projection": {
+      "main": [
+        [
+          {
+            "node": "Build App Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Build App Session": {
       "main": [
         [
           {
+            "node": "IF Cycle Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Cycle Resolved": {
+      "main": [
+        [
+          {
             "node": "Read User Sessions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Cycle Unresolved",
             "type": "main",
             "index": 0
           }
@@ -547,6 +740,46 @@
             "index": 0
           }
         ],
+        [
+          {
+            "node": "IF Session Committed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Committed": {
+      "main": [
+        [
+          {
+            "node": "Read Client Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Client Result": {
+      "main": [
+        [
+          {
+            "node": "Attach Client Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Client Result": {
+      "main": [
         [
           {
             "node": "Respond Bootstrap OK",

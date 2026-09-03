@@ -29,7 +29,8 @@ import { buildBotDataCheckString } from '../gateway/telegram-initdata.mjs';
 import { deriveReplayKey } from '../gateway/g5-replay-claim.mjs';
 import {
   buildGateway, verifyGateway, NODES, G5_CLAIM_NODE, SUPABASE_CREDENTIAL,
-  NEON_CREDENTIAL_ID, BOT_ID_SENTINEL, CONFIGURED_BOT_ID, APP_SESSION_TABLE, APP_SESSION_TTL_SECONDS
+  NEON_CREDENTIAL_ID, BOT_ID_SENTINEL, CONFIGURED_BOT_ID, APP_SESSION_TABLE, APP_SESSION_TTL_SECONDS,
+  CYCLE_PROJECTION_TABLE, CLIENT_RESULT_TABLE
 } from '../scripts/build-miniapp-gateway.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -149,7 +150,7 @@ check('every response code reaches the HTTP layer as a NUMBER', () => {
   // 409 -> 409. Note a substring test like /503/.test(...) passes for BOTH the broken and
   // the fixed form, which is why the 503 assertion above never caught this.
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 4, 'expected four respond nodes');
+  eq(responders.length, 5, 'expected five respond nodes');
   responders.forEach((n) => {
     const c = (n.parameters.options || {}).responseCode;
     const isNumber = typeof c === 'number';
@@ -359,11 +360,16 @@ check('an unconfigured BOT_ID fails CLOSED', () => {
 
 console.log('\n-- the app session: a binding with a TTL, not a CRM --');
 
+// C3.1 — Build App Session now reads the Concierge cycle projection from $input. The harness
+// hands it exactly what the Data Table point read returns.
+const projection = (rows) => ({ all: () => rows.map((j) => ({ json: j })), first: () => ({ json: rows[0] }) });
+const PROJ = { id: 7, telegram_user_id: '551662084', cycle_id: 'C-551662084-1756900000000', cycle_reset: 'bootstrap', projected_at: '2026-09-03T10:00:00.000Z' };
+
 check('EXECUTED: the session id is high-entropy and is NOT a storage row id', () => {
   const body = byName('Build App Session').parameters.jsCode;
   const run = () => {
     const $ = () => ({ first: () => ({ json: { telegram_user_id: '551662084', replay_key: 'k'.repeat(64), correlation_id: 'C', locale: 'ru' } }) });
-    return new Function('$', 'require', body)($, nodeRequire)[0].json;
+    return new Function('$', '$input', 'require', body)($, projection([PROJ]), nodeRequire)[0].json;
   };
   const a = run(); const b = run();
   assert(/^AS-[0-9a-f]{64}$/.test(a.app_session_id), 'the session id is not 32 random bytes hex: ' + a.app_session_id);
@@ -375,7 +381,8 @@ check('EXECUTED: the session id is high-entropy and is NOT a storage row id', ()
 check('EXECUTED: TTL, binding and terminal state are as specified', () => {
   const body = byName('Build App Session').parameters.jsCode;
   const $ = () => ({ first: () => ({ json: { telegram_user_id: '551662084', replay_key: 'k'.repeat(64), correlation_id: 'C', locale: 'ru' } }) });
-  const s = new Function('$', 'require', body)($, nodeRequire)[0].json;
+  const s = new Function('$', '$input', 'require', body)($, projection([PROJ]), nodeRequire)[0].json;
+  eq(s.cycle_id, PROJ.cycle_id, 'the session is not bound to the projected cycle');
   const ttl = (Date.parse(s.expires_at) - Date.parse(s.created_at)) / 1000;
   eq(ttl, APP_SESSION_TTL_SECONDS, 'the server-side TTL is not the declared one');
   eq(s.state, 'draft', 'a new session does not start as draft');
@@ -387,6 +394,71 @@ check('EXECUTED: TTL, binding and terminal state are as specified', () => {
     'draft_json', 'expires_at', 'replay_key', 'state', 'telegram_user_id', 'updated_at']),
   'the session row carries fields beyond the approved set: ' + keys.join(', '));
   assert(!('consent' in s) && !('consent_at' in s), 'the app session records consent — it must never be consent proof');
+});
+
+console.log('\n-- C3.1: the authoritative cycle is resolved server-side, or nothing is minted --');
+
+const runBuild = (rows, userId) => {
+  const body = byName('Build App Session').parameters.jsCode;
+  const $ = () => ({ first: () => ({ json: { telegram_user_id: userId || '551662084', replay_key: 'k'.repeat(64), correlation_id: 'C', locale: 'ru' } }) });
+  return new Function('$', '$input', 'require', body)($, projection(rows), nodeRequire)[0].json;
+};
+
+check('EXECUTED: a missing projection resolves to NOTHING — cycle_id is never \'\' on a minted session', () => {
+  for (const rows of [[], [{}], [{ error: 'store down' }], [{ errorMessage: 'timeout' }]]) {
+    const s = runBuild(rows);
+    eq(s.cycle_id, '', 'a missing/unreadable projection produced a cycle: ' + JSON.stringify(rows));
+    eq(s.cycle_unresolved, 1, 'the refusal marker is absent');
+    assert(!('app_session_id' in s), 'a session was minted without an authoritative cycle');
+  }
+});
+
+check('EXECUTED: another user\'s projection, an empty cycle or a malformed cycle never resolves', () => {
+  eq(runBuild([Object.assign({}, PROJ, { telegram_user_id: '999' })]).cycle_id, '', 'another user\'s projection was used');
+  eq(runBuild([Object.assign({}, PROJ, { cycle_id: '' })]).cycle_id, '', 'an empty projected cycle was used');
+  eq(runBuild([Object.assign({}, PROJ, { cycle_id: 'garbage' })]).cycle_id, '', 'a malformed cycle was used');
+  eq(runBuild([Object.assign({}, PROJ, { cycle_id: "C-1' or 1=1" })]).cycle_id, '', 'an injected cycle was used');
+});
+
+check('EXECUTED: with several projection rows the most recently projected cycle wins, deterministically', () => {
+  const older = Object.assign({}, PROJ, { id: 1, cycle_id: 'C-551662084-1', projected_at: '2026-09-01T00:00:00.000Z' });
+  const newer = Object.assign({}, PROJ, { id: 2, cycle_id: 'C-551662084-2', projected_at: '2026-09-02T00:00:00.000Z' });
+  eq(runBuild([older, newer]).cycle_id, newer.cycle_id, 'older, newer');
+  eq(runBuild([newer, older]).cycle_id, newer.cycle_id, 'newer, older — read order changed the winner');
+  // identical timestamps: the higher row id (later insert) wins — a total order, never a coin flip
+  const a = Object.assign({}, newer, { id: 10, cycle_id: 'C-551662084-10' });
+  const b = Object.assign({}, newer, { id: 11, cycle_id: 'C-551662084-11' });
+  eq(runBuild([a, b]).cycle_id, b.cycle_id, 'a,b');
+  eq(runBuild([b, a]).cycle_id, b.cycle_id, 'b,a');
+});
+
+check('the cycle read is a credential-free Data Table point read on the projection, and nothing else', () => {
+  const node = byName('Read Cycle Projection');
+  eq(node.type, 'n8n-nodes-base.dataTable', 'not a Data Table read');
+  eq(node.parameters.operation, 'get', 'not a read');
+  eq(node.parameters.dataTableId.value, CYCLE_PROJECTION_TABLE, 'wrong table');
+  eq(node.parameters.filters.conditions[0].keyName, 'telegram_user_id', 'the read is not keyed by the verified user');
+  eq(node.alwaysOutputData, true, 'a user with no projection must still reach the resolver');
+  eq(node.onError, 'continueRegularOutput', 'an unreadable projection must reach the resolver, which refuses');
+  assert(!node.credentials, 'the projection read carries a credential');
+  eq(JSON.stringify(outs('IF Claim Won')[0]), JSON.stringify(['Read Cycle Projection']), 'the read does not sit right after the won claim');
+  eq(JSON.stringify(outs('Read Cycle Projection')), JSON.stringify([['Build App Session']]), 'the read does not feed the resolver alone');
+});
+
+check('an unresolved cycle answers 409 CYCLE_UNRESOLVED and has NO path to the session store', () => {
+  eq(JSON.stringify(outs('Build App Session')), JSON.stringify([['IF Cycle Resolved']]), 'the resolver does not go through the cycle gate');
+  eq(JSON.stringify(outs('IF Cycle Resolved')[0]), JSON.stringify(['Read User Sessions']), 'resolved branch');
+  eq(JSON.stringify(outs('IF Cycle Resolved')[1]), JSON.stringify(['Respond Cycle Unresolved']), 'unresolved branch');
+  const gate = byName('IF Cycle Resolved').parameters.conditions.conditions[0];
+  eq(gate.leftValue, '={{ $json.cycle_id }}', 'the gate reads something other than cycle_id');
+  eq(gate.operator.operation, 'notEmpty', 'the gate is not a notEmpty check');
+  const r = byName('Respond Cycle Unresolved');
+  eq(r.parameters.options.responseCode, 409, 'not 409');
+  assert(/CYCLE_UNRESOLVED/.test(r.parameters.responseBody), 'the error code is not CYCLE_UNRESOLVED');
+  assert(/retryable: false/.test(r.parameters.responseBody), 'a bot turn is needed; the client must not retry blindly');
+  const unresolvedOnly = (cur, m) => (cur === 'IF Cycle Resolved' ? [1] : m.map((_, i) => i));
+  assert(!reaches('IF Cycle Resolved', 'Create App Session', unresolvedOnly), 'an unresolved cycle can reach the session insert');
+  assert(!reaches('IF Cycle Resolved', 'Read User Sessions', unresolvedOnly), 'an unresolved cycle can reach the resume read');
 });
 
 check('the app session store is the Data Table, and holds no lead content', () => {
@@ -411,10 +483,10 @@ check('NO execution data is retained, so raw initData is never persisted', () =>
 check('availableInMCP is false and no response leaks internals', () => {
   eq(WF.settings.availableInMCP, false, 'the Gateway is MCP-exposed');
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 4, 'unexpected responder count');
+  eq(responders.length, 5, 'unexpected responder count');
   responders.forEach((r) => {
     const b = JSON.stringify(r.parameters);
-    ['replay_key', 'submission_key', 'init_data', 'telegram_user_id'].forEach((k) => {
+    ['replay_key', 'submission_key', 'init_data', 'telegram_user_id', 'lead_id', 'cycle_id'].forEach((k) => {
       assert(b.indexOf(k) === -1, r.name + ' leaks ' + k + ' to the client');
     });
   });

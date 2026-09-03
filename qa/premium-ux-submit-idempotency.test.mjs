@@ -80,7 +80,7 @@ function completeDraft() {
 }
 
 const sessionRow = (id, over) => Object.assign({
-  app_session_id: id, telegram_user_id: OWNER, chat_id: OWNER, cycle_id: '',
+  app_session_id: id, telegram_user_id: OWNER, chat_id: OWNER, cycle_id: 'C-551662084-1756900000000',
   replay_key: 'rk', state: 'draft',
   created_at: '2026-08-30T09:00:00.000Z', expires_at: '2099-01-01T00:00:00.000Z',
   updated_at: '2026-08-30T09:00:00.000Z', draft_json: JSON.stringify(completeDraft()), lead_id: ''
@@ -376,17 +376,27 @@ check('E — a duplicate Retry click has no duplicate side effect, however many 
 
 // ── what must NOT have changed ─────────────────────────────────────────────────────────────────
 
-check('the owner gate still fails closed, and reads the SERVER-stored identity', () => {
+check('C3 — CUSTOMER PRODUCTION: any session bound to a verified Telegram user may submit; identity is never read from the caller', () => {
+  // The owner-only UAT gate is retired. Ownership is the session row itself: the Gateway bound it
+  // to the Telegram user whose signed initData it verified, and the 32-byte session id reaches
+  // only that user. A customer's session submits exactly like the owner's did.
   const w = world([sessionRow(SID, { telegram_user_id: '999999' })]);
   const r = run(w);
-  eq(r.response.body.error_code, 'NOT_AUTHORISED', 'a non-owner passed the gate');
-  eq(r.response.status, 403, 'status');
-  eq(w.calls.privacyInsert, 0, 'a non-owner reached the privacy write');
-  eq(w.calls.intake, 0, 'a non-owner reached Lead Intake');
-  // And nothing the CALLER sends can move it.
-  const w2 = world([sessionRow(SID, { telegram_user_id: '999999' })]);
-  const r2 = runSubmit(WF, w2, Object.assign(bodyFor(SID), { telegram_user_id: OWNER, owner: true }));
-  eq(r2.response.body.error_code, 'NOT_AUTHORISED', 'a caller-supplied identity was believed');
+  eq(r.response.body.ok, true, 'a customer session was refused: ' + JSON.stringify(r.response.body));
+  eq(w.calls.intake, 1, 'a customer submission did not reach Lead Intake');
+  // A row with NO bound identity is not a session at all.
+  const w2 = world([sessionRow(SID, { telegram_user_id: '' })]);
+  const r2 = run(w2);
+  eq(r2.response.body.error_code, 'SESSION_INVALID', 'an unbound row was accepted as a session');
+  eq(r2.response.status, 401, 'status');
+  eq(w2.calls.privacyInsert, 0, 'an unbound row reached the privacy write');
+  eq(w2.calls.intake, 0, 'an unbound row reached Lead Intake');
+  // And nothing the CALLER sends can supply an identity.
+  const w3 = world([sessionRow(SID, { telegram_user_id: '' })]);
+  const r3 = runSubmit(WF, w3, Object.assign(bodyFor(SID), { telegram_user_id: OWNER, owner: true }));
+  eq(r3.response.body.error_code, 'SESSION_INVALID', 'a caller-supplied identity was believed');
+  // The retired gate must not come back quietly.
+  assert(JSON.stringify(WF).indexOf('NOT_AUTHORISED') === -1, 'the owner-only UAT gate is back in the submit endpoint');
 });
 
 check('an expired, uncommitted session is refused before any side effect', () => {
@@ -455,13 +465,13 @@ check('every refusal answers with ITS OWN code and status, never a flattened one
     ['an acknowledgement with no timestamps', { app_session_id: SID, privacy_ack: { notice_version: 'x' } }, 409, 'CONSENT_REQUIRED'],
     ['an unknown session', { app_session_id: SID2, privacy_ack: ACK }, 401, 'SESSION_INVALID'],
     ['an expired session', null, 401, 'SESSION_EXPIRED'],
-    ['a non-owner', null, 403, 'NOT_AUTHORISED'],
+    ['a session with no bound identity', null, 401, 'SESSION_INVALID'],
     ['an empty draft', null, 409, 'DRAFT_EMPTY']
   ];
   for (const [label, b, status, code] of cases) {
     let w = world();
     if (label === 'an expired session') { w = world([sessionRow(SID, { expires_at: '2020-01-01T00:00:00.000Z' })]); }
-    if (label === 'a non-owner') { w = world([sessionRow(SID, { telegram_user_id: '999' })]); }
+    if (label === 'a session with no bound identity') { w = world([sessionRow(SID, { telegram_user_id: '' })]); }
     if (label === 'an empty draft') { w = world([sessionRow(SID, { draft_json: '{"v":1,"fields":{}}' })]); }
     const r = runSubmit(WF, w, b || bodyFor(SID));
     eq(r.response.status, status, label + ': status');
@@ -488,7 +498,7 @@ check('the resolved candidate carries no placeholder and no literal identity', (
   assert(!/__[A-Z_]{4,}__/.test(json), 'an unresolved placeholder survived');
   const raw = readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-submit-endpoint-candidate.json'), 'utf8');
   // ...while the TRACKED candidate keeps every one of them.
-  for (const ph of ['__OWNER_TELEGRAM_ID__', '__LEAD_INTAKE_WORKFLOW_ID__', '__PRIVACY_AUDIT_CREDENTIAL_ID__', '__PREMIUM_SUBMIT_PROJECTION__']) {
+  for (const ph of ['__LEAD_INTAKE_WORKFLOW_ID__', '__PRIVACY_AUDIT_CREDENTIAL_ID__', '__PREMIUM_SUBMIT_PROJECTION__']) {
     assert(raw.indexOf(ph) !== -1, 'the tracked candidate has baked in ' + ph);
   }
   assert(!/\b\d{9,}\b/.test(raw), 'a literal numeric identity is in the tracked candidate');

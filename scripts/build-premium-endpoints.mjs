@@ -190,11 +190,12 @@ const SESSION_VERDICT = [
   'if (rows.length !== 1) { return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }]; }',
   'const s = rows[0];',
   '',
-  '// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the',
-  '// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.',
-  'const OWNER_TELEGRAM_ID = ' + JSON.stringify(OWNER_TELEGRAM_PLACEHOLDER) + ';',
-  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) {',
-  '  return [{ json: { ok: 0, error_code: "NOT_AUTHORISED", status: 403 } }];',
+  '// C3 — CUSTOMER PRODUCTION. The owner-only UAT gate that stood here is retired: the cycle is',
+  '// resolved server-side at bootstrap (C3.1), so ownership is the session itself. The session id',
+  '// is a 32-byte secret handed only to the Telegram user whose signed initData the Gateway',
+  '// verified and bound to this row; identity is never read from the caller.',
+  'if (String(s.telegram_user_id || "").trim() === "") {',
+  '  return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }];',
   '}',
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) {',
   '  return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }];',
@@ -329,10 +330,9 @@ const SUBMIT_STATE = [
   'if (rows.length !== 1) { return R(401, "SESSION_INVALID"); }',
   'const s = rows[0];',
   '',
-  '// OWNER-ONLY UAT GATE — see OWNER_TELEGRAM_PLACEHOLDER in the builder. Reads the identity the',
-  '// SERVER stored at bootstrap, never anything the caller supplies. Fails closed.',
-  'const OWNER_TELEGRAM_ID = ' + JSON.stringify(OWNER_TELEGRAM_PLACEHOLDER) + ';',
-  'if (String(s.telegram_user_id || "") !== OWNER_TELEGRAM_ID) { return R(403, "NOT_AUTHORISED"); }',
+  '// C3 — CUSTOMER PRODUCTION. The owner-only UAT gate is retired (see the Session endpoint for',
+  '// the reasoning). A row with no bound identity is not a session.',
+  'if (String(s.telegram_user_id || "").trim() === "") { return R(401, "SESSION_INVALID"); }',
   '',
   '// THE SUBMISSION IDENTITY. Derived, not minted and not stored.',
   'const submission_key = "sub_" + crypto.createHash("sha256")',
@@ -814,11 +814,11 @@ export function verifyEndpoint(wf, kind) {
     // Idempotency is the unique index plus 23505 handling, NOT ON CONFLICT: measured against the
     // real writer role, ON CONFLICT needs SELECT and the writer is granted INSERT only.
     if (/on conflict/i.test(json)) { f.push('the privacy insert uses ON CONFLICT, which needs a SELECT the writer must not have'); }
-    // The owner gate must be present, must read the SERVER-stored identity, and must still be a
-    // placeholder in the tracked artifact.
-    if (json.indexOf('NOT_AUTHORISED') === -1) { f.push('the owner-only UAT gate is missing'); }
-    if (json.indexOf(OWNER_TELEGRAM_PLACEHOLDER) === -1) { f.push('the owner id placeholder is missing'); }
-    if (!/s\.telegram_user_id/.test(json)) { f.push('the owner gate does not read the server-stored telegram_user_id'); }
+    // C3 — customer production: the owner-only UAT gate must be GONE, no owner id may be baked
+    // in, and identity must still be read from the SERVER-stored row only.
+    if (json.indexOf('NOT_AUTHORISED') !== -1) { f.push('the owner-only UAT gate is back'); }
+    if (json.indexOf(OWNER_TELEGRAM_PLACEHOLDER) !== -1) { f.push('the owner id placeholder is back'); }
+    if (!/s\.telegram_user_id/.test(json)) { f.push('the endpoint does not read the server-stored telegram_user_id'); }
     if (/\"\\d{6,}\"/.test(json)) { f.push('a literal Telegram id is baked into the candidate'); }
     if (json.indexOf('privacy.privacy_acknowledgements') === -1) { f.push('the privacy insert does not target the privacy schema'); }
     if (/\bupdate\s+public\.privacy_acknowledgements/i.test(json) || /delete\s+from\s+public\.privacy_acknowledgements/i.test(json)) {
