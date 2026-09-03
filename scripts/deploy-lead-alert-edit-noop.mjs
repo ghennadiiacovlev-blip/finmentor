@@ -55,6 +55,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import crypto from 'node:crypto';
+import { inlineCrmStageResolver } from './lib/inline-crm-stage.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -103,7 +104,9 @@ const importable = (wf) => ({ name: wf.name, nodes: wf.nodes, connections: wf.co
 
 // ── the two new bodies ────────────────────────────────────────────────────────────────────────
 
-const ACTIONS_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n');
+const ACTIONS_SRC = inlineCrmStageResolver(
+  readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n'),
+  readFileSync(join(ROOT, 'n8n', 'src', 'crm', 'stage-map.js'), 'utf8').replace(/\r\n/g, '\n'));
 const PRESENTER_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8').replace(/\r\n/g, '\n');
 const TZ_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'tz.js'), 'utf8').replace(/\r\n/g, '\n');
 const LA_BLOCK = 'const LA = (function () {\n' + PRESENTER_SRC.replace(/module\.exports\s*=\s*/, 'return ') + '\n})();\n';

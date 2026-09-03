@@ -26,13 +26,14 @@ for (let idx = 0; idx < errors.length; idx++) {
   out.push({ json: {
     analysis_row: {
       analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale || 'ru',
-      created_at: now, analysis_version: 'xray-v1', model: inp.ai_model || '',
+      created_at: now, analysis_version: inp.analysis_version || 'xray-v2', model: inp.ai_model || '',
       score: inp.score === null || inp.score === undefined ? '' : inp.score, zone: inp.zone || 'UNKNOWN',
       maturity_score: '', primary_risk: '', analysis_json: '', plan_30d_json: '',
-      review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', confidence: 'LOW',
-      fabrication_flags: '', source_channel: inp.source_channel || '', executive_summary: 'ANALYSIS_FAILED: ' + klass,
+      review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '', confidence: '',
+      fabrication_flags: '', validation_errors: 'UPSTREAM_' + klass, source_channel: inp.source_channel || '', executive_summary: 'ANALYSIS_FAILED: ' + klass,
       recommended_next_step: '', next_step_label: '', customer_notified_at: ''
     },
+    is_valid: false,
     owner_text: 'ФИНАНСОВЫЙ РЕНТГЕН · АНАЛИЗ НЕ ВЫПОЛНЕН\n\nКомпания: ' + (inp.company || '—') + '\nКласс ошибки: ' + klass + '\nLead ID: ' + inp.lead_id + '\n\nСтрока ' + analysisId + ' записана в XRay_Analysis со статусом ANALYSIS_FAILED. Удалите её, чтобы повторить анализ.',
     lead_id: inp.lead_id
   } });

@@ -110,13 +110,13 @@ export const NODES = [
   'Derive Replay Key', 'G5 Replay Claim', 'Claim Verdict', 'IF Claim Won',
   'Respond Replay Refused', 'Respond Store Unavailable',
   // ── C3.1 authoritative cycle, added 2026-09-03 ──────────────────────────────────────────────
-  'Read Cycle Projection', 'Build App Session', 'IF Cycle Resolved', 'Respond Cycle Unresolved',
+  'Read Cycle Projection', 'Build App Session', 'IF Cycle Store Readable', 'IF Cycle Resolved', 'Respond Cycle Unresolved',
   // ── resume, added 2026-08-30 ────────────────────────────────────────────────────────────────
-  'Read User Sessions', 'Resolve Session', 'IF Create Session', 'Build Session Row',
-  'Create App Session', 'Read Back Sessions', 'Finalise Session',
+  'Read User Sessions', 'Resolve Session', 'IF Session Store Readable', 'IF Create Session',
+  'Build Session Row', 'Create App Session', 'Read Back Sessions', 'Finalise Session',
   // ── C3.4 customer result surface, added 2026-09-03 ──────────────────────────────────────────
-  'IF Session Committed', 'Read Client Result', 'Attach Client Result',
-  'Respond Bootstrap OK'
+  'IF Session Persistence Verified', 'IF Session Committed', 'Read Client Result', 'Attach Client Result',
+  'IF Result Store Readable', 'Respond Application Store Unavailable', 'Respond Bootstrap OK'
 ];
 
 // The ONE node permitted to hold the Supabase credential.
@@ -253,6 +253,12 @@ const CLAIM_VERDICT_CODE = [
 // exact is which row is AUTHORITATIVE, and that is what this rule is: a total order over the
 // user's live rows that every concurrent execution computes identically from the same data.
 //
+// C3 (2026-09-03, Codex correction review): a PostgreSQL first-open authority table was proposed
+// and REJECTED — it would put a Telegram identity into Supabase, add a second credential-bearing
+// node to the most security-critical surface, and re-open the concurrency posture the activation
+// gate recorded as DECIDED (bounded orphan-row design). The rule stays; what was ACCEPTED from the
+// proposal is fail-closed handling of an unreadable store and PROVEN persistence on the read-back.
+//
 //   · rows for THIS telegram_user_id and THIS cycle_id
 //   · not expired
 //   · state draft or submitted   (superseded and anything else is out)
@@ -321,6 +327,7 @@ const RESOLVE_SESSION_CODE = [
   "const c = $('Claim Verdict').first().json;",
   "const cand = $('Build App Session').first().json;",
   'const rows = $input.all().map(i => i.json);',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { session_store_error: 1, create: 0 } }]; }',
   'const found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());',
   '',
   '// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by',
@@ -332,18 +339,26 @@ const RESOLVE_SESSION_CODE = [
 // After the insert, the SAME rule is applied to a fresh read. In the ordinary case the candidate
 // is the only live row and wins trivially. Under a concurrent open there are two, and both
 // executions arrive here, read both, and return the same winner.
+//
+// C3 — PROVEN PERSISTENCE. The read-back is the proof that the insert happened. An unreadable
+// read-back is an outage, and a read-back that does not contain the row this execution just
+// wrote is an UNPROVEN write. Neither may answer 200 with a session id the store may not hold:
+// the only honest reply is 503 (retryable), and the client returns with a fresh signed context.
 const FINALISE_SESSION_CODE = [
   AUTHORITATIVE_RULE,
   '',
   "const c = $('Claim Verdict').first().json;",
   "const cand = $('Build App Session').first().json;",
   'const rows = $input.all().map(i => i.json);',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { persistence_error: 1 } }]; }',
+  "if (!rows.some(r => r && String(r.app_session_id || '') === String(cand.app_session_id))) { return [{ json: { persistence_error: 1 } }]; }",
   'const found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());',
   '',
-  '// The read cannot come back empty — this execution inserted a row a moment ago. If it does,',
-  '// the store is not answering and the honest reply is the candidate we hold, which is also the',
-  '// row we just wrote.',
-  'const row = found || cand;',
+  '// The candidate is live and unexpired, so the rule cannot come back empty. Under a concurrent',
+  '// open it may return the OTHER candidate; both executions then answer the same winner, and the',
+  '// one that lost knows it resumed.',
+  'if (!found) { return [{ json: { persistence_error: 1 } }]; }',
+  'const row = found;',
   'const resumed = String(row.app_session_id) !== String(cand.app_session_id);',
   'return [{ json: answer(row, c.locale, resumed) }];'
 ].join('\n');
@@ -362,7 +377,9 @@ const BUILD_SESSION_ROW_CODE = [
 const ATTACH_CLIENT_RESULT_CODE = [
   "const s = $('Resolve Session').first().json;",
   "const leadId = String(s.lead_id || '');",
-  "const rows = $input.all().map(i => i.json)",
+  "const allRows = $input.all().map(i => i.json);",
+  "if (allRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { result_store_error: 1 } }];",
+  "const rows = allRows",
   "  .filter(r => r && !r.error && !r.errorMessage)",
   "  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)",
   "  .filter(r => String(r.review_status || '') === 'CLIENT_READY');",
@@ -370,6 +387,7 @@ const ATTACH_CLIENT_RESULT_CODE = [
   "let result = null;",
   "if (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }",
   "if (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }",
+  "if (result) { const allowed = ['locale','labels','score','zone','maturity','key_risks','management_priorities','plan_30_days','tomorrow_actions','recommended_next_step']; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }",
   "const out = Object.assign({}, s);",
   "out.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });",
   "return [{ json: out }];"
@@ -395,13 +413,19 @@ const BUILD_SESSION_CODE = [
   "const crypto = require('crypto');",
   "const c = $('Claim Verdict').first().json;",
   "const CYCLE_ID_RE = " + String(CYCLE_ID_RE) + ";",
-  "const proj = $input.all().map(i => i.json)",
+  "const projectionRows = $input.all().map(i => i.json);",
+  "if (projectionRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { cycle_id: '', cycle_store_error: 1 } }];",
+  "const proj = projectionRows",
   "  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)",
   "  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))",
-  "  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')));",
+  "  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')))",
+  "  .filter(r => String(r.authority_key || '') === String(c.telegram_user_id) + '|' + String(r.cycle_id || ''))",
+  "  .filter(r => String(r.cycle_sequence || '') === String(r.cycle_id || '').split('-').pop());",
   "proj.sort((a, b) => {",
-  "  const ta = String(a.projected_at || ''), tb = String(b.projected_at || '');",
-  "  if (ta !== tb) { return ta < tb ? 1 : -1; }",
+  "  const sa = BigInt(String(a.cycle_sequence)), sb = BigInt(String(b.cycle_sequence));",
+  "  if (sa !== sb) return sa < sb ? 1 : -1;",
+  "  const ka = String(a.authority_key || ''), kb = String(b.authority_key || '');",
+  "  if (ka !== kb) return ka < kb ? 1 : -1;",
   "  return Number(b.id || 0) - Number(a.id || 0);",
   "});",
   "const cycleId = proj[0] ? String(proj[0].cycle_id) : '';",
@@ -533,6 +557,12 @@ export function buildGateway(options) {
         id: 'gw-08-buildsession', name: 'Build App Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [920, -320] },
 
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-cycle-readable', leftValue: '={{ Number($json.cycle_store_error || 0) }}', rightValue: 0,
+            operator: { type: 'number', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-08-ifcyclestore', name: 'IF Cycle Store Readable', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1010, -320] },
+
       // Read every row this Telegram user owns. `returnAll` matters: without it the node answers
       // with the first match only and the rule would order a set of one.
       { parameters: { resource: 'row', operation: 'get',
@@ -558,6 +588,12 @@ export function buildGateway(options) {
       { parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: RESOLVE_SESSION_CODE },
         id: 'gw-08b-resolve', name: 'Resolve Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [1140, -320] },
+
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-session-readable', leftValue: '={{ Number($json.session_store_error || 0) }}', rightValue: 0,
+            operator: { type: 'number', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-08b-ifstore', name: 'IF Session Store Readable', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1190, -320] },
 
       { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
           conditions: [{ id: 'gw-create-session', leftValue: '={{ $json.create }}', rightValue: 1,
@@ -596,6 +632,12 @@ export function buildGateway(options) {
         id: 'gw-09b-finalise', name: 'Finalise Session', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [1640, -400] },
 
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-persistence-verified', leftValue: '={{ Number($json.persistence_error || 0) }}', rightValue: 0,
+            operator: { type: 'number', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-09b-ifpersist', name: 'IF Session Persistence Verified', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1690, -400] },
+
       // C3.4 — the resume branch forks on the stored state: a committed session looks up its
       // customer result; a draft answers directly, exactly as before.
       { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
@@ -618,6 +660,12 @@ export function buildGateway(options) {
         id: 'gw-09e-attachresult', name: 'Attach Client Result', type: 'n8n-nodes-base.code',
         typeVersion: 2, position: [1580, -240] },
 
+      { parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
+          conditions: [{ id: 'gw-result-readable', leftValue: '={{ Number($json.result_store_error || 0) }}', rightValue: 0,
+            operator: { type: 'number', operation: 'equals' } }], combinator: 'and' }, options: {} },
+        id: 'gw-09e-ifresult', name: 'IF Result Store Readable', type: 'n8n-nodes-base.if',
+        typeVersion: 2.2, position: [1640, -240] },
+
       // The whole answer is assembled in JavaScript by Resolve Session or Finalise Session and
       // merely serialised here — the two nodes emit the same `__response` shape, so this responder
       // does not need to know which path reached it.
@@ -638,7 +686,10 @@ export function buildGateway(options) {
       // client tells the customer to return to the bot chat; the Concierge projects the cycle on
       // its next turn. Not retryable: a retry without a bot turn cannot change the answer.
       respond('Respond Cycle Unresolved', 'gw-14-cycle', 1140, -120, 409,
-        '={{ JSON.stringify({ ok: false, error_code: \'CYCLE_UNRESOLVED\', retryable: false }) }}')
+        '={{ JSON.stringify({ ok: false, error_code: \'CYCLE_UNRESOLVED\', retryable: false }) }}'),
+
+      respond('Respond Application Store Unavailable', 'gw-15-appstore', 1320, 40, 503,
+        '={{ JSON.stringify({ ok: false, error_code: \'APPLICATION_STORE_UNAVAILABLE\', retryable: true }) }}')
     ],
     connections: {
       'Gateway Webhook': { main: [[{ node: 'Verify InitData', type: 'main', index: 0 }]] },
@@ -659,14 +710,22 @@ export function buildGateway(options) {
         [{ node: 'Respond Replay Refused', type: 'main', index: 0 }]
       ] },
       'Read Cycle Projection': { main: [[{ node: 'Build App Session', type: 'main', index: 0 }]] },
-      'Build App Session': { main: [[{ node: 'IF Cycle Resolved', type: 'main', index: 0 }]] },
+      'Build App Session': { main: [[{ node: 'IF Cycle Store Readable', type: 'main', index: 0 }]] },
+      'IF Cycle Store Readable': { main: [
+        [{ node: 'IF Cycle Resolved', type: 'main', index: 0 }],
+        [{ node: 'Respond Application Store Unavailable', type: 'main', index: 0 }]
+      ] },
       // TRUE: an authoritative cycle. FALSE: 409, and nothing is written.
       'IF Cycle Resolved': { main: [
         [{ node: 'Read User Sessions', type: 'main', index: 0 }],
         [{ node: 'Respond Cycle Unresolved', type: 'main', index: 0 }]
       ] },
       'Read User Sessions': { main: [[{ node: 'Resolve Session', type: 'main', index: 0 }]] },
-      'Resolve Session': { main: [[{ node: 'IF Create Session', type: 'main', index: 0 }]] },
+      'Resolve Session': { main: [[{ node: 'IF Session Store Readable', type: 'main', index: 0 }]] },
+      'IF Session Store Readable': { main: [
+        [{ node: 'IF Create Session', type: 'main', index: 0 }],
+        [{ node: 'Respond Application Store Unavailable', type: 'main', index: 0 }]
+      ] },
       // TRUE: nothing live for this user and cycle -> mint. FALSE: resume; a committed session
       // fetches its customer result first, a draft answers directly.
       'IF Create Session': { main: [
@@ -678,11 +737,22 @@ export function buildGateway(options) {
         [{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]
       ] },
       'Read Client Result': { main: [[{ node: 'Attach Client Result', type: 'main', index: 0 }]] },
-      'Attach Client Result': { main: [[{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]] },
+      'Attach Client Result': { main: [[{ node: 'IF Result Store Readable', type: 'main', index: 0 }]] },
+      'IF Result Store Readable': { main: [
+        [{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }],
+        [{ node: 'Respond Application Store Unavailable', type: 'main', index: 0 }]
+      ] },
       'Build Session Row': { main: [[{ node: 'Create App Session', type: 'main', index: 0 }]] },
-      'Create App Session': { main: [[{ node: 'Read Back Sessions', type: 'main', index: 0 }]] },
+      'Create App Session': { main: [
+        [{ node: 'Read Back Sessions', type: 'main', index: 0 }],
+        [{ node: 'Respond Application Store Unavailable', type: 'main', index: 0 }]
+      ] },
       'Read Back Sessions': { main: [[{ node: 'Finalise Session', type: 'main', index: 0 }]] },
-      'Finalise Session': { main: [[{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }]] }
+      'Finalise Session': { main: [[{ node: 'IF Session Persistence Verified', type: 'main', index: 0 }]] },
+      'IF Session Persistence Verified': { main: [
+        [{ node: 'Respond Bootstrap OK', type: 'main', index: 0 }],
+        [{ node: 'Respond Application Store Unavailable', type: 'main', index: 0 }]
+      ] }
     },
     settings: {
       executionOrder: 'v1',
@@ -708,7 +778,7 @@ export function verifyGateway(wf) {
   NODES.forEach((n) => { if (!byName(n)) { failures.push('missing node: ' + n); } });
   if (wf.nodes.length !== NODES.length) { failures.push('node count is ' + wf.nodes.length + ', expected ' + NODES.length); }
 
-  // exactly one node may hold a credential, and it must be the Supabase one
+  // exactly one node may hold a credential, and it must be the Supabase one, on the G5 claim
   const credNodes = wf.nodes.filter((n) => n.credentials);
   if (credNodes.length !== 1) { failures.push(credNodes.length + ' nodes carry credentials, expected 1'); }
   if (credNodes.length === 1) {
@@ -717,6 +787,8 @@ export function verifyGateway(wf) {
       failures.push('the claim node does not use the Supabase credential');
     }
   }
+  if (wf.nodes.filter((n) => n.type === 'n8n-nodes-base.postgres').length !== 1) { failures.push('a second Postgres node exists'); }
+  if (wf.nodes.some(n => n.type === 'n8n-nodes-base.googleSheets')) failures.push('Gateway gained Google Sheets authority');
   // the Neon credential must appear nowhere
   if (JSON.stringify(wf).indexOf(NEON_CREDENTIAL_ID) !== -1) { failures.push('the Neon credential is referenced'); }
   // no raw initData retention

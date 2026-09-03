@@ -23,7 +23,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// The submit body carries a session id and a privacy acknowledgement. NOTHING ELSE IS READ.\n//\n// This is stronger than B.2.0, where answers travelled with the submit call and were\n// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to\n// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not\n// filtered, it is simply never looked at.\nconst body = $(\"Submit Webhook\").first().json.body || {};\nconst id = String(body.app_session_id || \"\").trim();\nconst ack = body.privacy_ack || {};\nconst iso = v => typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);\n// EVERY REFUSAL CARRIES ITS OWN RESPONSE. The shape branch used to end at a responder that\n// answered a hard-coded BAD_REQUEST 400 to everything, so a client that had not acknowledged\n// the privacy notice was told its REQUEST was malformed. The live probe confirmed it.\nif (!/^AS-[0-9a-f]{64}$/.test(id)) {\n  return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: \"BAD_REQUEST\", retryable: false } } }];\n}\nif (!String(ack.notice_version || \"\").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {\n  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: \"CONSENT_REQUIRED\", retryable: false } } }];\n}\nreturn [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || \"ru\"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];"
+        "jsCode": "// The submit body carries a session id and a privacy acknowledgement. NOTHING ELSE IS READ.\n//\n// This is stronger than B.2.0, where answers travelled with the submit call and were\n// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to\n// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not\n// filtered, it is simply never looked at.\nconst req = $(\"Submit Webhook\").first().json || {};\nconst body = req.body || {};\nif (req.query && req.query.app_session_id) { return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: \"BAD_REQUEST\", retryable: false } } }]; }\nconst id = String(body.app_session_id || \"\").trim();\nconst ack = body.privacy_ack || {};\nconst iso = v => typeof v === \"string\" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);\n// EVERY REFUSAL CARRIES ITS OWN RESPONSE. The shape branch used to end at a responder that\n// answered a hard-coded BAD_REQUEST 400 to everything, so a client that had not acknowledged\n// the privacy notice was told its REQUEST was malformed. The live probe confirmed it.\nif (!/^AS-[0-9a-f]{64}$/.test(id)) {\n  return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: \"BAD_REQUEST\", retryable: false } } }];\n}\nif (!String(ack.notice_version || \"\").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {\n  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: \"CONSENT_REQUIRED\", retryable: false } } }];\n}\nreturn [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || \"ru\"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];"
       },
       "id": "pux-submit-guard",
       "name": "Submit Guard",
@@ -100,7 +100,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// Idempotency, resolved from server state BEFORE the irreversible call.\n//\n// A retry after an ambiguous outcome must return the PRIOR canonical success rather than\n// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.\nconst crypto = require(\"crypto\");\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || \"\").trim() !== \"\");\nconst R = (status, code) => [{ json: { ok: 0, __status: status,\n  __response: { ok: false, error_code: code, retryable: false } } }];\nif (rows.length !== 1) { return R(401, \"SESSION_INVALID\"); }\nconst s = rows[0];\n\n// C3 — CUSTOMER PRODUCTION. The owner-only UAT gate is retired (see the Session endpoint for\n// the reasoning). A row with no bound identity is not a session.\nif (String(s.telegram_user_id || \"\").trim() === \"\") { return R(401, \"SESSION_INVALID\"); }\n\n// THE SUBMISSION IDENTITY. Derived, not minted and not stored.\nconst submission_key = \"sub_\" + crypto.createHash(\"sha256\")\n  .update(\"miniapp:\" + String(s.app_session_id)).digest(\"hex\").slice(0, 32);\n\n// COMMITTED IS CHECKED FIRST, BEFORE EXPIRY. A session that was submitted and has since aged\n// past its TTL is still a committed submission, and the truthful answer is the lead it\n// produced rather than \"expired\". This branch answers ok:TRUE — see Respond Submit Terminal.\nif (String(s.state) === \"submitted\") {\n  return [{ json: { ok: 0, already: 1, submission_key: submission_key,\n    __status: 200,\n    __response: { ok: true, already: true, lead_id: String(s.lead_id || \"\"), submit_state: \"submitted\" } } }];\n}\nif (new Date(String(s.expires_at)).getTime() <= Date.now()) { return R(401, \"SESSION_EXPIRED\"); }\nlet draft = null;\ntry { draft = JSON.parse(String(s.draft_json || \"null\")); } catch (e) { draft = null; }\n// An empty draft is its own refusal. Calling it BAD_REQUEST told the client its request was\n// malformed when what actually happened is that no answers ever reached the server.\nif (!draft || !draft.fields || !Object.keys(draft.fields).length) { return R(409, \"DRAFT_EMPTY\"); }\nreturn [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id,\n  chat_id: String(s.chat_id || s.telegram_user_id || \"\"), cycle_id: String(s.cycle_id || \"\"),\n  contact_name: String(s.contact_name || \"\"), submission_key: submission_key, draft: draft } }];"
+        "jsCode": "// Idempotency, resolved from server state BEFORE the irreversible call.\n//\n// A retry after an ambiguous outcome must return the PRIOR canonical success rather than\n// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.\nconst crypto = require(\"crypto\");\nconst allRows = $input.all().map(i => i.json);\nconst R = (status, code, retryable) => [{ json: { ok: 0, __status: status,\n  __response: { ok: false, error_code: code, retryable: retryable === true } } }];\nif (allRows.some(r => r && (r.error || r.errorMessage))) { return R(503, \"SESSION_STORE_UNAVAILABLE\", true); }\nconst rows = allRows.filter(r => r && String(r.app_session_id || \"\").trim() !== \"\");\nif (rows.length !== 1) { return R(401, \"SESSION_INVALID\"); }\nconst s = rows[0];\n\n// C3 — RELEASE GATE. A row with no server-bound identity is not a session; and until the explicit\n// CUSTOMER release the endpoint answers only the owner (see the Session endpoint).\nif (String(s.telegram_user_id || \"\").trim() === \"\") { return R(401, \"SESSION_INVALID\"); }\nconst RELEASE_MODE = \"__MINIAPP_RELEASE_MODE__\";\nconst OWNER_ID = \"__OWNER_TELEGRAM_ID__\";\nif (RELEASE_MODE !== \"CUSTOMER\" && (!/^\\d+$/.test(OWNER_ID) || String(s.telegram_user_id) !== OWNER_ID)) { return R(403, \"NOT_AUTHORISED\"); }\n\n// THE SUBMISSION IDENTITY. Derived, not minted and not stored.\nconst submission_key = \"sub_\" + crypto.createHash(\"sha256\")\n  .update(\"miniapp:\" + String(s.app_session_id)).digest(\"hex\").slice(0, 32);\n\n// COMMITTED IS CHECKED FIRST, BEFORE EXPIRY. A session that was submitted and has since aged\n// past its TTL is still a committed submission, and the truthful answer is the lead it\n// produced rather than \"expired\". This branch answers ok:TRUE — see Respond Submit Terminal.\nif (String(s.state) === \"submitted\") {\n  return [{ json: { ok: 0, already: 1, submission_key: submission_key,\n    __status: 200,\n    __response: { ok: true, already: true, lead_id: String(s.lead_id || \"\"), submit_state: \"submitted\" } } }];\n}\nif (new Date(String(s.expires_at)).getTime() <= Date.now()) { return R(401, \"SESSION_EXPIRED\"); }\nlet draft = null;\ntry { draft = JSON.parse(String(s.draft_json || \"null\")); } catch (e) { draft = null; }\n// An empty draft is its own refusal. Calling it BAD_REQUEST told the client its request was\n// malformed when what actually happened is that no answers ever reached the server.\nif (!draft || !draft.fields || !Object.keys(draft.fields).length) { return R(409, \"DRAFT_EMPTY\"); }\nreturn [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id,\n  chat_id: String(s.chat_id || s.telegram_user_id || \"\"), cycle_id: String(s.cycle_id || \"\"),\n  contact_name: String(s.contact_name || \"\"), submission_key: submission_key, draft: draft } }];"
       },
       "id": "pux-submit-state",
       "name": "Submit State",
@@ -682,7 +682,84 @@
         2200,
         0
       ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "MiniApp_App_Sessions"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "app_session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Submit State').first().json.app_session_id }}"
+            }
+          ]
+        }
+      },
+      "id": "pux-readback-submitted",
+      "name": "Read Back Submitted",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2310,
+        0
+      ],
+      "alwaysOutputData": true,
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const expected = $(\"Parse Intake Result\").first().json;\nconst sid = String($(\"Submit State\").first().json.app_session_id || \"\");\nconst rows = $input.all().map(i => i.json);\nconst fail = code => [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: code, retryable: true } } }];\nif (rows.some(r => r && (r.error || r.errorMessage))) return fail(\"SUBMIT_STORE_UNAVAILABLE\");\nconst row = rows.find(r => r && String(r.app_session_id || \"\") === sid);\nif (!row || String(row.state || \"\") !== \"submitted\" || String(row.lead_id || \"\") !== String(expected.lead_id || \"\")) return fail(\"SUBMIT_PERSISTENCE_UNCONFIRMED\");\nreturn [{ json: { ok: 1 } }];"
+      },
+      "id": "pux-verify-submitted-persistence",
+      "name": "Verify Submitted Persistence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "if-submitted-persisted-cond",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "pux-if-if-submitted-persisted",
+      "name": "IF Submitted Persisted",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4400,
+        0
+      ]
     },
     {
       "parameters": {
@@ -697,7 +774,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        4180,
+        4620,
         0
       ]
     },
@@ -714,7 +791,7 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        4400,
+        4840,
         0
       ]
     },
@@ -731,7 +808,24 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        4620,
+        5060,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'SUBMIT_PERSISTENCE_UNCONFIRMED', retryable: true }) }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "pux-r-respond-submit-persistence-failure",
+      "name": "Respond Submit Persistence Failure",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        5280,
         0
       ]
     }
@@ -1032,7 +1126,54 @@
       "main": [
         [
           {
+            "node": "Read Back Submitted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Persistence Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Back Submitted": {
+      "main": [
+        [
+          {
+            "node": "Verify Submitted Persistence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Submitted Persistence": {
+      "main": [
+        [
+          {
+            "node": "IF Submitted Persisted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Submitted Persisted": {
+      "main": [
+        [
+          {
             "node": "Respond Submit OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Submit Terminal",
             "type": "main",
             "index": 0
           }

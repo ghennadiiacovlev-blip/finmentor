@@ -1,21 +1,26 @@
-// FINMENTOR — X-Ray Analysis engine gates (C1).
+// FINMENTOR — X-Ray Analysis engine gates (C1, corrected in C3).
 //
 // Runs the n8n Code-node bodies under n8n/src/xray-analysis/ in a minimal sandbox that
 // emulates $input / $('Node') / require('crypto'), so the contract can be proven offline:
-//   * PII never reaches the prompt, even when pasted into free text
-//   * score and zone are copied from deterministic input, never from the model
-//   * the output contract is capped and normalised
-//   * fabricated figures are flagged and lower confidence
-//   * the review action needs the per-row token, is constant-time, and is idempotent
-//   * pending selection is fail-closed and consent-gated
+//   * PII never reaches the prompt, even when pasted into free text          (SIMULATED)
+//   * score and zone are copied from deterministic input, never from the model (SIMULATED)
+//   * a broken model contract is ANALYSIS_FAILED, never a draft                (SIMULATED)
+//   * within a valid contract the output is capped and normalised              (SIMULATED)
+//   * fabricated figures are flagged and lower confidence                      (SIMULATED)
+//   * the review GET is read-only; only the POST promotes, with a bounded per-row token,
+//     constant-time, idempotent, and it publishes ONLY a curated customer result (SIMULATED)
+//   * pending selection is fail-closed and consent-gated                       (SIMULATED)
+//   * the built workflow wires exactly that and nothing wider                  (STATIC)
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-analysis-workflow.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SRC = path.join(__dirname, '..', 'n8n', 'src', 'xray-analysis');
+const ROOT = path.join(__dirname, '..');
+const SRC = path.join(ROOT, 'n8n', 'src', 'xray-analysis');
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8');
 
 const labelsSrc = read('labels.js').replace(/if \(typeof module[\s\S]*$/, '');
@@ -32,14 +37,14 @@ function runNode(body, { input = [], nodes = {} } = {}) {
   const $ = (name) => {
     if (!(name in nodes)) throw new Error('no node ' + name);
     const items = nodes[name].map(j => ({ json: j }));
-    return { all: () => items, first: () => items[0] };
+    return { all: () => items, first: () => items[0], item: items[0], isExecuted: true };
   };
   const req = (m) => { if (m === 'crypto') return crypto; throw new Error('require blocked: ' + m); };
   const fn = new Function('$input', '$', 'require', 'Buffer', body);
   return fn($input, $, req, Buffer);
 }
 
-const settings = { owner_chat_id: '1', xray_analysis_enabled: true, xray_ai_model: 'gpt-4.1', xray_analysis_since: '2026-09-01T00:00:00.000Z', xray_max_per_run: 3, xray_review_base_url: 'https://n8n.test/webhook/finmentor-xray-review', crm_url: 'https://docs.google.com/x' };
+const settings = { owner_chat_id: '1', xray_analysis_enabled: true, xray_ai_model: 'gpt-4.1', xray_analysis_since: '2026-09-01T00:00:00.000Z', xray_max_per_run: 3, xray_review_base_url: 'https://n8n.test/webhook/finmentor-xray-review', crm_url: 'https://crm.test' };
 
 // ---------- settings ----------
 {
@@ -67,6 +72,8 @@ const pipeline = [
   check('pending: INCOMPLETE (no consent) never analysed', !ids.includes('L-3'));
   check('pending: leads before xray_analysis_since excluded', !ids.includes('L-old'));
   check('pending: capped at xray_max_per_run, oldest first', ids.join(',') === 'L-2,L-4,L-5', ids.join(','));
+  const failedLedger = runNode(read('select-pending.js'), { input: [{ lead_id: 'L-1', review_status: 'ANALYSIS_FAILED' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
+  check('pending: an ANALYSIS_FAILED row stops the sweep from looping on the lead', !failedLedger.map(i => i.json.lead_id).includes('L-1'));
 }
 {
   const out = runNode(read('select-pending.js'), { input: [{ error: 'read failed' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
@@ -89,7 +96,7 @@ const rawRu = {
   intake: { company_profile: { industry: 'Retail', turnover_range: '€1–2M' }, financial_control: { q_f1: 'Нет' } },
   completion: { completion_score: 92, data_quality_hint: 'ok' }
 };
-const pipeRu = { lead_id: 'L-2', request_id: 'req-1', company: 'ООО Пример', financial_zone: 'ORANGE', priority: 'HOT', business_model: 'Retail', industry_category: 'Retail', turnover_range: '€1–2M', employees_range: '10–50', main_pain: 'Кассовые разрывы', selected_problems: 'a, b', selected_goals: 'c', documents_status: 'Есть', selected_documents: 'P&L', work_interest: 'Внедрение системы', critical_flags: '', source_page: 'https://www.finmentor.md/questionnaire.html', created_at: '2026-09-02T11:00:00Z' };
+const pipeRu = { lead_id: 'L-2', request_id: 'req-1', company: 'ООО Пример', financial_zone: 'ORANGE', priority: 'HOT', business_model: 'Retail', industry_category: 'Retail', turnover_range: '€1–2M', employees_range: '10–50', main_pain: 'Кассовые разрывы', selected_problems: 'a, b', selected_goals: 'c', documents_status: 'partial', selected_documents: 'bank', work_interest: 'cfo', critical_flags: '', source_page: 'https://www.finmentor.md/questionnaire.html', created_at: '2026-09-02T11:00:00Z' };
 const leadRowRu = { 'Lead ID': 'L-2', 'Raw JSON': JSON.stringify(rawRu), 'Diagnostic Score': '47', 'Language': 'Русский', 'Page URL': 'https://www.finmentor.md/questionnaire.html', 'Tool': 'xray_extended', 'Data Quality Hint': 'ok' };
 
 let inputItem;
@@ -100,6 +107,7 @@ let inputItem;
   check('input: locale RU detected', inputItem.locale === 'ru');
   check('input: deterministic score carried (47)', inputItem.score === 47);
   check('input: deterministic zone carried from Pipeline (ORANGE)', inputItem.zone === 'ORANGE');
+  check('input: analysis version xray-v2 stamped', inputItem.analysis_version === 'xray-v2');
   const prompt = inputItem.ai_user_prompt + inputItem.ai_system_prompt;
   check('input: no email in prompt', !/ivan@example\.com/.test(prompt));
   check('input: no phone in prompt', !/69 123 456/.test(prompt));
@@ -107,6 +115,7 @@ let inputItem;
   check('input: no person/company name in prompt', !/Иван Петров|ООО Пример/.test(prompt));
   check('input: no ga_client_id / request_id / url in prompt', !/GA1\.2\.3|req-1|finmentor\.md/.test(prompt));
   check('input: turnover statement from free text survives scrubbing (business fact)', /1 200 000 EUR/.test(prompt));
+  check('input: the questionnaire content reaches the model (the analysis is not built from codes alone)', /Кассовые разрывы/.test(prompt) && /q_f1/.test(prompt));
   check('input: system prompt forbids changing score/zone (RU)', /Не пересчитывай/.test(inputItem.ai_system_prompt));
   check('input: contract lists plan_30_days weeks', /days_22_30/.test(inputItem.ai_user_prompt));
   check('input: source channel website_xray', inputItem.source_channel === 'website_xray');
@@ -116,6 +125,7 @@ let inputItem;
   const out = runNode(read('build-input.js'), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [{ ...pipeRu, lead_id: 'L-4', source_page: 'https://www.finmentor.md/ro/questionnaire.html' }], 'Settings to Object': [{ settings }] } });
   check('input: RO locale from site_language', out[0].json.locale === 'ro');
   check('input: RO system prompt is Romanian and formal', /dumneavoastră/.test(out[0].json.ai_system_prompt) && /DATE INSUFICIENTE/.test(out[0].json.ai_system_prompt));
+  check('input: RO prompt names the RO product, never the retired name', /Test de sănătate financiară/.test(out[0].json.ai_system_prompt) && !/Radiografia Financiară/.test(out[0].json.ai_system_prompt));
 }
 {
   // Mini App / Concierge lead: no Leads row, no score
@@ -123,6 +133,8 @@ let inputItem;
   check('input: lead without questionnaire row still analysed', out.length === 1);
   check('input: missing score becomes INSUFFICIENT DATA, not a number', out[0].json.score === null && /INSUFFICIENT DATA/.test(out[0].json.ai_user_prompt));
   check('input: zone UNKNOWN carried', out[0].json.zone === 'UNKNOWN');
+  const odd = runNode(read('build-input.js'), { input: [], nodes: { 'Select Pending Leads': [{ ...pipeRu, lead_id: 'L-7', financial_zone: 'purple <script>' }], 'Settings to Object': [{ settings }] } });
+  check('input: a zone outside the vocabulary is UNKNOWN, never a free string', odd[0].json.zone === 'UNKNOWN' && !/purple/.test(odd[0].json.ai_user_prompt));
 }
 {
   // Leak guard: a forbidden key that survives sanitisation must skip the lead
@@ -132,97 +144,189 @@ let inputItem;
 }
 
 // ---------- validate ----------
+const act = (a, over) => Object.assign({ action: a, owner_role: 'Собственник', expected_output: 'Результат', control_or_kpi: 'Еженедельно', priority: 'HIGH' }, over || {});
 const goodPlan = {
   executive_summary: 'Бизнес имеет кассовые разрывы. Управленческий отчёт о прибылях и убытках (P&L) не ведётся.',
   financial_maturity: { score_1_to_5: 2, label: 'Реактивное управление', rationale: 'Нет P&L.' },
   key_risks: [1, 2, 3, 4, 5, 6, 7].map(i => ({ category: 'cash', title: 'Риск ' + i, evidence: 'из анкеты', potential_impact: 'x', priority: 'high' })),
   data_gaps: [{ missing_information: 'Остатки денег', why_it_matters: 'y', how_to_obtain: 'z' }],
   management_priorities: ['П1', 'П2', 'П3', 'П4'],
-  plan_30_days: { days_1_7: [{ action: 'Платёжный календарь', owner_role: 'Собственник', expected_output: 'Календарь', control_or_kpi: 'Еженедельно', priority: 'HIGH' }], days_8_14: [{ action: 'A' }], days_15_21: [], days_22_30: [{ action: 'B', priority: 'weird' }] },
+  plan_30_days: { days_1_7: [act('Платёжный календарь')], days_8_14: [{ action: 'A' }], days_15_21: [act('Сверка')], days_22_30: [{ action: 'B', priority: 'weird' }] },
   tomorrow_actions: ['a', 'b', 'c', 'd'],
   documents_required: ['Выписки'],
   recommended_next_step: { product: 'SOMETHING_ELSE', rationale: 'r' },
   confidence: 'HIGH',
   limitations: [],
-  score: 99, zone: 'GREEN'
+  score: 99, zone: 'GREEN', extra_key: 'dropped'
 };
 function aiResp(obj) { return { output: [{ type: 'message', content: [{ type: 'output_text', text: '```json\n' + JSON.stringify(obj) + '\n```' }] }] }; }
 const validateSrc = read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labelsSrc);
+const validate = (resp, inp) => runNode(validateSrc, { input: [resp], nodes: { 'Build Analysis Input': [inp || inputItem], 'Settings to Object': [{ settings }] } })[0].json;
+let draftRow;
 {
-  const out = runNode(validateSrc, { input: [aiResp(goodPlan)], nodes: { 'Build Analysis Input': [inputItem], 'Settings to Object': [{ settings }] } });
-  const r = out[0].json.analysis_row; const a = JSON.parse(r.analysis_json);
+  const o = validate(aiResp(goodPlan));
+  const r = o.analysis_row; const a = JSON.parse(r.analysis_json);
+  draftRow = r;
+  check('validate: a valid contract is AI_DRAFT and is_valid', o.is_valid === true && r.review_status === 'AI_DRAFT' && r.validation_errors === '');
   check('validate: score is deterministic (47), model value 99 ignored', r.score === 47);
-  check('validate: zone is deterministic (ORANGE), model value GREEN ignored', r.zone === 'ORANGE' && !('score' in a) && !('zone' in a));
+  check('validate: zone is deterministic (ORANGE), model value GREEN ignored', r.zone === 'ORANGE' && !('score' in a) && !('zone' in a) && !('extra_key' in a));
   check('validate: key_risks capped at 5', a.key_risks.length === 5);
   check('validate: management_priorities capped at 3', a.management_priorities.length === 3);
   check('validate: tomorrow_actions capped at 3', a.tomorrow_actions.length === 3);
   check('validate: unknown product falls back to DISCOVERY_CALL', a.recommended_next_step.product === 'DISCOVERY_CALL' && /Discovery Call/.test(r.next_step_label));
   check('validate: priority normalised (high -> HIGH, weird -> MEDIUM)', a.key_risks[0].priority === 'HIGH' && a.plan_30_days.days_22_30[0].priority === 'MEDIUM');
-  check('validate: review_status AI_DRAFT with a 32-hex review token', r.review_status === 'AI_DRAFT' && /^[0-9a-f]{32}$/.test(r.review_token));
-  check('validate: maturity 2 carried', r.maturity_score === 2 && out[0].json.pipeline_row.xray_maturity === 2);
+  check('validate: review token is 32 random bytes (64 hex) and bounded in time', /^[0-9a-f]{64}$/.test(r.review_token) && Date.parse(r.review_token_expires_at) > Date.now() + 20 * 24 * 3600 * 1000);
+  check('validate: analysis version xray-v2 on the row', r.analysis_version === 'xray-v2');
+  check('validate: maturity 2 carried', r.maturity_score === 2 && o.pipeline_row.xray_maturity === 2);
   check('validate: no fabrication flags on clean plan', r.fabrication_flags === '' && r.confidence === 'HIGH');
-  check('validate: pipeline projection is narrow (no JSON)', !('analysis_json' in out[0].json.pipeline_row) && out[0].json.pipeline_row.xray_analysis_status === 'AI_DRAFT');
-  const alert = out[0].json.owner_alert;
+  check('validate: pipeline projection is narrow (no JSON)', !('analysis_json' in o.pipeline_row) && o.pipeline_row.xray_analysis_status === 'AI_DRAFT');
+  const alert = o.owner_alert;
   check('owner alert: RU structure per C1.7', /ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ/.test(alert.text) && /47 из 100/.test(alert.text) && /ОРАНЖЕВАЯ ЗОНА/.test(alert.text) && /2 из 5/.test(alert.text) && /ГОТОВ К ПРОВЕРКЕ/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
   check('owner alert: review link carries analysis id and token', alert.review_url.includes('a=' + encodeURIComponent(r.analysis_id)) && alert.review_url.includes('t=' + r.review_token));
+  const o2 = validate(aiResp(goodPlan));
+  check('validate: two analyses of one lead never share an id or a token', o2.analysis_row.analysis_id !== r.analysis_id && o2.analysis_row.review_token !== r.review_token);
 }
 {
-  const fab = { ...goodPlan, executive_summary: 'Выручка компании составляет 3 500 000 EUR, маржа 12%.' , key_risks: [{ title: 'Долг 850 000 MDL', category: 'debt', evidence: 'x', potential_impact: 'y', priority: 'HIGH' }] };
-  const out = runNode(validateSrc, { input: [aiResp(fab)], nodes: { 'Build Analysis Input': [inputItem], 'Settings to Object': [{ settings }] } });
-  const r = out[0].json.analysis_row;
-  check('validate: fabricated figures flagged', r.fabrication_flags.length > 0, r.fabrication_flags);
+  const fab = { ...goodPlan, executive_summary: 'Выручка компании составляет 3 500 000 EUR, маржа 12%.', key_risks: [{ title: 'Долг 850 000 MDL', category: 'debt', evidence: 'x', potential_impact: 'y', priority: 'HIGH' }] };
+  const o = validate(aiResp(fab));
+  const r = o.analysis_row;
+  check('validate: fabricated figures FLAGGED (not failed) — the owner decides', o.is_valid === true && r.review_status === 'AI_DRAFT' && r.fabrication_flags.length > 0, r.fabrication_flags);
   check('validate: fabricated figures force confidence LOW', r.confidence === 'LOW');
-  check('validate: owner told to check figures', /Проверить цифры/.test(out[0].json.owner_alert.text));
+  check('validate: owner told to check figures', /Проверить цифры/.test(o.owner_alert.text));
   const clean = { ...goodPlan, executive_summary: 'Указанный оборот 1 200 000 EUR требует контроля.' };
-  const out2 = runNode(validateSrc, { input: [aiResp(clean)], nodes: { 'Build Analysis Input': [inputItem], 'Settings to Object': [{ settings }] } });
-  check('validate: figure present in input is not flagged', out2[0].json.analysis_row.fabrication_flags === '');
+  check('validate: figure present in input is not flagged', validate(aiResp(clean)).analysis_row.fabrication_flags === '');
   const kpi = { ...goodPlan, plan_30_days: { ...goodPlan.plan_30_days, days_15_21: [{ action: 'Маржа по категориям', owner_role: 'Аналитик', expected_output: 'Отчёт по 12 000 SKU', control_or_kpi: 'Маржа посчитана для >80% продаж', priority: 'MEDIUM' }] } };
-  const out3 = runNode(validateSrc, { input: [aiResp(kpi)], nodes: { 'Build Analysis Input': [inputItem], 'Settings to Object': [{ settings }] } });
-  check('validate: KPI targets and expected outputs are never flagged as fabricated', out3[0].json.analysis_row.fabrication_flags === '' && out3[0].json.analysis_row.confidence === 'HIGH', out3[0].json.analysis_row.fabrication_flags);
-  check('owner alert: parentheses preserved (HTML parse mode)', /(Discovery Call)/.test(out3[0].json.owner_alert.text));
+  const o3 = validate(aiResp(kpi));
+  check('validate: KPI targets and expected outputs are never flagged as fabricated (live RO finding)', o3.analysis_row.fabrication_flags === '' && o3.analysis_row.confidence === 'HIGH', o3.analysis_row.fabrication_flags);
+  check('owner alert: parentheses preserved (HTML parse mode)', /(Discovery Call)/.test(o3.owner_alert.text));
 }
 {
-  const out = runNode(validateSrc, { input: [{ output_text: 'not json at all' }], nodes: { 'Build Analysis Input': [inputItem], 'Settings to Object': [{ settings }] } });
-  const r = out[0].json.analysis_row; const a = JSON.parse(r.analysis_json);
-  check('validate: unparseable model output still yields an AI_DRAFT row with LOW confidence', r.review_status === 'AI_DRAFT' && r.confidence === 'LOW' && /ручная проверка/.test(a.limitations[0]));
-  check('validate: unparseable output summary is INSUFFICIENT marker, never fabricated', a.executive_summary === 'НЕДОСТАТОЧНО ДАННЫХ');
+  // FAIL CLOSED: a broken contract is ANALYSIS_FAILED, never a draft
+  const cases = [
+    ['not JSON', { output_text: 'not json at all' }],
+    ['a JSON array', { output_text: '[1,2]' }],
+    ['missing key_risks', aiResp((() => { const x = structuredClone(goodPlan); delete x.key_risks; return x; })())],
+    ['missing plan_30_days', aiResp((() => { const x = structuredClone(goodPlan); delete x.plan_30_days; return x; })())],
+    ['missing executive_summary', aiResp({ ...goodPlan, executive_summary: '   ' })],
+    ['an empty week', aiResp({ ...goodPlan, plan_30_days: { ...goodPlan.plan_30_days, days_15_21: [] } })],
+    ['a missing week', aiResp((() => { const x = structuredClone(goodPlan); delete x.plan_30_days.days_22_30; return x; })())],
+    ['no usable risk', aiResp({ ...goodPlan, key_risks: [{ category: 'x' }] })],
+    ['maturity out of range', aiResp({ ...goodPlan, financial_maturity: { score_1_to_5: 9, label: 'x', rationale: 'y' } })],
+    ['recommended_next_step not an object', aiResp({ ...goodPlan, recommended_next_step: 'FINANCIAL_HEALTH_CHECK' })]
+  ];
+  for (const [name, resp] of cases) {
+    const o = validate(resp);
+    const r = o.analysis_row;
+    check('validate FAIL CLOSED: ' + name + ' -> ANALYSIS_FAILED, no token, no draft JSON, pipeline says FAILED',
+      o.is_valid === false && r.review_status === 'ANALYSIS_FAILED' && r.review_token === '' && r.review_token_expires_at === '' && r.analysis_json === '' && r.validation_errors !== '' && o.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED' && o.owner_alert === null && /Удалите её, чтобы повторить/.test(o.owner_text),
+      JSON.stringify({ v: o.is_valid, s: r.review_status, e: r.validation_errors }));
+  }
+  check('validate FAIL CLOSED: the failed row still carries the deterministic score and zone', validate({ output_text: 'x' }).analysis_row.score === 47 && validate({ output_text: 'x' }).analysis_row.zone === 'ORANGE');
+  check('validate FAIL CLOSED: the failure notice names no prompt, payload or token', !/ai_user_prompt|projection|review_token/.test(validate({ output_text: 'x' }).owner_text));
 }
 {
   const roInput = { ...inputItem, locale: 'ro' };
-  const out = runNode(validateSrc, { input: [aiResp({ ...goodPlan, recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', rationale: 'r' } })], nodes: { 'Build Analysis Input': [roInput], 'Settings to Object': [{ settings }] } });
-  const r = out[0].json.analysis_row;
-  check('validate: RO next-step label is Romanian', /Diagnostic financiar complet/.test(r.next_step_label) && r.locale === 'ro');
-  check('owner alert: stays RU for the owner and states client language RO', /Язык клиента: RO/.test(out[0].json.owner_alert.text));
+  const o = validate(aiResp({ ...goodPlan, recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', rationale: 'r' } }), roInput);
+  check('validate: RO next-step label is Romanian', /Diagnostic financiar complet/.test(o.analysis_row.next_step_label) && o.analysis_row.locale === 'ro');
+  check('owner alert: stays RU for the owner and states client language RO', /Язык клиента: RO/.test(o.owner_alert.text));
 }
 
-// ---------- analysis failed ----------
+// ---------- analysis failed (OpenAI error output) ----------
 {
   const out = runNode(read('analysis-failed.js'), { input: [{ error: { message: 'Rate limit reached (429)' } }], nodes: { 'Build Analysis Input': [inputItem] } });
   const r = out[0].json.analysis_row;
-  check('failed: ANALYSIS_FAILED row written with error class only', r.review_status === 'ANALYSIS_FAILED' && r.executive_summary === 'ANALYSIS_FAILED: RATE_LIMIT' && r.analysis_json === '');
-  check('failed: owner notice carries no prompt or payload', !/ai_user_prompt|projection/.test(out[0].json.owner_text));
+  check('failed: ANALYSIS_FAILED row written with error class only', r.review_status === 'ANALYSIS_FAILED' && r.executive_summary === 'ANALYSIS_FAILED: RATE_LIMIT' && r.analysis_json === '' && r.validation_errors === 'UPSTREAM_RATE_LIMIT');
+  check('failed: no token, no expiry, version xray-v2', r.review_token === '' && r.review_token_expires_at === '' && r.analysis_version === 'xray-v2');
+  check('failed: owner notice carries no prompt or payload, and says how to retry', !/ai_user_prompt|projection/.test(out[0].json.owner_text) && /Удалите её, чтобы повторить/.test(out[0].json.owner_text));
 }
 
-// ---------- review verdict ----------
-const reviewSrc = read('review-verdict.js');
-const ledgerRow = { analysis_id: 'XA-1', lead_id: 'L-2', locale: 'ru', review_status: 'AI_DRAFT', review_token: 'a'.repeat(32) };
-function review(q, rows) { return runNode(reviewSrc, { input: rows, nodes: { 'Review Webhook': [{ query: q }] } })[0].json; }
+// ---------- review: GET is read-only ----------
+const surfaceSrc = read('review-surface.js');
+const TOKEN = 'a'.repeat(64);
+const FUTURE = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
+const PAST = new Date(Date.now() - 1000).toISOString();
+const ledgerRow = { ...draftRow, analysis_id: 'XA-1', lead_id: 'L-2', locale: 'ru', review_status: 'AI_DRAFT', review_token: TOKEN, review_token_expires_at: FUTURE, reviewed_at: '' };
+function surface(q, rows) { return runNode(surfaceSrc, { input: rows, nodes: { 'Review GET Webhook': [{ query: q }] } })[0].json; }
 {
-  const ok = review({ a: 'XA-1', t: 'a'.repeat(32) }, [ledgerRow]);
-  check('review: correct token promotes to CLIENT_READY', ok.verdict === 'PROMOTE' && ok.update_row.review_status === 'CLIENT_READY' && ok.http_status === 200);
-  check('review: pipeline projection updated on promote', ok.pipeline_row.xray_analysis_status === 'CLIENT_READY' && ok.pipeline_row.lead_id === 'L-2');
-  const bad = review({ a: 'XA-1', t: 'b'.repeat(32) }, [ledgerRow]);
-  check('review: wrong token denied (403), nothing written', bad.verdict === 'DENIED' && bad.update_row === null && bad.http_status === 403);
-  const short = review({ a: 'XA-1', t: 'a' }, [ledgerRow]);
-  check('review: prefix of the token denied', short.verdict === 'DENIED');
-  const missing = review({ a: 'XA-9', t: 'a'.repeat(32) }, []);
-  check('review: unknown analysis denied', missing.verdict === 'DENIED');
-  const again = review({ a: 'XA-1', t: 'a'.repeat(32) }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }]);
-  check('review: second tap is idempotent (ALREADY_READY, no write)', again.verdict === 'ALREADY_READY' && again.update_row === null && again.http_status === 200);
-  const failedRow = review({ a: 'XA-1', t: 'a'.repeat(32) }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]);
-  check('review: a failed analysis can never be promoted', failedRow.verdict === 'DENIED');
-  check('review: response is HTML without technical labels for denied', /Доступ отклонён/.test(bad.html) && !/AI_DRAFT/.test(bad.html));
+  const before = JSON.stringify(ledgerRow);
+  const page = surface({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  check('review GET: renders the draft and a POST confirmation form (200)', page.http_status === 200 && /method="post"/.test(page.html) && /name="t"/.test(page.html) && /Ключевые риски/.test(page.html));
+  check('review GET: mutates nothing and emits no update row', JSON.stringify(ledgerRow) === before && !('update_row' in page) && !('pipeline_row' in page));
+  check('review GET: the page never states CLIENT_READY for a draft', !/CLIENT_READY/.test(page.html));
+  check('review GET: wrong token 403', surface({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow]).http_status === 403);
+  check('review GET: token prefix 403', surface({ a: 'XA-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).http_status === 403);
+  check('review GET: expired token 403', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).http_status === 403);
+  check('review GET: a row with no expiry (pre-v2) is refused, not trusted', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).http_status === 403);
+  check('review GET: unknown analysis 403', surface({ a: 'XA-9', t: TOKEN }, [{}]).http_status === 403);
+  check('review GET: a failed analysis is not rendered', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).http_status === 403);
+  check('review GET: already CLIENT_READY shows "already", no form', (() => { const p = surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }]); return p.http_status === 200 && /Уже готово/.test(p.html) && !/method="post"/.test(p.html); })());
+  check('review GET: an unreadable store is 503, not 403', surface({ a: 'XA-1', t: TOKEN }, [{ error: 'store down' }]).http_status === 503);
+  check('review GET: HTML escapes the draft content', /&lt;script&gt;/.test(surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, analysis_json: JSON.stringify({ ...JSON.parse(ledgerRow.analysis_json), executive_summary: '<script>x</script>' }) }]).html));
+}
+
+// ---------- review: POST promotes ----------
+const reviewSrc = read('review-verdict.js');
+function review(body, rows) { return runNode(reviewSrc, { input: rows, nodes: { 'Review POST Webhook': [{ body }] } })[0].json; }
+{
+  const ok = review({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  check('review POST: correct token promotes to CLIENT_READY', ok.verdict === 'PROMOTE' && ok.proceed_update === true && ok.update_row.review_status === 'CLIENT_READY' && ok.http_status === 200);
+  check('review POST: pipeline projection updated on promote', ok.pipeline_row.xray_analysis_status === 'CLIENT_READY' && ok.pipeline_row.lead_id === 'L-2');
+  check('review POST: the source row travels to the publisher only on promotion', ok.source_row && ok.source_row.analysis_id === 'XA-1');
+  const bad = review({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow]);
+  check('review POST: wrong token denied (403), nothing written', bad.verdict === 'DENIED' && bad.proceed_update === false && bad.update_row === null && bad.source_row === null && bad.http_status === 403);
+  check('review POST: prefix of the token denied', review({ a: 'XA-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).verdict === 'DENIED');
+  check('review POST: expired token denied', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).verdict === 'DENIED');
+  check('review POST: a row with no expiry is denied', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).verdict === 'DENIED');
+  check('review POST: unknown analysis denied', review({ a: 'XA-9', t: TOKEN }, []).verdict === 'DENIED');
+  check('review POST: query-string parameters are ignored (no body -> denied)', runNode(reviewSrc, { input: [ledgerRow], nodes: { 'Review POST Webhook': [{ query: { a: 'XA-1', t: TOKEN } }] } })[0].json.verdict === 'DENIED');
+  const again = review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY', reviewed_at: '2026-09-03T10:00:00.000Z' }]);
+  check('review POST: second confirmation is idempotent (ALREADY_READY, original reviewed_at kept, publication repaired)', again.verdict === 'ALREADY_READY' && again.proceed_update === true && again.update_row.reviewed_at === '2026-09-03T10:00:00.000Z' && again.http_status === 200);
+  check('review POST: a failed analysis can never be promoted', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).verdict === 'DENIED');
+  const down = review({ a: 'XA-1', t: TOKEN }, [{ error: 'store down' }]);
+  check('review POST: an unreadable store is STORE_UNAVAILABLE 503, never a promotion', down.verdict === 'STORE_UNAVAILABLE' && down.http_status === 503 && down.proceed_update === false);
+  check('review POST: response is HTML without technical labels for denied', /Доступ отклонён/.test(bad.html) && !/AI_DRAFT/.test(bad.html));
+}
+
+// ---------- the curated customer result ----------
+const clientSrc = read('build-client-result.js');
+const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict': [verdict] } });
+{
+  const ok = review({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  const rows = publish(ok);
+  check('client result: exactly one row on promotion', rows.length === 1);
+  const row = rows[0].json;
+  check('client result: the row is exactly the live XRay_Client_Results columns', Object.keys(row).sort().join(',') === 'analysis_id,lead_id,locale,published_at,result_json,review_status,score,zone');
+  check('client result: keyed by lead, CLIENT_READY, deterministic score and zone', row.lead_id === 'L-2' && row.review_status === 'CLIENT_READY' && row.score === '47' && row.zone === 'ORANGE');
+  const result = JSON.parse(row.result_json);
+  check('client result: RU product name', result.labels.product === 'Финансовый рентген бизнеса');
+  check('client result: carries condition/score, risk zone, maturity, key risks, priorities, 30-day plan, next action, recommendation',
+    result.score === 47 && result.zone === 'ORANGE' && result.zone_label && result.maturity && result.maturity.score_1_to_5 === 2 && result.key_risks.length === 5 && result.management_priorities.length === 3 && Object.keys(result.plan_30_days).length === 4 && result.tomorrow_actions.length === 3 && result.recommended_next_step && result.recommended_next_step.label && result.summary);
+  const text = row.result_json;
+  for (const k of ['review_token', 'request_id', 'lead_id', 'analysis_id', 'model', 'confidence', 'fabrication', 'prompt', 'raw', 'notes', 'AI_DRAFT', 'ANALYSIS_FAILED', 'validation_errors', 'source_channel', TOKEN]) {
+    check('client result: never exposes ' + k, !text.includes(k));
+  }
+  const ro = publish(review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, locale: 'ro' }]));
+  check('client result: RO product name, never the retired one', JSON.parse(ro[0].json.result_json).labels.product === 'Test de sănătate financiară FINMENTOR' && !JSON.stringify(ro).includes('Radiografia Financiară'));
+  check('client result: nothing is published for a denied verdict', publish(review({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow])).length === 0);
+  check('client result: nothing is published for a failed analysis even if forced', publish({ proceed_update: true, source_row: { ...ledgerRow, review_status: 'ANALYSIS_FAILED' } }).length === 0);
+  check('client result: nothing is published for a row without a lead', publish({ proceed_update: true, source_row: { ...ledgerRow, lead_id: '' } }).length === 0);
+  check('client result: unparseable analysis JSON publishes nothing', publish({ proceed_update: true, source_row: { ...ledgerRow, analysis_json: '{oops' } }).length === 0);
+  check('client result: ALREADY_READY re-publishes (idempotent repair)', publish(review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }])).length === 1);
+}
+
+// ---------- the built workflow (STATIC) ----------
+{
+  const getChain = sdk.slice(sdk.indexOf('.add(reviewGetWebhook)'), sdk.indexOf('.add(reviewPostWebhook)'));
+  const postChain = sdk.slice(sdk.indexOf('.add(reviewPostWebhook)'));
+  check('workflow: GET and POST review triggers share the path', /name: 'Review GET Webhook', parameters: \{ httpMethod: 'GET', path: "finmentor-xray-review"/.test(sdk) && /name: 'Review POST Webhook', parameters: \{ httpMethod: 'POST', path: "finmentor-xray-review"/.test(sdk) && REVIEW_PATH === 'finmentor-xray-review');
+  check('workflow: the GET chain reads, renders and responds — it reaches no writer', /readForReviewGet/.test(getChain) && /reviewSurface/.test(getChain) && !/promote|publish|updatePipeline|ifPromote/i.test(getChain));
+  check('workflow: the POST chain promotes, projects, publishes the curated result, then responds', /reviewVerdict/.test(postChain) && /ifPromote/.test(postChain) && /promoteAnalysis\.to\(pipelineStatusRow\.to\(updatePipelineStatus\.to\(buildClientResult\.to\(publishClientResult\.to\(respondPromoted\)/.test(postChain));
+  check('workflow: the publisher is a credential-free Data Table upsert on ' + CLIENT_RESULT_TABLE + ' keyed by lead_id', /name: 'Publish Curated Client Result'[\s\S]*?operation: 'upsert', dataTableId: \{ __rl: true, mode: 'name', value: "XRay_Client_Results" \}[\s\S]*?keyName: 'lead_id'/.test(sdk) && !/Publish Curated Client Result[\s\S]{0,600}credentials/.test(sdk));
+  check('workflow: the sweep forks on validity — owner alert for a draft, failure notice otherwise', /\.to\(ifAnalysisValid\s+\.onTrue\(ownerAlert\)\s+\.onFalse\(validationFailureNotice\)\)/.test(sdk));
+  check('workflow: no Postgres, no claim table, no new credential', !/n8n-nodes-base\.postgres/.test(sdk) && !/finmentor_xray_analysis_claims/.test(sdk) && (sdk.match(/credentials: \{ (googleSheetsOAuth2Api|telegramApi|openAiApi)/g) || []).every(Boolean) && !/postgres:/.test(sdk));
+  check('workflow: the failure path still records ANALYSIS_FAILED and notifies', /aiAnalysis\s+\.onError\(failedRowBuild\.to\(failedRow\.to\(saveFailed\.to\(ownerFailureNotice\)\)\)\)/.test(sdk));
+  check('workflow: every HTML responder is no-store, noindex, no-referrer', (sdk.match(/text\/html; charset=utf-8/g) || []).length === 3 && (sdk.match(/Referrer-Policy/g) || []).length === 3);
 }
 
 // ---------- labels ----------

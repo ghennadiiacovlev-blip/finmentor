@@ -8,7 +8,7 @@
 //
 // Inlined into n8n Code nodes by build scripts; keep it dependency-free.
 
-const BUSINESS_STAGES = ['NEW', 'CONTACT', 'QUALIFIED', 'MEETING', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST'];
+const BUSINESS_STAGES = ['NEW', 'CONTACT', 'QUALIFIED', 'MEETING', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST', 'UNKNOWN'];
 
 // Stored value (lower-cased, trimmed) -> business stage. Free-text stages typed by the owner
 // through `stage <ID> <text>` are matched by the same table, then by keyword fallback.
@@ -45,15 +45,25 @@ const STAGE_KEYWORDS = [
 
 function toBusinessStage(storedValue) {
   const s = String(storedValue || '').trim().toLowerCase();
-  if (!s) return 'NEW';
+  if (!s) return 'UNKNOWN';
   if (STAGE_COMPAT[s]) return STAGE_COMPAT[s];
   for (const [re, stage] of STAGE_KEYWORDS) { if (re.test(s)) return stage; }
-  return 'NEW';
+  return 'UNKNOWN';
 }
 
 function isTerminalStage(storedValue) {
   const b = toBusinessStage(storedValue);
   return b === 'WON' || b === 'LOST';
+}
+
+// Automated transitions may advance non-terminal known stages, but never reopen WON/LOST
+// (including legacy Closed) and never guess the meaning of an unknown historical value.
+function canAutomatedTransition(fromStoredValue, toBusinessValue) {
+  const from = toBusinessStage(fromStoredValue);
+  const to = toBusinessStage(toBusinessValue);
+  if (from === 'UNKNOWN' || to === 'UNKNOWN') return false;
+  if ((from === 'WON' || from === 'LOST') && to !== from) return false;
+  return true;
 }
 
 const STAGE_LABELS = {
@@ -66,6 +76,7 @@ const STAGE_LABELS = {
     NEGOTIATION: 'Переговоры',
     WON: 'Сделка заключена',
     LOST: 'Сделка не состоялась'
+    ,UNKNOWN: 'Неизвестный исторический этап'
   },
   ro: {
     NEW: 'Solicitare nouă',
@@ -76,6 +87,7 @@ const STAGE_LABELS = {
     NEGOTIATION: 'Negociere',
     WON: 'Contract semnat',
     LOST: 'Fără rezultat'
+    ,UNKNOWN: 'Etapă istorică necunoscută'
   }
 };
 
@@ -98,5 +110,5 @@ function stageLabel(locale, storedValue) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { BUSINESS_STAGES, STAGE_COMPAT, STAGE_LABELS, STAGE_TO_STORED, toBusinessStage, isTerminalStage, stageLabel };
+  module.exports = { BUSINESS_STAGES, STAGE_COMPAT, STAGE_LABELS, STAGE_TO_STORED, toBusinessStage, isTerminalStage, canAutomatedTransition, stageLabel };
 }

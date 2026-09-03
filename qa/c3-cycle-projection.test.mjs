@@ -18,14 +18,18 @@
 //   2. The projection is written BEFORE the session is persisted, and a failed projection write
 //      on a rotation turn ABORTS the turn. The Gateway therefore sees the new cycle or nothing —
 //      never the old one after a rotation.
+//
+//   3. (C3) The projection is ONE IMMUTABLE ROW PER (user, cycle), keyed by authority_key and
+//      carrying the numeric cycle_sequence, so a stale turn can only touch its own row and can
+//      never overwrite a newer authoritative cycle. The live v1 graph upgrades in place.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 import {
-  splicePremiumSession, patchConcierge, verifyPatched, GUARD_CODE, projectionNode,
-  PREMIUM_SESSION, BUILD_ROW, SAVE_SESSION, PROJECT_NODE, GUARD_NODE, PROJECTION_TABLE
+  splicePremiumSession, patchConcierge, verifyPatched, upgradeConcierge, verifyUpgraded, GUARD_CODE, projectionInputNode, projectionNode, guardNode,
+  PREMIUM_SESSION, BUILD_ROW, SAVE_SESSION, PREP_NODE, PROJECT_NODE, GUARD_NODE, PROJECTION_TABLE
 } from '../scripts/deploy-c3-concierge-cycle.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -161,10 +165,11 @@ check('a rotation on a session with NO cycle is not a premium rotation (there is
 
 // ── 3. the projection write and its guard ──────────────────────────────────────────────────────
 
-function runGuard(inputItem, sessionRow, premiumOut) {
+function runGuard(inputItem, sessionRow, premiumOut, prepOut) {
   const $ = (n) => {
     if (n === BUILD_ROW) { return { first: () => ({ json: sessionRow }) }; }
     if (n === PREMIUM_SESSION) { return { isExecuted: true, first: () => ({ json: premiumOut }) }; }
+    if (n === PREP_NODE) { return { first: () => ({ json: prepOut || { projection_invalid: 0 } }) }; }
     throw new Error("$('" + n + "') not provided");
   };
   const $input = { first: () => ({ json: inputItem }), all: () => [{ json: inputItem }] };
@@ -189,19 +194,74 @@ check('a FAILED projection write on a ROTATION turn aborts the turn — the rota
   assert(err, 'a failed projection on a bootstrap mint was tolerated');
 });
 
-check('a FAILED projection write on an ordinary turn is tolerated — the cycle did not move', () => {
+check('a FAILED projection write on an ordinary turn is tolerated — the cycle did not move, its row already exists', () => {
   const row = { chat_id: CHAT, cycle_id: CYCLE };
   const out = runGuard({ error: { message: 'store down' } }, row, { cycle_reset: '' });
   eq(JSON.stringify(out), JSON.stringify(row), 'the row was altered');
 });
 
-check('the projection node is an upsert keyed by the Telegram user, on the projection table, with the error output routed', () => {
+check('an UNPROJECTABLE cycle aborts a rotation turn and is tolerated on an ordinary turn', () => {
+  const row = { chat_id: CHAT, cycle_id: 'garbage' };
+  let err = null;
+  try { runGuard({ id: 1 }, row, { cycle_reset: 'restart' }, { projection_invalid: 1 }); } catch (e) { err = e; }
+  assert(err && /CYCLE_PROJECTION_FAILED/.test(err.message) && /not projectable/.test(err.message), 'a rotation to an unprojectable cycle was persisted');
+  const out = runGuard({ id: 1 }, row, { cycle_reset: '' }, { projection_invalid: 1 });
+  eq(JSON.stringify(out), JSON.stringify(row), 'an ordinary turn on a legacy cycle was aborted');
+});
+
+check('the projection input creates one immutable user+cycle authority key', () => {
+  const n = projectionInputNode([0, 0]);
+  const row = { chat_id: CHAT, user_id: CHAT, cycle_id: 'C-' + CHAT + '-42' };
+  const $ = (name) => {
+    if (name === BUILD_ROW) return { first: () => ({ json: row }) };
+    if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: { cycle_id: row.cycle_id, cycle_reset: 'restart' } }) };
+    throw new Error("$('" + name + "') not provided");
+  };
+  const out = new Function('$', n.parameters.jsCode)($)[0].json;
+  eq(out.authority_key, CHAT + '|' + row.cycle_id, 'authority key');
+  eq(out.cycle_sequence, '42', 'cycle sequence');
+  eq(out.telegram_user_id, CHAT, 'user binding');
+  eq(out.cycle_id, row.cycle_id, 'cycle binding');
+  eq(out.projection_invalid, 0, 'a valid cycle marked invalid');
+  eq(out.cycle_reset, 'restart', 'the rotation marker is not carried');
+  // a cycle minted for ANOTHER user, or a legacy shape, never becomes an authority row
+  const bad = (cycle) => {
+    const $$ = (name) => name === BUILD_ROW ? { first: () => ({ json: { chat_id: CHAT, user_id: CHAT, cycle_id: cycle } }) } : { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+    return new Function('$', n.parameters.jsCode)($$)[0].json;
+  };
+  for (const cycle of ['C-999-42', 'garbage', '', 'C-' + CHAT + '-x', "C-" + CHAT + "-1' or 1=1"]) {
+    const o = bad(cycle);
+    eq(o.projection_invalid, 1, JSON.stringify(cycle) + ' was projected');
+    eq(o.cycle_id, '', JSON.stringify(cycle) + ' carried a cycle');
+    eq(o.authority_key, CHAT + '|LEGACY', JSON.stringify(cycle) + ' minted an authority key');
+  }
+  // and a session row with no user is an exception: nothing can be keyed
+  let err = null;
+  try { new Function('$', n.parameters.jsCode)((name) => name === BUILD_ROW ? { first: () => ({ json: { cycle_id: row.cycle_id } }) } : { isExecuted: true, first: () => ({ json: {} }) }); } catch (e) { err = e; }
+  assert(err && /CYCLE_PROJECTION_INVALID/.test(err.message), 'a user-less row was projected');
+});
+
+check('MONOTONIC — a stale turn can only touch its own row: two cycles project to two keys, and the older key never carries the newer cycle', () => {
+  const n = projectionInputNode([0, 0]);
+  const run = (cycle) => {
+    const $$ = (name) => name === BUILD_ROW ? { first: () => ({ json: { chat_id: CHAT, user_id: CHAT, cycle_id: cycle } }) } : { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+    return new Function('$', n.parameters.jsCode)($$)[0].json;
+  };
+  const older = run('C-' + CHAT + '-1756900000000');
+  const newer = run('C-' + CHAT + '-1756900001000');
+  assert(older.authority_key !== newer.authority_key, 'two cycles share one row key — a stale turn could overwrite the newer cycle');
+  assert(BigInt(newer.cycle_sequence) > BigInt(older.cycle_sequence), 'the sequence is not monotonic');
+  // the upsert matches on THAT key, so the older turn's write lands on the older row only
+  eq(projectionNode([0, 0]).parameters.filters.conditions[0].keyValue, '={{ $json.authority_key }}', 'the upsert does not match on the authority key');
+});
+
+check('the projection node is an upsert keyed by immutable user+cycle authority, with the error output routed', () => {
   const n = projectionNode([0, 0]);
   eq(n.type, 'n8n-nodes-base.dataTable', 'type');
   eq(n.parameters.operation, 'upsert', 'not an upsert');
   eq(n.parameters.dataTableId.value, PROJECTION_TABLE, 'table');
-  eq(n.parameters.filters.conditions[0].keyName, 'telegram_user_id', 'match key');
-  eq(Object.keys(n.parameters.columns.value).sort().join(','), 'cycle_id,cycle_reset,projected_at,telegram_user_id', 'columns');
+  eq(n.parameters.filters.conditions[0].keyName, 'authority_key', 'match key');
+  eq(Object.keys(n.parameters.columns.value).sort().join(','), 'authority_key,cycle_id,cycle_reset,cycle_sequence,projected_at,telegram_user_id', 'columns');
   eq(n.onError, 'continueErrorOutput', 'the error output is not routed');
   assert(!n.alwaysOutputData, 'the P9-R2 flag pair');
   assert(!n.credentials, 'a credential on the projection write');
@@ -229,12 +289,13 @@ function fixtureLive() {
   };
 }
 
-check('the patch changes EXACTLY the premium session node, adds the two nodes, and splits ONE edge', () => {
+check('the patch changes EXACTLY the premium session node, adds three authority nodes, and splits ONE edge', () => {
   const live = fixtureLive();
   const patched = patchConcierge(live);
   const f = verifyPatched(live, patched);
   eq(f.join(' | '), '', 'verification');
-  eq(patched.connections[BUILD_ROW].main[0][0].node, PROJECT_NODE, BUILD_ROW + ' edge');
+  eq(patched.connections[BUILD_ROW].main[0][0].node, PREP_NODE, BUILD_ROW + ' edge');
+  eq(patched.connections[PREP_NODE].main[0][0].node, PROJECT_NODE, 'prepare edge');
   eq(patched.connections[PROJECT_NODE].main[0][0].node, GUARD_NODE, 'success output');
   eq(patched.connections[PROJECT_NODE].main[1][0].node, GUARD_NODE, 'error output');
   eq(patched.connections[GUARD_NODE].main[0][0].node, SAVE_SESSION, 'guard edge');
@@ -244,7 +305,50 @@ check('the patch changes EXACTLY the premium session node, adds the two nodes, a
   const path = [];
   let cur = BUILD_ROW;
   while (cur && path.length < 6) { path.push(cur); cur = ((patched.connections[cur] || {}).main || [[]])[0][0] && patched.connections[cur].main[0][0].node; }
-  eq(path.slice(0, 4).join(' -> '), [BUILD_ROW, PROJECT_NODE, GUARD_NODE, SAVE_SESSION].join(' -> '), 'write order');
+  eq(path.slice(0, 5).join(' -> '), [BUILD_ROW, PREP_NODE, PROJECT_NODE, GUARD_NODE, SAVE_SESSION].join(' -> '), 'write order');
+});
+
+check('UPGRADE — the live v1 graph (one row per user) converts in place: Prepare inserted, Project Cycle re-keyed, guard rewritten, nothing else', () => {
+  // the v1 form: the premium node already spliced, the old pair already in the chain
+  const v1 = fixtureLive();
+  v1.nodes.find((n) => n.name === PREMIUM_SESSION).parameters.jsCode = SPLICED;
+  v1.nodes.push({ id: 'p1', name: PROJECT_NODE, type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [400, 160], onError: 'continueErrorOutput',
+    parameters: { resource: 'row', operation: 'upsert', dataTableId: { __rl: true, mode: 'name', value: PROJECTION_TABLE }, matchType: 'allConditions',
+      filters: { conditions: [{ keyName: 'telegram_user_id', condition: 'eq', keyValue: '={{ String($json.user_id || $json.chat_id || "") }}' }] },
+      columns: { mappingMode: 'defineBelow', matchingColumns: [], value: { telegram_user_id: '', cycle_id: '', cycle_reset: '', projected_at: '' }, schema: [] }, options: {} } });
+  v1.nodes.push({ id: 'g1', name: GUARD_NODE, type: 'n8n-nodes-base.code', typeVersion: 2, position: [600, 160], parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: '// v1 guard\nreturn [{ json: $("Build Session Row").first().json }];' } });
+  v1.connections[BUILD_ROW] = { main: [[{ node: PROJECT_NODE, type: 'main', index: 0 }]] };
+  v1.connections[PROJECT_NODE] = { main: [[{ node: GUARD_NODE, type: 'main', index: 0 }], [{ node: GUARD_NODE, type: 'main', index: 0 }]] };
+  v1.connections[GUARD_NODE] = { main: [[{ node: SAVE_SESSION, type: 'main', index: 0 }]] };
+
+  const up = upgradeConcierge(v1);
+  eq(verifyUpgraded(v1, up).join(' | '), '', 'verification');
+  const path = [];
+  let cur = BUILD_ROW;
+  while (cur && path.length < 6) { path.push(cur); cur = ((up.connections[cur] || {}).main || [[]])[0][0] && up.connections[cur].main[0][0].node; }
+  eq(path.slice(0, 5).join(' -> '), [BUILD_ROW, PREP_NODE, PROJECT_NODE, GUARD_NODE, SAVE_SESSION].join(' -> '), 'write order');
+  const proj = up.nodes.find((n) => n.name === PROJECT_NODE);
+  eq(proj.id, 'p1', 'the live node identity was not kept');
+  eq(JSON.stringify(proj.parameters), JSON.stringify(projectionNode([0, 0]).parameters), 'the projection parameters are not the tracked ones');
+  eq(up.nodes.find((n) => n.name === GUARD_NODE).parameters.jsCode, GUARD_CODE, 'the guard was not rewritten');
+  eq(up.nodes.find((n) => n.name === PREMIUM_SESSION).parameters.jsCode, SPLICED, 'the premium node was touched');
+  // refusals: not v1, already upgraded, unspliced premium node
+  let err = null;
+  try { upgradeConcierge(fixtureLive()); } catch (e) { err = e; }
+  assert(err && /missing anchor/.test(err.message), 'a fresh graph was "upgraded"');
+  err = null;
+  try { upgradeConcierge(up); } catch (e) { err = e; }
+  assert(err && /already upgraded/.test(err.message), 'the upgrade applied twice');
+  const unspliced = JSON.parse(JSON.stringify(v1));
+  unspliced.nodes.find((n) => n.name === PREMIUM_SESSION).parameters.jsCode = LIVE_CODE;
+  err = null;
+  try { upgradeConcierge(unspliced); } catch (e) { err = e; }
+  assert(err && /not spliced/.test(err.message), 'an unspliced premium node was upgraded');
+  // and the fresh patch produces the SAME nodes the upgrade does
+  const fresh = patchConcierge(fixtureLive());
+  for (const name of [PREP_NODE, PROJECT_NODE, GUARD_NODE]) {
+    eq(JSON.stringify(fresh.nodes.find((n) => n.name === name).parameters), JSON.stringify(up.nodes.find((n) => n.name === name).parameters), name + ' differs between patch and upgrade');
+  }
 });
 
 check('the patch REFUSES an unexpected graph and a second application', () => {

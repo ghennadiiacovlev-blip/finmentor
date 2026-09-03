@@ -8,18 +8,20 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 2288,
+  "total": 2484,
   "gates": {
     "ai-safe-projection.test.mjs": 52,
     "api-import.test.mjs": 48,
     "assertion-floor.test.mjs": 20,
     "bot-sessions-legacy-cycle.test.mjs": 21,
+    "c3-cycle-projection.test.mjs": 17,
     "command-center-auth.test.mjs": 43,
     "concierge-import-safe.test.mjs": 87,
     "concierge-internal-handoff.test.mjs": 29,
     "concierge-issuer-candidate.test.mjs": 65,
     "concierge-issuer-harness.test.mjs": 52,
     "concierge-issuer.test.mjs": 36,
+    "crm-stage-map.test.mjs": 29,
     "cutover.test.mjs": 43,
     "deploy-guard.test.mjs": 28,
     "error-alert.test.mjs": 22,
@@ -45,7 +47,7 @@
     "lead-intake-trust.test.mjs": 43,
     "materializer.test.mjs": 56,
     "mcp-config.test.mjs": 25,
-    "miniapp-gateway.test.mjs": 23,
+    "miniapp-gateway.test.mjs": 30,
     "miniapp-readmodel.test.mjs": 42,
     "miniapp-submit.test.mjs": 137,
     "n8n-manifest-drift.test.mjs": 72,
@@ -63,9 +65,9 @@
     "premium-ux-privacy-notice.test.mjs": 24,
     "premium-ux-projection-candidate.test.mjs": 12,
     "premium-ux-receipt-contract.test.mjs": 18,
-    "premium-ux-resume.test.mjs": 20,
+    "premium-ux-resume.test.mjs": 24,
     "premium-ux-state.test.mjs": 20,
-    "premium-ux-submit-idempotency.test.mjs": 27,
+    "premium-ux-submit-idempotency.test.mjs": 28,
     "premium-ux-submit-lock.test.mjs": 11,
     "premium-ux-submit.test.mjs": 18,
     "premium-ux-success-screen.test.mjs": 18,
@@ -73,6 +75,7 @@
     "premium-ux-ttl.test.mjs": 11,
     "receipt-integration.test.mjs": 70,
     "system-alert.test.mjs": 43,
-    "website-contract.test.mjs": 75
+    "website-contract.test.mjs": 75,
+    "xray-analysis.test.mjs": 138
   }
 }

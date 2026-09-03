@@ -12,7 +12,8 @@
 //   1. A REJECTED initData CANNOT CONSUME A KEY. Not "does not" -- cannot. The claim node must be
 //      unreachable from the failure branch, so the guarantee survives someone rewiring later.
 //   2. EXACTLY ONE NODE HOLDS THE CREDENTIAL, and it is the claim. A second credential-bearing
-//      node is a second way to reach the database.
+//      node is a second way to reach the database. (A second Postgres node — a first-open session
+//      authority in Supabase — was proposed by the Codex correction and REJECTED on this ground.)
 //   3. THE INLINED DERIVATION AGREES WITH THE MODULE. Two implementations of one digest is the
 //      F10 seam again; this gate EXECUTES both and compares outputs.
 
@@ -93,6 +94,11 @@ check('EXACTLY ONE node carries a credential, and it is the G5 claim', () => {
   eq(credNodes[0].name, G5_CLAIM_NODE, 'the credential is on the wrong node');
   eq(credNodes[0].credentials.postgres.id, SUPABASE_CREDENTIAL.id, 'not the Supabase credential');
   eq(credNodes[0].credentials.postgres.name, SUPABASE_CREDENTIAL.name, 'credential name drifted');
+  // and the verifier refuses a second one, whatever it is called
+  const mutated = buildGateway({ botId: CONFIGURED_BOT_ID });
+  mutated.nodes.find((n) => n.name === 'Build Session Row').credentials = { postgres: SUPABASE_CREDENTIAL };
+  const verdict = verifyGateway(mutated);
+  assert(!verdict.ok && verdict.failures.some((f) => /credentials, expected 1/.test(f)), 'the verifier accepted a second credential-bearing node');
 });
 
 check('the Neon credential appears NOWHERE in the Gateway', () => {
@@ -150,7 +156,7 @@ check('every response code reaches the HTTP layer as a NUMBER', () => {
   // 409 -> 409. Note a substring test like /503/.test(...) passes for BOTH the broken and
   // the fixed form, which is why the 503 assertion above never caught this.
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 5, 'expected five respond nodes');
+  eq(responders.length, 6, 'expected six respond nodes');
   responders.forEach((n) => {
     const c = (n.parameters.options || {}).responseCode;
     const isNumber = typeof c === 'number';
@@ -363,7 +369,12 @@ console.log('\n-- the app session: a binding with a TTL, not a CRM --');
 // C3.1 — Build App Session now reads the Concierge cycle projection from $input. The harness
 // hands it exactly what the Data Table point read returns.
 const projection = (rows) => ({ all: () => rows.map((j) => ({ json: j })), first: () => ({ json: rows[0] }) });
-const PROJ = { id: 7, telegram_user_id: '551662084', cycle_id: 'C-551662084-1756900000000', cycle_reset: 'bootstrap', projected_at: '2026-09-03T10:00:00.000Z' };
+const projectionRow = (sequence, over) => Object.assign({
+  id: Number(sequence), authority_key: '551662084|C-551662084-' + sequence,
+  telegram_user_id: '551662084', cycle_id: 'C-551662084-' + sequence,
+  cycle_sequence: String(sequence), cycle_reset: 'bootstrap', projected_at: '2026-09-03T10:00:00.000Z'
+}, over || {});
+const PROJ = projectionRow('1756900000000');
 
 check('EXECUTED: the session id is high-entropy and is NOT a storage row id', () => {
   const body = byName('Build App Session').parameters.jsCode;
@@ -405,11 +416,20 @@ const runBuild = (rows, userId) => {
 };
 
 check('EXECUTED: a missing projection resolves to NOTHING — cycle_id is never \'\' on a minted session', () => {
-  for (const rows of [[], [{}], [{ error: 'store down' }], [{ errorMessage: 'timeout' }]]) {
+  for (const rows of [[], [{}]]) {
     const s = runBuild(rows);
     eq(s.cycle_id, '', 'a missing/unreadable projection produced a cycle: ' + JSON.stringify(rows));
     eq(s.cycle_unresolved, 1, 'the refusal marker is absent');
     assert(!('app_session_id' in s), 'a session was minted without an authoritative cycle');
+  }
+});
+
+check('EXECUTED: an unreadable cycle projection fails as a retryable store outage, not as missing data', () => {
+  for (const rows of [[{ error: 'store down' }], [{ errorMessage: 'timeout' }]]) {
+    const s = runBuild(rows);
+    eq(s.cycle_id, '', 'an unreadable projection produced a cycle');
+    eq(s.cycle_store_error, 1, 'the outage marker is absent');
+    assert(!('app_session_id' in s), 'a session was minted during a projection-store outage');
   }
 });
 
@@ -418,16 +438,18 @@ check('EXECUTED: another user\'s projection, an empty cycle or a malformed cycle
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: '' })]).cycle_id, '', 'an empty projected cycle was used');
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: 'garbage' })]).cycle_id, '', 'a malformed cycle was used');
   eq(runBuild([Object.assign({}, PROJ, { cycle_id: "C-1' or 1=1" })]).cycle_id, '', 'an injected cycle was used');
+  eq(runBuild([Object.assign({}, PROJ, { authority_key: '551662084|C-551662084-OTHER' })]).cycle_id, '', 'a mismatched authority key was used');
+  eq(runBuild([Object.assign({}, PROJ, { cycle_sequence: '1' })]).cycle_id, '', 'a mismatched cycle sequence was used');
 });
 
-check('EXECUTED: with several projection rows the most recently projected cycle wins, deterministically', () => {
-  const older = Object.assign({}, PROJ, { id: 1, cycle_id: 'C-551662084-1', projected_at: '2026-09-01T00:00:00.000Z' });
-  const newer = Object.assign({}, PROJ, { id: 2, cycle_id: 'C-551662084-2', projected_at: '2026-09-02T00:00:00.000Z' });
+check('EXECUTED: with several immutable projection rows the highest cycle sequence wins, deterministically', () => {
+  const older = projectionRow('1', { projected_at: '2026-09-03T12:00:00.000Z' });
+  const newer = projectionRow('2', { projected_at: '2026-09-01T00:00:00.000Z' });
   eq(runBuild([older, newer]).cycle_id, newer.cycle_id, 'older, newer');
   eq(runBuild([newer, older]).cycle_id, newer.cycle_id, 'newer, older — read order changed the winner');
-  // identical timestamps: the higher row id (later insert) wins — a total order, never a coin flip
-  const a = Object.assign({}, newer, { id: 10, cycle_id: 'C-551662084-10' });
-  const b = Object.assign({}, newer, { id: 11, cycle_id: 'C-551662084-11' });
+  // Numeric sequence, not lexicographic key or mutable projected_at, is authoritative.
+  const a = projectionRow('9', { id: 100, projected_at: '2099-01-01T00:00:00.000Z' });
+  const b = projectionRow('10', { id: 1, projected_at: '2020-01-01T00:00:00.000Z' });
   eq(runBuild([a, b]).cycle_id, b.cycle_id, 'a,b');
   eq(runBuild([b, a]).cycle_id, b.cycle_id, 'b,a');
 });
@@ -446,7 +468,9 @@ check('the cycle read is a credential-free Data Table point read on the projecti
 });
 
 check('an unresolved cycle answers 409 CYCLE_UNRESOLVED and has NO path to the session store', () => {
-  eq(JSON.stringify(outs('Build App Session')), JSON.stringify([['IF Cycle Resolved']]), 'the resolver does not go through the cycle gate');
+  eq(JSON.stringify(outs('Build App Session')), JSON.stringify([['IF Cycle Store Readable']]), 'the resolver does not go through the store gate');
+  eq(JSON.stringify(outs('IF Cycle Store Readable')[0]), JSON.stringify(['IF Cycle Resolved']), 'readable branch');
+  eq(JSON.stringify(outs('IF Cycle Store Readable')[1]), JSON.stringify(['Respond Application Store Unavailable']), 'outage branch');
   eq(JSON.stringify(outs('IF Cycle Resolved')[0]), JSON.stringify(['Read User Sessions']), 'resolved branch');
   eq(JSON.stringify(outs('IF Cycle Resolved')[1]), JSON.stringify(['Respond Cycle Unresolved']), 'unresolved branch');
   const gate = byName('IF Cycle Resolved').parameters.conditions.conditions[0];
@@ -472,6 +496,34 @@ check('the app session store is the Data Table, and holds no lead content', () =
   });
 });
 
+check('the session store is fail-closed: an unreadable read, an unreadable read-back or an UNPROVEN insert answers 503, never 200', () => {
+  // Resolve Session: a store error on the user read is an outage, not "no rows"
+  const resolveBody = byName('Resolve Session').parameters.jsCode;
+  const source = runBuild([PROJ]);
+  const $ = (n) => ({ first: () => ({ json: n === 'Claim Verdict' ? { locale: 'ru' } : source }), all: () => [] });
+  const resolved = new Function('$', '$input', resolveBody)($, projection([{ error: 'store down' }]))[0].json;
+  eq(resolved.session_store_error, 1, 'an unreadable session store was not reported');
+  eq(resolved.create, 0, 'an unreadable session store minted a session');
+  eq(JSON.stringify(outs('IF Session Store Readable')[1]), JSON.stringify(['Respond Application Store Unavailable']), 'session-store outage branch');
+  // Finalise Session: the read-back must PROVE the insert
+  const finaliseBody = byName('Finalise Session').parameters.jsCode;
+  const fin = (rows) => new Function('$', '$input', finaliseBody)($, projection(rows))[0].json;
+  eq(fin([{ error: 'store down' }]).persistence_error, 1, 'an unreadable read-back was accepted');
+  eq(fin([]).persistence_error, 1, 'an empty read-back was accepted as persistence');
+  const other = Object.assign({}, source, { app_session_id: 'AS-' + 'f'.repeat(64) });
+  eq(fin([other]).persistence_error, 1, 'a read-back without our row was accepted as persistence');
+  const proven = fin([source]);
+  assert(!proven.persistence_error && proven.__response && proven.__response.ok === true, 'a proven insert did not answer');
+  eq(JSON.stringify(outs('IF Session Persistence Verified')[1]), JSON.stringify(['Respond Application Store Unavailable']), 'unproven-persistence branch');
+  // Create App Session: the insert's error output is the same 503, not a silent fall-through
+  eq(byName('Create App Session').onError, 'continueErrorOutput', 'the insert does not route its error output');
+  assert(!byName('Create App Session').alwaysOutputData, 'the P9-R2 flag pair on the insert');
+  eq(JSON.stringify(outs('Create App Session')[1]), JSON.stringify(['Respond Application Store Unavailable']), 'insert outage branch');
+  const r = byName('Respond Application Store Unavailable');
+  eq(r.parameters.options.responseCode, 503, 'the application-store code is not the number 503');
+  assert(/APPLICATION_STORE_UNAVAILABLE/.test(String(r.parameters.responseBody)) && /retryable: true/.test(String(r.parameters.responseBody)), 'the outage answer is not retryable');
+});
+
 console.log('\n-- retention and exposure --');
 
 check('NO execution data is retained, so raw initData is never persisted', () => {
@@ -483,7 +535,7 @@ check('NO execution data is retained, so raw initData is never persisted', () =>
 check('availableInMCP is false and no response leaks internals', () => {
   eq(WF.settings.availableInMCP, false, 'the Gateway is MCP-exposed');
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  eq(responders.length, 5, 'unexpected responder count');
+  eq(responders.length, 6, 'unexpected responder count');
   responders.forEach((r) => {
     const b = JSON.stringify(r.parameters);
     ['replay_key', 'submission_key', 'init_data', 'telegram_user_id', 'lead_id', 'cycle_id'].forEach((k) => {

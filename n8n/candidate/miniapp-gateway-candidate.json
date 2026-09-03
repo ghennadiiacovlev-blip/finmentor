@@ -24,7 +24,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const TG_PROD_PUBKEY_HEX = 'e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d';\r\nconst SPKI_PREFIX_HEX = '302a300506032b6570032100';\r\nconst LF = String.fromCharCode(10);\r\n\r\nconst BOT_ID = '8917808598';\r\n\r\nconst MAX_BODY_BYTES = 8192;\r\nconst MAX_INITDATA_BYTES = 4096;\r\nconst MAX_AUTH_AGE_SECONDS = 900;\r\nconst FUTURE_CLOCK_SKEW_SECONDS = 60;\r\nconst ALLOWED_CLIENT_VERSIONS = ['b2.1.0'];\r\nconst ALLOWED_LOCALES = ['ru', 'ro'];\r\n\r\nconst UNTRUSTED_KEYS = ['telegram_user_id', 'cycle_id', 'lead_id', 'consent', 'consent_at', 'priority', 'financial_zone', 'canonical_lead_id', 'submit_state'];\r\n\r\nconst STATUS = {\r\n  BAD_REQUEST: 400,\r\n  TG_INITDATA_MISSING: 400,\r\n  CLIENT_VERSION_UNSUPPORTED: 400,\r\n  TG_INITDATA_INVALID: 401,\r\n  TG_INITDATA_EXPIRED: 401,\r\n  TG_INITDATA_FUTURE: 401,\r\n  TG_USER_MISSING: 401,\r\n  TG_USER_INVALID: 401,\r\n  TG_USER_BOT: 403,\r\n  RATE_LIMITED: 429,\r\n  TEMPORARY_BACKEND_ERROR: 503\r\n};\r\nconst RETRYABLE = { RATE_LIMITED: true, TEMPORARY_BACKEND_ERROR: true };\r\n\r\nconst crypto = require('crypto');\r\nfunction nowMs() { return Date.now(); }\r\n\r\nfunction decodeOnce(s) {\r\n  return decodeURIComponent(s);\r\n}\r\n\r\nfunction parseInitData(raw) {\r\n  const chunks = raw.split('&');\r\n  const pairs = [];\r\n  const seen = {};\r\n  for (let i = 0; i < chunks.length; i++) {\r\n    const c = chunks[i];\r\n    if (c === '') { return { ok: false, reason: 'EMPTY_PAIR' }; }\r\n    const eq = c.indexOf('=');\r\n    if (eq === -1) { return { ok: false, reason: 'MALFORMED_PAIR' }; }\r\n    let k;\r\n    let v;\r\n    try {\r\n      k = decodeOnce(c.substring(0, eq));\r\n      v = decodeOnce(c.substring(eq + 1));\r\n    } catch (e) {\r\n      return { ok: false, reason: 'MALFORMED_PERCENT_ENCODING' };\r\n    }\r\n    if (k === '') { return { ok: false, reason: 'EMPTY_KEY' }; }\r\n    if (Object.prototype.hasOwnProperty.call(seen, k)) {\r\n      return { ok: false, reason: 'DUPLICATE_KEY' };\r\n    }\r\n    seen[k] = true;\r\n    pairs.push([k, v]);\r\n  }\r\n  if (pairs.length === 0) { return { ok: false, reason: 'EMPTY_INITDATA' }; }\r\n  const map = {};\r\n  for (let i = 0; i < pairs.length; i++) { map[pairs[i][0]] = pairs[i][1]; }\r\n  return { ok: true, pairs: pairs, map: map };\r\n}\r\n\r\nfunction buildCanonical(botId, pairs) {\r\n  const kept = [];\r\n  for (let i = 0; i < pairs.length; i++) {\r\n    const k = pairs[i][0];\r\n    if (k === 'hash' || k === 'signature') { continue; }\r\n    kept.push(pairs[i]);\r\n  }\r\n  kept.sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); });\r\n  const lines = [];\r\n  for (let i = 0; i < kept.length; i++) { lines.push(kept[i][0] + '=' + kept[i][1]); }\r\n  return botId + ':WebAppData' + LF + lines.join(LF);\r\n}\r\n\r\nfunction importRawEd25519(hex) {\r\n  const raw = Buffer.from(hex, 'hex');\r\n  if (raw.length !== 32) { throw new Error('bad key length'); }\r\n  const der = Buffer.concat([Buffer.from(SPKI_PREFIX_HEX, 'hex'), raw]);\r\n  return crypto.createPublicKey({ key: der, format: 'der', type: 'spki' });\r\n}\r\n\r\nfunction verifyCanonical(canonical, sigB64url, keyObj) {\r\n  if (typeof sigB64url !== 'string' || !/^[A-Za-z0-9_-]+={0,2}$/.test(sigB64url)) { return false; }\r\n  let sig;\r\n  try { sig = Buffer.from(sigB64url, 'base64url'); }\r\n  catch (e) { return false; }\r\n  if (sig.length !== 64) { return false; }\r\n  return crypto.verify(null, Buffer.from(canonical, 'utf8'), keyObj, sig);\r\n}\r\n\r\nfunction fail(code, stage, extra) {\r\n  const out = {\r\n    statusCode: STATUS[code] || 400,\r\n    response: { ok: false, error_code: code, retryable: RETRYABLE[code] === true },\r\n    log: { outcome: 'REJECT', error_code: code, stage: stage }\r\n  };\r\n  if (extra) { out.log.detail = extra; }\r\n  return out;\r\n}\r\n\r\nfunction handle(item) {\r\n  const tStart = nowMs();\r\n  const headers = item.headers || {};\r\n  const body = item.body || {};\r\n  const correlationId = crypto.randomUUID();\r\n\r\n  const contentType = String(headers['content-type'] || headers['Content-Type'] || '').split(';')[0].trim().toLowerCase();\r\n  if (contentType !== 'application/json') {\r\n    return fail('BAD_REQUEST', 'CONTENT_TYPE', 'expected application/json');\r\n  }\r\n\r\n  let bodyBytes;\r\n  try { bodyBytes = Buffer.byteLength(JSON.stringify(body), 'utf8'); }\r\n  catch (e) { return fail('BAD_REQUEST', 'BODY_UNSERIALISABLE'); }\r\n  if (bodyBytes > MAX_BODY_BYTES) {\r\n    return fail('BAD_REQUEST', 'BODY_TOO_LARGE');\r\n  }\r\n\r\n  const ignoredUntrusted = [];\r\n  for (let i = 0; i < UNTRUSTED_KEYS.length; i++) {\r\n    if (Object.prototype.hasOwnProperty.call(body, UNTRUSTED_KEYS[i])) {\r\n      ignoredUntrusted.push(UNTRUSTED_KEYS[i]);\r\n    }\r\n  }\r\n\r\n  const clientVersion = body.client_version;\r\n  if (ALLOWED_CLIENT_VERSIONS.indexOf(clientVersion) === -1) {\r\n    return fail('CLIENT_VERSION_UNSUPPORTED', 'CLIENT_VERSION');\r\n  }\r\n\r\n  const locale = body.locale;\r\n  if (ALLOWED_LOCALES.indexOf(locale) === -1) {\r\n    return fail('BAD_REQUEST', 'LOCALE');\r\n  }\r\n\r\n  const initData = body.init_data;\r\n  if (typeof initData !== 'string' || initData.length === 0) {\r\n    return fail('TG_INITDATA_MISSING', 'INITDATA_PRESENCE');\r\n  }\r\n  if (Buffer.byteLength(initData, 'utf8') > MAX_INITDATA_BYTES) {\r\n    return fail('BAD_REQUEST', 'INITDATA_TOO_LARGE');\r\n  }\r\n\r\n  if (BOT_ID === 'SET_BOT_ID_BEFORE_CANARY') {\r\n    return fail('TEMPORARY_BACKEND_ERROR', 'CONFIG', 'BOT_ID_NOT_CONFIGURED');\r\n  }\r\n\r\n  const tGuards = nowMs();\r\n\r\n  const parsed = parseInitData(initData);\r\n  if (!parsed.ok) {\r\n    return fail('TG_INITDATA_INVALID', 'PARSE', parsed.reason);\r\n  }\r\n  const tParse = nowMs();\r\n\r\n  const presentFields = [];\r\n  for (let i = 0; i < parsed.pairs.length; i++) { presentFields.push(parsed.pairs[i][0]); }\r\n\r\n  if (!parsed.map.signature) {\r\n    return fail('TG_INITDATA_INVALID', 'SIGNATURE_PRESENCE', 'signature field absent');\r\n  }\r\n\r\n  const canonical = buildCanonical(BOT_ID, parsed.pairs);\r\n  const tCanon = nowMs();\r\n\r\n  let key;\r\n  try { key = importRawEd25519(TG_PROD_PUBKEY_HEX); }\r\n  catch (e) { return fail('TEMPORARY_BACKEND_ERROR', 'KEY_IMPORT'); }\r\n\r\n  const sigOk = verifyCanonical(canonical, parsed.map.signature, key);\r\n  const tVerify = nowMs();\r\n\r\n  if (!sigOk) {\r\n    return fail('TG_INITDATA_INVALID', 'ED25519_VERIFY', 'signature did not verify against Telegram production key');\r\n  }\r\n\r\n  const rawAuthDate = parsed.map.auth_date;\r\n  if (typeof rawAuthDate !== 'string' || !/^[0-9]+$/.test(rawAuthDate)) {\r\n    return fail('TG_INITDATA_INVALID', 'AUTH_DATE_PARSE');\r\n  }\r\n  const authDate = Number(rawAuthDate);\r\n  if (!Number.isSafeInteger(authDate) || authDate <= 0) {\r\n    return fail('TG_INITDATA_INVALID', 'AUTH_DATE_PARSE');\r\n  }\r\n  const nowSec = Math.floor(Date.now() / 1000);\r\n  const age = nowSec - authDate;\r\n  if (age > MAX_AUTH_AGE_SECONDS) {\r\n    return fail('TG_INITDATA_EXPIRED', 'FRESHNESS', 'age_seconds=' + age);\r\n  }\r\n  if (age < -FUTURE_CLOCK_SKEW_SECONDS) {\r\n    return fail('TG_INITDATA_FUTURE', 'FRESHNESS', 'age_seconds=' + age);\r\n  }\r\n\r\n  if (!parsed.map.user) {\r\n    return fail('TG_USER_MISSING', 'USER_PRESENCE');\r\n  }\r\n  let user;\r\n  try { user = JSON.parse(parsed.map.user); }\r\n  catch (e) { return fail('TG_USER_INVALID', 'USER_PARSE'); }\r\n  if (!user || typeof user !== 'object' || user.id === undefined || user.id === null) {\r\n    return fail('TG_USER_INVALID', 'USER_SHAPE');\r\n  }\r\n  const telegramUserId = String(user.id);\r\n  if (!/^[0-9]+$/.test(telegramUserId)) {\r\n    return fail('TG_USER_INVALID', 'USER_ID_SHAPE');\r\n  }\r\n  if (user.is_bot === true) {\r\n    return fail('TG_USER_BOT', 'USER_IS_BOT');\r\n  }\r\n\r\n  const tEnd = nowMs();\r\n\r\n  return {\r\n    statusCode: 200,\r\n    response: {\r\n      ok: true,\r\n      validation: 'telegram_ed25519',\r\n      safe_user: {\r\n        telegram_user_id: telegramUserId,\r\n        first_name: user.first_name === undefined ? null : String(user.first_name),\r\n        username: user.username === undefined ? null : String(user.username),\r\n        language_code: user.language_code === undefined ? null : String(user.language_code)\r\n      },\r\n      auth_date: authDate,\r\n      client_version: clientVersion,\r\n      locale: locale\r\n    },\r\n    log: {\r\n      outcome: 'ACCEPT',\r\n      correlation_id: correlationId,\r\n      validation: 'telegram_ed25519',\r\n      telegram_user_id: telegramUserId,\r\n      auth_date: authDate,\r\n      age_seconds: age,\r\n      present_fields: presentFields,\r\n      canonical_field_count: canonical.split(LF).length - 1,\r\n      untrusted_fields_ignored: ignoredUntrusted,\r\n      timings_ms: {\r\n        guards: tGuards - tStart,\r\n        parse: tParse - tGuards,\r\n        canonicalize: tCanon - tParse,\r\n        verify: tVerify - tCanon,\r\n        validator_total: tVerify - tGuards,\r\n        handler_total: tEnd - tStart\r\n      },\r\n      side_effects: { lead_intake_calls: 0, pipeline_writes: 0, consent_writes: 0, sheets_writes: 0 }\r\n    }\r\n  };\r\n}\r\n\r\nconst input = $input.first().json;\r\nconst result = handle(input);\r\nresult.log.correlation_id = result.log.correlation_id || crypto.randomUUID();\r\nresult.log.timer_note = 'Date.now, 1ms resolution; sub-ms figures are in the B.2.1-A verify-only probe';\r\nreturn [{ json: result }];\r\n"
+        "jsCode": "const TG_PROD_PUBKEY_HEX = 'e7bf03a2fa4602af4580703d88dda5bb59f32ed8b02a56c187fe7d34caed242d';\nconst SPKI_PREFIX_HEX = '302a300506032b6570032100';\nconst LF = String.fromCharCode(10);\n\nconst BOT_ID = '8917808598';\n\nconst MAX_BODY_BYTES = 8192;\nconst MAX_INITDATA_BYTES = 4096;\nconst MAX_AUTH_AGE_SECONDS = 900;\nconst FUTURE_CLOCK_SKEW_SECONDS = 60;\nconst ALLOWED_CLIENT_VERSIONS = ['b2.1.0'];\nconst ALLOWED_LOCALES = ['ru', 'ro'];\n\nconst UNTRUSTED_KEYS = ['telegram_user_id', 'cycle_id', 'lead_id', 'consent', 'consent_at', 'priority', 'financial_zone', 'canonical_lead_id', 'submit_state'];\n\nconst STATUS = {\n  BAD_REQUEST: 400,\n  TG_INITDATA_MISSING: 400,\n  CLIENT_VERSION_UNSUPPORTED: 400,\n  TG_INITDATA_INVALID: 401,\n  TG_INITDATA_EXPIRED: 401,\n  TG_INITDATA_FUTURE: 401,\n  TG_USER_MISSING: 401,\n  TG_USER_INVALID: 401,\n  TG_USER_BOT: 403,\n  RATE_LIMITED: 429,\n  TEMPORARY_BACKEND_ERROR: 503\n};\nconst RETRYABLE = { RATE_LIMITED: true, TEMPORARY_BACKEND_ERROR: true };\n\nconst crypto = require('crypto');\nfunction nowMs() { return Date.now(); }\n\nfunction decodeOnce(s) {\n  return decodeURIComponent(s);\n}\n\nfunction parseInitData(raw) {\n  const chunks = raw.split('&');\n  const pairs = [];\n  const seen = {};\n  for (let i = 0; i < chunks.length; i++) {\n    const c = chunks[i];\n    if (c === '') { return { ok: false, reason: 'EMPTY_PAIR' }; }\n    const eq = c.indexOf('=');\n    if (eq === -1) { return { ok: false, reason: 'MALFORMED_PAIR' }; }\n    let k;\n    let v;\n    try {\n      k = decodeOnce(c.substring(0, eq));\n      v = decodeOnce(c.substring(eq + 1));\n    } catch (e) {\n      return { ok: false, reason: 'MALFORMED_PERCENT_ENCODING' };\n    }\n    if (k === '') { return { ok: false, reason: 'EMPTY_KEY' }; }\n    if (Object.prototype.hasOwnProperty.call(seen, k)) {\n      return { ok: false, reason: 'DUPLICATE_KEY' };\n    }\n    seen[k] = true;\n    pairs.push([k, v]);\n  }\n  if (pairs.length === 0) { return { ok: false, reason: 'EMPTY_INITDATA' }; }\n  const map = {};\n  for (let i = 0; i < pairs.length; i++) { map[pairs[i][0]] = pairs[i][1]; }\n  return { ok: true, pairs: pairs, map: map };\n}\n\nfunction buildCanonical(botId, pairs) {\n  const kept = [];\n  for (let i = 0; i < pairs.length; i++) {\n    const k = pairs[i][0];\n    if (k === 'hash' || k === 'signature') { continue; }\n    kept.push(pairs[i]);\n  }\n  kept.sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); });\n  const lines = [];\n  for (let i = 0; i < kept.length; i++) { lines.push(kept[i][0] + '=' + kept[i][1]); }\n  return botId + ':WebAppData' + LF + lines.join(LF);\n}\n\nfunction importRawEd25519(hex) {\n  const raw = Buffer.from(hex, 'hex');\n  if (raw.length !== 32) { throw new Error('bad key length'); }\n  const der = Buffer.concat([Buffer.from(SPKI_PREFIX_HEX, 'hex'), raw]);\n  return crypto.createPublicKey({ key: der, format: 'der', type: 'spki' });\n}\n\nfunction verifyCanonical(canonical, sigB64url, keyObj) {\n  if (typeof sigB64url !== 'string' || !/^[A-Za-z0-9_-]+={0,2}$/.test(sigB64url)) { return false; }\n  let sig;\n  try { sig = Buffer.from(sigB64url, 'base64url'); }\n  catch (e) { return false; }\n  if (sig.length !== 64) { return false; }\n  return crypto.verify(null, Buffer.from(canonical, 'utf8'), keyObj, sig);\n}\n\nfunction fail(code, stage, extra) {\n  const out = {\n    statusCode: STATUS[code] || 400,\n    response: { ok: false, error_code: code, retryable: RETRYABLE[code] === true },\n    log: { outcome: 'REJECT', error_code: code, stage: stage }\n  };\n  if (extra) { out.log.detail = extra; }\n  return out;\n}\n\nfunction handle(item) {\n  const tStart = nowMs();\n  const headers = item.headers || {};\n  const body = item.body || {};\n  const correlationId = crypto.randomUUID();\n\n  const contentType = String(headers['content-type'] || headers['Content-Type'] || '').split(';')[0].trim().toLowerCase();\n  if (contentType !== 'application/json') {\n    return fail('BAD_REQUEST', 'CONTENT_TYPE', 'expected application/json');\n  }\n\n  let bodyBytes;\n  try { bodyBytes = Buffer.byteLength(JSON.stringify(body), 'utf8'); }\n  catch (e) { return fail('BAD_REQUEST', 'BODY_UNSERIALISABLE'); }\n  if (bodyBytes > MAX_BODY_BYTES) {\n    return fail('BAD_REQUEST', 'BODY_TOO_LARGE');\n  }\n\n  const ignoredUntrusted = [];\n  for (let i = 0; i < UNTRUSTED_KEYS.length; i++) {\n    if (Object.prototype.hasOwnProperty.call(body, UNTRUSTED_KEYS[i])) {\n      ignoredUntrusted.push(UNTRUSTED_KEYS[i]);\n    }\n  }\n\n  const clientVersion = body.client_version;\n  if (ALLOWED_CLIENT_VERSIONS.indexOf(clientVersion) === -1) {\n    return fail('CLIENT_VERSION_UNSUPPORTED', 'CLIENT_VERSION');\n  }\n\n  const locale = body.locale;\n  if (ALLOWED_LOCALES.indexOf(locale) === -1) {\n    return fail('BAD_REQUEST', 'LOCALE');\n  }\n\n  const initData = body.init_data;\n  if (typeof initData !== 'string' || initData.length === 0) {\n    return fail('TG_INITDATA_MISSING', 'INITDATA_PRESENCE');\n  }\n  if (Buffer.byteLength(initData, 'utf8') > MAX_INITDATA_BYTES) {\n    return fail('BAD_REQUEST', 'INITDATA_TOO_LARGE');\n  }\n\n  if (BOT_ID === 'SET_BOT_ID_BEFORE_CANARY') {\n    return fail('TEMPORARY_BACKEND_ERROR', 'CONFIG', 'BOT_ID_NOT_CONFIGURED');\n  }\n\n  const tGuards = nowMs();\n\n  const parsed = parseInitData(initData);\n  if (!parsed.ok) {\n    return fail('TG_INITDATA_INVALID', 'PARSE', parsed.reason);\n  }\n  const tParse = nowMs();\n\n  const presentFields = [];\n  for (let i = 0; i < parsed.pairs.length; i++) { presentFields.push(parsed.pairs[i][0]); }\n\n  if (!parsed.map.signature) {\n    return fail('TG_INITDATA_INVALID', 'SIGNATURE_PRESENCE', 'signature field absent');\n  }\n\n  const canonical = buildCanonical(BOT_ID, parsed.pairs);\n  const tCanon = nowMs();\n\n  let key;\n  try { key = importRawEd25519(TG_PROD_PUBKEY_HEX); }\n  catch (e) { return fail('TEMPORARY_BACKEND_ERROR', 'KEY_IMPORT'); }\n\n  const sigOk = verifyCanonical(canonical, parsed.map.signature, key);\n  const tVerify = nowMs();\n\n  if (!sigOk) {\n    return fail('TG_INITDATA_INVALID', 'ED25519_VERIFY', 'signature did not verify against Telegram production key');\n  }\n\n  const rawAuthDate = parsed.map.auth_date;\n  if (typeof rawAuthDate !== 'string' || !/^[0-9]+$/.test(rawAuthDate)) {\n    return fail('TG_INITDATA_INVALID', 'AUTH_DATE_PARSE');\n  }\n  const authDate = Number(rawAuthDate);\n  if (!Number.isSafeInteger(authDate) || authDate <= 0) {\n    return fail('TG_INITDATA_INVALID', 'AUTH_DATE_PARSE');\n  }\n  const nowSec = Math.floor(Date.now() / 1000);\n  const age = nowSec - authDate;\n  if (age > MAX_AUTH_AGE_SECONDS) {\n    return fail('TG_INITDATA_EXPIRED', 'FRESHNESS', 'age_seconds=' + age);\n  }\n  if (age < -FUTURE_CLOCK_SKEW_SECONDS) {\n    return fail('TG_INITDATA_FUTURE', 'FRESHNESS', 'age_seconds=' + age);\n  }\n\n  if (!parsed.map.user) {\n    return fail('TG_USER_MISSING', 'USER_PRESENCE');\n  }\n  let user;\n  try { user = JSON.parse(parsed.map.user); }\n  catch (e) { return fail('TG_USER_INVALID', 'USER_PARSE'); }\n  if (!user || typeof user !== 'object' || user.id === undefined || user.id === null) {\n    return fail('TG_USER_INVALID', 'USER_SHAPE');\n  }\n  const telegramUserId = String(user.id);\n  if (!/^[0-9]+$/.test(telegramUserId)) {\n    return fail('TG_USER_INVALID', 'USER_ID_SHAPE');\n  }\n  if (user.is_bot === true) {\n    return fail('TG_USER_BOT', 'USER_IS_BOT');\n  }\n\n  const tEnd = nowMs();\n\n  return {\n    statusCode: 200,\n    response: {\n      ok: true,\n      validation: 'telegram_ed25519',\n      safe_user: {\n        telegram_user_id: telegramUserId,\n        first_name: user.first_name === undefined ? null : String(user.first_name),\n        username: user.username === undefined ? null : String(user.username),\n        language_code: user.language_code === undefined ? null : String(user.language_code)\n      },\n      auth_date: authDate,\n      client_version: clientVersion,\n      locale: locale\n    },\n    log: {\n      outcome: 'ACCEPT',\n      correlation_id: correlationId,\n      validation: 'telegram_ed25519',\n      telegram_user_id: telegramUserId,\n      auth_date: authDate,\n      age_seconds: age,\n      present_fields: presentFields,\n      canonical_field_count: canonical.split(LF).length - 1,\n      untrusted_fields_ignored: ignoredUntrusted,\n      timings_ms: {\n        guards: tGuards - tStart,\n        parse: tParse - tGuards,\n        canonicalize: tCanon - tParse,\n        verify: tVerify - tCanon,\n        validator_total: tVerify - tGuards,\n        handler_total: tEnd - tStart\n      },\n      side_effects: { lead_intake_calls: 0, pipeline_writes: 0, consent_writes: 0, sheets_writes: 0 }\n    }\n  };\n}\n\nconst input = $input.first().json;\nconst result = handle(input);\nresult.log.correlation_id = result.log.correlation_id || crypto.randomUUID();\nresult.log.timer_note = 'Date.now, 1ms resolution; sub-ms figures are in the B.2.1-A verify-only probe';\nreturn [{ json: result }];\n"
       },
       "id": "gw-02-verify",
       "name": "Verify InitData",
@@ -191,7 +191,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\n//\n// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the\n// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is\n// expected; if several exist the most recently projected wins. A missing, malformed or\n// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session\n// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never\n// mints a cycle and never resumes under ''.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;\nconst proj = $input.all().map(i => i.json)\n  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)\n  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))\n  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')));\nproj.sort((a, b) => {\n  const ta = String(a.projected_at || ''), tb = String(b.projected_at || '');\n  if (ta !== tb) { return ta < tb ? 1 : -1; }\n  return Number(b.id || 0) - Number(a.id || 0);\n});\nconst cycleId = proj[0] ? String(proj[0].cycle_id) : '';\nif (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.\n  cycle_id: cycleId,\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
+        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\n//\n// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the\n// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is\n// expected; if several exist the most recently projected wins. A missing, malformed or\n// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session\n// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never\n// mints a cycle and never resumes under ''.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;\nconst projectionRows = $input.all().map(i => i.json);\nif (projectionRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { cycle_id: '', cycle_store_error: 1 } }];\nconst proj = projectionRows\n  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)\n  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))\n  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')))\n  .filter(r => String(r.authority_key || '') === String(c.telegram_user_id) + '|' + String(r.cycle_id || ''))\n  .filter(r => String(r.cycle_sequence || '') === String(r.cycle_id || '').split('-').pop());\nproj.sort((a, b) => {\n  const sa = BigInt(String(a.cycle_sequence)), sb = BigInt(String(b.cycle_sequence));\n  if (sa !== sb) return sa < sb ? 1 : -1;\n  const ka = String(a.authority_key || ''), kb = String(b.authority_key || '');\n  if (ka !== kb) return ka < kb ? 1 : -1;\n  return Number(b.id || 0) - Number(a.id || 0);\n});\nconst cycleId = proj[0] ? String(proj[0].cycle_id) : '';\nif (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.\n  cycle_id: cycleId,\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
       },
       "id": "gw-08-buildsession",
       "name": "Build App Session",
@@ -199,6 +199,39 @@
       "typeVersion": 2,
       "position": [
         920,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-cycle-readable",
+              "leftValue": "={{ Number($json.cycle_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08-ifcyclestore",
+      "name": "IF Cycle Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1010,
         -320
       ]
     },
@@ -272,7 +305,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nif (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { session_store_error: 1, create: 0 } }]; }\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
       },
       "id": "gw-08b-resolve",
       "name": "Resolve Session",
@@ -280,6 +313,39 @@
       "typeVersion": 2,
       "position": [
         1140,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-session-readable",
+              "leftValue": "={{ Number($json.session_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08b-ifstore",
+      "name": "IF Session Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1190,
         -320
       ]
     },
@@ -393,7 +459,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nconst row = found || cand;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nif (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { persistence_error: 1 } }]; }\nif (!rows.some(r => r && String(r.app_session_id || '') === String(cand.app_session_id))) { return [{ json: { persistence_error: 1 } }]; }\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The candidate is live and unexpired, so the rule cannot come back empty. Under a concurrent\n// open it may return the OTHER candidate; both executions then answer the same winner, and the\n// one that lost knows it resumed.\nif (!found) { return [{ json: { persistence_error: 1 } }]; }\nconst row = found;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
       },
       "id": "gw-09b-finalise",
       "name": "Finalise Session",
@@ -401,6 +467,39 @@
       "typeVersion": 2,
       "position": [
         1640,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-persistence-verified",
+              "leftValue": "={{ Number($json.persistence_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-09b-ifpersist",
+      "name": "IF Session Persistence Verified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1690,
         -400
       ]
     },
@@ -473,7 +572,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const s = $('Resolve Session').first().json;\nconst leadId = String(s.lead_id || '');\nconst rows = $input.all().map(i => i.json)\n  .filter(r => r && !r.error && !r.errorMessage)\n  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)\n  .filter(r => String(r.review_status || '') === 'CLIENT_READY');\nrows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);\nlet result = null;\nif (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }\nif (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }\nconst out = Object.assign({}, s);\nout.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });\nreturn [{ json: out }];"
+        "jsCode": "const s = $('Resolve Session').first().json;\nconst leadId = String(s.lead_id || '');\nconst allRows = $input.all().map(i => i.json);\nif (allRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { result_store_error: 1 } }];\nconst rows = allRows\n  .filter(r => r && !r.error && !r.errorMessage)\n  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)\n  .filter(r => String(r.review_status || '') === 'CLIENT_READY');\nrows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);\nlet result = null;\nif (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }\nif (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }\nif (result) { const allowed = ['locale','labels','score','zone','maturity','key_risks','management_priorities','plan_30_days','tomorrow_actions','recommended_next_step']; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }\nconst out = Object.assign({}, s);\nout.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });\nreturn [{ json: out }];"
       },
       "id": "gw-09e-attachresult",
       "name": "Attach Client Result",
@@ -481,6 +580,39 @@
       "typeVersion": 2,
       "position": [
         1580,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-result-readable",
+              "leftValue": "={{ Number($json.result_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-09e-ifresult",
+      "name": "IF Result Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1640,
         -240
       ]
     },
@@ -567,6 +699,23 @@
       "position": [
         1140,
         -120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'APPLICATION_STORE_UNAVAILABLE', retryable: true }) }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "gw-15-appstore",
+      "name": "Respond Application Store Unavailable",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        40
       ]
     }
   ],
@@ -684,7 +833,25 @@
       "main": [
         [
           {
+            "node": "IF Cycle Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Cycle Store Readable": {
+      "main": [
+        [
+          {
             "node": "IF Cycle Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -724,7 +891,25 @@
       "main": [
         [
           {
+            "node": "IF Session Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Store Readable": {
+      "main": [
+        [
+          {
             "node": "IF Create Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -782,7 +967,25 @@
       "main": [
         [
           {
+            "node": "IF Result Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Result Store Readable": {
+      "main": [
+        [
+          {
             "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -808,6 +1011,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -826,7 +1036,25 @@
       "main": [
         [
           {
+            "node": "IF Session Persistence Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Persistence Verified": {
+      "main": [
+        [
+          {
             "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }

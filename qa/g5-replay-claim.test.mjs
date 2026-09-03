@@ -212,7 +212,9 @@ await acheck('a store that returns NO VERDICT fails closed too', async () => {
 
 check('the module NEVER arbitrates: no read-before-write anywhere in it', () => {
   const src = readFileSync(join(ROOT, 'gateway', 'g5-replay-claim.mjs'), 'utf8');
-  const code = src.split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  // Normalise the CR left by split('\n') before stripping line comments. Without this, `$`
+  // does not consume the comment on CRLF checkouts and prose containing SELECT becomes code.
+  const code = src.split('\n').map((l) => l.replace(/\r$/, '').replace(/\/\/.*$/, '')).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
   assert(!/\bselect\b/i.test(code), 'the module performs a SELECT — that is the race, rewritten');
   assert(!/\.has\(|\.get\(|findOne|exists|count/i.test(code.replace(/params\.get\([^)]*\)/g, '')),
     'the module reads the ledger before writing');

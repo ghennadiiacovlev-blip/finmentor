@@ -41,12 +41,12 @@
 //                                              none (claim lost)
 //                                            - H2: the REAL postgres node with the REAL query,
 //                                              pointed at a disposable dead-address credential
-//   4. Create App Session                    - a pass-through, so no row can ever reach the
-//                                              production MiniApp_App_Sessions data table
+//   4. every Data Table node                 - pass-through Code nodes, so no row can ever reach
+//                                              the production MiniApp_App_Sessions data table
 //
 // EVERY OTHER NODE, and the entire connection map, must be byte-identical to the Gateway
 // candidate - the gate below asserts that node by node and refuses to emit otherwise. In
-// particular all four respond nodes are copied verbatim, so the 503 that comes back is produced
+// particular all six respond nodes are copied verbatim, so the 503 that comes back is produced
 // by the same node, with the same typed numeric code, as the production one.
 //
 // The trust-anchor swap is what lets a synthetic context reach the claim node without any
@@ -235,11 +235,11 @@ export function verifyHarness(gateway, wf, variant) {
     if (!deepEqual(h.onError || null, g.onError || null)) { f.push('undeclared divergence in onError: ' + g.name); }
   }
 
-  // --- the four respond nodes are the thing under test ---------------------
+  // --- the six respond nodes are the thing under test ----------------------
   // Copied verbatim, so the 503 that comes back is emitted by the same node, with the same TYPED
   // code, as the production one. P9-R1: a substring test cannot tell '=503' from 503.
   const respond = gateway.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-  if (respond.length !== 4) { f.push('the Gateway does not have the expected four respond nodes'); }
+  if (respond.length !== 6) { f.push('the Gateway does not have the expected six respond nodes'); }
   for (const g of respond) {
     const h = byName(wf, g.name);
     if (!h) { f.push('missing respond node: ' + g.name); continue; }
@@ -348,7 +348,7 @@ if (isMain) {
   console.log('  H1 (credential-free) : n8n/candidate/gw-store-failure-h1-candidate.json  /webhook/' + H1_PATH);
   console.log('  H2 (dead store)      : n8n/candidate/gw-store-failure-h2-candidate.json  /webhook/' + H2_PATH);
   console.log('  divergence allowlist : ' + allowedDivergence(gateway).join(', '));
-  console.log('  respond nodes        : all four copied verbatim, codes typed');
+  console.log('  respond nodes        : all six copied verbatim, codes typed');
   console.log('  production creds     : absent');
   console.log('  production table     : absent');
   console.log('  trust anchor         : placeholder, injected at deploy');

@@ -102,7 +102,8 @@ check('the resume path sits AFTER the claim and touches nothing before it', () =
   // gated on a resolved cycle before the resume read runs.
   eq(c['IF Claim Won'].main[0][0].node, 'Read Cycle Projection', 'the claim still gates everything');
   eq(c['Read Cycle Projection'].main[0][0].node, 'Build App Session', 'the projection read feeds the mint');
-  eq(c['Build App Session'].main[0][0].node, 'IF Cycle Resolved', 'the mint is gated on a resolved cycle');
+  eq(c['Build App Session'].main[0][0].node, 'IF Cycle Store Readable', 'the cycle-store verdict follows the mint candidate');
+  eq(c['IF Cycle Store Readable'].main[0][0].node, 'IF Cycle Resolved', 'a readable projection reaches the cycle gate');
   eq(c['IF Cycle Resolved'].main[0][0].node, 'Read User Sessions', 'the read follows the resolved cycle');
   eq(c['Read User Sessions'].main[0][0].node, 'Resolve Session', 'the resolver follows the read');
   eq(c['IF Create Session'].main[0][0].node, 'Build Session Row', 'create branch');
@@ -224,7 +225,7 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
   eq(a.__response.app_session_id, resolved.__response.app_session_id, 'the session answer was lost');
   eq(a.__response.state, 'submitted', 'state');
   // never anything that is not human-reviewed, never another lead's, never a broken row
-  for (const bad of [[], [{}], [{ error: 'x' }],
+  for (const bad of [[], [{}],
     [Object.assign({}, ready, { review_status: 'AI_DRAFT' })],
     [Object.assign({}, ready, { review_status: 'OWNER_REVIEW' })],
     [Object.assign({}, ready, { lead_id: 'FIN-2' })],
@@ -234,6 +235,7 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
     eq(r.__response.result, null, 'a result was attached from ' + JSON.stringify(bad).slice(0, 80));
     eq(r.__response.result_state, 'PENDING', 'result_state for ' + JSON.stringify(bad).slice(0, 80));
   }
+  eq(attach([{ error: 'x' }]).result_store_error, 1, 'an unreadable result store did not fail closed');
   // several CLIENT_READY rows: the most recently published wins
   const older = Object.assign({}, ready, { id: 2, result_json: JSON.stringify({ v: 'old' }), published_at: iso(-3 * HOUR) });
   eq(attach([older, ready]).__response.result.score, 47, 'older, newer');
@@ -246,7 +248,9 @@ check('the result lookup sits on the COMMITTED resume branch only, credential-fr
   eq(c['IF Session Committed'].main[0][0].node, 'Read Client Result', 'committed branch');
   eq(c['IF Session Committed'].main[1][0].node, 'Respond Bootstrap OK', 'a draft must answer directly');
   eq(c['Read Client Result'].main[0][0].node, 'Attach Client Result', 'the read feeds the attach');
-  eq(c['Attach Client Result'].main[0][0].node, 'Respond Bootstrap OK', 'the attach feeds the responder');
+  eq(c['Attach Client Result'].main[0][0].node, 'IF Result Store Readable', 'the attach feeds the store gate');
+  eq(c['IF Result Store Readable'].main[0][0].node, 'Respond Bootstrap OK', 'readable result branch');
+  eq(c['IF Result Store Readable'].main[1][0].node, 'Respond Application Store Unavailable', 'result-store outage branch');
   const node = WF.nodes.find((x) => x.name === 'Read Client Result');
   eq(node.parameters.operation, 'get', 'not a read');
   eq(node.parameters.filters.conditions[0].keyName, 'lead_id', 'not keyed by the committed lead');
@@ -310,6 +314,8 @@ check('RACE — two concurrent opens converge on ONE authoritative session', () 
   eq(b.__response.resumed, false, 'the winner is marked as a resume');
   // And a THIRD open later resolves to the same row, so the loser never becomes authoritative.
   eq(resolve(afterBoth).app_session_id, candB.app_session_id, 'a later open picked the orphan');
+  // C3 — the read order of the two rows changes nothing: the rule is a total order.
+  eq(finalise(afterBoth.slice().reverse(), candA).app_session_id, candB.app_session_id, 'read order changed the winner');
 });
 
 check('RACE — the loser row is inert, not merely unlikely', () => {
@@ -326,12 +332,28 @@ check('RACE — the loser row is inert, not merely unlikely', () => {
   eq(resolve([expiredLoser, candB]).app_session_id, candB.app_session_id, 'after the loser expires');
 });
 
-check('Finalise never answers empty, even if the read-back comes back with nothing', () => {
+check('Finalise fails closed unless the read-back PROVES the row it just wrote', () => {
   const cand = candidate();
+  // empty read-back: the insert is unproven
   const r = finalise([], cand);
-  eq(r.app_session_id, cand.app_session_id, 'it lost the row it had just written');
-  eq(r.__response.ok, true, 'ok');
-  eq(r.__response.resumed, false, 'a fresh mint is not a resume');
+  eq(r.persistence_error, 1, 'an empty readback was reported as success');
+  assert(!r.__response, 'an unproven insert produced a client success body');
+  // unreadable read-back: an outage, never "no rows"
+  eq(finalise([{ error: 'store down' }], cand).persistence_error, 1, 'an unreadable readback was reported as success');
+  eq(finalise([{ errorMessage: 'timeout' }], cand).persistence_error, 1, 'an errorMessage readback was reported as success');
+  // a read-back holding only SOMEONE ELSE'S row does not prove ours
+  const other = candidate({ app_session_id: 'AS-' + 'e'.repeat(64) });
+  eq(finalise([other], cand).persistence_error, 1, 'another row was accepted as proof of ours');
+  // ...while a read-back that contains our row answers, and under a concurrent open answers the winner
+  const proven = finalise([cand], cand);
+  eq(proven.app_session_id, cand.app_session_id, 'a proven insert lost its row');
+  eq(proven.__response.ok, true, 'ok');
+  eq(proven.__response.resumed, false, 'a fresh mint is not a resume');
+  // the unproven verdict has a 503 branch of its own, and the responder is typed
+  const c = WF.connections;
+  eq(c['Finalise Session'].main[0][0].node, 'IF Session Persistence Verified', 'Finalise does not go through the persistence gate');
+  eq(c['IF Session Persistence Verified'].main[1][0].node, 'Respond Application Store Unavailable', 'the unproven branch');
+  eq(WF.nodes.find((n) => n.name === 'Respond Application Store Unavailable').parameters.options.responseCode, 503, 'not the number 503');
 });
 
 // ── 5. provenance ──────────────────────────────────────────────────────────────────────────────
@@ -433,8 +455,7 @@ check('the bootstrap answer is assembled in JavaScript, not in a template branch
 
 // ── 7. the recorded customer-production blocker ────────────────────────────────────────────────
 
-check('C3.1 — the cycle blocker is CLOSED: cycle_id is never empty and the record says so', () => {
-  // See docs/CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md (resolution appended 2026-09-03).
+check('C3.1 — the cycle is resolved server-side, and the customer release stays an explicit deployment choice', () => {
   const build = String(WF.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode);
   const executable = build.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   // The minted session row must carry the RESOLVED cycle; the only '' allowed is the refusal item
@@ -444,17 +465,13 @@ check('C3.1 — the cycle blocker is CLOSED: cycle_id is never empty and the rec
   assert(!/cycle_id:\s*'',\s*\n\s*replay_key/.test(executable), 'Build App Session stamps an empty cycle_id on the session row again — the blocker is back');
   assert(/MiniApp_Cycle_Projection/.test(JSON.stringify(WF)), 'the Gateway no longer reads the cycle projection');
   assert(WF.nodes.some((n) => n.name === 'Respond Cycle Unresolved'), 'the unresolved-cycle refusal is gone');
-  const doc = readFileSync(join(ROOT, 'docs', 'CUSTOMER_ACTIVATION_BLOCKER_CYCLE_PROJECTION.md'), 'utf8');
-  assert(doc.indexOf('CUSTOMER PRODUCTION = CYCLE PROJECTION LIVE') !== -1,
-    'the blocker record does not state that the cycle projection is live');
-  assert(doc.indexOf('customer-activation gate') !== -1, 'the activation gate section is gone from the record');
-  // With the cycle resolved, the owner gate is no longer what holds customer activation: the
-  // endpoint candidates are built WITHOUT it. If it ever returns, that is a deliberate rollback
-  // and this line is where it is recorded.
+  // Tracked pre-production candidates remain owner-only. Customer release requires resolving
+  // both placeholders in one explicit, reviewed build; source artifacts never activate it.
   for (const [label, file] of [['session', 'premium-session-endpoint-candidate.json'], ['submit', 'premium-submit-endpoint-candidate.json']]) {
     const raw = readFileSync(join(ROOT, 'n8n', 'candidate', file), 'utf8');
-    assert(raw.indexOf('NOT_AUTHORISED') === -1, label + ' endpoint still carries the owner-only UAT gate');
-    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') === -1, label + ' endpoint still carries the owner placeholder');
+    assert(raw.indexOf('NOT_AUTHORISED') !== -1, label + ' endpoint lost the owner-only pre-production gate');
+    assert(raw.indexOf('__OWNER_TELEGRAM_ID__') !== -1, label + ' endpoint baked in an identity');
+    assert(raw.indexOf('__MINIAPP_RELEASE_MODE__') !== -1, label + ' endpoint lost the explicit release-mode placeholder');
   }
 });
 

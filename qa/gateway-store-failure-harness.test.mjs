@@ -11,7 +11,7 @@
 // nothing about the Gateway. So this gate asserts two things:
 //
 //   1. FIDELITY. Every node outside the declared allowlist is byte-identical to the Gateway
-//      candidate, the connection map is identical, and all four respond nodes — the actual
+//      candidate, the connection map is identical, and all six respond nodes — the actual
 //      subject of the proof — are copied verbatim with TYPED codes.
 //   2. ISOLATION. Neither harness can reach the production G5 credential, the production
 //      app-session table, the production route, or any side-effecting node type.
@@ -75,15 +75,15 @@ for (const [label, H] of [['H1', H1], ['H2', H2]]) {
       eq(h.type, g.type, 'type of ' + g.name);
     }
   });
-  check(label + ' copies all four respond nodes verbatim', () => {
+  check(label + ' copies all six respond nodes verbatim', () => {
     const respond = GW.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook');
-    eq(respond.length, 4, 'Gateway respond node count');
+    eq(respond.length, 6, 'Gateway respond node count');
     for (const g of respond) {
       eq(JSON.stringify(nodeOf(H, g.name).parameters), JSON.stringify(g.parameters), 'respond ' + g.name);
     }
   });
   // The typed codes, by value and by type. This is the P9-R1 assertion.
-  check(label + ' carries the four TYPED response codes', () => {
+  check(label + ' carries all TYPED response codes', () => {
     const codes = {};
     for (const n of H.nodes.filter((x) => x.type === 'n8n-nodes-base.respondToWebhook')) {
       codes[n.name] = n.parameters.options.responseCode;

@@ -38,6 +38,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
+import { inlineCrmStageResolver } from './lib/inline-crm-stage.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -94,7 +95,9 @@ const sanitize = (v) => {
 };
 
 // ── the keyboard, from the gated module ───────────────────────────────────────────────────────
-const ACTIONS_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n');
+const ACTIONS_SRC = inlineCrmStageResolver(
+  readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n'),
+  readFileSync(join(ROOT, 'n8n', 'src', 'crm', 'stage-map.js'), 'utf8').replace(/\r\n/g, '\n'));
 const LAA = new Function(ACTIONS_SRC + '; return LAA;')();
 
 const btn = (text, cb) => ({ text, additionalFields: { callback_data: cb } });

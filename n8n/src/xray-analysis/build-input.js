@@ -168,7 +168,9 @@ for (const pipe of pending) {
   const locale = detectLocale(pipe, raw, leadRow);
   const diagnostic = raw.diagnostic || {};
   const score = num(pick(diagnostic.score, leadRow['Diagnostic Score']));
-  const zone = String(pick(pipe.financial_zone, diagnostic.traffic_light, leadRow['Financial Zone'], 'UNKNOWN')).toUpperCase();
+  // Bounded vocabulary: anything outside the five zones is UNKNOWN, never a free string in the prompt.
+  const zoneRaw = String(pick(pipe.financial_zone, diagnostic.traffic_light, leadRow['Financial Zone'], 'UNKNOWN')).trim().toUpperCase();
+  const zone = ['GREEN', 'YELLOW', 'ORANGE', 'RED', 'UNKNOWN'].includes(zoneRaw) ? zoneRaw : 'UNKNOWN';
   const tool = String(pick(raw.tool, leadRow['Tool'], pipe.source_page && String(pipe.source_page).includes('questionnaire') ? 'xray_extended' : '')).toLowerCase();
   const sourceChannel = tool.includes('xray') ? 'website_xray' : tool.includes('mini_scan') ? 'website_mini_scan' : (raw.premium || raw.brief || /miniapp|concierge|telegram/.test(String(raw.source || ''))) ? 'telegram_premium' : 'other';
 
@@ -190,7 +192,7 @@ for (const pipe of pending) {
     documents_available: asArray(pipe.selected_documents),
     work_interest: asArray(pipe.work_interest),
     data_quality: pick(leadRow['Data Quality Hint'], raw.completion && raw.completion.data_quality_hint),
-    completion_score_percent: num(raw.completion && raw.completion.completion_score),
+    completion_score_percent: (function (n) { return n !== null && n >= 0 && n <= 100 ? Math.round(n) : null; })(num(raw.completion && raw.completion.completion_score)),
     critical_flags: pick(pipe.critical_flags),
     locale
   };
@@ -214,6 +216,7 @@ for (const pipe of pending) {
       created_at_lead: String(pipe.created_at || ''),
       score: score,
       zone,
+      analysis_version: 'xray-v2',
       risk_zones: facts.risk_zones_from_questionnaire,
       input_digest_text: JSON.stringify({ facts: factsClean, projection }),
       ai_model: String(($('Settings to Object').first().json.settings || {}).xray_ai_model || 'gpt-4.1'),

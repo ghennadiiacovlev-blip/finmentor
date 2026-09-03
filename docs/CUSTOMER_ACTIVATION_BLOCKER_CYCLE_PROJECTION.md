@@ -155,58 +155,66 @@ proofs behind it.
 
 ---
 
-## 7. Resolution — C3.1, 2026-09-03
+## 7. Status — C3.1, corrected 2026-09-03 (this section replaces a WIP note that overstated the state)
 
 ```
 RU OWNER UAT        = READY
-CUSTOMER PRODUCTION = CYCLE PROJECTION LIVE
+CUSTOMER PRODUCTION = CYCLE PROJECTION: CONCIERGE LIVE (v1) · GATEWAY READER PENDING DEPLOY
 ```
 
-The limitation in §1 is closed. The architecture in §4 was implemented as written, and the four
-open questions are answered below.
+The WIP checkpoint `4232076` appended a "Resolution" here that described the Gateway reader, a
+completion record and a customer-activation script as done. Fresh-read on 2026-09-03: the
+Concierge writer was live, the Gateway reader was not, and neither file existed. This section
+records what is true, and what the corrected design is.
 
-### What was built
+### What is live (fresh-read)
 
-| piece | where | what |
+| piece | where | state |
 |---|---|---|
-| projection store | n8n Data Table `MiniApp_Cycle_Projection` (`bHJRv1oR6jdSULYj`) | `telegram_user_id`, `cycle_id`, `cycle_reset`, `projected_at` — one row per user, upserted |
-| writer | Concierge `mppzthlkSJFr6Kle`: `Build Session Row → Project Cycle → Cycle Projection Guard → Save Bot Session` | written on EVERY turn, BEFORE the session is persisted (`scripts/deploy-c3-concierge-cycle.mjs`) |
-| reader | Gateway `nTZHLbv2KFggdhh5`: `IF Claim Won → Read Cycle Projection → Build App Session → IF Cycle Resolved` | one point read, no credential (`scripts/build-miniapp-gateway.mjs`, `scripts/deploy-c3-gateway-cycle.mjs`) |
-| rotation fix | Concierge `Get Bot Session (Premium)` | the premium machine's two CONFIRMED rotations (`p|new_y`, `p|restart_y`) are now explicit resets through the issuer; before C3.1 the response node cleared the cycle in its output and `Build Session Row` re-attached the old one, so the rotation the customer confirmed was never persisted |
-| gates | `qa/c3-cycle-projection.test.mjs`, `qa/miniapp-gateway.test.mjs`, `qa/premium-ux-resume.test.mjs` | executed against the shipped code |
+| projection store | n8n Data Table `MiniApp_Cycle_Projection` (`bHJRv1oR6jdSULYj`, created 11:17Z) | `telegram_user_id, cycle_id, cycle_reset, projected_at` — one row per user (first generation) |
+| writer | Concierge `mppzthlkSJFr6Kle` (updated 11:33Z): `Build Session Row → Project Cycle → Cycle Projection Guard → Save Bot Session` | live, first generation |
+| rotation fix | Concierge `Get Bot Session (Premium)` | the two CONFIRMED premium rotations (`p|new_y`, `p|restart_y`) are explicit resets through the issuer — live |
+| reader | Gateway `nTZHLbv2KFggdhh5` (updated 08-31) | **not deployed** — still stamps `cycle_id ''` |
+| customer result store | n8n Data Table `XRay_Client_Results` (`MmYtlv9Q66xC3WIE`, created 11:17Z) | exists, **no writer live** |
 
-### The open questions, answered
+### The corrected design (see `docs/C3_CODEX_CORRECTION_REVIEW.md`)
 
-- **Which store.** The n8n Data Table. It needs no credential and no grant on either side, and the
-  Gateway's credential boundary (exactly one credential, on the G5 claim) is unchanged. Item 5 of
-  the gate is therefore decided as the *bounded orphan-row design*: deterministic arbitration stays,
-  the loser row is inert and expires with its TTL, and no cleanup job is added. This is recorded as
-  a decision, not a constraint.
-- **Write ordering.** Projection first, session second. On a rotation turn a failed projection write
-  aborts the turn (`Cycle Projection Guard` throws, the Error Monitor alerts, `Bot_Sessions` keeps
-  the previous cycle, which is also what the projection still holds). On any other turn a failed
-  write is tolerated: the cycle did not move, and a missing projection makes the Gateway refuse.
-  The Gateway therefore sees the new cycle or nothing — never the old one after a rotation.
-- **Missing or unreadable projection.** `409 CYCLE_UNRESOLVED`, `retryable: false`. Nothing is
-  minted and nothing is resumed; the Gateway never invents a cycle and never falls back to `''`.
-  The Mini App tells the customer to return to the bot chat, whose next turn projects the cycle.
-- **Identity in the store.** Keyed by the plain `telegram_user_id`, the same identity the same
-  store already holds in `MiniApp_App_Sessions`. A digest would have added a second derivation to
-  keep in step on both sides for no gain in this store.
+The architecture of §4 stands, with one correction taken from the Codex review: the projection
+is **one immutable row per (user, cycle)**, keyed by `authority_key = telegram_user_id|cycle_id`
+and carrying the numeric `cycle_sequence` minted into the cycle id. A delayed Concierge turn that
+started before a rotation can therefore only touch its own row, and the Gateway resolves the
+highest sequence: a stale turn can never overwrite a newer authoritative cycle. The first
+generation (one row per user) could.
 
-### The customer-activation gate, re-read
+The four open questions of §4, answered:
+
+- **Which store.** The n8n Data Table. No credential on either side; the Gateway keeps exactly one
+  credential, on the G5 claim. A Supabase first-open authority table was proposed and rejected
+  (identity in Supabase, a second credential node, and item 5 of the gate re-opened). Item 5 is
+  therefore DECIDED as the bounded orphan-row design: deterministic arbitration, an inert loser
+  row that expires with its TTL, no cleanup job.
+- **Write ordering.** Projection first, session second. A rotation turn whose projection write
+  fails aborts (guard throws, Error Monitor alerts, `Bot_Sessions` keeps the previous cycle,
+  which is also what the projection holds). An ordinary turn tolerates a failed write: the row
+  for its cycle already exists. The Gateway sees the new cycle or nothing — never the old one.
+- **Missing or unreadable projection.** Two different answers, deliberately: a MISSING projection
+  is `409 CYCLE_UNRESOLVED` (not retryable; the customer returns to the bot chat, whose next turn
+  projects the cycle); an UNREADABLE store is `503 APPLICATION_STORE_UNAVAILABLE` (retryable).
+  Nothing is minted and nothing is resumed in either case; `''` is never a cycle.
+- **Identity in the store.** The plain `telegram_user_id`, the same identity the same store already
+  holds in `MiniApp_App_Sessions`.
+
+### The customer-activation gate, re-read against the corrected design
 
 | # | requirement | status |
 |---|---|---|
-| 1 | projection reachable without Sheets authority | Data Table, no credential — **met** |
-| 2 | cycle resolved server-side | `Build App Session` reads the projection — **met** |
-| 3 | resume key is genuinely (user, cycle) | `''` is now excluded from the key space on both sides — **met** |
-| 4 | an old-cycle draft can never win after an explicit rotation | proven executed (`CASE C2`) — **met** |
-| 5 | concurrency posture decided | bounded orphan-row design, no cleanup — **decided** |
-| 6 | full regression | G5 / resume / terminal gates re-run green; live proof recorded in `docs/C3_PREMIUM_MINIAPP_COMPLETION.md` — **met** |
+| 1 | projection reachable without Sheets authority | Data Table, no credential — met in source; live writer v1 |
+| 2 | cycle resolved server-side | Gateway `Build App Session` reads the projection — source ready, **deploy pending** |
+| 3 | resume key is genuinely (user, cycle) | `''` excluded on both sides — source ready |
+| 4 | an old-cycle draft can never win after an explicit rotation, nor after a stale turn | per-cycle authority row + highest-sequence resolution — gated (`c3-cycle-projection`, `miniapp-gateway`), **deploy pending** (Concierge upgrade + Gateway) |
+| 5 | concurrency posture decided | bounded orphan-row design — **decided** |
+| 6 | full regression | gates green on the integrated tree; live proof pending the deploys |
 
-With the gate met, the owner-only UAT lock on the Session and Submit endpoints is retired in the
-same checkpoint (`scripts/deploy-c3-customer-activation.mjs`).
-
-One consequence to know: sessions minted before C3.1 carry `cycle_id ''` and are unreachable
-after the Gateway deploy. They were owner-only UAT sessions; they expire with their TTL.
+The owner-only UAT lock on the Session and Submit endpoints stays until the deploys above are
+live and proven; the tracked candidates resolve to `OWNER_ONLY` and the customer release is one
+explicit substitution (`releaseMode: 'CUSTOMER'`) in one reviewed deployment.
