@@ -191,7 +191,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\n//\n// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the\n// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is\n// expected; if several exist the most recently projected wins. A missing, malformed or\n// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session\n// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never\n// mints a cycle and never resumes under ''.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;\nconst proj = $input.all().map(i => i.json)\n  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)\n  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))\n  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')));\nproj.sort((a, b) => {\n  const ta = String(a.projected_at || ''), tb = String(b.projected_at || '');\n  if (ta !== tb) { return ta < tb ? 1 : -1; }\n  return Number(b.id || 0) - Number(a.id || 0);\n});\nconst cycleId = proj[0] ? String(proj[0].cycle_id) : '';\nif (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.\n  cycle_id: cycleId,\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
+        "jsCode": "// P9 — mint the app session AFTER the replay claim was won, never before.\n//\n// app_session_id is 32 random bytes from crypto.randomBytes, hex-encoded. It is NOT the\n// storage row id and is not derived from the Telegram user: exposing a row id would leak\n// ordering and let a caller guess neighbours.\n//\n// The session is a BINDING with a TTL. It is not proof of consent, it is not an identity\n// claim on its own, and it never becomes a second CRM: one Telegram user, one authoritative\n// cycle, a state, and a bounded draft.\n//\n// C3.1 — THE CYCLE IS RESOLVED HERE, SERVER-SIDE, FROM THE CONCIERGE PROJECTION. $input is the\n// point read on MiniApp_Cycle_Projection for this Telegram user. Exactly one usable row is\n// expected; if several exist the most recently projected wins. A missing, malformed or\n// unreadable projection resolves to NOTHING: the item below carries cycle_id '' and no session\n// fields, IF Cycle Resolved routes it to a 409, and no row is ever written. The Gateway never\n// mints a cycle and never resumes under ''.\nconst crypto = require('crypto');\nconst c = $('Claim Verdict').first().json;\nconst CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;\nconst projectionRows = $input.all().map(i => i.json);\nif (projectionRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { cycle_id: '', cycle_store_error: 1 } }];\nconst proj = projectionRows\n  .filter(r => r && typeof r === 'object' && !r.error && !r.errorMessage)\n  .filter(r => String(r.telegram_user_id || '') === String(c.telegram_user_id))\n  .filter(r => CYCLE_ID_RE.test(String(r.cycle_id || '')))\n  .filter(r => String(r.authority_key || '') === String(c.telegram_user_id) + '|' + String(r.cycle_id || ''))\n  .filter(r => String(r.cycle_sequence || '') === String(r.cycle_id || '').split('-').pop());\nproj.sort((a, b) => {\n  const sa = BigInt(String(a.cycle_sequence)), sb = BigInt(String(b.cycle_sequence));\n  if (sa !== sb) return sa < sb ? 1 : -1;\n  const ka = String(a.authority_key || ''), kb = String(b.authority_key || '');\n  if (ka !== kb) return ka < kb ? 1 : -1;\n  return Number(b.id || 0) - Number(a.id || 0);\n});\nconst cycleId = proj[0] ? String(proj[0].cycle_id) : '';\nif (cycleId === '') { return [{ json: { cycle_id: '', cycle_unresolved: 1 } }]; }\nconst now = new Date();\nconst TTL_SECONDS = 259200;\nreturn [{ json: {\n  app_session_id: 'AS-' + crypto.randomBytes(32).toString('hex'),\n  telegram_user_id: String(c.telegram_user_id),\n  chat_id: String(c.telegram_user_id),\n  // The AUTHORITATIVE application cycle, projected by the Concierge. Never '' past this point.\n  cycle_id: cycleId,\n  replay_key: String(c.replay_key),\n  state: 'draft',\n  created_at: now.toISOString(),\n  expires_at: new Date(now.getTime() + TTL_SECONDS * 1000).toISOString(),\n  updated_at: now.toISOString(),\n  draft_json: ''\n} }];"
       },
       "id": "gw-08-buildsession",
       "name": "Build App Session",
@@ -199,6 +199,39 @@
       "typeVersion": 2,
       "position": [
         920,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-cycle-readable",
+              "leftValue": "={{ Number($json.cycle_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08-ifcyclestore",
+      "name": "IF Cycle Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1010,
         -320
       ]
     },
@@ -272,7 +305,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nif (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { session_store_error: 1, create: 0 } }]; }\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by\n// nothing else, so it never reaches the Data Table.\nif (!found) { return [{ json: { create: 1 } }]; }\nreturn [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];"
       },
       "id": "gw-08b-resolve",
       "name": "Resolve Session",
@@ -280,6 +313,39 @@
       "typeVersion": 2,
       "position": [
         1140,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-session-readable",
+              "leftValue": "={{ Number($json.session_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08b-ifstore",
+      "name": "IF Session Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1190,
         -320
       ]
     },
@@ -318,9 +384,81 @@
     },
     {
       "parameters": {
+        "operation": "executeQuery",
+        "query": "insert into public.finmentor_app_session_authority (telegram_user_id, cycle_id, app_session_id, state, created_at, expires_at, updated_at)\nvalues ($1, $2, $3, 'draft', $4::timestamptz, $5::timestamptz, now())\non conflict (telegram_user_id, cycle_id) do update set\n  app_session_id = case when public.finmentor_app_session_authority.state = 'draft' and public.finmentor_app_session_authority.expires_at <= now() then excluded.app_session_id else public.finmentor_app_session_authority.app_session_id end,\n  state = case when public.finmentor_app_session_authority.state = 'draft' and public.finmentor_app_session_authority.expires_at <= now() then 'draft' else public.finmentor_app_session_authority.state end,\n  created_at = case when public.finmentor_app_session_authority.state = 'draft' and public.finmentor_app_session_authority.expires_at <= now() then excluded.created_at else public.finmentor_app_session_authority.created_at end,\n  expires_at = case when public.finmentor_app_session_authority.state = 'draft' and public.finmentor_app_session_authority.expires_at <= now() then excluded.expires_at else public.finmentor_app_session_authority.expires_at end,\n  updated_at = now()\nreturning telegram_user_id, cycle_id, app_session_id, state, created_at, expires_at",
+        "options": {
+          "queryReplacement": "={{ $('Build App Session').first().json.telegram_user_id }},={{ $('Build App Session').first().json.cycle_id }},={{ $('Build App Session').first().json.app_session_id }},={{ $('Build App Session').first().json.created_at }},={{ $('Build App Session').first().json.expires_at }}"
+        }
+      },
+      "id": "gw-08c-claimsession",
+      "name": "Claim Session Authority",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1290,
+        -430
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "B6wRirWfjqoASXU3",
+          "name": "FINMENTOR Supabase G5"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "// The Data Table insert uses autoMapInputData, so its input must be EXACTLY the row and\n// nothing else. Resolve Session carries a control flag, so the row is re-emitted here rather\n// than that node being taught to hide it.\nreturn [{ json: $('Build App Session').first().json }];"
+        "jsCode": "const source = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nif (rows.length !== 1) { return [{ json: { authority_error: 1 } }]; }\nconst r = rows[0];\nif (!/^AS-[0-9a-f]{64}$/.test(String(r.app_session_id || '')) || String(r.telegram_user_id || '') !== String(source.telegram_user_id) || String(r.cycle_id || '') !== String(source.cycle_id)) return [{ json: { authority_error: 1 } }];\nreturn [{ json: { app_session_id: String(r.app_session_id), telegram_user_id: String(r.telegram_user_id), chat_id: String(r.telegram_user_id), cycle_id: String(r.cycle_id), replay_key: String(source.replay_key), state: String(r.state || \"draft\"), created_at: new Date(r.created_at).toISOString(), expires_at: new Date(r.expires_at).toISOString(), updated_at: new Date().toISOString(), draft_json: \"\" } }];"
+      },
+      "id": "gw-08c-applysession",
+      "name": "Apply Session Authority",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1330,
+        -430
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-authority-proven",
+              "leftValue": "={{ Number($json.authority_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-08c-ifauthority",
+      "name": "IF Session Authority Proven",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        -430
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The Data Table insert uses autoMapInputData, so its input must be EXACTLY the row and\n// nothing else. Resolve Session carries a control flag, so the row is re-emitted here rather\n// than that node being taught to hide it.\nreturn [{ json: $('Apply Session Authority').first().json }];"
       },
       "id": "gw-08d-buildrow",
       "name": "Build Session Row",
@@ -333,11 +471,22 @@
     },
     {
       "parameters": {
-        "operation": "insert",
+        "resource": "row",
+        "operation": "upsert",
         "dataTableId": {
           "__rl": true,
           "mode": "name",
           "value": "MiniApp_App_Sessions"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "app_session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.app_session_id }}"
+            }
+          ]
         },
         "columns": {
           "mappingMode": "autoMapInputData",
@@ -370,9 +519,9 @@
         "filters": {
           "conditions": [
             {
-              "keyName": "telegram_user_id",
+              "keyName": "app_session_id",
               "condition": "eq",
-              "keyValue": "={{ $('Build App Session').first().json.telegram_user_id }}"
+              "keyValue": "={{ $('Apply Session Authority').first().json.app_session_id }}"
             }
           ]
         },
@@ -393,7 +542,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Build App Session').first().json;\nconst rows = $input.all().map(i => i.json);\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nconst row = found || cand;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
+        "jsCode": "function authoritative(rows, userId, cycleId, nowMs) {\n  const live = (rows || [])\n    .filter(r => r && String(r.app_session_id || '').trim() !== '')\n    .filter(r => String(r.telegram_user_id || \"\") === String(userId))\n    .filter(r => String(r.cycle_id || \"\") !== \"\" && String(r.cycle_id || \"\") === String(cycleId))\n    .filter(r => { const st = String(r.state || \"\"); return st === \"draft\" || st === \"submitted\"; })\n    .filter(r => { if (String(r.state) === \"submitted\") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });\n  live.sort((a, b) => {\n    const ta = String(a.created_at || \"\"), tb = String(b.created_at || \"\");\n    if (ta !== tb) { return ta < tb ? 1 : -1; }\n    return String(a.app_session_id) < String(b.app_session_id) ? 1 : -1;\n  });\n  return live[0] || null;\n}\n\n// The bootstrap answer, built in JavaScript. A branch inside a {{ }} template fails silently\n// and returns an empty body; this cannot.\nfunction answer(row, locale, resumed) {\n  let draft = null;\n  try { draft = JSON.parse(String(row.draft_json || \"null\")); } catch (e) { draft = null; }\n  return {\n    app_session_id: String(row.app_session_id),\n    expires_at: String(row.expires_at),\n    state: String(row.state || \"draft\"),\n    resumed: resumed ? 1 : 0,\n    // Server-side only: the committed lead behind a submitted session, read by the client\n    // result lookup. It is NOT part of __response.\n    lead_id: String(row.lead_id || \"\"),\n    __response: {\n      ok: true,\n      app_session_id: String(row.app_session_id),\n      expires_at: String(row.expires_at),\n      locale: String(locale || \"ru\"),\n      state: String(row.state || \"draft\"),\n      resumed: !!resumed,\n      // The stored draft, so the client can hydrate without a second round trip. It is the\n      // The stored draft. It is the client own material returning to it, and nothing else.\n      draft: draft && draft.fields ? draft : null\n    }\n  };\n}\n\nconst c = $('Claim Verdict').first().json;\nconst cand = $('Apply Session Authority').first().json;\nconst rows = $input.all().map(i => i.json);\nif (rows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { persistence_error: 1 } }]; }\nconst found = authoritative(rows, cand.telegram_user_id, cand.cycle_id, Date.now());\n\n// The read cannot come back empty — this execution inserted a row a moment ago. If it does,\n// the store is not answering and the honest reply is the candidate we hold, which is also the\n// row we just wrote.\nif (!found || String(found.app_session_id) !== String(cand.app_session_id)) { return [{ json: { persistence_error: 1 } }]; }\nconst row = found;\nconst resumed = String(row.app_session_id) !== String(cand.app_session_id);\nreturn [{ json: answer(row, c.locale, resumed) }];"
       },
       "id": "gw-09b-finalise",
       "name": "Finalise Session",
@@ -401,6 +550,39 @@
       "typeVersion": 2,
       "position": [
         1640,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-persistence-verified",
+              "leftValue": "={{ Number($json.persistence_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-09b-ifpersist",
+      "name": "IF Session Persistence Verified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1690,
         -400
       ]
     },
@@ -473,7 +655,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const s = $('Resolve Session').first().json;\nconst leadId = String(s.lead_id || '');\nconst rows = $input.all().map(i => i.json)\n  .filter(r => r && !r.error && !r.errorMessage)\n  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)\n  .filter(r => String(r.review_status || '') === 'CLIENT_READY');\nrows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);\nlet result = null;\nif (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }\nif (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }\nconst out = Object.assign({}, s);\nout.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });\nreturn [{ json: out }];"
+        "jsCode": "const s = $('Resolve Session').first().json;\nconst leadId = String(s.lead_id || '');\nconst allRows = $input.all().map(i => i.json);\nif (allRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { result_store_error: 1 } }];\nconst rows = allRows\n  .filter(r => r && !r.error && !r.errorMessage)\n  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)\n  .filter(r => String(r.review_status || '') === 'CLIENT_READY');\nrows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);\nlet result = null;\nif (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }\nif (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }\nif (result) { const allowed = ['locale','labels','score','zone','maturity','key_risks','management_priorities','plan_30_days','tomorrow_actions','recommended_next_step']; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }\nconst out = Object.assign({}, s);\nout.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });\nreturn [{ json: out }];"
       },
       "id": "gw-09e-attachresult",
       "name": "Attach Client Result",
@@ -481,6 +663,39 @@
       "typeVersion": 2,
       "position": [
         1580,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "gw-result-readable",
+              "leftValue": "={{ Number($json.result_store_error || 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "gw-09e-ifresult",
+      "name": "IF Result Store Readable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1640,
         -240
       ]
     },
@@ -567,6 +782,23 @@
       "position": [
         1140,
         -120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error_code: 'APPLICATION_STORE_UNAVAILABLE', retryable: true }) }}",
+        "options": {
+          "responseCode": 503
+        }
+      },
+      "id": "gw-15-appstore",
+      "name": "Respond Application Store Unavailable",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        40
       ]
     }
   ],
@@ -684,7 +916,25 @@
       "main": [
         [
           {
+            "node": "IF Cycle Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Cycle Store Readable": {
+      "main": [
+        [
+          {
             "node": "IF Cycle Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -724,7 +974,25 @@
       "main": [
         [
           {
+            "node": "IF Session Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Store Readable": {
+      "main": [
+        [
+          {
             "node": "IF Create Session",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -735,7 +1003,7 @@
       "main": [
         [
           {
-            "node": "Build Session Row",
+            "node": "Claim Session Authority",
             "type": "main",
             "index": 0
           }
@@ -743,6 +1011,53 @@
         [
           {
             "node": "IF Session Committed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Session Authority": {
+      "main": [
+        [
+          {
+            "node": "Apply Session Authority",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Session Authority": {
+      "main": [
+        [
+          {
+            "node": "IF Session Authority Proven",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Authority Proven": {
+      "main": [
+        [
+          {
+            "node": "Build Session Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -782,7 +1097,25 @@
       "main": [
         [
           {
+            "node": "IF Result Store Readable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Result Store Readable": {
+      "main": [
+        [
+          {
             "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }
@@ -808,6 +1141,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -826,7 +1166,25 @@
       "main": [
         [
           {
+            "node": "IF Session Persistence Verified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Session Persistence Verified": {
+      "main": [
+        [
+          {
             "node": "Respond Bootstrap OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Application Store Unavailable",
             "type": "main",
             "index": 0
           }

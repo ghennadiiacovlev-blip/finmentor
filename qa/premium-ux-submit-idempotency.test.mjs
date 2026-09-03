@@ -360,6 +360,20 @@ check('D — the Pipeline lead exists but the client never saw it: the retry res
   eq(w.sessions[0].state, 'submitted', 'the session was never marked');
 });
 
+check('SIMULATED — Mark Submitted failure and readback outage never return misleading success', () => {
+  for (const node of ['Mark Submitted', 'Read Back Submitted']) {
+    const w = world();
+    const r = run(w, bodyFor(SID), { node, mode: 'throw', times: 1 });
+    eq(r.response.status, 503, node + ': status');
+    eq(r.response.body.ok, false, node + ': ok');
+    eq(r.response.body.retryable, true, node + ': retryable');
+    eq(w.leadSeq, 1, node + ': Lead Intake should have committed exactly once');
+    const retry = run(w);
+    eq(retry.response.body.ok, true, node + ': retry did not resolve canonical success');
+    eq(w.leadSeq, 1, node + ': retry duplicated the business submission');
+  }
+});
+
 check('E — a duplicate Retry click has no duplicate side effect, however many times', () => {
   const w = world();
   const answers = [];
@@ -376,14 +390,15 @@ check('E — a duplicate Retry click has no duplicate side effect, however many 
 
 // ── what must NOT have changed ─────────────────────────────────────────────────────────────────
 
-check('C3 — CUSTOMER PRODUCTION: any session bound to a verified Telegram user may submit; identity is never read from the caller', () => {
-  // The owner-only UAT gate is retired. Ownership is the session row itself: the Gateway bound it
-  // to the Telegram user whose signed initData it verified, and the 32-byte session id reaches
-  // only that user. A customer's session submits exactly like the owner's did.
+check('C3 WIP — owner-only release gate is retained and can be retired only by one explicit build mode', () => {
   const w = world([sessionRow(SID, { telegram_user_id: '999999' })]);
   const r = run(w);
-  eq(r.response.body.ok, true, 'a customer session was refused: ' + JSON.stringify(r.response.body));
-  eq(w.calls.intake, 1, 'a customer submission did not reach Lead Intake');
+  eq(r.response.body.error_code, 'NOT_AUTHORISED', 'customer passed the tracked owner gate');
+  eq(w.calls.intake, 0, 'customer reached Lead Intake while owner-only');
+  const customerWf = loadResolvedSubmit(M, { releaseMode: 'CUSTOMER' });
+  const wc = world([sessionRow(SID, { telegram_user_id: '999999' })]);
+  const rc = runSubmit(customerWf, wc, bodyFor(SID));
+  eq(rc.response.body.ok, true, 'explicit CUSTOMER build mode did not retire the gate');
   // A row with NO bound identity is not a session at all.
   const w2 = world([sessionRow(SID, { telegram_user_id: '' })]);
   const r2 = run(w2);
@@ -395,8 +410,7 @@ check('C3 — CUSTOMER PRODUCTION: any session bound to a verified Telegram user
   const w3 = world([sessionRow(SID, { telegram_user_id: '' })]);
   const r3 = runSubmit(WF, w3, Object.assign(bodyFor(SID), { telegram_user_id: OWNER, owner: true }));
   eq(r3.response.body.error_code, 'SESSION_INVALID', 'a caller-supplied identity was believed');
-  // The retired gate must not come back quietly.
-  assert(JSON.stringify(WF).indexOf('NOT_AUTHORISED') === -1, 'the owner-only UAT gate is back in the submit endpoint');
+  assert(JSON.stringify(WF).indexOf('NOT_AUTHORISED') !== -1, 'the owner-only gate disappeared from the tracked deployment mode');
 });
 
 check('an expired, uncommitted session is refused before any side effect', () => {
@@ -489,7 +503,7 @@ check('the terminal responder serialises a prebuilt object — no branch lives i
   assert(String(term.parameters.responseBody).indexOf('?') === -1, 'a branch crept back into the template');
   // And it is the ONLY responder for refusals: nothing can flatten a verdict any more.
   const responders = WF.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook').map((n) => n.name);
-  eq(responders.sort().join(','), 'Respond Submit OK,Respond Submit Terminal,Respond Submit Unresolved',
+  eq(responders.sort().join(','), 'Respond Submit OK,Respond Submit Persistence Failure,Respond Submit Terminal,Respond Submit Unresolved',
     'the responder set changed');
 });
 
@@ -498,7 +512,7 @@ check('the resolved candidate carries no placeholder and no literal identity', (
   assert(!/__[A-Z_]{4,}__/.test(json), 'an unresolved placeholder survived');
   const raw = readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-submit-endpoint-candidate.json'), 'utf8');
   // ...while the TRACKED candidate keeps every one of them.
-  for (const ph of ['__LEAD_INTAKE_WORKFLOW_ID__', '__PRIVACY_AUDIT_CREDENTIAL_ID__', '__PREMIUM_SUBMIT_PROJECTION__']) {
+  for (const ph of ['__LEAD_INTAKE_WORKFLOW_ID__', '__PRIVACY_AUDIT_CREDENTIAL_ID__', '__PREMIUM_SUBMIT_PROJECTION__', '__OWNER_TELEGRAM_ID__', '__MINIAPP_RELEASE_MODE__']) {
     assert(raw.indexOf(ph) !== -1, 'the tracked candidate has baked in ' + ph);
   }
   assert(!/\b\d{9,}\b/.test(raw), 'a literal numeric identity is in the tracked candidate');

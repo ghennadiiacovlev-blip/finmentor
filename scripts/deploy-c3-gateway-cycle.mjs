@@ -12,9 +12,8 @@
 // declares, keeps every live-only node byte-identical, and merges edges per output index: a branch
 // the candidate declares wins, a branch only the live graph has is kept.
 //
-// WHAT IT REFUSES. Any live node the candidate declares whose live form differs from the tracked
-// baseline in a way this script did not expect; any credential appearing on a node other than the
-// G5 claim; the P9-R2 flag pair; a rename; a deactivation. It never touches another workflow.
+// WHAT IT REFUSES. Unexpected live drift; credentials outside the two narrow Supabase atomic
+// claims; the P9-R2 flag pair; a rename; a deactivation. It never touches another workflow.
 //
 // SECRETS. N8N_API_KEY from the environment only, never printed. The deploy needs a key with write
 // scope; N8N_FIX_API_KEY is honoured first for compatibility with the older deploy scripts.
@@ -99,6 +98,9 @@ export function mergeGateway(live, candidate) {
     conns[s] = { main };
   }
   out.connections = conns;
+  if (liveByName['Emit System Alert (Session Store)']) {
+    out.connections['Respond Application Store Unavailable'] = { main: [[{ node: 'Emit System Alert (Session Store)', type: 'main', index: 0 }]] };
+  }
   out.settings = candidate.settings;
   out.name = candidate.name;
   return out;
@@ -111,7 +113,8 @@ export function verifyMerged(w) {
   for (const n of LIVE_ONLY_NODES) { if (names.indexOf(n) === -1) { f.push('missing live-only node: ' + n); } }
   if (new Set(names).size !== names.length) { f.push('duplicate node names'); }
   const cred = w.nodes.filter((n) => n.credentials);
-  if (cred.length !== 1 || cred[0].name !== G5_CLAIM_NODE || (cred[0].credentials.postgres || {}).id !== SUPABASE_CREDENTIAL.id) {
+  const allowedCred = [G5_CLAIM_NODE, 'Claim Session Authority'].sort();
+  if (JSON.stringify(cred.map(n => n.name).sort()) !== JSON.stringify(allowedCred) || cred.some(n => (n.credentials.postgres || {}).id !== SUPABASE_CREDENTIAL.id)) {
     f.push('credential boundary violated: ' + cred.map((n) => n.name).join(', '));
   }
   for (const n of w.nodes) {
@@ -126,13 +129,13 @@ export function verifyMerged(w) {
   const first = (s, i) => ((((c[s] || {}).main || [])[i] || [])[0] || {}).node;
   if (first('IF Claim Won', 0) !== 'Read Cycle Projection') { f.push('IF Claim Won true branch'); }
   if (first('Read Cycle Projection', 0) !== 'Build App Session') { f.push('projection read edge'); }
-  if (first('Build App Session', 0) !== 'IF Cycle Resolved') { f.push('cycle gate edge'); }
+  if (first('Build App Session', 0) !== 'IF Cycle Store Readable') { f.push('cycle store gate edge'); }
   if (first('IF Cycle Resolved', 1) !== 'Respond Cycle Unresolved') { f.push('unresolved branch'); }
   if (first('IF Create Session', 1) !== 'IF Session Committed') { f.push('resume branch'); }
   if (first('Create App Session', 0) !== 'Read Back Sessions') { f.push('create edge'); }
-  if (first('Create App Session', 1) !== 'Session Store Verdict') { f.push('the live session-store failure branch was lost'); }
+  if (first('Create App Session', 1) !== 'Respond Application Store Unavailable') { f.push('session create failure is not fail-closed'); }
   if (first('Respond Store Unavailable', 0) !== 'Emit System Alert (Claim)') { f.push('the claim alert edge was lost'); }
-  if (first('Respond Session Unavailable', 0) !== 'Emit System Alert (Session Store)') { f.push('the session-store alert edge was lost'); }
+  if (first('Respond Application Store Unavailable', 0) !== 'Emit System Alert (Session Store)') { f.push('the application-store alert edge was lost'); }
   const j = JSON.stringify(w);
   if (j.indexOf(CYCLE_PROJECTION_TABLE) === -1) { f.push('no cycle projection read'); }
   if (j.indexOf(CLIENT_RESULT_TABLE) === -1) { f.push('no client result read'); }
@@ -166,7 +169,7 @@ if (isMain) {
 
   // Live nodes the candidate declares must be either identical to the candidate already, or be
   // exactly the nodes this deploy changes. Anything else is unexpected drift.
-  const EXPECTED_CHANGED = ['IF Claim Won', 'Build App Session', 'Resolve Session', 'Finalise Session', 'IF Create Session'];
+  const EXPECTED_CHANGED = ['IF Claim Won', 'Build App Session', 'Read User Sessions', 'Resolve Session', 'Finalise Session', 'IF Create Session', 'Create App Session', 'Read Back Sessions', 'Read Client Result', 'Attach Client Result'];
   const norm = (n) => JSON.stringify({ p: n.parameters, t: n.type, v: n.typeVersion, a: n.alwaysOutputData === true, e: n.onError || null, d: n.disabled === true });
   const liveByName = Object.fromEntries(live.nodes.map((n) => [n.name, n]));
   const drift = [];

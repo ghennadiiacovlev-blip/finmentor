@@ -54,6 +54,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 import crypto from 'node:crypto';
+import { inlineCrmStageResolver } from './lib/inline-crm-stage.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -101,7 +102,9 @@ async function api(method, path, body, key) {
 const LA = require_(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'));
 const LATZ = require_(join(ROOT, 'n8n', 'src', 'lead-alerts', 'tz.js'));
 const LAA = new Function(
-  readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n')
+  inlineCrmStageResolver(
+    readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n'),
+    readFileSync(join(ROOT, 'n8n', 'src', 'crm', 'stage-map.js'), 'utf8').replace(/\r\n/g, '\n'))
   + '; return LAA;')();
 
 const created = [];

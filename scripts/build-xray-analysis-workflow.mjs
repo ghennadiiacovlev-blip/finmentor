@@ -9,12 +9,12 @@
 //
 // Design (C1):
 //   sweep  : every 10 min -> Settings -> Pipeline -> XRay_Analysis -> pending leads (fail-closed,
-//            consent-gated, capped) -> Leads raw row -> PII-safe input -> OpenAI (json) ->
-//            validate (score/zone deterministic, contract caps, fabrication guard) ->
+//            consent-gated, capped) -> atomic PostgreSQL claim -> Leads raw row -> closed-
+//            allowlist input -> OpenAI (json) -> strict validate (score/zone deterministic) ->
 //            XRay_Analysis row (AI_DRAFT) -> narrow Pipeline projection -> owner Telegram alert.
 //   failure: OpenAI error output -> ANALYSIS_FAILED row (so the sweep does not loop) -> owner notice.
-//   review : GET /webhook/finmentor-xray-review?a=<analysis_id>&t=<token> -> per-row token ->
-//            CLIENT_READY -> Pipeline status -> HTML page.
+//   review : GET renders a read-only review page. POST performs the PostgreSQL CAS
+//            AI_DRAFT -> CLIENT_READY, then idempotently projects Sheets/customer result.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -30,10 +30,15 @@ const labels = read('labels.js').replace(/if \(typeof module[\s\S]*$/, '').trim(
 const code = {
   settings: read('settings.js'),
   selectPending: read('select-pending.js'),
+  buildClaim: read('build-claim.js'),
+  claimVerdict: read('claim-verdict.js'),
   buildInput: read('build-input.js'),
   validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels),
   failed: read('analysis-failed.js'),
-  review: read('review-verdict.js')
+  reviewSurface: read('review-surface.js'),
+  review: read('review-verdict.js'),
+  reviewCas: read('review-cas-verdict.js'),
+  clientResult: read('build-client-result.js')
 };
 for (const [k, v] of Object.entries(code)) {
   if (/__XRAY_LABELS__/.test(v)) throw new Error('marker not replaced in ' + k);
@@ -44,6 +49,33 @@ const SHEET = (name, gid) => gid ? ({ __rl: true, value: gid, mode: 'list', cach
 const SHEETS_CRED = "{ googleSheetsOAuth2Api: { id: 'PzVCuEPa9YF3YSaD', name: 'Google Sheets OAuth2 API' } }";
 const TG_CRED = "{ telegramApi: { id: 'Mj41qrGHfrthCtAw', name: 'FINMENTOR Leads Bot FINAL' } }";
 const OPENAI_CRED = "{ openAiApi: { id: 'MC2uu5oVRKPe7iIH', name: 'OpenAI account' } }";
+const POSTGRES_CRED = "{ postgres: { id: 'B6wRirWfjqoASXU3', name: 'FINMENTOR Supabase G5' } }";
+const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
+const CLAIM_QUERY = [
+  'with ins as (',
+  '  insert into public.finmentor_xray_analysis_claims (lead_id, analysis_version, claim_key)',
+  "  values ($1, $2, $3)",
+  '  on conflict (lead_id, analysis_version) do nothing',
+  '  returning claim_key',
+  ') select (select count(*) from ins)::int as claimed'
+].join('\n');
+const CLAIM_STATE_QUERY = [
+  'update public.finmentor_xray_analysis_claims',
+  'set status = $1, analysis_id = $2',
+  "where claim_key = $3 and status = 'CLAIMED'",
+  'returning claim_key, status'
+].join('\n');
+const REVIEW_CAS_QUERY = [
+  'with changed as (',
+  '  update public.finmentor_xray_analysis_claims',
+  "  set status = 'CLIENT_READY', reviewed_at = now()",
+  "  where claim_key = $1 and analysis_id = $2 and status = 'AI_DRAFT'",
+  '  returning status',
+  ')',
+  'select coalesce((select status from changed),',
+  '  (select status from public.finmentor_xray_analysis_claims where claim_key = $1 and analysis_id = $2)) as authority_status,',
+  '  (select count(*) from changed)::int as cas_won'
+].join('\n');
 
 const J = (v) => JSON.stringify(v);
 const CODE = (s) => J(s); // Code-node bodies as safe string literals
@@ -101,6 +133,33 @@ const selectPending = node({
   output: [{ lead_id: '', priority: '', financial_zone: '', company: '' }]
 });
 
+const buildClaim = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Build Analysis Claim', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.buildClaim)} } },
+  output: [{ claim_valid: true, lead_id: '', analysis_version: 'xray-v2', claim_key: '' }]
+});
+
+const claimAnalysis = node({
+  type: 'n8n-nodes-base.postgres', version: 2.6,
+  config: { name: 'Claim Analysis Authority', onError: 'stopWorkflow',
+    parameters: { operation: 'executeQuery', query: ${J(CLAIM_QUERY)},
+      options: { queryReplacement: expr('{{ $json.lead_id }},{{ $json.analysis_version }},{{ $json.claim_key }}') } },
+    credentials: ${POSTGRES_CRED} },
+  output: [{ claimed: 1 }]
+});
+
+const claimVerdict = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Analysis Claim Verdict', parameters: { mode: 'runOnceForEachItem', language: 'javaScript', jsCode: ${CODE(code.claimVerdict)} } },
+  output: [{ claim_won: 1, lead_id: '', analysis_version: 'xray-v2', claim_key: '' }]
+});
+
+const ifClaimWon = ifElse({
+  version: 2.2,
+  config: { name: 'IF Analysis Claim Won', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.claim_won }}'), operator: { type: 'number', operation: 'equals' }, rightValue: 1 }], combinator: 'and' } } }
+});
+
 const readLeadRaw = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
   config: { name: 'Read Lead Raw', alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
@@ -112,7 +171,7 @@ const readLeadRaw = node({
 
 const buildInput = node({
   type: 'n8n-nodes-base.code', version: 2,
-  config: { name: 'Build Analysis Input', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.buildInput)} } },
+  config: { name: 'Build Analysis Input', parameters: { mode: 'runOnceForEachItem', language: 'javaScript', jsCode: ${CODE(code.buildInput)} } },
   output: [{ lead_id: '', locale: 'ru', score: 47, zone: 'ORANGE', ai_model: 'gpt-4.1', ai_system_prompt: '', ai_user_prompt: '' }]
 });
 
@@ -147,6 +206,21 @@ const saveAnalysis = node({
       columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '', lead_id: '' }]
+});
+
+const persistClaimState = node({
+  type: 'n8n-nodes-base.postgres', version: 2.6,
+  config: { name: 'Persist Analysis Claim State', onError: 'stopWorkflow',
+    parameters: { operation: 'executeQuery', query: ${J(CLAIM_STATE_QUERY)},
+      options: { queryReplacement: expr("{{ $('Validate + Store Rows').item.json.claim_state }},{{ $('Validate + Store Rows').item.json.analysis_row.analysis_id }},{{ $('Validate + Store Rows').item.json.claim_key }}") } },
+    credentials: ${POSTGRES_CRED} },
+  output: [{ claim_key: '', status: 'AI_DRAFT' }]
+});
+
+const ifAnalysisValid = ifElse({
+  version: 2.2,
+  config: { name: 'IF Analysis Valid', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.is_valid }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const pipelineRow = node({
@@ -194,11 +268,20 @@ const failedRow = node({
 
 const saveFailed = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
-  config: { name: 'Save Failed Analysis', retryOnFail: true, onError: 'continueRegularOutput',
+  config: { name: 'Save Failed Analysis', retryOnFail: true,
     parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
       columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '' }]
+});
+
+const persistFailedClaim = node({
+  type: 'n8n-nodes-base.postgres', version: 2.6,
+  config: { name: 'Persist Failed Claim State', onError: 'stopWorkflow',
+    parameters: { operation: 'executeQuery', query: ${J(CLAIM_STATE_QUERY)},
+      options: { queryReplacement: expr("{{ $('Analysis Failed Row').item.json.claim_state }},{{ $('Analysis Failed Row').item.json.analysis_row.analysis_id }},{{ $('Analysis Failed Row').item.json.claim_key }}") } },
+    credentials: ${POSTGRES_CRED} },
+  output: [{ claim_key: '', status: 'ANALYSIS_FAILED' }]
 });
 
 const ownerFailureNotice = node({
@@ -212,31 +295,91 @@ const ownerFailureNotice = node({
   output: [{ ok: true }]
 });
 
-const reviewWebhook = trigger({
+const validationFailureNotice = node({
+  type: 'n8n-nodes-base.telegram', version: 1.2,
+  config: { name: 'Telegram Validation Failure Notice', onError: 'continueRegularOutput',
+    parameters: { resource: 'message', operation: 'sendMessage',
+      chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
+      text: expr("{{ $('Validate + Store Rows').item.json.owner_text }}"),
+      additionalFields: { appendAttribution: false, parse_mode: 'HTML' } },
+    credentials: ${TG_CRED} },
+  output: [{ ok: true }]
+});
+
+const reviewGetWebhook = trigger({
   type: 'n8n-nodes-base.webhook', version: 2.1,
-  config: { name: 'Review Webhook', parameters: { httpMethod: 'GET', path: 'finmentor-xray-review', responseMode: 'responseNode', options: {} } },
+  config: { name: 'Review GET Webhook', parameters: { httpMethod: 'GET', path: 'finmentor-xray-review', responseMode: 'responseNode', options: {} } },
   output: [{ query: { a: 'XA-1', t: 'token' } }]
 });
 
-const readForReview = node({
+const readForReviewGet = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
-  config: { name: 'Read Analysis For Review', alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
+  config: { name: 'Read Analysis For Review GET', alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
     parameters: { resource: 'sheet', operation: 'read', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
       filtersUI: { values: [{ lookupColumn: 'analysis_id', lookupValue: expr('{{ $json.query.a }}') }] }, combineFilters: 'AND', options: {} },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '', lead_id: '', review_status: 'AI_DRAFT', review_token: '' }]
 });
 
+const reviewSurface = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Render Review Surface', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.reviewSurface)} } },
+  output: [{ http_status: 200, html: '' }]
+});
+
+const respondReviewSurface = node({
+  type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
+  config: { name: 'Respond Review Surface', parameters: { respondWith: 'text', responseBody: expr('{{ $json.html }}'),
+    options: { responseCode: expr('{{ $json.http_status }}'), responseHeaders: { entries: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'Referrer-Policy', value: 'no-referrer' }, { name: 'X-Robots-Tag', value: 'noindex, nofollow' }] } } } },
+  output: [{}]
+});
+
+const reviewPostWebhook = trigger({
+  type: 'n8n-nodes-base.webhook', version: 2.1,
+  config: { name: 'Review POST Webhook', parameters: { httpMethod: 'POST', path: 'finmentor-xray-review', responseMode: 'responseNode', options: {} } },
+  output: [{ body: { a: 'XA-1', t: 'token' } }]
+});
+
+const readForReviewPost = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Read Analysis For Review POST', alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
+    parameters: { resource: 'sheet', operation: 'read', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
+      filtersUI: { values: [{ lookupColumn: 'analysis_id', lookupValue: expr('{{ $json.body.a }}') }] }, combineFilters: 'AND', options: {} },
+    credentials: ${SHEETS_CRED} },
+  output: [{ analysis_id: '', lead_id: '', review_status: 'AI_DRAFT', review_token: '' }]
+});
+
 const reviewVerdict = node({
   type: 'n8n-nodes-base.code', version: 2,
-  config: { name: 'Review Verdict', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.review)} } },
-  output: [{ verdict: 'PROMOTE', update_row: { analysis_id: '' }, pipeline_row: { lead_id: '' }, http_status: 200, html: '' }]
+  config: { name: 'Review POST Verdict', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.review)} } },
+  output: [{ verdict: 'CAS_REQUEST', analysis_id: '', claim_key: '', http_status: 200 }]
+});
+
+const ifCasRequest = ifElse({
+  version: 2.2,
+  config: { name: 'IF CAS Request', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.verdict }}'), operator: { type: 'string', operation: 'equals' }, rightValue: 'CAS_REQUEST' }], combinator: 'and' } } }
+});
+
+const reviewCas = node({
+  type: 'n8n-nodes-base.postgres', version: 2.6,
+  config: { name: 'CAS Review Promotion', onError: 'continueErrorOutput',
+    parameters: { operation: 'executeQuery', query: ${J(REVIEW_CAS_QUERY)},
+      options: { queryReplacement: expr("{{ $json.claim_key }},{{ $json.analysis_id }}") } },
+    credentials: ${POSTGRES_CRED} },
+  output: [{ authority_status: 'CLIENT_READY', cas_won: 1 }]
+});
+
+const reviewCasVerdict = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Review CAS Verdict', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.reviewCas)} } },
+  output: [{ verdict: 'PROMOTED', proceed_update: true, update_row: {}, pipeline_row: {} }]
 });
 
 const ifPromote = ifElse({
   version: 2.2,
-  config: { name: 'IF Promote', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr('{{ $json.verdict }}'), operator: { type: 'string', operation: 'equals' }, rightValue: 'PROMOTE' }], combinator: 'and' } } }
+  config: { name: 'IF CAS Promoted Or Ready', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.proceed_update }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const promoteRow = node({
@@ -256,30 +399,52 @@ const promoteAnalysis = node({
 
 const pipelineStatusRow = node({
   type: 'n8n-nodes-base.set', version: 3.4,
-  config: { name: 'Pipeline Status Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Review Verdict').item.json.pipeline_row) }}"), options: {} } },
+  config: { name: 'Pipeline Status Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Review CAS Verdict').item.json.pipeline_row) }}"), options: {} } },
   output: [{ lead_id: '', xray_analysis_status: 'CLIENT_READY' }]
 });
 
 const updatePipelineStatus = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
-  config: { name: 'Update Pipeline Review Status', retryOnFail: true, onError: 'continueRegularOutput',
+  config: { name: 'Update Pipeline Review Status', retryOnFail: true,
     parameters: { resource: 'sheet', operation: 'update', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Pipeline', 1883973304))},
       columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['lead_id'], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ lead_id: '' }]
 });
 
+const buildClientResult = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Build Curated Client Result', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.clientResult)} } },
+  output: [{ authority_key: '', lead_id: '', review_status: 'CLIENT_READY', result_json: '{}' }]
+});
+
+const publishClientResult = node({
+  type: 'n8n-nodes-base.dataTable', version: 1.1,
+  config: { name: 'Publish Curated Client Result', onError: 'stopWorkflow',
+    parameters: { resource: 'row', operation: 'upsert', dataTableId: { __rl: true, mode: 'name', value: ${J(CLIENT_RESULT_TABLE)} },
+      matchType: 'allConditions', filters: { conditions: [{ keyName: 'authority_key', condition: 'eq', keyValue: expr('{{ $json.authority_key }}') }] },
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: {} } },
+  output: [{ authority_key: '', review_status: 'CLIENT_READY' }]
+});
+
 const respondPromoted = node({
   type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
-  config: { name: 'Respond Review Done', parameters: { respondWith: 'text', responseBody: expr("{{ $('Review Verdict').item.json.html }}"),
+  config: { name: 'Respond Review Done', parameters: { respondWith: 'text', responseBody: '<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="robots" content="noindex"><title>FINMENTOR</title><p>Анализ подтверждён и доступен клиенту.</p></html>',
     options: { responseCode: 200, responseHeaders: { entries: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'X-Robots-Tag', value: 'noindex, nofollow' }] } } } },
   output: [{}]
 });
 
 const respondDenied = node({
   type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
-  config: { name: 'Respond Review Denied', parameters: { respondWith: 'text', responseBody: expr('{{ $json.html }}'),
+  config: { name: 'Respond Review Denied', parameters: { respondWith: 'text', responseBody: '<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="robots" content="noindex"><title>FINMENTOR</title><p>Подтверждение отклонено.</p></html>',
     options: { responseCode: expr('{{ $json.http_status }}'), responseHeaders: { entries: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'X-Robots-Tag', value: 'noindex, nofollow' }] } } } },
+  output: [{}]
+});
+
+const respondReviewUnavailable = node({
+  type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
+  config: { name: 'Respond Review Store Unavailable', parameters: { respondWith: 'text', responseBody: '<!doctype html><html lang="ru"><meta charset="utf-8"><p>Хранилище временно недоступно. Повторите позже.</p></html>',
+    options: { responseCode: 503, responseHeaders: { entries: [{ name: 'Content-Type', value: 'text/html; charset=utf-8' }, { name: 'Cache-Control', value: 'no-store' }, { name: 'Referrer-Policy', value: 'no-referrer' }] } } } },
   output: [{}]
 });
 
@@ -290,21 +455,35 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .to(readPipeline)
   .to(readAnalysis)
   .to(selectPending)
-  .to(readLeadRaw)
+  .to(buildClaim)
+  .to(claimAnalysis)
+  .to(claimVerdict)
+  .to(ifClaimWon
+    .onTrue(readLeadRaw))
   .to(buildInput)
   .to(aiAnalysis
-    .onError(failedRowBuild.to(failedRow.to(saveFailed.to(ownerFailureNotice)))))
+    .onError(failedRowBuild.to(failedRow.to(saveFailed.to(persistFailedClaim.to(ownerFailureNotice))))))
   .to(validateRows)
   .to(analysisRow)
   .to(saveAnalysis)
-  .to(pipelineRow)
-  .to(updatePipeline)
-  .to(ownerAlert)
-  .add(reviewWebhook)
-  .to(readForReview)
+  .to(persistClaimState)
+  .to(ifAnalysisValid
+    .onTrue(pipelineRow.to(updatePipeline.to(ownerAlert)))
+    .onFalse(validationFailureNotice))
+  .add(reviewGetWebhook)
+  .to(readForReviewGet)
+  .to(reviewSurface)
+  .to(respondReviewSurface)
+  .add(reviewPostWebhook)
+  .to(readForReviewPost)
   .to(reviewVerdict)
-  .to(ifPromote
-    .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(respondPromoted)))))
+  .to(ifCasRequest
+    .onTrue(reviewCas
+      .onError(respondReviewUnavailable)
+      .to(reviewCasVerdict)
+      .to(ifPromote
+        .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(buildClientResult.to(publishClientResult.to(respondPromoted)))))))
+        .onFalse(respondDenied)))
     .onFalse(respondDenied));
 `;
 

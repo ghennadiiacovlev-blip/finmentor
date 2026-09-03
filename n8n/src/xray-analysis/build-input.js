@@ -5,71 +5,41 @@
 // Output: one item per pending lead carrying the deterministic facts, the PII-safe
 //         projection, the locale, the prompts and the JSON contract the model must return.
 //
-// The model NEVER sees identity. Three layers (allowlist, key denylist, value scrub) are the
-// same core as Lead Intake's ai-safe-projection.js, then the serialised projection is
-// re-inspected and the lead is skipped if anything identifying survived. Fail closed.
+// The model NEVER receives the raw lead object.  The projection below is an explicit,
+// closed allowlist of bounded questionnaire codes and deterministic numeric facts.  Free
+// text is deliberately excluded: removing forbidden keys from an otherwise arbitrary
+// object is not an adequate privacy boundary.
 //
 // Deterministic score and zone come from the CRM row (Pipeline.financial_zone is the
 // authoritative zone; the score is Leads."Diagnostic Score" or raw.diagnostic.score). They
 // are carried on the item, never asked of the model, and never overwritten downstream.
 
-// ---- PII-safe projection core (mirror of n8n/src/lead-intake/ai-safe-projection.js) ------
-const FORBIDDEN_KEY = /(e?mail|phone|tel(?:egram|ephone)?$|telegram|whatsapp|viber|contact|first_?name|last_?name|full_?name|^name$|company$|company_name|lead_?id|request_?id|client_?id|session_?id|^sid$|^ga_|utm_|consent|referrer|url|href|link|ip_?addr|user_?agent|cookie|token|password|initdata|chat_?id|user_?id)/i;
-const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
-const URL_RE = /\b(?:https?:\/\/|www\.)\S+/gi;
-const HANDLE_RE = /(^|\s)@[A-Za-z0-9_]{3,}/g;
-const PHONE_RE = /\+?\d[\d\s().-]{6,}\d/g;
-// A digit run is a phone unless it is a thousands-grouped amount ("1 200 000", "1.200.000",
-// "1,200,000") that does not start with "+", "(" or a leading zero. Amounts are business facts
-// the analysis must be allowed to cite; phones never are.
-const MONEY_GROUPED = /^\d{1,3}(?:[ .,]\d{3})+$/;
-function looksLikePhone(token) {
-  const t = String(token).trim();
-  if (/^[+(0]/.test(t)) return true;
-  if (MONEY_GROUPED.test(t)) return false;
-  return true;
-}
-const MAX_STRING = 700;
-const MAX_ARRAY = 40;
-const MAX_DEPTH = 6;
+// ---- PII-safe projection core ----------------------------------------------------------
+const ZONES = new Set(['GREEN', 'YELLOW', 'ORANGE', 'RED', 'UNKNOWN']);
+const RISK_CODES = new Set([
+  'cash_flow', 'liquidity', 'margin', 'profitability', 'working_capital',
+  'receivables', 'payables', 'debt', 'tax', 'reporting', 'budgeting',
+  'payment_calendar', 'management_accounting', 'kpi_dashboard'
+]);
+const BUSINESS_CODES = new Set([
+  'retail', 'wholesale', 'ecommerce', 'services', 'professional_services', 'it',
+  'manufacturing', 'construction', 'transport', 'horeca', 'agriculture',
+  'real_estate', 'commerce', 'production', 'other', 'unknown'
+]);
+const PRIORITY_CODES = new Set(['HOT', 'WARM', 'COLD', 'INCOMPLETE']);
+const DATA_QUALITY_CODES = new Set(['high', 'medium', 'low', 'ok', 'incomplete', 'unknown']);
 
-function scrubString(value) {
-  return String(value)
-    .replace(EMAIL_RE, '[contact removed]')
-    .replace(URL_RE, '[link removed]')
-    .replace(HANDLE_RE, '$1[handle removed]')
-    .replace(PHONE_RE, m => looksLikePhone(m) ? '[contact removed]' : m)
-    .slice(0, MAX_STRING);
+function enumCode(value, allowed, transform) {
+  const raw = String(value === undefined || value === null ? '' : value).trim();
+  const code = transform === 'upper' ? raw.toUpperCase() : raw.toLowerCase();
+  return allowed.has(code) ? code : undefined;
 }
-function sanitize(value, depth) {
-  if (depth > MAX_DEPTH) return undefined;
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
-  if (typeof value === 'string') { const c = scrubString(value).trim(); return c === '' ? undefined : c; }
-  if (Array.isArray(value)) {
-    const out = [];
-    for (const e of value.slice(0, MAX_ARRAY)) { const c = sanitize(e, depth + 1); if (c !== undefined) out.push(c); }
-    return out.length ? out : undefined;
-  }
-  if (typeof value === 'object') {
-    const out = {};
-    for (const k of Object.keys(value)) { if (FORBIDDEN_KEY.test(k)) continue; const c = sanitize(value[k], depth + 1); if (c !== undefined) out[k] = c; }
-    return Object.keys(out).length ? out : undefined;
-  }
-  return undefined;
+function boundedPercent(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? Math.round(n) : undefined;
 }
-const DETECT_EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-const DETECT_URL = /\b(?:https?:\/\/|www\.)\S+/i;
-function projectionLeak(projection) {
-  const text = JSON.stringify(projection);
-  if (DETECT_EMAIL.test(text)) return 'email-shaped value';
-  const phoneish = (text.match(PHONE_RE) || []).filter(looksLikePhone);
-  if (phoneish.length) return 'phone-shaped value';
-  if (DETECT_URL.test(text)) return 'url';
-  for (const key of ['ga_client_id', 'ga_session_id', 'analytics_consent', 'request_id', 'lead_id', 'telegram', 'email', 'phone']) {
-    if (text.includes('"' + key + '"')) return 'forbidden key ' + key;
-  }
-  return '';
+function safeRiskCodes(value) {
+  return asArray(value).map(v => enumCode(v, RISK_CODES)).filter(Boolean).slice(0, 5);
 }
 
 // ---- helpers --------------------------------------------------------------------------
@@ -151,16 +121,15 @@ function userPrompt(locale, facts, projection) {
 }
 
 // ---- pairing --------------------------------------------------------------------------
-const leadRows = $input.all().map(i => i.json).filter(r => r && !r.error);
-const byLeadId = {};
-for (const r of leadRows) { const id = String(r['Lead ID'] || r.lead_id || '').trim(); if (id && !byLeadId[id]) byLeadId[id] = r; }
+// This code runs once for each item that WON the database claim.  Never enumerate the
+// earlier pending list here: doing so would let a losing execution analyse another item.
+const claim = $('Analysis Claim Verdict').item.json;
+const leadId = String(claim.lead_id || '').trim();
+const pipe = $('Select Pending Leads').all().map(i => i.json).find(r => String(r.lead_id || '').trim() === leadId) || {};
+const leadRow = $input.first().json || {};
+if (!leadId || Number(claim.claim_won) !== 1 || (leadRow && leadRow.error)) throw new Error('XRAY_INPUT_AUTHORITY_UNAVAILABLE');
 
-const pending = $('Select Pending Leads').all().map(i => i.json);
-const out = [];
-
-for (const pipe of pending) {
-  const leadId = String(pipe.lead_id || '').trim();
-  const leadRow = byLeadId[leadId] || {};
+{
   let raw = {};
   try { raw = leadRow['Raw JSON'] ? JSON.parse(leadRow['Raw JSON']) : {}; } catch (e) { raw = {}; }
   if (!raw || typeof raw !== 'object') raw = {};
@@ -168,43 +137,27 @@ for (const pipe of pending) {
   const locale = detectLocale(pipe, raw, leadRow);
   const diagnostic = raw.diagnostic || {};
   const score = num(pick(diagnostic.score, leadRow['Diagnostic Score']));
-  const zone = String(pick(pipe.financial_zone, diagnostic.traffic_light, leadRow['Financial Zone'], 'UNKNOWN')).toUpperCase();
+  const zone = enumCode(pick(pipe.financial_zone, diagnostic.traffic_light, leadRow['Financial Zone'], 'UNKNOWN'), ZONES, 'upper') || 'UNKNOWN';
   const tool = String(pick(raw.tool, leadRow['Tool'], pipe.source_page && String(pipe.source_page).includes('questionnaire') ? 'xray_extended' : '')).toLowerCase();
   const sourceChannel = tool.includes('xray') ? 'website_xray' : tool.includes('mini_scan') ? 'website_mini_scan' : (raw.premium || raw.brief || /miniapp|concierge|telegram/.test(String(raw.source || ''))) ? 'telegram_premium' : 'other';
 
+  // Closed allowlist.  In particular, company/name/address/contact fields, request/GA ids,
+  // URLs and every free-text answer have no path into this object.
   const facts = {
     deterministic_score_0_100: score === null ? 'INSUFFICIENT DATA' : score,
     deterministic_zone: zone,
     scored_by_xray_questionnaire: score !== null,
-    risk_zones_from_questionnaire: asArray(diagnostic.risk_zones).slice(0, 5),
-    business_model: pick(pipe.business_model, diagnostic.business_model),
-    industry_category: pick(pipe.industry_category),
-    turnover_range: pick(pipe.turnover_range),
-    employees_range: pick(pipe.employees_range),
-    urgency: pick(diagnostic.urgency, pipe.urgency),
-    lead_priority_internal: pick(pipe.priority),
-    main_pain: pick(pipe.main_pain, diagnostic.main_pain),
-    selected_problems: asArray(pipe.selected_problems),
-    selected_goals: asArray(pipe.selected_goals),
-    documents_status: pick(pipe.documents_status),
-    documents_available: asArray(pipe.selected_documents),
-    work_interest: asArray(pipe.work_interest),
-    data_quality: pick(leadRow['Data Quality Hint'], raw.completion && raw.completion.data_quality_hint),
-    completion_score_percent: num(raw.completion && raw.completion.completion_score),
-    critical_flags: pick(pipe.critical_flags),
+    risk_zones_from_questionnaire: safeRiskCodes(diagnostic.risk_zones),
+    business_model_code: enumCode(pick(diagnostic.business_model_key, pipe.industry_category), BUSINESS_CODES),
+    lead_priority_code: enumCode(pipe.priority, PRIORITY_CODES, 'upper'),
+    data_quality_code: enumCode(pick(leadRow['Data Quality Hint'], raw.completion && raw.completion.data_quality_hint), DATA_QUALITY_CODES),
+    completion_score_percent: boundedPercent(raw.completion && raw.completion.completion_score),
     locale
   };
+  for (const key of Object.keys(facts)) if (facts[key] === undefined || (Array.isArray(facts[key]) && !facts[key].length)) delete facts[key];
+  const projection = { approved_business_financial_facts: facts };
 
-  const projection = {};
-  for (const section of ['answers', 'signals', 'diagnostic', 'business_profile', 'completion', 'main_pain', 'financial_system', 'intake', 'premium', 'brief']) {
-    const clean = sanitize(raw[section], 1);
-    if (clean !== undefined) projection[section] = clean;
-  }
-  const factsClean = sanitize(facts, 1) || {};
-  const leak = projectionLeak({ facts: factsClean, projection });
-  if (leak) continue; // fail closed: this lead is skipped this run and stays pending
-
-  out.push({
+  return {
     json: {
       lead_id: leadId,
       request_id: String(pipe.request_id || ''),
@@ -214,13 +167,13 @@ for (const pipe of pending) {
       created_at_lead: String(pipe.created_at || ''),
       score: score,
       zone,
-      risk_zones: facts.risk_zones_from_questionnaire,
-      input_digest_text: JSON.stringify({ facts: factsClean, projection }),
+      analysis_version: 'xray-v2',
+      claim_key: leadId + '|xray-v2',
+      risk_zones: facts.risk_zones_from_questionnaire || [],
+      input_digest_text: JSON.stringify(projection),
       ai_model: String(($('Settings to Object').first().json.settings || {}).xray_ai_model || 'gpt-4.1'),
       ai_system_prompt: systemPrompt(locale),
-      ai_user_prompt: userPrompt(locale, factsClean, projection)
+      ai_user_prompt: userPrompt(locale, facts, projection)
     }
-  });
+  };
 }
-
-return out;

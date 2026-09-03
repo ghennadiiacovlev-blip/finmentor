@@ -59,9 +59,10 @@ const RECEIPT_COLUMNS = ['submission_key', 'commit_state', 'canonical_lead_id', 
 // passes, including the owner. That is the correct direction: a forgotten substitution locks the
 // owner out of a test, whereas the opposite would open a customer surface.
 //
-// THIS GATE IS FOR UAT AND MUST BE REMOVED FOR CUSTOMER ACTIVATION. It is deliberately a single
-// named constant in one place so that removal is one substitution, not an archaeology exercise.
+// Tracked candidates remain OWNER_ONLY. Fable may resolve both endpoints to CUSTOMER in one
+// reviewed deployment only after every live C3 gate passes.
 export const OWNER_TELEGRAM_PLACEHOLDER = '__OWNER_TELEGRAM_ID__';
+export const RELEASE_MODE_PLACEHOLDER = '__MINIAPP_RELEASE_MODE__';
 
 const SETTINGS = {
   executionOrder: 'v1',
@@ -174,7 +175,11 @@ const errBody = (codeName, retryable) =>
 const SESSION_RESOLVE = [
   '// Resolve the app session from the OPAQUE id alone. No Telegram initData is accepted after',
   '// bootstrap: the session id IS the credential, and identity is read server-side from the row.',
-  'const body = $("Session Webhook").first().json.body || {};',
+  'const req = $("Session Webhook").first().json || {};',
+  'const body = req.body || {};',
+  'const origin = String((req.headers || {}).origin || "").toLowerCase();',
+  'if (!["https://finmentor.md", "https://www.finmentor.md"].includes(origin)) { return [{ json: { verdict: 0, error_code: "ORIGIN_REFUSED", status: 403 } }]; }',
+  'if (req.query && req.query.app_session_id) { return [{ json: { verdict: 0, error_code: "BAD_REQUEST", status: 400 } }]; }',
   'const id = String(body.app_session_id || "").trim();',
   'if (!/^AS-[0-9a-f]{64}$/.test(id)) { return [{ json: { verdict: 0, error_code: "BAD_REQUEST" } }]; }',
   'return [{ json: { verdict: 1, app_session_id: id, step: String(body.step || ""), fields: body.fields || {} } }];'
@@ -186,16 +191,20 @@ const SESSION_VERDICT = [
   '// `submitted` is terminal: a draft write after a committed submission is refused rather than',
   '// merged, because the alternative is a client quietly editing a request a consultant already',
   '// has. That is the same terminal rule the Telegram side enforces.',
-  'const rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || "").trim() !== "");',
+  'const allRows = $input.all().map(i => i.json);',
+  'if (allRows.some(r => r && (r.error || r.errorMessage))) { return [{ json: { ok: 0, error_code: "SESSION_STORE_UNAVAILABLE", retryable: true, status: 503 } }]; }',
+  'const rows = allRows.filter(r => r && String(r.app_session_id || "").trim() !== "");',
   'if (rows.length !== 1) { return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }]; }',
   'const s = rows[0];',
   '',
-  '// C3 — CUSTOMER PRODUCTION. The owner-only UAT gate that stood here is retired: the cycle is',
-  '// resolved server-side at bootstrap (C3.1), so ownership is the session itself. The session id',
-  '// is a 32-byte secret handed only to the Telegram user whose signed initData the Gateway',
-  '// verified and bound to this row; identity is never read from the caller.',
+  '// C3 WIP: the bearer is server-minted, and the explicit release mode stays OWNER_ONLY.',
   'if (String(s.telegram_user_id || "").trim() === "") {',
   '  return [{ json: { ok: 0, error_code: "SESSION_INVALID", status: 401 } }];',
+  '}',
+  'const RELEASE_MODE = "' + RELEASE_MODE_PLACEHOLDER + '";',
+  'const OWNER_ID = "' + OWNER_TELEGRAM_PLACEHOLDER + '";',
+  'if (RELEASE_MODE !== "CUSTOMER" && (!/^\\d+$/.test(OWNER_ID) || String(s.telegram_user_id) !== OWNER_ID)) {',
+  '  return [{ json: { ok: 0, error_code: "NOT_AUTHORISED", status: 403 } }];',
   '}',
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) {',
   '  return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }];',
@@ -229,6 +238,15 @@ const SESSION_VALIDATE = [
   'return [{ json: { ok: 1, draft_json: json, app_session_id: v.app_session_id } }];'
 ].join('\n');
 
+const VERIFY_DRAFT_PERSISTENCE = [
+  'const expected = $("Validate Draft").first().json;',
+  'const rows = $input.all().map(i => i.json);',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) return [{ json: { ok: 0, error_code: "DRAFT_STORE_UNAVAILABLE", retryable: true, status: 503 } }];',
+  'const row = rows.find(r => r && String(r.app_session_id || "") === String(expected.app_session_id));',
+  'if (!row || String(row.state || "") !== "draft" || String(row.draft_json || "") !== String(expected.draft_json || "")) return [{ json: { ok: 0, error_code: "DRAFT_PERSISTENCE_UNCONFIRMED", retryable: true, status: 503 } }];',
+  'return [{ json: { ok: 1 } }];'
+].join('\n');
+
 function sessionWorkflow() {
   y = 0;
   const nodes = [
@@ -251,7 +269,13 @@ function sessionWorkflow() {
       filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $json.app_session_id }}' }] },
       columns: { mappingMode: 'defineBelow', value: { draft_json: '={{ $json.draft_json }}', updated_at: '={{ new Date().toISOString() }}' }, schema: [] } },
       id: 'pux-write-draft', name: 'Save Draft', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [1540, 0],
-      onError: 'continueRegularOutput' },
+      onError: 'continueErrorOutput' },
+    { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $(\'Validate Draft\').first().json.app_session_id }}' }] } },
+      id: 'pux-readback-draft', name: 'Read Back Draft', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [1660, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    code('Verify Draft Persistence', VERIFY_DRAFT_PERSISTENCE),
+    ifNode('IF Draft Persisted', '={{ $json.ok }}', 1),
     respond('Respond Draft OK', 200, '={{ JSON.stringify({ ok: true }) }}'),
     respond('Respond Draft Rejected', 400, errBody('BAD_REQUEST', false)),
     respondEcho('Respond Session Invalid', 401),
@@ -266,7 +290,10 @@ function sessionWorkflow() {
     'IF Session Valid': { main: [[{ node: 'Validate Draft', type: 'main', index: 0 }], [{ node: 'Respond Session Invalid', type: 'main', index: 0 }]] },
     'Validate Draft': { main: [[{ node: 'IF Draft Valid', type: 'main', index: 0 }]] },
     'IF Draft Valid': { main: [[{ node: 'Save Draft', type: 'main', index: 0 }], [{ node: 'Respond Draft Rejected', type: 'main', index: 0 }]] },
-    'Save Draft': { main: [[{ node: 'Respond Draft OK', type: 'main', index: 0 }]] }
+    'Save Draft': { main: [[{ node: 'Read Back Draft', type: 'main', index: 0 }], [{ node: 'Respond Draft Unavailable', type: 'main', index: 0 }]] },
+    'Read Back Draft': { main: [[{ node: 'Verify Draft Persistence', type: 'main', index: 0 }]] },
+    'Verify Draft Persistence': { main: [[{ node: 'IF Draft Persisted', type: 'main', index: 0 }]] },
+    'IF Draft Persisted': { main: [[{ node: 'Respond Draft OK', type: 'main', index: 0 }], [{ node: 'Respond Draft Unavailable', type: 'main', index: 0 }]] }
   };
   return { name: SESSION_NAME, nodes: nodes, connections: connections, settings: JSON.parse(JSON.stringify(SETTINGS)) };
 }
@@ -280,7 +307,11 @@ const SUBMIT_GUARD = [
   '// whitelisted on arrival. Here the draft already lives server-side, so there is nothing to',
   '// whitelist because there is nothing to accept: an injected `answers` or `lead_id` is not',
   '// filtered, it is simply never looked at.',
-  'const body = $("Submit Webhook").first().json.body || {};',
+  'const req = $("Submit Webhook").first().json || {};',
+  'const body = req.body || {};',
+  'const origin = String((req.headers || {}).origin || "").toLowerCase();',
+  'if (!["https://finmentor.md", "https://www.finmentor.md"].includes(origin)) { return [{ json: { ok: 0, __status: 403, __response: { ok: false, error_code: "ORIGIN_REFUSED", retryable: false } } }]; }',
+  'if (req.query && req.query.app_session_id) { return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: "BAD_REQUEST", retryable: false } } }]; }',
   'const id = String(body.app_session_id || "").trim();',
   'const ack = body.privacy_ack || {};',
   'const iso = v => typeof v === "string" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);',
@@ -324,15 +355,19 @@ const SUBMIT_STATE = [
   '// A retry after an ambiguous outcome must return the PRIOR canonical success rather than',
   '// submitting again. `submitted` is terminal and nothing here moves it back to `draft`.',
   'const crypto = require("crypto");',
-  'const rows = $input.all().map(i => i.json).filter(r => r && String(r.app_session_id || "").trim() !== "");',
-  'const R = (status, code) => [{ json: { ok: 0, __status: status,',
-  '  __response: { ok: false, error_code: code, retryable: false } } }];',
+  'const allRows = $input.all().map(i => i.json);',
+  'const R = (status, code, retryable) => [{ json: { ok: 0, __status: status,',
+  '  __response: { ok: false, error_code: code, retryable: retryable === true } } }];',
+  'if (allRows.some(r => r && (r.error || r.errorMessage))) { return R(503, "SESSION_STORE_UNAVAILABLE", true); }',
+  'const rows = allRows.filter(r => r && String(r.app_session_id || "").trim() !== "");',
   'if (rows.length !== 1) { return R(401, "SESSION_INVALID"); }',
   'const s = rows[0];',
   '',
-  '// C3 — CUSTOMER PRODUCTION. The owner-only UAT gate is retired (see the Session endpoint for',
-  '// the reasoning). A row with no bound identity is not a session.',
+  '// C3 WIP: a row needs server-bound identity and must pass the retained release gate.',
   'if (String(s.telegram_user_id || "").trim() === "") { return R(401, "SESSION_INVALID"); }',
+  'const RELEASE_MODE = "' + RELEASE_MODE_PLACEHOLDER + '";',
+  'const OWNER_ID = "' + OWNER_TELEGRAM_PLACEHOLDER + '";',
+  'if (RELEASE_MODE !== "CUSTOMER" && (!/^\\d+$/.test(OWNER_ID) || String(s.telegram_user_id) !== OWNER_ID)) { return R(403, "NOT_AUTHORISED"); }',
   '',
   '// THE SUBMISSION IDENTITY. Derived, not minted and not stored.',
   'const submission_key = "sub_" + crypto.createHash("sha256")',
@@ -599,6 +634,17 @@ const SUBMIT_RESULT = [
   'return [{ json: { ok: 1, lead_id: String(b.lead_id || ""), priority: String(b.priority || ""), financial_zone: String(b.financial_zone || "") } }];'
 ].join('\n');
 
+const VERIFY_SUBMITTED_PERSISTENCE = [
+  'const expected = $("Parse Intake Result").first().json;',
+  'const sid = String($("Submit State").first().json.app_session_id || "");',
+  'const rows = $input.all().map(i => i.json);',
+  'const fail = code => [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: code, retryable: true } } }];',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) return fail("SUBMIT_STORE_UNAVAILABLE");',
+  'const row = rows.find(r => r && String(r.app_session_id || "") === sid);',
+  'if (!row || String(row.state || "") !== "submitted" || String(row.lead_id || "") !== String(expected.lead_id || "")) return fail("SUBMIT_PERSISTENCE_UNCONFIRMED");',
+  'return [{ json: { ok: 1 } }];'
+].join('\n');
+
 function submitWorkflow() {
   y = 0;
   const nodes = [
@@ -661,13 +707,20 @@ function submitWorkflow() {
         lead_id: '={{ $(\'Parse Intake Result\').first().json.lead_id }}',
         updated_at: '={{ new Date().toISOString() }}' }, schema: [] } },
       id: 'pux-mark-submitted', name: 'Mark Submitted', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [2200, 0],
-      onError: 'continueRegularOutput' },
+      onError: 'continueErrorOutput' },
+    { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $(\'Submit State\').first().json.app_session_id }}' }] } },
+      id: 'pux-readback-submitted', name: 'Read Back Submitted', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [2310, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    code('Verify Submitted Persistence', VERIFY_SUBMITTED_PERSISTENCE),
+    ifNode('IF Submitted Persisted', '={{ $json.ok }}', 1),
     respond('Respond Submit OK', 200, '={{ JSON.stringify({ ok: true, lead_id: $(\'Parse Intake Result\').first().json.lead_id, priority: $(\'Parse Intake Result\').first().json.priority, financial_zone: $(\'Parse Intake Result\').first().json.financial_zone, submit_state: \'submitted\' }) }}'),
     // NO separate 'Rejected' responder. It answered a hard-coded BAD_REQUEST 400 to everything on
     // the shape branch, which is the exact flattening this file warns about above respondEcho —
     // in the one place the warning had not been applied.
     respondTerminal('Respond Submit Terminal'),
-    respond('Respond Submit Unresolved', 503, errBody('SUBMIT_UNRESOLVED', true))
+    respond('Respond Submit Unresolved', 503, errBody('SUBMIT_UNRESOLVED', true)),
+    respond('Respond Submit Persistence Failure', 503, errBody('SUBMIT_PERSISTENCE_UNCONFIRMED', true))
   ];
   const connections = {
     'Submit Webhook': { main: [[{ node: 'Submit Guard', type: 'main', index: 0 }]] },
@@ -694,7 +747,10 @@ function submitWorkflow() {
     'Call Lead Intake': { main: [[{ node: 'Parse Intake Result', type: 'main', index: 0 }]] },
     'Parse Intake Result': { main: [[{ node: 'IF Intake OK', type: 'main', index: 0 }]] },
     'IF Intake OK': { main: [[{ node: 'Mark Submitted', type: 'main', index: 0 }], [{ node: 'Respond Submit Unresolved', type: 'main', index: 0 }]] },
-    'Mark Submitted': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }]] }
+    'Mark Submitted': { main: [[{ node: 'Read Back Submitted', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] },
+    'Read Back Submitted': { main: [[{ node: 'Verify Submitted Persistence', type: 'main', index: 0 }]] },
+    'Verify Submitted Persistence': { main: [[{ node: 'IF Submitted Persisted', type: 'main', index: 0 }]] },
+    'IF Submitted Persisted': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] }
   };
   return { name: SUBMIT_NAME, nodes: nodes, connections: connections, settings: JSON.parse(JSON.stringify(SETTINGS)) };
 }
@@ -743,6 +799,7 @@ export const PROJECTION_MARKER = '__PREMIUM_SUBMIT_PROJECTION__';
 export function resolveEndpoint(wf, opts) {
   const o = opts || {};
   let text = JSON.stringify(wf);
+  text = text.split(RELEASE_MODE_PLACEHOLDER).join(o.releaseMode === 'CUSTOMER' ? 'CUSTOMER' : 'OWNER_ONLY');
   if (o.ownerId) { text = text.split(OWNER_TELEGRAM_PLACEHOLDER).join(String(o.ownerId)); }
   if (o.leadIntakeId) { text = text.split(LEAD_INTAKE_PLACEHOLDER).join(String(o.leadIntakeId)); }
   if (o.privacyCredId) { text = text.split(PRIVACY_CRED_PLACEHOLDER).join(String(o.privacyCredId)); }
@@ -797,6 +854,9 @@ export function verifyEndpoint(wf, kind) {
   if (wf.settings.availableInMCP !== false) { f.push('candidate is exposed to MCP'); }
   if (wf.name.indexOf('[CANDIDATE]') !== 0) { f.push('candidate is not named as a candidate'); }
   if (Object.prototype.hasOwnProperty.call(wf, 'active')) { f.push('candidate ships an active flag'); }
+  if (json.indexOf(RELEASE_MODE_PLACEHOLDER) === -1) { f.push('tracked candidate lost the release-mode placeholder'); }
+  if (json.indexOf(OWNER_TELEGRAM_PLACEHOLDER) === -1) { f.push('tracked candidate lost the owner id placeholder'); }
+  if (json.indexOf('NOT_AUTHORISED') === -1) { f.push('tracked candidate lost the owner-only release gate'); }
 
   if (kind === 'session') {
     // A draft write must never touch consent, a lead, or the CRM.
@@ -814,10 +874,7 @@ export function verifyEndpoint(wf, kind) {
     // Idempotency is the unique index plus 23505 handling, NOT ON CONFLICT: measured against the
     // real writer role, ON CONFLICT needs SELECT and the writer is granted INSERT only.
     if (/on conflict/i.test(json)) { f.push('the privacy insert uses ON CONFLICT, which needs a SELECT the writer must not have'); }
-    // C3 — customer production: the owner-only UAT gate must be GONE, no owner id may be baked
-    // in, and identity must still be read from the SERVER-stored row only.
-    if (json.indexOf('NOT_AUTHORISED') !== -1) { f.push('the owner-only UAT gate is back'); }
-    if (json.indexOf(OWNER_TELEGRAM_PLACEHOLDER) !== -1) { f.push('the owner id placeholder is back'); }
+    // Identity and release mode are both server-side. Tracked source remains OWNER_ONLY.
     if (!/s\.telegram_user_id/.test(json)) { f.push('the endpoint does not read the server-stored telegram_user_id'); }
     if (/\"\\d{6,}\"/.test(json)) { f.push('a literal Telegram id is baked into the candidate'); }
     if (json.indexOf('privacy.privacy_acknowledgements') === -1) { f.push('the privacy insert does not target the privacy schema'); }

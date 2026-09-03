@@ -58,6 +58,7 @@ export const PREMIUM_SESSION = 'Get Bot Session (Premium)';
 export const BUILD_ROW = 'Build Session Row';
 export const SAVE_SESSION = 'Save Bot Session';
 export const PROJECT_NODE = 'Project Cycle';
+export const PREP_NODE = 'Prepare Cycle Projection';
 export const GUARD_NODE = 'Cycle Projection Guard';
 export const PROJECTION_TABLE = 'MiniApp_Cycle_Projection';
 
@@ -141,13 +142,31 @@ export const GUARD_CODE = [
   "const g = ($('" + PREMIUM_SESSION + "').isExecuted ? $('" + PREMIUM_SESSION + "') : $('Get Bot Session')).first().json || {};",
   'const item = $input.first().json || {};',
   'const failed = !!(item.error || item.errorMessage);',
-  "const rotated = String(g.cycle_reset || '') !== '';",
-  'if (failed && rotated) {',
+  '// Any projection-store error is an outage, never a NO ROW result. Abort before Bot_Sessions.',
+  'if (failed) {',
   "  const detail = String((item.error && item.error.message) || item.errorMessage || item.error || 'unknown').slice(0, 200);",
-  "  throw new Error('CYCLE_PROJECTION_FAILED: the cycle rotated (' + String(g.cycle_reset) + ') but the projection could not be written; the rotation is NOT persisted. ' + detail);",
+  "  throw new Error('CYCLE_PROJECTION_FAILED: projection authority was not persisted. ' + detail);",
   '}',
   'return [{ json: row }];'
 ].join('\n');
+
+export const PROJECTION_INPUT_CODE = [
+  '// Immutable per-cycle authority: a delayed old turn can update only its own key.',
+  "const row = $('" + BUILD_ROW + "').first().json || {};",
+  "const g = ($('" + PREMIUM_SESSION + "').isExecuted ? $('" + PREMIUM_SESSION + "') : $('Get Bot Session')).first().json || {};",
+  "const user = String(row.user_id || row.chat_id || '').trim();",
+  "const cycle = String(row.cycle_id || g.cycle_id || '').trim();",
+  "const match = cycle.match(/^C-([0-9]+)-([0-9]+)$/);",
+  "if (!user || !match || match[1] !== user) throw new Error('CYCLE_PROJECTION_INVALID');",
+  'return [{ json: { authority_key: user + "|" + cycle, telegram_user_id: user, cycle_id: cycle, cycle_sequence: match[2], cycle_reset: String(g.cycle_reset || ""), projected_at: new Date().toISOString() } }];'
+].join('\n');
+
+export function projectionInputNode(position) {
+  return {
+    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: PROJECTION_INPUT_CODE },
+    id: 'c3-prepare-cycle', name: PREP_NODE, type: 'n8n-nodes-base.code', typeVersion: 2, position
+  };
+}
 
 export function projectionNode(position) {
   return {
@@ -155,19 +174,23 @@ export function projectionNode(position) {
       resource: 'row', operation: 'upsert',
       dataTableId: { __rl: true, mode: 'name', value: PROJECTION_TABLE },
       matchType: 'allConditions',
-      filters: { conditions: [{ keyName: 'telegram_user_id', condition: 'eq', keyValue: '={{ String($json.user_id || $json.chat_id || "") }}' }] },
+      filters: { conditions: [{ keyName: 'authority_key', condition: 'eq', keyValue: '={{ $json.authority_key }}' }] },
       columns: {
         mappingMode: 'defineBelow',
         matchingColumns: [],
         value: {
-          telegram_user_id: '={{ String($json.user_id || $json.chat_id || "") }}',
-          cycle_id: '={{ String($json.cycle_id || "") }}',
-          cycle_reset: '={{ String($json.cycle_reset || "") }}',
-          projected_at: '={{ $now.toISO() }}'
+          authority_key: '={{ $json.authority_key }}',
+          telegram_user_id: '={{ $json.telegram_user_id }}',
+          cycle_id: '={{ $json.cycle_id }}',
+          cycle_sequence: '={{ $json.cycle_sequence }}',
+          cycle_reset: '={{ $json.cycle_reset }}',
+          projected_at: '={{ $json.projected_at }}'
         },
         schema: [
+          { id: 'authority_key', displayName: 'authority_key', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true },
           { id: 'telegram_user_id', displayName: 'telegram_user_id', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true },
           { id: 'cycle_id', displayName: 'cycle_id', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true },
+          { id: 'cycle_sequence', displayName: 'cycle_sequence', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true },
           { id: 'cycle_reset', displayName: 'cycle_reset', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true },
           { id: 'projected_at', displayName: 'projected_at', required: false, defaultMatch: false, display: true, type: 'string', canBeUsedToMatch: true }
         ]
@@ -193,21 +216,23 @@ export function patchConcierge(live) {
   const w = JSON.parse(JSON.stringify(live));
   const byName = (n) => w.nodes.find((x) => x.name === n);
   for (const n of [PREMIUM_SESSION, BUILD_ROW, SAVE_SESSION]) { if (!byName(n)) { throw new Error('missing anchor node: ' + n); } }
-  if (byName(PROJECT_NODE) || byName(GUARD_NODE)) { throw new Error('the projection nodes already exist'); }
+  if (byName(PREP_NODE) || byName(PROJECT_NODE) || byName(GUARD_NODE)) { throw new Error('the projection nodes already exist'); }
 
   const ps = byName(PREMIUM_SESSION);
   ps.parameters.jsCode = splicePremiumSession(ps.parameters.jsCode);
 
   const br = byName(BUILD_ROW);
   const pos = br.position || [0, 0];
-  w.nodes.push(projectionNode([pos[0] + 200, pos[1] + 160]));
-  w.nodes.push(guardNode([pos[0] + 400, pos[1] + 160]));
+  w.nodes.push(projectionInputNode([pos[0] + 180, pos[1] + 160]));
+  w.nodes.push(projectionNode([pos[0] + 380, pos[1] + 160]));
+  w.nodes.push(guardNode([pos[0] + 580, pos[1] + 160]));
 
   const edge = (w.connections[BUILD_ROW] || {}).main;
   if (!edge || edge.length !== 1 || edge[0].length !== 1 || edge[0][0].node !== SAVE_SESSION) {
     throw new Error(BUILD_ROW + ' does not feed ' + SAVE_SESSION + ' alone — the graph is not in the expected form');
   }
-  w.connections[BUILD_ROW] = { main: [[{ node: PROJECT_NODE, type: 'main', index: 0 }]] };
+  w.connections[BUILD_ROW] = { main: [[{ node: PREP_NODE, type: 'main', index: 0 }]] };
+  w.connections[PREP_NODE] = { main: [[{ node: PROJECT_NODE, type: 'main', index: 0 }]] };
   w.connections[PROJECT_NODE] = { main: [
     [{ node: GUARD_NODE, type: 'main', index: 0 }],   // success
     [{ node: GUARD_NODE, type: 'main', index: 0 }]    // error: the guard decides
@@ -219,9 +244,9 @@ export function patchConcierge(live) {
 export function verifyPatched(live, patched) {
   const f = [];
   const changed = patched.nodes.filter((n) => JSON.stringify(n) !== JSON.stringify(live.nodes.find((x) => x.name === n.name))).map((n) => n.name).sort();
-  const want = [GUARD_NODE, PREMIUM_SESSION, PROJECT_NODE].sort();
+  const want = [GUARD_NODE, PREMIUM_SESSION, PREP_NODE, PROJECT_NODE].sort();
   if (JSON.stringify(changed) !== JSON.stringify(want)) { f.push('changed nodes: ' + changed.join(', ') + ' (want ' + want.join(', ') + ')'); }
-  if (patched.nodes.length !== live.nodes.length + 2) { f.push('node count ' + live.nodes.length + ' -> ' + patched.nodes.length); }
+  if (patched.nodes.length !== live.nodes.length + 3) { f.push('node count ' + live.nodes.length + ' -> ' + patched.nodes.length); }
   for (const s of Object.keys(live.connections)) {
     if (s === BUILD_ROW) { continue; }
     if (JSON.stringify(live.connections[s]) !== JSON.stringify(patched.connections[s])) { f.push('edge moved: ' + s); }

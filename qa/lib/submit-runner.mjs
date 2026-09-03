@@ -30,6 +30,7 @@ export function loadResolvedSubmit(M, opts) {
   const wf = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-submit-endpoint-candidate.json'), 'utf8'));
   return M.resolveEndpoint(wf, {
     ownerId: o.ownerId || '551662084',
+    releaseMode: o.releaseMode || 'OWNER_ONLY',
     leadIntakeId: o.leadIntakeId || 'QmIyEW2ZEqKregmN',
     privacyCredId: o.privacyCredId || 'PRIVACY_CRED'
   });
@@ -112,7 +113,7 @@ export function runSubmit(wf, world, body, faults) {
   };
 
   let cursor = 'Submit Webhook';
-  outputs['Submit Webhook'] = [{ body: body, headers: { 'content-type': 'application/json' } }];
+  outputs['Submit Webhook'] = [{ body: body, query: {}, headers: { 'content-type': 'application/json', origin: 'https://www.finmentor.md' } }];
   let input = outputs['Submit Webhook'];
   let response = null;
   let guard = 0;
@@ -143,15 +144,13 @@ export function runSubmit(wf, world, body, faults) {
       const table = node.parameters.dataTableId.value;
       const key = evalExpr(node.parameters.filters.conditions[0].keyValue, { $json: input[0], $ });
       let rows;
-      if (table === 'Submission_Receipts') {
+      if (shouldFail(faults, cursor)) {
+        outputs[cursor] = [{ error: 'data table unavailable' }];
+        input = outputs[cursor];
+        rows = null;
+      } else if (table === 'Submission_Receipts') {
         world.calls.receiptRead++;
-        if (shouldFail(faults, cursor)) {
-          outputs[cursor] = [{ error: 'data table unavailable' }];
-          input = outputs[cursor];
-          rows = null;
-        } else {
-          rows = world.receipts.filter((r) => String(r.submission_key) === String(key));
-        }
+        rows = world.receipts.filter((r) => String(r.submission_key) === String(key));
       } else {
         rows = world.sessions.filter((r) => String(r.app_session_id) === String(key));
       }
@@ -184,6 +183,7 @@ export function runSubmit(wf, world, body, faults) {
       if (shouldFail(faults, cursor)) {
         outputs[cursor] = [{ error: 'data table unavailable' }];
         input = outputs[cursor];
+        if (node.onError === 'continueErrorOutput') branch = 1;
       } else {
         const key = evalExpr(node.parameters.filters.conditions[0].keyValue, { $json: input[0], $ });
         const row = world.sessions.find((r) => String(r.app_session_id) === String(key));

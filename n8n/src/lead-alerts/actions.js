@@ -15,6 +15,7 @@
 // changes, the confirmations become truthful, and the writes stop carrying fifteen pre-read
 // columns. The callback_data strings are byte-identical to what is already in production, so every
 // historical Telegram message keeps working.
+// __CRM_STAGE_RESOLVER__
 const LAA = (function () {
   'use strict';
 
@@ -59,7 +60,7 @@ const LAA = (function () {
   // Terminal states carry NO keyboard. Only existing Pipeline values are read — no new taxonomy,
   // no new column.
   var TERMINAL_SLA = ['done', 'nurture'];
-  var TERMINAL_STAGE = ['nurture', 'won'];
+  var TERMINAL_STAGE = ['nurture', 'won', 'lost', 'closed'];
 
   // The state an action would set. An action whose result is already the current state is hidden
   // from the keyboard and refused harmlessly by the handler (D11) — the two must agree, which is
@@ -74,7 +75,8 @@ const LAA = (function () {
   function isTerminal(state) {
     var s = state || {};
     return TERMINAL_SLA.indexOf(norm(s.sla_status)) !== -1
-      || TERMINAL_STAGE.indexOf(norm(s.deal_stage)) !== -1;
+      || TERMINAL_STAGE.indexOf(norm(s.deal_stage)) !== -1
+      || (typeof CRM_STAGE_RESOLVER !== 'undefined' && CRM_STAGE_RESOLVER.isTerminalStage(s.deal_stage));
   }
 
   // The actions this alert should offer, given what the lead already is.
