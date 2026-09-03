@@ -220,3 +220,19 @@ Expected: `MiniApp_Cycle_Projection` gains row 2 with `cycle_reset 'start'`, a N
 `authority_key = 551662084|C-551662084-<new ms>` and `cycle_sequence` > `1787947744615`; row 1 is
 untouched. Then open the Mini App from the bot: the Gateway must mint a session whose `cycle_id` is
 the NEW cycle, and the submitted draft of `AS-09f4c25b…` (old cycle) must not be offered.
+
+## Fresh-read 2026-09-03 18:52–18:54 UTC — step 3 ready, nothing drifted since the rotation proof
+
+| check | result |
+|---|---|
+| Concierge `mppzthlkSJFr6Kle` | 60 nodes, active, unchanged since the 18:42:37 C3.2 deploy |
+| Gateway `nTZHLbv2KFggdhh5` | 32 nodes, active, unchanged since 17:24:47 |
+| Session `Hxje3Kel6nLLod5B` / Submit `ELiPdw4mdxQbBaan` | 14 / 28 nodes, active, unchanged since 08-31 17:46 (pre-C3) |
+| X-Ray `tNSMRoKlFB52vjge` / host `KBD7Q94QQnlzgYKJ` | 29 / 2 nodes, active, unchanged (09-03 10:51 / 08-30 18:43) |
+| `deploy-c3-endpoints --dry-run` | PASS: session 14 -> 17, submit 28 -> 32, `RELEASE: OWNER_ONLY`, both rollback artefacts unchanged (sha `10a96453c270`, `40a60e78512c`) |
+| `deploy-c3-xray --dry-run` | PASS: 29 -> 37, 19 live nodes byte-identical to the offline compiler, rollback unchanged |
+| `deploy-c3-miniapp-host --dry-run` | PASS: three endpoint URLs read back from the live page, `1789e00e080d837b -> 6d3afe66e911a89e`, rollback unchanged |
+| `node qa/run-all.mjs` | 69/69, 2508 assertions, floors PASS |
+
+Next owner command (step 3): `! node scripts/deploy-c3-endpoints.mjs --confirm` — then the step 3
+live proof (Save Draft read-back, Submit → «Принято», reopen → committed screen, 403 for non-owners).
