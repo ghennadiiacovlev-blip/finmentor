@@ -219,7 +219,9 @@ if (isMain) {
   if (!after.active) { bad('the Gateway is NOT active'); } else { ok('Gateway active'); }
   if (after.name !== GATEWAY_NAME) { bad('renamed'); }
   const bs = after.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode;
-  if (/cycle_id:\s*''/.test(bs.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n'))) { bad('the live Build App Session still stamps an empty cycle'); }
+  // The refusal items (cycle_store_error, cycle_unresolved) carry cycle_id '' by design; only the
+  // SESSION ROW may never. Same pattern as qa/premium-ux-resume.test.mjs.
+  if (/cycle_id:\s*'',\s*\n\s*replay_key/.test(bs.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n'))) { bad('the live Build App Session still stamps an empty cycle on the session row'); }
   else { ok('live Build App Session resolves the cycle from ' + CYCLE_PROJECTION_TABLE); }
   say('');
   say('  rollback: PUT /api/v1/workflows/' + GATEWAY_ID + ' with .uat/' + GATEWAY_ID + '.pre-c3-cycle.json');
