@@ -121,8 +121,11 @@ const ownerAlert = node({
       text: expr("{{ $('Validate + Store Rows').item.json.owner_alert.text }}"),
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
-        { row: { buttons: [ { text: '✅ Проверить анализ', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } },
-        { row: { buttons: [ { text: '📊 Карточка лида', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.crm_url }}") } } ] } }
+        // style (Bot API): success = the affirmative review action, primary = the forward navigation.
+        // The n8n Telegram node copies additionalFields onto the button verbatim, so the key reaches
+        // Telegram unchanged; callback-less URL buttons keep their url exactly as before.
+        { row: { buttons: [ { text: '✅ Проверить анализ', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}"), style: 'success' } } ] } },
+        { row: { buttons: [ { text: '📊 Карточка лида', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.crm_url }}"), style: 'primary' } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: { telegramApi: { id: 'Mj41qrGHfrthCtAw', name: 'FINMENTOR Leads Bot FINAL' } } },

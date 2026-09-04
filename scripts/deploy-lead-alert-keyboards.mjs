@@ -100,7 +100,10 @@ const ACTIONS_SRC = inlineCrmStageResolver(
   readFileSync(join(ROOT, 'n8n', 'src', 'crm', 'stage-map.js'), 'utf8').replace(/\r\n/g, '\n'));
 const LAA = new Function(ACTIONS_SRC + '; return LAA;')();
 
-const btn = (text, cb) => ({ text, additionalFields: { callback_data: cb } });
+// `style` (Bot API: primary | success | danger) is carried only when the module's policy sets one.
+// A neutral button must ship NO style key: an empty value is not a valid style and Telegram
+// answers 400. The n8n Telegram node copies additionalFields onto the button verbatim.
+const btn = (text, cb, style) => ({ text, additionalFields: style ? { callback_data: cb, style } : { callback_data: cb } });
 const rowsParam = (rows) => ({ rows: rows.map((r) => ({ row: { buttons: r } })) });
 
 // NEW LEAD: the four actions are fixed, so the labels and callbacks are literals and the only
@@ -108,7 +111,7 @@ const rowsParam = (rows) => ({ rows: rows.map((r) => ({ row: { buttons: r } })) 
 function newLeadKeyboard() {
   const k = LAA.keyboard('new_lead', { deal_stage: 'Qualified', sla_status: 'Active' }, '__ID__');
   if (LAA.shape(k) !== 'KB22') { die('the module no longer yields KB22 for a HOT new lead'); }
-  return rowsParam(k.map((row) => row.map((b) => btn(b.text, '=' + b.callback_data.replace('__ID__', '{{$json.lead_id}}')))));
+  return rowsParam(k.map((row) => row.map((b) => btn(b.text, '=' + b.callback_data.replace('__ID__', '{{$json.lead_id}}'), b.style))));
 }
 
 // SLA / FOLLOWUP: the row CONTENT varies, so each slot is filled from the computed `kb` array —

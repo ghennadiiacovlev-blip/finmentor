@@ -1485,7 +1485,8 @@
                   {
                     "text": "📞 Discovery",
                     "additionalFields": {
-                      "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled"
+                      "callback_data": "=stage|{{$json.lead_id}}|Discovery Scheduled",
+                      "style": "primary"
                     }
                   },
                   {
@@ -1695,7 +1696,8 @@
           "id": "Mj41qrGHfrthCtAw",
           "name": "FINMENTOR Leads Bot FINAL"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {

@@ -32,6 +32,26 @@ const LAA = (function () {
     nurture: '🗂 В наблюдение'
   };
 
+  // ── D3b — button STYLE (owner decision 2026-09-04) ───────────────────────────────────────────
+  //
+  // Bot API `InlineKeyboardButton.style`: one of 'primary' (blue), 'success' (green), 'danger'
+  // (red). Omitted means the client's own style, which is what a neutral button must keep — an
+  // empty string is NOT a valid value and Telegram answers 400, so a button with no policy entry
+  // carries no `style` key at all rather than an empty one.
+  //
+  // THE POLICY, and the reason it is this short. One emphasised action per purpose:
+  //   success  the affirmative close — «Обработано» ends the SLA handling;
+  //   primary  the principal forward move — «Discovery» is the call the owner is being asked to book;
+  //   default  everything else: postponing, asking for documents, parking the lead.
+  // No danger: nothing on an owner alert deletes or is irreversible. Colour never encodes
+  // HOT/WARM/COLD or the financial zone — those stay words in the message body.
+  var STYLE = {
+    done: 'success',
+    discovery: 'primary'
+    // snooze, docs, nurture: deliberately absent — neutral.
+  };
+  var STYLE_VALUES = ['primary', 'success', 'danger'];
+
   // ── callback_data is PRESERVED VERBATIM ──────────────────────────────────────────────────────
   //
   // The handler contract is already correct, so renaming a callback for presentation would break
@@ -109,7 +129,10 @@ const LAA = (function () {
     for (var i = 0; i < actions.length; i += 2) {
       var row = [];
       for (var j = i; j < i + 2 && j < actions.length; j++) {
-        row.push({ action: actions[j], text: LABEL[actions[j]], callback_data: callbackData(actions[j], leadId) });
+        var b = { action: actions[j], text: LABEL[actions[j]], callback_data: callbackData(actions[j], leadId) };
+        // Only a real policy entry adds the key; a neutral button must not carry style at all.
+        if (STYLE[actions[j]]) { b.style = STYLE[actions[j]]; }
+        row.push(b);
       }
       rows.push(row);
     }
@@ -539,6 +562,8 @@ const LAA = (function () {
 
   return {
     LABEL: LABEL,
+    STYLE: STYLE,
+    STYLE_VALUES: STYLE_VALUES,
     SET: SET,
     OWNED: OWNED,
     TERMINAL_SLA: TERMINAL_SLA,
