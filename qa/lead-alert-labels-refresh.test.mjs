@@ -17,6 +17,9 @@ import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { sources, splitNode, refreshWorkflow, verifyRefresh, WORKFLOWS, OLD_LABEL, NEW_LABEL } from '../scripts/refresh-lead-alert-labels.mjs';
 
+// The line the actions module ends with, used to lift just the module out of a node body.
+const END_ACTIONS = '// =================== END FINMENTOR LEAD ALERT ACTIONS ===================';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
@@ -90,16 +93,58 @@ check('the refreshed Command Center still decides and rebuilds keyboards with th
   eq(JSON.stringify(kb.map((r) => r.map((b) => b.callback_data))), JSON.stringify([['done|FIN-1', 'snooze|FIN-1|24'], ['stage|FIN-1|Discovery Scheduled', 'docs|FIN-1'], ['nurture|FIN-1']]), 'keyboard callbacks');
 });
 
-check('the three keyboard candidates are current: refresh is a no-op on them, and no old label survives', () => {
+// GATE 2, 2026-09-04. The keyboard-only workflows (SLA, Follow-up) deliberately still carry the
+// PRE-terminal-close copy of the actions module: the owner scoped the Won/Lost correction to the
+// Command Center, so those two were not redeployed. That is a real, bounded divergence and it is
+// asserted as such rather than waved through — the only permitted difference is the terminal-close
+// addition, and the KEYBOARD OUTPUT they actually use must stay byte-identical.
+const TERMINAL_ONLY = ['COMMAND_ONLY', 'storedTerminalStage', "if (c === 'won')", "if (c === 'lost')"];
+
+check('the keyboard candidates diverge from the module ONLY by the terminal close, with identical keyboards', () => {
   for (const spec of WORKFLOWS.filter((w) => w.label !== 'Command Center')) {
     const cand = load(spec.candidate);
     const r = refreshWorkflow(cand, spec, SRC);
-    eq(JSON.stringify(r.touched), '[]', spec.label + ' touched');
-    eq(verifyRefresh(cand, r.next, spec, SRC).join(' | '), '', spec.label + ' verify');
     assert(!JSON.stringify(cand).includes(OLD_LABEL), spec.label + ' carries the old label');
+    if (!spec.codeNodes.length) { eq(JSON.stringify(r.touched), '[]', spec.label + ' touched'); continue; }
+    // Whatever the refresh would change must be the terminal close and nothing else.
+    for (const name of spec.codeNodes) {
+      const before = byName(cand, name).parameters.jsCode;
+      const after = byName(r.next, name).parameters.jsCode;
+      for (const token of TERMINAL_ONLY) {
+        assert(before.indexOf(token) === -1, spec.label + '/' + name + ' already carries ' + token);
+        assert(after.indexOf(token) !== -1, spec.label + '/' + name + ' refresh did not add ' + token);
+      }
+      // The keyboard each side produces — the ONLY thing these nodes consume — must be identical.
+      const kbOf = (code) => {
+        const head = code.slice(0, code.indexOf(END_ACTIONS) + END_ACTIONS.length);
+        const M = new Function(head + '\n; return LAA;')();
+        const out = [];
+        for (const kind of ['new_lead', 'priority', 'followup']) {
+          for (const st of ['New', 'Qualified', 'Discovery Scheduled', 'Documents Requested', 'Won', 'Lost', 'Nurture', 'ceva necunoscut']) {
+            const rows = M.keyboard(kind, { deal_stage: st, sla_status: 'Active' }, 'FIN-1');
+            out.push([kind, st, M.shape(rows), rows.map((rr) => rr.map((b) => [b.text, b.callback_data]))]);
+          }
+        }
+        return JSON.stringify(out);
+      };
+      eq(kbOf(after), kbOf(before), spec.label + '/' + name + ': the terminal close changed a keyboard');
+    }
   }
+  // The Command Center's LABELS candidate is the artifact of the earlier label checkpoint. It is
+  // deliberately left at that point in time — the terminal close ships through its own candidate
+  // (.uat/<id>.terminal-close-candidate.json), and back-dating this one would misrepresent what
+  // the label deploy actually contained. So the same bounded rule applies: the only thing a
+  // refresh would add is the terminal close.
   const cc = load('lead-command-center-labels-candidate.json');
-  eq(JSON.stringify(refreshWorkflow(cc, CC_SPEC, SRC).touched), '[]', 'Command Center labels candidate is not current');
+  const ccRefreshed = refreshWorkflow(cc, CC_SPEC, SRC);
+  for (const name of CC_SPEC.codeNodes) {
+    const before = byName(cc, name).parameters.jsCode;
+    const after = byName(ccRefreshed.next, name).parameters.jsCode;
+    for (const token of TERMINAL_ONLY) {
+      assert(before.indexOf(token) === -1, 'CC labels candidate already carries ' + token);
+      assert(after.indexOf(token) !== -1, 'CC labels candidate refresh did not add ' + token);
+    }
+  }
   assert(!JSON.stringify(cc).includes(OLD_LABEL), 'Command Center labels candidate carries the old label');
 });
 

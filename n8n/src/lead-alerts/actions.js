@@ -80,6 +80,10 @@ const LAA = (function () {
 
   // Terminal states carry NO keyboard. Only existing Pipeline values are read — no new taxonomy,
   // no new column.
+  // GATE 2: actions the owner reaches only by typing a command. They are deliberately absent from
+  // every SET, so they must be exempt from the keyboard-membership test in refuseReason().
+  var COMMAND_ONLY = ['won', 'lost'];
+
   var TERMINAL_SLA = ['done', 'nurture'];
   var TERMINAL_STAGE = ['nurture', 'won', 'lost', 'closed'];
 
@@ -164,7 +168,13 @@ const LAA = (function () {
     snooze: ['sla_snooze_until', 'next_follow_up_at'],
     discovery: ['deal_stage'],
     docs: ['deal_stage', 'documents_requested_at', 'next_follow_up_at'],
-    nurture: ['deal_stage', 'sla_status']
+    nurture: ['deal_stage', 'sla_status'],
+    // GATE 2. A close moves the stage and takes the lead out of the SLA queue, using the columns
+    // that already exist. `close_reason` IS a Pipeline column and the parser already supplies it,
+    // so it is preserved when given and never required. `deal_value` is NOT a Pipeline column
+    // (verified against the live sheet), so it is not written and not invented.
+    won: ['deal_stage', 'sla_status'],
+    lost: ['deal_stage', 'sla_status', 'close_reason']
   };
 
   // The callback verb the handler receives -> the action this module reasons about. `stage` is the
@@ -176,6 +186,13 @@ const LAA = (function () {
     if (c === 'docs') { return 'docs'; }
     if (c === 'nurture') { return 'nurture'; }
     if (c === 'stage' && norm(stageValue) === 'discovery scheduled') { return 'discovery'; }
+    // GATE 2, 2026-09-04. The two TERMINAL closes. They are command-only by owner decision D1 —
+    // no keyboard emits them, because closing a deal is not a one-tap action from an alert. The
+    // live parser already accepted `won` and `lost` and routed them to update mode; this mapping
+    // is the missing half, without which the handler refused UNKNOWN_ACTION and wrote nothing,
+    // leaving every lead in the active pipeline for ever.
+    if (c === 'won') { return 'won'; }
+    if (c === 'lost') { return 'lost'; }
     return '';
   }
 
@@ -183,7 +200,15 @@ const LAA = (function () {
 
   // Builds the update. `nowIso` is passed in rather than read from the clock so the gate can prove
   // the arithmetic instead of tolerating it.
-  function buildUpdate(action, leadId, nowIso) {
+  var TERMINAL_STORED = { won: 'Won', lost: 'Lost' };
+  function storedTerminalStage(action) {
+    var key = action === 'won' ? 'WON' : 'LOST';
+    if (typeof CRM_STAGE_RESOLVER !== 'undefined' && CRM_STAGE_RESOLVER.STAGE_TO_STORED
+      && CRM_STAGE_RESOLVER.STAGE_TO_STORED[key]) { return CRM_STAGE_RESOLVER.STAGE_TO_STORED[key]; }
+    return TERMINAL_STORED[action];
+  }
+
+  function buildUpdate(action, leadId, nowIso, opts) {
     var now = new Date(nowIso);
     var iso = now.toISOString();
     var upd = { lead_id: String(leadId == null ? '' : leadId) };
@@ -203,6 +228,20 @@ const LAA = (function () {
       upd.deal_stage = 'Documents Requested';
       upd.documents_requested_at = iso;
       upd.next_follow_up_at = new Date(now.getTime() + 48 * HOUR).toISOString();
+    } else if (action === 'won' || action === 'lost') {
+      // The stored value comes from the CRM resolver's own STAGE_TO_STORED table, so the funnel,
+      // the Dashboard and a later `stage <ID> <text>` all keep matching. The literal fallback is
+      // only for the offline harnesses that load this module without the resolver inlined; the
+      // gate proves the two agree, so they cannot drift.
+      upd.deal_stage = storedTerminalStage(action);
+      // Out of the active SLA queue through the EXISTING contract — the same value «Обработано»
+      // writes. No new terminal marker is invented: SLA Select already stops on the stage itself.
+      upd.sla_status = 'Done';
+      if (action === 'lost') {
+        var reason = String((opts && opts.closeReason) == null ? '' : opts.closeReason).trim();
+        // Never required, never fabricated: written only when the owner actually supplied one.
+        if (reason) { upd.close_reason = reason; }
+      }
     } else if (action === 'nurture') {
       upd.deal_stage = 'Nurture';
       upd.sla_status = 'Nurture';
@@ -223,6 +262,10 @@ const LAA = (function () {
     if (action === 'discovery') { return norm(r.deal_stage) === 'discovery scheduled'; }
     if (action === 'docs') { return norm(r.deal_stage) === 'documents requested'; }
     if (action === 'nurture') { return norm(r.deal_stage) === 'nurture' && norm(r.sla_status) === 'nurture'; }
+    // Belt and braces for the closes. isTerminal() already refuses a second close with TERMINAL
+    // before this is reached; this keeps the answer right if the order ever changes.
+    if (action === 'won') { return norm(r.deal_stage) === 'won'; }
+    if (action === 'lost') { return norm(r.deal_stage) === 'lost' || norm(r.deal_stage) === 'closed'; }
     // Snooze is deliberately NOT idempotent-by-state: «отложить ещё на 24 часа» is a real
     // instruction, and refusing it because the lead is already Snoozed would be wrong. It is safe
     // to repeat because it re-bases from the tap time rather than compounding.
@@ -239,7 +282,9 @@ const LAA = (function () {
     if (!action) { return 'UNKNOWN_ACTION'; }
     if (isTerminal(row)) { return 'TERMINAL'; }
     if (alreadyApplied(action, row)) { return 'ALREADY_APPLIED'; }
-    if (kind && chooseActions(kind, row).indexOf(action) === -1) { return 'STATE_CHANGED'; }
+    // A command-only action is never on a keyboard, so keyboard membership cannot be its test.
+    // Checking it anyway is what would refuse every close as STATE_CHANGED.
+    if (kind && COMMAND_ONLY.indexOf(action) === -1 && chooseActions(kind, row).indexOf(action) === -1) { return 'STATE_CHANGED'; }
     return '';
   }
 
@@ -281,7 +326,9 @@ const LAA = (function () {
     snooze: 'FOLLOW-UP UPDATED',
     discovery: 'STAGE UPDATED',
     docs: 'ACTION UPDATED',
-    nurture: 'STAGE UPDATED'
+    nurture: 'STAGE UPDATED',
+    won: 'DEAL CLOSED',
+    lost: 'DEAL CLOSED'
   };
 
   function confirm(LA, action, company, upd, offsetMinutes) {
@@ -308,6 +355,14 @@ const LAA = (function () {
       body.push(LA.card('Стадия', '<b>Запрошены документы</b>'));
       body.push(LA.card('Следующий контакт',
         '<b>' + LA.esc(LA.dateTime(upd.next_follow_up_at, offsetMinutes)) + '</b>'));
+    } else if (action === 'won' || action === 'lost') {
+      // Truthful and short. The close moves the stage and closes SLA handling; it does not claim
+      // an invoice, a payment or a reason that was not given.
+      body.push(LA.card('Стадия', '<b>' + LA.esc(upd.deal_stage) + '</b>'));
+      body.push(LA.card('Что изменилось', LA.esc(action === 'won'
+        ? 'Сделка закрыта как успешная. Лид выведен из очереди SLA и напоминаний.'
+        : 'Сделка закрыта без результата. Лид выведен из очереди SLA и напоминаний.')));
+      if (upd.close_reason) { body.push(LA.card('Причина', LA.esc(upd.close_reason))); }
     } else if (action === 'nurture') {
       body.push(LA.card('Стадия', '<b>Nurture</b>'));
       body.push(LA.card('Что изменилось', LA.esc('SLA-напоминания по этому лиду отключены.')));
@@ -580,6 +635,9 @@ const LAA = (function () {
     refuseReason: refuseReason,
     htmlFromTelegram: htmlFromTelegram,
     originKind: originKind,
+    COMMAND_ONLY: COMMAND_ONLY,
+    TERMINAL_STORED: TERMINAL_STORED,
+    storedTerminalStage: storedTerminalStage,
     ENTITY_TAG: ENTITY_TAG,
     confirm: confirm,
     verifyMutation: verifyMutation,

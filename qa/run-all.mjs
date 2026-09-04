@@ -85,6 +85,7 @@ const GATES = [
   ['Telegram button style slots (which slots may carry a literal)', 'telegram-button-style-slots.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
   ['CRM stage compatibility map', 'crm-stage-map.test.mjs'],
+  ['CRM terminal close (Won / Lost, owner command-only)', 'crm-terminal-close.test.mjs'],
   ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],
   ['Lead Alert ack expression (evaluated)', 'lead-alerts-ack-expression.test.mjs'],
   ['Lead Alert edit no-op classification', 'lead-alerts-edit-noop.test.mjs'],

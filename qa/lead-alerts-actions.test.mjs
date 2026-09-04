@@ -61,10 +61,22 @@ check('D1 no emitter offers Won, on any alert kind, in any state', () => {
 });
 
 check('D1 the legacy won callback contract is untouched by this module', () => {
-  // The Command Center still routes `won|<id>`; this module simply never emits it. Historical
+  // The Command Center still routes `won|<id>`; this module simply never EMITS it. Historical
   // Telegram messages keep working, which is the whole point of not renaming callbacks.
+  //
+  // GATE 2 UPDATE 2026-09-04: the module now owns columns for `won` and `lost`, because the owner
+  // approved the terminal closes as COMMAND-ONLY actions. The half of this contract that matters
+  // is unchanged and asserted below: no keyboard emits a close, so the button surface is exactly
+  // what D1 approved. What changed is that a TYPED close now writes, where before it silently
+  // refused and no lead could ever be closed.
   eq(A.callbackData('won', LEAD), '', 'the module invented a won emitter');
-  assert(!Object.prototype.hasOwnProperty.call(A.OWNED, 'won'), 'the module claims won columns');
+  eq(A.callbackData('lost', LEAD), '', 'the module invented a lost emitter');
+  for (const kind of ['new_lead', 'priority', 'followup']) {
+    const offered = A.keyboard(kind, { deal_stage: 'Qualified', sla_status: 'Active' }, LEAD).flat().map((b) => b.action);
+    assert(offered.indexOf('won') === -1, kind + ' offers a won button');
+    assert(offered.indexOf('lost') === -1, kind + ' offers a lost button');
+  }
+  eq(A.COMMAND_ONLY.slice().sort().join(','), 'lost,won', 'the command-only set changed');
 });
 
 check('D3 the five owner-facing labels are exactly these', () => {
@@ -333,12 +345,12 @@ check('D11 a tap on an alert whose lead has since gone terminal is refused', () 
 });
 
 check('D11 a malformed or unknown callback maps to no action and no update', () => {
-  for (const bad of ['', 'bogus', 'DROP TABLE', 'stage']) {
+  for (const bad of ['', 'bogus', 'DROP TABLE', 'stage', 'meeting', 'proposal', 'note', 'delete']) {
     eq(A.actionOfCommand(bad, ''), '', 'unknown command produced an action: ' + bad);
   }
   eq(A.refuseReason('', { deal_stage: 'New' }), 'UNKNOWN_ACTION', 'unknown action not refused');
   eq(A.buildUpdate('', LEAD, NOW), null, 'an unknown action produced an update');
-  eq(A.buildUpdate('won', LEAD, NOW), null, 'won produced an update from this module');
+  eq(A.buildUpdate('bogus', LEAD, NOW), null, 'an unknown verb produced an update');
 });
 
 check('D11 the legacy stage verb maps to Discovery only for the Discovery target', () => {

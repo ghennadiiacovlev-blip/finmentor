@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 2795,
+  "total": 2820,
   "gates": {
     "ai-brief-suppression.test.mjs": 9,
     "ai-safe-projection.test.mjs": 52,
@@ -25,6 +25,7 @@
     "concierge-issuer-harness.test.mjs": 52,
     "concierge-issuer.test.mjs": 36,
     "crm-stage-map.test.mjs": 29,
+    "crm-terminal-close.test.mjs": 25,
     "cutover.test.mjs": 43,
     "deploy-guard.test.mjs": 28,
     "error-alert.test.mjs": 22,
