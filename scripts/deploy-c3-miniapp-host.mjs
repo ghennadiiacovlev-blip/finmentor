@@ -28,7 +28,10 @@ export const MUST = [
   ['function clientResult()', 'the curated result accessor'],
   ["'CYCLE_UNRESOLVED'", 'the cycle-unresolved bootstrap copy'],
   // the RO product NAME comes from the server (result.labels); the RO shell strings are the app's
-  ['Rezultatul este gata', 'the RO result shell strings'],
+  // 2026-09-04 approved copy: the RO result title is «Rezultatul analizei» (was «Rezultatul este gata»).
+  ['Rezultatul analizei', 'the RO result shell strings'],
+  ['Etapa 1 · Zilele 1–7', 'the RO 30-day plan stage labels'],
+  ['Этап 1 · Дни 1–7', 'the RU 30-day plan stage labels'],
   ['Результат анализа появится здесь', 'the pending note']
 ];
 export const MUST_NOT = [['Radiografia Financiară', 'the retired RO product name'], ['__PREMIUM_', 'an endpoint placeholder']];

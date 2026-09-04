@@ -78,6 +78,7 @@ const GATES = [
   ['X-Ray owner cards golden render (2026-09-04)', 'xray-owner-cards-golden.test.mjs'],
   ['A5 duplicate AI BRIEF suppression (prepared, not deployed)', 'ai-brief-suppression.test.mjs'],
   ['Lead Alert label refresh «В наблюдение» (callback_data intact)', 'lead-alert-labels-refresh.test.mjs'],
+  ['Lead Alerts presenter refresh onto live (block-only delta)', 'lead-alerts-presenter-refresh.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
   ['CRM stage compatibility map', 'crm-stage-map.test.mjs'],
   ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],

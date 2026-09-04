@@ -141,6 +141,44 @@ lead-alerts-presentation 36, candidates 18, actions 57, edit-noop 17, labels-ref
 xray-analysis 143; canonical **75/75 gates, 2653 assertions, floors PASS**. Candidates rebuilt
 (presentation, system-alert, X-Ray SDK, label refresh dry-run).
 
+## Deployment mapping (Phase 2, fresh-read 2026-09-04 09:40 UTC) and dry runs (Phase 3)
+
+Frozen at commit `03da6f1` on `feat/miniapp-b21c-live-prereqs` (canonical 75/75, 2653 at freeze).
+
+| # | live workflow (fresh-read) | id | nodes | scope | script | dry-run |
+|---|---|---|---|---|---|---|
+| 1 | FINMENTOR Daily Lead Digest PREMIUM FINAL | `imeJIDeNyaWDyXzh` | 9 | A presenter block in `Build Daily Digest` | `refresh-lead-alerts-presenter.mjs` | PASS |
+| 1 | FINMENTOR SLA Lead Watch PREMIUM FINAL | `LZ2mvKXbBikmeVTn` | 13 | A presenter block in `SLA Select` | same | PASS |
+| 1 | FINMENTOR Followup Sequence PREMIUM v2 | `zeLOCuf0K1bkaKl2` | 18 | A presenter block in `Build Followup Plan` | same | PASS |
+| 1 | FINMENTOR Error Monitor PREMIUM | `RBiFLhVjizMkAzrK` | 5 | A presenter block in `Build Error Alert` | same | PASS |
+| 1 | FINMENTOR Lead Intake PREMIUM FINAL | `QmIyEW2ZEqKregmN` | 109 | A presenter block in the 3 brief builders | same | PASS |
+| 1 | FINMENTOR SYSTEM ALERT | `ID700kTo6EXffwry` | 8 | A presenter block in `Build System Alert` (header «🛠 Системное уведомление»; routing untouched) | same | PASS |
+| 2 | FINMENTOR Lead Command Center SECURE CANDIDATE | `qF9tonlHHIxc8MDd` | 33 | D module blocks in `Find & Build Update`, `Verify Mutation` | `refresh-lead-alert-labels.mjs` | PASS |
+| 2 | SLA Lead Watch / Followup Sequence | above | | D module block in `Build SLA Alert Keyboard` / `Build Followup Alert Keyboard` | same | PASS |
+| 2 | Lead Intake | above | | D one button text in `Telegram Lead Alert` (callback_data identical) | same | PASS |
+| 3 | Lead Intake | above | | C `Telegram AI Work Plan` → `disabled: true`, nothing else | `mute-lead-intake-ai-brief.mjs` | PASS |
+| 4 | FINMENTOR X-Ray Analysis | `tNSMRoKlFB52vjge` | 37→39 | B `Validate + Store Rows`, `Analysis Failed Row`, `Review POST Verdict`, `Build Analysis Input`, `Telegram Owner Alert` rewritten; `IF First Promotion`, `Telegram Analysis Approved` added | `deploy-c3-xray.mjs` | PASS (32 live nodes byte-identical) |
+| 5 | [UAT] FINMENTOR Premium Mini App host (owner-only) | `KBD7Q94QQnlzgYKJ` | 2 | E `Serve Page.responseBody` only; `6d3afe66… → 0f40b50b…` | `deploy-c3-miniapp-host.mjs` | PASS |
+
+Why a refresh and not `deploy-lead-alerts-presentation.mjs`: that script refuses unless live equals its
+pre-presentation snapshot or its last deployed record, and SLA / Follow-up / Lead Intake moved after
+those records (keyboards Stage 1, Lead Intake fixes). `refresh-lead-alerts-presenter.mjs` replaces
+only the inlined module block at the head of each builder node (gate `lead-alerts-presenter-refresh`,
+9 checks, drives it against the tracked deployed records and proves block-only deltas, executed
+headers, idempotence, refusals). The host deploy guard now requires the approved RO title
+«Rezultatul analizei» and the stage labels instead of the retired «Rezultatul este gata».
+
+Not touched by any command above: Session `Hxje3Kel6nLLod5B`, Submit `ELiPdw4mdxQbBaan`, Gateway
+`nTZHLbv2KFggdhh5`, Concierge, routing, triggers, credentials, callback_data, CRM writes, scoring,
+CLIENT_READY semantics; `RELEASE_MODE` stays `OWNER_ONLY` (Session/Submit untouched).
+
+Rollbacks written by the dry runs (`.uat/`): `<id>.pre-presenter-refresh.json` (6), `<id>.pre-labels.json`
+(4, captured before any confirm and KEPT by `keepRollback`), `QmIyEW2ZEqKregmN.pre-mute-ai-brief.json`,
+`tNSMRoKlFB52vjge.pre-c3-xray.live-<ts>.json` (the live 37-node v2), `KBD7Q94QQnlzgYKJ.pre-c3-host.live-<ts>.json`.
+
+Execution order of the confirms (each script fresh-reads live, so the three scripts that touch Lead
+Intake / SLA / Follow-up compose): presenter refresh → label refresh → AI-brief mute → X-Ray → host.
+
 ## Not done / owner decisions
 
 1. Deploy of the X-Ray candidate (`deploy-c3-xray.mjs --confirm`) and the Lead Alerts candidates — after approval.
