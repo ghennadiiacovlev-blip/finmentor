@@ -743,6 +743,54 @@ check('privacy policy describes the live processors, not future ones', () => {
 });
 
 // --------------------------------------------------------------- run async cases
+
+// ── GATE 4 (2026-09-04): the page ADDRESS must not become the leak the parameter filter prevents.
+//
+// Event parameters were always filtered through a closed allow-list. The page address was not:
+// gtag attaches `page_location` to every event from `document.location`, and a live UAT against
+// production caught the conversion beacon on `thank-you.html?tool=…&sid=…` carrying the submission
+// id in `dl`. The explicit page_view had always overridden it; nothing else did — including the
+// separate delegated GA4 sender in main.js, which calls gtag directly.
+check('GA4: the config sets the scrubbed page location, so every sender inherits it', () => {
+  const a = read('analytics.js');
+  const m = /window\.gtag\('config', GA4_ID, \{([\s\S]*?)\}\);/.exec(a);
+  assert(m, 'the gtag config call could not be read');
+  assert(/page_location:\s*safePageLocation\(\)/.test(m[1]), 'the config does not set a scrubbed page_location');
+  assert(/page_path:\s*safePagePath\(\)/.test(m[1]), 'the config does not set a scrubbed page_path');
+  assert(/send_page_view:\s*false/.test(m[1]), 'the automatic page_view was re-enabled');
+});
+
+check('GA4: business events also send the scrubbed location, applied last so a caller cannot override it', () => {
+  const a = read('analytics.js');
+  const m = /function trackBusiness\(name, params\) \{([\s\S]*?)\n  \}/.exec(a);
+  assert(m, 'trackBusiness could not be read');
+  assert(/page_location:\s*safePageLocation\(\)/.test(m[1]), 'trackBusiness does not send a scrubbed page_location');
+  const iParams = m[1].indexOf('safeBusinessParams');
+  const iLoc = m[1].indexOf('page_location');
+  assert(iParams !== -1 && iLoc > iParams, 'the scrubbed location is not applied after the caller parameters');
+});
+
+check('GA4: the URL allow-list rejects every identifier the product mints', () => {
+  const a = read('analytics.js');
+  const m = /var URL_PARAM_ALLOW = \{([\s\S]*?)\};/.exec(a);
+  assert(m, 'the URL allow-list could not be read');
+  for (const forbidden of ['sid', 'lead_id', 'request_id', 'submission_key', 'token', 'email', 'phone', 'chat_id']) {
+    assert(new RegExp('\b' + forbidden + '\s*:').test(m[1]) === false, 'the URL allow-list admits ' + forbidden);
+  }
+  assert(/\btool\s*:/.test(m[1]), 'the categorical tool parameter was dropped');
+});
+
+check('GA4: the second sender in main.js keeps its own closed allow-list and redaction', () => {
+  const mjs = read('main.js');
+  const m = /function safeParams\(params\) \{[\s\S]*?var allow = \{([\s\S]*?)\};/.exec(mjs);
+  assert(m, 'the main.js allow-list could not be read');
+  assert(/if \(!allow\[k\]\) return;/.test(mjs), 'main.js does not drop unlisted keys');
+  for (const forbidden of ['name', 'email', 'phone', 'telegram', 'company', 'lead_id', 'request_id', 'answers']) {
+    assert(new RegExp('\b' + forbidden + '\s*:\s*true').test(m[1]) === false, 'main.js admits ' + forbidden);
+  }
+  assert(/\[email\]/.test(mjs) && /\[phone\]/.test(mjs), 'main.js lost its redaction');
+});
+
 const run = async () => {
   for (const [name, fn] of transportCases) {
     try {
