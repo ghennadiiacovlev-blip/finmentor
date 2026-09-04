@@ -173,7 +173,17 @@
   function trackBusiness(name, params) {
     if (getChoice() !== 'accept' || !loaded || !configured || typeof window.gtag !== 'function') return false;
     try {
-      window.gtag('event', name, safeBusinessParams(params || {}));
+      // GATE 4, 2026-09-04. The event PARAMETERS were always filtered, but gtag attaches the page
+      // location to every event by default, taken straight from `document.location`. The explicit
+      // page_view overrides it with the scrubbed value; business events did not — so on
+      // `thank-you.html?tool=…&sid=…` the conversion beacon carried the submission id in `dl`,
+      // proven live before this line existed. Every event now sends the same scrubbed location the
+      // page_view already sends, so a parameter the URL allow-list rejects cannot reach GA4 through
+      // the back door of the page address.
+      window.gtag('event', name, Object.assign({}, safeBusinessParams(params || {}), {
+        page_location: safePageLocation(),
+        page_path: safePagePath()
+      }));
       return true;
     } catch (e) {
       return false;
@@ -329,9 +339,16 @@
 
     // Disable the automatic page_view and send exactly one explicit page_view.
     // This makes dynamically-loaded GA deterministic and avoids duplicates.
+    // GATE 4, 2026-09-04. `page_location` and `page_path` are set on the CONFIG, not only on the
+    // page_view, because gtag otherwise takes them from `document.location` for every event — and
+    // main.js has its own delegated GA4 sender that calls gtag directly. Setting the scrubbed
+    // values here makes the URL allow-list authoritative for every event from every sender, so an
+    // identifier the allow-list rejects cannot reach GA4 through the page address instead.
     window.gtag('config', GA4_ID, {
       send_page_view: false,
       debug_mode: debug,
+      page_location: safePageLocation(),
+      page_path: safePagePath(),
       allow_google_signals: false,
       allow_ad_personalization_signals: false
     });

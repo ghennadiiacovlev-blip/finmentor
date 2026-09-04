@@ -12,13 +12,13 @@ forward from an earlier record.
 
 ## 0. Scoreboard
 
-    CURRENT PRODUCTION V1 COMPLETION = 57%   (4 of the 7 gates that precede release)
+    CURRENT PRODUCTION V1 COMPLETION = 71%   (5 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
     GATE 1  Privacy / Legal ...................... PASS
     GATE 2  C2 CRM Lifecycle Owner UAT ........... PASS
     GATE 3  RO Content ........................... PASS
-    GATE 4  GA4 UAT .............................. OPEN
+    GATE 4  GA4 UAT .............................. PASS
     GATE 5  Final Integrated E2E (RU + RO) ....... OPEN
     GATE 6  Independent Codex Release Audit ...... OPEN
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
@@ -27,7 +27,7 @@ forward from an earlier record.
     OPEN P1 = 0
     POST_GO ITEMS = 11
 
-**NEXT SINGLE CHECKPOINT = GATE 4 — GA4 UAT.**
+**NEXT SINGLE CHECKPOINT = GATE 5 — Final Integrated E2E (RU + RO).**
 
 Read the percentage for what it is: a count of *release gates*, which is what was asked for. It
 deliberately does not measure engineering completeness, and it should not be read as "14% of the
@@ -163,7 +163,7 @@ terminology; functionally identical contract to RU. The rule already proven in t
 Romanian free text never leaks into the Russian console, and translation is deterministic with no AI
 call — must hold in the customer direction too.
 
-### GATE 4 — GA4 UAT · **OPEN**
+### GATE 4 — GA4 UAT · **PASS** — see docs/GATE4_GA4_UAT_2026-09-04.md
 
 Evidence: `analytics.js` is live and carries the event surface (`generate_lead`, `financial_xray`,
 `contact_click`, consent handling, first/last attribution). The runbook records GA4 C4 UAT as needing

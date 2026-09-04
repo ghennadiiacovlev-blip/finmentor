@@ -269,5 +269,103 @@ for (const p of POLICIES) {
   });
 }
 
+
+// ── GATE 4: the page address must not become the leak the parameter filter prevents ────────────
+//
+// The event PARAMETERS were always filtered. The page ADDRESS was not: gtag attaches
+// `page_location` to every event from `document.location`, and the live UAT caught the conversion
+// beacon on `thank-you.html?tool=…&sid=…` carrying the submission id in `dl`. The explicit
+// page_view had always overridden it; nothing else did.
+//
+// The fix sets the scrubbed location on the CONFIG, which makes the URL allow-list authoritative
+// for every event from every sender — including `main.js`, which has its own delegated GA4 sender
+// that calls gtag directly and would otherwise have kept sending the raw address.
+
+check('the config sets the scrubbed page location, so every event inherits it', () => {
+  const m = /window\.gtag\('config', GA4_ID, \{([\s\S]*?)\}\);/.exec(A);
+  assert(m, 'the config call could not be read');
+  assert(/page_location:\s*safePageLocation\(\)/.test(m[1]), 'the config does not set a scrubbed page_location');
+  assert(/page_path:\s*safePagePath\(\)/.test(m[1]), 'the config does not set a scrubbed page_path');
+  assert(/send_page_view:\s*false/.test(m[1]), 'the automatic page_view was re-enabled');
+});
+
+check('every business event also sends the scrubbed location, independent of config ordering', () => {
+  const m = /function trackBusiness\(name, params\) \{([\s\S]*?)\n  \}/.exec(A);
+  assert(m, 'trackBusiness could not be read');
+  assert(/page_location:\s*safePageLocation\(\)/.test(m[1]), 'trackBusiness does not send a scrubbed page_location');
+  assert(/page_path:\s*safePagePath\(\)/.test(m[1]), 'trackBusiness does not send a scrubbed page_path');
+});
+
+check('the scrubbed location cannot be overridden by a caller parameter', () => {
+  // safeBusinessParams is applied first and its allow-list has no location keys, so the scrubbed
+  // values are written last and always win.
+  assert(ALLOW.indexOf('page_location') === -1 && ALLOW.indexOf('page_path') === -1,
+    'a location key is in the business-parameter allow-list');
+  const m = /function trackBusiness\(name, params\) \{([\s\S]*?)\n  \}/.exec(A);
+  const idxParams = m[1].indexOf('safeBusinessParams');
+  const idxLoc = m[1].indexOf('page_location');
+  assert(idxParams !== -1 && idxLoc > idxParams, 'the scrubbed location is not applied last');
+});
+
+check('the URL allow-list still rejects every identifier the product mints', () => {
+  const m = /var URL_PARAM_ALLOW = \{([\s\S]*?)\};/.exec(A);
+  assert(m, 'the URL allow-list could not be read');
+  for (const forbidden of ['sid', 'lead_id', 'request_id', 'submission_key', 'token', 'review_token', 'email', 'phone', 'chat_id', 'cid']) {
+    assert(new RegExp('\\b' + forbidden + '\\s*:').test(m[1]) === false, 'the URL allow-list admits ' + forbidden);
+  }
+  assert(/\btool\s*:/.test(m[1]), 'the categorical tool parameter was dropped');
+});
+
+// ── the SECOND GA4 sender, in main.js ──────────────────────────────────────────────────────────
+//
+// `main.js` carries its own delegated sender (`initGA`). It is not a rogue implementation — it has
+// its own closed allow-list, the same e-mail and phone redaction and a length cap — but it exists,
+// it emits events analytics.js never names (`bot_click`, `click_email` and the CTA family), and it
+// calls gtag directly. It is part of the contract and is held to the same rules here.
+
+const M = read('main.js');
+
+check('the second sender filters its parameters through a closed allow-list too', () => {
+  const m = /function safeParams\(params\) \{[\s\S]*?var allow = \{([\s\S]*?)\};/.exec(M);
+  assert(m, 'the second sender allow-list could not be read');
+  assert(/if \(!allow\[k\]\) return;/.test(M), 'the second sender does not drop unlisted keys');
+  for (const forbidden of ['name', 'email', 'phone', 'telegram', 'company', 'lead_id', 'request_id', 'message', 'answers', 'free_text']) {
+    assert(new RegExp('\\b' + forbidden + '\\s*:\\s*true').test(m[1]) === false, 'the second sender admits ' + forbidden);
+  }
+});
+
+check('the second sender redacts e-mail and phone shapes and caps length', () => {
+  const m = /function safeParams\(params\) \{([\s\S]*?)\n    \}/.exec(M);
+  assert(/\[email\]/.test(m[1]), 'no e-mail redaction in the second sender');
+  assert(/\[phone\]/.test(m[1]), 'no phone redaction in the second sender');
+  assert(/\.slice\(0, \d+\)/.test(m[1]), 'no length cap in the second sender');
+});
+
+check('the second sender never sends a full URL — hrefs are reduced to a scheme or host', () => {
+  const m = /function safeLinkUrl\(a\) \{([\s\S]*?)\n    \}/.exec(M);
+  assert(m, 'safeLinkUrl could not be read');
+  for (const token of ["'mailto'", "'tel'", "'telegram'", "'whatsapp'"]) {
+    assert(m[1].indexOf(token) !== -1, 'safeLinkUrl lost the ' + token + ' reduction');
+  }
+  assert(/u\.hostname/.test(m[1]), 'an off-site href is not reduced to its hostname');
+  assert(/href\.split\('\?'\)\[0\]/.test(m[1]), 'the fallback keeps the query string');
+});
+
+check('the second sender only reads author-set data attributes, never user input', () => {
+  const m = /function ctaParams\(a\) \{([\s\S]*?)\n    \}/.exec(M);
+  assert(m, 'ctaParams could not be read');
+  for (const attr of ['data-cta-id', 'data-cta-location', 'data-destination', 'data-source-section', 'data-business-model', 'data-pain']) {
+    assert(m[1].indexOf(attr) !== -1, 'ctaParams no longer reads ' + attr);
+  }
+  assert(/\.value|input|textarea|FormData/.test(m[1]) === false, 'ctaParams reads a form field');
+});
+
+check('the second sender is inert until consent, because gtag is a no-op before it', () => {
+  assert(/typeof gtag === 'function'/.test(M), 'the second sender does not check for gtag');
+  assert(/function noopGtag\(\)/.test(A), 'analytics.js no longer installs a no-op gtag');
+  assert(/window\.gtag = noopGtag/.test(A), 'a denied choice no longer restores the no-op');
+});
+
+
 console.log('\n' + pass + ' passed, ' + failures.length + ' failed');
 if (failures.length) { process.exit(1); }
