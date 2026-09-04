@@ -1,8 +1,7 @@
 # GATE 1 — Privacy / Legal: fresh-read audit, corrections, and the verdict
 
 **Date:** 2026-09-04 · **Branch:** `feat/miniapp-b21c-live-prereqs` · **Plan:** `FINAL_PRODUCTION_V1_GO_PLAN.md`
-**Verdict: GATE 1 = BLOCKED** — all owner decisions received and every correction implemented and proven
-offline (§8); blocked only on two authorised publishes so the live customer surfaces can be verified.
+**Verdict: GATE 1 = PASS** — both publications completed and verified live (§9).
 **CUSTOMER RELEASE = NOT AUTHORIZED.**
 
 Everything below was read from the current files and the live tenant. `C4_PRIVACY_RELEASE_GATE.md`
@@ -273,3 +272,90 @@ instruction for this gate was to push only to the feature branch:
 Neither is a customer release: Session and Submit stay `OWNER_ONLY` and the host stays the owner-only
 UAT build. Order matters — publish the policies first, because the Mini App links point at them, and
 deploying the app first would send a reader to a policy that does not yet name the controller.
+
+---
+
+## 9. GATE 1 LIVE PROOF = PASS (2026-09-04T12:39Z)
+
+Both publications completed under owner authorisation, in the required order.
+
+### 9.1 Step 1 — the policy pages
+
+Isolated release branch `release/gate1-privacy-policy` cut from current `origin/main` (`3f1fa8a`).
+Carried **only** the approved public-policy changes: four hunks per language, plus the gate that
+validates them. The Gate 3 Romanian terminology work sitting on the feature branch («Radiografia
+Financiară» → «Testul de sănătate financiară») was deliberately **not** imported — a wholesale file
+copy would have brought it in, so the RO hunks were ported onto main's file individually and main's
+wording is preserved everywhere Gate 1 does not touch.
+
+PR **#21**, six files, no unrelated production file: `privacy.html` (+9 −3), `ro/privacy.html`
+(+9 −3), `qa/privacy-policy-release.test.mjs` (new, 28 checks), the runner and baseline
+registration, and the CI pins raised 10/10 → 11/11 and 514 → 542. Release tree **11/11 gates, 542
+assertions, floors PASS**; both CI checks green at HEAD `f8c9e64`; merged as `9a0e0f2`.
+
+Fresh-read from the real public URLs after GitHub Pages published (~60 s):
+
+| check | RU `/privacy.html` | RO `/ro/privacy.html` |
+|---|---|---|
+| controller `Iacovlev Ghennadi` | present | present |
+| privacy contact `cfo@finmentor.md` | present | present |
+| old brand-as-controller wording | **gone** | **gone** |
+| FINMENTOR stated as product/brand, not controller | yes | yes |
+| 12-month retention | yes | yes |
+| legal basis art. 6(1)(b), proposed | yes | yes |
+| approved AI / human-review / Supabase paragraph | yes | yes |
+| invented SRL / IDNO / IDNP / VAT | none | none |
+
+### 9.2 Step 2 — the Mini App host
+
+Established mechanism, not guessed: `scripts/build-miniapp-host.mjs` rebuilds the tracked candidate
+from `app-premium/`, then `scripts/deploy-c3-miniapp-host.mjs --confirm` replaces the single
+`Serve Page`.responseBody on `KBD7Q94QQnlzgYKJ`, substituting the three endpoint URLs read back
+from the page that is live rather than typed.
+
+The page delta was diffed before writing and is exactly three things: the entry-link CSS, the
+approved third privacy line, and the `privacyUrl`/`privacyLink` helper with its two call sites.
+Only `Serve Page` differed; node count unchanged at 2. Page sha `0f40b50b9ce001ce` →
+`97f2f9e89f50d170`. Rollback preserved: the prior artifact was kept and the fresh read saved aside
+as `.uat/KBD7Q94QQnlzgYKJ.pre-c3-host.live-2026-09-04T12-28-53-085Z.json`.
+
+Fresh-read of the deployed host — **17 checks, 0 unexpected deltas**: both policy URLs present; no
+`href="#"` anywhere; the target follows the server-decided session locale; `target="_blank"` and
+`rel="noopener noreferrer"` present; the `Telegram.WebApp.openLink` path preserved; both
+submit-screen links and the entry affordance built by the one helper; the approved third line
+present; no modal introduced; result screen, curated-result accessor and cycle-unresolved copy
+still present; still active; still the **owner-only UAT build**.
+
+### 9.3 Nothing else moved
+
+Session and Submit both still read `RELEASE_MODE = "OWNER_ONLY"`, untouched since 2026-09-03.
+Lead Intake (109 nodes), X-Ray (39), Command Center (33), Gateway (32) and Concierge (60) all
+unchanged, last written by the Gate 0 button-style deploy or earlier. No CRM, Telegram, X-Ray,
+Gateway, Session, Submit, Concierge or analytics behaviour was altered.
+
+### 9.4 Verdict
+
+    GATE 1 — PRIVACY / LEGAL = PASS
+
+    CONTROLLER    = Iacovlev Ghennadi
+    PRIVACY EMAIL = cfo@finmentor.md
+
+    RU PRIVACY POLICY = PASS      RO PRIVACY POLICY = PASS
+    RU PRIVACY LINK   = PASS      RO PRIVACY LINK   = PASS
+    CONTACT CONSENT   = PASS      DIAGNOSTIC WITHOUT CONTACT CONSENT = PASS
+    CLIENT_READY DATA MINIMISATION = PASS
+    PII IN ANALYTICS  = NO
+    RETENTION = RELEASE ACCEPTABLE · RETENTION AUTOMATION = POST_GO
+    LEGAL REVIEW ITEM = RECORDED (art. 6(1)(b) proposed, pending confirmation)
+
+    OPEN P0 = 0   OPEN P1 = 0
+    CANONICAL QA = 80/80 gates, 2795 assertions, floors PASS
+
+One cosmetic consequence is recorded rather than fixed: the newly published Romanian paragraph uses
+the approved product name «Testul de sănătate financiară» while the surrounding RO policy page still
+says «Radiografia Financiară», because the terminology rename is Gate 3 work that was correctly kept
+out of this release. Gate 3 resolves it. Changing owner-approved wording to paper over it was not in
+scope, and it is not a P1: no statement is inaccurate, only the product name differs in style within
+one page.
+
+**CUSTOMER RELEASE = NOT AUTHORIZED.**

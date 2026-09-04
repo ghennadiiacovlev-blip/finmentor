@@ -12,10 +12,10 @@ forward from an earlier record.
 
 ## 0. Scoreboard
 
-    CURRENT PRODUCTION V1 COMPLETION = 14%   (1 of the 7 gates that precede release)
+    CURRENT PRODUCTION V1 COMPLETION = 29%   (2 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
-    GATE 1  Privacy / Legal ...................... BLOCKED (implemented; awaiting 2 publishes)
+    GATE 1  Privacy / Legal ...................... PASS
     GATE 2  C2 CRM Lifecycle Owner UAT ........... OPEN
     GATE 3  RO Content ........................... OPEN
     GATE 4  GA4 UAT .............................. OPEN
@@ -24,10 +24,10 @@ forward from an earlier record.
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
-    OPEN P1 = 1
+    OPEN P1 = 0
     POST_GO ITEMS = 11
 
-**NEXT SINGLE CHECKPOINT = GATE 1 — Privacy / Legal.**
+**NEXT SINGLE CHECKPOINT = GATE 2 — C2 CRM Lifecycle Owner UAT.**
 
 Read the percentage for what it is: a count of *release gates*, which is what was asked for. It
 deliberately does not measure engineering completeness, and it should not be read as "14% of the
@@ -110,35 +110,36 @@ verdict is enumerated over 207 reachable states by `n8n/src/lead-alerts/style-sl
 
 **Frozen.** No further button, colour, label or layout change before GO.
 
-### GATE 1 — Privacy / Legal · **BLOCKED** — audited 2026-09-04, see `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`
+### GATE 1 — Privacy / Legal · **PASS** — full record in `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`
 
-Audited 2026-09-04 against the shipped files and the live tenant. Full record and the thirteen-row
-surface inventory: `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`.
+Audited, corrected and closed 2026-09-04. Full record, thirteen-row surface inventory and live
+proof: `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`.
 
-**OPEN P0 = 0 · OPEN P1 = 1 · OWNER DECISIONS = 4 · LEGAL REVIEW = 1.**
+**OPEN P0 = 0 · OPEN P1 = 0.**
 
-Proven PASS: contact consent gating on the public questionnaire in both languages (required,
-non-prefilled, blocks submit, payload built only after the guard); privacy and terms links present
-twice before anything is sent; no PII in GA4 (closed eight-key allow-list, unlisted keys dropped,
-e-mail/phone redaction); CLIENT_READY minimisation; owner/client data boundaries.
+    CONTROLLER    = Iacovlev Ghennadi
+    PRIVACY EMAIL = cfo@finmentor.md
 
-**The P1:** in the Mini App — the surface that collects role, company, scale, task, contact channel
-and Telegram id — no privacy information is reachable. The submit screen renders its links as
-`a.href = '#'`, and the entry affordance is not a link at all. A person is asked to acknowledge
-information they cannot open. Not fixed here because the fix requires choosing what those links
-open (public policy pages, or the in-app layer-2 notice, which cannot render until the controller
-identity exists) — an owner decision about which document a customer is sent to.
+Published live: both policy pages now name the controller as a natural person with the privacy
+contact, state FINMENTOR as the product and brand rather than the controller, record art. 6(1)(b)
+pre-contractual steps as the proposed basis pending confirmation (never as counsel approval), keep
+analytics and optional marketing on separate withdrawable consent, set retention at 12 months from
+the last meaningful interaction for an unconverted lead with contractual periods carved out, and
+name who performs the deletion — because no scheduled job does.
 
-**Corrected in this gate:** the notice claimed an automatic 72-hour deletion that no code performs.
-The TTL expires a session, it does not delete the row, and no deletion job exists anywhere. The text
-now states the expiry that is real and keeps deletion as a right; two checks prevent the false claim
-returning.
+**The P1 is closed.** The Mini App submit screen rendered its privacy links as `href="#"` and the
+entry affordance was a div with no handler, on the surface that collects role, company, scale,
+task, contact channel and Telegram id. Both now open the public policy for the session locale,
+through the Telegram WebApp bridge with a real href behind it. Verified on the live host.
 
-**The four owner decisions:** controller full name · controller privacy e-mail · the Supabase (EU)
-processor and human-review paragraph (final RU and RO text in the record) · the Mini App link target.
-**Legal review:** whether `pre_contractual_request` is the correct basis, or consent is required.
+**Two false statements were removed along the way:** the notice claimed an automatic 72-hour
+deletion no code performs, and the policy promised deletion "as long as necessary" with no period
+and no mechanism. Both now describe what the system actually does.
 
-No customer is exposed today: Session and Submit are both `OWNER_ONLY`.
+Delivered as PR #21 (six files, isolated from `origin/main`, merged `9a0e0f2`) and one Mini App
+host deploy. Gate 3 Romanian terminology work was deliberately kept out of the release.
+
+Session and Submit remain `OWNER_ONLY`; the host remains the owner-only UAT build.
 
 ### GATE 2 — C2 CRM Lifecycle Owner UAT · **OPEN**
 
