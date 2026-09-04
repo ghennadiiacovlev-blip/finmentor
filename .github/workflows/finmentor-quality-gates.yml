@@ -42,7 +42,7 @@ env:
   # Raise this deliberately when gates are added. It must never be lowered to make a red
   # build green: a falling count means coverage was removed, which is the thing worth
   # catching.
-  ASSERTION_BASELINE: '542'
+  ASSERTION_BASELINE: '549'
 
 jobs:
   quality-gates:
