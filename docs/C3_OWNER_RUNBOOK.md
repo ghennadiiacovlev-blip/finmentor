@@ -325,3 +325,21 @@ Within 10 minutes the sweep (`Every 10 Minutes`, at :00:53 / :10:53 / …) analy
 | 7 | no Error Monitor / SYSTEM ALERT regression | Error Monitor `RBiFLhVjizMkAzrK` last execution still 5056 (08-31 14:19); SYSTEM ALERT `ID700kTo6EXffwry` still 5076 (08-31 17:52) — baseline fresh-read 04:19Z; tenant-wide non-success executions since the reset → 0 |
 
 Record the seven facts here as `C3 X-RAY LIVE PROOF = PASS`, then step 5.
+
+## C3 X-RAY LIVE PROOF = PASS (2026-09-04 04:27–04:34 UTC, owner UAT on the synthetic RO lead, fresh-read 04:33–04:35 UTC)
+
+Sequence: `reset-c3-xray-uat-row.mjs --confirm` (owner, ~04:27Z: row 4 deleted, SEED + RU value-identical, pre/post-images in `.uat/`) → sweep 5466 (04:30:53–04:31:14Z, `success`) selected `FIN-1788432493303-321`, ran the model, `Validate + Store Rows` → `is_valid true`, new row `XA-FIN-1788432493303-321-0BDD7AC8C4E6` (`xray-v2`, `AI_DRAFT`, 64-hex token, `review_token_expires_at 2026-10-04T04:31:12Z`, score 47 ORANGE ro, confidence LOW, flag `12mil`), `Save XRay_Analysis` + `Update Pipeline X-Ray` `success`, `Telegram Owner Alert` message 178 to chat `owner_chat_id` at 04:31:14Z with «✅ Проверить и открыть клиенту» → owner GET 5467 (04:31:56Z) → owner POST 5468 (04:32:37Z) → session replay POST 5469 (04:34:25Z) and GET 5470 (04:34:32Z).
+
+| # | fact | evidence | |
+|---|---|---|---|
+| 1 | opening the GET link did NOT promote | 5467 ran only `Review GET Webhook → Read Analysis For Review GET → Render Review Surface → Respond Review Surface` (no Sheets update, no Data Table node); its pre-read: `AI_DRAFT`, `reviewed_at ''`. The POST 5468 pre-read (`Read Analysis For Review POST`, 41 s later) STILL `AI_DRAFT`, `reviewed_at ''`. `XRay_Client_Results` was 0 rows at 04:33Z before the POST landed | PASS |
+| 2 | the page showed the draft and an explicit action | `Render Review Surface` → `http_status 200`, title «FINMENTOR · Проверка анализа», `<form method="post">` present with the single button «Подтвердить и открыть клиенту»; the owner saw it and confirmed the page alone published nothing | PASS |
+| 3 | only the explicit POST flipped AI_DRAFT → CLIENT_READY | 5468: `Review POST Verdict = PROMOTE` (200), `Promote Analysis` + `Update Pipeline Review Status` `success`, `reviewed_at 2026-09-04T04:32:40.430Z`. Fresh sheet read-back by 5469 at 04:34:25Z: the row is `CLIENT_READY` with that same `reviewed_at` | PASS |
+| 4 | exactly one curated result row | `XRay_Client_Results` (`MmYtlv9Q66xC3WIE`): 1 row, id 1, `lead_id FIN-1788432493303-321`, `analysis_id …0BDD7AC8C4E6`, `review_status CLIENT_READY`, `locale ro`, `score 47`, `zone ORANGE`, `published_at 04:32:42.032Z` | PASS |
+| 5 | nothing internal published | row columns are exactly `lead_id, analysis_id, locale, review_status, score, zone, result_json, published_at`; `result_json` keys are exactly `locale, labels, score, zone, zone_label, maturity, summary, key_risks, management_priorities, plan_30_days, tomorrow_actions, recommended_next_step` — no `review_token`, `request_id`, `analysis_json`, `confidence`, `fabrication_flags`, `validation_errors`, model name or prompt | PASS |
+| 6 | repeated confirmation is idempotent | replay POST 5469 with the same `a`,`t` → 200 «FINMENTOR · Уже готово», `verdict ALREADY_READY`, `reviewed_at` unchanged (`04:32:40.430Z`); `Publish Curated Client Result` upserted the SAME row id 1 (still 1 row, `published_at` re-stamped 04:34:31.838Z, no second row). GET re-open 5470 → 200 «Уже готово», no form | PASS |
+| 7 | no Error Monitor / SYSTEM ALERT regression | Error Monitor `RBiFLhVjizMkAzrK` last execution still 5056 (08-31 14:19); SYSTEM ALERT `ID700kTo6EXffwry` still 5076 (08-31 17:52); tenant-wide executions since 04:24Z = 5466–5470, all `success`, 0 non-success | PASS |
+
+Note (content, not contract): the model's summary states «cifră de afaceri estimată la 1,2 milioane EUR» and the guard flagged `12mil` as unconfirmed by the input; v2 lowered confidence to LOW and showed «⚠️ проверить цифры» on the owner page, and the owner chose to publish. Confidence and the flag stay internal, as designed.
+
+Step 5 (`deploy-c3-miniapp-host`) NOT deployed. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
