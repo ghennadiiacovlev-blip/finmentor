@@ -81,6 +81,7 @@ const GATES = [
   ['Lead Alert label refresh «В наблюдение» (callback_data intact)', 'lead-alert-labels-refresh.test.mjs'],
   ['Lead Alerts presenter refresh onto live (block-only delta)', 'lead-alerts-presenter-refresh.test.mjs'],
   ['Telegram button styles (emphasis added, contract frozen)', 'telegram-button-styles.test.mjs'],
+  ['Telegram button style slots (which slots may carry a literal)', 'telegram-button-style-slots.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
   ['CRM stage compatibility map', 'crm-stage-map.test.mjs'],
   ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],

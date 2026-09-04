@@ -139,3 +139,67 @@ needed — the smoke message is still in the owner chat and its buttons remain i
 renders `primary` and `success` distinctly, the question becomes which clients the owner console
 must look correct on; if it does not, the emphasis should be carried by something client-independent
 (label text or an emoji marker) rather than by `style`.
+
+## 8. Owner approval on iPhone, and the controlled production rollout (2026-09-04T11:46Z)
+
+The same smoke message opened in the current **iPhone** Telegram client rendered the hierarchy the
+policy intends: «✅ Обработано» emphasised as the success action, «📞 Discovery» emphasised as the
+primary action, and the other three neutral. Exact hues are the client's and the theme's; the goal
+was semantic hierarchy, and that is what was approved. **TELEGRAM PREMIUM BUTTON COLORS = OWNER
+APPROVED.** The desktop client's failure to differentiate (§7) stands as a recorded client-side
+limitation, not a defect in the matrix.
+
+### 8.1 The slot problem, decided by enumeration rather than by inspection
+
+Two live keyboards hold literal buttons; three fill fixed slots from `$json.kb[row][col]`. A slot
+can only carry a literal style if the ACTION that lands in it is the same for every reachable lead
+state — `chooseActions` hides Discovery at Discovery Scheduled and Документы at Documents
+Requested, so a four-button keyboard's second row starts with whichever survived. Guessing there
+would emphasise the wrong verb; using `style: ""` to dodge the guess is a 400 that would lose the
+alert outright.
+
+`n8n/src/lead-alerts/style-slots.js` decides it mechanically: it enumerates 207 reachable states,
+builds every keyboard each renderer can produce, groups them the way the live Switch does (by
+shape), and reports the action set per slot. `qa/telegram-button-style-slots.test.mjs` (33 checks)
+freezes that verdict, so a future edit that widens an action set or adds a kind to a renderer fails
+offline instead of on a live keyboard.
+
+| node | shape | serves | styled | left neutral |
+| --- | --- | --- | --- | --- |
+| Telegram Lead Alert | literal | NEW LEAD | Discovery = primary | — |
+| Telegram Owner Alert | literal | X-RAY REVIEW | Проверить = success, Карточка = primary | — |
+| Telegram SLA Alert | KB221 | priority | [0][0] success, [1][0] primary | — |
+| Telegram SLA Alert (4) | KB22 | priority | [0][0] success | [1][0] = discovery **or** docs |
+| Telegram Followup Reminder | KB221 | followup | [0][0] success, [1][0] primary | — |
+| Telegram Followup Reminder (4) | KB22 | followup | [0][0] success | [1][0] = discovery **or** docs |
+| Edit Alert (5) | KB221 | priority + new_lead | [0][0] success, [1][0] primary | — |
+| Edit Alert (4) | KB22 | priority + new_lead | none | [0][0] = discovery **or** done |
+| Edit Alert (3) | KB21 | priority + new_lead | none | [0][0] = discovery **or** docs |
+
+The Command Center's shorter edit shapes are ambiguous because it re-renders whatever the tapped
+message was and derives the kind from the message itself (`LAA.originKind`), so one slot can hold
+either the primary or the success verb. Those stay neutral. The practical effect is that emphasis
+is present on the alert the owner acts FROM, and may be absent on the re-rendered alert AFTER the
+action — a visible, safe shortfall rather than a wrong cue. No-op detection is unaffected:
+`sameKeyboard` compares text and callback_data only, and is in any case unused, because the
+classifier reads Telegram's own "message is not modified" answer.
+
+### 8.2 Deployed
+
+`scripts/deploy-telegram-button-styles.mjs --confirm`, one PUT per workflow in a fixed order with
+every node a workflow owns in the same write, so no later write can overwrite an earlier style.
+Eleven `style` keys across five workflows. Each was fresh-read back and re-verified.
+
+Proven live afterwards by an independent read against the pre-deploy captures: everything except
+`style` keys is **byte-identical**, every label, callback_data, url, row and position unchanged,
+all five workflows still active, and triggers, credentials, chat routing, every Code node and every
+Sheets operation untouched. `X-RAY APPROVED` still carries no keyboard. Rollback captures in
+`.uat/<id>.pre-button-styles.json` hold zero style keys, confirming they are genuine pre-deploy
+state, and were preserved rather than overwritten on the confirm run.
+
+    TELEGRAM PREMIUM BUTTON COLORS LIVE = PASS
+    NEW LEAD          = PASS      PRIORITY        = PASS
+    SLA / FOLLOW-UP   = PASS      X-RAY REVIEW    = PASS
+    CALLBACK_DATA / ORDER / ROUTING / TRIGGERS / CRM WRITES / SCORING / CLIENT_READY = UNCHANGED
+    TARGETED QA 435   CANONICAL 79/79, 2738, floors PASS   ROLLBACKS PRESERVED
+    CUSTOMER RELEASE  = NOT AUTHORIZED
