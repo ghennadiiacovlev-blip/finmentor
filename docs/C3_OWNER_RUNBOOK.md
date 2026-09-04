@@ -391,4 +391,50 @@ Rollback for THIS deploy: `.uat/nTZHLbv2KFggdhh5.pre-c3-cycle.live-2026-09-04T04
 
 After confirm, fresh-read and record: Gateway active; live `Attach Client Result` allow-list = the 12 keys (zone_label, summary pass through); forbidden keys absent; CLIENT_READY-only semantics unchanged; `Build App Session` / cycle resolution byte-identical to the 04:52Z capture; Error Monitor / SYSTEM ALERT unchanged.
 
+**C3 CLIENT RESULT CONTRACT = LIVE (2026-09-04 04:55:34 UTC, owner `--confirm` from commit `5725d60`, fresh-read 04:56:06 UTC)**
+
+| # | fact | evidence |
+|---|---|---|
+| 1 | Gateway active | `nTZHLbv2KFggdhh5` 32 nodes, active, versionId `a7158b5b-80dd-473e-9d00-1d5f571ba191`, updatedAt 04:55:34.211Z, name unchanged | PASS |
+| 2 | `zone_label` passes through | live `Attach Client Result` allow-list = 12 keys `locale, labels, score, zone, zone_label, maturity, summary, key_risks, management_priorities, plan_30_days, tomorrow_actions, recommended_next_step`; the LIVE node code executed against the LIVE `XRay_Client_Results` row for `FIN-1788432493303-321` returns `zone_label "Zonă portocalie"` | PASS |
+| 3 | `summary` passes through | same execution: `summary` = the published Romanian summary («Afacerea operează în sectorul retail cu o rețea de 6 magazine…»), 12 keys in the response result | PASS |
+| 4 | forbidden/internal fields absent | none of `review_token, review_token_expires_at, analysis_json, plan_30d_json, request_id, confidence, fabrication_flags, validation_errors, prompt, model, reviewed_at, review_status, executive_summary, analysis_id, lead_id, limitations, data_gaps, documents_required, …` in the allow-list or in the attached result; `lead_id` not in the client response | PASS |
+| 5 | CLIENT_READY semantics unchanged | live code: `AI_DRAFT` row → `result null`, `PENDING`; another lead's row → `PENDING`; no row → `PENDING`; store error → `result_store_error 1`; the jsCode differs from the 04:55Z capture ONLY on the allow-list line | PASS |
+| 6 | cycle/session authority unchanged | node-by-node against `.uat/nTZHLbv2KFggdhh5.pre-c3-cycle.live-2026-09-04T04-55-33-953Z.json`: the ONLY differing node is `Attach Client Result`; no node missing; connections and settings byte-equal; `Build App Session` and `Resolve Session` jsCode byte-equal; the one credential is still `G5 Replay Claim` → `FINMENTOR Supabase G5` | PASS |
+| 7 | no Error Monitor / SYSTEM ALERT regression | Error Monitor last 5056 (08-31 14:19), SYSTEM ALERT last 5076 (08-31 17:52); tenant executions since 04:40Z: 3, all `success` (the Gateway retains none by design) | PASS |
+
+Rollback (if ever needed): `PUT /api/v1/workflows/nTZHLbv2KFggdhh5` with `.uat/nTZHLbv2KFggdhh5.pre-c3-cycle.live-2026-09-04T04-55-33-953Z.json`. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
+
+### Step 5 end-to-end result-screen proof — the owner action (prepared 04:56–05:00 UTC, fresh-read)
+
+Why an extra step is needed: the result screen is attached by the viewer's committed session's `lead_id`. The only `CLIENT_READY` result belongs to the synthetic RO lead, which has no Telegram identity. The owner's own lead `FIN-1788113619104-582` («Mega Parc SRL», HOT/Qualified, created 08-30 18:13Z) has no analysis because `Settings.xray_analysis_since = 2026-09-03T00:00:00.000Z` excludes it. Fresh-read of every Pipeline row (sweep 5473): with `xray_analysis_since = 2026-08-30T00:00:00.000Z` the sweep's pending set becomes EXACTLY ONE lead — the owner's — because the only other row in that window (`FIN-1787944699020-596`, 08-28) is `INCOMPLETE` and the two 09-03 leads are already analysed; every older row is 08-25 or earlier. The owner's committed Mini App session (row 4 `AS-db13cac1…`, `submitted`, cycle `C-551662084-1788462349727`) is the CURRENT projection, so reopening the Mini App WITHOUT `/start` resumes it and the Gateway attaches the result by lead.
+
+The sequence (five owner steps, one Settings cell edited and restored):
+
+1. CRM → tab `Settings` → key `xray_analysis_since`: change `2026-09-03T00:00:00.000Z` to `2026-08-30T00:00:00.000Z`. (Touches nothing else; the sweep reads Settings on every run.)
+2. Wait for the next sweep (:00:53 / :10:53 / …). Expected: alert «ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ … Компания: Mega Parc SRL … Lead ID: FIN-1788113619104-582» with «✅ Проверить и открыть клиенту».
+3. Tap «✅ Проверить и открыть клиенту», read the page, press «Подтвердить и открыть клиенту».
+4. Open the Mini App from the existing bot message (the «Открыть Mini App» button of the current cycle). Do NOT send `/start` and do NOT press «Начать заново» — either rotates the cycle and the new cycle has no committed session. Expected: the RESULT screen (product title, score «… из 100» + zone wording on one line, «Финансовое состояние: …», the summary paragraph, maturity, risks, priorities, 30-day plan, next action, recommendation, one closing button) — not the committed/pending screen.
+5. CRM → `Settings` → `xray_analysis_since` back to `2026-09-03T00:00:00.000Z`.
+
+Record here: the sweep execution id and the new `XA-FIN-1788113619104-582-…` row (`xray-v2`), the GET/POST executions, the second `XRay_Client_Results` row (`lead_id FIN-1788113619104-582`), the host load, and the owner's observation of the result screen → `C3 STEP 5 RESULT SCREEN LIVE PROOF = PASS`.
+
+Correction to the plan above, found at fresh-read before the owner edited anything: the `Settings` tab (gid 1871239368, columns key/value/note, 27 key rows 2–28) held NO `xray_*` row at all; every X-Ray setting came from the code defaults in `Settings to Object`. The owner therefore ADDED a temporary row 29 `xray_analysis_since = 2026-08-30T00:00:00.000Z` and deleted it afterwards.
+
+## C3 STEP 5 RESULT SCREEN LIVE PROOF = PASS (2026-09-04 05:10–05:14 UTC, owner UAT on the owner's own lead, fresh-read 05:17 and 05:21 UTC)
+
+Sequence: sweep 5477 (05:10:53Z, `Read Settings` 28 rows incl. the temporary row, effective `since 2026-08-30`) → `Select Pending Leads` = exactly `FIN-1788113619104-582` → new row `XA-FIN-1788113619104-582-B8599E8ADDF9` (`xray-v2`, `AI_DRAFT`, 64-hex token, expires 2026-10-04T05:11:08Z, `score ''`, `zone UNKNOWN`, locale ru, confidence LOW) → `Telegram Owner Alert` message 181 → owner GET 5478 (05:11:35Z) → owner POST 5479 (05:12:00Z) → host load 5480 (05:13:25Z) → owner deleted row 29 → sweep 5482 (05:20:53Z).
+
+| # | fact | evidence | |
+|---|---|---|---|
+| 1 | the result belongs to the correct committed owner session | `MiniApp_App_Sessions` still 4 rows (no new mint; newest `updated_at` 09-03 19:06:43); row 4 `AS-db13cac1…`, tg `551662084`, cycle `C-551662084-1788462349727`, `submitted`, `lead_id FIN-1788113619104-582`; `MiniApp_Cycle_Projection` still 3 rows, newest = that cycle (no rotation); the published row 2 carries `lead_id FIN-1788113619104-582`, the same lead; the LIVE `Attach Client Result` code executed with that session against the LIVE table attaches exactly this row (`equals owner row: true`) | PASS |
+| 2 | `zone_label` and `summary` pass through the live Gateway | live `nTZHLbv2KFggdhh5` (32 nodes, active, versionId `a7158b5b…`, unchanged since 04:55:34Z), allow-list 12 keys; execution of the live node: `result_state CLIENT_READY`, 12 keys, `zone_label "Без оценки"`, `summary` «В бизнесе розничной торговли выявлена ключевая проблема — отсутствие с…» | PASS |
+| 3 | the result screen consumed the curated CLIENT_READY result | GET 5478 ran only the read/render chain (`Проверка анализа`, form present, pre-read `AI_DRAFT`, `reviewed_at ''`); POST 5479: pre-read still `AI_DRAFT` → `PROMOTE` 200, `reviewed_at 05:12:02.542Z`, `Publish Curated Client Result` → row id 2; host load 5480 at 05:13:25Z after the promotion; the Gateway's 12 keys = the host's `RESULT_KEYS`; the owner saw the result screen (state, summary, maturity, key risks, priorities, 30-day plan, next step). Score is `null` and zone `UNKNOWN` → «Без оценки» because this lead has no questionnaire score — by contract, not a defect | PASS |
+| 4 | no forbidden/internal field exposed | row 2 columns `analysis_id, lead_id, locale, published_at, result_json, review_status, score, zone` (+ table ids); `result_json` keys exactly the 12; text contains none of `review_token, request_id, analysis_json, confidence, fabrication_flags, validation_errors, limitations, data_gaps, prompt, model, reviewed_at, AI_DRAFT, ANALYSIS_FAILED, gpt-4.1, fmr_`; the attached result carries none and `lead_id` is not in the client response | PASS |
+| 5 | Settings no longer carries the override | sweep 5482 (05:20:53Z): `Read Settings` 27 rows (2–28, last `client_ai_temperature`), `xray_*` rows: none, effective `xray_analysis_since 2026-09-03T00:00:00.000Z` (code default), `Select Pending Leads` empty | PASS |
+| 6 | no duplicate client result | `XRay_Client_Results` = 2 rows, one per lead: id 1 `FIN-1788432493303-321` (04:34Z), id 2 `FIN-1788113619104-582` (`published_at 05:12:04.134Z`); Lead Intake not involved; `Promote Analysis` matched on `analysis_id` | PASS |
+| 7 | no Gateway / Error Monitor / SYSTEM ALERT regression | Gateway `updatedAt` still 04:55:34.211Z; Error Monitor last 5056 (08-31 14:19); SYSTEM ALERT last 5076 (08-31 17:52); tenant executions since 04:56Z: 7 (5476–5482), all `success` | PASS |
+
+Step 5 is closed. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released; routing untouched.
+
 Live proof (owner-only) still to record: reopen the Mini App on the submitted brief → committed screen with «Результат анализа появится здесь после проверки консультантом FINMENTOR.». NOTE: the result screen is keyed by the viewer's lead; the only `CLIENT_READY` result belongs to the synthetic RO lead, and the owner's own lead `FIN-1788113619104-582` (created 08-30) is outside `xray_analysis_since` and has no analysis — so the owner's reopen can prove the committed-screen copy, not the result screen, until an analysis exists for the owner's lead. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
