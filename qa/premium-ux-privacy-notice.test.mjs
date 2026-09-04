@@ -208,6 +208,27 @@ check('retention states the 72-hour draft rule, matching the TTL actually deploy
   assert(/72 de ore/.test(N.FULL.ro.elements.retention.body), 'RO retention does not state 72 hours');
 });
 
+// GATE 1, 2026-09-04. The notice used to promise that an unfinished brief «удаляется автоматически
+// через 72 часа» and that a transmitted request is deleted afterwards. Neither is built: the TTL
+// EXPIRES a session so it can no longer be opened or submitted, and no deletion job exists anywhere
+// in the stack — `idempotency-receipt.js` records that no canonical retention period is defined at
+// all. Describing a deletion that does not happen is the one failure mode a privacy notice must
+// never have, so these two checks hold the text to what the system actually does.
+check('the notice never claims an automatic deletion the stack does not perform', () => {
+  for (const loc of ['ru', 'ro']) {
+    const body = N.FULL[loc].elements.retention.body;
+    assert(!/удаляется автоматически|se șterge automat/.test(body), loc + ' claims automatic deletion');
+    assert(!/после чего удаляется|după care se șterge/.test(body), loc + ' claims deletion after the working period');
+  }
+});
+
+check('retention describes the 72-hour rule as expiry, and keeps deletion as a right the person exercises', () => {
+  assert(/перестаёт быть доступен|нельзя/.test(N.FULL.ru.elements.retention.body), 'RU does not describe expiry');
+  assert(/indisponibil|nu mai poate fi/.test(N.FULL.ro.elements.retention.body), 'RO does not describe expiry');
+  assert(/можете запросить его удаление/.test(N.FULL.ru.elements.retention.body), 'RU does not offer deletion on request');
+  assert(/puteți solicita ștergerea/.test(N.FULL.ro.elements.retention.body), 'RO does not offer deletion on request');
+});
+
 check('the complaint route names the Moldovan supervisory authority', () => {
   assert(/Национальный центр по защите персональных данных/.test(N.FULL.ru.elements.complaint.body), 'RU authority');
   assert(/Centrul Național pentru Protecția Datelor/.test(N.FULL.ro.elements.complaint.body), 'RO authority');

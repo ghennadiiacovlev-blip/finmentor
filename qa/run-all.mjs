@@ -59,6 +59,7 @@ const GATES = [
   ['Premium UX Telegram state machine', 'premium-ux-state.test.mjs'],
   ['Premium UX brief + privacy record', 'premium-ux-brief.test.mjs'],
   ['Premium UX privacy notice (RU/RO, templated)', 'premium-ux-privacy-notice.test.mjs'],
+  ['Privacy release gate (consent gating + no PII in analytics)', 'privacy-release-gate.test.mjs'],
   ['Premium UX app-session TTL (72h)', 'premium-ux-ttl.test.mjs'],
   ['Premium UX context extraction', 'premium-ux-extraction.test.mjs'],
   ['Premium UX Mini App network layer', 'premium-ux-net.test.mjs'],

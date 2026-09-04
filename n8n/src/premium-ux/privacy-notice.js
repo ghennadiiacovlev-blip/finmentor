@@ -119,7 +119,15 @@ const FULL = {
       },
       retention: {
         heading: 'Сколько хранится',
-        body: 'Незавершённый бриф удаляется автоматически через 72 часа. Переданное обращение хранится столько, сколько необходимо для работы по нему и для подтверждения выполнения обязательств, после чего удаляется. Запись о том, какую версию этой информации вы получили и когда подтвердили, хранится отдельно как доказательство и не содержит содержания вашего обращения.'
+        // GATE 1 CORRECTION 2026-09-04: this paragraph used to say the unfinished brief «удаляется
+        // автоматически через 72 часа» and that the transmitted request «после чего удаляется».
+        // Neither mechanism exists. What the 72 h TTL actually does is EXPIRE the session — an
+        // expired brief can no longer be opened, edited or submitted — and no automatic deletion
+        // job runs anywhere in the stack; `idempotency-receipt.js` records that no canonical
+        // retention period is even defined yet. A notice may not describe a deletion that does not
+        // happen, so it now states the expiry that is real and keeps deletion as the RIGHT the
+        // person can exercise, which the controller can honour by hand today.
+        body: 'Незавершённый бриф перестаёт быть доступен через 72 часа: открыть, изменить или отправить его больше нельзя. Переданное обращение хранится столько, сколько необходимо для работы по нему и для подтверждения выполнения обязательств; вы можете запросить его удаление. Запись о том, какую версию этой информации вы получили и когда подтвердили, хранится отдельно как доказательство и не содержит содержания вашего обращения.'
       },
       rights: {
         heading: 'Ваши права',
@@ -166,7 +174,8 @@ const FULL = {
       },
       retention: {
         heading: 'Cât timp se păstrează',
-        body: 'Un brief nefinalizat se șterge automat după 72 de ore. Solicitarea transmisă se păstrează atât timp cât este necesar pentru lucrul asupra ei și pentru dovedirea îndeplinirii obligațiilor, după care se șterge. Înregistrarea despre versiunea acestei informații pe care ați primit-o și momentul confirmării se păstrează separat, ca dovadă, și nu conține conținutul solicitării dumneavoastră.'
+        // Same GATE 1 correction as the RU body above, kept semantically identical.
+        body: 'Un brief nefinalizat devine indisponibil după 72 de ore: nu mai poate fi deschis, modificat sau trimis. Solicitarea transmisă se păstrează atât timp cât este necesar pentru lucrul asupra ei și pentru dovedirea îndeplinirii obligațiilor; puteți solicita ștergerea ei. Înregistrarea despre versiunea acestei informații pe care ați primit-o și momentul confirmării se păstrează separat, ca dovadă, și nu conține conținutul solicitării dumneavoastră.'
       },
       rights: {
         heading: 'Drepturile dumneavoastră',

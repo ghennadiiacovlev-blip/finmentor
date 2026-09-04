@@ -15,7 +15,7 @@ forward from an earlier record.
     CURRENT PRODUCTION V1 COMPLETION = 14%   (1 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
-    GATE 1  Privacy / Legal ...................... OPEN
+    GATE 1  Privacy / Legal ...................... BLOCKED (1 P1 + 4 owner decisions)
     GATE 2  C2 CRM Lifecycle Owner UAT ........... OPEN
     GATE 3  RO Content ........................... OPEN
     GATE 4  GA4 UAT .............................. OPEN
@@ -24,7 +24,7 @@ forward from an earlier record.
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
-    OPEN P1 = 0
+    OPEN P1 = 1
     POST_GO ITEMS = 11
 
 **NEXT SINGLE CHECKPOINT = GATE 1 — Privacy / Legal.**
@@ -110,20 +110,35 @@ verdict is enumerated over 207 reachable states by `n8n/src/lead-alerts/style-sl
 
 **Frozen.** No further button, colour, label or layout change before GO.
 
-### GATE 1 — Privacy / Legal · **OPEN** ← next checkpoint
+### GATE 1 — Privacy / Legal · **BLOCKED** — audited 2026-09-04, see `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`
 
-Evidence: `docs/C4_PRIVACY_RELEASE_GATE.md` — *"ONE approval pending"*; the live texts are already
-audited. `docs/PREMIUM_UX_PRODUCTION_PREREQUISITES.md` records LEGAL NOTICE as the single PENDING
-row against eleven PASS rows. Privacy records currently carry `PENDING_LEGAL_REVIEW` because the
-legal-basis enum is deliberately not activated until this decision lands.
+Audited 2026-09-04 against the shipped files and the live tenant. Full record and the thirteen-row
+surface inventory: `docs/GATE1_PRIVACY_LEGAL_2026-09-04.md`.
 
-To close: owner approval of the RU and RO wording exactly as drafted (consent, privacy notice, data
-handling and retention statements required for customer release), then activate the legal-basis
-value and re-run the privacy gates. **Mandatory corrections only** — this gate is not an invitation
-to rewrite the notice.
+**OPEN P0 = 0 · OPEN P1 = 1 · OWNER DECISIONS = 4 · LEGAL REVIEW = 1.**
 
-Blocking because it is a legal precondition of opening the endpoints to non-owners, not because of
-any code defect.
+Proven PASS: contact consent gating on the public questionnaire in both languages (required,
+non-prefilled, blocks submit, payload built only after the guard); privacy and terms links present
+twice before anything is sent; no PII in GA4 (closed eight-key allow-list, unlisted keys dropped,
+e-mail/phone redaction); CLIENT_READY minimisation; owner/client data boundaries.
+
+**The P1:** in the Mini App — the surface that collects role, company, scale, task, contact channel
+and Telegram id — no privacy information is reachable. The submit screen renders its links as
+`a.href = '#'`, and the entry affordance is not a link at all. A person is asked to acknowledge
+information they cannot open. Not fixed here because the fix requires choosing what those links
+open (public policy pages, or the in-app layer-2 notice, which cannot render until the controller
+identity exists) — an owner decision about which document a customer is sent to.
+
+**Corrected in this gate:** the notice claimed an automatic 72-hour deletion that no code performs.
+The TTL expires a session, it does not delete the row, and no deletion job exists anywhere. The text
+now states the expiry that is real and keeps deletion as a right; two checks prevent the false claim
+returning.
+
+**The four owner decisions:** controller full name · controller privacy e-mail · the Supabase (EU)
+processor and human-review paragraph (final RU and RO text in the record) · the Mini App link target.
+**Legal review:** whether `pre_contractual_request` is the correct basis, or consent is required.
+
+No customer is exposed today: Session and Submit are both `OWNER_ONLY`.
 
 ### GATE 2 — C2 CRM Lifecycle Owner UAT · **OPEN**
 
