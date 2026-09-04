@@ -283,7 +283,9 @@ check('the existing errorTrigger model still renders BYTE-IDENTICALLY', () => {
     workflowName: 'FINMENTOR Lead Intake PREMIUM FINAL', nodeName: 'Save to Pipeline',
     errorClass: 'RATE_LIMIT', message: 'quota exceeded', executionId: '4239'
   });
-  assert(legacy.includes('<b>FINMENTOR · SYSTEM ALERT</b>'), 'the header changed');
+  // OWNER DECISION, 2026-09-04: Russian type name with one leading icon. The header line moved;
+  // every line below it must not.
+  assert(legacy.split('\n')[0] === '🛠 <b>FINMENTOR · Системное уведомление</b>', 'the header changed');
   assert(legacy.includes('Последствия для записей автоматически не проверены.'),
     'the errorTrigger data statement changed — existing alerts are not byte-equivalent');
   assert(legacy.includes('Лид, Pipeline и privacy-запись нужно проверить вручную.'), 'the second legacy line changed');
@@ -344,7 +346,7 @@ check('the candidate BUILD node actually runs and renders the alert', () => {
   };
   const out = new Function('$', 'require', src)($, sandboxRequire)[0].json;
   assert(typeof out.alert_html === 'string' && out.alert_html.length > 0, 'the build node rendered nothing');
-  assert(out.alert_html.includes('<b>FINMENTOR · SYSTEM ALERT</b>'), 'the rendered alert is not the approved chrome');
+  assert(out.alert_html.split('\n')[0] === '🛠 <b>FINMENTOR · Системное уведомление</b>', 'the rendered alert is not the approved chrome');
   assert(out.alert_html.includes('Не удалось запустить Mini App.'), 'the operation is not the headline');
   assert(out.alert_html.includes('Необратимая бизнес-запись не была достигнута.'), 'the class-A statement is missing');
   eq(out.alert_key, event.alert_key, 'the alert key was not carried through');

@@ -28,7 +28,8 @@ const LAA = (function () {
     snooze: '⏰ На 24 часа',
     discovery: '📞 Discovery',
     docs: '📄 Документы',
-    nurture: '🗂 В Nurture'
+    // OWNER CORRECTION 2026-09-04: the visible label is Russian; callback_data below is unchanged.
+    nurture: '🗂 В наблюдение'
   };
 
   // ── callback_data is PRESERVED VERBATIM ──────────────────────────────────────────────────────

@@ -26,7 +26,11 @@
 
 // __XRAY_LABELS__ (inlined by the builder)
 
+// __XRAY_OWNER_CARDS__ (inlined by the builder)
+
 const crypto = require('crypto');
+// The Pipeline tab, for the «Карточка лида» deep link on the owner card (Google Sheets range anchor).
+const PIPELINE_GID = '1883973304';
 const ANALYSIS_VERSION = 'xray-v2';
 const REVIEW_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const REQUIRED_TOP = ['executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
@@ -133,40 +137,32 @@ function fabricationFlags(inputText, outputText) {
   return flags.slice(0, 12);
 }
 
+// The owner card (OWNER DECISION 2026-09-04): rendered by XRAY_OWNER_CARDS.renderReview from an
+// already-decided model. No Lead ID, no confidence enum, no raw flags — a data-quality doubt is
+// ONE line («Требуется проверка исходных данных»), raised when the fabrication guard flagged a
+// figure or the model itself reported LOW confidence. The product label is the RU owner label,
+// never the client-locale one. Telegram parse_mode HTML: every value is escaped in the renderer.
 function ownerAlert(inp, a, row, cfg) {
-  const L = XRAY_LABELS.ru;
-  const z = L.zone[XRAY_ZONES.includes(row.zone) ? row.zone : 'UNKNOWN'];
-  const primary = a.key_risks[0] ? a.key_risks[0].title : L.insufficient;
-  const pri = a.management_priorities.length ? a.management_priorities.map((p, i) => (i + 1) + '. ' + p).join('\n') : '—';
-  const lines = [
-    'ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ',
-    '',
-    'Компания: ' + (inp.company || '—'),
-    'Язык клиента: ' + (row.locale === 'ro' ? 'RO' : 'RU'),
-    '',
-    'Оценка финансового управления: ' + (row.score === '' ? 'нет данных (без анкеты)' : row.score + ' из 100'),
-    'Зона: ' + z.name + ' — ' + z.line,
-    '',
-    'Основной риск: ' + primary,
-    'Зрелость финансового управления: ' + row.maturity_score + ' из 5',
-    '',
-    'Первые приоритеты:',
-    pri,
-    '',
-    'План на 30 дней: ГОТОВ К ПРОВЕРКЕ',
-    'Достоверность анализа: ' + a.confidence + (row.fabrication_flags ? '\n⚠️ Проверить цифры: ' + row.fabrication_flags : ''),
-    'Следующий шаг: ' + a.recommended_next_step.label,
-    '',
-    'Статус: ' + L.review.AI_DRAFT,
-    'Lead ID: ' + row.lead_id
-  ];
+  const text = XRAY_OWNER_CARDS.renderReview({
+    company: inp.company,
+    locale: row.locale,
+    context: inp.company_context || null,
+    score: row.score,
+    zone: XRAY_ZONES.includes(row.zone) ? row.zone : 'UNKNOWN',
+    maturity: row.maturity_score,
+    primary_risk: a.key_risks[0] ? a.key_risks[0].title : '',
+    priorities: a.management_priorities,
+    // canonical questionnaire risk-zone codes — the owner card's Russian rendering for RO clients
+    risk_zones: Array.isArray(inp.risk_zones) ? inp.risk_zones : [],
+    product: a.recommended_next_step.product,
+    needs_verification: row.fabrication_flags !== '' || a.confidence === 'LOW'
+  });
   const reviewUrl = String(cfg.xray_review_base_url || '') + '?a=' + encodeURIComponent(row.analysis_id) + '&t=' + encodeURIComponent(row.review_token);
-  return {
-    // parse_mode HTML on the Telegram node: only angle brackets are unsafe, punctuation stays.
-    text: lines.join('\n').replace(/[<>]/g, '').slice(0, 3900),
-    review_url: reviewUrl,
-    crm_url: String(cfg.crm_url || '')
-  };
+  // «Карточка лида»: the Pipeline row when the input knows it, the spreadsheet otherwise.
+  const crmBase = String(cfg.crm_url || '');
+  const crmRow = Number(inp.crm_row);
+  const crmUrl = crmBase && Number.isInteger(crmRow) && crmRow > 1 ? crmBase + '#gid=' + PIPELINE_GID + '&range=A' + crmRow : crmBase;
+  return { text, review_url: reviewUrl, crm_url: crmUrl };
 }
 
 function newAnalysisId(leadId) {
@@ -177,6 +173,7 @@ function failedOutput(inp, now, errors) {
   const analysisId = newAnalysisId(inp.lead_id) + '-F';
   const row = {
     analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale === 'ro' ? 'ro' : 'ru',
+    company: str(inp.company, 120),
     created_at: now, analysis_version: inp.analysis_version || ANALYSIS_VERSION, model: inp.ai_model || '',
     score: inp.score === null || inp.score === undefined ? '' : inp.score,
     zone: XRAY_ZONES.includes(inp.zone) ? inp.zone : 'UNKNOWN', maturity_score: '', primary_risk: '',
@@ -188,7 +185,9 @@ function failedOutput(inp, now, errors) {
     is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
     pipeline_row: { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED', updated_at: now, last_activity_at: now },
     owner_alert: null,
-    owner_text: ('ФИНАНСОВЫЙ РЕНТГЕН · АНАЛИЗ НЕ ВЫПОЛНЕН\n\nКомпания: ' + (inp.company || '—') + '\nКласс ошибки: MODEL_OUTPUT_INVALID\nПричина: ' + errors.slice(0, 4).join('; ') + '\nLead ID: ' + inp.lead_id + '\n\nСтрока ' + analysisId + ' записана в XRay_Analysis со статусом ANALYSIS_FAILED. Удалите её, чтобы повторить анализ.').replace(/[<>]/g, '').slice(0, 3900)
+    // ❌ Анализ не сформирован — the error class renders as Russian; the raw validation errors stay
+    // on the ledger row (validation_errors) for the engineer, never in the owner's chat.
+    owner_text: XRAY_OWNER_CARDS.renderFailed({ company: inp.company, locale: inp.locale, cause: 'MODEL_OUTPUT_INVALID' })
   };
 }
 
@@ -220,6 +219,9 @@ for (let idx = 0; idx < responses.length; idx++) {
     lead_id: inp.lead_id,
     request_id: inp.request_id || '',
     locale,
+    // Carried on the ledger row so the promotion notice can name the company without a second
+    // Pipeline read (autoMap appends the column on first write).
+    company: str(inp.company, 120),
     created_at: now,
     analysis_version: inp.analysis_version || ANALYSIS_VERSION,
     model: inp.ai_model || '',

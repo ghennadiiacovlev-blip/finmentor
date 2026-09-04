@@ -26,7 +26,9 @@
 //   3. Business and system NEVER mix. A lead digest carries no workflow names; a system alert
 //      carries no lead.
 //   4. Data minimisation applies even on an owner-only channel. Phone, email and free text do not
-//      belong in a routine alert. The lead id is enough to open the row.
+//      belong in a routine alert. OWNER DECISION, 2026-09-04: neither does the lead id — it is
+//      never rendered in a visible body. It still travels in the item and in callback_data, which
+//      is how the Done/Snooze buttons find the row; the owner does not read it, so it is not shown.
 //   5. Nothing is stated as proven unless the model proves it. In particular the system alert must
 //      not claim "no side effects": the n8n error payload carries no execution data at all, so
 //      that sentence would be invention. See IMPACT below.
@@ -103,11 +105,15 @@ const PRIORITY_LABEL = {
   INCOMPLETE: 'Нужны данные'
 };
 
+// OWNER DECISION 2026-09-04: ONE canonical owner-facing zone vocabulary across every owner card
+// (Lead Alerts and the X-Ray cards alike). The two dimensions stay distinct through their labelled
+// lines («Приоритет:» / «Финансовая зона:») and their icons, not through disjoint wording.
 const ZONE_LABEL = {
   RED: 'Критическая зона',
-  ORANGE: 'Повышенный риск',
-  YELLOW: 'Есть зоны риска',
-  GREEN: 'Устойчиво'
+  ORANGE: 'Существенные пробелы',
+  YELLOW: 'Требует внимания',
+  GREEN: 'Устойчивое управление',
+  UNKNOWN: 'Недостаточно данных'
 };
 
 // An unrecognised value is NOT silently mapped to something plausible. It returns '' and the line
@@ -185,6 +191,76 @@ function contactLine(channel, value) {
 function priorityLabel(v) { return PRIORITY_LABEL[String(v || '').trim().toUpperCase()] || ''; }
 function zoneLabel(v) { return ZONE_LABEL[String(v || '').trim().toUpperCase()] || ''; }
 
+// ── OWNER DECISION, 2026-09-04. One icon per dimension, and only ever beside its label ──────────
+//
+// The icon is a glyph in front of a word the owner already approved; it is not a third vocabulary.
+// The tables are keyed exactly like the label tables, so a value that earns no label earns no icon
+// and the line is omitted whole — an icon in front of nothing would be a badge with no meaning.
+//
+// These two lines, plus the first character of the header, are the ONLY places an emoji may
+// appear in an owner message. qa/lead-alerts-presentation.test.mjs strips exactly those three and
+// requires the remainder to be emoji-free, so a fourth cannot appear without a decision.
+const PRIORITY_ICON = { HOT: '🔥', WARM: '🕒', COLD: '⚪', INCOMPLETE: '❔' };
+const ZONE_ICON = { RED: '🔴', ORANGE: '🟠', YELLOW: '🟡', GREEN: '🟢', UNKNOWN: '⚪' };
+
+// ── company scale, one owner-facing format ────────────────────────────────────────────────────
+//
+// OWNER DECISION 2026-09-04: «1–5 млн EUR · 50–100 сотрудников». The intake stores the
+// questionnaire's own labels («1–5M €», «€500 тыс. – €2 млн», «50–100»); this normalises the
+// shapes it recognises and leaves anything else exactly as it came.
+function scaleLabel(v) {
+  let s = String(v === undefined || v === null ? '' : v).replace(/\s+/g, ' ').trim();
+  if (!s) { return ''; }
+  s = s.replace(/^(\d+)\s*[–-]\s*(\d+)\s*(?:M|mln|млн)\s*(?:€|EUR)$/i, '$1–$2 млн EUR');
+  s = s.replace(/^(?:€|EUR)\s*(\d+)\s*(тыс\.?|млн)\s*[–-]\s*(?:€|EUR)\s*(\d+)\s*(тыс\.?|млн)$/i, (m, a, ua, b, ub) => a + ' ' + ua.replace(/\.?$/, '.').replace('млн.', 'млн') + ' – ' + b + ' ' + ub.replace('тыс', 'тыс.').replace('тыс..', 'тыс.') + ' EUR');
+  s = s.replace(/^(\d+)\s*[–-]\s*(\d+)\s*(?:€|EUR)$/i, '$1–$2 EUR');
+  return s;
+}
+// A bare numeric range in the situation line is a head-count: «50–100» → «50–100 сотрудников».
+function employeesLabel(v) {
+  const s = String(v === undefined || v === null ? '' : v).replace(/\s+/g, ' ').trim();
+  if (/^(до\s*)?\d+(\s*[–-]\s*\d+)?\+?$/.test(s)) { return s + ' сотрудников'; }
+  return s;
+}
+// The situation line arrives as «industry · model · turnover · employees», already classified.
+function situationLine(v) {
+  return String(v === undefined || v === null ? '' : v).split(' · ').map((p) => p.trim()).filter(Boolean)
+    .map((p) => employeesLabel(scaleLabel(p))).join(' · ');
+}
+
+// «<b>Приоритет:</b> 🔥 Высокий приоритет», or nothing at all.
+function priorityLine(v) {
+  const key = String(v || '').trim().toUpperCase();
+  const label = PRIORITY_LABEL[key];
+  return label ? '<b>Приоритет:</b> ' + PRIORITY_ICON[key] + ' ' + esc(label) : '';
+}
+
+// «<b>Финансовая зона:</b> 🟠 Повышенный риск» — the second dimension, labelled so it can never
+// be read as the first.
+function zoneLine(v) {
+  const key = String(v || '').trim().toUpperCase();
+  const label = ZONE_LABEL[key];
+  return label ? '<b>Финансовая зона:</b> ' + ZONE_ICON[key] + ' ' + esc(label) : '';
+}
+
+// ── the Russian console rule for RO leads ──────────────────────────────────────────────────────
+//
+// OWNER CORRECTION 2026-09-04. The owner console is Russian; the customer's language is metadata
+// («Клиент: RO»). A free-text field that arrived in Romanian is NOT dumped into the card: it is
+// replaced by a neutral Russian pointer (the request) or omitted (role, situation parts, next
+// action). Deterministic, no translation call: Cyrillic prose passes; Latin text passes only when
+// nothing but allow-listed product/finance terms, digits, currency and punctuation remains.
+const LATIN_OK = /\b(retail|e-?commerce|distribution|services|manufacturing|fitness|real estate|other|cash ?flow|p&amp;l|p&l|cfo|kpi|bi|power bi|excel|1c|erp|crm|eur|mdl|usd|ron|mln|mil|mii|srl|sa|llc|ltd|sme|b2b|b2c|it|hr|saas|horeca|fmcg|discovery|call|financial health check|health check|ok)\b/gi;
+const SEE_LEAD_CARD = 'Запрос клиента доступен в карточке лида CRM';
+function ownerSafe(text) {
+  const s = String(text === undefined || text === null ? '' : text);
+  if (!s.trim()) { return false; }
+  if (/[ăâîșțĂÂÎȘȚşţŞŢ]/.test(s)) { return false; }
+  const rest = s.replace(LATIN_OK, ' ').replace(/[0-9€$%.,;:/()+\-–—·&'"«»\s]/g, ' ');
+  return !/[A-Za-z]{2,}/.test(rest);
+}
+const isRo = (v) => String(v === undefined || v === null ? '' : v).trim().toLowerCase() === 'ro';
+
 // ── dates ──────────────────────────────────────────────────────────────────────────────────────
 //
 // Written out rather than taken from Intl. A Code node's ICU data is not something this repo
@@ -218,20 +294,37 @@ function dateTime(iso, offsetMinutes) {
 
 // A deadline the owner can act on without arithmetic. «просрочено на 3 дн.» is a decision;
 // «Due: 2026-08-27T09:00:00.000Z» is homework.
-function deadline(dueIso, nowIso, offsetMinutes) {
+// Whole local days from `now` to `due` — negative when overdue, null when either date is
+// unparseable. Shared by deadline() and dueLine() so the two can never disagree on which day it is.
+function daysUntil(dueIso, nowIso, offsetMinutes) {
   const due = new Date(dueIso);
   const now = new Date(nowIso);
-  if (Number.isNaN(due.getTime()) || Number.isNaN(now.getTime())) { return ''; }
+  if (Number.isNaN(due.getTime()) || Number.isNaN(now.getTime())) { return null; }
   const dayOf = (d) => {
     const t = new Date(d.getTime() + (Number(offsetMinutes) || 0) * 60000);
     return Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
   };
-  const days = Math.round((dayOf(due) - dayOf(now)) / 86400000);
+  return Math.round((dayOf(due) - dayOf(now)) / 86400000);
+}
+
+function deadline(dueIso, nowIso, offsetMinutes) {
+  const days = daysUntil(dueIso, nowIso, offsetMinutes);
+  if (days === null) { return ''; }
   if (days === 0) { return 'сегодня'; }
   if (days === 1) { return 'завтра'; }
   if (days === -1) { return 'просрочено на 1 день'; }
   if (days < -1) { return 'просрочено на ' + (-days) + ' ' + plural(-days, 'день', 'дня', 'дней'); }
   return longDate(dueIso, offsetMinutes);
+}
+
+// The PRIORITY card's one dated line, OWNER DECISION 2026-09-04: «Просрочено: 3 дня» when the
+// deadline has passed, «Срок: сегодня | завтра | 4 сентября» when it has not. The label is bold
+// and the value is not — on a card the value is the answer and must stay quiet enough to read.
+function dueLine(dueIso, nowIso, offsetMinutes) {
+  const days = daysUntil(dueIso, nowIso, offsetMinutes);
+  if (days === null) { return ''; }
+  if (days < 0) { return '<b>Просрочено:</b> ' + (-days) + ' ' + plural(-days, 'день', 'дня', 'дней'); }
+  return '<b>Срок:</b> ' + esc(deadline(dueIso, nowIso, offsetMinutes));
 }
 
 function plural(n, one, few, many) {
@@ -282,8 +375,32 @@ function counter(label, n, always) {
   return esc(label) + ': ' + v;
 }
 
-const header = (kind, sub) =>
-  '<b>FINMENTOR · ' + esc(kind) + '</b>' + (present(sub) ? '\n<i>' + esc(sub) + '</i>' : '');
+// ── the header ─────────────────────────────────────────────────────────────────────────────────
+//
+// OWNER DECISION, 2026-09-04. The type name is Russian and carries ONE leading icon; the
+// «FINMENTOR · » chrome stays. The icon is the first character of the message, and it is the only
+// emoji the message may carry apart from the priority/zone icons above.
+//
+// header() itself adds no icon unless handed one: the action confirmations in actions.js call it
+// with an English title and no icon, and they must keep rendering exactly the bytes they do.
+const header = (kind, sub, icon) =>
+  (present(icon) ? icon + ' ' : '') + '<b>FINMENTOR · ' + esc(kind) + '</b>'
+  + (present(sub) ? '\n<i>' + esc(sub) + '</i>' : '');
+
+// The eight owner alert types. A ninth is not added here without a decision — the gate holds the
+// same list and refuses a header it does not know.
+const TYPE = {
+  DAILY_BRIEF:      { icon: '📋', name: 'Утренний бриф' },
+  NEW_LEAD:         { icon: '🔔', name: 'Новый лид' },
+  PRIORITY:         { icon: '⏳', name: 'Требует внимания' },
+  FOLLOW_UP:        { icon: '🔁', name: 'Напоминание' },
+  LEAD_INCOMPLETE:  { icon: '⚠️', name: 'Неполные данные' },
+  SYSTEM_ALERT:     { icon: '🛠', name: 'Системное уведомление' },
+  SYSTEM_RECOVERED: { icon: '✅', name: 'Система восстановлена' },
+  DATA_INTEGRITY:   { icon: '🧾', name: 'Целостность данных' }
+};
+
+const typeHeader = (key, sub) => header(TYPE[key].name, sub, TYPE[key].icon);
 
 // ── B3. OWNER DAILY BRIEF ──────────────────────────────────────────────────────────────────────
 //
@@ -333,55 +450,78 @@ function renderDailyBrief(model) {
   const body = join([today, priority, decisions]);
   // Nothing urgent is a RESULT, and saying so plainly is worth more than a page of zeroes.
   const tail = (priority || decisions) ? '' : '<b>Критичных действий нет.</b>';
-  return join([header('OWNER DAILY BRIEF', dateTime(m.now, off)), body, tail]);
+  return join([typeHeader('DAILY_BRIEF', dateTime(m.now, off)), body, tail]);
 }
 
 // ── B4. NEW LEAD ───────────────────────────────────────────────────────────────────────────────
 //
-// model = { company, role, objective, situation, priority, zone, nextAction, source,
-//           contactChannel, leadId }
+// model = { company, contactName, role, language, objective, situation, priority, zone,
+//           nextAction, source, contactChannel, contactValue, leadId }
 //
-// NO PHONE, NO EMAIL, NO FREE-TEXT PASTE. The owner opens the row to call; the alert exists to
-// say whether the row is worth opening now. The contact CHANNEL is carried because it changes how
-// the owner plans the callback, and the channel is not personal data.
+// NO PHONE, NO EMAIL, NO FREE-TEXT PASTE — except the ONE channel the client chose, by the
+// 2026-08-30 decision, which now lives inside «Контекст» as «Связь: …». The owner opens the row
+// to work the lead; the alert exists to say whether the row is worth opening now.
+//
+// OWNER DECISION, 2026-09-04 — the CFO-console shape:
+//
+//   🔔 <b>FINMENTOR · Новый лид</b>
+//   <b>company</b>, falling back to the contact name, then «—»
+//   role · Источник: label · Клиент: RO       (each part only when known; RU is the default and
+//                                              is never stated)
+//   <b>Приоритет:</b> icon label
+//   <b>Финансовая зона:</b> icon label          (only when a zone exists)
+//   <b>Запрос</b> — one line, <b>Контекст</b> — at most two, <b>Следующий шаг</b> — one action.
+//
+// `leadId` stays in the model and is NOT rendered (rule 4).
 function renderNewLead(model) {
   const m = model || {};
-  const ident = '<b>' + esc(tidy(m.company, 70) || '—') + '</b>'
-    + (present(m.role) ? '\n' + esc(tidy(m.role, 60)) : '');
+  const ro = isRo(m.language);
+  // For RO leads every free-text field passes the Russian-console rule or is replaced/omitted.
+  const safe = (v) => (present(v) && (!ro || ownerSafe(v)) ? v : '');
+  const name = tidy(m.company, 70) || tidy(m.contactName, 70) || '—';
+  const meta = [
+    tidy(safe(m.role), 60),
+    present(sourceLabel(m.source)) ? 'Источник: ' + sourceLabel(m.source) : '',
+    ro ? 'Клиент: RO' : ''
+  ].filter(present).map(esc).join(' · ');
+  const objective = present(m.objective) ? (safe(m.objective) ? tidy(m.objective, 120) : SEE_LEAD_CARD) : '';
+  const situation = situationLine(m.situation).split(' · ').filter((p) => safe(p)).join(' · ');
 
   return join([
-    header('NEW LEAD'),
-    ident,
-    card('Задача', present(m.objective) ? '<b>' + esc(tidy(m.objective, 120)) + '</b>' : ''),
-    card('Ситуация', esc(tidy(m.situation, 220))),
-    card('Приоритет', [
-      present(priorityLabel(m.priority)) ? '<b>' + esc(priorityLabel(m.priority)) + '</b>' : '',
-      // The second dimension, labelled so it can never be read as the first.
-      line('Финансовая зона', zoneLabel(m.zone))
+    typeHeader('NEW_LEAD'),
+    '<b>' + esc(name) + '</b>' + (meta ? '\n' + meta : ''),
+    card(null, [priorityLine(m.priority), zoneLine(m.zone)]),
+    block('Запрос', esc(objective)),
+    block('Контекст', [
+      // «Ситуация» is a controlled summary built by the caller from classified fields.
+      esc(tidy(situation, 160)),
+      // Always present: a lead nobody can reach is a fact the owner must be told, not a line to omit.
+      'Связь: <b>' + contactLine(m.contactChannel, m.contactValue) + '</b>'
     ]),
-    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),
-    card('Связь', '<b>' + contactLine(m.contactChannel, m.contactValue) + '</b>'),
-    card(null, line('Источник', sourceLabel(m.source))),
-    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''
+    block('Следующий шаг', esc(tidy(safe(m.nextAction), 120)))
   ]);
 }
 
 // ── B5. PRIORITY ───────────────────────────────────────────────────────────────────────────────
 //
-// model = { company, reason, nextAction, dueAt, now, offsetMinutes, leadId }
+// model = { company, reason, nextAction, dueAt, now, offsetMinutes, priority, leadId }
 //
 // Deliberately NOT the lead card again. The owner already received the card when the lead landed;
 // repeating it here would mean re-reading everything to find the one new fact, which is why the
 // deployed SLA reminder gets skimmed.
+//
+// OWNER DECISION, 2026-09-04: the overdue duration is the first thing after the company, because
+// it is the one fact that changed. `priority` is optional and renders last; `leadId` stays in the
+// model and is NOT rendered.
 function renderPriority(model) {
   const m = model || {};
   return join([
-    header('PRIORITY'),
+    typeHeader('PRIORITY'),
     '<b>' + esc(tidy(m.company, 70) || '—') + '</b>',
-    card('Почему требует внимания', esc(tidy(m.reason, 140))),
-    card('Следующий шаг', present(m.nextAction) ? '<b>' + esc(tidy(m.nextAction, 120)) + '</b>' : ''),
-    card('Срок', present(m.dueAt) ? '<b>' + esc(deadline(m.dueAt, m.now, m.offsetMinutes)) + '</b>' : ''),
-    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''
+    present(m.dueAt) ? dueLine(m.dueAt, m.now, m.offsetMinutes) : '',
+    block('Причина', esc(tidy(m.reason, 140))),
+    block('Следующий шаг', esc(tidy(m.nextAction, 120))),
+    priorityLine(m.priority)
   ]);
 }
 
@@ -400,12 +540,12 @@ function renderFollowUp(model) {
   const rows = items.slice(0, 10).map((it, i) => [
     (i + 1) + '. <b>' + esc(tidy(it.company, 60)) + '</b>',
     present(it.action) ? esc(tidy(it.action, 100)) : '',
-    present(it.dueAt) ? 'Срок: ' + esc(deadline(it.dueAt, m.now, m.offsetMinutes)) : '',
-    present(it.leadId) ? '<code>' + esc(tidy(it.leadId, 40)) + '</code>' : ''
+    present(it.dueAt) ? 'Срок: ' + esc(deadline(it.dueAt, m.now, m.offsetMinutes)) : ''
+    // `leadId` keys the de-duplication above and is never rendered (rule 4).
   ].filter(present).join('\n'));
 
   return join([
-    header('FOLLOW-UP'),
+    typeHeader('FOLLOW_UP'),
     'Просрочено: <b>' + items.length + '</b>',
     rows.join('\n\n'),
     items.length > 10 ? '<i>И ещё ' + (items.length - 10) + '.</i>' : ''
@@ -433,13 +573,13 @@ function renderFollowUp(model) {
 function renderIncomplete(model) {
   const m = model || {};
   return join([
-    header('LEAD INCOMPLETE'),
+    typeHeader('LEAD_INCOMPLETE'),
     '<b>' + esc(tidy(m.company, 70) || 'Компания не указана') + '</b>',
     card('Чего не хватает', (m.missing || []).filter(present).map((x) => '• ' + esc(tidy(x, 60)))),
     card('Причина', 'Недостаточно данных для полноценной обработки обращения.'),
     card('Следующий шаг', '<b>Проверить данные обращения вручную.</b>'),
-    block(null, line('Источник', sourceLabel(m.source))),
-    present(m.leadId) ? '<code>' + esc(tidy(m.leadId, 40)) + '</code>' : ''
+    block(null, line('Источник', sourceLabel(m.source)))
+    // `leadId` stays in the model and is never rendered (rule 4).
   ]);
 }
 
@@ -560,7 +700,7 @@ function renderSystemAlert(model) {
   const headline = present(m.operation) ? tidy(m.operation, 120) : impactOf(m.workflowName);
 
   return join([
-    header('SYSTEM ALERT'),
+    typeHeader('SYSTEM_ALERT'),
 
     // The headline is the business consequence, not the exception. It is derived from the
     // workflow name, which the payload carries, and it states only that the work did not finish.
@@ -609,7 +749,7 @@ function renderSystemAlert(model) {
 function renderSystemRecovered(model) {
   const m = model || {};
   return join([
-    header('SYSTEM RECOVERED'),
+    typeHeader('SYSTEM_RECOVERED'),
     '<b>' + esc(tidy(m.problem, 120) || 'Сбой устранён.') + '</b>',
     'Работа восстановлена.',
     card('Проверено', esc(tidy(m.evidence, 200))),
@@ -632,7 +772,7 @@ function renderDataIntegrity(model) {
   const items = (m.items || []).filter((x) => x && present(x.label));
   const nonZero = items.filter((x) => Number(x.count) > 0);
   return join([
-    header('DATA / INTEGRITY WARNING', dateTime(m.checkedAt, m.offsetMinutes)),
+    typeHeader('DATA_INTEGRITY', dateTime(m.checkedAt, m.offsetMinutes)),
     nonZero.length
       ? card('Требует исправления', nonZero.map((x) => '• ' + esc(x.label) + ': <b>' + Number(x.count) + '</b>'))
       : '<b>Данные в порядке.</b>',
@@ -651,7 +791,8 @@ function renderDataIntegrity(model) {
 // under it, and no amount of pattern-matching on bold text can tell those apart.
 const HEADINGS = ['Сегодня', 'Приоритет', 'Что требует решения', 'Задача', 'Ситуация',
   'Следующий шаг', 'Следующее действие', 'Почему требует внимания', 'Срок', 'Чего не хватает',
-  'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь'];
+  'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь',
+  'Запрос', 'Контекст'];
 
 const SECRET_PATTERNS = [
   [/\b\d{6,}:[A-Za-z0-9_-]{30,}\b/, 'a Telegram bot token'],
@@ -713,11 +854,11 @@ function validate(html) {
 
   // 5. Nothing that must never leave the tenant.
   //
-  // ONE EXEMPTION, AND IT IS NARROW. The «Связь» value in a NEW LEAD alert is the single place a
-  // client contact may appear, by owner decision. It is exempted from the contact patterns — and
-  // only from those two — and only one such line may exist. Everything else in the message,
+  // ONE EXEMPTION, AND IT IS NARROW. The «Связь: …» line in a NEW LEAD alert is the single place a
+  // client contact may appear, by owner decision. Its value is exempted from the contact patterns
+  // — and only from those two — and only one such line may exist. Everything else in the message,
   // including the technical block of a system alert, is scanned as before.
-  const contactValues = lines.filter((l, i) => headingOf(lines[i - 1]) === 'Связь').map((l) => l.trim());
+  const contactValues = lines.filter((l) => /^Связь: /.test(l.trim())).map((l) => l.trim().replace(/^Связь: /, ''));
   if (contactValues.length > 1) { problems.push(contactValues.length + ' «Связь» lines — a message may carry at most one contact'); }
   let scanned = withoutTags;
   for (const cv of contactValues) {
@@ -735,9 +876,11 @@ function validate(html) {
 }
 
 module.exports = {
-  ALLOWED_TAGS, PRIORITY_LABEL, ZONE_LABEL, MONTHS_GEN, IMPACT, USEFUL_CLASSES, CLASS_HINT,
-  esc, tidy, present, plural, priorityLabel, zoneLabel,
-  parts, longDate, dateTime, deadline, block, card, join, line, counter, header, HEADINGS,
+  ALLOWED_TAGS, PRIORITY_LABEL, ZONE_LABEL, PRIORITY_ICON, ZONE_ICON, TYPE, MONTHS_GEN, IMPACT,
+  USEFUL_CLASSES, CLASS_HINT,
+  esc, tidy, present, plural, priorityLabel, zoneLabel, scaleLabel, employeesLabel, situationLine, ownerSafe, priorityLine, zoneLine,
+  parts, longDate, dateTime, daysUntil, deadline, dueLine, block, card, join, line, counter,
+  header, typeHeader, HEADINGS,
   impactOf, shortWorkflow, sourceLabel, SOURCE_LABEL, validate, dedupe, scrubContact,
   CONTACT_CHANNELS, contactChannelKey, contactLine,
   renderDailyBrief, renderNewLead, renderPriority, renderFollowUp, renderIncomplete,

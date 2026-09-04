@@ -1081,10 +1081,16 @@
   var UI = {
     ru: {
       result: {
-        kicker: 'Результат', title: 'Результат готов', outOf: 'из 100', outOfFive: 'из 5',
-        summary: 'Кратко', weeks: { days_1_7: 'Дни 1–7', days_8_14: 'Дни 8–14', days_15_21: 'Дни 15–21', days_22_30: 'Дни 22–30' },
+        kicker: 'Результат', title: 'Результат анализа', scale: '/ 100', outOfFive: 'из 5',
+        noScore: 'Оценка не рассчитана',
+        noScoreNote: 'Недостаточно исходных данных для количественной оценки.',
+        summary: 'Резюме',
+        // Stage labels are fixed to the calendar window, so a plan whose second stage is empty still
+        // reads «Этап 3» for days 15–21. The days_* keys never reach the screen.
+        stages: { days_1_7: 'Этап 1 · Дни 1–7', days_8_14: 'Этап 2 · Дни 8–14', days_15_21: 'Этап 3 · Дни 15–21', days_22_30: 'Этап 4 · Дни 22–30' },
         priority: { HIGH: 'высокий приоритет', MEDIUM: 'средний приоритет', LOW: 'низкий приоритет' },
         disclaimer: 'Предварительный анализ на основе ваших ответов. Это не аудит и не финансовая отчётность; детали консультант уточнит в разговоре.',
+        disclaimerNoScore: 'Предварительный вывод сформирован на основании доступной информации. Для точной финансовой оценки потребуется уточнение исходных данных. Это не аудит и не финансовая отчётность.',
         primary: 'Вернуться в Telegram'
       },
       pending: 'Результат анализа появится здесь после проверки консультантом FINMENTOR.',
@@ -1101,10 +1107,14 @@
     },
     ro: {
       result: {
-        kicker: 'Rezultat', title: 'Rezultatul este gata', outOf: 'din 100', outOfFive: 'din 5',
-        summary: 'Pe scurt', weeks: { days_1_7: 'Zilele 1–7', days_8_14: 'Zilele 8–14', days_15_21: 'Zilele 15–21', days_22_30: 'Zilele 22–30' },
+        kicker: 'Rezultat', title: 'Rezultatul analizei', scale: '/ 100', outOfFive: 'din 5',
+        noScore: 'Scorul nu a fost calculat',
+        noScoreNote: 'Date de intrare insuficiente pentru o evaluare cantitativă.',
+        summary: 'Rezumat',
+        stages: { days_1_7: 'Etapa 1 · Zilele 1–7', days_8_14: 'Etapa 2 · Zilele 8–14', days_15_21: 'Etapa 3 · Zilele 15–21', days_22_30: 'Etapa 4 · Zilele 22–30' },
         priority: { HIGH: 'prioritate ridicată', MEDIUM: 'prioritate medie', LOW: 'prioritate scăzută' },
         disclaimer: 'Analiză preliminară pe baza răspunsurilor dumneavoastră. Nu este un audit și nici o situație financiară; detaliile vor fi clarificate de consultant în discuție.',
+        disclaimerNoScore: 'Concluzia preliminară a fost formulată pe baza informațiilor disponibile. Pentru o evaluare financiară exactă va fi necesară clarificarea datelor de intrare. Nu este un audit și nici o situație financiară.',
         primary: 'Înapoi în Telegram'
       },
       pending: 'Rezultatul analizei va apărea aici după verificarea de către consultantul FINMENTOR.',
@@ -1136,69 +1146,134 @@
   // that reaches the client: the server publishes exactly the curated fields, net.js keeps
   // exactly those keys, and this screen prints what it is given. Terminal: the only action is
   // leaving.
+  //
+  // PRESENTATION. The screen is an advisory deliverable, read top to bottom: one executive hero
+  // (score, condition, maturity — each fact printed once), then sections in a fixed order under
+  // mono kickers. A section whose content is absent is absent too — never an empty kicker, never
+  // a bare heading. A section label the server did not send leaves the content unlabelled rather
+  // than printing a placeholder. The plan's storage keys (days_*) never reach the screen: each
+  // window is a fixed stage label, so an empty second stage still leaves «Этап 3» for days 15–21.
   function scrResult() {
     var r = window.FM_NET.clientResult() || {};
     var L = r.labels || {};
     var U = ui().result;
-    var s = screen();
-    var sp0 = el('div'); sp0.style.height = '20px'; s.appendChild(sp0);
-    s.appendChild(el('div', 'kicker', L.product || U.kicker));
-    var sp = el('div'); sp.style.height = '12px'; s.appendChild(sp);
-    s.appendChild(title(U.title, 'lg'));
-    var cond = [];
-    if (typeof r.score === 'number') { cond.push(r.score + ' ' + U.outOf); }
-    if (r.zone_label) { cond.push(r.zone_label); }
-    if (cond.length) { s.appendChild(el('div', 'headline', cond.join(' · '))); }
-    if (L.condition && r.zone_label) {
-      var st = el('div', 'status-line');
-      st.appendChild(el('span', null, L.condition + ':'));
-      st.appendChild(el('b', null, r.zone_label));
-      s.appendChild(st);
+    var hasScore = typeof r.score === 'number';
+    var s = screen('screen--result');
+    var str = function (v) { return (typeof v === 'string' || typeof v === 'number') ? String(v) : ''; };
+
+    s.appendChild(el('div', 'kicker xr-kicker', L.product || U.kicker));
+    s.appendChild(title(U.title, 'xr-heading'));
+
+    // B1 — the executive hero.
+    var hero = el('div', 'xr-hero');
+    if (hasScore) {
+      var sc = el('div', 'xr-score');
+      sc.appendChild(el('b', 'xr-score-num', String(r.score)));
+      sc.appendChild(el('span', 'xr-score-of', U.scale));
+      hero.appendChild(sc);
+    } else {
+      // No number, said once, with the reason. The zone line is omitted on this path — a zone
+      // wording of «no score» would only restate the sentence above it.
+      hero.appendChild(el('div', 'xr-score-none', U.noScore));
+      hero.appendChild(el('p', 'xr-note', U.noScoreNote));
     }
-    if (r.summary) { s.appendChild(el('div', 'kicker', U.summary)); s.appendChild(lead(r.summary)); }
-    if (r.maturity && typeof r.maturity === 'object') {
-      s.appendChild(el('div', 'kicker', L.maturity || ''));
-      s.appendChild(lead((r.maturity.score_1_to_5 !== undefined ? r.maturity.score_1_to_5 + ' ' + U.outOfFive + ' — ' : '') + (r.maturity.label || '')));
-      if (r.maturity.rationale) { s.appendChild(quiet(r.maturity.rationale)); }
+    var metrics = el('div', 'xr-metrics');
+    function metric(label, value) {
+      if (!label || !value) { return; }
+      var m = el('div', 'xr-metric');
+      m.appendChild(el('span', null, label + ':'));
+      m.appendChild(el('b', null, value));
+      metrics.appendChild(m);
     }
-    function numbered(items, render) {
-      var steps = el('div', 'steps');
+    if (hasScore) { metric(str(L.condition), str(r.zone_label)); }
+    var mat = r.maturity && typeof r.maturity === 'object' ? r.maturity : null;
+    var matScore = mat ? str(mat.score_1_to_5) : '';
+    if (matScore) { metric(str(L.maturity), matScore + '/5'); }
+    if (metrics.children.length) { hero.appendChild(metrics); }
+    s.appendChild(hero);
+
+    // B2 — sections, each a divided block under its kicker; the kicker only when there is a label.
+    function section(kicker, cls) {
+      var d = el('section', 'xr-section' + (cls ? ' ' + cls : ''));
+      if (kicker) { d.appendChild(el('div', 'kicker', kicker)); }
+      s.appendChild(d);
+      return d;
+    }
+    function list(items, render) {
+      var ol = el('div', 'xr-list');
       items.forEach(function (it, i) {
-        var d = el('div', 'step');
-        d.appendChild(el('span', 'n', String(i + 1)));
-        d.appendChild(el('span', 't', render(it)));
-        steps.appendChild(d);
+        var li = el('div', 'xr-item');
+        li.appendChild(el('span', 'xr-n', String(i + 1)));
+        var body = el('div', 'xr-body');
+        render(it, body);
+        li.appendChild(body);
+        ol.appendChild(li);
       });
-      return steps;
+      return ol;
     }
-    var risks = Array.isArray(r.key_risks) ? r.key_risks : [];
+    var itemText = function (it) { return typeof it === 'string' ? it : (it && typeof it === 'object') ? str(it.title || it.action || it.label) : str(it); };
+
+    // 1. Summary
+    if (str(r.summary)) { section(U.summary, 'xr-summary').appendChild(el('p', 'xr-para', str(r.summary))); }
+
+    // 2. Maturity
+    if (mat && (matScore || str(mat.label))) {
+      var md = section(str(L.maturity), 'xr-maturity');
+      md.appendChild(el('p', 'xr-strong', (matScore ? matScore + ' ' + U.outOfFive : '') + (matScore && str(mat.label) ? ' — ' : '') + str(mat.label)));
+      if (str(mat.rationale)) { md.appendChild(quiet(str(mat.rationale))); }
+    }
+
+    // 3. Key risks
+    var risks = Array.isArray(r.key_risks) ? r.key_risks.filter(function (k) { return k && typeof k === 'object' && str(k.title); }) : [];
     if (risks.length) {
-      s.appendChild(el('div', 'kicker', L.risks || ''));
-      s.appendChild(numbered(risks, function (k) {
-        var p = U.priority[k.priority] ? ' (' + U.priority[k.priority] + ')' : '';
-        return (k.title || '') + p + (k.evidence ? ' — ' + k.evidence : '');
+      section(str(L.risks), 'xr-risks').appendChild(list(risks, function (k, body) {
+        body.appendChild(el('b', 'xr-strong', str(k.title)));
+        if (U.priority[k.priority]) { body.appendChild(el('span', 'xr-tag', U.priority[k.priority])); }
+        if (str(k.evidence)) { body.appendChild(el('span', 'xr-sub', str(k.evidence))); }
       }));
     }
-    var pri = Array.isArray(r.management_priorities) ? r.management_priorities : [];
-    if (pri.length) { s.appendChild(el('div', 'kicker', L.priorities || '')); s.appendChild(numbered(pri, function (p) { return String(p); })); }
+
+    // 4. Management priorities
+    var pri = Array.isArray(r.management_priorities) ? r.management_priorities.filter(function (p) { return itemText(p); }) : [];
+    if (pri.length) {
+      section(str(L.priorities), 'xr-priorities').appendChild(list(pri, function (p, body) { body.appendChild(el('span', 'xr-text', itemText(p))); }));
+    }
+
+    // 5. The 30-day plan — four fixed stages, empty ones omitted, at most three actions each.
     var plan = r.plan_30_days && typeof r.plan_30_days === 'object' ? r.plan_30_days : null;
-    if (plan) {
-      s.appendChild(el('div', 'kicker', L.plan || ''));
-      ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'].forEach(function (w) {
-        var acts = Array.isArray(plan[w]) ? plan[w] : [];
-        if (!acts.length) { return; }
-        s.appendChild(el('p', 'quiet', U.weeks[w]));
-        s.appendChild(numbered(acts, function (a) { return (a.action || '') + (a.expected_output ? ' — ' + a.expected_output : ''); }));
+    var windows = ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'].filter(function (w) {
+      return plan && Array.isArray(plan[w]) && plan[w].some(function (a) { return itemText(a); });
+    });
+    if (windows.length) {
+      var pd = section(str(L.plan), 'xr-plan');
+      windows.forEach(function (w) {
+        var acts = plan[w].filter(function (a) { return itemText(a); }).slice(0, 3);
+        var stage = el('div', 'xr-stage');
+        stage.appendChild(el('div', 'xr-stage-label', U.stages[w]));
+        stage.appendChild(list(acts, function (a, body) {
+          body.appendChild(el('span', 'xr-text', itemText(a)));
+          if (a && typeof a === 'object' && str(a.expected_output)) { body.appendChild(el('span', 'xr-sub', str(a.expected_output))); }
+        }));
+        pd.appendChild(stage);
       });
     }
-    var tom = Array.isArray(r.tomorrow_actions) ? r.tomorrow_actions : [];
-    if (tom.length) { s.appendChild(el('div', 'kicker', L.tomorrow || '')); s.appendChild(numbered(tom, function (t) { return String(t); })); }
-    if (r.recommended_next_step && typeof r.recommended_next_step === 'object') {
-      s.appendChild(el('div', 'kicker', L.next || ''));
-      s.appendChild(lead(r.recommended_next_step.label || ''));
-      if (r.recommended_next_step.rationale) { s.appendChild(quiet(r.recommended_next_step.rationale)); }
+
+    // 6. Tomorrow
+    var tom = Array.isArray(r.tomorrow_actions) ? r.tomorrow_actions.filter(function (t) { return itemText(t); }) : [];
+    if (tom.length) {
+      section(str(L.tomorrow), 'xr-tomorrow').appendChild(list(tom, function (t, body) { body.appendChild(el('span', 'xr-text', itemText(t))); }));
     }
-    s.appendChild(quiet(U.disclaimer));
+
+    // 7. The recommendation
+    var nx = r.recommended_next_step && typeof r.recommended_next_step === 'object' ? r.recommended_next_step : null;
+    if (nx && (str(nx.label) || str(nx.rationale))) {
+      var nd = section(str(L.next), 'xr-next');
+      if (str(nx.label)) { nd.appendChild(el('p', 'xr-strong', str(nx.label))); }
+      if (str(nx.rationale)) { nd.appendChild(quiet(str(nx.rationale))); }
+    }
+
+    // B5 — the disclaimer matches the hero: a number was given, or it was not.
+    s.appendChild(el('p', 'xr-disclaimer', hasScore ? U.disclaimer : U.disclaimerNoScore));
     s.appendChild(grow());
     s.appendChild(actions(btn(U.primary, function () { closeApp(s); })));
     return s;

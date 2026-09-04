@@ -30,8 +30,9 @@ const ROOT = join(HERE, '..');
 const SNAP = process.env.SAG_SNAPSHOT_DIR || join(ROOT, 'n8n', 'history', 'system-alert');
 const OUT = join(ROOT, 'n8n', 'candidate');
 
-const EVENT_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'system-alert', 'event.js'), 'utf8');
-const PRESENTER_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8');
+// LF always (core.autocrlf checkouts hand these back with CRLF).
+const EVENT_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'system-alert', 'event.js'), 'utf8').split('\r\n').join('\n');
+const PRESENTER_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8').split('\r\n').join('\n');
 
 // A CommonJS module becomes an IIFE returning its exports — the same conversion
 // scripts/build-lead-alerts-presentation.mjs performs, so both inlines are the same shape and the

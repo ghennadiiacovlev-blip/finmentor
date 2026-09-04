@@ -16,8 +16,12 @@
 //   4. CYCLE_UNRESOLVED and a retryable store outage each get their own honest bootstrap-failure
 //      copy; everything else keeps the approved generic copy.
 //   5. The result screen is terminal: one action, and it is leaving.
+//   6. The executive presentation: title «Результат анализа», the score as «47 / 100» in the hero,
+//      the zone wording once, the plan as fixed stages («Этап 1 · Дни 1–7»), and the no-score copy
+//      («Оценка не рассчитана», disclaimer variant B) when the server sends no number.
+//      qa/premium-ux-result-render.test.mjs holds the full golden render matrix.
 
-import { boot, byClass, text, OK_BOOTSTRAP } from './lib/miniapp-harness.mjs';
+import { boot, byClass, text, all, OK_BOOTSTRAP } from './lib/miniapp-harness.mjs';
 
 let pass = 0;
 const failures = [];
@@ -72,6 +76,10 @@ async function bootWith(bootstrapBody, languageCode) {
 const committed = (extra) => Object.assign({}, OK_BOOTSTRAP, { state: 'submitted', resumed: true, draft: null }, extra || {});
 const screenText = (h) => text(h.main);
 const buttons = (h) => byClass(h.main, 'btn');
+// The exact text of one node — the pending note on the success screen also contains the words
+// «Результат анализа», so absence of the result TITLE is an exact-node question, not a substring one.
+const nodeText = (h, s) => all(h.main).some((n) => n.textContent === s);
+const count = (t, s) => t.split(s).length - 1;
 
 console.log('\nFINMENTOR — C3.4 customer result screen (executed through the real client)\n');
 
@@ -79,21 +87,42 @@ await check('RESULT_RU — a committed session with a CLIENT_READY result render
   const h = await bootWith(committed({ result: RESULT_RU, result_state: 'CLIENT_READY' }));
   eq(h.state(), 'APP_RESULT', 'state');
   const t = screenText(h);
-  for (const s of ['Финансовый рентген бизнеса', 'Результат готов', '47 из 100', 'Оранжевая зона', 'Финансовое состояние', 'Зрелость финансового управления', '2 из 5', 'Ключевые риски', 'Кассовые разрывы', 'высокий приоритет', 'Приоритеты управления', 'Платёжный календарь', 'План финансовых действий на 30 дней', 'Дни 1–7', 'Собрать остатки', 'Дни 22–30', 'Следующее действие', 'Назначить ответственного', 'Рекомендация FINMENTOR', 'Финансовый health-check', 'не аудит']) {
+  for (const s of ['Финансовый рентген бизнеса', 'Результат анализа', '/ 100', 'Оранжевая зона', 'Финансовое состояние:', 'Зрелость финансового управления:', '2/5', 'Резюме', 'Бизнес имеет кассовые разрывы.', '2 из 5 — Реактивное управление', 'Ключевые риски', 'Кассовые разрывы', 'высокий приоритет', 'из анкеты', 'Приоритеты управления', 'Платёжный календарь', 'План финансовых действий на 30 дней', 'Этап 1 · Дни 1–7', 'Собрать остатки', 'Таблица остатков', 'Этап 4 · Дни 22–30', 'Следующее действие', 'Назначить ответственного', 'Рекомендация FINMENTOR', 'Финансовый health-check', 'не аудит']) {
     assert(t.indexOf(s) !== -1, 'missing on screen: ' + s);
   }
   assert(t.indexOf('Дни 8–14') === -1, 'an empty week was rendered');
+  assert(t.indexOf('Дни 15–21') === -1, 'an empty week was rendered');
+  assert(t.indexOf('days_') === -1, 'a plan storage key reached the screen');
+  eq(byClass(h.main, 'xr-score-num')[0].textContent, '47', 'the hero score numeral');
+  eq(count(t, 'Оранжевая зона'), 1, 'the zone wording must appear exactly once');
+  assert(t.indexOf('Оценка не рассчитана') === -1 && t.indexOf('Без оценки') === -1, 'a no-score wording appeared with a score');
+  assert(t.indexOf('Результат готов') === -1 && t.indexOf('Кратко') === -1, 'retired result copy is still on screen');
 });
 
 await check('RESULT_RO — the same session in RO renders the RO product name and RO shell strings, never the retired name', async () => {
   const h = await bootWith(committed({ locale: 'ro', result: RESULT_RO, result_state: 'CLIENT_READY' }), 'ro');
   eq(h.state(), 'APP_RESULT', 'state');
   const t = screenText(h);
-  for (const s of ['Test de sănătate financiară FINMENTOR', 'Rezultatul este gata', '47 din 100', 'Zonă portocalie', 'Zilele 1–7', 'prioritate ridicată', 'Diagnostic financiar complet', 'Înapoi în Telegram', 'Nu este un audit']) {
+  for (const s of ['Test de sănătate financiară FINMENTOR', 'Rezultatul analizei', '/ 100', 'Zonă portocalie', 'Starea financiară:', 'Rezumat', '2 din 5 — Control reactiv', 'Etapa 1 · Zilele 1–7', 'prioritate ridicată', 'Diagnostic financiar complet', 'Înapoi în Telegram', 'Nu este un audit']) {
     assert(t.indexOf(s) !== -1, 'missing on screen: ' + s);
   }
   assert(t.indexOf('Radiografia Financiară') === -1, 'the retired RO product name appeared');
   assert(!/[А-Яа-яЁё]/.test(t.replace(/P&L/g, '')), 'Russian text on the RO result screen: ' + t.slice(0, 200));
+});
+
+await check('RESULT_NO_SCORE — a result without a number says so once, prints no zone wording, and carries the no-score disclaimer', async () => {
+  const h = await bootWith(committed({ result: Object.assign({}, RESULT_RU, { score: null, zone: 'UNKNOWN', zone_label: 'Без оценки' }), result_state: 'CLIENT_READY' }));
+  eq(h.state(), 'APP_RESULT', 'state');
+  const t = screenText(h);
+  eq(count(t, 'Оценка не рассчитана'), 1, 'the no-score line must appear exactly once');
+  assert(t.indexOf('Недостаточно исходных данных для количественной оценки.') !== -1, 'the no-score note is missing');
+  assert(t.indexOf('Без оценки') === -1, 'the zone wording was printed without a score');
+  assert(t.indexOf('/ 100') === -1 && t.indexOf('из 100') === -1, 'a score scale was printed without a score');
+  assert(t.indexOf('Предварительный вывод сформирован на основании доступной информации.') !== -1, 'disclaimer variant B is missing');
+  assert(t.indexOf('детали консультант уточнит') === -1, 'disclaimer variant A appeared without a score');
+  assert(t.indexOf('не аудит') !== -1, 'the disclaimer lost «не аудит»');
+  eq(byClass(h.main, 'xr-score-num').length, 0, 'a score numeral rendered without a score');
+  assert(t.indexOf('2/5') !== -1, 'the maturity metric is missing on the no-score path');
 });
 
 await check('RESULT_TERMINAL — one action, it leaves, and no back affordance', async () => {
@@ -123,7 +152,8 @@ await check('RESULT_PENDING — a committed session without a result shows the a
   eq(h.state(), 'APP_SUCCESS', 'state');
   const t = screenText(h);
   assert(t.indexOf('Результат анализа появится здесь после проверки консультантом FINMENTOR.') !== -1, 'the pending note is missing');
-  assert(t.indexOf('Результат готов') === -1, 'the result title appeared without a result');
+  assert(!nodeText(h, 'Результат анализа'), 'the result title appeared without a result');
+  eq(byClass(h.main, 'xr-hero').length, 0, 'the result hero rendered without a result');
   eq(h.win.FM_NET.resultState(), 'PENDING', 'result state');
 });
 
@@ -138,7 +168,8 @@ await check('RESULT_SHAPE — a malformed result (no labels, an array, a string)
 await check('RESULT_DRAFT_ONLY — a DRAFT session never renders a result even if one is attached', async () => {
   const h = await bootWith(Object.assign({}, OK_BOOTSTRAP, { result: RESULT_RU, result_state: 'CLIENT_READY' }));
   assert(h.state() !== 'APP_RESULT', 'a draft session rendered the result screen');
-  assert(screenText(h).indexOf('Результат готов') === -1, 'the result title appeared on a draft');
+  assert(!nodeText(h, 'Результат анализа'), 'the result title appeared on a draft');
+  eq(byClass(h.main, 'xr-hero').length, 0, 'the result hero rendered on a draft');
 });
 
 await check('BOOT_CYCLE_UNRESOLVED — the Gateway refusal gets its own copy: return to the chat, nothing sent, no retry', async () => {

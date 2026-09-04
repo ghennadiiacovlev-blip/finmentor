@@ -89,6 +89,15 @@ const PIPE_ROW = {
   phone: '+37369123456', telegram: '@alfaceo', utm_source: 'google', ai_plan_ready: 'N'
 };
 
+// OWNER DECISION, 2026-09-04: emoji only as the header's first character and as the single icon in
+// front of the priority/zone labels. Strip those and nothing pictographic may remain.
+function noStrayEmoji(html) {
+  const rest = html.split('\n').map((l, i) => i === 0
+    ? l.replace(/^\p{Extended_Pictographic}️? /u, '')
+    : l.replace(/^<b>(Приоритет|Финансовая зона):<\/b> \p{Extended_Pictographic}️? /u, '')).join('\n');
+  return !/\p{Extended_Pictographic}/u.test(rest);
+}
+
 console.log('Lead Alerts — presentation candidates, executed');
 console.log('');
 
@@ -199,7 +208,7 @@ check('Build Daily Digest runs, and renders a brief the validator accepts', () =
   assert(html, 'no alert_html was produced');
   const v = P.validate(html);
   assert(!v.length, 'the rendered brief is invalid -> ' + v.join('; '));
-  assert(html.indexOf('OWNER DAILY BRIEF') !== -1, 'the header is missing');
+  assert(html.split('\n')[0] === '📋 <b>FINMENTOR · Утренний бриф</b>', 'the header is missing');
   assert(html.indexOf('Alfa Grup') !== -1, 'the top lead is missing');
   assert(html.indexOf('Closed Co') === -1, 'a closed lead reached the brief — the filter was not preserved');
   assert(html.indexOf('Высокий приоритет') !== -1, 'the priority vocabulary is missing');
@@ -239,10 +248,14 @@ check('SLA Select runs, selects exactly what it selected before, and renders a P
   eq(out.length, 1, 'the selection changed — only the HOT overdue lead may be emitted');
   const html = out[0].json.alert_html;
   assert(!P.validate(html).length, 'invalid -> ' + P.validate(html).join('; '));
-  assert(html.indexOf('FINMENTOR · PRIORITY') !== -1, 'the header is wrong');
+  assert(html.split('\n')[0] === '⏳ <b>FINMENTOR · Требует внимания</b>', 'the header is wrong');
   assert(html.indexOf('Alfa Grup') !== -1, 'the company is missing');
-  assert(html.indexOf('просрочено') !== -1, 'the deadline is not stated as a decision');
+  assert(/<b>Просрочено:<\/b> \d+ (день|дня|дней)/.test(html), 'the overdue duration is not stated');
   assert(html.indexOf('Запланированный контакт просрочен.') !== -1, 'the reason is missing');
+  // OWNER DECISION, 2026-09-04: the SLA node's own `priority` local closes the card, and no lead id
+  // is visible — it travels in lead_id for the buttons instead.
+  assert(html.indexOf('<b>Приоритет:</b> 🔥 Высокий приоритет') !== -1, 'the priority line is missing from the PRIORITY card');
+  assert(html.indexOf('<code>') === -1 && html.indexOf('FIN-2026') === -1, 'the lead id is visible in the PRIORITY body');
   eq(out[0].json.lead_id, 'FIN-20260830-0412', 'the callback lead_id is gone — the buttons would break');
   assert(out[0].json.sla_alert_at, 'sla_alert_at is gone — the anti-spam window would break');
   // The contact concatenation is still computed upstream but must not reach the owner.
@@ -259,8 +272,9 @@ check('Build Followup Plan runs, still emits both item types, and renders a FOLL
   eq(due.length, 1, 'the due-alert selection changed');
   const html = due[0].json.alert_html;
   assert(!P.validate(html).length, 'invalid -> ' + P.validate(html).join('; '));
-  assert(html.indexOf('FINMENTOR · FOLLOW-UP') !== -1, 'the header is wrong');
+  assert(html.split('\n')[0] === '🔁 <b>FINMENTOR · Напоминание</b>', 'the header is wrong');
   assert(html.indexOf('Просрочено: <b>1</b>') !== -1, 'the overdue count is missing');
+  assert(html.indexOf('<code>') === -1 && html.indexOf('FIN-2026') === -1, 'the lead id is visible in the FOLLOW-UP body');
   eq(due[0].json.followup_id, 'FU-1', 'followup_id is gone — Mark Followups Sent would break');
   // Section A still writes the sheet template, untouched.
   const created = out.filter((i) => i.json.item_type === 'new_followup');
@@ -321,10 +335,13 @@ check('the three Lead Intake builders run and render their types', () => {
 
   const brief = runNode(codeOf(wf, 'Build Premium Telegram Brief'), {}, [item])[0].json.alert_html;
   assert(!P.validate(brief).length, 'NEW LEAD invalid -> ' + P.validate(brief).join('; '));
-  assert(brief.indexOf('FINMENTOR · NEW LEAD') !== -1, 'the NEW LEAD header is missing');
+  assert(brief.split('\n')[0] === '🔔 <b>FINMENTOR · Новый лид</b>', 'the NEW LEAD header is missing');
   assert(brief.indexOf('Alfa Grup') !== -1, 'the company is missing');
-  assert(brief.indexOf('Высокий приоритет') !== -1, 'the priority label is missing');
-  assert(brief.indexOf('Повышенный риск') !== -1, 'the financial zone is missing');
+  assert(brief.indexOf('<b>Приоритет:</b> 🔥 Высокий приоритет') !== -1, 'the priority label is missing');
+  assert(brief.indexOf('<b>Финансовая зона:</b> 🟠 Существенные пробелы') !== -1, 'the financial zone is missing');
+  // OWNER DECISION, 2026-09-04: no lead id in a visible body, and RU is never stated.
+  assert(brief.indexOf('<code>') === -1 && brief.indexOf('FIN-2026') === -1, 'the lead id is visible in the NEW LEAD body');
+  assert(brief.indexOf('Клиент:') === -1, 'a language marker was rendered for a RU lead');
   assert(brief.length < 900, 'the NEW LEAD alert is ' + brief.length + ' characters — it is a dump again');
   // The source must survive the workflow's own sourceLabel() and the renderer's. The fixture
   // carries tool: 'xray_extended'; anything else means a translation ate the real source.
@@ -351,11 +368,21 @@ check('the three Lead Intake builders run and render their types', () => {
   })])[0].json.alert_html;
   assert(noValue.indexOf('<b>Не указана</b>') !== -1, 'a preference with no value did not degrade');
 
+  // A Romanian-speaking client is marked on the meta line; the model field comes from the
+  // intake's own `language` normalisation and is passed through untouched.
+  const ro = runNode(codeOf(wf, 'Build Premium Telegram Brief'), {}, [Object.assign({}, item, { language: 'ro' })])[0].json.alert_html;
+  assert(!P.validate(ro).length, 'RO NEW LEAD invalid -> ' + P.validate(ro).join('; '));
+  assert(ro.indexOf('· Клиент: RO') !== -1, 'the RO marker is missing');
+  // A lead with no company is headed by the contact name the prefix already extracted.
+  const byName = runNode(codeOf(wf, 'Build Premium Telegram Brief'), {}, [Object.assign({}, item, { company: '',
+    raw_json: JSON.stringify({ client: { name: 'Ион Русу' } }) })])[0].json.alert_html;
+  assert(byName.indexOf('<b>Ион Русу</b>') !== -1, 'the contact name did not head a company-less card');
+
   const warm = runNode(codeOf(wf, 'Build Warm Telegram Alert'), {},
     [Object.assign({}, item, { lead_temperature: 'WARM' })])[0].json.alert_html;
   assert(!P.validate(warm).length, 'WARM invalid -> ' + P.validate(warm).join('; '));
-  assert(warm.indexOf('Требует внимания') !== -1, 'the WARM label is missing');
-  assert(warm.indexOf('🟡') === -1, 'the emoji survived');
+  assert(warm.indexOf('<b>Приоритет:</b> 🕒 Требует внимания') !== -1, 'the WARM label is missing');
+  assert(noStrayEmoji(warm), 'an emoji survived outside the header and the priority/zone icons');
   assert(warm.indexOf('Связь') !== -1, 'the WARM alert carries no contact block');
   assert((warm.match(/@alfaceo|\+37369123456|ceo@alfa\.md/g) || []).length === 1,
     'the WARM alert shows more than one contact, or none at all');
@@ -363,11 +390,13 @@ check('the three Lead Intake builders run and render their types', () => {
   const inc = runNode(codeOf(wf, 'Build Incomplete Telegram Alert'), {},
     [{ lead_id: 'FIN-X', company: '', name: '', priority_reason: 'Форма без контакта.', tool: 'contact_form' }])[0].json.alert_html;
   assert(!P.validate(inc).length, 'INCOMPLETE invalid -> ' + P.validate(inc).join('; '));
-  assert(inc.indexOf('FINMENTOR · LEAD INCOMPLETE') !== -1, 'the INCOMPLETE header is missing');
+  assert(inc.split('\n')[0] === '⚠️ <b>FINMENTOR · Неполные данные</b>', 'the INCOMPLETE header is missing');
   assert(inc.indexOf('контакт для связи') !== -1, 'the missing contact is not named');
   assert(inc.indexOf('название компании') !== -1 && inc.indexOf('контактное лицо') !== -1, 'the missing fields are not named');
   assert(inc.indexOf('Недостаточно данных для полноценной обработки обращения.') !== -1, 'the pinned reason is missing');
-  assert(inc.indexOf('⚠️') === -1, 'the emoji survived');
+  // The deployed alert opened with ⚠️ in the body text; the icon is now the header's and only the header's.
+  assert(noStrayEmoji(inc), 'an emoji survived outside the header');
+  assert(inc.indexOf('<code>') === -1 && inc.indexOf('FIN-X') === -1, 'the lead id is visible in the INCOMPLETE body');
   assert(inc.indexOf('Связь') === -1, 'the incomplete alert emitted a contact block');
   // The raw reason stays in the item for the internal record, and out of the message.
   const incItem = runNode(codeOf(wf, 'Build Incomplete Telegram Alert'), {},

@@ -16,6 +16,8 @@
 //
 // Input: $input = XRay_Analysis rows matching analysis_id (0..1), $('Review POST Webhook') = body.
 
+// __XRAY_OWNER_CARDS__ (inlined by the builder)
+
 const crypto = require('crypto');
 const request = $('Review POST Webhook').first().json || {};
 const body = request.body && typeof request.body === 'object' ? request.body : {};
@@ -60,8 +62,13 @@ return [{ json: {
   update_row: proceed ? { analysis_id: analysisId, review_status: 'CLIENT_READY', reviewed_at: reviewedAt } : null,
   pipeline_row: proceed ? { lead_id: String(row.lead_id || ''), xray_analysis_status: 'CLIENT_READY', updated_at: now, last_activity_at: now } : null,
   source_row: proceed ? row : null,
+  // ✅ Анализ подтверждён — the ONE follow-up message, sent only on the first promotion (a repeated
+  // confirmation is ALREADY_READY and stays silent). Rendered here, sent by the Telegram node the
+  // builder places after the HTTP response; '' when there is nothing to announce.
+  notify_owner: verdict === 'PROMOTE',
+  owner_approved_text: verdict === 'PROMOTE' ? XRAY_OWNER_CARDS.renderApproved({ company: row.company, locale: row.locale }) : '',
   html: verdict === 'PROMOTE'
-    ? page('FINMENTOR · Готово для клиента', '<p>Анализ переведён в статус <code>CLIENT_READY</code>.</p><p>Lead ID: <code>' + leadIdSafe + '</code></p><p>Клиент сможет открыть результат в Mini App; уведомление отправит бот.</p>')
+    ? page('FINMENTOR · Готово для клиента', '<p>Анализ подтверждён и открыт клиенту в Mini App.</p><p>Lead ID: <code>' + leadIdSafe + '</code></p>')
     : verdict === 'ALREADY_READY'
       ? page('FINMENTOR · Уже готово', '<p>Этот анализ уже был открыт клиенту ранее.</p><p>Lead ID: <code>' + leadIdSafe + '</code></p>')
       : verdict === 'STORE_UNAVAILABLE'

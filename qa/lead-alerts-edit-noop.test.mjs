@@ -43,7 +43,9 @@ const X = require_(join(HERE, 'n8n-expression.js'));
 const ACTIONS_SRC = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'actions.js'), 'utf8').replace(/\r\n/g, '\n');
 const A = new Function(ACTIONS_SRC + '; return LAA;')();
 
-const FIXED = join(ROOT, 'n8n', 'candidate', 'lead-command-center-edit-noop-candidate.json');
+// 2026-09-04: the current Command Center candidate is the label refresh (module blocks re-inlined,
+// «В наблюдение»); the edit-no-op fix it builds on is byte-preserved in its tail.
+const FIXED = join(ROOT, 'n8n', 'candidate', 'lead-command-center-labels-candidate.json');
 // The graph execution 5062 actually ran. Kept as the fixture this gate must FAIL on.
 const PRE_FIX = join(ROOT, 'n8n', 'candidate', 'lead-command-center-ack-fix-candidate.json');
 

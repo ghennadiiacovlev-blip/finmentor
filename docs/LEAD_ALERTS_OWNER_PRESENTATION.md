@@ -115,8 +115,8 @@ differently-labelled lines, and the deployed `HOT/ORANGE` slash-pair is gone.
 | COLD | Низкий приоритет |
 | INCOMPLETE | Нужны данные |
 | RED | Критическая зона |
-| ORANGE | Повышенный риск |
-| YELLOW | Есть зоны риска |
+| ORANGE | Существенные пробелы (2026-09-04; was «Повышенный риск») |
+| YELLOW | Требует внимания (2026-09-04; was «Есть зоны риска») |
 | GREEN | Устойчиво |
 | UNKNOWN / empty / anything else | **the line is omitted** |
 
@@ -345,3 +345,131 @@ was before this pass. Those five files were **not** overwritten by either deploy
 rollback still points at the pre-pass state however many times the copy is corrected.
 
 To revert: PUT the `.pre-lead-alerts-presentation.json` body back to `/workflows/<id>`.
+
+---
+
+## Owner decision 2026-09-04 — the CFO-console restyle
+
+PRESENTATION ONLY, again. `n8n/src/lead-alerts/presenter.js` is the only source that changed
+shape; the builder's model tables gained three optional fields; no selection logic, keyboard,
+`callback_data`, `chatId`, credential or connection moved. Candidates were rebuilt offline with
+`node scripts/build-lead-alerts-presentation.mjs` and are **not deployed**.
+
+### 1. The header — Russian type names, one leading icon
+
+The English type names were the last English the owner saw. Every message now opens with one
+icon, a space, and the `FINMENTOR · ` chrome followed by a Russian name:
+
+| Type | Header line |
+|---|---|
+| OWNER DAILY BRIEF | `📋 <b>FINMENTOR · Утренний бриф</b>` |
+| NEW LEAD | `🔔 <b>FINMENTOR · Новый лид</b>` |
+| PRIORITY | `⏳ <b>FINMENTOR · Требует внимания</b>` |
+| FOLLOW-UP | `🔁 <b>FINMENTOR · Напоминание</b>` |
+| LEAD INCOMPLETE | `⚠️ <b>FINMENTOR · Неполные данные</b>` |
+| SYSTEM ALERT | `🛠 <b>FINMENTOR · Системное уведомление</b>` |
+| SYSTEM RECOVERED | `✅ <b>FINMENTOR · Система восстановлена</b>` |
+| DATA / INTEGRITY | `🧾 <b>FINMENTOR · Целостность данных</b>` |
+
+The table lives once, as `TYPE` in the presenter, and the gate's header contract is now
+`^(\p{Extended_Pictographic}️? )?<b>FINMENTOR · (.+)</b>$` with exactly these eight names.
+`LA.header(title)` without an icon renders the same bytes it always did, so the Done/Snooze
+confirmations in `actions.js` are untouched.
+
+### 2. The emoji rule — three positions, and nowhere else
+
+The previous rule was "no emoji anywhere", written against the deployed `🚨` and `⚠️` that
+opened every alert as decoration. The rule is now positional:
+
+- the **first character of the header line** — the type icon above;
+- the **single icon in front of the priority label** — HOT 🔥, WARM 🕒, COLD ⚪, INCOMPLETE ❔;
+- the **single icon in front of the financial-zone label** — RED 🔴, ORANGE 🟠, YELLOW 🟡, GREEN 🟢.
+
+The icon tables are keyed exactly like the label tables, so a value that earns no label earns no
+icon and the line is omitted whole. The label vocabularies themselves are unchanged (B10 — the two
+dimensions still share no word). `qa/lead-alerts-presentation.test.mjs` strips those three
+positions from every render and requires the remainder to be pictograph-free; a client value that
+contains an emoji is data and is still caught by the sweep, which is the point.
+
+### 3. No Lead ID in any visible body
+
+Rule 4 now reads: the lead id is not rendered. It still travels in the item and in
+`callback_data`, which is how the buttons find the row; the owner never typed it and never read
+it. The `<code>lead_id</code>` line is gone from NEW LEAD, PRIORITY, FOLLOW-UP and LEAD INCOMPLETE.
+`leadId` stays in every model because it keys de-duplication, and the gates assert both halves:
+the id is read (two distinct leads at one company still count as two) and never printed.
+
+### 4. NEW LEAD — the card shape
+
+```
+🔔 FINMENTOR · Новый лид
+
+Alfa Grup SRL                                   ← company, else contact name, else «—»
+Финансовый директор · Источник: … · Клиент: RO  ← each part only when known
+
+Приоритет: 🔥 Высокий приоритет
+Финансовая зона: 🟠 Повышенный риск             ← only when a zone exists
+
+Запрос
+one line — the main pain, tidy(…, 120)
+
+Контекст
+industry · business model · turnover · employees
+Связь: Telegram · @alfaceo                       ← the 2026-08-30 one-channel line, kept
+
+Следующий шаг
+one action
+```
+
+- **Company fallback.** A lead with no company is headed by the contact name (`name` in the intake
+  brief, `item.name` in the WARM node), then «—». The builder passes it as `contactName`.
+- **RU/RO marker.** The intake already normalises `language` to `ru` | `ro` (default `ru`). It is
+  passed through as `language`, and «Клиент: RO» is rendered on the meta line **only** when it is
+  `ro`. Russian is the default and is never stated. Any other value renders nothing.
+- **«Связь» moved, not changed.** The one-channel decision of 2026-08-30 holds in every direction;
+  the line is now `Связь: <b>…</b>` under «Контекст» rather than its own section. `validate()`'s
+  contact exemption follows it — still one line, still the only contact anywhere.
+- «Задача»/«Ситуация» became «Запрос»/«Контекст»; `HEADINGS` carries both so the empty-section
+  check keeps working for every caller.
+
+### 5. PRIORITY — the one new fact first
+
+```
+⏳ FINMENTOR · Требует внимания
+
+Alfa Grup SRL
+
+Просрочено: 3 дня          ← or «Срок: сегодня | завтра | 4 сентября» when not yet due
+
+Причина
+Запланированный контакт просрочен.
+
+Следующий шаг
+Позвонить и назначить встречу
+
+Приоритет: 🔥 Высокий приоритет
+```
+
+`dueLine()` shares its day arithmetic with `deadline()` so the two can never disagree; the
+FOLLOW-UP and daily-brief wording («просрочено на 3 дня», «сегодня») is byte-unchanged. The SLA
+node's live prefix already holds `priority` (the upper-cased Pipeline value it filtered on), so the
+builder passes it and the card closes with the priority line. A model without `priority` omits it.
+
+### 6. The other six types
+
+Bodies unchanged except the header line and the removed `<code>` id lines. The SYSTEM ALERT
+candidate under `n8n/candidate/system-alert-workflow.json` inlines the same presenter and was
+rebuilt with `node scripts/build-system-alert.mjs` (offline) so its byte-identity gate stays
+green; its only diff is the presenter inline.
+
+### 7. Gates
+
+- `qa/lead-alerts-presentation.test.mjs` — 36 (header contract, positional emoji rule, the eight
+  icon/label pairs, the RO marker, the company fallback, PRIORITY date lines, no lead id).
+- `qa/lead-alerts-candidates.test.mjs` — 18 (Russian headers on the executed candidates, the SLA
+  priority line, the RO marker and contact-name fallback through the real intake node).
+- `qa/owner-cards-golden.test.mjs` — NEW, 16: byte-exact full messages for the eight shapes above,
+  plus no `<code>`, no lead id, no raw enum, `validate()` clean and < 1000 characters on each.
+- `qa/lead-alerts-actions.test.mjs` 56, `qa/lead-alerts-ack-expression.test.mjs` 23,
+  `qa/lead-alerts-edit-noop.test.mjs` 17, `qa/system-alert.test.mjs` 43,
+  `qa/premium-ux-tg-presentation.test.mjs` 23 — green, the last one untouched.

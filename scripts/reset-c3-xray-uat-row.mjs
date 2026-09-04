@@ -198,5 +198,5 @@ for (const id of KEEP) {
 ok('SEED and the RU CLIENT_READY row are value-identical to the pre-image');
 say('');
 say('DONE. The sweep (every 10 min) will re-analyse ' + TARGET.lead_id + ' under xray-v2 and send the owner alert');
-say('«ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ … Lead ID: ' + TARGET.lead_id + '» with the button «✅ Проверить и открыть клиенту».');
+say('«📊 FINMENTOR · Финансовый рентген» for the company of ' + TARGET.lead_id + ' with the button «✅ Проверить анализ».');
 say('Restore (only if needed): append the row saved in ' + prePath.replace(ROOT, '.') + ' back to XRay_Analysis.');

@@ -72,7 +72,13 @@ check('D3 the five owner-facing labels are exactly these', () => {
   eq(A.LABEL.snooze, '⏰ На 24 часа', 'snooze label');
   eq(A.LABEL.discovery, '📞 Discovery', 'discovery label');
   eq(A.LABEL.docs, '📄 Документы', 'docs label');
-  eq(A.LABEL.nurture, '🗂 В Nurture', 'nurture label');
+  eq(A.LABEL.nurture, '🗂 В наблюдение', 'nurture label');
+});
+
+check('D3 (2026-09-04) every visible label is Russian or an approved product term — no «Nurture», no raw English verbs', () => {
+  const all = Object.values(A.LABEL);
+  for (const l of all) { assert(!/Nurture/.test(l), 'the English «Nurture» is visible: ' + l); }
+  eq(JSON.stringify(all), JSON.stringify(['✅ Обработано', '⏰ На 24 часа', '📞 Discovery', '📄 Документы', '🗂 В наблюдение']), 'the approved label set');
 });
 
 check('D3 no forbidden English label is reachable', () => {
@@ -97,11 +103,11 @@ check('D3 callback_data is byte-identical to what production already sends', () 
 console.log('');
 console.log('D2 — context-aware action sets');
 
-check('D2 NEW LEAD is exactly [Discovery|Документы] / [На 24 часа|В Nurture]', () => {
+check('D2 NEW LEAD is exactly [Discovery|Документы] / [На 24 часа|В наблюдение]', () => {
   const rows = labels('new_lead', { deal_stage: 'Qualified', sla_status: 'Active' });
   eq(JSON.stringify(rows), JSON.stringify([
     ['📞 Discovery', '📄 Документы'],
-    ['⏰ На 24 часа', '🗂 В Nurture']
+    ['⏰ На 24 часа', '🗂 В наблюдение']
   ]), 'NEW LEAD layout');
 });
 
@@ -111,12 +117,12 @@ check('D2 NEW LEAD shows neither Обработано nor Won', () => {
   eq(flat.length, 4, 'NEW LEAD action count');
 });
 
-check('D2 PRIORITY is exactly [Обработано|На 24 часа] / [Discovery|Документы] / [В Nurture]', () => {
+check('D2 PRIORITY is exactly [Обработано|На 24 часа] / [Discovery|Документы] / [В наблюдение]', () => {
   const rows = labels('priority', { deal_stage: 'Qualified', sla_status: 'Active' });
   eq(JSON.stringify(rows), JSON.stringify([
     ['✅ Обработано', '⏰ На 24 часа'],
     ['📞 Discovery', '📄 Документы'],
-    ['🗂 В Nurture']
+    ['🗂 В наблюдение']
   ]), 'PRIORITY layout');
 });
 

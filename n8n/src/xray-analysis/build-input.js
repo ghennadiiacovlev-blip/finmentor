@@ -213,6 +213,10 @@ for (const pipe of pending) {
       locale,
       source_channel: sourceChannel,
       company: String(pipe.company || ''),
+      // Owner-card context (classified questionnaire labels, user-explicit, already scrubbed) and
+      // the Pipeline row for the «Карточка лида» deep link. Presentation only: not in the prompt.
+      company_context: { industry: String(factsClean.industry_category || ''), turnover: String(factsClean.turnover_range || ''), employees: String(factsClean.employees_range || '') },
+      crm_row: Number.isInteger(Number(pipe.row_number)) ? Number(pipe.row_number) : null,
       created_at_lead: String(pipe.created_at || ''),
       score: score,
       zone,

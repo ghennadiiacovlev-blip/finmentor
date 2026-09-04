@@ -1507,7 +1507,7 @@
                     }
                   },
                   {
-                    "text": "🗂 В Nurture",
+                    "text": "🗂 В наблюдение",
                     "additionalFields": {
                       "callback_data": "=nurture|{{$json.lead_id}}"
                     }
@@ -4034,6 +4034,120 @@
       ],
       "id": "identity-conflict-respond-0001",
       "name": "Respond Identity Conflict"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ID700kTo6EXffwry",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR SYSTEM ALERT"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_key": "lead-intake",
+            "verdict_node": "Pipeline Write Failed",
+            "error_code": "PIPELINE_WRITE_FAILED",
+            "retryable": "true",
+            "route_identity": "={{ String($('Dedup Guard').first().json.request_id || '') }}",
+            "occurred_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "sa-emit-pipeline-write-failed",
+      "name": "Emit System Alert (Pipeline)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3000,
+        1400
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ID700kTo6EXffwry",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR SYSTEM ALERT"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_key": "lead-intake",
+            "verdict_node": "Pipeline Merge Failed",
+            "error_code": "PIPELINE_MERGE_FAILED",
+            "retryable": "true",
+            "route_identity": "={{ String($('Dedup Guard').first().json.request_id || '') }}",
+            "occurred_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "sa-emit-pipeline-merge-failed",
+      "name": "Emit System Alert (Merge)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3000,
+        1600
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ID700kTo6EXffwry",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR SYSTEM ALERT"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_key": "lead-intake",
+            "verdict_node": "CRM Unavailable",
+            "error_code": "CRM_UNAVAILABLE",
+            "retryable": "true",
+            "route_identity": "={{ String($('Validate Payload').first().json.request_id || '') }}",
+            "occurred_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "id": "sa-emit-crm-unavailable",
+      "name": "Emit System Alert (Infra)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        3000,
+        1800
+      ],
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -4449,6 +4563,11 @@
             "node": "Stop: Pipeline Write Failed",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Emit System Alert (Pipeline)",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -4577,6 +4696,11 @@
             "node": "Stop: Merge Failed",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Emit System Alert (Merge)",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -4630,6 +4754,11 @@
         [
           {
             "node": "Stop: CRM Unavailable",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Emit System Alert (Infra)",
             "type": "main",
             "index": 0
           }

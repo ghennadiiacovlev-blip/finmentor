@@ -53,8 +53,10 @@ const sha = (v) => crypto.createHash('sha256').update(v).digest('hex');
 
 // ── the inlined modules ────────────────────────────────────────────────────────────────────────
 
-export const PRESENTER_SRC = readFileSync(join(SRC, 'presenter.js'), 'utf8');
-export const TZ_SRC = readFileSync(join(SRC, 'tz.js'), 'utf8');
+// LF always: a core.autocrlf checkout hands these back with CRLF, and the inlined copy would then
+// differ from the module the gate drives on every line.
+export const PRESENTER_SRC = readFileSync(join(SRC, 'presenter.js'), 'utf8').split('\r\n').join('\n');
+export const TZ_SRC = readFileSync(join(SRC, 'tz.js'), 'utf8').split('\r\n').join('\n');
 
 // A module becomes an IIFE returning its exports. `module.exports = {...}` is the last statement in
 // both files, so the transform is: wrap, and turn that assignment into a return.
@@ -170,6 +172,10 @@ const EDITS = [
       '    dueAt: dueAt,',
       '    now: now.toISOString(),',
       '    offsetMinutes: OFFSET,',
+      '    // OWNER DECISION, 2026-09-04: the lead\'s priority closes the card. `priority` is the',
+      '    // upper-cased Pipeline value the selection above already filtered on (HOT/WARM only).',
+      '    priority: priority,',
+      '    // Carried for the item, never rendered: the owner sees no lead id in a visible body.',
       '    leadId: leadId',
       '  });',
       '',
@@ -292,6 +298,10 @@ const EDITS = [
       '',
       'const alert_html = LA.renderNewLead({',
       '  company: company,',
+      '  // OWNER DECISION, 2026-09-04: a lead with no company is headed by the contact name.',
+      '  contactName: name,',
+      '  // Normalised upstream to \'ru\' | \'ro\' (default \'ru\'). Only \'ro\' is ever stated.',
+      '  language: item.language,',
       '  role: role,',
       '  objective: mainPain,',
       '  situation: situation,',
@@ -324,6 +334,8 @@ const EDITS = [
           "  : (warmChannel === 'phone' ? item.phone : (warmChannel === 'email' ? item.email : ''));",
           'const alert_html = LA.renderNewLead({',
           '  company: item.company,',
+          '  contactName: item.name,',
+          '  language: item.language,',
           '  role: item.role,',
           '  objective: item.main_pain,',
           "  situation: [item.business_model, item.turnover_range].filter(v => String(v || '').trim() !== '').join(' · '),",

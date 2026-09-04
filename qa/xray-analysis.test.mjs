@@ -24,6 +24,9 @@ const SRC = path.join(ROOT, 'n8n', 'src', 'xray-analysis');
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8');
 
 const labelsSrc = read('labels.js').replace(/if \(typeof module[\s\S]*$/, '');
+// The owner cards, spliced exactly as the builder splices them (presentation only).
+const cardsSrc = read('owner-cards.js').replace(/if \(typeof module[\s\S]*$/, '');
+const withCards = (src) => src.replace('// __XRAY_OWNER_CARDS__ (inlined by the builder)', cardsSrc);
 
 let passed = 0; let failed = 0;
 function check(name, cond, detail) {
@@ -160,7 +163,7 @@ const goodPlan = {
   score: 99, zone: 'GREEN', extra_key: 'dropped'
 };
 function aiResp(obj) { return { output: [{ type: 'message', content: [{ type: 'output_text', text: '```json\n' + JSON.stringify(obj) + '\n```' }] }] }; }
-const validateSrc = read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labelsSrc);
+const validateSrc = withCards(read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labelsSrc));
 const validate = (resp, inp) => runNode(validateSrc, { input: [resp], nodes: { 'Build Analysis Input': [inp || inputItem], 'Settings to Object': [{ settings }] } })[0].json;
 let draftRow;
 {
@@ -181,8 +184,11 @@ let draftRow;
   check('validate: no fabrication flags on clean plan', r.fabrication_flags === '' && r.confidence === 'HIGH');
   check('validate: pipeline projection is narrow (no JSON)', !('analysis_json' in o.pipeline_row) && o.pipeline_row.xray_analysis_status === 'AI_DRAFT');
   const alert = o.owner_alert;
-  check('owner alert: RU structure per C1.7', /ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ/.test(alert.text) && /47 из 100/.test(alert.text) && /ОРАНЖЕВАЯ ЗОНА/.test(alert.text) && /2 из 5/.test(alert.text) && /ГОТОВ К ПРОВЕРКЕ/.test(alert.text));
+  check('owner alert: premium RU card (2026-09-04) — header, score/100, zone wording, maturity /5, status', /^📊 <b>FINMENTOR · Финансовый рентген<\/b>/.test(alert.text) && /<b>47 \/ 100<\/b> · 🟠 <b>Существенные пробелы<\/b>/.test(alert.text) && /<b>Зрелость финансового управления:<\/b> 2\/5/.test(alert.text) && /<b>Статус:<\/b> ожидает проверки консультанта/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
+  check('owner alert: no Lead ID, no raw enum, no confidence, no token in the visible body', !/Lead ID|L-2|ORANGE|AI_DRAFT|HIGH|Достоверность|[0-9a-f]{64}/.test(alert.text));
+  check('owner alert: priorities as ①②③, key risk and RU recommendation present', /① П1\n② П2\n③ П3/.test(alert.text) && /<b>Ключевой риск<\/b>\nРиск 1/.test(alert.text) && /<b>Рекомендация FINMENTOR<\/b>\nДиагностическая встреча \(Discovery Call\)/.test(alert.text));
+  check('owner alert: no verification line on a clean HIGH-confidence analysis', !/Требуется проверка/.test(alert.text));
   check('owner alert: review link carries analysis id and token', alert.review_url.includes('a=' + encodeURIComponent(r.analysis_id)) && alert.review_url.includes('t=' + r.review_token));
   const o2 = validate(aiResp(goodPlan));
   check('validate: two analyses of one lead never share an id or a token', o2.analysis_row.analysis_id !== r.analysis_id && o2.analysis_row.review_token !== r.review_token);
@@ -193,13 +199,13 @@ let draftRow;
   const r = o.analysis_row;
   check('validate: fabricated figures FLAGGED (not failed) — the owner decides', o.is_valid === true && r.review_status === 'AI_DRAFT' && r.fabrication_flags.length > 0, r.fabrication_flags);
   check('validate: fabricated figures force confidence LOW', r.confidence === 'LOW');
-  check('validate: owner told to check figures', /Проверить цифры/.test(o.owner_alert.text));
+  check('validate: owner told to verify source data — ONE professional line, never the raw flag', /⚠️ <b>Требуется проверка исходных данных<\/b>/.test(o.owner_alert.text) && !/Проверить цифры|3500000|850000/.test(o.owner_alert.text));
   const clean = { ...goodPlan, executive_summary: 'Указанный оборот 1 200 000 EUR требует контроля.' };
   check('validate: figure present in input is not flagged', validate(aiResp(clean)).analysis_row.fabrication_flags === '');
   const kpi = { ...goodPlan, plan_30_days: { ...goodPlan.plan_30_days, days_15_21: [{ action: 'Маржа по категориям', owner_role: 'Аналитик', expected_output: 'Отчёт по 12 000 SKU', control_or_kpi: 'Маржа посчитана для >80% продаж', priority: 'MEDIUM' }] } };
   const o3 = validate(aiResp(kpi));
   check('validate: KPI targets and expected outputs are never flagged as fabricated (live RO finding)', o3.analysis_row.fabrication_flags === '' && o3.analysis_row.confidence === 'HIGH', o3.analysis_row.fabrication_flags);
-  check('owner alert: parentheses preserved (HTML parse mode)', /(Discovery Call)/.test(o3.owner_alert.text));
+  check('owner alert: parentheses preserved (HTML parse mode)', /\(Discovery Call\)/.test(o3.owner_alert.text));
 }
 {
   // FAIL CLOSED: a broken contract is ANALYSIS_FAILED, never a draft
@@ -219,26 +225,26 @@ let draftRow;
     const o = validate(resp);
     const r = o.analysis_row;
     check('validate FAIL CLOSED: ' + name + ' -> ANALYSIS_FAILED, no token, no draft JSON, pipeline says FAILED',
-      o.is_valid === false && r.review_status === 'ANALYSIS_FAILED' && r.review_token === '' && r.review_token_expires_at === '' && r.analysis_json === '' && r.validation_errors !== '' && o.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED' && o.owner_alert === null && /Удалите её, чтобы повторить/.test(o.owner_text),
+      o.is_valid === false && r.review_status === 'ANALYSIS_FAILED' && r.review_token === '' && r.review_token_expires_at === '' && r.analysis_json === '' && r.validation_errors !== '' && o.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED' && o.owner_alert === null && /^❌ <b>FINMENTOR · Анализ не сформирован<\/b>/.test(o.owner_text) && /Удалить строку этого анализа/.test(o.owner_text),
       JSON.stringify({ v: o.is_valid, s: r.review_status, e: r.validation_errors }));
   }
   check('validate FAIL CLOSED: the failed row still carries the deterministic score and zone', validate({ output_text: 'x' }).analysis_row.score === 47 && validate({ output_text: 'x' }).analysis_row.zone === 'ORANGE');
-  check('validate FAIL CLOSED: the failure notice names no prompt, payload or token', !/ai_user_prompt|projection|review_token/.test(validate({ output_text: 'x' }).owner_text));
+  check('validate FAIL CLOSED: the failure notice names no prompt, payload, token, Lead ID or raw error class', !/ai_user_prompt|projection|review_token|Lead ID|L-2|MODEL_OUTPUT_INVALID|not json/.test(validate({ output_text: 'x' }).owner_text) && /Модель вернула ответ вне контракта анализа/.test(validate({ output_text: 'x' }).owner_text));
 }
 {
   const roInput = { ...inputItem, locale: 'ro' };
   const o = validate(aiResp({ ...goodPlan, recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', rationale: 'r' } }), roInput);
   check('validate: RO next-step label is Romanian', /Diagnostic financiar complet/.test(o.analysis_row.next_step_label) && o.analysis_row.locale === 'ro');
-  check('owner alert: stays RU for the owner and states client language RO', /Язык клиента: RO/.test(o.owner_alert.text));
+  check('owner alert: stays RU for the owner and states client language as metadata only', /Клиент: RO/.test(o.owner_alert.text) && !/Diagnostic financiar/.test(o.owner_alert.text) && /Комплексная финансовая диагностика/.test(o.owner_alert.text));
 }
 
 // ---------- analysis failed (OpenAI error output) ----------
 {
-  const out = runNode(read('analysis-failed.js'), { input: [{ error: { message: 'Rate limit reached (429)' } }], nodes: { 'Build Analysis Input': [inputItem] } });
+  const out = runNode(withCards(read('analysis-failed.js')), { input: [{ error: { message: 'Rate limit reached (429)' } }], nodes: { 'Build Analysis Input': [inputItem] } });
   const r = out[0].json.analysis_row;
   check('failed: ANALYSIS_FAILED row written with error class only', r.review_status === 'ANALYSIS_FAILED' && r.executive_summary === 'ANALYSIS_FAILED: RATE_LIMIT' && r.analysis_json === '' && r.validation_errors === 'UPSTREAM_RATE_LIMIT');
   check('failed: no token, no expiry, version xray-v2', r.review_token === '' && r.review_token_expires_at === '' && r.analysis_version === 'xray-v2');
-  check('failed: owner notice carries no prompt or payload, and says how to retry', !/ai_user_prompt|projection/.test(out[0].json.owner_text) && /Удалите её, чтобы повторить/.test(out[0].json.owner_text));
+  check('failed: owner notice carries no prompt, payload, Lead ID or raw class, names the cause in Russian and says how to retry', !/ai_user_prompt|projection|Lead ID|L-2|RATE_LIMIT/.test(out[0].json.owner_text) && /Превышен лимит запросов к модели/.test(out[0].json.owner_text) && /Удалить строку этого анализа/.test(out[0].json.owner_text));
 }
 
 // ---------- review: GET is read-only ----------
@@ -266,7 +272,7 @@ function surface(q, rows) { return runNode(surfaceSrc, { input: rows, nodes: { '
 }
 
 // ---------- review: POST promotes ----------
-const reviewSrc = read('review-verdict.js');
+const reviewSrc = withCards(read('review-verdict.js'));
 function review(body, rows) { return runNode(reviewSrc, { input: rows, nodes: { 'Review POST Webhook': [{ body }] } })[0].json; }
 {
   const ok = review({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
@@ -321,7 +327,9 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   const postChain = sdk.slice(sdk.indexOf('.add(reviewPostWebhook)'));
   check('workflow: GET and POST review triggers share the path', /name: 'Review GET Webhook', parameters: \{ httpMethod: 'GET', path: "finmentor-xray-review"/.test(sdk) && /name: 'Review POST Webhook', parameters: \{ httpMethod: 'POST', path: "finmentor-xray-review"/.test(sdk) && REVIEW_PATH === 'finmentor-xray-review');
   check('workflow: the GET chain reads, renders and responds — it reaches no writer', /readForReviewGet/.test(getChain) && /reviewSurface/.test(getChain) && !/promote|publish|updatePipeline|ifPromote/i.test(getChain));
-  check('workflow: the POST chain promotes, projects, publishes the curated result, then responds', /reviewVerdict/.test(postChain) && /ifPromote/.test(postChain) && /promoteAnalysis\.to\(pipelineStatusRow\.to\(updatePipelineStatus\.to\(buildClientResult\.to\(publishClientResult\.to\(respondPromoted\)/.test(postChain));
+  check('workflow: the POST chain promotes, projects, publishes the curated result, responds, THEN notifies the owner on the first promotion only', /reviewVerdict/.test(postChain) && /ifPromote/.test(postChain) && /promoteAnalysis\.to\(pipelineStatusRow\.to\(updatePipelineStatus\.to\(buildClientResult\.to\(publishClientResult\.to\(respondPromoted\.to\(ifFirstPromotion\.onTrue\(ownerApprovedNotice\)\)/.test(postChain));
+  check('workflow: the approved notice is gated on notify_owner, reads owner_approved_text, same owner chat and bot credential, and sits AFTER the HTTP response', /name: 'IF First Promotion'[\s\S]*?notify_owner/.test(sdk) && /name: 'Telegram Analysis Approved'[\s\S]*?owner_chat_id[\s\S]*?owner_approved_text[\s\S]*?parse_mode: 'HTML'[\s\S]*?telegramApi: \{ id: 'Mj41qrGHfrthCtAw'/.test(sdk) && postChain.indexOf('respondPromoted') < postChain.indexOf('ownerApprovedNotice'));
+  check('workflow: the GET chain still reaches no Telegram node', !/ownerApprovedNotice|ownerAlert/.test(getChain));
   check('workflow: the publisher is a credential-free Data Table upsert on ' + CLIENT_RESULT_TABLE + ' keyed by lead_id', /name: 'Publish Curated Client Result'[\s\S]*?operation: 'upsert', dataTableId: \{ __rl: true, mode: 'name', value: "XRay_Client_Results" \}[\s\S]*?keyName: 'lead_id'/.test(sdk) && !/Publish Curated Client Result[\s\S]{0,600}credentials/.test(sdk));
   check('workflow: the sweep forks on validity — owner alert for a draft, failure notice otherwise', /\.to\(ifAnalysisValid\s+\.onTrue\(ownerAlert\)\s+\.onFalse\(validationFailureNotice\)\)/.test(sdk));
   check('workflow: no Postgres, no claim table, no new credential', !/n8n-nodes-base\.postgres/.test(sdk) && !/finmentor_xray_analysis_claims/.test(sdk) && (sdk.match(/credentials: \{ (googleSheetsOAuth2Api|telegramApi|openAiApi)/g) || []).every(Boolean) && !/postgres:/.test(sdk));

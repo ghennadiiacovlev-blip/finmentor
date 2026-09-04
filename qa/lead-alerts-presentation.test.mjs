@@ -145,12 +145,15 @@ check('the validator itself rejects the four shapes it exists to catch', () => {
 check('an absent value removes its line, and an absent section removes its heading', () => {
   const bare = P.renderNewLead({ company: 'Nord', leadId: 'FIN-9' });
   clean(bare, 'bare NEW LEAD');
-  ['Задача', 'Ситуация', 'Следующий шаг', 'Источник', 'Финансовая зона', 'Приоритет']
+  ['Запрос', 'Следующий шаг', 'Источник', 'Финансовая зона', 'Приоритет', 'Клиент: RO']
     .forEach((h) => assert(bare.indexOf(h) === -1, 'the bare model still rendered «' + h + '»'));
-  // «Связь» is the ONE section that survives an empty model, by owner decision: a lead nobody
-  // can reach is a fact the owner must be told, not a line to omit.
-  assert(bare.indexOf('Связь') !== -1, 'a lead with no contact at all said nothing about it');
+  // «Связь» is the ONE line that survives an empty model, by owner decision: a lead nobody can
+  // reach is a fact the owner must be told, not a line to omit. It lives under «Контекст», which
+  // is therefore the one heading a bare model still carries.
+  assert(bare.indexOf('Связь: ') !== -1, 'a lead with no contact at all said nothing about it');
   assert(bare.indexOf('<b>Не указана</b>') !== -1, 'the absent contact is not stated');
+  eq(bare.split('\n').filter((l) => /^<b>[^<]+<\/b>$/.test(l) && l !== '<b>Nord</b>').length, 1,
+    'headings on a bare model (only «Контекст» may survive)');
   assert(bare.indexOf('—') === -1, 'the bare model rendered a dash placeholder');
   assert(bare.indexOf('undefined') === -1 && bare.indexOf('null') === -1, 'a raw JS value reached the message');
 });
@@ -220,18 +223,21 @@ check('the priority vocabulary is exactly the approved four, and nothing is inve
 });
 
 check('financial zone is a SEPARATE dimension and is never merged into priority', () => {
+  // OWNER DECISION 2026-09-04: one canonical owner-facing zone vocabulary, shared with the X-Ray cards.
   eq(P.zoneLabel('RED'), 'Критическая зона', 'RED');
-  eq(P.zoneLabel('ORANGE'), 'Повышенный риск', 'ORANGE');
-  eq(P.zoneLabel('YELLOW'), 'Есть зоны риска', 'YELLOW');
-  eq(P.zoneLabel('GREEN'), 'Устойчиво', 'GREEN');
-  eq(Object.keys(P.ZONE_LABEL).length, 4, 'the zone vocabulary grew');
-  ['HOT', 'WARM', 'COLD', 'INCOMPLETE', 'UNKNOWN', ''].forEach((v) => {
+  eq(P.zoneLabel('ORANGE'), 'Существенные пробелы', 'ORANGE');
+  eq(P.zoneLabel('YELLOW'), 'Требует внимания', 'YELLOW');
+  eq(P.zoneLabel('GREEN'), 'Устойчивое управление', 'GREEN');
+  eq(P.zoneLabel('UNKNOWN'), 'Недостаточно данных', 'UNKNOWN');
+  eq(Object.keys(P.ZONE_LABEL).length, 5, 'the zone vocabulary grew beyond the five canonical zones');
+  ['HOT', 'WARM', 'COLD', 'INCOMPLETE', 'purple', ''].forEach((v) => {
     eq(P.zoneLabel(v), '', 'zone ' + JSON.stringify(v) + ' was given a label');
   });
-  // The two vocabularies must not share a single word, or the owner cannot tell them apart.
-  const a = Object.values(P.PRIORITY_LABEL);
-  const b = Object.values(P.ZONE_LABEL);
-  a.forEach((x) => assert(b.indexOf(x) === -1, 'the label «' + x + '» is used for both dimensions'));
+  // The two dimensions are told apart by their labelled lines and icons, never by a bare word:
+  // every rendered priority line starts «Приоритет:», every zone line «Финансовая зона:».
+  for (const p of Object.keys(P.PRIORITY_LABEL)) { assert(P.priorityLine(p).indexOf('<b>Приоритет:</b> ') === 0, 'priority line unlabelled for ' + p); }
+  for (const z of Object.keys(P.ZONE_LABEL)) { assert(P.zoneLine(z).indexOf('<b>Финансовая зона:</b> ') === 0, 'zone line unlabelled for ' + z); }
+  assert(!Object.values(P.ZONE_LABEL).some((x) => /Повышенный риск|Есть зоны риска|^Устойчиво$/.test(x)), 'a retired zone phrase survives');
 
   // A COLD/RED lead must render both facts, not one.
   const html = P.renderNewLead(Object.assign({}, LEAD, { priority: 'COLD', zone: 'RED' }));
@@ -372,11 +378,16 @@ check('ONE preferred channel, with its value, and only in NEW LEAD — the owner
   for (const [ch, val, want] of cases) {
     const html = P.renderNewLead(Object.assign({}, base, { contactChannel: ch, contactValue: val }));
     clean(html, 'NEW LEAD ' + ch + '/' + val);
+    // OWNER DECISION, 2026-09-04: the contact is a «Связь: …» line under «Контекст», not its own
+    // section. Still one line, still the chosen channel only, still the only contact anywhere.
     const arr = html.split('\n');
-    const i = arr.findIndex((l) => l.trim() === 'Связь');
-    assert(i !== -1, 'no «Связь» block for ' + JSON.stringify([ch, val]));
-    eq(arr[i + 1], want, 'contact line for ' + JSON.stringify([ch, val]));
-    eq(arr.filter((l) => l.trim() === 'Связь').length, 1, 'more than one «Связь» block');
+    const rows = arr.filter((l) => /^Связь: /.test(l));
+    eq(rows.length, 1, 'exactly one «Связь» line for ' + JSON.stringify([ch, val]));
+    eq(rows[0], 'Связь: ' + want, 'contact line for ' + JSON.stringify([ch, val]));
+    const i = arr.indexOf(rows[0]);
+    let j = i - 1;
+    while (j >= 0 && arr[j].trim() && arr[j] !== '<b>Контекст</b>') { j--; }
+    eq(arr[j], '<b>Контекст</b>', 'the contact line is not under «Контекст» for ' + JSON.stringify([ch, val]));
   }
 
   // Phone and email NEVER together, whatever the model holds.
@@ -425,8 +436,11 @@ check('no contact value reaches any message except NEW LEAD', () => {
 });
 
 check('validate() refuses a message carrying two contacts', () => {
-  const twoContacts = '<b>FINMENTOR · NEW LEAD</b>\n\nСвязь\n<b>Телефон · +37369123456</b>\n\nСвязь\n<b>Email · ceo@alfa.md</b>';
-  assert(P.validate(twoContacts).length, 'two «Связь» blocks passed');
+  const twoContacts = '🔔 <b>FINMENTOR · Новый лид</b>\n\n<b>Контекст</b>\nСвязь: <b>Телефон · +37369123456</b>\nСвязь: <b>Email · ceo@alfa.md</b>';
+  assert(P.validate(twoContacts).length, 'two «Связь» lines passed');
+  // And ONE contact line, in the shape the renderer emits, is exactly what the exemption is for.
+  const oneContact = '🔔 <b>FINMENTOR · Новый лид</b>\n\n<b>Контекст</b>\nСвязь: <b>Телефон · +37369123456</b>';
+  eq(P.validate(oneContact).length, 0, 'the one permitted contact line was rejected -> ' + P.validate(oneContact).join('; '));
   // And a contact OUTSIDE the exempted line is still caught.
   assert(P.validate('<b>x</b>\nПишите на ceo@alfa.md').length, 'a stray email passed');
   assert(P.validate('<b>x</b>\nЗвоните +37369123456').length, 'a stray phone passed');
@@ -549,24 +563,150 @@ check('LEAD INCOMPLETE describes the operational gap and states no legal conclus
 
 // ── 10. the header, which is the whole brand promise in two lines ──────────────────────────────
 
-check('every message opens with the FINMENTOR chrome and its type, and nothing else', () => {
-  const types = ['OWNER DAILY BRIEF', 'NEW LEAD', 'PRIORITY', 'FOLLOW-UP', 'LEAD INCOMPLETE',
-    'SYSTEM ALERT', 'SYSTEM RECOVERED', 'DATA / INTEGRITY WARNING'];
-  for (const [, html] of RENDERS()) {
+// OWNER DECISION, 2026-09-04. Russian type names, ONE leading icon, the «FINMENTOR · » chrome kept.
+const HEADER = /^(\p{Extended_Pictographic}️? )?<b>FINMENTOR · (.+)<\/b>$/u;
+const TYPES = {
+  'OWNER DAILY BRIEF': ['📋', 'Утренний бриф'],
+  'NEW LEAD': ['🔔', 'Новый лид'],
+  'PRIORITY': ['⏳', 'Требует внимания'],
+  'FOLLOW-UP': ['🔁', 'Напоминание'],
+  'LEAD INCOMPLETE': ['⚠️', 'Неполные данные'],
+  'SYSTEM ALERT': ['🛠', 'Системное уведомление'],
+  'SYSTEM RECOVERED': ['✅', 'Система восстановлена'],
+  'DATA / INTEGRITY': ['🧾', 'Целостность данных']
+};
+
+check('every message opens with the FINMENTOR chrome and its Russian type, and nothing else', () => {
+  const names = Object.values(TYPES).map(([, n]) => n);
+  for (const [name, html] of RENDERS()) {
     const first = html.split('\n')[0];
-    const m = /^<b>FINMENTOR · (.+)<\/b>$/.exec(first);
-    assert(m, 'a message opens with «' + first + '»');
-    assert(types.indexOf(m[1]) !== -1, 'unknown alert type «' + m[1] + '» — report it before inventing a ninth');
+    const m = HEADER.exec(first);
+    assert(m, name + ' opens with «' + first + '»');
+    assert(names.indexOf(m[2]) !== -1, 'unknown alert type «' + m[2] + '» — report it before inventing a ninth');
+    // The icon is not optional in practice: every one of the eight carries exactly its own.
+    const [icon, label] = TYPES[name.replace(' (quiet)', '')];
+    eq(first, icon + ' <b>FINMENTOR · ' + label + '</b>', name + ': header');
+  }
+  // No English type name survives anywhere in a message — the header was the last place.
+  for (const [name, html] of RENDERS()) {
+    ['OWNER DAILY BRIEF', 'NEW LEAD', 'LEAD INCOMPLETE', 'SYSTEM ALERT', 'SYSTEM RECOVERED', 'INTEGRITY WARNING']
+      .forEach((t) => assert(html.indexOf(t) === -1, name + ' still carries the English type name «' + t + '»'));
   }
 });
 
-check('there is no emoji anywhere — the deployed alerts open with 🚨 and ⚠️', () => {
-  const emoji = /[←-⇿⌀-⏿☀-➿️\u{1F000}-\u{1FAFF}]/u;
-  for (const [name, html] of RENDERS()) {
-    assert(!emoji.test(html), name + ' contains an emoji');
-  }
+check('the eight type icons are distinct, and header() without an icon is unchanged for actions.js', () => {
+  const icons = Object.values(P.TYPE).map((t) => t.icon);
+  eq(new Set(icons).size, 8, 'two types share an icon');
+  eq(Object.keys(P.TYPE).length, 8, 'the type table grew — report a ninth before adding it');
+  // actions.js builds its confirmations with LA.header(title) and no icon; those bytes must not move.
+  eq(P.header('ACTION UPDATED'), '<b>FINMENTOR · ACTION UPDATED</b>', 'header() without an icon changed');
+  eq(P.header('ACTION UPDATED', 'sub'), '<b>FINMENTOR · ACTION UPDATED</b>\n<i>sub</i>', 'header() with a subtitle changed');
   // The typographic middot in the header is deliberate and is not an emoji.
   assert(P.header('NEW LEAD').indexOf('·') !== -1, 'the header separator is gone');
+});
+
+// Emoji live in exactly three places: the first character of the header, and the single icon in
+// front of the priority and zone labels. Strip those three and nothing pictographic may remain.
+const EMOJI = /\p{Extended_Pictographic}/u;
+function stripPermittedEmoji(html) {
+  return html.split('\n').map((l, i) => {
+    if (i === 0) { return l.replace(/^\p{Extended_Pictographic}️? /u, ''); }
+    return l
+      .replace(/^<b>Приоритет:<\/b> \p{Extended_Pictographic}️? /u, '<b>Приоритет:</b> ')
+      .replace(/^<b>Финансовая зона:<\/b> \p{Extended_Pictographic}️? /u, '<b>Финансовая зона:</b> ');
+  }).join('\n');
+}
+
+check('emoji appear only as the header icon and the single priority/zone icon — nowhere else', () => {
+  for (const [name, html] of RENDERS()) {
+    assert(!EMOJI.test(stripPermittedEmoji(html)), name + ' contains an emoji outside the three permitted positions');
+  }
+  // The priority/zone icons are the approved four-plus-four and follow their labels exactly.
+  eq(P.priorityLine('HOT'), '<b>Приоритет:</b> 🔥 Высокий приоритет', 'HOT');
+  eq(P.priorityLine('warm'), '<b>Приоритет:</b> 🕒 Требует внимания', 'WARM, case normalised');
+  eq(P.priorityLine('COLD'), '<b>Приоритет:</b> ⚪ Низкий приоритет', 'COLD');
+  eq(P.priorityLine('INCOMPLETE'), '<b>Приоритет:</b> ❔ Нужны данные', 'INCOMPLETE');
+  eq(P.zoneLine('RED'), '<b>Финансовая зона:</b> 🔴 Критическая зона', 'RED');
+  eq(P.zoneLine('ORANGE'), '<b>Финансовая зона:</b> 🟠 Существенные пробелы', 'ORANGE');
+  eq(P.zoneLine('YELLOW'), '<b>Финансовая зона:</b> 🟡 Требует внимания', 'YELLOW');
+  eq(P.zoneLine('GREEN'), '<b>Финансовая зона:</b> 🟢 Устойчивое управление', 'GREEN');
+  eq(P.zoneLine('UNKNOWN'), '<b>Финансовая зона:</b> ⚪ Недостаточно данных', 'UNKNOWN');
+  // An unknown value earns no icon and no line — never a badge in front of nothing.
+  ['', null, undefined, 'UNKNOWN', 'RED'].forEach((v) => eq(P.priorityLine(v), '', 'priority icon for ' + JSON.stringify(v)));
+  // UNKNOWN is a canonical zone since 2026-09-04 («⚪ Недостаточно данных»); a priority token is not.
+  ['', null, undefined, 'purple', 'HOT'].forEach((v) => eq(P.zoneLine(v), '', 'zone icon for ' + JSON.stringify(v)));
+  // A client value that IS an emoji is data and stays where it was put — the rule is about the
+  // template, not about censoring the owner's own pipeline. It must still be caught by the sweep.
+  const html = P.renderNewLead(Object.assign({}, LEAD, { company: 'Alfa 🚀 Grup' }));
+  assert(EMOJI.test(stripPermittedEmoji(html)), 'the sweep does not see an emoji in a value');
+});
+
+// ── 11. OWNER DECISION 2026-09-04 — no Lead ID in a visible body, RO marker, PRIORITY dates ────
+
+check('no lead id and no <code> reaches any business alert body', () => {
+  const withIds = [
+    ['NEW LEAD', P.renderNewLead(Object.assign({}, LEAD, { leadId: 'FIN-20260830-0412' }))],
+    ['PRIORITY', P.renderPriority(Object.assign({ reason: 'x', now: NOW, offsetMinutes: OFF }, LEAD, { leadId: 'FIN-20260830-0412' }))],
+    ['FOLLOW-UP', P.renderFollowUp({ now: NOW, offsetMinutes: OFF, items: [{ company: 'Nord', action: 'a', dueAt: NOW, leadId: 'FIN-20260830-0412' }] })],
+    ['LEAD INCOMPLETE', P.renderIncomplete({ company: 'Nord', missing: ['контакт'], source: 'contact_form', leadId: 'FIN-20260830-0412' })],
+    ['OWNER DAILY BRIEF', P.renderDailyBrief(FULL_BRIEF)]
+  ];
+  for (const [name, html] of withIds) {
+    assert(html.indexOf('<code>') === -1, name + ' renders a <code> block');
+    assert(html.indexOf('FIN-') === -1, name + ' renders the lead id');
+    assert(!/Lead ID|lead_id|leadId/i.test(html), name + ' names the lead id');
+  }
+  // The id is still what keys de-duplication, so it must keep being READ.
+  const fu = P.renderFollowUp({ now: NOW, offsetMinutes: OFF, items: [
+    { company: 'Nord', action: 'a', dueAt: NOW, leadId: 'FIN-A' }, { company: 'Nord', action: 'a', dueAt: NOW, leadId: 'FIN-B' }
+  ] });
+  assert(fu.indexOf('Просрочено: <b>2</b>') !== -1, 'two distinct leads at one company were collapsed');
+});
+
+check('NEW LEAD: company falls back to the contact name, then to a dash; RO is stated and RU is not', () => {
+  const byName = P.renderNewLead({ company: '', contactName: 'Ион Русу', priority: 'HOT' });
+  assert(byName.indexOf('<b>Ион Русу</b>') !== -1, 'the contact name did not head the card');
+  const noName = P.renderNewLead({ company: '', contactName: '', priority: 'HOT' });
+  assert(noName.indexOf('<b>—</b>') !== -1, 'the empty identity is not a dash');
+  clean(noName, 'NEW LEAD with no identity');
+  const withCo = P.renderNewLead({ company: 'Alfa', contactName: 'Ион Русу', priority: 'HOT' });
+  assert(withCo.indexOf('Ион Русу') === -1, 'the contact name appeared beside a company');
+
+  const ro = P.renderNewLead(Object.assign({}, LEAD, { language: 'ro', source: 'xray_quick' }));
+  clean(ro, 'RO lead');
+  eq(ro.split('\n')[3], 'Финансовый директор · Источник: Финансовый рентген — быстрый рентген · Клиент: RO', 'the RO meta line');
+  for (const lang of ['ru', 'RU', '', undefined, null, 'en', 'ro-RO']) {
+    const html = P.renderNewLead(Object.assign({}, LEAD, { language: lang }));
+    assert(html.indexOf('Клиент:') === -1, 'a language marker was rendered for ' + JSON.stringify(lang));
+  }
+  assert(P.renderNewLead(Object.assign({}, LEAD, { language: 'RO' })).indexOf('Клиент: RO') !== -1, 'RO is case-normalised');
+  // The meta line is escaped like everything else.
+  const hostile = P.renderNewLead(Object.assign({}, LEAD, { role: 'CFO <b>&</b>', language: 'ro' }));
+  clean(hostile, 'hostile role on the meta line');
+  assert(hostile.indexOf('CFO &lt;b&gt;&amp;&lt;/b&gt; · Источник') !== -1, 'the role was not escaped on the meta line');
+});
+
+check('PRIORITY states the overdue duration, or the deadline, and never both', () => {
+  const at = (due, extra) => P.renderPriority(Object.assign({ company: 'Alfa', reason: 'r', nextAction: 'a', dueAt: due, now: NOW, offsetMinutes: OFF }, extra || {}));
+  assert(at('2026-08-27T09:00:00.000Z').indexOf('<b>Просрочено:</b> 3 дня') !== -1, 'three days overdue');
+  assert(at('2026-08-29T09:00:00.000Z').indexOf('<b>Просрочено:</b> 1 день') !== -1, 'one day overdue');
+  assert(at('2026-08-25T09:00:00.000Z').indexOf('<b>Просрочено:</b> 5 дней') !== -1, 'five days overdue');
+  assert(at('2026-08-30T09:00:00.000Z').indexOf('<b>Срок:</b> сегодня') !== -1, 'due today');
+  assert(at('2026-08-31T09:00:00.000Z').indexOf('<b>Срок:</b> завтра') !== -1, 'due tomorrow');
+  assert(at('2026-09-04T09:00:00.000Z').indexOf('<b>Срок:</b> 4 сентября') !== -1, 'due on a date');
+  for (const due of ['2026-08-27T09:00:00.000Z', '2026-08-30T09:00:00.000Z']) {
+    const html = at(due);
+    eq((html.match(/<b>(Просрочено|Срок):<\/b>/g) || []).length, 1, 'exactly one dated line for ' + due);
+    clean(html, 'PRIORITY at ' + due);
+  }
+  assert(at('nonsense').indexOf('Срок') === -1 && at('nonsense').indexOf('Просрочено') === -1, 'an unparseable due date rendered a line');
+  assert(at('').indexOf('Срок') === -1, 'an absent due date rendered a line');
+  // The card's order: company, the dated line, reason, next step, priority last.
+  const html = at('2026-08-27T09:00:00.000Z', { priority: 'HOT' });
+  const order = ['<b>Alfa</b>', '<b>Просрочено:</b>', '<b>Причина</b>', '<b>Следующий шаг</b>', '<b>Приоритет:</b> 🔥'];
+  let last = -1;
+  for (const s of order) { const i = html.indexOf(s); assert(i > last, s + ' is out of order'); last = i; }
+  assert(at('2026-08-27T09:00:00.000Z').indexOf('Приоритет') === -1, 'a model with no priority rendered a priority line');
 });
 
 console.log('');

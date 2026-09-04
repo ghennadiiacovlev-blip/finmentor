@@ -35,18 +35,24 @@ const OUT = path.join(ROOT, 'n8n', 'candidate', 'xray-analysis-workflow.sdk.js')
 
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8').replace(/\r\n/g, '\n');
 const labels = read('labels.js').replace(/if \(typeof module[\s\S]*$/, '').trim();
+// The owner cards (presentation only), inlined wherever an owner message is rendered.
+const ownerCards = read('owner-cards.js').replace(/if \(typeof module[\s\S]*$/, '').trim();
+const CARDS_MARKER = '// __XRAY_OWNER_CARDS__ (inlined by the builder)';
 const code = {
   settings: read('settings.js'),
   selectPending: read('select-pending.js'),
   buildInput: read('build-input.js'),
-  validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels),
-  failed: read('analysis-failed.js'),
+  validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels).replace(CARDS_MARKER, ownerCards),
+  failed: read('analysis-failed.js').replace(CARDS_MARKER, ownerCards),
   reviewSurface: read('review-surface.js'),
-  review: read('review-verdict.js'),
+  review: read('review-verdict.js').replace(CARDS_MARKER, ownerCards),
   clientResult: read('build-client-result.js')
 };
 for (const [k, v] of Object.entries(code)) {
-  if (/__XRAY_LABELS__/.test(v)) throw new Error('marker not replaced in ' + k);
+  if (/__XRAY_LABELS__|__XRAY_OWNER_CARDS__/.test(v)) throw new Error('marker not replaced in ' + k);
+}
+for (const k of ['validate', 'failed', 'review']) {
+  if (!/const XRAY_OWNER_CARDS = /.test(code[k])) throw new Error('owner cards not inlined in ' + k);
 }
 
 export const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
@@ -185,8 +191,8 @@ const ownerAlert = node({
       text: expr("{{ $('Validate + Store Rows').item.json.owner_alert.text }}"),
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
-        { row: { buttons: [ { text: '✅ Проверить и открыть клиенту', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } },
-        { row: { buttons: [ { text: '📊 Открыть CRM', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.crm_url }}") } } ] } }
+        { row: { buttons: [ { text: '✅ Проверить анализ', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } },
+        { row: { buttons: [ { text: '📊 Карточка лида', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.crm_url }}") } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: ${TG_CRED} },
@@ -348,6 +354,28 @@ const respondPromoted = node({
   output: [{}]
 });
 
+// ✅ Анализ подтверждён — ONE owner message on the FIRST promotion only (OWNER DECISION 2026-09-04,
+// A5: a second notification only for a real state transition). Placed AFTER the HTTP response so
+// the owner's browser is never kept waiting on Telegram; a repeated confirmation (ALREADY_READY)
+// carries notify_owner false and reaches no Telegram node. Same chat, same credential as the
+// review card; nothing else in the promotion chain moves.
+const ifFirstPromotion = ifElse({
+  version: 2.2,
+  config: { name: 'IF First Promotion', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Review POST Verdict').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ownerApprovedNotice = node({
+  type: 'n8n-nodes-base.telegram', version: 1.2,
+  config: { name: 'Telegram Analysis Approved', onError: 'continueRegularOutput',
+    parameters: { resource: 'message', operation: 'sendMessage',
+      chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
+      text: expr("{{ $('Review POST Verdict').item.json.owner_approved_text }}"),
+      additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
+    credentials: ${TG_CRED} },
+  output: [{ ok: true }]
+});
+
 const respondDenied = node({
   type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
   config: { name: 'Respond Review Denied', parameters: { respondWith: 'text', responseBody: expr('{{ $json.html }}'),
@@ -382,7 +410,7 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .to(readForReviewPost)
   .to(reviewVerdict)
   .to(ifPromote
-    .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(buildClientResult.to(publishClientResult.to(respondPromoted)))))))
+    .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(buildClientResult.to(publishClientResult.to(respondPromoted.to(ifFirstPromotion.onTrue(ownerApprovedNotice)))))))))
     .onFalse(respondDenied));
 `;
 

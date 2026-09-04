@@ -4,6 +4,8 @@
 // re-analysed on every sweep (the owner deletes the row to retry), and an owner notice
 // scrubbed of anything but the error class. No prompt, no payload, no identity leaves here.
 
+// __XRAY_OWNER_CARDS__ (inlined by the builder)
+
 const inputs = $('Build Analysis Input').all().map(i => i.json);
 const errors = $input.all().map(i => i.json);
 const now = new Date().toISOString();
@@ -26,6 +28,7 @@ for (let idx = 0; idx < errors.length; idx++) {
   out.push({ json: {
     analysis_row: {
       analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale || 'ru',
+      company: String(inp.company || '').slice(0, 120),
       created_at: now, analysis_version: inp.analysis_version || 'xray-v2', model: inp.ai_model || '',
       score: inp.score === null || inp.score === undefined ? '' : inp.score, zone: inp.zone || 'UNKNOWN',
       maturity_score: '', primary_risk: '', analysis_json: '', plan_30d_json: '',
@@ -34,7 +37,8 @@ for (let idx = 0; idx < errors.length; idx++) {
       recommended_next_step: '', next_step_label: '', customer_notified_at: ''
     },
     is_valid: false,
-    owner_text: 'ФИНАНСОВЫЙ РЕНТГЕН · АНАЛИЗ НЕ ВЫПОЛНЕН\n\nКомпания: ' + (inp.company || '—') + '\nКласс ошибки: ' + klass + '\nLead ID: ' + inp.lead_id + '\n\nСтрока ' + analysisId + ' записана в XRay_Analysis со статусом ANALYSIS_FAILED. Удалите её, чтобы повторить анализ.',
+    // ❌ Анализ не сформирован — the class renders as Russian; no Lead ID, no payload, no prompt.
+    owner_text: XRAY_OWNER_CARDS.renderFailed({ company: inp.company, locale: inp.locale, cause: klass }),
     lead_id: inp.lead_id
   } });
 }
