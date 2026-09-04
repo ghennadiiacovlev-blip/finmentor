@@ -1,6 +1,6 @@
 # Premium UX checkpoint — Owner Command Center + Client X-Ray Result (2026-09-04)
 
-**Status:** OWNER VISUAL APPROVAL = APPROVED (2026-09-04, as rendered after the correction and the copy polish). NOT DEPLOYED — awaiting owner deployment authorization. `RELEASE_MODE` stays `OWNER_ONLY`. Canonical QA at freeze: 75/75 gates, 2653 assertions, floors PASS.
+**Status:** OWNER VISUAL APPROVAL = APPROVED and **DEPLOYED LIVE 2026-09-04 09:47–09:55 UTC** (owner ran the five `--confirm` commands in order; every step fresh-read and verified below). `RELEASE_MODE` stays `OWNER_ONLY`. Canonical QA at freeze: 76/76 gates, 2662 assertions, floors PASS.
 
 Presentation only. Nothing in this checkpoint changes lead routing, triggers, Telegram credentials,
 HOT/WARM/COLD or zone semantics, CRM stages, callback_data, X-Ray scoring or the AI contract,
@@ -178,6 +178,31 @@ Rollbacks written by the dry runs (`.uat/`): `<id>.pre-presenter-refresh.json` (
 
 Execution order of the confirms (each script fresh-reads live, so the three scripts that touch Lead
 Intake / SLA / Follow-up compose): presenter refresh → label refresh → AI-brief mute → X-Ray → host.
+
+## LIVE DEPLOYMENT RECORD — 2026-09-04 09:47–09:55 UTC (owner `--confirm` ×5, fresh-read after each)
+
+| # | command | live result | verification |
+|---|---|---|---|
+| 1 | `refresh-lead-alerts-presenter.mjs --confirm` (09:47:50–09:47:52) | 6 workflows written and read back, all active | every declared node's presenter block = the current module; Telegram nodes, credentials, edges, settings byte-equal to the pre-image; **unexpected delta 0** on all six. Executed from the deployed Lead Intake node: «🔔 FINMENTOR · Новый лид», «🟠 Существенные пробелы», «5–10 млн EUR · 50–100 сотрудников»; RO render = NO LEAK, «Запрос клиента доступен в карточке лида CRM»; `validate()` clean |
+| 2 | `refresh-lead-alert-labels.mjs --confirm` (09:49:56–09:49:57) | 4 workflows written and read back, all active | old label gone / new label present on all four; step 1 presenter still CURRENT on the three shared workflows; edges/settings unchanged; **unexpected delta 0**. Live NEW LEAD keyboard: `📞 Discovery→stage\|…\|Discovery Scheduled`, `📄 Документы→docs\|…`, `⏰ На 24 часа→snooze\|…\|24`, `🗂 В наблюдение→nurture\|…`. Deployed Command Center executed: same five callbacks, `won` still not emitted |
+| 3 | `mute-lead-intake-ai-brief.mjs --confirm` (09:51:37) | Lead Intake written and read back, active | exactly ONE of 109 nodes changed: `Telegram AI Work Plan` `disabled: true`. The three NEW LEAD senders enabled; 12 Google Sheets nodes byte-equal; `Parse AI Plan → Build AI Plan Row → Save AI Plan` intact; edges, settings, credentials unchanged |
+| 4 | `deploy-c3-xray.mjs --confirm` (09:52:48) | 37 → 39 nodes, active, versionId `3b29b91a…`, validator xray-v2 | `Respond Review Done → IF First Promotion → Telegram Analysis Approved`, gate reads `notify_owner`, same owner chat + bot credential; owner-alert buttons «✅ Проверить анализ» / «📊 Карточка лида», chatId + credentials unchanged; GET review chain unchanged; curated publisher, client-result builder and the whole sweep/selection path (incl. scoring and the model node) byte-equal; 16 credential bindings unchanged. Executed from the deployed node: RO review card in Russian, NO LEAK; approved and failure cards as approved. Two extra changed nodes vs the declared five differ **only by `webhookId`** (n8n regenerates it on save for non-trigger Telegram nodes; inert) |
+| 5 | `deploy-c3-miniapp-host.mjs --confirm` (09:55:03) | 2 nodes, active; `Serve Page` only | page `6d3afe66…` → `0f40b50b…` (122 620 → 132 778 bytes); other Serve Page params, `Open Mini App`, edges, settings unchanged; live GET returns 200 `text/html` byte-identical to the stored page; approved copy present («Результат анализа», «Rezultatul analizei», «Этап 1 · Дни 1–7» … «Этап 4 · Дни 22–30», «Etapa 1 · Zilele 1–7», «Оценка не рассчитана», «Scorul nu a fost calculat», pending note); retired copy absent («Результат готов», «Rezultatul este gata»); `days_1_7` / `zone_label` / `CLIENT_READY` appear in code only, never rendered |
+
+Untouched and fresh-read after all five: Session `Hxje3Kel6nLLod5B` (17 nodes, `RELEASE_MODE = "OWNER_ONLY"`), Submit `ELiPdw4mdxQbBaan` (32, `"OWNER_ONLY"`), Gateway `nTZHLbv2KFggdhh5` (32, client-result allow-list still the 12 curated keys), Concierge `mppzthlkSJFr6Kle` (60) — none updated since before 09:40Z. Error Monitor last execution 5056 (08-31), SYSTEM ALERT 5076 (08-31). Tenant executions 09:40–09:56Z: 3 (5517–5519), 0 non-success.
+
+**Rollback artefacts — use the timestamped asides, not the named files** (the named ones predate this session's earlier deploys):
+
+| workflow | rollback file |
+|---|---|
+| the six presenter workflows | `.uat/<id>.pre-presenter-refresh.json` (exact) |
+| Command Center | `.uat/qF9tonlHHIxc8MDd.pre-labels.json` (exact) |
+| SLA / Followup / Lead Intake (labels) | `.uat/<id>.pre-labels.live-2026-09-04T09-49-55-*.json` — **not** `pre-labels.json`, which predates step 1 |
+| Lead Intake (mute) | `.uat/QmIyEW2ZEqKregmN.pre-mute-ai-brief.live-2026-09-04T09-51-37-154Z.json` |
+| X-Ray | `.uat/tNSMRoKlFB52vjge.pre-c3-xray.live-2026-09-04T09-52-48-262Z.json` — **not** `pre-c3-xray.json` (04:08Z capture) |
+| Mini App host | `.uat/KBD7Q94QQnlzgYKJ.pre-c3-host.live-2026-09-04T09-55-03-546Z.json` |
+
+Still owner-only to observe on the next real lead/analysis: a NEW LEAD card in the bot, an X-Ray review card and its «✅ Анализ подтверждён» follow-up after a confirmation, and the absence of the second «FINMENTOR AI BRIEF» message.
 
 ## Not done / owner decisions
 
