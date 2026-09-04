@@ -264,3 +264,37 @@ Owner sequence: new cycle from the bot (Concierge 5357–5363, 19:05:41–19:05:
 | 7 | no Error Monitor / SYSTEM ALERT regression | Error Monitor `RBiFLhVjizMkAzrK` last execution 5056 (08-31 14:19); SYSTEM ALERT `ID700kTo6EXffwry` last 5076 (08-31 17:52); tenant-wide search for `error/crashed/canceled/unknown` since 18:50 UTC → 0; the 25 most recent executions (5328–5383) all `success`; Session/Submit `settings` byte-equal to the pre-deploy rollback | PASS |
 
 Session and Submit retain no executions by design (`saveDataSuccessExecution none`, unchanged); the rows and the graph are the evidence.
+
+## Step 4 deploy record — X-Ray Analysis v2 is LIVE (2026-09-04 04:08–04:11 UTC, owner `--dry-run` + `--confirm`, fresh-read)
+
+**C3 X-RAY DRY RUN = PASS** (04:08:46Z) and the `--confirm` (04:09:41Z) passed every gate: `X-Ray updated`, `fresh read: every candidate node present (37 nodes)`, `active`, `live validator is xray-v2`. But the deploy was a **convergence rewrite, not the first v2 deploy** — read this before trusting the printed rollback line.
+
+| time (UTC) | evidence |
+|---|---|
+| 09-03 19:13:10.711 | n8n version history of `tNSMRoKlFB52vjge`: versionId `0c9cade1-f317-4985-a3bd-d8e6bedaf068`, author "Ghennadi Iacovlev" (API key, not MCP), one minute after the 19:12 step 3 fresh-read. **This is the 29 → 37 v2 deploy.** It was run from the other environment and is recorded nowhere in git (the last commit before this record, `2b4c3fc`, still says step 4 is next). No version exists between it and 04:09:41Z. |
+| 09-04 04:01:20 (07:01 local) | this machine pulled `feat/miniapp-b21c-live-prereqs` (`4232076 → 2b4c3fc`, fast-forward); `.uat/` is untracked, so no `pre-c3-xray.json` existed here |
+| 04:08:46 | `--dry-run`: `keepRollback` found NO `.uat/tNSMRoKlFB52vjge.pre-c3-xray.json` and wrote one from live — i.e. from the **37-node v2** workflow. `nodes 37 -> 37; added/removed: none; rewritten: —; 37 live nodes byte-for-byte`. |
+| 04:09:41.033 | `--confirm`: PUT → versionId `93f953be-44f8-45b2-8ab9-f560a9d28ed2`, 37 nodes, active. Diff of `.uat/…deployed-c3-xray.json` against the 04:08 capture: 12 lines — ONLY the `webhookId` of three Telegram sender nodes (`telegramApi` credential `Mj41qrGHfrthCtAw`, lines 406/626/654), a field n8n ignores on non-trigger nodes. Node parameters, types, credentials, connections and `settings` (`errorWorkflow RBiFLhVjizMkAzrK`, `timezone Europe/Chisinau`, `availableInMCP true`) are byte-equal. |
+| 04:10:53 | first sweep after the confirm, execution 5459, `success` (`Every 10 Minutes → Read Settings → Settings to Object → Read Pipeline → Read XRay_Analysis → Select Pending Leads`, nothing pending). 60 X-Ray sweep executions since 09-03 18:40Z, all `success`; 74 tenant-wide executions since 19:12Z, 0 non-success. |
+
+Live v2 graph facts, fresh-read from the deployed capture:
+
+| # | fact | evidence |
+|---|---|---|
+| 1 | one review path, GET/POST pair | `Review GET Webhook` `GET /finmentor-xray-review` (webhookId `768a174b…`, carried from C1 `Review Webhook`), `Review POST Webhook` `POST /finmentor-xray-review` (`9702a446…`); `Review Webhook` / `Read Analysis For Review` / `Review Verdict` gone | PASS |
+| 2 | GET is read-only | GET chain `Read Analysis For Review GET → Render Review Surface → Respond Review Surface`; no Data Table node and no Sheets writer reachable from GET | PASS |
+| 3 | POST publishes the curated result | POST chain reaches `Publish Curated Client Result` (`n8n-nodes-base.dataTable`, `upsert`); `IF Analysis Valid` present; 0 Postgres nodes | PASS |
+
+**ROLLBACK POINTER CORRECTION.** The script prints `rollback: PUT … with .uat/tNSMRoKlFB52vjge.pre-c3-xray.json`, but on this machine that file is the **v2 workflow itself** (37 nodes, captured 04:08:46Z) — restoring it changes nothing. The pre-C3 X-Ray is:
+
+- n8n version `7e2be0f4-74d8-4d02-bbf5-d4ca3161bb0a` (09-03 10:51:57Z, "Validate: KPI targets exempt…", 29 nodes, `Review Webhook` present, validator not v2) — restorable from the workflow's version history; or
+- the local capture `.uat/tNSMRoKlFB52vjge.pre-c3-2026-09-03.json` (29 nodes, taken 09-03 11:17Z; no version was saved between 10:51:57Z and 19:13:10Z, so it equals `7e2be0f4`).
+
+To make the printed rollback line true again (owner decision; the session that recorded this was not permitted to move files):
+
+```
+mv .uat/tNSMRoKlFB52vjge.pre-c3-xray.json .uat/tNSMRoKlFB52vjge.pre-c3-xray.live-2026-09-04T04-08-46Z.json
+cp .uat/tNSMRoKlFB52vjge.pre-c3-2026-09-03.json .uat/tNSMRoKlFB52vjge.pre-c3-xray.json
+```
+
+Still owner-only (needs the owner's Telegram identity): open the review link from an existing owner alert → read-only draft page with «Подтвердить и открыть клиенту»; confirm → `XRay_Client_Results` gains one row for the lead; reopen the Mini App → result screen. Record those three observations here as `C3 X-RAY LIVE PROOF = PASS`, then step 5 (`deploy-c3-miniapp-host`). Step 5 NOT deployed. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
