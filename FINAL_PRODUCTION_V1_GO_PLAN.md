@@ -12,22 +12,22 @@ forward from an earlier record.
 
 ## 0. Scoreboard
 
-    CURRENT PRODUCTION V1 COMPLETION = 43%   (3 of the 7 gates that precede release)
+    CURRENT PRODUCTION V1 COMPLETION = 57%   (4 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
     GATE 1  Privacy / Legal ...................... PASS
     GATE 2  C2 CRM Lifecycle Owner UAT ........... PASS
-    GATE 3  RO Content ........................... BLOCKED (2 owner decisions)
+    GATE 3  RO Content ........................... PASS
     GATE 4  GA4 UAT .............................. OPEN
     GATE 5  Final Integrated E2E (RU + RO) ....... OPEN
     GATE 6  Independent Codex Release Audit ...... OPEN
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
-    OPEN P1 = 1
+    OPEN P1 = 0
     POST_GO ITEMS = 11
 
-**NEXT SINGLE CHECKPOINT = GATE 3 — RO CONTENT.**
+**NEXT SINGLE CHECKPOINT = GATE 4 — GA4 UAT.**
 
 Read the percentage for what it is: a count of *release gates*, which is what was asked for. It
 deliberately does not measure engineering completeness, and it should not be read as "14% of the
@@ -152,7 +152,7 @@ protection · owner-only semantics confirmed to still hold. Real owner evidence 
 the contract requires an owner tap — those are Telegram messages from the owner's chat to the Leads
 bot and cannot be synthesised by this session.
 
-### GATE 3 — RO Content · **BLOCKED** — see docs/GATE3_RO_CONTENT_2026-09-04.md
+### GATE 3 — RO Content · **PASS** — see docs/GATE3_RO_CONTENT_2026-09-04.md
 
 Evidence: `docs/C3_OWNER_RUNBOOK.md` lists *"RO questionnaire copy for the Mini App and the
 Concierge"* as owner-approval work: the content gate binds every client-visible string to an

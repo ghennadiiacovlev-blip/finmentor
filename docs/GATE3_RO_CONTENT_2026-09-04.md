@@ -1,7 +1,7 @@
 # GATE 3 — RO customer content: fresh-read audit and two owner decisions
 
 **Date:** 2026-09-04 · **Branch:** `feat/miniapp-b21c-live-prereqs` · **Plan:** `FINAL_PRODUCTION_V1_GO_PLAN.md`
-**Verdict: GATE 3 = BLOCKED** — two owner decisions, no code changed yet.
+**Verdict: GATE 3 = PASS** — both owner decisions received, both corrections deployed and verified live (section 7).
 **CUSTOMER RELEASE = NOT AUTHORIZED.**
 
 Read from the repository, the live public site and the live tenant. Owner-facing Lead Alerts are
@@ -236,3 +236,102 @@ locale framework.
 
 This is an owner decision because A rewrites approved policy text, B accepts a partial fix, and C
 overrides a P1. Nothing has been changed pending it.
+
+---
+
+## 7. GATE 3 = PASS — corrections deployed and verified live (2026-09-04)
+
+Owner approved option B plus a narrow slice of option A. Both shipped.
+
+### 7.1 The Romanian first-contact branch (Concierge)
+
+`scripts/deploy-ro-first-contact.mjs --confirm` patched one node, `Build Bot Response`, replacing
+exactly two lines — the reply text and the reply markup — and nothing else. When the language the
+session carries is Romanian, the reply becomes the owner-approved Romanian acknowledgement and the
+keyboard becomes empty; every other language runs the original expressions untouched.
+
+An empty keyboard is already a first-class layout downstream (`L0_NONE`, `replyMarkup: none`), so
+no routing, layout or callback contract changed, and no node was added.
+
+Not touched: the state machine, `session.state`, `leadReady`, `leadPayload`, intent classification,
+consent, and all 67 Russian strings — the deploy verifies the Cyrillic character count is identical
+before and after and refuses otherwise.
+
+**Two defects my own gate caught before deployment**, both worth recording:
+
+- the language test was a two-character prefix, so `roman` would have entered the Romanian branch.
+  It is now a proper tag match, `/^ro(-|$)/`, which accepts `ro` and `ro-MD` and rejects `roman`;
+- the verifier checked only that the guard *name* appeared, so replacing just the text expression
+  with an unconditional Romanian reply still passed. It now asserts both full conditional
+  expressions.
+
+**A limit worth stating plainly.** The signal is Telegram's `language_code`. A Romanian speaker
+whose Telegram interface is set to Russian or English is not detected and still sees the Russian
+menu. That is the only language signal the update carries, and inventing another would be the second
+identity system this gate forbids. Recorded as POST_GO alongside full Concierge parity.
+
+### 7.2 The three duplicate CTAs and the canonical name (public site)
+
+PR **#22**, five files, merged as `7e63f32`. Both CI checks green at `36aa097`.
+
+Three ghost buttons on `ro/index.html` reading «Mai simplu: scrieți direct → FINMENTOR Bot» —
+`mobile_bot`, `hero_bot` and the packages one — sat immediately beside the primary «Începeți
+Radiografia Financiară» button and offered no route the reader did not already have. Removed.
+Telegram was **not** removed globally: the six contact-strip, form-fallback, form-success and footer
+links remain, because they are the routes the approved privacy policy names, and each sits beside
+`mailto:cfo@finmentor.md`.
+
+The canonical product name was published, and a **second occurrence of the same Gate 1 defect** was
+found and fixed in §6 (Temeiul juridic) that the first pass had missed — same origin, same rule,
+product name only. `ro/privacy.html` now holds zero occurrences of the superseded name, while
+art. 6(1)(b), the pending-confirmation caveat, the controller and the 12-month retention are all
+still present and asserted.
+
+### 7.3 Live proof
+
+| # | Proof | Result |
+|---|---|---|
+| A | every affected RO page still has a route | **PASS** — all 8 pages carry both a questionnaire link and the email |
+| B | the three duplicate CTAs are gone | **PASS** — 0 «Mai simplu» ghosts; 6 contact links remain; 6 primary CTAs and 6 email links intact |
+| C | RO privacy carries the canonical name | **PASS** — «Radiografiei Financiare FINMENTOR» present, superseded name 0, controller and 12-month retention intact |
+| D | RO first contact receives Romanian | **PASS** — executed against the deployed node: `ro` and `ro-MD` both return the Romanian text |
+| E | the same RO contact does **not** receive the Russian menu | **PASS** — both return `inline_keyboard: []` |
+| F | RU Telegram behaviour unchanged | **PASS** — `ru` and an absent language both return the original Russian text with the menu, and the RU landing still carries its 9 Telegram links with no Romanian copy |
+
+**On how D and E were proven.** No Telegram message was sent, and none could have proven this: the
+owner's own chat takes the `Premium Owner Gate` TRUE branch, so an owner UAT message never reaches
+the legacy path where this branch lives. Instead the deployed node's own code was read back from the
+tenant and **executed** against four language values. That is stronger than a single message — it
+covers `ro`, `ro-MD`, `ru` and absent in one pass — and it required no customer and no lead.
+
+Nothing else moved: Client Transport (24 nodes), Command Center (33), Lead Intake (109), X-Ray (39),
+Gateway (32) and the Mini App host (2) are all unchanged and active, and Session and Submit both
+still read `RELEASE_MODE = "OWNER_ONLY"`.
+
+### 7.4 Verdict
+
+    GATE 3 — RO CONTENT = PASS
+
+    CANONICAL PRODUCT NAME       = Radiografia Financiară FINMENTOR
+    C3.6 MASS TERMINOLOGY CHANGE = SUPERSEDED / NOT PUBLISHED
+
+    RO QUESTIONNAIRE = PASS      RO CLIENT_READY RESULT = PASS
+    RO MINI APP RESULT = PASS    RO PRIVACY WORDING CONSISTENCY = PASS
+
+    RO CONCIERGE FULL PARITY = POST_GO
+    RO MINI APP BRIEF FULL PARITY = POST_GO
+
+    RO TELEGRAM FIRST CONTACT = PASS
+    RO -> RUSSIAN MENU = NO
+    RO -> RU MINI APP BRIEF REACHABLE = NO
+
+    DUPLICATE RO TELEGRAM CTAS REMOVED = 3
+    RO CUSTOMER ROUTE PRESERVED = PASS
+
+    RU CUSTOMER PATH CHANGED = NO
+    ROUTING CHANGED = NO   SCORING CHANGED = NO   CLIENT_READY CONTRACT CHANGED = NO
+
+    OPEN P0 = 0   OPEN P1 = 0
+    CANONICAL QA = 82/82 gates, 2839 assertions, floors PASS
+
+**CUSTOMER RELEASE = NOT AUTHORIZED.**

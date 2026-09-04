@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 2820,
+  "total": 2839,
   "gates": {
     "ai-brief-suppression.test.mjs": 9,
     "ai-safe-projection.test.mjs": 52,
@@ -85,6 +85,7 @@
     "privacy-release-gate.test.mjs": 50,
     "questionnaire-identity-panel.test.mjs": 27,
     "receipt-integration.test.mjs": 70,
+    "ro-first-contact.test.mjs": 19,
     "system-alert.test.mjs": 43,
     "telegram-button-style-slots.test.mjs": 33,
     "telegram-button-styles.test.mjs": 16,
