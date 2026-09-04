@@ -377,7 +377,14 @@ optional and off by default, and visually distinct from this acknowledgement.
 - At Submit, discreet but readable, directly above the CTA:
   *FINMENTOR использует указанные вами данные для рассмотрения обращения, подготовки консультанта и связи с вами.*
   *Передавая brief, вы подтверждаете, что ознакомились с информацией об обработке персональных данных.*
-- Links: **Как мы обрабатываем данные** · **Политика конфиденциальности**
+  *Результаты Финансового рентгена бизнеса (Financial X-Ray) и план действий на 30 дней готовятся автоматизированно с участием искусственного интеллекта на основе обезличенных ответов и являются предварительным управленческим анализом, а не аудитом и не индивидуальной финансовой консультацией. Итоговые экспертные рекомендации FINMENTOR формируются после проверки человеком. Технические записи об обработке (без персональных данных) хранятся в Supabase (ЕС).*
+  <!-- Third line added under GATE 1, owner-approved 2026-09-04. It is the only place on this screen
+       that states the analysis is AI-assisted, preliminary and human-reviewed before release, and
+       that the technical processing records carry no personal data. -->
+- Links: **Как мы обрабатываем данные** · **Политика конфиденциальности** — both open the public
+  Privacy Policy for the session locale (RU `/privacy.html`, RO `/ro/privacy.html`). Under GATE 1
+  these were `href="#"`; there is no in-app privacy modal and no second privacy system.
+- The entry-screen trust link opens the same page.
 - Primary CTA remains **Передать консультанту**.
 - No unsupported claims ("military-grade encryption", "100% secure" or similar) anywhere.
 

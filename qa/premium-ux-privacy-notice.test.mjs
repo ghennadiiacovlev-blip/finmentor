@@ -214,19 +214,66 @@ check('retention states the 72-hour draft rule, matching the TTL actually deploy
 // in the stack — `idempotency-receipt.js` records that no canonical retention period is defined at
 // all. Describing a deletion that does not happen is the one failure mode a privacy notice must
 // never have, so these two checks hold the text to what the system actually does.
-check('the notice never claims an automatic deletion the stack does not perform', () => {
+check('the notice never claims an AUTOMATIC deletion the stack does not perform', () => {
   for (const loc of ['ru', 'ro']) {
     const body = N.FULL[loc].elements.retention.body;
     assert(!/удаляется автоматически|se șterge automat/.test(body), loc + ' claims automatic deletion');
-    assert(!/после чего удаляется|după care se șterge/.test(body), loc + ' claims deletion after the working period');
   }
 });
 
-check('retention describes the 72-hour rule as expiry, and keeps deletion as a right the person exercises', () => {
+// The owner set the period on 2026-09-04: 12 months from the last meaningful interaction for an
+// unconverted lead. A period may therefore be stated — but only alongside WHO performs the deletion,
+// because no scheduled job exists. Naming a deadline while implying a machine keeps it would be the
+// same false promise in a new form.
+check('a stated deletion deadline is always paired with who actually performs it', () => {
+  for (const loc of ['ru', 'ro']) {
+    const body = N.FULL[loc].elements.retention.body;
+    const claimsDeadline = /12 месяцев|12 luni/.test(body);
+    assert(claimsDeadline, loc + ' does not state the owner-decided retention period');
+    assert(/выполняется оператором|efectuată de operator/.test(body), loc + ' names a deadline without saying who deletes');
+    assert(/автоматическое удаление по расписанию пока не реализовано|ștergerea automată programată nu este încă implementată/.test(body),
+      loc + ' does not disclose that scheduled deletion is not implemented');
+  }
+});
+
+check('retention describes the 72-hour rule as expiry, and keeps deletion available on request', () => {
   assert(/перестаёт быть доступен|нельзя/.test(N.FULL.ru.elements.retention.body), 'RU does not describe expiry');
   assert(/indisponibil|nu mai poate fi/.test(N.FULL.ro.elements.retention.body), 'RO does not describe expiry');
-  assert(/можете запросить его удаление/.test(N.FULL.ru.elements.retention.body), 'RU does not offer deletion on request');
-  assert(/puteți solicita ștergerea/.test(N.FULL.ro.elements.retention.body), 'RO does not offer deletion on request');
+  assert(/можете запросить удаление раньше/.test(N.FULL.ru.elements.retention.body), 'RU does not offer earlier deletion on request');
+  assert(/puteți cere ștergerea mai devreme/.test(N.FULL.ro.elements.retention.body), 'RO does not offer earlier deletion on request');
+});
+
+check('contractual retention is stated as separate, never replaced by the 12-month rule', () => {
+  assert(/договорные, бухгалтерские и установленные законом сроки/.test(N.FULL.ru.elements.retention.body), 'RU omits contractual retention');
+  assert(/termene separate contractuale, contabile și legale/.test(N.FULL.ro.elements.retention.body), 'RO omits contractual retention');
+});
+
+// GATE 1: the controller the owner supplied, recorded verbatim and nothing more.
+check('the controller identity is present, exact, and carries no invented legal detail', () => {
+  assert(N.CONTROLLER.controller_full_name === 'Iacovlev Ghennadi', 'controller name is not the supplied value');
+  assert(N.CONTROLLER.controller_privacy_email === 'cfo@finmentor.md', 'privacy contact is not the supplied value');
+  assert(N.CONTROLLER.controller_type === 'natural_person', 'controller type changed');
+  const blob = JSON.stringify(N.CONTROLLER);
+  for (const invented of ['SRL', 'S.R.L', 'IDNO', 'VAT', 'str.', 'Chișinău', 'Кишинёв']) {
+    assert(blob.indexOf(invented) === -1, 'invented legal detail in the controller record: ' + invented);
+  }
+});
+
+check('the notice renders in both locales with the supplied controller and leaks no placeholder', () => {
+  for (const loc of ['ru', 'ro']) {
+    const r = N.render(loc, N.CONTROLLER);
+    assert(r.ok, loc + ' failed to render: ' + JSON.stringify(r));
+    const text = JSON.stringify(r.notice);
+    assert(text.indexOf('OWNER_INPUT_REQUIRED') === -1, loc + ' leaked a placeholder');
+    assert(text.indexOf('{{') === -1, loc + ' leaked an unfilled moustache');
+    assert(text.indexOf('Iacovlev Ghennadi') !== -1, loc + ' does not name the controller');
+    assert(text.indexOf('cfo@finmentor.md') !== -1, loc + ' does not carry the privacy contact');
+  }
+});
+
+check('an emptied controller still refuses to render, so the guard was not weakened', () => {
+  const r = N.render('ru', N.CONTROLLER_TEMPLATE);
+  assert(!r.ok, 'a placeholder controller rendered a notice');
 });
 
 check('the complaint route names the Moldovan supervisory authority', () => {

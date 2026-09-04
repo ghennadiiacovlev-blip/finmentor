@@ -165,5 +165,109 @@ check('the analytics consent key is separate from the lead-contact consent field
   for (const p of PAGES) { assert(!/finmentor_cookie_consent/.test(/var REQUIRED = \[([\s\S]*?)\n  \];/.exec(read(p.file))[1]), p.lang + ' mixes the two consents'); }
 });
 
+// ── 3. the Mini App privacy links actually go somewhere ────────────────────────────────────────
+//
+// GATE 1, 2026-09-04. These were `a.href = '#'` on the submit screen, and the entry-screen
+// affordance was a `div` with no handler — on the surface that collects role, company, scale, task,
+// contact channel and Telegram id. A person was asked to acknowledge information they could not
+// open. The owner's decision was to point them at the existing public policy pages: no in-app
+// modal, no second privacy system.
+
+const APP = read('app-premium/app.js');
+
+check('the Mini App names the real public policy URLs, one per locale', () => {
+  assert(/ru: 'https:\/\/www\.finmentor\.md\/privacy\.html'/.test(APP), 'RU policy URL missing');
+  assert(/ro: 'https:\/\/www\.finmentor\.md\/ro\/privacy\.html'/.test(APP), 'RO policy URL missing');
+});
+
+check('the link target follows the locale the SERVER decided, not the client guess', () => {
+  assert(/function privacyUrl\(\) \{ return get\('locale'\) === 'ro' \? PRIVACY_URL\.ro : PRIVACY_URL\.ru; \}/.test(APP),
+    'privacyUrl does not select on the recorded session locale');
+});
+
+check('no privacy link is left as a placeholder anywhere in the Mini App', () => {
+  assert(!/a\.href = '#'/.test(APP), "a privacy link is still href='#'");
+  assert(!/href = ['\"]{2}/.test(APP), 'an empty href remains');
+});
+
+check('both submit-screen links and the entry affordance are built by the same real-link helper', () => {
+  assert(/C\.PRIVACY\.links\.forEach\(function \(l\) \{ links\.appendChild\(privacyLink\(l\)\); \}\)/.test(APP),
+    'the submit-screen links are not built by privacyLink');
+  assert(/var link = privacyLink\(null, 'entry-link'\);/.test(APP), 'the entry affordance is not a real link');
+});
+
+check('the helper sets a genuine href plus safe rel, so the link survives outside Telegram', () => {
+  const m = /function privacyLink\(label, cls\) \{([\s\S]*?)\n  \}/.exec(APP);
+  assert(m, 'privacyLink could not be read');
+  assert(/a\.href = privacyUrl\(\);/.test(m[1]), 'no href assigned');
+  assert(/a\.target = '_blank';/.test(m[1]), 'no target');
+  assert(/a\.rel = 'noopener noreferrer';/.test(m[1]), 'no rel=noopener');
+});
+
+check('inside Telegram the link opens through the WebApp bridge, which is what actually works there', () => {
+  const m = /function privacyLink\(label, cls\) \{([\s\S]*?)\n  \}/.exec(APP);
+  assert(/tg && typeof tg\.openLink === 'function'/.test(m[1]), 'no WebApp openLink path');
+  assert(/tg\.openLink\(privacyUrl\(\)\)/.test(m[1]), 'openLink is not called with the policy URL');
+});
+
+check('the policy pages the Mini App points at exist in the repository', () => {
+  for (const f of ['privacy.html', 'ro/privacy.html']) {
+    const html = read(f);
+    assert(html.length > 1000, f + ' is missing or empty');
+  }
+});
+
+// ── 4. controller identity is present in both public policies ──────────────────────────────────
+
+const POLICIES = [
+  { file: 'privacy.html', lang: 'RU', controllerRe: /Оператор персональных данных: <strong>Iacovlev Ghennadi<\/strong>/ },
+  { file: 'ro/privacy.html', lang: 'RO', controllerRe: /Operator de date cu caracter personal: <strong>Iacovlev Ghennadi<\/strong>/ }
+];
+
+for (const p of POLICIES) {
+  const html = read(p.file);
+
+  check(p.lang + ' policy names the controller exactly as the owner supplied it', () => {
+    assert(p.controllerRe.test(html), 'the controller line is missing or altered');
+  });
+
+  check(p.lang + ' policy carries the privacy contact address', () => {
+    assert(/mailto:cfo@finmentor\.md/.test(html), 'no mailto for the privacy contact');
+  });
+
+  check(p.lang + ' policy invents no company form, registration number, VAT or street address', () => {
+    for (const invented of ['SRL', 'S.R.L.', 'IDNO', 'IDNP', 'НДС', 'TVA', 'VAT']) {
+      assert(html.indexOf(invented) === -1, 'invented legal detail present: ' + invented);
+    }
+  });
+
+  check(p.lang + ' policy states the 12-month retention for an unconverted lead', () => {
+    assert(/12 месяцев|12 luni/.test(html), 'the retention period is missing');
+  });
+
+  check(p.lang + ' policy keeps contractual retention separate from the 12-month rule', () => {
+    assert(/договорные отношения|relații contractuale/.test(html), 'contractual retention is not carved out');
+  });
+
+  check(p.lang + ' policy records the legal basis as proposed, never as counsel-approved', () => {
+    assert(/6\(1\)\(b\)/.test(html), 'the proposed basis is not recorded');
+    assert(/подлежит окончательному подтверждению|urmează să fie confirmat definitiv/.test(html), 'no pending-confirmation caveat');
+    assert(!/одобрен(о|а) юрист|aprobat de (un )?avocat|legal counsel approved/i.test(html), 'claims counsel approval');
+  });
+
+  check(p.lang + ' policy keeps analytics and optional marketing on consent, separately', () => {
+    assert(/согласия|consimțământ/.test(html), 'consent basis not mentioned for the optional purposes');
+  });
+
+  check(p.lang + ' policy carries the owner-approved AI and processor paragraph', () => {
+    assert(/Supabase \(ЕС\)|Supabase \(UE\)/.test(html), 'the approved paragraph is missing');
+    assert(/проверки человеком|verificare umană/.test(html), 'the human-review sentence is missing');
+  });
+
+  check(p.lang + ' policy does not present FINMENTOR itself as the controller', () => {
+    assert(/торговая марка, а не оператор|marca comercială, nu operatorul/.test(html), 'brand/controller distinction missing');
+  });
+}
+
 console.log('\n' + pass + ' passed, ' + failures.length + ' failed');
 if (failures.length) { process.exit(1); }

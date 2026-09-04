@@ -1,7 +1,9 @@
 # GATE 1 — Privacy / Legal: fresh-read audit, corrections, and the verdict
 
 **Date:** 2026-09-04 · **Branch:** `feat/miniapp-b21c-live-prereqs` · **Plan:** `FINAL_PRODUCTION_V1_GO_PLAN.md`
-**Verdict: GATE 1 = BLOCKED** — one P1, plus owner wording approval. **CUSTOMER RELEASE = NOT AUTHORIZED.**
+**Verdict: GATE 1 = BLOCKED** — all owner decisions received and every correction implemented and proven
+offline (§8); blocked only on two authorised publishes so the live customer surfaces can be verified.
+**CUSTOMER RELEASE = NOT AUTHORIZED.**
 
 Everything below was read from the current files and the live tenant. `C4_PRIVACY_RELEASE_GATE.md`
 is treated as the release-gate reference, but no approval in it is assumed to still hold: each row
@@ -190,3 +192,84 @@ App host is still the owner-only UAT build.
 (Supabase (EU) processor wording and the human-review commitment) · the Mini App privacy link target.
 
 **Gate 1 closes when** those four are answered, the link is wired, and this file records the proof.
+
+---
+
+## 8. Owner decisions received, and what was implemented (2026-09-04, second pass)
+
+All five owner decisions landed: RU and RO wording **approved**; privacy link target = the existing
+public policy pages, no new modal; retention = **12 months from the last meaningful interaction** for
+an unconverted consultation / diagnostic lead, with contractual, accounting and legal periods kept
+separate; legal basis = art. 6(1)(b) pre-contractual steps recorded as the **proposed working basis,
+subject to final legal confirmation** and never presented as counsel approval; controller identity
+supplied.
+
+    CONTROLLER    = Iacovlev Ghennadi
+    PRIVACY EMAIL = cfo@finmentor.md
+
+Recorded verbatim and nothing more — no company form, no registration number, no address, no VAT
+number. FINMENTOR is named as the product and brand, explicitly **not** the controller, in both
+policies. Neither value was inferred from the domain, the repository, the Telegram account or any
+earlier document; the previous text said «Геннадий Яковлев (FINMENTOR)» / «Ghennadi Iacovlev
+(FINMENTOR)», which is exactly the conflation the owner corrected.
+
+### 8.1 What changed
+
+| Surface | Change |
+|---|---|
+| `privacy.html` §1 | Controller and privacy contact as supplied; brand/controller distinction stated |
+| `privacy.html` §6 | Legal basis rewritten: art. 6(1)(b) pre-contractual steps as the working basis, pending confirmation, explicitly not counsel approval; analytics/cookies and optional marketing kept on separate consent, withdrawable, with withdrawal not affecting an already-submitted request |
+| `privacy.html` §7 | 12-month retention for unconverted leads; contractual/accounting/legal periods carved out; 72-hour Mini App expiry stated; deletion disclosed as performed by the operator, with scheduled deletion disclosed as not implemented |
+| `privacy.html` §8 | Owner-approved AI / human-review / Supabase (ЕС) paragraph appended |
+| `ro/privacy.html` §1, §6, §7, §8 | Semantically equivalent Romanian text for all four |
+| `n8n/src/premium-ux/branches.js` | Approved paragraph added as the third line of the Mini App privacy screen; `content.js` regenerated from it |
+| `n8n/src/premium-ux/privacy-notice.js` | `CONTROLLER` recorded; retention text carries the 12-month rule, the contractual carve-out, who deletes, and the fact that scheduled deletion is not implemented; stale header comment corrected |
+| `app-premium/app.js` + `app.css` | **The P1 fix.** `privacyUrl()` selects the policy by the server-decided session locale; `privacyLink()` builds a real anchor with `href`, `target=_blank`, `rel=noopener noreferrer`, and opens through `Telegram.WebApp.openLink` when the bridge exists. Both submit-screen links and the entry affordance now use it. No `href="#"` remains, and no modal was added |
+| `docs/PREMIUM_UX_FINAL_RU_SPEC.md` §18 | Spec updated to carry the approved third line and the link targets, so the content gate binds to it |
+
+### 8.2 A correction to this gate's own earlier tests
+
+The two checks added in the first pass forbade the notice from claiming any deletion at all, which
+was right when no retention period existed. The owner has now set one, so a deadline **may** be
+stated — but only alongside who performs it, because no scheduled job exists. Naming a deadline
+while implying a machine keeps it would be the same false promise in a new form. The checks were
+rewritten accordingly, and two more were added for the contractual carve-out and the controller
+record.
+
+### 8.3 Proven offline
+
+`qa/privacy-release-gate.test.mjs` grew from 25 to **50 checks**: the Mini App now names both real
+policy URLs, selects on the recorded session locale, keeps no placeholder href, builds every link
+through the one helper with a genuine href plus safe `rel`, and uses the WebApp bridge; and both
+policies name the controller exactly, carry the mailto, invent no company form or registration
+number, state the 12-month period, carve out contractual retention, record the basis as proposed
+rather than counsel-approved, keep optional purposes on separate consent, carry the approved
+paragraph, and do not present FINMENTOR as the controller.
+
+`qa/premium-ux-privacy-notice.test.mjs` grew from 26 to **31**, including a render of both locales
+with the supplied controller proving no placeholder or unfilled moustache leaks, and a proof that an
+emptied controller **still refuses to render** — the guard was not weakened to let the values in.
+
+**Canonical: 80/80 gates, 2795 assertions, floors PASS.** No floor decreased.
+
+### 8.4 Why the gate is still BLOCKED — and it is not an unknown
+
+Every correction is written and proven, but the owner's closure test requires proof from the **real
+customer surfaces**, and both still serve the old build:
+
+- `https://www.finmentor.md/privacy.html` still reads «Оператор данных — Геннадий Яковлев
+  (FINMENTOR), г. Кишинёв, Молдова»; `ro/privacy.html` likewise. GitHub Pages builds from `main`,
+  and these corrections are on `feat/miniapp-b21c-live-prereqs`.
+- The live Mini App host `KBD7Q94QQnlzgYKJ` still contains `a.href = '#'`, no `privacyUrl` helper
+  and no third privacy line.
+
+Two publish actions are therefore outstanding, and neither was taken unilaterally because the
+instruction for this gate was to push only to the feature branch:
+
+1. **Publish the policy pages to `main`** — the same release path PR #20 used, which the owner
+   approved step by step rather than leaving to the session.
+2. **Deploy the Mini App host** with the wired links.
+
+Neither is a customer release: Session and Submit stay `OWNER_ONLY` and the host stays the owner-only
+UAT build. Order matters — publish the policies first, because the Mini App links point at them, and
+deploying the app first would send a reader to a policy that does not yet name the controller.

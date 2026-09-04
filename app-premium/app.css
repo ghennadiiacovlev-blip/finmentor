@@ -224,6 +224,10 @@ h1.lg { font-size: 36px; }
 .steps .t { font-size: 15px; line-height: 1.5; color: var(--ivory); }
 
 .entry-link { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 18px; font-size: 13px; color: var(--ivory-50); }
+/* GATE 1: the entry affordance is now a real link to the public policy. It keeps the same quiet
+   colour it had as a div — only the underline is added, so it reads as openable. */
+a.entry-link { text-decoration: none; }
+a.entry-link span { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--ivory-36); }
 
 /* ── The customer result (C3.4) — an advisory deliverable, not a dashboard ──────────────────────
    One hero card carries the three facts (score, condition, maturity), then sections divided by

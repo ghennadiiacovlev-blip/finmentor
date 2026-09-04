@@ -15,7 +15,7 @@ forward from an earlier record.
     CURRENT PRODUCTION V1 COMPLETION = 14%   (1 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
-    GATE 1  Privacy / Legal ...................... BLOCKED (1 P1 + 4 owner decisions)
+    GATE 1  Privacy / Legal ...................... BLOCKED (implemented; awaiting 2 publishes)
     GATE 2  C2 CRM Lifecycle Owner UAT ........... OPEN
     GATE 3  RO Content ........................... OPEN
     GATE 4  GA4 UAT .............................. OPEN

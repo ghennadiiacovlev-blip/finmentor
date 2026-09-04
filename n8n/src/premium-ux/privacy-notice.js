@@ -11,15 +11,16 @@
 // layer 1 rendered) and acknowledged_at (captured at Submit). There is no UPDATE anywhere in the
 // path; see privacy-record.js for why that is a structural property and not a promise.
 //
-// WHY THIS FILE HOLDS NO LEGAL IDENTITY. The owner's controller decision (2026-08-29) is that the
-// controller is a NATURAL PERSON in the Republic of Moldova, and that the name and contact address
-// are not yet decided. Inventing "FINMENTOR SRL", a registration number or an address would be a
-// fabricated legal record — the single worst thing this file could contain. So the identity is a
-// SLOT. `render()` refuses to produce a notice while any slot is unfilled, which means the product
-// cannot be activated for customers with a placeholder notice on screen even by accident.
+// THE LEGAL IDENTITY. The controller is a NATURAL PERSON in the Republic of Moldova (owner
+// decision, 2026-08-29). The name and privacy contact were left open for a year of drafts, because
+// inventing "FINMENTOR SRL", a registration number or an address would be a fabricated legal
+// record — the single worst thing this file could contain. So the identity stayed a SLOT, and
+// `render()` refuses to produce a notice while any slot is unfilled, which means the product could
+// never be activated for customers with a placeholder notice on screen even by accident.
 //
-// The values are injected at deploy time from the same mechanism the workflow ids and credential
-// ids use. They are deliberately NOT constants in this module and NOT baked into any candidate.
+// The owner supplied both values on 2026-09-04 (Gate 1) and they are now recorded verbatim in
+// `CONTROLLER` at the foot of this file — nothing more: no company form, no registration number,
+// no address. The refusal machinery is untouched and still guards the render path.
 
 'use strict';
 
@@ -127,7 +128,7 @@ const FULL = {
         // retention period is even defined yet. A notice may not describe a deletion that does not
         // happen, so it now states the expiry that is real and keeps deletion as the RIGHT the
         // person can exercise, which the controller can honour by hand today.
-        body: 'Незавершённый бриф перестаёт быть доступен через 72 часа: открыть, изменить или отправить его больше нельзя. Переданное обращение хранится столько, сколько необходимо для работы по нему и для подтверждения выполнения обязательств; вы можете запросить его удаление. Запись о том, какую версию этой информации вы получили и когда подтвердили, хранится отдельно как доказательство и не содержит содержания вашего обращения.'
+        body: 'Незавершённый бриф перестаёт быть доступен через 72 часа: открыть, изменить или отправить его больше нельзя. Обращение, по которому не начались договорные отношения, хранится 12 месяцев с момента последнего содержательного взаимодействия, после чего удаляется; вы можете запросить удаление раньше. Если начинаются договорные отношения, применяются отдельные договорные, бухгалтерские и установленные законом сроки. Удаление выполняется оператором; автоматическое удаление по расписанию пока не реализовано. Запись о том, какую версию этой информации вы получили и когда подтвердили, хранится отдельно как доказательство и не содержит содержания вашего обращения.'
       },
       rights: {
         heading: 'Ваши права',
@@ -175,7 +176,7 @@ const FULL = {
       retention: {
         heading: 'Cât timp se păstrează',
         // Same GATE 1 correction as the RU body above, kept semantically identical.
-        body: 'Un brief nefinalizat devine indisponibil după 72 de ore: nu mai poate fi deschis, modificat sau trimis. Solicitarea transmisă se păstrează atât timp cât este necesar pentru lucrul asupra ei și pentru dovedirea îndeplinirii obligațiilor; puteți solicita ștergerea ei. Înregistrarea despre versiunea acestei informații pe care ați primit-o și momentul confirmării se păstrează separat, ca dovadă, și nu conține conținutul solicitării dumneavoastră.'
+        body: 'Un brief nefinalizat devine indisponibil după 72 de ore: nu mai poate fi deschis, modificat sau trimis. Solicitarea pentru care nu au început relații contractuale se păstrează 12 luni de la ultima interacțiune semnificativă, după care se șterge; puteți cere ștergerea mai devreme. Dacă încep relații contractuale, se aplică termene separate contractuale, contabile și legale. Ștergerea este efectuată de operator; ștergerea automată programată nu este încă implementată. Înregistrarea despre versiunea acestei informații pe care ați primit-o și momentul confirmării se păstrează separat, ca dovadă, și nu conține conținutul solicitării dumneavoastră.'
       },
       rights: {
         heading: 'Drepturile dumneavoastră',
@@ -314,16 +315,32 @@ function render(locale, controller) {
   return { ok: true, notice: out };
 }
 
-// What the deploy-time injector must supply, and what it looks like today.
+// What the deploy-time injector must supply, and what it looks like before the owner has decided.
 const CONTROLLER_TEMPLATE = {
   controller_type: CONTROLLER_TYPE,
   controller_full_name: OWNER_INPUT_REQUIRED,
   controller_privacy_email: OWNER_INPUT_REQUIRED
 };
 
+// THE CONTROLLER, SUPPLIED BY THE OWNER 2026-09-04 (Gate 1). Recorded verbatim as given, and
+// deliberately nothing more: no company form, no registration number, no address, no VAT number.
+// FINMENTOR is the product and the brand; it is NOT the controller, and the notice text says so in
+// both locales. These two values were never inferred from the domain, the repository, the Telegram
+// account or any earlier document — every one of those would have produced a different, wrong name.
+//
+// They live here rather than in a deploy script because a legal identity is content, not
+// configuration: it belongs beside the text that renders it, where a reviewer reading the notice
+// can see exactly who it names. `render()` still validates, so the placeholder refusal remains the
+// safety net if this is ever emptied.
+const CONTROLLER = {
+  controller_type: CONTROLLER_TYPE,
+  controller_full_name: 'Iacovlev Ghennadi',
+  controller_privacy_email: 'cfo@finmentor.md'
+};
+
 module.exports = {
   NOTICE_VERSION, LEGAL_BASIS_CANDIDATE, LEGAL_BASIS_PENDING,
-  CONTROLLER_TYPE, SLOTS, OWNER_INPUT_REQUIRED, CONTROLLER_TEMPLATE,
+  CONTROLLER_TYPE, SLOTS, OWNER_INPUT_REQUIRED, CONTROLLER_TEMPLATE, CONTROLLER,
   REQUIRED_ELEMENTS, LOCALES, CONCISE, FULL,
   assertComplete, assertNoVendorNames, VENDOR_NAMES, VENDOR_SCOPED, slotsUsed, render
 };

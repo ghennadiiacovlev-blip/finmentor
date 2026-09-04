@@ -255,6 +255,33 @@
     if (text !== undefined && text !== null) { n.textContent = text; }
     return n;
   }
+  // ---------------------------------------------------------------- privacy links
+  //
+  // GATE 1, 2026-09-04. These links used to be `href = '#'`, and the entry-screen affordance was a
+  // plain div with no handler — so a person was asked to acknowledge information they could not
+  // open. They now point at the PUBLIC policy pages (owner decision: no in-app modal, no second
+  // privacy system), chosen by the locale the SERVER decided and the client recorded.
+  //
+  // Inside a Telegram Mini App a plain target=_blank often does nothing, so `openLink` is used when
+  // the WebApp bridge is there. The href is still a real, correct URL, so the link works if the
+  // page is ever opened outside Telegram and remains inspectable and copyable.
+  var PRIVACY_URL = {
+    ru: 'https://www.finmentor.md/privacy.html',
+    ro: 'https://www.finmentor.md/ro/privacy.html'
+  };
+  function privacyUrl() { return get('locale') === 'ro' ? PRIVACY_URL.ro : PRIVACY_URL.ru; }
+  function privacyLink(label, cls) {
+    var a = el('a', cls || null);
+    a.appendChild(el('span', null, label === null || label === undefined ? C.PRIVACY.entryLink : label));
+    a.href = privacyUrl();
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.addEventListener('click', function (ev) {
+      if (tg && typeof tg.openLink === 'function') { ev.preventDefault(); tg.openLink(privacyUrl()); }
+    });
+    return a;
+  }
+
   var ICON = {
     tick: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
     tickLg: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
@@ -443,9 +470,8 @@
     // nothing to submit against.
     s.appendChild(actions(btn('Начать', function () { go(firstUnsettled()); }, null,
       !(window.FM_NET && window.FM_NET.ready()))));
-    var link = el('div', 'entry-link');
-    link.appendChild(icon('lock'));
-    link.appendChild(el('span', null, C.PRIVACY.entryLink));
+    var link = privacyLink(null, 'entry-link');
+    link.insertBefore(icon('lock'), link.firstChild);
     s.appendChild(link);
     return s;
   }
@@ -944,7 +970,7 @@
     var p = el('div', 'privacy');
     C.PRIVACY.lines.forEach(function (l) { p.appendChild(quiet(l)); });
     var links = el('div', 'privacy-links');
-    C.PRIVACY.links.forEach(function (l) { var a = el('a', null, l); a.href = '#'; links.appendChild(a); });
+    C.PRIVACY.links.forEach(function (l) { links.appendChild(privacyLink(l)); });
     p.appendChild(links);
     s.appendChild(p);
 

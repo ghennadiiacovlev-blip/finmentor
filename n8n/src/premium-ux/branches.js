@@ -354,7 +354,12 @@ const FOCUS_DISCLAIMER = 'Финальный объём анализа конс�
 const PRIVACY = {
   lines: [
     'FINMENTOR использует указанные вами данные для рассмотрения обращения, подготовки консультанта и связи с вами.',
-    'Передавая brief, вы подтверждаете, что ознакомились с информацией об обработке персональных данных.'
+    'Передавая brief, вы подтверждаете, что ознакомились с информацией об обработке персональных данных.',
+    // GATE 1, owner-approved 2026-09-04. The third line, added verbatim as approved: it is the only
+    // place on this screen that says the analysis is AI-assisted, preliminary, and reviewed by a
+    // human before it reaches anyone — and that the technical processing records hold no personal
+    // data. The links below now open the public policy, so this is a summary, not the whole notice.
+    'Результаты Финансового рентгена бизнеса (Financial X-Ray) и план действий на 30 дней готовятся автоматизированно с участием искусственного интеллекта на основе обезличенных ответов и являются предварительным управленческим анализом, а не аудитом и не индивидуальной финансовой консультацией. Итоговые экспертные рекомендации FINMENTOR формируются после проверки человеком. Технические записи об обработке (без персональных данных) хранятся в Supabase (ЕС).'
   ],
   links: ['Как мы обрабатываем данные', 'Политика конфиденциальности'],
   entryLink: 'Конфиденциальность и данные',
