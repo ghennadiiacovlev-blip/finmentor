@@ -19,7 +19,7 @@ if (!a || typeof a !== 'object' || Array.isArray(a)) return [];
 
 const locale = row.locale === 'ro' ? 'ro' : 'ru';
 const labels = locale === 'ro'
-  ? { product: 'Test de sănătate financiară FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc', maturity: 'Maturitatea managementului financiar', risks: 'Riscuri-cheie', priorities: 'Priorități de management', plan: 'Plan de acțiune financiară pentru 30 de zile', tomorrow: 'Următoarea acțiune', next: 'Recomandarea FINMENTOR' }
+  ? { product: 'Radiografia Financiară FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc', maturity: 'Maturitatea managementului financiar', risks: 'Riscuri-cheie', priorities: 'Priorități de management', plan: 'Plan de acțiune financiară pentru 30 de zile', tomorrow: 'Următoarea acțiune', next: 'Recomandarea FINMENTOR' }
   : { product: 'Финансовый рентген бизнеса', condition: 'Финансовое состояние', score: 'Оценка', zone: 'Зона риска', maturity: 'Зрелость финансового управления', risks: 'Ключевые риски', priorities: 'Приоритеты управления', plan: 'План финансовых действий на 30 дней', tomorrow: 'Следующее действие', next: 'Рекомендация FINMENTOR' };
 const zones = locale === 'ro'
   ? { GREEN: 'Zonă verde', YELLOW: 'Zonă galbenă', ORANGE: 'Zonă portocalie', RED: 'Zonă roșie', UNKNOWN: 'Fără scor' }

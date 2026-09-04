@@ -128,7 +128,11 @@ let inputItem;
   const out = runNode(read('build-input.js'), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [{ ...pipeRu, lead_id: 'L-4', source_page: 'https://www.finmentor.md/ro/questionnaire.html' }], 'Settings to Object': [{ settings }] } });
   check('input: RO locale from site_language', out[0].json.locale === 'ro');
   check('input: RO system prompt is Romanian and formal', /dumneavoastră/.test(out[0].json.ai_system_prompt) && /DATE INSUFICIENTE/.test(out[0].json.ai_system_prompt));
-  check('input: RO prompt names the RO product, never the retired name', /Test de sănătate financiară/.test(out[0].json.ai_system_prompt) && !/Radiografia Financiară/.test(out[0].json.ai_system_prompt));
+  // GATE 5 (2026-09-04): the owner SUPERSEDED the C3.6 rename. The canonical customer-facing
+  // Romanian product name is «Radiografia Financiară FINMENTOR»; «Test de sănătate financiară» is
+  // the retired one. This gate previously asserted the opposite, which is why the live RO result
+  // shipped the retired name until the integration gate caught it.
+  check('input: RO prompt names the canonical RO product, never the retired name', /Radiografia Financiară/.test(out[0].json.ai_system_prompt) && !/Test de sănătate financiară/.test(out[0].json.ai_system_prompt));
 }
 {
   // Mini App / Concierge lead: no Leads row, no score
@@ -313,7 +317,7 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
     check('client result: never exposes ' + k, !text.includes(k));
   }
   const ro = publish(review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, locale: 'ro' }]));
-  check('client result: RO product name, never the retired one', JSON.parse(ro[0].json.result_json).labels.product === 'Test de sănătate financiară FINMENTOR' && !JSON.stringify(ro).includes('Radiografia Financiară'));
+  check('client result: the canonical RO product name, never the retired one', JSON.parse(ro[0].json.result_json).labels.product === 'Radiografia Financiară FINMENTOR' && !JSON.stringify(ro).includes('Test de sănătate financiară'));
   check('client result: nothing is published for a denied verdict', publish(review({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow])).length === 0);
   check('client result: nothing is published for a failed analysis even if forced', publish({ proceed_update: true, source_row: { ...ledgerRow, review_status: 'ANALYSIS_FAILED' } }).length === 0);
   check('client result: nothing is published for a row without a lead', publish({ proceed_update: true, source_row: { ...ledgerRow, lead_id: '' } }).length === 0);

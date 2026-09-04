@@ -12,22 +12,22 @@ forward from an earlier record.
 
 ## 0. Scoreboard
 
-    CURRENT PRODUCTION V1 COMPLETION = 71%   (5 of the 7 gates that precede release)
+    CURRENT PRODUCTION V1 COMPLETION = 86%   (6 of the 7 gates that precede release)
 
     GATE 0  Telegram Premium Button Colors ....... PASS
     GATE 1  Privacy / Legal ...................... PASS
     GATE 2  C2 CRM Lifecycle Owner UAT ........... PASS
     GATE 3  RO Content ........................... PASS
     GATE 4  GA4 UAT .............................. PASS
-    GATE 5  Final Integrated E2E (RU + RO) ....... OPEN
+    GATE 5  Final Integrated E2E (RU + RO) ....... PASS
     GATE 6  Independent Codex Release Audit ...... OPEN
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
     OPEN P1 = 0
-    POST_GO ITEMS = 11
+    POST_GO ITEMS = 14
 
-**NEXT SINGLE CHECKPOINT = GATE 5 — Final Integrated E2E (RU + RO).**
+**NEXT SINGLE CHECKPOINT = GATE 6 — Independent Codex Release Audit.**
 
 Read the percentage for what it is: a count of *release gates*, which is what was asked for. It
 deliberately does not measure engineering completeness, and it should not be read as "14% of the
@@ -173,7 +173,7 @@ Required: approved events only, conversion points, no PII, no secrets, determini
 verified in real browser behaviour. New events beyond the approved launch contract are **not**
 allowed under freeze.
 
-### GATE 5 — Final Integrated E2E · **OPEN**
+### GATE 5 — Final Integrated E2E · **PASS** — see docs/GATE5_FINAL_INTEGRATED_E2E_2026-09-04.md
 
 RU and RO, each end to end: customer entry → Concierge / Financial X-Ray → settled lead → FINMENTOR
 Lead Alert → owner review → CLIENT_READY → customer result → CRM lifecycle. Plus the required
@@ -256,7 +256,20 @@ Discovered during the work and deferred here under the same rule:
     are already live (verified: SLA 13→16, Follow-up 18→21). Documented and superseded by targeted
     scripts; the hazard is that someone re-runs it. Guard rather than rewrite, after GO.
 
-**POST_GO ITEMS = 11.**
+12. **Five live-verification scripts pin the Mini App Gateway at 13 nodes; it has 32.** (P2, Gate 5)
+    `run-gateway-negative-battery.mjs`, `collect-b21c-ab-proof.mjs`, `preflight-b21c-ab-press.mjs`
+    and `deploy-miniapp-gateway.mjs` (twice). The Gateway is healthy — the baseline predates the
+    cycle-projection, session-store and `Attach Client Result` paths. Consequence: a healthy Gateway
+    reports FAIL, and `deploy-miniapp-gateway.mjs` would refuse to deploy, so it is no longer that
+    workflow's authoritative deploy path. Re-baseline deliberately, with the graph re-proven.
+13. **The Pipeline sheet has no `language` column.** (P3, Gate 5) An RO lead is identifiable only via
+    `source_page`. Language is carried in the request payload, so routing and RO output are correct;
+    the owner console is Russian by design. Add the column when the console becomes bilingual.
+14. **Two early synthetic leads use `@finmentor.md` addresses**, not the `@uat.invalid` convention
+    adopted in Gate 5. (P3) Both are terminal. Adopt one marking convention for UAT rows, and decide
+    whether synthetic rows are retired from the production Pipeline before customer release.
+
+**POST_GO ITEMS = 14.**
 
 ---
 
