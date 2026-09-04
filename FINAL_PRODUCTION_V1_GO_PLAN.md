@@ -17,14 +17,14 @@ forward from an earlier record.
     GATE 0  Telegram Premium Button Colors ....... PASS
     GATE 1  Privacy / Legal ...................... PASS
     GATE 2  C2 CRM Lifecycle Owner UAT ........... PASS
-    GATE 3  RO Content ........................... OPEN
+    GATE 3  RO Content ........................... BLOCKED (2 owner decisions)
     GATE 4  GA4 UAT .............................. OPEN
     GATE 5  Final Integrated E2E (RU + RO) ....... OPEN
     GATE 6  Independent Codex Release Audit ...... OPEN
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
-    OPEN P1 = 0
+    OPEN P1 = 1
     POST_GO ITEMS = 11
 
 **NEXT SINGLE CHECKPOINT = GATE 3 — RO CONTENT.**
@@ -152,7 +152,7 @@ protection · owner-only semantics confirmed to still hold. Real owner evidence 
 the contract requires an owner tap — those are Telegram messages from the owner's chat to the Leads
 bot and cannot be synthesised by this session.
 
-### GATE 3 — RO Content · **OPEN**
+### GATE 3 — RO Content · **BLOCKED** — see docs/GATE3_RO_CONTENT_2026-09-04.md
 
 Evidence: `docs/C3_OWNER_RUNBOOK.md` lists *"RO questionnaire copy for the Mini App and the
 Concierge"* as owner-approval work: the content gate binds every client-visible string to an
