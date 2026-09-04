@@ -139,7 +139,9 @@ for (const p of POLICIES) {
   check(p.lang + ': the owner-approved AI, human-review and processor paragraph is present', () => {
     assert(p.humanReview.test(html), 'the human-review sentence is missing');
     assert(p.supabase.test(html), 'the processor sentence is missing');
-    assert(/Financial X-Ray|Testul de sănătate financiară/.test(html), 'the analysis is not named');
+    // GATE 3: RU names it Financial X-Ray; RO now names it by the canonical Romanian product
+        // name, which superseded the retired one.
+        assert(/Financial X-Ray|Radiografi(a|ei) Financiar(ă|e)/.test(html), 'the analysis is not named');
   });
 
   check(p.lang + ': the page makes no absolute security or compliance guarantee', () => {
@@ -164,6 +166,68 @@ check('the controller appears exactly once as the controller declaration in each
   assert(ru.length === 1, 'RU declares the controller ' + ru.length + ' times');
   assert(ro.length === 1, 'RO declares the controller ' + ro.length + ' times');
 });
+
+
+// ── GATE 3: the Romanian journey must not offer a route into a Russian-only conversation ──────
+//
+// Every Romanian page carries CTAs to the public Telegram contact, whose non-owner branch answers
+// in Russian. Three of them on the landing page were pure duplicates: ghost buttons reading
+// «Mai simplu: scrieți direct → FINMENTOR Bot» sitting immediately beside the primary
+// «Începeți Radiografia Financiară» button, so they added no route the reader did not already
+// have. Those three are removed. The rest stay, because they are the contact and fallback routes
+// the approved privacy policy names, and a Romanian first-contact branch in the Concierge now
+// answers them in Romanian.
+
+const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html', 'ro/thank-you.html'];
+
+check('the three duplicate landing CTAs are gone', () => {
+  const h = read('ro/index.html');
+  assert(h.indexOf('Mai simplu: scrieți direct') === -1, 'a duplicate ghost CTA survives');
+  const ghosts = (h.match(/btn--ghost[^>]*t\.me\/finmentor_md_bot/g) || []).length;
+  assert(ghosts === 0, ghosts + ' ghost Telegram buttons remain on the landing page');
+});
+
+check('Telegram was not removed globally — the contact and fallback routes remain', () => {
+  const h = read('ro/index.html');
+  const left = (h.match(/t\.me\/finmentor_md_bot/g) || []).length;
+  assert(left === 6, 'expected the 6 contact/fallback links to remain, found ' + left);
+});
+
+check('every affected RO page still offers a working customer route', () => {
+  for (const f of RO_PAGES) {
+    const h = read(f);
+    const hasForm = /questionnaire\.html/.test(h);
+    const hasMail = /mailto:cfo@finmentor\.md/.test(h);
+    assert(hasForm || hasMail, f + ' has no questionnaire and no email route');
+  }
+});
+
+check('the landing page keeps its primary Romanian diagnostic CTA', () => {
+  const h = read('ro/index.html');
+  const primary = (h.match(/Începeți Radiografia Financiară/g) || []).length;
+  assert(primary >= 3, 'the primary RO CTA count fell to ' + primary);
+});
+
+check('the RU pages were not touched by the Romanian CTA cleanup', () => {
+  const ru = read('index.html');
+  assert(/t\.me\/finmentor_md_bot/.test(ru), 'the RU landing lost its Telegram links');
+  assert(ru.indexOf('Mai simplu') === -1, 'Romanian copy leaked into the RU page');
+});
+
+check('the RO privacy page carries the canonical product name and no superseded one', () => {
+  const h = read('ro/privacy.html');
+  assert(h.indexOf('Radiografiei Financiare FINMENTOR') !== -1, 'the canonical name is missing from the AI paragraph');
+  assert(h.indexOf('Testul de sănătate') === -1, 'the superseded product name survives');
+});
+
+check('the Gate 1 legal meaning survived the terminology fix', () => {
+  const h = read('ro/privacy.html');
+  assert(/art\. 6\(1\)\(b\)/.test(h), 'the legal basis citation was lost');
+  assert(/urmează să fie confirmat definitiv/.test(h), 'the pending-confirmation caveat was lost');
+  assert(/Iacovlev Ghennadi/.test(h), 'the controller was lost');
+  assert(/12 luni de la ultima interacțiune semnificativă/.test(h), 'the retention period was lost');
+});
+
 
 console.log('\n' + pass + ' passed, ' + failures.length + ' failed');
 if (failures.length) { process.exit(1); }
