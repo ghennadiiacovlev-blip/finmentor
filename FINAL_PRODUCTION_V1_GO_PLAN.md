@@ -16,7 +16,7 @@ forward from an earlier record.
 
     GATE 0  Telegram Premium Button Colors ....... PASS
     GATE 1  Privacy / Legal ...................... PASS
-    GATE 2  C2 CRM Lifecycle Owner UAT ........... OPEN
+    GATE 2  C2 CRM Lifecycle Owner UAT ........... BLOCKED (1 P1: Won/Lost unreachable)
     GATE 3  RO Content ........................... OPEN
     GATE 4  GA4 UAT .............................. OPEN
     GATE 5  Final Integrated E2E (RU + RO) ....... OPEN
@@ -24,7 +24,7 @@ forward from an earlier record.
     GATE 7  CUSTOMER RELEASE ..................... BLOCKED
 
     OPEN P0 = 0
-    OPEN P1 = 0
+    OPEN P1 = 1
     POST_GO ITEMS = 11
 
 **NEXT SINGLE CHECKPOINT = GATE 2 — C2 CRM Lifecycle Owner UAT.**
@@ -141,7 +141,7 @@ host deploy. Gate 3 Romanian terminology work was deliberately kept out of the r
 
 Session and Submit remain `OWNER_ONLY`; the host remains the owner-only UAT build.
 
-### GATE 2 — C2 CRM Lifecycle Owner UAT · **OPEN**
+### GATE 2 — C2 CRM Lifecycle Owner UAT · **BLOCKED** — see `docs/GATE2_CRM_LIFECYCLE_2026-09-04.md`
 
 Evidence: `docs/C2_CRM_WORKFLOW_COMPLETION.md` — **"C2 = PASS (audit + mapping), lifecycle tap
 sequence pending owner or API access."** The stage vocabulary, the compatibility mapping and the
