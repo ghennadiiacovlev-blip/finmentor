@@ -144,3 +144,95 @@ narrows what "the RO customer path works" means for v1.
     CANONICAL QA = 81/81 gates, 2820 assertions, floors PASS
 
 **CUSTOMER RELEASE = NOT AUTHORIZED.**
+
+---
+
+## 6. Owner decisions received, and the reachability finding (2026-09-04, second pass)
+
+**Decision 1 recorded and accepted:**
+
+    C3.6 MASS TERMINOLOGY CHANGE = SUPERSEDED / DO NOT PUBLISH
+    CANONICAL RO PRODUCT NAME    = Radiografia Financiară FINMENTOR
+
+The live RO surface already uses the canonical name; the branch's C3.6 rename stays unpublished.
+The single live inconsistency is the Gate 1 sentence in `ro/privacy.html`, whose approved
+replacement is in section 2 above. It is a one-line change and is **not yet applied**, because it
+ships in the same release as the reachability correction below, and that correction is blocked.
+
+**Decision 2 recorded and accepted:** v1 RO scope is the public site, questionnaire, identity and
+consent, lead generation, CLIENT_READY and the Mini App result screen. Full RO Concierge and RO
+brief parity are POST_GO.
+
+### 6.1 Reachability — the gate that decides Gate 3
+
+| # | Surface | CTA | Destination | RO customer can reach a RU-only flow |
+|---|---|---|---|---|
+| 1 | Mini App **brief** | «Открыть бриф» inside the Concierge | premium brief | **NO** — `Premium Owner Gate` compares `chat_id` to `owner_chat_id`; non-owners take the legacy branch. Session and Submit are also `RELEASE_MODE = "OWNER_ONLY"` |
+| 2 | **Concierge conversation** | 25 links across 8 live RO pages, all `t.me/finmentor_md_bot` | legacy Concierge | **YES** |
+
+The bot behind every RO CTA is the **Client Concierge** bot: workflow `mppzthlkSJFr6Kle` and its
+transport both authenticate with the `FINMENTOR Client Concierge Bot` credential, and it is the only
+client-facing Telegram trigger on the tenant.
+
+Its non-owner branch answers from `Build Bot Response` — 40,472 characters carrying **6,247 Cyrillic
+characters, zero Romanian diacritics, and 67 distinct Russian sendable strings**, including a full
+Russian menu («Вернёмся в главное меню, где можно выбрать диагностику, встречу или свободно описать
+запрос»). It tracks a `language` field on the session and never uses it for output;
+`default_language` in Settings is `ru`.
+
+So an RO customer following the site's own CTA holds a fully Russian menu-driven conversation. By
+the owner's own definition this is **P1**.
+
+### 6.2 Why neither prescribed fix is small here
+
+The preferred correction — retarget the RO CTA to the RO questionnaire — is wrong in most of these
+contexts, because the bot is not an alternative entry to the diagnostic. It is the site's contact
+and fallback channel:
+
+- three CTAs read «Mai simplu: scrieți direct → FINMENTOR Bot» and sit **immediately beside** an
+  existing «Începeți Radiografia Financiară» button — retargeting would duplicate the button above;
+- «Dacă formularul nu a funcționat, scrieți direct: FINMENTOR Bot · Email» is the **form-failure
+  fallback** — pointing it back at the form that just failed is not a fix;
+- «Mulțumim! … Pentru un răspuns rapid, scrieți direct: FINMENTOR Bot · Email» is the **post-submit**
+  channel, after the questionnaire is already done;
+- `ro/questionnaire.html` offers the bot as the **manual submission route** when auto-submit is
+  unavailable;
+- two contact strips and the footer list the bot as a **contact method** beside the email.
+
+The fallback correction — hide the RO bot CTA — is also not small, and it collides with a Gate 1
+constraint. Beyond the 25 links there are roughly fifteen further RO references in prose, JSON-LD
+and page JavaScript, and the **approved RO privacy policy itself** names the bot as the primary
+channel: «Canalul principal al solicitărilor — FINMENTOR Bot în Telegram: botul adună informația de
+bază despre solicitare și o transmite pentru răspuns.» Removing the bot from the RO journey means
+editing that approved privacy text, which this gate forbids
+(*"Do not otherwise rewrite the Gate 1 policy"*).
+
+One fact makes removal safer than it sounds, and it is worth recording: **every one of the 25 links
+already sits beside a working alternative** — `mailto:cfo@finmentor.md` in the contact strips,
+fallbacks, form-success block and footer, and the primary questionnaire button beside the three
+hero and package CTAs. No RO page would be left without a route.
+
+### 6.3 The options, honestly costed
+
+- **A — remove the bot from the RO journey.** 25 links plus roughly 15 prose, JSON-LD and JS
+  references across 8+ RO pages, **and** an edit to the approved RO privacy policy so it stops
+  naming a channel the RO customer is no longer offered. Fully removes the P1. Collides with the
+  Gate 1 preservation rule and is a substantial customer-facing copy change.
+- **B — one narrow Romanian branch in `Build Bot Response`.** The instruction permits *"the minimum
+  deterministic locale branch"* in a narrow presenter. A single Romanian acknowledgement — we have
+  your message, a consultant will reply — for sessions whose `language` is `ro`, using the field the
+  session already carries. No locale framework, no translated conversation, roughly one string. It
+  does **not** fully remove the defect: if the customer keeps tapping, the menu is still Russian.
+- **C — accept and record as a v1 limitation.** The bot is a shared contact channel that a human
+  answers personally; the automated Russian menu is recorded as POST_GO. This leaves the P1 open by
+  the owner's own definition, so it needs an explicit owner override.
+
+**Recommendation: B, combined with A limited to the three duplicate hero and package CTAs.** Those
+three add nothing — the questionnaire button is already beside them — so removing them is genuinely
+small and touches no policy text; and the Romanian acknowledgement means any RO customer who still
+writes to the bot is answered in Romanian rather than dropped into a Russian menu unannounced. That
+keeps the contact and fallback routes intact, keeps the approved privacy wording true, and needs no
+locale framework.
+
+This is an owner decision because A rewrites approved policy text, B accepts a partial fix, and C
+overrides a P1. Nothing has been changed pending it.
