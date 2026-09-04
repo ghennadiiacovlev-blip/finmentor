@@ -81,3 +81,61 @@ Existing gates re-run green: lead-alerts-actions 57, edit-noop 17, candidates 18
 presentation 36, labels-refresh 10, xray-analysis 143.
 
 **Canonical: 78/78 gates, 2705 assertions, floors PASS.**
+
+## 7. Live smoke test and owner visual verdict (2026-09-04T11:25Z)
+
+Sent by `scripts/smoke-telegram-button-styles.mjs --confirm`: a disposable workflow built one
+message from the style matrix the production module exports, sent it to the owner chat read from
+the Settings sheet, and deleted itself. The instance returned to 111 workflows with no leftovers.
+Every button was a URL button — no `callback_data` anywhere — so a tap could only open
+finmentor.md and could never reach the Command Center or mutate a lead. No production workflow was
+touched: all five stayed active with unchanged node counts, every live button style still omitted,
+and last-modified stamps predating the test.
+
+The keyboard Telegram accepted:
+
+| button | style sent |
+| --- | --- |
+| ✅ Обработано | `success` |
+| ⏰ На 24 часа | omitted |
+| 📞 Discovery | `primary` |
+| 📄 Документы | omitted |
+| 🗂 В наблюдение | omitted |
+
+**Owner verdict, viewed in the current desktop Telegram client:**
+
+    TELEGRAM STYLE TRANSPORT     = PASS
+    CURRENT CLIENT VISUAL STYLE  = FAIL / NOT DISTINCT
+    FULL STYLE DEPLOY            = HOLD
+    CUSTOMER RELEASE             = NOT AUTHORIZED
+
+Observed: the `success` button was visible; the `primary` Discovery button was **not** visually
+blue or distinct; the omitted-style buttons looked too similar to the styled ones.
+
+### What this does and does not establish
+
+It establishes the transport half only. Bot API accepted `style` on an inline button, n8n's
+Telegram node passed the key through `additionalFields` untouched, and the send returned no 400 —
+so the field is wire-legal and the approved matrix emits it correctly.
+
+It does **not** establish the presentation half. Inline-button `style` is rendered client-side, so
+whether an emphasis is visible at all depends on the reader's Telegram client and version, not on
+anything this repo controls. One client showing no differentiation is enough to hold the deploy:
+an owner console whose emphasis silently disappears on the device the owner actually uses is worse
+than today's uniform buttons, because the operator would be trained to look for a cue that is not
+reliably there.
+
+### Hold
+
+The full style refresh is **not** deployed and the approved matrix is **unchanged** — the failure is
+in client rendering, not in the policy, so changing the matrix would be fixing the wrong thing.
+Production keeps today's neutral buttons. The slotted SLA and Follow-up keyboards stay deferred for
+the separate reason in §4, which this test did not address.
+
+### Next proof required
+
+The same already-sent message, opened in the current iPhone Telegram client. No new message is
+needed — the smoke message is still in the owner chat and its buttons remain inert. If iPhone
+renders `primary` and `success` distinctly, the question becomes which clients the owner console
+must look correct on; if it does not, the emphasis should be carried by something client-independent
+(label text or an emoji marker) rather than by `style`.
