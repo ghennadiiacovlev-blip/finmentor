@@ -1,7 +1,8 @@
 # GATE 2 — C2 CRM Lifecycle Owner UAT: fresh-read contract, and the blocker
 
 **Date:** 2026-09-04 · **Branch:** `feat/miniapp-b21c-live-prereqs` · **Plan:** `FINAL_PRODUCTION_V1_GO_PLAN.md`
-**Verdict: GATE 2 = BLOCKED** — one P1. **CUSTOMER RELEASE = NOT AUTHORIZED.**
+**Verdict: GATE 2 = PASS** — the P1 was corrected, deployed, and the whole lifecycle proven by live
+owner commands (section 8). **CUSTOMER RELEASE = NOT AUTHORIZED.**
 
 Read from the live tenant and the shipped modules. `C2_CRM_WORKFLOW_COMPLETION.md` records
 *"C2 = PASS (audit + mapping), lifecycle tap sequence pending owner"*; that PASS was re-derived
@@ -202,3 +203,95 @@ and no row was written.
 The owner UAT sequence was deliberately not started. Two of its four required transitions cannot
 complete, and the third (Nurture) parks a lead irreversibly for alerting purposes — spending a UAT
 lead on it before the Won/Lost decision would waste the only two synthetic leads available.
+
+---
+
+## 8. GATE 2 OWNER UAT = PASS (2026-09-04, live owner commands)
+
+The P1 was corrected (§3), deployed to the Command Center, and the lifecycle was then driven
+end-to-end by real owner commands in the Leads bot. Every row below is a fresh read of the live
+execution and the live Pipeline, not a replay of intent.
+
+### 8.1 A false start worth recording
+
+The first two attempts produced no Command Center execution at all. I initially attributed that to
+my own redeploy having dropped the Telegram webhook registration, re-registered it, and was wrong.
+The execution data settled it: both messages had been delivered to the **client Concierge bot**
+(executions 5553 and 5558, text `stage FIN-1788432350648-72 Discovery Scheduled`), which listens on
+`updates: ["*"]` for a different bot credential and treated them as customer messages. The Command
+Center listens on the Leads bot and correctly received nothing. No CRM write occurred and no lead
+was touched. Sent in the correct chat, the first command worked immediately.
+
+Two things are worth keeping from that: a lifecycle command typed at the wrong bot fails **silently
+and safely** — no write, no partial state, no error — and diagnosing from execution data rather than
+from a plausible theory is what found it.
+
+### 8.2 The four transitions
+
+| # | exec | lead | before | command | after | sla_status | columns written |
+|---|---|---|---|---|---|---|---|
+| A | 5561 | `FIN-1788432350648-72` | Qualified | `stage … Discovery Scheduled` | **Discovery Scheduled** | Active (unchanged) | `deal_stage` only |
+| C | 5563 | `FIN-1788432350648-72` | Discovery Scheduled | `won … 0` | **Won** | **Done** | `deal_stage`, `sla_status` |
+| D | 5566 | `FIN-1788432493303-321` | Qualified | `lost … uat-close-no-fit` | **Lost** | **Done** | `deal_stage`, `sla_status`, `close_reason` |
+| B | 5568 | `FIN-1787944699020-596` | Incomplete | `nurture …` | **Nurture** | **Nurture** | `deal_stage`, `sla_status` |
+
+Every execution ran `Verify Mutation` and `IF Verified`, so each write was read back and confirmed
+rather than assumed. Every one wrote **only** the columns its action owns; on all three rows
+`next_follow_up_at`, `last_contacted_at`, `sla_snooze_until` and `documents_requested_at` are
+exactly as they were, the legacy `status` column is untouched, and the other business columns (43
+on each UAT row, 13 on the synthetic one) are intact.
+
+### 8.3 The column policy, proven rather than asserted
+
+Lead A was closed as **Won with `deal_value: "0"` explicitly supplied** — the parser captured it,
+and the row shows `deal_value` empty and `close_reason` empty. Lead B was closed as **Lost with a
+reason** and shows `close_reason: uat-close-no-fit` with `deal_value` empty.
+
+So `deal_value` is never written, because there is no such Pipeline column; `close_reason` is
+written only for Lost, only when the owner supplies one, and is never required. That is the owner
+policy exactly, demonstrated on live data from both directions.
+
+### 8.4 Terminal protection, on the live rows
+
+Derived from the deployed Command Center module against each row as it actually stands:
+
+| lead | state | onward actions | keyboard | SLA / follow-up |
+|---|---|---|---|---|
+| A | Won / Done | all seven refused `TERMINAL` | NONE | removed — by `deal_stage` **and** by `sla_status` |
+| B | Lost / Done | all seven refused `TERMINAL` | NONE | removed — both reasons |
+| C | Nurture / Nurture | all seven refused `TERMINAL` | NONE | removed — both reasons |
+
+`Edit Alert (0)` — the no-keyboard branch — is the node that ran for all three closes, which is the
+router agreeing with the module. Automated reopen of Won and of Lost is refused.
+
+**One asymmetry, by design and stated plainly.** `Nurture` is terminal for the *alerting* lifecycle
+— no keyboard, every owner action refused, out of both queues — but `isTerminalStage('Nurture')` is
+`false` and an automated advance out of it is permitted, because the CRM vocabulary maps Nurture to
+`NEW`: it is a parking state, not a closed deal. Won and Lost are the only true CRM terminals. This
+was recorded in section 1 before the UAT ran, and the live behaviour matches it.
+
+### 8.5 Integrity
+
+13 Pipeline rows, **zero duplicate `lead_id`**, one row per lead throughout. No stale write: each
+lead moved only through its own commands, and the untouched control lead stayed put at every step.
+The two genuine customer rows were never read into a mutation and never written. No new failed
+execution anywhere on the tenant; the most recent failures are from 2026-08-31 and earlier. Error
+Monitor and SYSTEM ALERT both last ran successfully.
+
+### 8.6 Verdict
+
+    GATE 2 — C2 CRM LIFECYCLE OWNER UAT = PASS
+
+    NEW = PASS            DISCOVERY = PASS       NURTURE = PASS
+    WON = PASS            LOST = PASS
+    TERMINAL PROTECTION = PASS
+    REOPEN SEMANTICS = N/A — fail-closed, proven
+    UNKNOWN FAIL-SAFE = PASS       NON-OWNER BLOCK = PASS
+    DUPLICATE PROTECTION = PASS    STALE UPDATE PROTECTION = PASS
+    SLA / FOLLOWUP TERMINAL SAFETY = PASS
+
+    OPEN P0 = 0   OPEN P1 = 0
+    TARGETED QA  = 436
+    CANONICAL QA = 81/81 gates, 2820 assertions, floors PASS
+
+**CUSTOMER RELEASE = NOT AUTHORIZED.**
