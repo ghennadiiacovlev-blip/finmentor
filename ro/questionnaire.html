@@ -251,6 +251,21 @@
     .q-validate__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
     .q-validate__item { cursor: pointer; font-size: 0.84rem; color: var(--text-secondary); background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border-gold); border-radius: var(--r-pill); padding: 6px 12px; font-family: inherit; transition: border-color var(--dur-base) ease, color var(--dur-base) ease; }
     .q-validate__item:hover { border-color: var(--accent); color: var(--text-primary); }
+    /* Required identity, editable where it is reported missing. Mobile-first: one column, a second
+       column only where there is room. Visually a form, not a chip: solid surface, own border. */
+    .q-validate__fields { display: grid; grid-template-columns: 1fr; gap: var(--sp-3); margin: var(--sp-4) 0; padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid var(--glass-border-gold); background: rgba(255,255,255,0.03); }
+    .q-validate__fieldshead { font-size: 0.84rem; color: var(--text-secondary); margin: 0; }
+    .q-vf { display: block; }
+    .q-vf__label { display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .q-vf__req { color: var(--gold-500); }
+    .q-vf input { width: 100%; padding: 12px 14px; border-radius: var(--r-md); background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: var(--text-primary); font-family: var(--font-sans); font-size: 0.95rem; }
+    .q-vf input:focus { outline: none; border-color: var(--accent); }
+    /* Restrained: the label stays ivory, the input gains a soft ring, the message is quiet. Three
+       required fields flagged at once must read as guidance, not as an alarm. */
+    .q-vf__err { display: none; margin-top: 6px; font-size: 0.8rem; color: rgba(217,106,106,0.92); }
+    .q-vf.is-error input { border-color: rgba(217,106,106,0.45); box-shadow: 0 0 0 3px rgba(217,106,106,0.10); }
+    .q-vf.is-error .q-vf__err { display: block; }
+    @media (min-width: 560px) { .q-validate__fields { grid-template-columns: 1fr 1fr; } .q-validate__fieldshead, .q-vf--wide { grid-column: 1 / -1; } }
     .q-err { margin-top: 8px; font-size: 0.8rem; color: var(--critical); }
     .q.is-error .q__label, .q.is-error legend { color: var(--critical); }
     .q.is-error .q__choices label, .q.is-error .q__cards label { border-color: rgba(229,72,77,0.55); }
@@ -361,7 +376,7 @@
 
     <div class="container">
       <form class="q-form" id="qFormV86" novalidate>
-        <div class="q-validate" id="qValidate" hidden role="alert" aria-live="assertive"><p class="q-validate__head">Pentru a pregăti un diagnostic preliminar de calitate, completați încă câteva puncte obligatorii.</p><ul class="q-validate__list" id="qValidateList"></ul></div>
+        <div class="q-validate" id="qValidate" hidden role="alert" aria-live="assertive"><p class="q-validate__head">Pentru a pregăti un diagnostic preliminar de calitate, completați încă câteva puncte obligatorii.</p><div class="q-validate__fields" id="qValidateFields" hidden><p class="q-validate__fieldshead">Date de contact — completați chiar aici:</p><label class="q-vf" data-vf="name"><span class="q-vf__label">Nume <span class="q-vf__req">*</span></span><input type="text" id="qvfName" autocomplete="name" /><span class="q-vf__err"></span></label><label class="q-vf" data-vf="company"><span class="q-vf__label">Companie <span class="q-vf__req">*</span></span><input type="text" id="qvfCompany" autocomplete="organization" /><span class="q-vf__err"></span></label><label class="q-vf q-vf--wide" data-vf="contact"><span class="q-vf__label">Contact <span class="q-vf__req">*</span></span><input type="text" id="qvfContact" placeholder="Email sau @Telegram" /><span class="q-vf__err"></span></label></div><ul class="q-validate__list" id="qValidateList"></ul></div>
         <input type="hidden" name="utm_source" data-hidden-param="utm_source" />
         <input type="hidden" name="utm_medium" data-hidden-param="utm_medium" />
         <input type="hidden" name="utm_campaign" data-hidden-param="utm_campaign" />
@@ -1005,12 +1020,103 @@
   // quiet check (no DOM mutation) -> missing specs
   function quietMissing() { var m = []; REQUIRED.forEach(function (s) { if (!isFilled(s)) m.push(s); }); return m; }
 
+  // ── required identity, editable where it is reported missing ──────────────────────────────────
+  //
+  // THE DEFECT THIS CLOSES. `q_name`, `q_company`, `q_email` and `q_telegram` are the canonical
+  // identity inputs Lead Intake reads, and they live in the intake block, which is `hidden` until
+  // the quick diagnostic is finished. A visitor who scrolled past the diagnostic, answered every
+  // visible block and pressed submit was told the name, company and contact were missing and had
+  // nowhere to type them: the chips scrolled to a collapsed section, so the form could never be
+  // completed.
+  //
+  // ONE SOURCE OF TRUTH. These three controls hold no state. They write THROUGH to the canonical
+  // inputs on every keystroke and read back from them, so the payload, `isFilled`, the progress bar
+  // and the completion score all keep reading exactly what they read before. They carry no `name`
+  // attribute, so they cannot reach the payload even by accident.
+  var vfBox = document.getElementById('qValidateFields');
+  var vfName = document.getElementById('qvfName');
+  var vfCompany = document.getElementById('qvfCompany');
+  var vfContact = document.getElementById('qvfContact');
+  // Which canonical contact field this panel last wrote. It never clears a value it did not write.
+  var vfOwned = { email: false, telegram: false };
+  var IDENTITY_KEY = { name: 1, company: 1, contact: 1 };
+
+  function vfInputOf(spec) {
+    if (!vfBox || vfBox.hidden || !spec) return null;
+    if (spec.key === 'name') return vfName;
+    if (spec.key === 'company') return vfCompany;
+    if (spec.key === 'contact') return vfContact;
+    return null;
+  }
+  function vfSetErr(el, msg) {
+    var row = el && el.closest ? el.closest('.q-vf') : null;
+    if (!row) return;
+    var e = row.querySelector('.q-vf__err');
+    if (e) e.textContent = msg || '';
+    if (msg) row.classList.add('is-error'); else row.classList.remove('is-error');
+    el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+  }
+  function vfWrite(name, value) { var el = one(name); if (el) el.value = value; }
+  // Email or Telegram, decided by shape, into the canonical field that already exists for it.
+  function vfApplyContact(raw) {
+    var v = String(raw || '').trim();
+    var target = v === '' ? '' : (v.indexOf('@') > 0 ? 'email' : 'telegram');
+    if (vfOwned.email && target !== 'email') { vfWrite('q_email', ''); vfOwned.email = false; }
+    if (vfOwned.telegram && target !== 'telegram') { vfWrite('q_telegram', ''); vfOwned.telegram = false; }
+    if (target === 'email') { vfWrite('q_email', v); vfOwned.email = true; }
+    else if (target === 'telegram') { vfWrite('q_telegram', normalizeTelegram(v) || v); vfOwned.telegram = true; }
+  }
+  function vfSync() {
+    if (!vfBox) return;
+    var a = document.activeElement;
+    if (vfName && a !== vfName) vfName.value = textVal('q_name');
+    if (vfCompany && a !== vfCompany) vfCompany.value = textVal('q_company');
+    if (vfContact && a !== vfContact) vfContact.value = textVal('q_email') || textVal('q_telegram');
+  }
+  function vfMarkErrors(missing) {
+    if (!vfBox || vfBox.hidden) return;
+    var by = {}; missing.forEach(function (s) { by[s.key] = true; });
+    if (vfName) vfSetErr(vfName, by.name ? 'Indicați numele' : '');
+    if (vfCompany) vfSetErr(vfCompany, by.company ? 'Indicați compania' : '');
+    if (vfContact) {
+      var typed = String(vfContact.value || '').trim();
+      vfSetErr(vfContact, by.contact ? (typed ? 'Verificați formatul: email sau @Telegram' : 'Indicați email sau @Telegram') : '');
+    }
+  }
+  function vfRecheck() {
+    updateProgress();
+    if (!validateBox || validateBox.hidden) return;
+    var miss = quietMissing();
+    if (miss.length === 0) hideSummary(); else showSummary(miss);
+  }
+  if (vfBox) {
+    [[vfName, 'q_name'], [vfCompany, 'q_company']].forEach(function (pair) {
+      if (!pair[0]) return;
+      pair[0].addEventListener('input', function () { vfWrite(pair[1], pair[0].value); vfSetErr(pair[0], ''); vfRecheck(); });
+    });
+    if (vfContact) vfContact.addEventListener('input', function () { vfApplyContact(vfContact.value); vfSetErr(vfContact, ''); vfRecheck(); });
+  }
+
+  // A required field inside a collapsed block is unreachable, so pointing at it means opening it.
+  function revealBlock(el) {
+    var sec = el && el.closest ? el.closest('.q-block[hidden]') : null;
+    if (sec) { sec.hidden = false; sec.classList.add('is-open'); }
+  }
+
   function scrollToSpec(spec) {
+    // When the identity panel is open its own control is the nearest place to type.
+    var inline = vfInputOf(spec);
+    if (inline) {
+      inline.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { inline.focus({ preventScroll: true }); } catch (e) { inline.focus(); }
+      return;
+    }
     var target = null;
     if (spec.type === 'contact') target = container('q_email') || container('q_telegram');
     else if (spec.type === 'consent') target = document.getElementById('qConsentRow');
     else target = container(spec.name);
     if (target) {
+      revealBlock(target);
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
       var fld = target.querySelector('input, textarea, select');
       if (fld && fld.focus) { try { fld.focus({ preventScroll: true }); } catch (e) { fld.focus(); } }
@@ -1020,16 +1126,28 @@
   function showSummary(missing) {
     if (!validateBox || !validateList) return;
     validateList.innerHTML = '';
+    // The three identity fields become editable here; everything else stays a chip that jumps to
+    // its own question, so a status marker is never mistaken for a control.
+    var identity = missing.filter(function (s) { return IDENTITY_KEY[s.key]; });
+    if (vfBox) {
+      vfBox.hidden = identity.length === 0;
+      if (!vfBox.hidden) vfSync();
+    }
     missing.forEach(function (spec) {
+      if (IDENTITY_KEY[spec.key]) return;
       var li = document.createElement('li');
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'q-validate__item'; b.textContent = spec.label;
       b.addEventListener('click', function () { scrollToSpec(spec); });
       li.appendChild(b); validateList.appendChild(li);
     });
+    vfMarkErrors(missing);
     validateBox.hidden = false;
   }
-  function hideSummary() { if (validateBox) validateBox.hidden = true; }
+  function hideSummary() {
+    if (validateBox) validateBox.hidden = true;
+    if (vfBox) vfBox.hidden = true;
+  }
 
   function updateProgress() {
     if (!bar) return;
