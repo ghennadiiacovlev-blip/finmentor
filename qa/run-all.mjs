@@ -20,6 +20,7 @@ const GATES = [
   ['AI safe projection', 'ai-safe-projection.test.mjs'],
   ['Error Monitor alert', 'error-alert.test.mjs'],
   ['Website contract', 'website-contract.test.mjs'],
+  ['Privacy policy release (controller, retention, legal basis)', 'privacy-policy-release.test.mjs'],
   ['Public lead identity lifecycle', 'public-identity-lifecycle.test.mjs'],
   ['X-Ray questionnaire identity fields (editable where missing)', 'questionnaire-identity-panel.test.mjs'],
   ['n8n export hygiene', 'n8n-manifest-drift.test.mjs'],
