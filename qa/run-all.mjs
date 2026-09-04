@@ -72,6 +72,7 @@ const GATES = [
   ['Premium Telegram presentation', 'premium-ux-tg-presentation.test.mjs'],
   ['Premium UX contact channel', 'premium-ux-contact-channel.test.mjs'],
   ['Premium UX customer result screen (C3.4)', 'premium-ux-result-screen.test.mjs'],
+  ['C3 client result contract (screen = gateway = publisher)', 'client-result-contract.test.mjs'],
   ['Lead Alerts owner presentation', 'lead-alerts-presentation.test.mjs'],
   ['CRM stage compatibility map', 'crm-stage-map.test.mjs'],
   ['Lead Alert action UX (D1-D11)', 'lead-alerts-actions.test.mjs'],

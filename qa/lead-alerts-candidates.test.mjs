@@ -120,7 +120,7 @@ check('only the declared builder and Telegram nodes differ — everything else i
 });
 
 check('the surviving prefix of every rewritten node is a BYTE-EXACT prefix of the live code', () => {
-  const src = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8');
+  const src = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8').split('\r\n').join('\n'); // LF on a CRLF checkout too
   const body = src.slice(0, src.lastIndexOf('module.exports = '));
   for (const [label, before, after, builders] of PAIRS) {
     const a = load('history', before);
@@ -167,9 +167,9 @@ check('triggers, schedules, credentials and filters are untouched', () => {
 // ── 2. the inlined copy cannot drift from the tested module ────────────────────────────────────
 
 check('the presenter inlined into every node is byte-identical to the module the gate drives', () => {
-  const src = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8');
+  const src = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8').split('\r\n').join('\n'); // LF on a CRLF checkout too
   const body = src.slice(0, src.lastIndexOf('module.exports = '));
-  const tzSrc = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'tz.js'), 'utf8');
+  const tzSrc = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'tz.js'), 'utf8').split('\r\n').join('\n');
   const tzBody = tzSrc.slice(0, tzSrc.lastIndexOf('module.exports = '));
   let seen = 0;
   for (const [label, , after, builders] of PAIRS) {

@@ -374,6 +374,16 @@ const BUILD_SESSION_ROW_CODE = [
 // `XRay_Client_Results` exclusively on CLIENT_READY promotion, so a row here is by construction
 // human-reviewed. Anything else — no row, a row for another lead, a non-CLIENT_READY row, an
 // unparseable JSON — yields result: null and result_state PENDING, never a partial analysis.
+//
+// THE CURATED CLIENT CONTRACT — one list, three holders. The X-Ray publisher
+// (n8n/src/xray-analysis/build-client-result.js) writes exactly these keys into result_json; the
+// Mini App (app-premium/net.js RESULT_KEYS) reduces the bootstrap to exactly these keys; this
+// allow-list is what the Gateway lets through. qa/client-result-contract.test.mjs holds the three
+// equal. C3 step 5 (2026-09-04): the list here lacked `zone_label` and `summary`, so the live
+// result screen rendered without its condition line and headline text — the screen and the
+// publisher already carried both. Never a raw AI field, a token, a prompt, a request id or any
+// review/confidence internals: those are not in the publisher's output and must not be here.
+export const CLIENT_RESULT_KEYS = ['locale', 'labels', 'score', 'zone', 'zone_label', 'maturity', 'summary', 'key_risks', 'management_priorities', 'plan_30_days', 'tomorrow_actions', 'recommended_next_step'];
 const ATTACH_CLIENT_RESULT_CODE = [
   "const s = $('Resolve Session').first().json;",
   "const leadId = String(s.lead_id || '');",
@@ -387,7 +397,7 @@ const ATTACH_CLIENT_RESULT_CODE = [
   "let result = null;",
   "if (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }",
   "if (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }",
-  "if (result) { const allowed = ['locale','labels','score','zone','maturity','key_risks','management_priorities','plan_30_days','tomorrow_actions','recommended_next_step']; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }",
+  "if (result) { const allowed = " + JSON.stringify(CLIENT_RESULT_KEYS) + "; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }",
   "const out = Object.assign({}, s);",
   "out.__response = Object.assign({}, s.__response, { result: result, result_state: result ? 'CLIENT_READY' : 'PENDING' });",
   "return [{ json: out }];"
@@ -482,7 +492,9 @@ const respond = (name, id, x, y, codeExpr, bodyExpr) => {
 
 export function buildGateway(options) {
   const botId = (options && options.botId) || CONFIGURED_BOT_ID;
-  const canarySrc = readFileSync(CANARY, 'utf8');
+  // LF always. A core.autocrlf checkout hands this file back with CRLF, and the embedded verifier
+  // would then differ from the tracked candidate (and from live) on every line by a trailing \r.
+  const canarySrc = readFileSync(CANARY, 'utf8').split('\r\n').join('\n');
   if (canarySrc.indexOf("const BOT_ID = '" + BOT_ID_SENTINEL + "';") === -1) {
     throw new Error('the tracked canary no longer carries the BOT_ID sentinel');
   }

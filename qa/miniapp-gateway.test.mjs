@@ -337,7 +337,8 @@ check('EXECUTED: the derive node passes NO raw initData downstream', () => {
 console.log('\n-- the verifier is the TRACKED file, not a retype --');
 
 check('Verify InitData is bootstrap-canary.js with ONLY the BOT_ID line substituted', () => {
-  const tracked = readFileSync(join(ROOT, 'gateway', 'n8n', 'bootstrap-canary.js'), 'utf8');
+  // LF: a core.autocrlf checkout hands the canary back with CRLF; the candidate is LF by contract.
+  const tracked = readFileSync(join(ROOT, 'gateway', 'n8n', 'bootstrap-canary.js'), 'utf8').split('\r\n').join('\n');
   const deployed = byName('Verify InitData').parameters.jsCode;
   const sentinelLine = "const BOT_ID = '" + BOT_ID_SENTINEL + "';";
   assert(tracked.indexOf(sentinelLine) !== -1, 'the tracked canary lost its BOT_ID sentinel');

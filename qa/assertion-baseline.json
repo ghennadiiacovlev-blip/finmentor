@@ -8,7 +8,7 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 2508,
+  "total": 2569,
   "gates": {
     "ai-safe-projection.test.mjs": 52,
     "api-import.test.mjs": 48,
@@ -16,6 +16,7 @@
     "bot-sessions-legacy-cycle.test.mjs": 21,
     "c3-cycle-commit-adoption.test.mjs": 15,
     "c3-cycle-projection.test.mjs": 17,
+    "client-result-contract.test.mjs": 61,
     "command-center-auth.test.mjs": 43,
     "concierge-import-safe.test.mjs": 87,
     "concierge-internal-handoff.test.mjs": 29,

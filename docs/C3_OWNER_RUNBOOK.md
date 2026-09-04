@@ -343,3 +343,52 @@ Sequence: `reset-c3-xray-uat-row.mjs --confirm` (owner, ~04:27Z: row 4 deleted, 
 Note (content, not contract): the model's summary states «cifră de afaceri estimată la 1,2 milioane EUR» and the guard flagged `12mil` as unconfirmed by the input; v2 lowered confidence to LOW and showed «⚠️ проверить цифры» on the owner page, and the owner chose to publish. Confidence and the flag stay internal, as designed.
 
 Step 5 (`deploy-c3-miniapp-host`) NOT deployed. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
+
+## Step 5 deploy record — Mini App host is LIVE (2026-09-04 04:38–04:40 UTC, owner `--dry-run` + `--confirm`, fresh-read)
+
+Pre-deploy fresh-read (04:38:47Z): Git clean at `589d3dd`; host `KBD7Q94QQnlzgYKJ` 2 nodes, active, unchanged since 08-30 18:43:25Z (versionId `7e617760…`, page sha `1789e00e080d837b`); Gateway 32 / Session 17 / Submit 32 / X-Ray 37 / Concierge 60 nodes, all active and unchanged since their recorded deploys; `XRay_Client_Results` = 1 row (`FIN-1788432493303-321`, `CLIENT_READY`); 0 non-success executions since the X-Ray proof.
+
+**C3 MINI APP HOST DRY RUN = PASS** (04:38Z): rollback artifact written fresh from live on this machine — and because live was still the 08-30 page, it IS the pre-C3 host (2 nodes, Serve Page sha `1789e00e080d837b`); three endpoint URLs read back from the live page; `1789e00e080d837b -> 6d3afe66e911a89e`.
+
+| time (UTC) | evidence |
+|---|---|
+| 04:39:55.196 | `--confirm` (owner): PUT → versionId `1bf230cb-ca48-467c-885d-418ae59714b8`, `host updated`, `fresh read: the live page is the candidate page`, `active` |
+| 04:40:18 | fresh read: 2 nodes, active; `Serve Page.responseBody` 122 620 bytes, sha `6d3afe66e911a89e`; `Open Mini App` parameters, `Serve Page` non-body parameters, connections and settings byte-equal to the rollback artifact — ONE field changed, as designed |
+| 04:40:18.918 | `GET /webhook/finmentor-premium-miniapp` → 200 `text/html`, 122 620 bytes, sha `6d3afe66e911a89e` (= the stored body); the page names all three endpoints (`…-gateway`, `…-session`, `…-submit`) and carries the result-screen code; host execution 5471 `success` |
+
+The tracked candidate's own page sha is `9e18466083d00f14`; it differs from the live sha only by the three endpoint URLs the deploy substitutes from live (never typed, never in the repo).
+
+Rollback: `PUT /api/v1/workflows/KBD7Q94QQnlzgYKJ` with `.uat/KBD7Q94QQnlzgYKJ.pre-c3-host.json` (verified pre-C3).
+
+Sheet read-back (sweep 5472, 04:40:53Z): `XRay_Analysis` = SEED + RU (`xray-v1`, `CLIENT_READY`, 32-hex, no expiry) + RO `…0BDD7AC8C4E6` (`xray-v2`, `CLIENT_READY`, 64-hex, `review_token_expires_at 2026-10-04T04:31:12Z`); the header now carries `review_token_expires_at`; nothing pending.
+
+**DEFECT FOUND AT FRESH-READ (host ↔ Gateway result contract), not yet fixed.** The new host page's `RESULT_KEYS` are `locale, labels, score, zone, zone_label, maturity, summary, key_risks, management_priorities, plan_30_days, tomorrow_actions, recommended_next_step`, and the result screen renders `r.zone_label` (condition line) and `r.summary` (headline text). The live Gateway `nTZHLbv2KFggdhh5` node `Attach Client Result` filters the published `result_json` through `allowed = ['locale','labels','score','zone','maturity','key_risks','management_priorities','plan_30_days','tomorrow_actions','recommended_next_step']` — it DROPS `zone_label` and `summary`. Effect: a customer's result screen would show no zone wording and no summary (the page renders both conditionally, so nothing breaks; the screen is incomplete). Fix belongs in the Gateway's `Attach Client Result` allow-list (add the two keys) — source `scripts/build-miniapp-gateway.mjs:390`, tracked candidate `n8n/candidate/miniapp-gateway-candidate.json` — deployed with a rollback artefact; then the result-screen proof. Do not release CUSTOMER before this is fixed and proven.
+
+### Step 5 fix — the client result contract (prepared 2026-09-04 04:45–04:53 UTC, fresh-read; NOT yet deployed)
+
+The mismatch, proven from the three holders:
+
+| holder | keys | source |
+|---|---|---|
+| Mini App `RESULT_KEYS` | locale, labels, score, zone, **zone_label**, maturity, **summary**, key_risks, management_priorities, plan_30_days, tomorrow_actions, recommended_next_step (12) | `app-premium/net.js:243`; the host page renders `r.zone_label` (condition line) and `r.summary` (headline) |
+| X-Ray publisher `result_json` | the same 12 | `n8n/src/xray-analysis/build-client-result.js`, executed in `qa/client-result-contract.test.mjs`; the live row for `FIN-1788432493303-321` carries both |
+| Gateway `Attach Client Result` allow-list | 10 — no `zone_label`, no `summary` | live `nTZHLbv2KFggdhh5` (32 nodes, unchanged since 09-03 17:24:47Z, versionId `d0d093a1…`), jsCode sha `a5fd13ce09aec319`, byte-identical to `scripts/build-miniapp-gateway.mjs` |
+
+The fix (repo): `scripts/build-miniapp-gateway.mjs` now exports `CLIENT_RESULT_KEYS` (the 12 keys, in the Mini App's order) and compiles the allow-list from it; the tracked candidate `n8n/candidate/miniapp-gateway-candidate.json` was rebuilt and differs from the previous commit by ONE line (the allow-list). Nothing else in the Gateway moves: not the CLIENT_READY-only filter, not the lead match, not the PENDING fall-through, not the store-error path.
+
+QA: new gate `qa/client-result-contract.test.mjs` (61 checks, in `run-all` and the floor baseline): Mini App RESULT_KEYS ⊆ Gateway allow-list (per key), Gateway allow-list ⊆ Mini App RESULT_KEYS (per key — the inverse safety condition), builder constant = compiled candidate (not stale), publisher result_json keys = allow-list, 26 forbidden internal keys absent from all three holders, and EXECUTED: the candidate's `Attach Client Result` handed a CLIENT_READY row with the full result plus injected `review_token`/`analysis_json`/`request_id`/`confidence`/`fabrication_flags`/`prompt`/`model`/… returns exactly the 12 keys, `zone_label` and `summary` by value; non-CLIENT_READY rows still yield `null`/`PENDING`. `node qa/run-all.mjs` → **70/70 gates, 2569 assertions, floors PASS**.
+
+Two tooling facts fixed on the way (this checkout is `core.autocrlf=true`): the builder now normalises the embedded verifier to LF (otherwise the rebuilt candidate flipped `Verify InitData` to CRLF on every line), and the gates that compare disk sources byte-for-byte (`miniapp-gateway`, `lead-alerts-candidates`) read them as LF; `deploy-c3-gateway-cycle.mjs` no longer calls `process.exit(0)` in dry-run (Node 24 on Windows aborted at teardown with a libuv assertion AFTER printing the verdict) and prints the rollback path that is actually the pre-deploy state.
+
+**C3 CLIENT RESULT CONTRACT DRY RUN = PASS** (04:52:03Z): live 32 nodes, active; candidate built and verified (30 nodes); `nodes rewritten: Attach Client Result` only; merged graph 32 nodes, alert callers preserved; exit 0. Byte-level `git diff --no-index` of the fresh live capture against the merged candidate: **1 line** — the allow-list. 31 other nodes, all connections and settings byte-identical.
+
+Rollback for THIS deploy: `.uat/nTZHLbv2KFggdhh5.pre-c3-cycle.live-2026-09-04T04-52-03-098Z.json` (= live at 04:52Z, 32 nodes). NOT `.uat/nTZHLbv2KFggdhh5.pre-c3-cycle.json` on this machine — that file (23 nodes, 09-03 11:25Z) is the pre-C3.1 Gateway and was rightly KEPT.
+
+```
+! node scripts/deploy-c3-gateway-cycle.mjs --dry-run
+! node scripts/deploy-c3-gateway-cycle.mjs --confirm
+```
+
+After confirm, fresh-read and record: Gateway active; live `Attach Client Result` allow-list = the 12 keys (zone_label, summary pass through); forbidden keys absent; CLIENT_READY-only semantics unchanged; `Build App Session` / cycle resolution byte-identical to the 04:52Z capture; Error Monitor / SYSTEM ALERT unchanged.
+
+Live proof (owner-only) still to record: reopen the Mini App on the submitted brief → committed screen with «Результат анализа появится здесь после проверки консультантом FINMENTOR.». NOTE: the result screen is keyed by the viewer's lead; the only `CLIENT_READY` result belongs to the synthetic RO lead, and the owner's own lead `FIN-1788113619104-582` (created 08-30) is outside `xray_analysis_since` and has no analysis — so the owner's reopen can prove the committed-screen copy, not the result screen, until an analysis exists for the owner's lead. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.

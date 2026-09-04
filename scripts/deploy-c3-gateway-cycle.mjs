@@ -210,8 +210,11 @@ if (isMain) {
   ok('merged graph verified: ' + merged.nodes.length + ' nodes, alert callers preserved, ' + RETIRED_LIVE_NODES.join(' + ') + ' retired');
 
   writeFileSync(join(OUT_DIR, GATEWAY_ID + '.c3-cycle-candidate.json'), JSON.stringify(importable(merged), null, 2) + '\n', 'utf8');
-  if (DRY) { say('\nDRY RUN — nothing written. Merged candidate saved to .uat/' + GATEWAY_ID + '.c3-cycle-candidate.json'); process.exit(0); }
-
+  // No process.exit() here: on Node 24 / Windows it trips a libuv assertion (UV_HANDLE_CLOSING)
+  // while fetch keep-alive handles are still open, and the dry run then exits 127 AFTER printing
+  // its verdict (seen 2026-09-04). Fall through instead; the process ends when the loop drains.
+  if (DRY) { say('\nDRY RUN — nothing written. Merged candidate saved to .uat/' + GATEWAY_ID + '.c3-cycle-candidate.json'); }
+  else {
   await api('PUT', '/workflows/' + GATEWAY_ID, importable(merged), 3);
   ok('Gateway updated');
   const after = await api('GET', '/workflows/' + GATEWAY_ID);
@@ -226,6 +229,9 @@ if (isMain) {
   if (/cycle_id:\s*'',\s*\n\s*replay_key/.test(bs.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n'))) { bad('the live Build App Session still stamps an empty cycle on the session row'); }
   else { ok('live Build App Session resolves the cycle from ' + CYCLE_PROJECTION_TABLE); }
   say('');
-  say('  rollback: PUT /api/v1/workflows/' + GATEWAY_ID + ' with .uat/' + GATEWAY_ID + '.pre-c3-cycle.json');
+  // The rollback for THIS deploy is what was live a moment ago. When the named artefact was KEPT
+  // (it predates an earlier deploy), that is the timestamped fresh read, not the old capture.
+  say('  rollback: PUT /api/v1/workflows/' + GATEWAY_ID + ' with ' + (rb.aside ? rb.aside.replace(ROOT, '.') : '.uat/' + GATEWAY_ID + '.pre-c3-cycle.json'));
   say('');
+  }
 }
