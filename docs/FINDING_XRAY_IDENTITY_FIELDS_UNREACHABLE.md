@@ -94,7 +94,40 @@ and placeholder, mobile-first single column, no raw hex, RO copy free of Cyrilli
 
 **Canonical:** `node qa/run-all.mjs` → **77/77 gates, 2689 assertions, floors PASS**.
 
+## Deploy path — fresh-read 2026-09-04, and why the release stopped here
+
+Owner approved the fix and asked for a controlled release of these two pages only, pushing to
+`feat/miniapp-b21c-live-prereqs` and **not** merging `main`. Those two instructions cannot both
+hold, because of how the site is published:
+
+| fact | value | source |
+|---|---|---|
+| publication mechanism | GitHub Pages, `build_type: legacy` | `GET /repos/…/pages` |
+| **source** | **branch `main`, path `/`** | same |
+| custom domain | `www.finmentor.md`, HTTPS enforced, cert valid to 2026-11-18 | same |
+| RU source file | `questionnaire.html` → `https://www.finmentor.md/questionnaire.html` | live fetch 200 |
+| RO source file | `ro/questionnaire.html` → `https://www.finmentor.md/ro/questionnaire.html` | live fetch 200 |
+| production == `main`? | yes, byte-identical: RU 154 131 B, RO 142 640 B on both | `git show origin/main:…` vs live |
+| is the fix live? | **no** — `qValidateFields`, `qvfName`, the placeholder: 0 occurrences on both live pages | live fetch |
+| does a push to the feature branch publish? | **no** | Pages builds `main` only |
+| separate deploy command? | **none exists** — no Pages workflow in `.github/workflows` (the four workflows there are QA only) | repo read |
+| branch vs `main` | **152 commits ahead, 4 behind** | `git rev-list --left-right --count` |
+
+So the only path to production for these two files is a commit on `main`, which this session is
+explicitly not authorized to make. The fix is committed and pushed to the feature branch
+(`5fd64a3`) and is **not** live.
+
+Three ways forward, all the owner's call:
+
+1. **Cherry-pick `5fd64a3` onto `main`** — publishes these two pages and this gate only. Caveat
+   worth knowing: `main`'s copies of these files already differ from the branch's by 10 lines (RU)
+   and 62 lines (RO) of earlier committed work, so the published file would be *`main`'s page plus
+   this patch*, which is not byte-identical to the artifact that passed QA here. It should be
+   re-verified on production after publishing.
+2. **Merge the branch into `main`** — publishes the questionnaire fix together with 152 commits of
+   other work. Far beyond the approved scope.
+3. **Open a PR from a small branch cut off `main`** carrying only this change, and merge that.
+
 ## Not done
 
-Deployment. `questionnaire.html` and `ro/questionnaire.html` are static site files; publishing them
-is the owner's deploy step, and nothing here was pushed to the tenant.
+Deployment. Nothing was published; production still shows the defect.
