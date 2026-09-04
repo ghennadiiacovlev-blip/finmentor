@@ -298,3 +298,30 @@ cp .uat/tNSMRoKlFB52vjge.pre-c3-2026-09-03.json .uat/tNSMRoKlFB52vjge.pre-c3-xra
 ```
 
 Still owner-only (needs the owner's Telegram identity): open the review link from an existing owner alert → read-only draft page with «Подтвердить и открыть клиенту»; confirm → `XRay_Client_Results` gains one row for the lead; reopen the Mini App → result screen. Record those three observations here as `C3 X-RAY LIVE PROOF = PASS`, then step 5 (`deploy-c3-miniapp-host`). Step 5 NOT deployed. `RELEASE_MODE` still `OWNER_ONLY`; CUSTOMER NOT released.
+
+## Step 4 live proof — protocol (prepared 2026-09-04 04:10–04:25 UTC, fresh-read)
+
+**There is no v2 analysis to review yet.** Fresh-read of `XRay_Analysis` through sweeps 5459 (04:10:53Z) and 5460 (04:20:53Z): three rows — `XA-SEED`; `XA-FIN-1788432350648-72-MTLEGRPK` (RU synthetic UAT lead, `xray-v1`, `CLIENT_READY` since 09-03 10:47); `XA-FIN-1788432493303-321-MTLEK48C` (RO synthetic UAT lead «UAT SRL Sintetic Retail», `xray-v1`, `AI_DRAFT`, never reviewed). Both carry 32-hex C1 tokens and the sheet has no `review_token_expires_at` column yet (autoMap appends it with the first v2 row). The v2 surface refuses both by design. `Select Pending Leads` has been empty on every sweep since v2 went live, `XRay_Client_Results` (`MmYtlv9Q66xC3WIE`) holds 0 rows, and the owner's own lead `FIN-1788113619104-582` (08-30) is outside `xray_analysis_since = 2026-09-03`. So the ONE safe subject is the RO synthetic lead, re-analysed under v2 — exactly the §4 rule "delete their `XRay_Analysis` row to re-analyse under v2". No real customer analysis exists in the sheet.
+
+Prerequisite (owner command; the session that prepared this was not permitted to run the confirm). Guards: the row is matched on `analysis_id` + `lead_id` + `request_id`, must be `xray-v1` / `AI_DRAFT` / unreviewed, the sheet must hold exactly SEED + RU + RO, SEED and RU must be value-identical after the delete; pre- and post-images land in `.uat/`. `--dry-run` PASSED at 04:24Z (target = sheet row 4). The Pipeline row is not touched — the sweep overwrites `xray_analysis_id`/`xray_analysis_status` when it re-analyses.
+
+```
+! node scripts/reset-c3-xray-uat-row.mjs --dry-run
+! node scripts/reset-c3-xray-uat-row.mjs --confirm
+```
+
+Within 10 minutes the sweep (`Every 10 Minutes`, at :00:53 / :10:53 / …) analyses `FIN-1788432493303-321` under `xray-v2` and the FINMENTOR Leads Bot sends the owner (chat `owner_chat_id`) the alert **«ФИНАНСОВЫЙ РЕНТГЕН · НОВЫЙ АНАЛИЗ» … «Компания: UAT SRL Sintetic Retail» … «Lead ID: FIN-1788432493303-321»** with two buttons: **«✅ Проверить и открыть клиенту»** (the review GET link `…/webhook/finmentor-xray-review?a=XA-FIN-1788432493303-321-<new>&t=<64 hex>`) and «📊 Открыть CRM». Use ONLY this new alert — the 09-03 alerts carry pre-v2 tokens and answer «Доступ отклонён».
+
+**The owner action:** tap «✅ Проверить и открыть клиенту» on that alert, read the page, then press **«Подтвердить и открыть клиенту»** at the bottom. Nothing else.
+
+| # | fact to establish | evidence to fresh-read after the action |
+|---|---|---|
+| 1 | opening the GET link does NOT promote | the GET execution of `tNSMRoKlFB52vjge` runs only `Review GET Webhook → Read Analysis For Review GET → Render Review Surface → Respond Review Surface` (no Sheets update, no Data Table node); the POST execution's `Read Analysis For Review POST` still reads `review_status = AI_DRAFT`, `reviewed_at = ''`; `XRay_Client_Results` gains nothing at GET time |
+| 2 | the page shows the draft and an explicit action | `Render Review Surface` output `http_status 200`, html titled «FINMENTOR · Проверка анализа» with the summary, risks, 30-day plan and a `<form method="post">` whose only button is «Подтвердить и открыть клиенту»; the owner saw it |
+| 3 | only the explicit POST flips AI_DRAFT → CLIENT_READY | POST execution: `Review POST Verdict` = `PROMOTE`, then `Promote Analysis` (update matched on `analysis_id`) and `Update Pipeline Review Status`; sheet row now `CLIENT_READY`, `reviewed_at` = the POST time; Pipeline `xray_analysis_status = CLIENT_READY` |
+| 4 | exactly one curated result row | `XRay_Client_Results`: 1 row, `lead_id FIN-1788432493303-321`, `analysis_id` = the new v2 id, `review_status CLIENT_READY`, `locale ro`, `score`/`zone` = the sheet's |
+| 5 | nothing internal is published | `result_json` keys ⊆ {locale, labels, score, zone, zone_label, maturity, summary, key_risks, management_priorities, plan_30_days, tomorrow_actions, recommended_next_step}; no `review_token`, `request_id`, `analysis_json`, `confidence`, `fabrication_flags`, `validation_errors`, prompt or model name anywhere in the row |
+| 6 | repeated confirmation is idempotent | a second `POST /webhook/finmentor-xray-review` with the same `a`,`t` → `ALREADY_READY` (200, «Уже готово»), `reviewed_at` unchanged, still exactly 1 `XRay_Client_Results` row (upsert on `lead_id`); re-opening the button → GET «Уже готово», no form |
+| 7 | no Error Monitor / SYSTEM ALERT regression | Error Monitor `RBiFLhVjizMkAzrK` last execution still 5056 (08-31 14:19); SYSTEM ALERT `ID700kTo6EXffwry` still 5076 (08-31 17:52) — baseline fresh-read 04:19Z; tenant-wide non-success executions since the reset → 0 |
+
+Record the seven facts here as `C3 X-RAY LIVE PROOF = PASS`, then step 5.
