@@ -48,7 +48,7 @@ const RESULT_RU = {
 };
 const RESULT_RO = Object.assign({}, RESULT_RU, {
   locale: 'ro',
-  labels: { product: 'Test de sănătate financiară FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc', maturity: 'Maturitatea managementului financiar', risks: 'Riscuri-cheie', priorities: 'Priorități de management', plan: 'Plan de acțiune financiară pentru 30 de zile', tomorrow: 'Următoarea acțiune', next: 'Recomandarea FINMENTOR' },
+  labels: { product: 'Test financiar FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc', maturity: 'Maturitatea managementului financiar', risks: 'Riscuri-cheie', priorities: 'Priorități de management', plan: 'Plan de acțiune financiară pentru 30 de zile', tomorrow: 'Următoarea acțiune', next: 'Recomandarea FINMENTOR' },
   zone_label: 'Zonă portocalie', summary: 'Afacerea are decalaje de numerar.',
   maturity: { score_1_to_5: 2, label: 'Control reactiv', rationale: 'Nu există P&L managerial.' },
   key_risks: [{ title: 'Decalaje de numerar', category: 'cash', evidence: 'din chestionar', potential_impact: 'x', priority: 'HIGH' }],
@@ -103,7 +103,7 @@ await check('RESULT_RO — the same session in RO renders the RO product name an
   const h = await bootWith(committed({ locale: 'ro', result: RESULT_RO, result_state: 'CLIENT_READY' }), 'ro');
   eq(h.state(), 'APP_RESULT', 'state');
   const t = screenText(h);
-  for (const s of ['Test de sănătate financiară FINMENTOR', 'Rezultatul analizei', '/ 100', 'Zonă portocalie', 'Starea financiară:', 'Rezumat', '2 din 5 — Control reactiv', 'Etapa 1 · Zilele 1–7', 'prioritate ridicată', 'Diagnostic financiar complet', 'Înapoi în Telegram', 'Nu este un audit']) {
+  for (const s of ['Test financiar FINMENTOR', 'Rezultatul analizei', '/ 100', 'Zonă portocalie', 'Starea financiară:', 'Rezumat', '2 din 5 — Control reactiv', 'Etapa 1 · Zilele 1–7', 'prioritate ridicată', 'Diagnostic financiar complet', 'Înapoi în Telegram', 'Nu este un audit']) {
     assert(t.indexOf(s) !== -1, 'missing on screen: ' + s);
   }
   assert(t.indexOf('Radiografia Financiară') === -1, 'the retired RO product name appeared');

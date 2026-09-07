@@ -17,7 +17,7 @@ export const LABELS_RU = {
 };
 
 export const LABELS_RO = {
-  product: 'Test de sănătate financiară FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc',
+  product: 'Test financiar FINMENTOR', condition: 'Starea financiară', score: 'Scor', zone: 'Zona de risc',
   maturity: 'Maturitatea managementului financiar', risks: 'Riscuri-cheie', priorities: 'Priorități de management',
   plan: 'Plan de acțiune financiară pentru 30 de zile', tomorrow: 'Următoarea acțiune', next: 'Recomandarea FINMENTOR'
 };

@@ -34,7 +34,7 @@ export const MUST = [
   ['Этап 1 · Дни 1–7', 'the RU 30-day plan stage labels'],
   ['Результат анализа появится здесь', 'the pending note']
 ];
-export const MUST_NOT = [['Radiografia Financiară', 'the retired RO product name'], ['__PREMIUM_', 'an endpoint placeholder']];
+export const MUST_NOT = [['Radiografia Financiară', 'the retired RO product name'], ['sănătate financiară', 'the retired RO product name (health-test variant)'], ['__PREMIUM_', 'an endpoint placeholder']];
 
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry-run');

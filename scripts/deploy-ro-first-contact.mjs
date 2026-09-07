@@ -54,7 +54,7 @@ export const RO_TEXT = [
   '',
   'Vă mulțumim că ați contactat FINMENTOR.',
   '',
-  'Mesajul dumneavoastră a fost primit. Pentru o evaluare financiară preliminară puteți completa Radiografia Financiară FINMENTOR, iar pentru o discuție directă echipa FINMENTOR vă va contacta folosind datele furnizate.',
+  'Mesajul dumneavoastră a fost primit. Pentru o evaluare financiară preliminară puteți completa Testul financiar FINMENTOR, iar pentru o discuție directă echipa FINMENTOR vă va contacta folosind datele furnizate.',
   '',
   'Pentru întrebări urgente ne puteți scrie și la cfo@finmentor.md.'
 ].join('\\n');

@@ -722,34 +722,33 @@ console.log('');
 console.log('CG — every public lead goes through this transport, and every submitter can end');
 
 const PAGES = ['index.html', 'questionnaire.html', 'ro/questionnaire.html',
-  'working-capital-scan.html', 'ro/working-capital-scan.html'];
+  'working-capital-scan.html', 'ro/working-capital-scan.html', 'ro/index.html'];
 const SUBMITTERS = ['main.js', 'questionnaire.html', 'ro/questionnaire.html',
   'working-capital-scan.html', 'ro/working-capital-scan.html'];
 
-check('CG-1 exactly these five pages load the transport', () => {
+check('CG-1 exactly these six pages load the transport', () => {
   for (const p of PAGES) {
     assert(read(join(ROOT, p)).includes('lead-transport.js'), p + ' does not load the transport');
   }
 });
 
-// KNOWN OPEN DEFECT, found by this gate and deliberately NOT fixed in the identity pass.
+// DEFECT CLOSED — Sprint 1, 2026-09-07. Recorded here rather than deleted, because this gate was
+// built to turn red the moment the fix landed and to demand a deliberate, documented act.
 //
-// `ro/index.html` carries `#consultForm` and loads `../main.js`, so `initForm()` binds to it —
-// but it does NOT load `../lead-transport.js`. `postLeadPayload()` therefore rejects with
-// `transport_unavailable` on every submit, and the Romanian home page has never delivered a lead
-// to the CRM. The visitor sees the Telegram/email fallback copy, so it fails visibly and closed.
+// The defect: `ro/index.html` carried `#consultForm` and loaded `../main.js`, so `initForm()` bound
+// to it — but it did NOT load `../lead-transport.js`. `postLeadPayload()` therefore rejected with
+// `transport_unavailable` on every submit, and the Romanian home page had never delivered a lead to
+// the CRM. It failed visibly and closed: the visitor saw the Telegram/email fallback copy.
 //
-// It is one `<script src>` away from working, and that one line would turn a page which has never
-// produced leads into one that does — a customer-facing behaviour change, which is not what an
-// identity deploy is for. It is pinned here so it cannot be forgotten AND so that fixing it turns
-// this gate red, forcing the fix to be a deliberate, documented act rather than a drive-by.
-check('CG-1b ro/index.html still cannot submit: transport absent (KNOWN OPEN DEFECT)', () => {
+// The published site had already fixed this on `origin/main` (PR #19); only this branch still
+// carried the gap, which the Sprint 1 base reconciliation surfaced. `ro/index.html` now loads the
+// transport and has moved into PAGES above, so CG-1 covers it with every other submitting page.
+check('CG-1b ro/index.html submits through the transport (defect closed)', () => {
   const ro = read(join(ROOT, 'ro', 'index.html'));
   assert(ro.includes('id="consultForm"'), 'ro/index.html no longer has the consultation form');
   assert(ro.includes('main.js'), 'ro/index.html no longer loads main.js');
-  assert(!ro.includes('lead-transport.js'),
-    'ro/index.html now loads the transport — the known defect was fixed; update the report and '
-    + 'move this page into PAGES');
+  assert(ro.includes('lead-transport.js'),
+    'ro/index.html lost the transport again — the Romanian home page cannot submit a lead');
 });
 
 check('CG-2 no submitter reaches the lead webhook except through postLead', () => {

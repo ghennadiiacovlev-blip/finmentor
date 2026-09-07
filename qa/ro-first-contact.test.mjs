@@ -96,7 +96,7 @@ check('the acknowledgement is Romanian, with diacritics, and carries no Cyrillic
 });
 
 check('it uses the canonical product name and no retired or alternate one', () => {
-  assert(TEXT.indexOf('Radiografia Financiară FINMENTOR') !== -1, 'the canonical product name is missing');
+  assert(TEXT.indexOf('Testul financiar FINMENTOR') !== -1, 'the canonical product name is missing');
   assert(TEXT.indexOf('Testul de sănătate financiară') === -1, 'the superseded name is present');
   assert(TEXT.indexOf('Financial X-Ray') === -1, 'an English product name leaked in');
 });

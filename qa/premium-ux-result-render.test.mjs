@@ -114,7 +114,7 @@ await check('RU_NOSCORE — «Оценка не рассчитана» exactly o
 await check('RO_SCORE — the RO shell strings and the RO server labels; nothing Cyrillic', async () => {
   const h = await render(RESULT_RO_SCORE, 'ro');
   const t = screenText(h);
-  eq(kickers(h)[0], 'Test de sănătate financiară FINMENTOR', 'the RO product label');
+  eq(kickers(h)[0], 'Test financiar FINMENTOR', 'the RO product label');
   eq(nodeTexts(h, 'xr-heading')[0], 'Rezultatul analizei', 'the RO title');
   eq(nodeTexts(h, 'xr-score-num')[0], '47', 'the score numeral');
   eq(nodeTexts(h, 'xr-score-of')[0], '/ 100', 'the score scale');
