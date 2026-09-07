@@ -141,9 +141,19 @@ html.lang-gate-pending body { overflow: hidden; }
 
 /* Placement helpers for non-doc headers */
 .legal-bar__right { display: flex; align-items: center; gap: var(--sp-4); }
+/* THE SWITCHER STAYS ON A PHONE.
+   These two bars previously did `display: none` here. Unlike `.header`, neither carries a burger
+   and neither opens a drawer, so below 640px the rule did not move the language control anywhere —
+   it removed it. A Russian customer on the X-Ray questionnaire, the page the whole funnel points
+   at, had no way to reach the Romanian edition, and vice versa; the legal pages had the same hole.
+   The pill is kept and compacted instead, which is what the row actually needed. */
 @media (max-width: 640px) {
-  .q-bar .lang { display: none; }
-  .legal-bar .lang { display: none; }
+  .q-bar__row { gap: var(--sp-3); }
+  .q-bar .lang,
+  .legal-bar .lang { padding: 2px; flex-shrink: 0; }
+  .q-bar .lang__btn,
+  .legal-bar .lang__btn { padding: 4px 8px; font-size: 0.66rem; }
+  .q-back { font-size: 0.82rem; white-space: nowrap; }
 }
 
 /* Reduced motion: the gate remains a static choice, transitions become instant */

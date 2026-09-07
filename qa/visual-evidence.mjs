@@ -36,7 +36,7 @@
 // render gate already holds. Nothing here contacts a production service: the Gateway is answered
 // by a stub inside the page, and every endpoint points at `preview.invalid`.
 
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
@@ -52,6 +52,23 @@ const ORIGIN = 'http://127.0.0.1:' + PORT;
 const keepIdx = process.argv.indexOf('--keep');
 const KEEP_DIR = keepIdx !== -1 ? process.argv[keepIdx + 1] : null;
 const SHOT_DIR = join(ROOT, 'qa-artifacts', 'visual');
+
+// ── THE SEED ─────────────────────────────────────────────────────────────────────────────────
+//
+// One fixed number, recorded in the evidence, that makes every draw in the page reproducible.
+// It is read by the QA bootstrap only; nothing in the shipped site knows this file exists.
+const QA_SEED = 20260907;
+// The candidate this evidence is FOR. Screenshots carrying an earlier SHA are not proof of this
+// commit, so the manifest records it and the reviewer can compare it against the commit under
+// audit rather than trusting the directory name.
+const CANDIDATE_SHA = (() => {
+  try { return execSync('git rev-parse HEAD', { cwd: ROOT, encoding: 'utf8' }).trim(); }
+  catch (e) { return 'unknown'; }
+})();
+const BRANCH = (() => {
+  try { return execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT, encoding: 'utf8' }).trim(); }
+  catch (e) { return 'unknown'; }
+})();
 mkdirSync(SHOT_DIR, { recursive: true });
 if (KEEP_DIR) { mkdirSync(KEEP_DIR, { recursive: true }); }
 
@@ -163,6 +180,56 @@ const QA_DETERMINISM_CSS = `
 // Run in the page, before anything else on it.
 const DETERMINISM_BOOTSTRAP = `(() => {
   try {
+    // ── 1. SEEDED RANDOM ────────────────────────────────────────────────────────────────────
+    //
+    // The decorative constellation behind the hero lays its particles out with Math.random(), so
+    // every run drew a different starfield and every screenshot of the home page had a different
+    // digest. Geometry was identical and the PIXELS were not, which is why the evidence could
+    // measure clean and still not be reproducible.
+    //
+    // This is injected BEFORE the document runs, so the first draw already comes off the seed.
+    // mulberry32: 32 bits of state, no dependencies, and the same sequence on every machine.
+    // Production keeps the real Math.random — nothing in the shipped site references this.
+    (function () {
+      var s = ${QA_SEED} >>> 0;
+      Math.random = function () {
+        s = (s + 0x6D2B79F5) | 0;
+        var t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    })();
+
+    // ── 2. FREEZE THE DECORATIVE ANIMATION ──────────────────────────────────────────────────
+    //
+    // A seed fixes where the particles START. It does not stop them MOVING: the field advances
+    // every frame, so the shot still lands on whichever frame the clock happened to reach.
+    //
+    // The site's own answer to this is prefers-reduced-motion, which the run emulates — main.js
+    // gates the canvases, the cursor loop, the intro overlay, the reveal pass and the counters on
+    // it, so under that mode the decorative work never starts and the counters snap straight to
+    // their final values. This gate is the belt to that pair of braces: any loop that reschedules
+    // ITSELF — the same function object asking for another frame — is delivered once and then
+    // dropped, so a future decorative loop that forgets to honour reduced motion cannot put the
+    // capture back on a moving page. Finite one-shot callbacks are untouched.
+    //
+    // The harness keeps a clean reference for its own frame waits, so the settle below can still
+    // wait for real painted frames after the gate is in place.
+    (function () {
+      var raf = window.requestAnimationFrame.bind(window);
+      window.__fmQaRaf = raf;
+      var seen = new WeakSet();
+      var frozen = 0;
+      window.__fmQaFrozen = function () { return frozen; };
+      window.requestAnimationFrame = function (cb) {
+        if (typeof cb === 'function') {
+          if (seen.has(cb)) { frozen++; return 0; }
+          seen.add(cb);
+        }
+        return raf(cb);
+      };
+    })();
+
     const style = document.createElement('style');
     style.id = '__fm_qa_determinism';
     style.textContent = ${JSON.stringify(QA_DETERMINISM_CSS)};
@@ -180,7 +247,11 @@ const DETERMINISM_BOOTSTRAP = `(() => {
 // Waits for fonts, then for layout to stop moving, then for two painted frames. Returns a report
 // so the run can ASSERT determinism rather than assume it.
 const SETTLE = `(async () => {
-  const report = { fontsReady: false, fontStatus: '', pendingFaces: [], layoutSamples: 0, stable: false, frames: 0 };
+  const report = { fontsReady: false, fontStatus: '', pendingFaces: [], layoutSamples: 0, stable: false, frames: 0,
+    seeded: false, reducedMotion: false, frozenReschedules: 0 };
+  // The three determinism switches, read back from the page rather than assumed by the runner.
+  report.seeded = typeof window.__fmQaRaf === 'function';
+  try { report.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* reported false */ }
   try {
     if (document.fonts) {
       await document.fonts.ready;
@@ -217,8 +288,12 @@ const SETTLE = `(async () => {
   }
   report.stable = agreed >= 2;
 
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // The harness's OWN frame waits go through the clean reference, so the freeze gate above can
+  // never starve the thing that proves the page painted.
+  const raf = window.__fmQaRaf || window.requestAnimationFrame.bind(window);
+  await new Promise((r) => raf(() => raf(r)));
   report.frames = 2;
+  try { report.frozenReschedules = window.__fmQaFrozen ? window.__fmQaFrozen() : 0; } catch (e) { /* reported 0 */ }
   return report;
 })()`;
 
@@ -416,6 +491,35 @@ const MEASURE = `(() => {
         const r = lg.getBoundingClientRect();
         h.langGroups.push({ w: Math.round(r.width), left: Math.round(r.left), right: Math.round(r.right) });
       }
+      // ── THE LANGUAGE CONTROL, as a customer meets it ────────────────────────────────────────
+      //
+      // Recording that a .lang box exists is not the same as proving a customer can change
+      // language: the control must be PAINTED, must offer the other edition, and must show which
+      // edition they are reading now. Each option is captured with its own painted box and its
+      // own active state so the run can ASSERT all three rather than eyeball a screenshot.
+      //
+      // The mobile drawer carries its own copy of the control. Both are collected; the assertion
+      // only requires that at least one is reachable, because a burger a customer can open is a
+      // language control they can reach.
+      h.langOptions = [];
+      for (const a of document.querySelectorAll('.lang [data-lang-switch], .lang a, .lang button')) {
+        const code = (a.getAttribute('data-lang-switch') || a.getAttribute('lang')
+          || (a.textContent || '').trim()).toLowerCase().slice(0, 2);
+        if (code !== 'ru' && code !== 'ro') { continue; }
+        const r = a.getBoundingClientRect();
+        const cls = String(a.className || '');
+        h.langOptions.push({
+          code,
+          painted: visible(a) && r.width > 0 && r.height > 0,
+          inDrawer: !!(a.closest && a.closest('.mobile-menu, .nav-mobile, [data-qa-drawer]')),
+          // "Current" is declared three ways across the site; any of them counts.
+          active: /\bis-active\b|\bactive\b|\bis-current\b/.test(cls)
+            || a.getAttribute('aria-current') !== null
+            || a.getAttribute('aria-selected') === 'true',
+          w: Math.round(r.width), h: Math.round(r.height),
+          left: Math.round(r.left), right: Math.round(r.right)
+        });
+      }
       // Pairwise overlap of the bar's own controls. Two of these sharing pixels is a collision a
       // customer taps the wrong half of.
       const controls = [...bar.querySelectorAll('.logo, .brand, .burger, #burger, .lang, nav, .btn')]
@@ -450,6 +554,83 @@ const MEASURE = `(() => {
     if (!visible(el)) { continue; }
     const r = el.getBoundingClientRect();
     out.packageTitles.push({ cls: el.className, text: label(el), w: Math.round(r.width), h: Math.round(r.height), lines: Math.round(r.height / parseFloat(getComputedStyle(el).lineHeight || '20')) });
+  }
+
+  // ── THE APPROVED PACKAGE TITLES, found by NAME rather than by class ──────────────────────────
+  //
+  // The owner-approved titles live in two different components: the home page prices them in
+  // .package__name cards, the monthly page heads each tier with an h2. A check bound to one
+  // class name proves nothing about the other, so the titles are located by their own text.
+  //
+  // LINE COUNT is measured from the rendered line boxes, not from height ÷ line-height. A Range
+  // over the element's contents returns one rect per line box; counting DISTINCT tops is the
+  // number of lines a customer sees, and it stays right when padding, a border or a different
+  // line-height would have made the arithmetic lie.
+  const APPROVED = ['CFO Control Partner', 'CFO AI Control', 'Monthly CFO Support',
+    'Financial Health Check', 'Control Light', 'Control Partner'];
+  // The line boxes of a SUBSTRING of an element's text. The monthly page heads each tier
+  // «Control Light · базовый формат»: the heading wrapping after the separator on a phone is the
+  // design, and only «Control Light» itself breaking across two lines is the defect. Measuring
+  // the whole element would call the first one a failure, so the range is built over exactly the
+  // title's own characters, walking the text nodes to convert a string offset into a DOM offset.
+  const rangeForText = (el, needle) => {
+    const raw = el.textContent || '';
+    const at = raw.indexOf(needle);
+    if (at === -1) { return null; }
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let seenLen = 0, start = null, end = null, node;
+    while ((node = walker.nextNode())) {
+      const len = node.nodeValue.length;
+      if (start === null && seenLen + len > at) { start = [node, at - seenLen]; }
+      if (end === null && seenLen + len >= at + needle.length) { end = [node, at + needle.length - seenLen]; }
+      seenLen += len;
+      if (start && end) { break; }
+    }
+    if (!start || !end) { return null; }
+    const range = document.createRange();
+    range.setStart(start[0], start[1]);
+    range.setEnd(end[0], end[1]);
+    return range;
+  };
+  const lineCount = (el, needle) => {
+    try {
+      const range = needle ? rangeForText(el, needle) : null;
+      const r2 = range || (() => { const x = document.createRange(); x.selectNodeContents(el); return x; })();
+      const tops = new Set();
+      for (const rr of r2.getClientRects()) {
+        if (rr.width > 0 && rr.height > 0) { tops.add(Math.round(rr.top)); }
+      }
+      return tops.size || 1;
+    } catch (e) { return 1; }
+  };
+  out.approvedTitles = [];
+  for (const el of document.querySelectorAll('h1, h2, h3, h4, .package__name, .card__title, .pkg__name, strong, span, p, li, a')) {
+    if (!ownsText(el)) { continue; }
+    const text = (el.textContent || '').replace(/\\s+/g, ' ').trim();
+    // The exact title, or the title followed by the tier separator the cards use.
+    const hit = APPROVED.find((t) => text === t || text.indexOf(t + ' ·') === 0);
+    if (!hit) { continue; }
+    if (!rendered(el)) { continue; }
+    const r = el.getBoundingClientRect();
+    const s2 = cs(el);
+    const box = clipper(el.parentElement);
+    let escapes = false;
+    if (box && box !== el) {
+      const b = box.getBoundingClientRect();
+      const pad = (v) => parseFloat(v) || 0;
+      escapes = r.right > b.right - pad(s2.borderRightWidth) + TOL || r.left < b.left + pad(s2.borderLeftWidth) - TOL;
+    }
+    out.approvedTitles.push({
+      title: hit, text: text.slice(0, 60), tag: el.tagName,
+      w: Math.round(r.width), h: Math.round(r.height),
+      left: Math.round(r.left), right: Math.round(r.right),
+      painted: r.width > 0 && r.height > 0,
+      selfClipped: el.scrollWidth > el.clientWidth + TOL || el.scrollHeight > el.clientHeight + TOL,
+      outsideViewport: r.left < -TOL || r.right > vw + TOL,
+      escapesCard: escapes,
+      lines: lineCount(el, hit),
+      elementLines: lineCount(el)
+    });
   }
 
   // THE NAVY/GOLD CONTRACT, read off the rendered pixels rather than off the stylesheet. A token
@@ -622,7 +803,7 @@ const SURFACES = [
   { id: 'miniapp-review', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
     after: [SEED_BRIEF, gotoScreen('APP_REVIEW')] },
-  { id: 'miniapp-edit', url: '/app-premium/index.html', widths: [390],
+  { id: 'miniapp-edit', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
     after: [SEED_BRIEF, gotoScreen('APP_EDIT_SELECTOR')] },
   { id: 'miniapp-success', url: '/app-premium/index.html', widths: [390, 1440],
@@ -648,6 +829,9 @@ const MINIAPP = (id) => /^(miniapp|xray)/.test(id);
 
 const results = {};
 const settleReports = {};
+// Per-image release metadata, and the in-run run-A / run-B digests behind it.
+const shotMeta = {};
+const abPairs = {};
 // The text a customer actually reads on each surface, so a populated state can be asserted as
 // populated rather than merely rendered.
 const renderedText = {};
@@ -703,6 +887,19 @@ const renderedText = {};
       await c.send('Emulation.setDeviceMetricsOverride', {
         width: w, height, deviceScaleFactor: 1, mobile: w === 390,
         screenWidth: w, screenHeight: height
+      });
+      // ── REDUCED MOTION: the site's own switch for every decorative animation ────────────────
+      //
+      // main.js gates the hero constellation, the intro overlay, the custom cursor loop, the
+      // reveal pass and the count-up numbers on `prefers-reduced-motion: reduce`. Emulating it
+      // here stops the decorative work at its source instead of fighting it frame by frame, and
+      // it is a mode a real customer browses in — not a QA-only rendering path.
+      //
+      // It also FIXES the counters rather than freezing them mid-tween: under reduced motion
+      // main.js writes each number's final value straight out, so the evidence shows the figure
+      // the customer reads instead of whatever the animation had reached.
+      await c.send('Emulation.setEmulatedMedia', {
+        features: [{ name: 'prefers-reduced-motion', value: 'reduce' }]
       });
       // Two shells stand between a fresh browser and the page a customer reads, and both must be
       // satisfied BEFORE the document runs or the evidence is a picture of the shell:
@@ -796,10 +993,46 @@ const renderedText = {};
         return (c.textContent || '').replace(/\\s+/g, ' ').trim();
       })()`);
 
-      const shot = await c.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      // ── PHASE 4, RUN A / RUN B ──────────────────────────────────────────────────────────────
+      //
+      // The same surface, the same viewport, the same state, the same seed — captured twice, back
+      // to back. If anything in the page is still moving under the shot, these two digests differ
+      // and the run says so by name. Geometry cannot catch this: a drifting particle field
+      // measures identical every time and paints different pixels every time.
+      const shotA = await c.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      const shotB = await c.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+      const bytesA = Buffer.from(shotA.data, 'base64');
+      const bytesB = Buffer.from(shotB.data, 'base64');
+      const sha = (b) => createHash('sha256').update(b).digest('hex');
+      const shaA = sha(bytesA), shaB = sha(bytesB);
+      abPairs[s.id + '@' + w] = { a: shaA, b: shaB, stable: shaA === shaB };
+
       const name = s.id + '-' + w + '.png';
-      writeFileSync(join(SHOT_DIR, name), Buffer.from(shot.data, 'base64'));
+      writeFileSync(join(SHOT_DIR, name), bytesA);
+      // Everything a reviewer needs to know about THIS image, recorded beside it.
+      shotMeta[name] = {
+        candidate_sha: CANDIDATE_SHA,
+        branch: BRANCH,
+        capture_timestamp: new Date().toISOString(),
+        viewport: w + 'x' + height,
+        surface_id: s.id,
+        language: MINIAPP(s.id) ? (/-ro$/.test(s.id) ? 'ro' : 'ru') : (s.url.startsWith('/ro/') ? 'ro' : 'ru'),
+        application_state: s.after ? s.after.length + ' driven step(s)' : (s.seed ? 'seeded bootstrap' : 'as served'),
+        screenshot_filename: name,
+        sha256: shaA,
+        bytes: bytesA.length,
+        random_seed: QA_SEED,
+        reduced_motion: settled.reducedMotion,
+        font_status: settled.fontStatus,
+        layout_stable: settled.stable,
+        frozen_reschedules: settled.frozenReschedules,
+        text_clipping_count: m.clipped.length + m.textZeroBox.length,
+        overflow_count: (m.overflow ? 1 : 0) + m.textOutside.length + m.ctaOverflow.length + m.offscreen.length,
+        header_collision_count: m.header && m.header.present ? (m.header.overlaps.length + m.header.outside.length) : 0,
+        ab_reproducible: shaA === shaB
+      };
       process.stdout.write('  rendered ' + (s.id + '@' + w).padEnd(28) + ' ' + name
+        + (shaA === shaB ? '' : '  [A/B PIXEL DRIFT]')
         + (settled.stable ? '' : '  [LAYOUT NOT STABLE]') + '\n');
     }
   }
@@ -833,6 +1066,30 @@ const renderedText = {};
       for (const miss of r.painted.missing) { bad.push(k + ': ' + miss.sel + ' painted 0x0 — "' + miss.text + '"'); }
     }
     assert(bad.length === 0, bad.length + ' capture(s) not deterministic: ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('SCREENSHOT HASH DRIFT = 0 (RUN A vs RUN B) — the same surface twice, byte for byte', () => {
+    // The independent re-audit refused to certify the previous evidence because the PIXELS were
+    // not reproducible even though the geometry was. This is that gate: every surface is shot
+    // twice in the same session, same viewport, same state, same seed, and the two digests must
+    // be identical. A decorative animation still running under the shot fails here by name.
+    const bad = [];
+    for (const [k, p] of Object.entries(abPairs)) {
+      if (!p.stable) { bad.push(k + ': A=' + p.a.slice(0, 12) + ' B=' + p.b.slice(0, 12)); }
+    }
+    assert(bad.length === 0, bad.length + ' surface(s) drifted between two captures: ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('DETERMINISM SWITCHES ARMED — seeded random and reduced motion held on every surface', () => {
+    // The seed and the reduced-motion mode are what MAKE the run above reproducible. If either
+    // silently stopped applying, the A/B check could still pass by luck on a quiet page while the
+    // evidence as a whole stopped being deterministic. Both are read back from inside the page.
+    const bad = [];
+    for (const [k, r] of Object.entries(settleReports)) {
+      if (!r.settle.seeded) { bad.push(k + ': the seeded-random bootstrap did not run'); }
+      if (!r.settle.reducedMotion) { bad.push(k + ': prefers-reduced-motion was not in effect'); }
+    }
+    assert(bad.length === 0, bad.length + ' surface(s) captured without the determinism switches: ' + bad.slice(0, 6).join(' | '));
   });
 
   check('DOCUMENT HORIZONTAL OVERFLOW = 0 — no page scrolls sideways at 390px or 1440px', () => {
@@ -924,6 +1181,66 @@ const renderedText = {};
       }
     }
     assert(bad.length === 0, bad.join(' | '));
+  });
+
+  check('APPROVED PACKAGE TITLES = PASS — found by name, whole and on one line at both widths', () => {
+    // The owner-approved titles, asserted where a customer actually reads them rather than where
+    // a class name happens to be: fully painted, not clipped by their own box, inside the
+    // viewport, not escaping their card, and — because the approved design sets them as
+    // single-line card headings — on exactly ONE line at 390px and at 1440px.
+    const REQUIRED = ['Control Light', 'CFO Control Partner', 'CFO AI Control',
+      'Monthly CFO Support', 'Financial Health Check'];
+    const bad = [];
+    const seen = new Set();
+    for (const [k, r] of all) {
+      for (const t of (r.approvedTitles || [])) {
+        seen.add(t.title);
+        if (!t.painted) { bad.push(k + ': "' + t.title + '" painted ' + t.w + 'x' + t.h); }
+        if (t.selfClipped) { bad.push(k + ': "' + t.title + '" is clipped by its own box'); }
+        if (t.outsideViewport) { bad.push(k + ': "' + t.title + '" sits at ' + t.left + '..' + t.right + ' of ' + r.width); }
+        if (t.escapesCard) { bad.push(k + ': "' + t.title + '" escapes its card horizontally'); }
+        if (t.lines !== 1) { bad.push(k + ': "' + t.title + '" wraps onto ' + t.lines + ' lines'); }
+      }
+    }
+    // …and the titles must actually have been on a rendered surface, or this check proved nothing.
+    for (const want of REQUIRED) {
+      if (!seen.has(want)) { bad.push('the approved title "' + want + '" was never rendered on any audited surface'); }
+    }
+    assert(bad.length === 0, bad.length + ' package title failure(s): ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('LANGUAGE CONTROL MISSING = 0 / WRONG STATE = 0 / COLLISION = 0', () => {
+    // On every captured RU and RO website page a customer must be able to see which edition they
+    // are reading and reach the other one. Asserted, not merely recorded: the control has to be
+    // PAINTED, offer BOTH codes, and mark the page's own language — and only that one — current.
+    const bad = [];
+    for (const [k, r] of site) {
+      const h = r.header;
+      const want = r.lang.slice(0, 2) === 'ro' ? 'ro' : 'ru';
+      const other = want === 'ro' ? 'ru' : 'ro';
+      if (!h || !h.present) { bad.push(k + ': no header to carry a language control'); continue; }
+      const opts = h.langOptions || [];
+      if (opts.length === 0) { bad.push(k + ': LANGUAGE CONTROL MISSING — no RU/RO option in the bar or the drawer'); continue; }
+      // Reachable = painted in the bar, or present in the drawer the burger opens.
+      const reachable = (code) => opts.some((o) => o.code === code && (o.painted || o.inDrawer));
+      if (!reachable(want)) { bad.push(k + ': the current edition (' + want.toUpperCase() + ') has no reachable control'); }
+      if (!reachable(other)) { bad.push(k + ': LANGUAGE CONTROL MISSING — ' + other.toUpperCase() + ' is not offered'); }
+      // State: the page's own language is the active one, and the other is not.
+      const activeCodes = new Set(opts.filter((o) => o.active).map((o) => o.code));
+      if (!activeCodes.has(want)) { bad.push(k + ': LANGUAGE CONTROL WRONG STATE — ' + want.toUpperCase() + ' is not marked current'); }
+      if (activeCodes.has(other)) { bad.push(k + ': LANGUAGE CONTROL WRONG STATE — ' + other.toUpperCase() + ' is marked current on a ' + want.toUpperCase() + ' page'); }
+      // Collision: two painted options sharing pixels is a control a customer taps the wrong half of.
+      const painted = opts.filter((o) => o.painted);
+      for (let i = 0; i < painted.length; i++) {
+        for (let j = i + 1; j < painted.length; j++) {
+          const a = painted[i], b = painted[j];
+          if (a.code === b.code) { continue; }
+          const ov = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          if (ov > 1) { bad.push(k + ': LANGUAGE CONTROL COLLISION — ' + a.code + '/' + b.code + ' overlap by ' + Math.round(ov) + 'px'); }
+        }
+      }
+    }
+    assert(bad.length === 0, bad.length + ' language control defect(s): ' + bad.slice(0, 6).join(' | '));
   });
 
   check('MINI APP POPULATED / REVIEW / SUCCESS = PASS — real states, not the error shell', () => {
@@ -1025,11 +1342,18 @@ const renderedText = {};
       }
     }
     // The release's own required set, named rather than implied.
+    //
+    // Both languages of the X-Ray result, and the Mini App EDIT and SUCCESS screens, are required
+    // at both widths: a single-language X-Ray does not certify the Romanian customer's result,
+    // and an empty shell does not stand in for a populated review or a success screen.
     const REQUIRED_390 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
       'ru-packages', 'ro-packages', 'ru-real-estate', 'thank-you',
-      'miniapp-populated', 'miniapp-review', 'miniapp-success', 'xray-result-ru'];
-    const REQUIRED_1440 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ru-packages',
-      'miniapp-populated', 'miniapp-review', 'xray-result-ru'];
+      'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
+      'xray-result-ru', 'xray-result-ro'];
+    const REQUIRED_1440 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
+      'ru-packages', 'ro-packages',
+      'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
+      'xray-result-ru', 'xray-result-ro'];
     for (const id of REQUIRED_390) { assert(results[id + '@390'], 'the required 390px surface ' + id + ' is missing'); }
     for (const id of REQUIRED_1440) { assert(results[id + '@1440'], 'the required 1440px surface ' + id + ' is missing'); }
   });
@@ -1058,23 +1382,80 @@ const renderedText = {};
   });
 
   if (KEEP_DIR) {
+    // The full required release set at both widths.
     const RETAIN = ['ru-homepage-390', 'ro-homepage-390', 'ru-questionnaire-390', 'ro-questionnaire-390',
       'ru-packages-390', 'ro-packages-390', 'ru-real-estate-390', 'thank-you-390',
-      'miniapp-populated-390', 'miniapp-review-390', 'miniapp-success-390', 'xray-result-ru-390',
-      'ru-homepage-1440', 'ro-homepage-1440', 'ru-questionnaire-1440', 'ru-packages-1440',
-      'miniapp-populated-1440', 'miniapp-review-1440', 'xray-result-ru-1440'];
-    const manifest = { generatedBy: 'qa/visual-evidence.mjs', chrome: version['Browser'], shots: {} };
+      'miniapp-populated-390', 'miniapp-review-390', 'miniapp-edit-390', 'miniapp-success-390',
+      'xray-result-ru-390', 'xray-result-ro-390',
+      'ru-homepage-1440', 'ro-homepage-1440', 'ru-questionnaire-1440', 'ro-questionnaire-1440',
+      'ru-packages-1440', 'ro-packages-1440',
+      'miniapp-populated-1440', 'miniapp-review-1440', 'miniapp-edit-1440', 'miniapp-success-1440',
+      'xray-result-ru-1440', 'xray-result-ro-1440'];
+
+    // ── PHASE 4, THE COLD RUN ────────────────────────────────────────────────────────────────
+    //
+    // A manifest already in the keep directory is a PREVIOUS run's digests. Comparing against it
+    // turns "run it twice and diff by hand" into a gate: delete qa-artifacts, run again, and any
+    // retained image whose pixels moved fails the run and is named. Only `sha256` is compared —
+    // `capture_timestamp` is required evidence and is volatile by definition.
+    let previous = null;
+    const prevPath = join(KEEP_DIR, 'manifest.json');
+    if (existsSync(prevPath)) {
+      try { previous = JSON.parse(readFileSync(prevPath, 'utf8')); } catch (e) { previous = null; }
+    }
+
+    const manifest = {
+      generatedBy: 'qa/visual-evidence.mjs',
+      candidate_sha: CANDIDATE_SHA,
+      branch: BRANCH,
+      generated_at: new Date().toISOString(),
+      chrome: version['Browser'],
+      random_seed: QA_SEED,
+      reduced_motion: true,
+      shots: {}
+    };
+    const drift = [];
     for (const n of RETAIN) {
-      const bytes = readFileSync(join(SHOT_DIR, n + '.png'));
-      writeFileSync(join(KEEP_DIR, n + '.png'), bytes);
-      // The evidence is only evidence if a reviewer can prove the file in the tree is the file the
-      // run produced, so each retained shot carries its own digest.
-      manifest.shots[n + '.png'] = { sha256: createHash('sha256').update(bytes).digest('hex'), bytes: bytes.length };
+      const file = n + '.png';
+      const bytes = readFileSync(join(SHOT_DIR, file));
+      writeFileSync(join(KEEP_DIR, file), bytes);
+      // A retained name with no capture record is itself a finding; it is recorded as an empty
+      // entry so the manifest check below names it rather than the run dying here.
+      manifest.shots[file] = shotMeta[file] || { screenshot_filename: file };
+      const meta = manifest.shots[file];
+      if (previous && previous.shots && previous.shots[file] && previous.shots[file].sha256 !== meta.sha256) {
+        drift.push(file + ': ' + previous.shots[file].sha256.slice(0, 12) + ' -> ' + meta.sha256.slice(0, 12));
+      }
     }
     writeFileSync(join(KEEP_DIR, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
     writeFileSync(join(KEEP_DIR, 'measurements.json'), JSON.stringify(results, null, 2), 'utf8');
     writeFileSync(join(KEEP_DIR, 'capture-determinism.json'), JSON.stringify(settleReports, null, 2), 'utf8');
     console.log('  retained ' + RETAIN.length + ' screenshots in ' + KEEP_DIR);
+
+    check('SCREENSHOT HASH DRIFT = 0 (against the previously retained manifest)', () => {
+      if (!previous) { console.log('        (no previous manifest — this run establishes the baseline)'); return; }
+      assert(previous.shots, 'the previous manifest carries no shots');
+      assert(drift.length === 0, drift.length + ' retained image(s) changed pixels: ' + drift.slice(0, 6).join(' | '));
+    });
+
+    check('every retained image carries the full release evidence record', () => {
+      const NEED = ['candidate_sha', 'branch', 'capture_timestamp', 'viewport', 'surface_id', 'language',
+        'application_state', 'screenshot_filename', 'sha256', 'random_seed', 'font_status',
+        'layout_stable', 'text_clipping_count', 'overflow_count', 'header_collision_count'];
+      const bad = [];
+      for (const [file, meta] of Object.entries(manifest.shots)) {
+        for (const key of NEED) {
+          if (meta[key] === undefined || meta[key] === null || meta[key] === '') { bad.push(file + ': missing ' + key); }
+        }
+        // Evidence has to be OF the commit under audit. A screenshot carrying an earlier SHA is
+        // a picture of a different candidate.
+        if (meta.candidate_sha !== CANDIDATE_SHA) { bad.push(file + ': candidate_sha ' + meta.candidate_sha + ' != ' + CANDIDATE_SHA); }
+        if (meta.random_seed !== QA_SEED) { bad.push(file + ': random_seed ' + meta.random_seed); }
+        if (meta.layout_stable !== true) { bad.push(file + ': layout was not stable'); }
+        if (meta.ab_reproducible !== true) { bad.push(file + ': run A and run B disagreed'); }
+      }
+      assert(bad.length === 0, bad.length + ' manifest defect(s): ' + bad.slice(0, 6).join(' | '));
+    });
   }
 
   console.log('\n' + pass + ' passed, ' + failures.length + ' failed');
