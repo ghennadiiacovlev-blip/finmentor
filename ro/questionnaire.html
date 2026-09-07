@@ -1327,7 +1327,7 @@
     }
   });
 
-  // ---------- preliminary AI hints (no AI, frontend only) ----------
+  // ---------- preliminary inteligență artificială (AI) hints (no IA, frontend only) ----------
   function plScore(v) { if (/да/i.test(v) && !/частич/i.test(v)) return 2; if (/частич|excel/i.test(v)) return 1; return 0; }
   function maturityHint() {
     var s = plScore(radioVal('q_f1')) + plScore(radioVal('q_f2'));

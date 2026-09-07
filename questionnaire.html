@@ -296,7 +296,7 @@
      Low | Medium | High | Critical.
   6. RECOMMENDED FIRST STEP
      Health Check | Business Control System | Monthly Support |
-     финансовый директор AI Transformation | request documents first | discovery call first.
+     финансовый директор искусственный интеллект (AI) Transformation | request documents first | discovery call first.
   7. MEETING AGENDA
      5-7 пунктов для первой встречи.
   8. DOCUMENT REQUEST LIST
@@ -309,7 +309,7 @@
      communication_format, meeting_frequency, channels, quality_control,
      document_exchange, how_to_address_client_concerns.
 
-  TODO: questionnaire submit -> webhook -> AI agent -> Telegram + Gmail + Google Sheets / CRM.
+  TODO: questionnaire submit -> webhook -> ИИ agent -> Telegram + Gmail + Google Sheets / CRM.
 ================================================================================
 -->
 
@@ -1287,7 +1287,7 @@
     }
   });
 
-  // ---------- preliminary AI hints (no AI, frontend only) ----------
+  // ---------- preliminary ИИ hints (no ИИ, frontend only) ----------
   function plScore(v) { if (/да/i.test(v) && !/частич/i.test(v)) return 2; if (/частич|excel/i.test(v)) return 1; return 0; }
   function maturityHint() {
     var s = plScore(radioVal('q_f1')) + plScore(radioVal('q_f2'));
