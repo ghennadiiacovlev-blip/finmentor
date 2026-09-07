@@ -6,7 +6,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -40,7 +43,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -74,7 +80,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -108,7 +117,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -142,7 +154,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -170,7 +185,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -198,7 +216,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -226,7 +247,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -252,9 +276,12 @@
       "fontsReady": true,
       "fontStatus": "loaded",
       "pendingFaces": [],
-      "layoutSamples": 4,
+      "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -286,9 +313,12 @@
       "fontsReady": true,
       "fontStatus": "loaded",
       "pendingFaces": [],
-      "layoutSamples": 4,
+      "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -320,9 +350,12 @@
       "fontsReady": true,
       "fontStatus": "loaded",
       "pendingFaces": [],
-      "layoutSamples": 4,
+      "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -356,7 +389,10 @@
       "pendingFaces": [],
       "layoutSamples": 4,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -390,7 +426,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -424,7 +463,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -458,7 +500,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -492,7 +537,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -526,7 +574,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -560,7 +611,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -594,7 +648,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -628,7 +685,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -662,7 +722,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -696,7 +759,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -730,7 +796,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -764,7 +833,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -798,7 +870,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -832,7 +907,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -866,7 +944,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -900,7 +981,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -934,7 +1018,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -968,7 +1055,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1002,7 +1092,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1036,7 +1129,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1070,7 +1166,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1097,6 +1196,43 @@
       "ok": true
     }
   },
+  "miniapp-edit@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Что хотите изменить?",
+          "w": 416,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
   "miniapp-success@390": {
     "settle": {
       "fontsReady": true,
@@ -1104,7 +1240,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1138,7 +1277,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1172,7 +1314,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1206,7 +1351,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1240,7 +1388,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1274,7 +1425,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1308,7 +1462,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [
@@ -1342,7 +1499,10 @@
       "pendingFaces": [],
       "layoutSamples": 3,
       "stable": true,
-      "frames": 2
+      "frames": 2,
+      "seeded": true,
+      "reducedMotion": true,
+      "frozenReschedules": 0
     },
     "painted": {
       "anchors": [

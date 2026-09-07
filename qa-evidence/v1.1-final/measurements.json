@@ -98,7 +98,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
@@ -108,6 +150,38 @@
     "lang": "ru",
     "textElements": 457,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -234,7 +308,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "RU"
+      "homeLink": "RU",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 990,
+          "right": 1024
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1026,
+          "right": 1060
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
@@ -244,6 +360,38 @@
     "lang": "ru",
     "textElements": 469,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 185,
+        "right": 482,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 958,
+        "right": 1255,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -361,7 +509,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
@@ -371,6 +561,38 @@
     "lang": "ro",
     "textElements": 455,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -497,7 +719,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "RU"
+      "homeLink": "RU",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 951,
+          "right": 985
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 987,
+          "right": 1021
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
@@ -507,6 +771,38 @@
     "lang": "ro",
     "textElements": 467,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 185,
+        "right": 482,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 958,
+        "right": 1255,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -552,10 +848,38 @@
         "clipped": false
       },
       "burger": null,
-      "langGroups": [],
+      "langGroups": [
+        {
+          "w": 66,
+          "left": 168,
+          "right": 233
+        }
+      ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 29,
+          "h": 25,
+          "left": 171,
+          "right": 199
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 29,
+          "h": 25,
+          "left": 201,
+          "right": 230
+        }
+      ]
     },
     "h1": {
       "text": "Финансовый рентген FINMENTOR",
@@ -563,8 +887,9 @@
       "h": 110
     },
     "lang": "ru",
-    "textElements": 487,
+    "textElements": 489,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -619,7 +944,29 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 690,
+          "right": 724
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 726,
+          "right": 761
+        }
+      ]
     },
     "h1": {
       "text": "Финансовый рентген FINMENTOR",
@@ -629,6 +976,7 @@
     "lang": "ru",
     "textElements": 500,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -674,10 +1022,38 @@
         "clipped": false
       },
       "burger": null,
-      "langGroups": [],
+      "langGroups": [
+        {
+          "w": 66,
+          "left": 152,
+          "right": 218
+        }
+      ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 29,
+          "h": 25,
+          "left": 155,
+          "right": 184
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 29,
+          "h": 25,
+          "left": 186,
+          "right": 215
+        }
+      ]
     },
     "h1": {
       "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoastră?",
@@ -685,8 +1061,9 @@
       "h": 147
     },
     "lang": "ro",
-    "textElements": 487,
+    "textElements": 489,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -741,7 +1118,29 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 675,
+          "right": 709
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 711,
+          "right": 745
+        }
+      ]
     },
     "h1": {
       "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoastră?",
@@ -751,6 +1150,7 @@
     "lang": "ro",
     "textElements": 500,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -868,7 +1268,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
@@ -878,6 +1320,38 @@
     "lang": "ru",
     "textElements": 457,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1004,7 +1478,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "RU"
+      "homeLink": "RU",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 990,
+          "right": 1024
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1026,
+          "right": 1060
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
@@ -1014,6 +1530,38 @@
     "lang": "ru",
     "textElements": 469,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 185,
+        "right": 482,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 958,
+        "right": 1255,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1131,7 +1679,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
@@ -1141,6 +1731,38 @@
     "lang": "ro",
     "textElements": 455,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 292,
+        "h": 24,
+        "left": 49,
+        "right": 341,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1267,7 +1889,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "RU"
+      "homeLink": "RU",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 951,
+          "right": 985
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 987,
+          "right": 1021
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
@@ -1277,6 +1941,38 @@
     "lang": "ro",
     "textElements": 467,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Financial Health Check",
+        "text": "Financial Health Check",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 185,
+        "right": 482,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "Monthly CFO Support",
+        "text": "Monthly CFO Support",
+        "tag": "H3",
+        "w": 297,
+        "h": 26,
+        "left": 958,
+        "right": 1255,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1330,7 +2026,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Ежемесячное финансовое сопровождение для собственника бизнеса",
@@ -1340,6 +2078,53 @@
     "lang": "ru",
     "textElements": 81,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Control Light",
+        "text": "Control Light · базовый формат",
+        "tag": "H2",
+        "w": 342,
+        "h": 52,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 2
+      },
+      {
+        "title": "CFO Control Partner",
+        "text": "CFO Control Partner · Standard",
+        "tag": "H2",
+        "w": 342,
+        "h": 52,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 2
+      },
+      {
+        "title": "CFO AI Control",
+        "text": "CFO AI Control · Premium",
+        "tag": "H2",
+        "w": 342,
+        "h": 26,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1402,7 +2187,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1085,
+          "right": 1123
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1125,
+          "right": 1162
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Ежемесячное финансовое сопровождение для собственника бизнеса",
@@ -1412,6 +2239,53 @@
     "lang": "ru",
     "textElements": 88,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Control Light",
+        "text": "Control Light · базовый формат",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "CFO Control Partner",
+        "text": "CFO Control Partner · Standard",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "CFO AI Control",
+        "text": "CFO AI Control · Premium",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1465,7 +2339,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Suport financiar lunar pentru proprietarul afacerii",
@@ -1475,6 +2391,53 @@
     "lang": "ro",
     "textElements": 81,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Control Light",
+        "text": "Control Light · format de bază",
+        "tag": "H2",
+        "w": 342,
+        "h": 26,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "CFO Control Partner",
+        "text": "CFO Control Partner · Standard",
+        "tag": "H2",
+        "w": 342,
+        "h": 52,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 2
+      },
+      {
+        "title": "CFO AI Control",
+        "text": "CFO AI Control · Premium",
+        "tag": "H2",
+        "w": 342,
+        "h": 26,
+        "left": 24,
+        "right": 366,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1537,7 +2500,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1085,
+          "right": 1123
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1125,
+          "right": 1162
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Suport financiar lunar pentru proprietarul afacerii",
@@ -1547,6 +2552,53 @@
     "lang": "ro",
     "textElements": 88,
     "scrollContainers": [],
+    "approvedTitles": [
+      {
+        "title": "Control Light",
+        "text": "Control Light · format de bază",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "CFO Control Partner",
+        "text": "CFO Control Partner · Standard",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      },
+      {
+        "title": "CFO AI Control",
+        "text": "CFO AI Control · Premium",
+        "tag": "H2",
+        "w": 760,
+        "h": 35,
+        "left": 152,
+        "right": 912,
+        "painted": true,
+        "selfClipped": false,
+        "outsideViewport": false,
+        "escapesCard": false,
+        "lines": 1,
+        "elementLines": 1
+      }
+    ],
     "brand": {
       "rootBg": [
         8,
@@ -1600,7 +2652,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Система финансового управления недвижимостью: доходность объекта под у",
@@ -1610,6 +2704,7 @@
     "lang": "ru",
     "textElements": 48,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1672,7 +2767,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1085,
+          "right": 1123
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1125,
+          "right": 1162
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Система финансового управления недвижимостью: доходность объекта под у",
@@ -1682,6 +2819,7 @@
     "lang": "ru",
     "textElements": 55,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1735,7 +2873,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Sistem de management financiar al activelor imobiliare: randamentul im",
@@ -1745,6 +2925,7 @@
     "lang": "ro",
     "textElements": 48,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1807,7 +2988,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1085,
+          "right": 1123
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1125,
+          "right": 1162
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Sistem de management financiar al activelor imobiliare: randamentul im",
@@ -1817,6 +3040,7 @@
     "lang": "ro",
     "textElements": 55,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1870,7 +3094,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Спасибо. Заявка получена.",
@@ -1880,6 +3146,7 @@
     "lang": "ru",
     "textElements": 13,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1934,7 +3201,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1239,
+          "right": 1276
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1278,
+          "right": 1316
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Спасибо. Заявка получена.",
@@ -1944,6 +3253,7 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -1989,7 +3299,49 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": false,
+          "active": false,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": false,
+          "active": true,
+          "w": 0,
+          "h": 0,
+          "left": 0,
+          "right": 0
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 282,
+          "right": 316
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 318,
+          "right": 352
+        }
+      ]
     },
     "h1": {
       "text": "Mulțumim. Solicitarea a fost primită.",
@@ -1999,6 +3351,7 @@
     "lang": "ro",
     "textElements": 13,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2053,7 +3406,49 @@
       ],
       "overlaps": [],
       "outside": [],
-      "homeLink": "finmentor"
+      "homeLink": "finmentor",
+      "langOptions": [
+        {
+          "code": "ru",
+          "painted": true,
+          "inDrawer": false,
+          "active": false,
+          "w": 38,
+          "h": 33,
+          "left": 1239,
+          "right": 1276
+        },
+        {
+          "code": "ro",
+          "painted": true,
+          "inDrawer": false,
+          "active": true,
+          "w": 38,
+          "h": 33,
+          "left": 1278,
+          "right": 1316
+        },
+        {
+          "code": "ru",
+          "painted": false,
+          "inDrawer": true,
+          "active": false,
+          "w": 34,
+          "h": 28,
+          "left": 1332,
+          "right": 1366
+        },
+        {
+          "code": "ro",
+          "painted": false,
+          "inDrawer": true,
+          "active": true,
+          "w": 34,
+          "h": 28,
+          "left": 1368,
+          "right": 1402
+        }
+      ]
     },
     "h1": {
       "text": "Mulțumim. Solicitarea a fost primită.",
@@ -2063,6 +3458,7 @@
     "lang": "ro",
     "textElements": 19,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2103,7 +3499,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Поймите, где теряется контроль над деньгами и прибылью.",
@@ -2113,6 +3510,7 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2161,7 +3559,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Поймите, где теряется контроль над деньгами и прибылью.",
@@ -2171,6 +3570,7 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2219,7 +3619,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Подготовим бриф для консультанта.",
@@ -2229,6 +3630,7 @@
     "lang": "ru",
     "textElements": 11,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2269,7 +3671,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Подготовим бриф для консультанта.",
@@ -2279,6 +3682,7 @@
     "lang": "ru",
     "textElements": 11,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2319,7 +3723,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Что именно происходит с деньгами?",
@@ -2329,6 +3734,7 @@
     "lang": "ru",
     "textElements": 21,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2369,7 +3775,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Что именно происходит с деньгами?",
@@ -2379,6 +3786,7 @@
     "lang": "ru",
     "textElements": 21,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2419,7 +3827,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Бриф для консультанта",
@@ -2429,6 +3838,7 @@
     "lang": "ru",
     "textElements": 47,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2469,7 +3879,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Бриф для консультанта",
@@ -2479,6 +3890,7 @@
     "lang": "ru",
     "textElements": 47,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2519,7 +3931,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Что хотите изменить?",
@@ -2529,6 +3942,59 @@
     "lang": "ru",
     "textElements": 33,
     "scrollContainers": [],
+    "approvedTitles": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-edit@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 684,
+        "right": 756,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null,
+      "langOptions": []
+    },
+    "h1": {
+      "text": "Что хотите изменить?",
+      "w": 416,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 33,
+    "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2569,7 +4035,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Принято",
@@ -2579,6 +4046,7 @@
     "lang": "ru",
     "textElements": 20,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2619,7 +4087,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Принято",
@@ -2629,6 +4098,7 @@
     "lang": "ru",
     "textElements": 20,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2669,7 +4139,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Время сессии истекло",
@@ -2679,6 +4150,7 @@
     "lang": "ru",
     "textElements": 9,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2719,7 +4191,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Не удалось открыть форму",
@@ -2729,6 +4202,7 @@
     "lang": "ru",
     "textElements": 9,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2769,7 +4243,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Результат анализа",
@@ -2779,6 +4254,7 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2819,7 +4295,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Результат анализа",
@@ -2829,6 +4306,7 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2869,7 +4347,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Rezultatul analizei",
@@ -2879,6 +4358,7 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
@@ -2919,7 +4399,8 @@
       "langGroups": [],
       "overlaps": [],
       "outside": [],
-      "homeLink": null
+      "homeLink": null,
+      "langOptions": []
     },
     "h1": {
       "text": "Rezultatul analizei",
@@ -2929,6 +4410,7 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "approvedTitles": [],
     "brand": {
       "rootBg": [
         8,
