@@ -83,14 +83,14 @@ Tier 1.**
 | Discovery Call | RU | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | YES | NO |
 | Discovery Call | RO | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | YES | NO |
 | CFO | RO | MUST_LOCALIZE | 29 | CRITICAL | Финансовый директор | Director financiar | NO | NO |
-| Business Control System | RU | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система управления бизнесом | Sistem de management al afacerii | YES | YES |
-| Business Control System | RO | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система управления бизнесом | Sistem de management al afacerii | YES | YES |
+| Business Control System | RU | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система финансового управления бизнесом | Sistem de management financiar al afacerii | YES | APPROVED |
+| Business Control System | RO | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система финансового управления бизнесом | Sistem de management financiar al afacerii | YES | APPROVED |
 | CFO | RU | MUST_LOCALIZE | 19 | CRITICAL | Финансовый директор | Director financiar | NO | NO |
 | KPI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | NO |
 | KPI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | NO |
 | Financial Health Check | RU | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar | YES | NO |
 | Financial Health Check | RO | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar | YES | NO |
-| Control Light | RU | OWNER_DECISION_REQUIRED | 11 | CRITICAL | Лёгкий контроль | Control simplificat | YES | YES |
+| Control Light | RU | OWNER_DECISION_REQUIRED | 11 | CRITICAL | Базовый финансовый контроль | Control financiar esențial | YES | APPROVED |
 | AI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | CRITICAL | Искусственный интеллект | Inteligență artificială | YES | NO |
 | DPO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Срок оплаты поставщикам | Termenul de plată la furnizori | YES | NO |
 | DPO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Срок оплаты поставщикам | Termenul de plată la furnizori | YES | NO |
@@ -110,9 +110,9 @@ Tier 1.**
 | Cash Saving | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Денежная экономия | Economie în numerar | YES | NO |
 | cash flow | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | денежный поток | flux de numerar | YES | NO |
 | Cash Saving | RO | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Денежная экономия | Economie în numerar | YES | NO |
-| Client Base Control System | RU | OWNER_DECISION_REQUIRED | 15 | HIGH | Система управления клиентской базой | Sistem de management al bazei de clienți | YES | YES |
-| Funding Gap | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | YES |
-| Funding Gap | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | YES |
+| Client Base Control System | RU | OWNER_DECISION_REQUIRED | 15 | HIGH | Система управления клиентской базой | Sistem de management al bazei de clienți | YES | APPROVED |
+| Funding Gap | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | APPROVED |
+| Funding Gap | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | APPROVED |
 | Light | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | Лёгкий | Simplificat | NO | YES |
 | Full Cost | RU | LOCALIZE_WITH_ENGLISH_ONCE | 11 | HIGH | Полная стоимость | Costul total | YES | NO |
 | BI | RU | MUST_LOCALIZE | 11 | HIGH | аналитика | analiză | NO | NO |
@@ -127,23 +127,23 @@ Tier 1.**
 | Owner | RO | MUST_LOCALIZE | 10 | HIGH | Собственник | Proprietar | NO | NO |
 | Inventory Days | RO | LOCALIZE_WITH_ENGLISH_ONCE | 10 | HIGH | Дни запасов | Zile de stoc | YES | NO |
 | Owner | RU | MUST_LOCALIZE | 9 | HIGH | Собственник | Proprietar | NO | NO |
-| Retail Margin Engine | RU | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | YES |
+| Retail Margin Engine | RU | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | APPROVED |
 | tenant rating | RU | MUST_LOCALIZE | 7 | MEDIUM | рейтинг арендаторов | ratingul chiriașilor | NO | NO |
 | NOI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | NO |
 | rent vs market | RU | MUST_LOCALIZE | 7 | MEDIUM | аренда против рынка | chiria față de piață | NO | NO |
-| Retail Margin Engine | RO | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | YES |
+| Retail Margin Engine | RO | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | APPROVED |
 | NOI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | NO |
 | ERP | RU | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Учётная система | Sistem de evidență | YES | NO |
-| Margin Gap | RU | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Разрыв маржи | Deficit de marjă | YES | YES |
+| Margin Gap | RU | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | APPROVED |
 | ERP | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Учётная система | Sistem de evidență | YES | NO |
-| Margin Gap | RO | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Разрыв маржи | Deficit de marjă | YES | YES |
-| Control System | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Система управления | Sistem de management | YES | YES |
+| Margin Gap | RO | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | APPROVED |
+| Control System | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Система финансового контроля | Sistem de control financiar | YES | APPROVED |
 | Standard | RU | MUST_LOCALIZE | 4 | MEDIUM | Стандартный | Standard | NO | NO |
 | ROI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Отдача от вложений | Randamentul investiției | YES | NO |
 | ROI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Отдача от вложений | Randamentul investiției | YES | NO |
 | Sheets | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | Google Sheets | Google Sheets | NO | NO |
-| Fitness Membership Renewal Engine | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | YES |
-| Target Marja | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | YES |
+| Fitness Membership Renewal Engine | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | APPROVED |
+| Target Marja | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | APPROVED |
 | Fitness | RU | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | NO |
 | light- | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Premium | RU | MUST_LOCALIZE | 3 | MEDIUM | Премиальный | Premium | NO | NO |
@@ -151,15 +151,15 @@ Tier 1.**
 | OpenAI | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | NO |
 | NDA | RU | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о неразглашении | Acord de confidențialitate | YES | NO |
 | Monthly | RO | MUST_LOCALIZE | 3 | MEDIUM | Ежемесячно | Lunar | NO | NO |
-| Fitness Membership Renewal Engine | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | YES |
-| Target Marja | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | YES |
+| Fitness Membership Renewal Engine | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | APPROVED |
+| Target Marja | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | APPROVED |
 | Fitness | RO | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | NO |
 | OpenAI | RO | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | NO |
 | NDA | RO | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о неразглашении | Acord de confidențialitate | YES | NO |
 | Spend | RU | MUST_LOCALIZE | 2 | MEDIUM | Расходы | Cheltuieli | NO | NO |
 | Automation | RU | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | NO |
 | Telegram- | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NO |
-| Monthly owner report | RU | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | YES | YES |
+| Monthly owner report | RU | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | APPROVED |
 | Limb | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NO |
 | risk traffic light | RU | MUST_LOCALIZE | 2 | MEDIUM | светофор рисков | semafor de risc | NO | NO |
 | profitability | RU | MUST_LOCALIZE | 2 | MEDIUM | прибыльность | profitabilitate | NO | NO |
@@ -170,7 +170,7 @@ Tier 1.**
 | Zoom | RU | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | NO |
 | Spend | RO | MUST_LOCALIZE | 2 | MEDIUM | Расходы | Cheltuieli | NO | NO |
 | Automation | RO | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | NO |
-| Monthly owner report | RO | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | YES | YES |
+| Monthly owner report | RO | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | APPROVED |
 | Zoom | RO | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | NO |
 | Selectarea limbii | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | ROM | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
@@ -310,17 +310,17 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 
 | term | lang | class | occ | importance | RU proposal | RO proposal | EN once | owner decision |
 |---|---|---|---|---|---|---|---|---|
-| Payment Gate | RU | OWNER_DECISION_REQUIRED | 15 | HIGH | Платёжный шлюз | Poarta de plată | YES | YES |
-| Payment Gate | RO | OWNER_DECISION_REQUIRED | 15 | HIGH | Платёжный шлюз | Poarta de plată | YES | YES |
-| Revenue at Risk | RU | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri în risc | YES | YES |
-| Revenue at Risk | RO | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri în risc | YES | YES |
-| Expected Renewal Value | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая стоимость продлений | Valoarea așteptată a reînnoirilor | YES | YES |
-| Expected Renewal Value | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая стоимость продлений | Valoarea așteptată a reînnoirilor | YES | YES |
+| Payment Gate | RU | OWNER_DECISION_REQUIRED | 15 | HIGH | Контроль платежей | Controlul plăților | YES | APPROVED |
+| Payment Gate | RO | OWNER_DECISION_REQUIRED | 15 | HIGH | Контроль платежей | Controlul plăților | YES | APPROVED |
+| Revenue at Risk | RU | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri expuse riscului | YES | APPROVED |
+| Revenue at Risk | RO | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri expuse riscului | YES | APPROVED |
+| Expected Renewal Value | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | APPROVED |
+| Expected Renewal Value | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | APPROVED |
 | dashboard | RU | MUST_LOCALIZE | 12 | HIGH | панель собственника | tablou de bord | NO | NO |
 | SKU | RU | LOCALIZE_WITH_ENGLISH_ONCE | 12 | HIGH | Товарная позиция | Articol de stoc | YES | NO |
-| Supplier Shelf Credit | RU | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | YES |
+| Supplier Shelf Credit | RU | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | APPROVED |
 | SKU | RO | LOCALIZE_WITH_ENGLISH_ONCE | 12 | HIGH | Товарная позиция | Articol de stoc | YES | NO |
-| Supplier Shelf Credit | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | YES |
+| Supplier Shelf Credit | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | APPROVED |
 | treasury briefing | RU | MUST_LOCALIZE | 11 | HIGH | — | — | NO | NO |
 | funding gap | RU | MUST_LOCALIZE | 11 | HIGH | — | — | NO | NO |
 | Power BI dashboard | RU | MUST_LOCALIZE | 10 | HIGH | — | — | NO | NO |
@@ -348,7 +348,7 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | COGS | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Себестоимость продаж | Costul bunurilor vândute | YES | NO |
 | CFO Control Partner | RO | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
 | Coverage | RO | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
-| Control Partner | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Постоянный финансовый партнёр | Partener financiar permanent | YES | YES |
+| Control Partner | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Финансовый партнёр | Partener financiar | YES | APPROVED |
 | backtest | RU | MUST_LOCALIZE | 5 | MEDIUM | ретропроверка | testare retroactivă | NO | NO |
 | Final FCF | RU | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
 | roadmap | RU | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
@@ -362,7 +362,7 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Executive Summary | RU | MUST_LOCALIZE | 4 | MEDIUM | Краткое резюме | Rezumat executiv | NO | NO |
 | Mix | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
 | Real Estate Control System FINMENTOR | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
-| Real Estate Control System | RU | OWNER_DECISION_REQUIRED | 4 | MEDIUM | Система управления недвижимостью | Sistem de management imobiliar | YES | YES |
+| Real Estate Control System | RU | OWNER_DECISION_REQUIRED | 4 | MEDIUM | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | YES | APPROVED |
 | retail- | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
 | Supplier Rating | RU | MUST_LOCALIZE | 4 | MEDIUM | Рейтинг поставщиков | Ratingul furnizorilor | NO | NO |
 | Free Treasury Cash | RU | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Свободные деньги казначейства | Numerar liber de trezorerie | YES | NO |
@@ -376,9 +376,9 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | out-of-time | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Funding Gap Days | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Financing Cost | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
-| Supplier-Financed | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Профинансировано поставщиком | Finanțat de furnizor | YES | YES |
-| Own-Funded | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Профинансировано собственными деньгами | Finanțat din surse proprii | YES | YES |
-| Purchase Gate | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Контроль закупок | Poarta de achiziție | YES | YES |
+| Supplier-Financed | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Финансируется поставщиком | Finanțat de furnizor | YES | APPROVED |
+| Own-Funded | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | За счёт собственных средств | Din surse proprii | YES | APPROVED |
+| Purchase Gate | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Контроль закупок | Controlul achizițiilor | YES | APPROVED |
 | AP Gate | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Green | RU | MUST_LOCALIZE | 3 | MEDIUM | Зелёная зона | Zonă verde | NO | NO |
 | Yellow | RU | MUST_LOCALIZE | 3 | MEDIUM | Жёлтая зона | Zonă galbenă | NO | NO |
@@ -396,9 +396,9 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Transformation | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Funding Gap Days | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Financing Cost | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
-| Supplier-Financed | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Профинансировано поставщиком | Finanțat de furnizor | YES | YES |
-| Own-Funded | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Профинансировано собственными деньгами | Finanțat din surse proprii | YES | YES |
-| Purchase Gate | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Контроль закупок | Poarta de achiziție | YES | YES |
+| Supplier-Financed | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Финансируется поставщиком | Finanțat de furnizor | YES | APPROVED |
+| Own-Funded | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | За счёт собственных средств | Din surse proprii | YES | APPROVED |
+| Purchase Gate | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Контроль закупок | Controlul achizițiilor | YES | APPROVED |
 | AP Gate | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Mix | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
 | Green | RO | MUST_LOCALIZE | 3 | MEDIUM | Зелёная зона | Zonă verde | NO | NO |
@@ -449,18 +449,18 @@ deeply. They should be localised as the content is next revised rather than in a
 | Payment Calendar | RU | 6 | Платёжный календарь |
 | Payment Calendar | RO | 6 | Платёжный календарь |
 | Treasury Fund Planning | RU | 5 | Планирование фондов казначейства |
-| Monthly Owner Report | RU | 5 | Ежемесячный отчёт собственника |
+| Monthly Owner Report | RU | 5 | Ежемесячный отчёт для собственника |
 | Investment Model | RU | 5 | Инвестиционная модель |
 | Due AP | RU | 5 | Кредиторская задолженность к оплате |
 | Treasury Fund Planning | RO | 5 | Планирование фондов казначейства |
-| Monthly Owner Report | RO | 5 | Ежемесячный отчёт собственника |
+| Monthly Owner Report | RO | 5 | Ежемесячный отчёт для собственника |
 | Investment Model | RO | 5 | Инвестиционная модель |
 | Due AP | RO | 5 | Кредиторская задолженность к оплате |
 | KPI Dashboard | RU | 4 | — |
 | JS- | RU | 4 | — |
-| Recoverable VAT | RU | 4 | Возмещаемый НДС |
+| Recoverable VAT | RU | 4 | НДС к возмещению |
 | KPI Dashboard | RO | 4 | — |
-| Recoverable VAT | RO | 4 | Возмещаемый НДС |
+| Recoverable VAT | RO | 4 | НДС к возмещению |
 | template | RU | 3 | — |
 | Collectible AR | RU | 3 | — |
 | Collectible AR | RO | 3 | — |
@@ -489,27 +489,27 @@ currently in that class.
 
 | current name | what it means in plain business language | RU proposal | RO proposal | keep EN in parentheses? | owner decision |
 |---|---|---|---|---|---|
-| Business Control System | the owner's single control loop over money, profit and risk | Система управления бизнесом | Sistem de management al afacerii | YES | YES |
+| Business Control System | the owner's single control loop over money, profit and risk | Система финансового управления бизнесом | Sistem de management financiar al afacerii | YES | YES |
 | Client Base Control System | control over the customer base: who renews, who churns, what it costs | Система управления клиентской базой | Sistem de management al bazei de clienți | YES | YES |
-| Payment Gate | the approval step a payment must pass before it is released | Платёжный шлюз | Poarta de plată | YES | YES |
-| Revenue at Risk | revenue that will be lost unless something is done | Выручка под риском | Venituri în risc | YES | YES |
+| Payment Gate | the approval step a payment must pass before it is released | Контроль платежей | Controlul plăților | YES | YES |
+| Revenue at Risk | revenue that will be lost unless something is done | Выручка под риском | Venituri expuse riscului | YES | YES |
 | Funding Gap | the money the business will be short of, and when | Дефицит финансирования | Deficit de finanțare | YES | YES |
-| Expected Renewal Value | the money expected from renewals still to come | Ожидаемая стоимость продлений | Valoarea așteptată a reînnoirilor | YES | YES |
+| Expected Renewal Value | the money expected from renewals still to come | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | YES |
 | Supplier Shelf Credit | how much of the stock on the shelf the supplier is really financing | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | YES |
-| Control Light | the entry service tier | Лёгкий контроль | Control simplificat | YES | YES |
+| Control Light | the entry service tier | Базовый финансовый контроль | Control financiar esențial | YES | YES |
 | Retail Margin Engine | how margin is made and lost per shelf, product and supplier | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | YES |
-| Margin Gap | the difference between the margin earned and the margin targeted | Разрыв маржи | Deficit de marjă | YES | YES |
-| Control System | — | Система управления | Sistem de management | YES | YES |
-| Control Partner | the ongoing partner service tier | Постоянный финансовый партнёр | Partener financiar permanent | YES | YES |
-| Monthly Owner Report | the monthly report the owner actually reads | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | YES | YES |
-| Real Estate Control System | control over a property portfolio's income, cost and risk | Система управления недвижимостью | Sistem de management imobiliar | YES | YES |
-| Recoverable VAT | VAT the business can get back rather than absorb | Возмещаемый НДС | TVA recuperabilă | YES | YES |
+| Margin Gap | the difference between the margin earned and the margin targeted | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | YES |
+| Control System | — | Система финансового контроля | Sistem de control financiar | YES | YES |
+| Control Partner | the ongoing partner service tier | Финансовый партнёр | Partener financiar | YES | YES |
+| Monthly Owner Report | the monthly report the owner actually reads | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | YES |
+| Real Estate Control System | control over a property portfolio's income, cost and risk | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | YES | YES |
+| Recoverable VAT | VAT the business can get back rather than absorb | НДС к возмещению | TVA de recuperat | YES | YES |
 | Fitness Membership Renewal Engine | how memberships renew, and what a lapsed renewal costs | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | YES |
 | Target Marja | — | Целевая маржа | Marjă țintă | NO | YES |
-| Supplier-Financed | the part of stock effectively paid for by the supplier | Профинансировано поставщиком | Finanțat de furnizor | YES | YES |
-| Own-Funded | the part of stock paid for with the company's own money | Профинансировано собственными деньгами | Finanțat din surse proprii | YES | YES |
-| Purchase Gate | the approval step a purchase must pass before money leaves | Контроль закупок | Poarta de achiziție | YES | YES |
-| Monthly owner report | — | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | YES | YES |
+| Supplier-Financed | the part of stock effectively paid for by the supplier | Финансируется поставщиком | Finanțat de furnizor | YES | YES |
+| Own-Funded | the part of stock paid for with the company's own money | За счёт собственных средств | Din surse proprii | YES | YES |
+| Purchase Gate | the approval step a purchase must pass before money leaves | Контроль закупок | Controlul achizițiilor | YES | YES |
+| Monthly owner report | — | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | YES |
 | RETAIL ENGINE | — | СИСТЕМА УПРАВЛЕНИЯ МАРЖОЙ | SISTEM DE MANAGEMENT AL MARJEI | NO | YES |
 | Treasury & Payment Discipline | — | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | YES | YES |
 | Light | — | Лёгкий | Simplificat | NO | YES |
@@ -524,11 +524,11 @@ The commercially critical language, separated from the long tail so it can be ap
 | P&L | P&L | Отчёт о прибыли и убытках | P&L | Cont de profit și pierdere | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
 | Cash Flow | Cash Flow | Денежный поток | Cash Flow | Flux de numerar | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
 | Discovery Call | Discovery Call | Первичный финансовый разбор | Discovery Call | Discuție financiară inițială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| Business Control System | Business Control System | Система управления бизнесом | Business Control System | Sistem de management al afacerii | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | YES |
+| Business Control System | Business Control System | Система финансового управления бизнесом | Business Control System | Sistem de management financiar al afacerii | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | CFO | CFO | Финансовый директор | CFO | Director financiar | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
 | KPI | KPI | Ключевые показатели бизнеса | KPI | Indicatori-cheie de performanță | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
 | Financial Health Check | Financial Health Check | Экспертная финансовая диагностика | Financial Health Check | Diagnostic financiar | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| Control Light | Control Light | Лёгкий контроль | Control Light | Control simplificat | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | YES |
+| Control Light | Control Light | Базовый финансовый контроль | Control Light | Control financiar esențial | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | AI | AI | Искусственный интеллект | AI | Inteligență artificială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
 | DPO | DPO | Срок оплаты поставщикам | DPO | Termenul de plată la furnizori | YES | Appears in a button, card or formula where the customer decides. | NO |
 | Email | Email | Электронная почта | Email | E-mail | NO | Appears in a button, card or formula where the customer decides. | NO |
@@ -537,7 +537,7 @@ The commercially critical language, separated from the long tail so it can be ap
 | Cash | Cash | Деньги | Cash | Numerar | NO | Appears in a button, card or formula where the customer decides. | NO |
 | Make | Make | автоматизация | Make | automatizare | NO | Appears in a button, card or formula where the customer decides. | NO |
 | Cash Saving | Cash Saving | Денежная экономия | Cash Saving | Economie în numerar | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Funding Gap | Funding Gap | Дефицит финансирования | Funding Gap | Deficit de finanțare | YES | Appears in a button, card or formula where the customer decides. | YES |
+| Funding Gap | Funding Gap | Дефицит финансирования | Funding Gap | Deficit de finanțare | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Sheets | Sheets | Google Sheets | Sheets | Google Sheets | NO | Appears in a button, card or formula where the customer decides. | NO |
 | Full Cost | Full Cost | Полная стоимость | Full Cost | Costul total | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Retail | Retail | Розничная торговля | Retail | Comerț cu amănuntul | NO | Appears in a button, card or formula where the customer decides. | NO |
@@ -546,31 +546,31 @@ The commercially critical language, separated from the long tail so it can be ap
 | Owner | Owner | Собственник | Owner | Proprietar | NO | Appears in a button, card or formula where the customer decides. | NO |
 | retrobonus | retrobonus | ретробонус | retrobonus | retrobonus | NO | Appears in a button, card or formula where the customer decides. | NO |
 | cash flow | cash flow | денежный поток | cash flow | flux de numerar | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Client Base Control System | Client Base Control System | Система управления клиентской базой | Client Base Control System | Sistem de management al bazei de clienți | YES | Appears in a button, card or formula where the customer decides. | YES |
+| Client Base Control System | Client Base Control System | Система управления клиентской базой | Client Base Control System | Sistem de management al bazei de clienți | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Light | Light | Лёгкий | Light | Simplificat | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | YES |
 | BI | BI | аналитика | BI | analiză | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | vacancy | vacancy | вакантность | vacancy | grad de neocupare | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | CFO- | CFO- | финансовый | CFO- | financiar | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | cash gap | cash gap | кассовый разрыв | cash gap | gol de numerar | NO | Appears in a button, card or formula where the customer decides. | NO |
 | email | email | электронная почта | email | e-mail | NO | Appears in a button, card or formula where the customer decides. | NO |
-| Retail Margin Engine | Retail Margin Engine | Система управления маржой в рознице | Retail Margin Engine | Sistem de management al marjei în retail | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | YES |
+| Retail Margin Engine | Retail Margin Engine | Система управления маржой в рознице | Retail Margin Engine | Sistem de management al marjei în retail | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
 | NOI | NOI | Чистый операционный доход | NOI | Venit operațional net | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | ERP | ERP | Учётная система | ERP | Sistem de evidență | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Margin Gap | Margin Gap | Разрыв маржи | Margin Gap | Deficit de marjă | YES | Appears in a button, card or formula where the customer decides. | YES |
+| Margin Gap | Margin Gap | Отклонение маржи от целевой | Margin Gap | Abaterea marjei față de țintă | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | ROI | ROI | Отдача от вложений | ROI | Randamentul investiției | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | tenant rating | tenant rating | рейтинг арендаторов | tenant rating | ratingul chiriașilor | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | rent vs market | rent vs market | аренда против рынка | rent vs market | chiria față de piață | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| Fitness Membership Renewal Engine | Fitness Membership Renewal Engine | Система продления абонементов | Fitness Membership Renewal Engine | Sistem de reînnoire a abonamentelor | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | YES |
-| Target Marja | Target Marja | Целевая маржа | Target Marja | Marjă țintă | NO | Appears in a button, card or formula where the customer decides. | YES |
+| Fitness Membership Renewal Engine | Fitness Membership Renewal Engine | Система продления абонементов | Fitness Membership Renewal Engine | Sistem de reînnoire a abonamentelor | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| Target Marja | Target Marja | Целевая маржа | Target Marja | Marjă țintă | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Fitness | Fitness | Фитнес / спортивный бизнес | Fitness | Fitness / activități sportive | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | OpenAI | OpenAI | OpenAI | OpenAI | OpenAI | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | NDA | NDA | Соглашение о неразглашении | NDA | Acord de confidențialitate | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| Control System | Control System | Система управления | Control System | Sistem de management | YES | Appears in a button, card or formula where the customer decides. | YES |
+| Control System | Control System | Система финансового контроля | Control System | Sistem de control financiar | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Monthly | Monthly | Ежемесячно | Monthly | Lunar | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Standard | Standard | Стандартный | Standard | Standard | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Spend | Spend | Расходы | Spend | Cheltuieli | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Automation | Automation | Автоматизация | Automation | Automatizare | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| Monthly owner report | Monthly owner report | Ежемесячный отчёт собственника | Monthly owner report | Raportul lunar al proprietarului | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | YES |
+| Monthly owner report | Monthly owner report | Ежемесячный отчёт для собственника | Monthly owner report | Raport lunar pentru proprietar | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
 
 ## 10. Proposed RU / RO glossary
 
@@ -583,10 +583,10 @@ as a translation of the Russian.
 | Cash Flow | Денежный поток | Flux de numerar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Discovery Call | Первичный финансовый разбор | Discuție financiară inițială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | CFO | Финансовый директор | Director financiar | MUST_LOCALIZE | NO |
-| Business Control System | Система управления бизнесом | Sistem de management al afacerii | OWNER_DECISION_REQUIRED | YES |
+| Business Control System | Система финансового управления бизнесом | Sistem de management financiar al afacerii | OWNER_DECISION_REQUIRED | YES |
 | KPI | Ключевые показатели бизнеса | Indicatori-cheie de performanță | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Financial Health Check | Экспертная финансовая диагностика | Diagnostic financiar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Control Light | Лёгкий контроль | Control simplificat | OWNER_DECISION_REQUIRED | YES |
+| Control Light | Базовый финансовый контроль | Control financiar esențial | OWNER_DECISION_REQUIRED | YES |
 | AI | Искусственный интеллект | Inteligență artificială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | DPO | Срок оплаты поставщикам | Termenul de plată la furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Email | Электронная почта | E-mail | MUST_LOCALIZE | NO |
@@ -616,8 +616,8 @@ as a translation of the Russian.
 | NOI | Чистый операционный доход | Venit operațional net | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | rent vs market | аренда против рынка | chiria față de piață | MUST_LOCALIZE | NO |
 | ERP | Учётная система | Sistem de evidență | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Margin Gap | Разрыв маржи | Deficit de marjă | OWNER_DECISION_REQUIRED | YES |
-| Control System | Система управления | Sistem de management | OWNER_DECISION_REQUIRED | YES |
+| Margin Gap | Отклонение маржи от целевой | Abaterea marjei față de țintă | OWNER_DECISION_REQUIRED | YES |
+| Control System | Система финансового контроля | Sistem de control financiar | OWNER_DECISION_REQUIRED | YES |
 | Standard | Стандартный | Standard | MUST_LOCALIZE | NO |
 | ROI | Отдача от вложений | Randamentul investiției | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Fitness Membership Renewal Engine | Система продления абонементов | Sistem de reînnoire a abonamentelor | OWNER_DECISION_REQUIRED | YES |
@@ -630,7 +630,7 @@ as a translation of the Russian.
 | Monthly | Ежемесячно | Lunar | MUST_LOCALIZE | NO |
 | Spend | Расходы | Cheltuieli | MUST_LOCALIZE | NO |
 | Automation | Автоматизация | Automatizare | MUST_LOCALIZE | NO |
-| Monthly owner report | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | OWNER_DECISION_REQUIRED | YES |
+| Monthly owner report | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | OWNER_DECISION_REQUIRED | YES |
 | risk traffic light | светофор рисков | semafor de risc | MUST_LOCALIZE | NO |
 | profitability | прибыльность | profitabilitate | MUST_LOCALIZE | NO |
 | action list | список действий | listă de acțiuni | MUST_LOCALIZE | NO |
@@ -646,9 +646,9 @@ as a translation of the Russian.
 | Manufacturing | Производство | Producție | MUST_LOCALIZE | NO |
 | Support | Поддержка | Suport | MUST_LOCALIZE | NO |
 | Treasury & Payment Discipline | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | OWNER_DECISION_REQUIRED | YES |
-| Payment Gate | Платёжный шлюз | Poarta de plată | OWNER_DECISION_REQUIRED | YES |
-| Revenue at Risk | Выручка под риском | Venituri în risc | OWNER_DECISION_REQUIRED | YES |
-| Expected Renewal Value | Ожидаемая стоимость продлений | Valoarea așteptată a reînnoirilor | OWNER_DECISION_REQUIRED | YES |
+| Payment Gate | Контроль платежей | Controlul plăților | OWNER_DECISION_REQUIRED | YES |
+| Revenue at Risk | Выручка под риском | Venituri expuse riscului | OWNER_DECISION_REQUIRED | YES |
+| Expected Renewal Value | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | OWNER_DECISION_REQUIRED | YES |
 | dashboard | панель собственника | tablou de bord | MUST_LOCALIZE | NO |
 | SKU | Товарная позиция | Articol de stoc | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Supplier Shelf Credit | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | OWNER_DECISION_REQUIRED | YES |
@@ -661,18 +661,18 @@ as a translation of the Russian.
 | Supplier Financing Benefit | Выгода от финансирования поставщиком | Beneficiul finanțării de la furnizor | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | COGS | Себестоимость продаж | Costul bunurilor vândute | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Volume Effect | Эффект объёма | Efectul volumului | MUST_LOCALIZE | NO |
-| Control Partner | Постоянный финансовый партнёр | Partener financiar permanent | OWNER_DECISION_REQUIRED | YES |
+| Control Partner | Финансовый партнёр | Partener financiar | OWNER_DECISION_REQUIRED | YES |
 | backtest | ретропроверка | testare retroactivă | MUST_LOCALIZE | NO |
 | Mix Effect | Эффект структуры продаж | Efectul structurii vânzărilor | MUST_LOCALIZE | NO |
 | Data Model | Модель данных | Model de date | MUST_LOCALIZE | NO |
 | Retention Discount Leakage | Потери на скидках удержания | Pierderi din discounturi de retenție | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Executive Summary | Краткое резюме | Rezumat executiv | MUST_LOCALIZE | NO |
-| Real Estate Control System | Система управления недвижимостью | Sistem de management imobiliar | OWNER_DECISION_REQUIRED | YES |
+| Real Estate Control System | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | OWNER_DECISION_REQUIRED | YES |
 | Supplier Rating | Рейтинг поставщиков | Ratingul furnizorilor | MUST_LOCALIZE | NO |
 | Free Treasury Cash | Свободные деньги казначейства | Numerar liber de trezorerie | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Supplier-Financed | Профинансировано поставщиком | Finanțat de furnizor | OWNER_DECISION_REQUIRED | YES |
-| Own-Funded | Профинансировано собственными деньгами | Finanțat din surse proprii | OWNER_DECISION_REQUIRED | YES |
-| Purchase Gate | Контроль закупок | Poarta de achiziție | OWNER_DECISION_REQUIRED | YES |
+| Supplier-Financed | Финансируется поставщиком | Finanțat de furnizor | OWNER_DECISION_REQUIRED | YES |
+| Own-Funded | За счёт собственных средств | Din surse proprii | OWNER_DECISION_REQUIRED | YES |
+| Purchase Gate | Контроль закупок | Controlul achizițiilor | OWNER_DECISION_REQUIRED | YES |
 | Green | Зелёная зона | Zonă verde | MUST_LOCALIZE | NO |
 | Yellow | Жёлтая зона | Zonă galbenă | MUST_LOCALIZE | NO |
 | Orange | Оранжевая зона | Zonă portocalie | MUST_LOCALIZE | NO |
@@ -684,10 +684,10 @@ as a translation of the Russian.
 | EBITDA | Прибыль до вычета процентов, налогов и амортизации | Profit înainte de dobânzi, impozite și amortizare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Payment Calendar | Платёжный календарь | Calendar de plăți | MUST_LOCALIZE | NO |
 | Treasury Fund Planning | Планирование фондов казначейства | Planificarea fondurilor de trezorerie | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Monthly Owner Report | Ежемесячный отчёт собственника | Raportul lunar al proprietarului | OWNER_DECISION_REQUIRED | YES |
+| Monthly Owner Report | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | OWNER_DECISION_REQUIRED | YES |
 | Investment Model | Инвестиционная модель | Model investițional | MUST_LOCALIZE | NO |
 | Due AP | Кредиторская задолженность к оплате | Datorii scadente către furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Recoverable VAT | Возмещаемый НДС | TVA recuperabilă | OWNER_DECISION_REQUIRED | YES |
+| Recoverable VAT | НДС к возмещению | TVA de recuperat | OWNER_DECISION_REQUIRED | YES |
 | Cash Conversion Cycle | Цикл оборота денег | Ciclul de conversie a numerarului | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | External CFO | Внешний финансовый директор | Director financiar extern | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 
