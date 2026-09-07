@@ -1,0 +1,2942 @@
+{
+  "ru-homepage@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Быстро понять, где теряются деньги, прибыль и контроль.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 1 500 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Построить систему управления бизнесом на цифрах.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 5 000 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Базовый формат регулярной финансовой дисциплины: обзор ключевых цифр и",
+        "w": 292,
+        "h": 96,
+        "lines": 4
+      },
+      {
+        "cls": "package__price",
+        "text": "от 750 € / мес",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        76
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 24,
+        "right": 128,
+        "clipped": false
+      },
+      "burger": {
+        "w": 28,
+        "h": 22,
+        "left": 338,
+        "right": 366
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
+      "w": 342,
+      "h": 202
+    },
+    "lang": "ru",
+    "textElements": 457,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Пройти финансовый рентген",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-homepage@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Быстро понять, где теряются деньги, прибыль и контроль.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 1 500 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Построить систему управления бизнесом на цифрах.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 5 000 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Базовый формат регулярной финансовой дисциплины: обзор ключевых цифр и",
+        "w": 297,
+        "h": 96,
+        "lines": 4
+      },
+      {
+        "cls": "package__price",
+        "text": "от 750 € / мес",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        76
+      ],
+      "navs": [
+        {
+          "cls": "nav",
+          "links": 7,
+          "w": 628,
+          "left": 307,
+          "right": 935
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 152,
+        "right": 256,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 986,
+          "right": 1064
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "RU"
+    },
+    "h1": {
+      "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
+      "w": 816,
+      "h": 265
+    },
+    "lang": "ru",
+    "textElements": 469,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Пройти финансовый рентген",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-homepage@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Înțelegeți rapid unde se pierd banii, profitul și controlul.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 1 500 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Construiți sistemul de management al afacerii pe cifre.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 5 000 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Formatul de bază al disciplinei financiare regulate: revizuirea cifrel",
+        "w": 292,
+        "h": 72,
+        "lines": 3
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 750 € / lună",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        76
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 24,
+        "right": 128,
+        "clipped": false
+      },
+      "burger": {
+        "w": 28,
+        "h": 22,
+        "left": 338,
+        "right": 366
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
+      "w": 342,
+      "h": 168
+    },
+    "lang": "ro",
+    "textElements": 455,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Începeți Testul financiar FINMENTOR",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-homepage@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Înțelegeți rapid unde se pierd banii, profitul și controlul.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 1 500 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Construiți sistemul de management al afacerii pe cifre.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 5 000 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Formatul de bază al disciplinei financiare regulate: revizuirea cifrel",
+        "w": 297,
+        "h": 72,
+        "lines": 3
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 750 € / lună",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        76
+      ],
+      "navs": [
+        {
+          "cls": "nav",
+          "links": 7,
+          "w": 638,
+          "left": 282,
+          "right": 920
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 152,
+        "right": 256,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 947,
+          "right": 1025
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "RU"
+    },
+    "h1": {
+      "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
+      "w": 816,
+      "h": 265
+    },
+    "lang": "ro",
+    "textElements": 467,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Începeți Testul financiar FINMENTOR",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-questionnaire@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        71
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Финансовый рентген FINMENTOR",
+      "w": 342,
+      "h": 110
+    },
+    "lang": "ru",
+    "textElements": 487,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Показать предварительный результат",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-questionnaire@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        72
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 686,
+          "right": 765
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Финансовый рентген FINMENTOR",
+      "w": 1136,
+      "h": 55
+    },
+    "lang": "ru",
+    "textElements": 500,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Показать предварительный результат",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-questionnaire@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        71
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoastră?",
+      "w": 342,
+      "h": 147
+    },
+    "lang": "ro",
+    "textElements": 487,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Afișați rezultatul preliminar",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-questionnaire@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        72
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 671,
+          "right": 749
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoastră?",
+      "w": 1136,
+      "h": 110
+    },
+    "lang": "ro",
+    "textElements": 500,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Afișați rezultatul preliminar",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-packages@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Быстро понять, где теряются деньги, прибыль и контроль.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 1 500 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Построить систему управления бизнесом на цифрах.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 5 000 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Базовый формат регулярной финансовой дисциплины: обзор ключевых цифр и",
+        "w": 292,
+        "h": 96,
+        "lines": 4
+      },
+      {
+        "cls": "package__price",
+        "text": "от 750 € / мес",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        64
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 24,
+        "right": 128,
+        "clipped": false
+      },
+      "burger": {
+        "w": 28,
+        "h": 22,
+        "left": 338,
+        "right": 366
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
+      "w": 342,
+      "h": 202
+    },
+    "lang": "ru",
+    "textElements": 457,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Пройти финансовый рентген",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-packages@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Быстро понять, где теряются деньги, прибыль и контроль.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 1 500 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Построить систему управления бизнесом на цифрах.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "от 5 000 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Базовый формат регулярной финансовой дисциплины: обзор ключевых цифр и",
+        "w": 297,
+        "h": 96,
+        "lines": 4
+      },
+      {
+        "cls": "package__price",
+        "text": "от 750 € / мес",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        64
+      ],
+      "navs": [
+        {
+          "cls": "nav",
+          "links": 7,
+          "w": 628,
+          "left": 307,
+          "right": 935
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 152,
+        "right": 256,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 986,
+          "right": 1064
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "RU"
+    },
+    "h1": {
+      "text": "Финансовая система, которая показывает собственнику, где деньги, прибы",
+      "w": 816,
+      "h": 265
+    },
+    "lang": "ru",
+    "textElements": 469,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Пройти финансовый рентген",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-packages@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Înțelegeți rapid unde se pierd banii, profitul și controlul.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 1 500 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Construiți sistemul de management al afacerii pe cifre.",
+        "w": 292,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 5 000 €",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 292,
+        "h": 24,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Formatul de bază al disciplinei financiare regulate: revizuirea cifrel",
+        "w": 292,
+        "h": 72,
+        "lines": 3
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 750 € / lună",
+        "w": 292,
+        "h": 27,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        64
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 24,
+        "right": 128,
+        "clipped": false
+      },
+      "burger": {
+        "w": 28,
+        "h": 22,
+        "left": 338,
+        "right": 366
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
+      "w": 342,
+      "h": 168
+    },
+    "lang": "ro",
+    "textElements": 455,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Începeți Testul financiar FINMENTOR",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-packages@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [
+      {
+        "cls": "package__name",
+        "text": "Financial Health Check",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Înțelegeți rapid unde se pierd banii, profitul și controlul.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 1 500 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Business Control System",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Construiți sistemul de management al afacerii pe cifre.",
+        "w": 297,
+        "h": 48,
+        "lines": 2
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 5 000 €",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__name",
+        "text": "Monthly CFO Support",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      },
+      {
+        "cls": "package__goal",
+        "text": "Formatul de bază al disciplinei financiare regulate: revizuirea cifrel",
+        "w": 297,
+        "h": 72,
+        "lines": 3
+      },
+      {
+        "cls": "package__price",
+        "text": "de la 750 € / lună",
+        "w": 297,
+        "h": 26,
+        "lines": 1
+      }
+    ],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        64
+      ],
+      "navs": [
+        {
+          "cls": "nav",
+          "links": 7,
+          "w": 638,
+          "left": 282,
+          "right": 920
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 152,
+        "right": 256,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 78,
+          "left": 947,
+          "right": 1025
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "RU"
+    },
+    "h1": {
+      "text": "Sistemul financiar care îi arată proprietarului unde sunt banii, profi",
+      "w": 816,
+      "h": 265
+    },
+    "lang": "ro",
+    "textElements": 467,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Începeți Testul financiar FINMENTOR",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-monthly-pricing@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Ежемесячное финансовое сопровождение для собственника бизнеса",
+      "w": 342,
+      "h": 173
+    },
+    "lang": "ru",
+    "textElements": 81,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Обсудить сопровождение",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-monthly-pricing@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 6,
+          "w": 603,
+          "left": 717,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1081,
+          "right": 1166
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Ежемесячное финансовое сопровождение для собственника бизнеса",
+      "w": 673,
+      "h": 155
+    },
+    "lang": "ru",
+    "textElements": 88,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Discovery Call",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-monthly-pricing@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Suport financiar lunar pentru proprietarul afacerii",
+      "w": 342,
+      "h": 104
+    },
+    "lang": "ro",
+    "textElements": 81,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Discutați suportul lunar",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-monthly-pricing@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 6,
+          "w": 644,
+          "left": 676,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1081,
+          "right": 1166
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Suport financiar lunar pentru proprietarul afacerii",
+      "w": 673,
+      "h": 155
+    },
+    "lang": "ro",
+    "textElements": 88,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Discovery Call",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-real-estate@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Система финансового управления недвижимостью: доходность объекта под у",
+      "w": 342,
+      "h": 207
+    },
+    "lang": "ru",
+    "textElements": 48,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Пройти финансовый рентген",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ru-real-estate@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 6,
+          "w": 603,
+          "left": 717,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1081,
+          "right": 1166
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Система финансового управления недвижимостью: доходность объекта под у",
+      "w": 673,
+      "h": 259
+    },
+    "lang": "ru",
+    "textElements": 55,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Discovery Call",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-real-estate@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Sistem de management financiar al activelor imobiliare: randamentul im",
+      "w": 342,
+      "h": 242
+    },
+    "lang": "ro",
+    "textElements": 48,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Începeți Testul financiar FINMENTOR",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "ro-real-estate@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 6,
+          "w": 644,
+          "left": 676,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1081,
+          "right": 1166
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Sistem de management financiar al activelor imobiliare: randamentul im",
+      "w": 673,
+      "h": 207
+    },
+    "lang": "ro",
+    "textElements": 55,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          200,
+          164,
+          56
+        ],
+        "text": "Discovery Call",
+        "src": "gradient"
+      }
+    },
+    "miniapp": false
+  },
+  "thank-you@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Спасибо. Заявка получена.",
+      "w": 342,
+      "h": 69
+    },
+    "lang": "ru",
+    "textElements": 13,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": false
+  },
+  "thank-you@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 5,
+          "w": 425,
+          "left": 895,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1235,
+          "right": 1320
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Спасибо. Заявка получена.",
+      "w": 673,
+      "h": 104
+    },
+    "lang": "ru",
+    "textElements": 19,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": false
+  },
+  "ro-thank-you@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        390,
+        73
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 0,
+        "right": 104,
+        "clipped": false
+      },
+      "burger": {
+        "w": 44,
+        "h": 44,
+        "left": 346,
+        "right": 390
+      },
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Mulțumim. Solicitarea a fost primită.",
+      "w": 342,
+      "h": 104
+    },
+    "lang": "ro",
+    "textElements": 13,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": false
+  },
+  "ro-thank-you@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        0,
+        0,
+        1440,
+        70
+      ],
+      "navs": [
+        {
+          "cls": "doc-bar__nav",
+          "links": 5,
+          "w": 419,
+          "left": 901,
+          "right": 1320
+        }
+      ],
+      "logo": {
+        "text": "finmentor",
+        "w": 104,
+        "h": 35,
+        "left": 120,
+        "right": 224,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [
+        {
+          "w": 85,
+          "left": 1235,
+          "right": 1320
+        }
+      ],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": "finmentor"
+    },
+    "h1": {
+      "text": "Mulțumim. Solicitarea a fost primită.",
+      "w": 673,
+      "h": 104
+    },
+    "lang": "ro",
+    "textElements": 19,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": false
+  },
+  "miniapp-start@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        16,
+        0,
+        374,
+        64
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 82,
+        "h": 23,
+        "left": 154,
+        "right": 236,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Поймите, где теряется контроль над деньгами и прибылью.",
+      "w": 328,
+      "h": 211
+    },
+    "lang": "ru",
+    "textElements": 19,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          217,
+          181,
+          71
+        ],
+        "text": "Начать диагностику",
+        "src": "gradient"
+      }
+    },
+    "miniapp": true
+  },
+  "miniapp-start@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        388,
+        0,
+        1052,
+        64
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 82,
+        "h": 23,
+        "left": 679,
+        "right": 761,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Поймите, где теряется контроль над деньгами и прибылью.",
+      "w": 498,
+      "h": 320
+    },
+    "lang": "ru",
+    "textElements": 19,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": {
+        "bg": [
+          217,
+          181,
+          71
+        ],
+        "text": "Начать диагностику",
+        "src": "gradient"
+      }
+    },
+    "miniapp": true
+  },
+  "miniapp-entry@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Подготовим бриф для консультанта.",
+      "w": 346,
+      "h": 81
+    },
+    "lang": "ru",
+    "textElements": 11,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-entry@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 512,
+        "right": 585,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Подготовим бриф для консультанта.",
+      "w": 416,
+      "h": 81
+    },
+    "lang": "ru",
+    "textElements": 11,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-populated@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 159,
+        "right": 231,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Что именно происходит с деньгами?",
+      "w": 346,
+      "h": 107
+    },
+    "lang": "ru",
+    "textElements": 21,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-populated@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 684,
+        "right": 756,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Что именно происходит с деньгами?",
+      "w": 416,
+      "h": 72
+    },
+    "lang": "ru",
+    "textElements": 21,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-review@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 159,
+        "right": 231,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Бриф для консультанта",
+      "w": 346,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 47,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-review@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 684,
+        "right": 756,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Бриф для консультанта",
+      "w": 416,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 47,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-edit@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 159,
+        "right": 231,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Что хотите изменить?",
+      "w": 346,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 33,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-success@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Принято",
+      "w": 145,
+      "h": 40
+    },
+    "lang": "ru",
+    "textElements": 20,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-success@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 512,
+        "right": 585,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Принято",
+      "w": 145,
+      "h": 40
+    },
+    "lang": "ru",
+    "textElements": 20,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-expired@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Время сессии истекло",
+      "w": 295,
+      "h": 34
+    },
+    "lang": "ru",
+    "textElements": 9,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "miniapp-boot-failure@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Не удалось открыть форму",
+      "w": 346,
+      "h": 67
+    },
+    "lang": "ru",
+    "textElements": 9,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "xray-result-ru@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Результат анализа",
+      "w": 346,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 92,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "xray-result-ru@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 512,
+        "right": 585,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Результат анализа",
+      "w": 416,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 92,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "xray-result-ro@390": {
+    "width": 390,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        22,
+        0,
+        368,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 22,
+        "right": 95,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Rezultatul analizei",
+      "w": 346,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 92,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  },
+  "xray-result-ro@1440": {
+    "width": 1440,
+    "overflow": null,
+    "clipped": [],
+    "ctaOverflow": [],
+    "offscreen": [],
+    "textOutside": [],
+    "textZeroBox": [],
+    "packageTitles": [],
+    "header": {
+      "present": true,
+      "rect": [
+        512,
+        0,
+        928,
+        60
+      ],
+      "navs": [],
+      "logo": {
+        "text": "finmentor",
+        "w": 73,
+        "h": 21,
+        "left": 512,
+        "right": 585,
+        "clipped": false
+      },
+      "burger": null,
+      "langGroups": [],
+      "overlaps": [],
+      "outside": [],
+      "homeLink": null
+    },
+    "h1": {
+      "text": "Rezultatul analizei",
+      "w": 416,
+      "h": 36
+    },
+    "lang": "ru",
+    "textElements": 92,
+    "scrollContainers": [],
+    "brand": {
+      "rootBg": [
+        8,
+        17,
+        31
+      ],
+      "primaryCta": null
+    },
+    "miniapp": true
+  }
+}

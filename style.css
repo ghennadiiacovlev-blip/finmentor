@@ -3076,7 +3076,10 @@ body.menu-open .fa-panel {
 .doc-bar .burger.is-open span:nth-child(1),
 .doc-bar .burger.is-open span:nth-child(3) { top: 21px; }
 @media (max-width: 640px) {
-  .doc-bar__nav { display: none; }
+  /* Every in-bar navigation is replaced by the burger drawer on a phone. The ELEMENT is selected
+     rather than one class name on purpose: thank-you.html shipped its nav as `.doc-nav`, which no
+     rule matched, so the desktop links stayed painted beside the burger at 390px. */
+  .doc-bar nav { display: none; }
   .doc-bar .burger { display: block; }
   .doc-bar__row { min-width: 0; }
 }

@@ -99,7 +99,7 @@
           "name": "Ce este Testul financiar FINMENTOR?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Este o autodiagnoză structurată și un colectare inițială de informații înainte de diagnostic financiar (Financial Health Check): FINMENTOR analizează flux de numerar, cont de profit și pierdere, plățile, creanțele, marja, indicatori-cheie, automatizarea și riscurile proprietarului."
+            "text": "Este o autodiagnoză structurată și o colectare inițială de informații înainte de diagnostic financiar (Financial Health Check): FINMENTOR analizează fluxul de numerar, contul de profit și pierdere, plățile, creanțele, marja, indicatorii-cheie, automatizarea și riscurile proprietarului."
           }
         },
         {
@@ -131,7 +131,7 @@
           "name": "Ce este diagnosticul financiar?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Diagnostic financiar este o analiză de expert a controlului financiar al afacerii: bani, profit, flux de numerar, plăți, creanțe, marjă, indicatori-cheie și riscuri."
+            "text": "Diagnosticul financiar este o analiză de expert a controlului financiar al afacerii: bani, profit, flux de numerar, plăți, creanțe, marjă, indicatori-cheie și riscuri."
           }
         },
         {
@@ -413,10 +413,10 @@
             <label><input type="radio" name="dx_pain" value="Платежи хаотично / кассовые разрывы" data-pain="payments" /> Plăți haotice / goluri de numerar</label>
             <label><input type="radio" name="dx_pain" value="Маржа / прибыль непонятна" data-pain="margin" /> Marja / profitul sunt neclare</label>
             <label><input type="radio" name="dx_pain" value="Дебиторка и склад замораживают деньги" data-pain="receivables" /> Creanțele și depozitul blochează banii</label>
-            <label><input type="radio" name="dx_pain" value="Нет единой картины KPI и рисков" data-pain="kpi" /> Nu există o imagine unică a indicatori-cheie și riscurilor</label>
+            <label><input type="radio" name="dx_pain" value="Нет единой картины KPI и рисков" data-pain="kpi" /> Nu există o imagine unică a indicatorilor-cheie și riscurilor</label>
           </div></fieldset>
 
-          <fieldset class="q" data-score-key="cash_flow" data-weight="18"><legend class="q__label">Q3. Vedeți regulat mișcarea banilor flux de numerar?</legend><div class="q__choices"><label><input type="radio" name="dx_cash_flow" value="Да, есть регулярный Cash Flow и прогноз" data-score="full" /> Da, există flux de numerar regulat și prognoză</label><label><input type="radio" name="dx_cash_flow" value="Частично, смотрю остатки на счёте" data-score="half" /> Parțial, mă uit la soldurile din cont</label><label><input type="radio" name="dx_cash_flow" value="Нет, узнаю по факту" data-score="zero" /> Nu, aflu post-factum</label></div></fieldset>
+          <fieldset class="q" data-score-key="cash_flow" data-weight="18"><legend class="q__label">Q3. Vedeți regulat mișcarea banilor?</legend><div class="q__choices"><label><input type="radio" name="dx_cash_flow" value="Да, есть регулярный Cash Flow и прогноз" data-score="full" /> Da, există flux de numerar regulat și prognoză</label><label><input type="radio" name="dx_cash_flow" value="Частично, смотрю остатки на счёте" data-score="half" /> Parțial, mă uit la soldurile din cont</label><label><input type="radio" name="dx_cash_flow" value="Нет, узнаю по факту" data-score="zero" /> Nu, aflu post-factum</label></div></fieldset>
           <fieldset class="q" data-score-key="management_pl" data-weight="16"><legend class="q__label">Q4. Există cont de profit și pierdere managerial pe direcții / imobile / produse?</legend><div class="q__choices"><label><input type="radio" name="dx_pl" value="Да, регулярный управленческий P&L" data-score="full" /> Da, cont de profit și pierdere managerial regulat</label><label><input type="radio" name="dx_pl" value="Только бухгалтерская / налоговая прибыль" data-score="half" /> Doar profitul contabil / fiscal</label><label><input type="radio" name="dx_pl" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
           <fieldset class="q" data-score-key="payments" data-weight="14"><legend class="q__label">Q5. Există calendar al plăților / control al plăților?</legend><div class="q__choices"><label><input type="radio" name="dx_payments" value="Да, платежи по приоритетам и фондам" data-score="full" /> Da, plăți pe priorități și fonduri</label><label><input type="radio" name="dx_payments" value="Частично, список на оплату" data-score="half" /> Parțial, o listă „de plată”</label><label><input type="radio" name="dx_payments" value="Нет, платим по ситуации" data-score="zero" /> Nu, plătim după situație</label></div></fieldset>
           <fieldset class="q" data-score-key="receivables_payables" data-weight="14"><legend class="q__label">Q6. Controlați creanțele și datoriile către furnizori?</legend><div class="q__choices"><label><input type="radio" name="dx_ar_ap" value="Да, реестры и сроки под контролем" data-score="full" /> Da, registrele și scadențele sunt sub control</label><label><input type="radio" name="dx_ar_ap" value="Частично" data-score="half" /> Parțial</label><label><input type="radio" name="dx_ar_ap" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
@@ -444,7 +444,7 @@
             <p class="q-result__body" id="dxBody"></p>
             <ul class="q-risk-list" id="dxRisks"></ul>
             <p class="q-result__next" id="dxNext"></p>
-            <button type="button" class="btn btn--primary q-result__cta" id="dxContinue" data-cta-id="diagnostic_continue_intake" data-cta-location="diagnostic_result" data-destination="#extendedIntake">Continuați pregătirea pentru discuție financiară inițială →</button>
+            <button type="button" class="btn btn--primary q-result__cta" id="dxContinue" data-cta-id="diagnostic_continue_intake" data-cta-location="diagnostic_result" data-destination="#extendedIntake">Continuați pregătirea pentru discuția financiară inițială →</button>
           </div>
         </section>
 
@@ -550,7 +550,7 @@
             <label><input type="checkbox" name="q_systems" value="CRM" /> CRM</label>
             <label><input type="checkbox" name="q_systems" value="ERP" /> Sistem integrat de gestiune</label>
             <label><input type="checkbox" name="q_systems" value="Power BI" /> Power BI</label>
-            <label><input type="checkbox" name="q_systems" value="Looker / Tableau / другой BI" /> Looker / Tableau / alt analiză managerială</label>
+            <label><input type="checkbox" name="q_systems" value="Looker / Tableau / другой BI" /> Looker / Tableau / o altă analiză managerială</label>
             <label><input type="checkbox" name="q_systems" value="Make / n8n / Zapier / automation" /> Make / n8n / Zapier</label>
           </div></fieldset>
           <fieldset class="q" data-key="reporting_prepared_by"><legend class="q__label">Cine pregătește rapoartele?</legend><div class="q__choices"><label><input type="radio" name="q_reporter" value="Бухгалтер" /> Contabilul</label><label><input type="radio" name="q_reporter" value="Финансист" /> Finanțistul</label><label><input type="radio" name="q_reporter" value="Финансовый директор" /> Directorul financiar</label><label><input type="radio" name="q_reporter" value="Собственник сам" /> Proprietarul singur</label><label><input type="radio" name="q_reporter" value="Внешний консультант" /> Consultant extern</label><label><input type="radio" name="q_reporter" value="Команда готовит в Excel / Google Sheets" /> Echipa pregătește în Excel / Google Sheets</label><label><input type="radio" name="q_reporter" value="Отчёты не готовятся" /> Rapoartele nu se pregătesc</label><label><input type="radio" name="q_reporter" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
@@ -723,7 +723,7 @@
         <h2>Întrebări despre Testul financiar FINMENTOR</h2>
         <details class="faq__item">
           <summary>Ce este Testul financiar FINMENTOR?</summary>
-          <div class="faq__item__body">Este o autodiagnoză structurată și un colectare inițială de informații înainte de diagnostic financiar (Financial Health Check): FINMENTOR analizează flux de numerar, cont de profit și pierdere, plățile, creanțele, marja, indicatori-cheie, automatizarea și riscurile proprietarului.</div>
+          <div class="faq__item__body">Este o autodiagnoză structurată și o colectare inițială de informații înainte de diagnostic financiar (Financial Health Check): FINMENTOR analizează fluxul de numerar, contul de profit și pierdere, plățile, creanțele, marja, indicatorii-cheie, automatizarea și riscurile proprietarului.</div>
         </details>
         <details class="faq__item">
           <summary>Înlocuiește auditul?</summary>
@@ -739,7 +739,7 @@
         </details>
         <details class="faq__item">
           <summary>Ce este diagnosticul financiar?</summary>
-          <div class="faq__item__body">Diagnostic financiar este o analiză de expert a controlului financiar al afacerii: bani, profit, flux de numerar, plăți, creanțe, marjă, indicatori-cheie și riscuri.</div>
+          <div class="faq__item__body">Diagnosticul financiar este o analiză de expert a controlului financiar al afacerii: bani, profit, flux de numerar, plăți, creanțe, marjă, indicatori-cheie și riscuri.</div>
         </details>
         <details class="faq__item">
           <summary>Se folosește automatizarea?</summary>

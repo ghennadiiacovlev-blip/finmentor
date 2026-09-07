@@ -1,0 +1,1372 @@
+{
+  "ru-homepage@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 342,
+          "h": 202
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 342,
+          "h": 202
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-homepage@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 816,
+          "h": 265
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 816,
+          "h": 265
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-homepage@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 342,
+          "h": 168
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 342,
+          "h": 168
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-homepage@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 816,
+          "h": 265
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 816,
+          "h": 265
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-questionnaire@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовый рентген FINMENTOR",
+          "w": 342,
+          "h": 110
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-questionnaire@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовый рентген FINMENTOR",
+          "w": 1136,
+          "h": 55
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-questionnaire@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoa",
+          "w": 342,
+          "h": 147
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-questionnaire@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Cât de sănătos este sistemul financiar al afacerii dumneavoa",
+          "w": 1136,
+          "h": 110
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-packages@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 4,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 342,
+          "h": 202
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 342,
+          "h": 202
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-packages@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 4,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 816,
+          "h": 265
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Финансовая система, которая показывает собственнику, где ден",
+          "w": 816,
+          "h": 265
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-packages@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 4,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 342,
+          "h": 168
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 342,
+          "h": 168
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-packages@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 4,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 816,
+          "h": 265
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".hero__title",
+          "text": "Sistemul financiar care îi arată proprietarului unde sunt ba",
+          "w": 816,
+          "h": 265
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-monthly-pricing@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Ежемесячное финансовое сопровождение для собственника бизнес",
+          "w": 342,
+          "h": 173
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-monthly-pricing@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Ежемесячное финансовое сопровождение для собственника бизнес",
+          "w": 673,
+          "h": 155
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-monthly-pricing@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Suport financiar lunar pentru proprietarul afacerii",
+          "w": 342,
+          "h": 104
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-monthly-pricing@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Suport financiar lunar pentru proprietarul afacerii",
+          "w": 673,
+          "h": 155
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-real-estate@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Система финансового управления недвижимостью: доходность объ",
+          "w": 342,
+          "h": 207
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ru-real-estate@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Система финансового управления недвижимостью: доходность объ",
+          "w": 673,
+          "h": 259
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-real-estate@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistem de management financiar al activelor imobiliare: rand",
+          "w": 342,
+          "h": 242
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-real-estate@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Sistem de management financiar al activelor imobiliare: rand",
+          "w": 673,
+          "h": 207
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "thank-you@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Спасибо. Заявка получена.",
+          "w": 342,
+          "h": 69
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "thank-you@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Спасибо. Заявка получена.",
+          "w": 673,
+          "h": 104
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-thank-you@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Mulțumim. Solicitarea a fost primită.",
+          "w": 342,
+          "h": 104
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "ro-thank-you@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Mulțumim. Solicitarea a fost primită.",
+          "w": 673,
+          "h": 104
+        },
+        {
+          "sel": ".logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        },
+        {
+          "sel": ".doc-bar .logo",
+          "text": "finmentor",
+          "w": 104,
+          "h": 35
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-start@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Поймите, где теряется контроль над деньгами и прибылью.",
+          "w": 328,
+          "h": 211
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 82,
+          "h": 23
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 82,
+          "h": 23
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-start@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Поймите, где теряется контроль над деньгами и прибылью.",
+          "w": 498,
+          "h": 320
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 82,
+          "h": 23
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 82,
+          "h": 23
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-entry@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Подготовим бриф для консультанта.",
+          "w": 346,
+          "h": 81
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-entry@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Подготовим бриф для консультанта.",
+          "w": 416,
+          "h": 81
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-populated@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Что именно происходит с деньгами?",
+          "w": 346,
+          "h": 107
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-populated@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Что именно происходит с деньгами?",
+          "w": 416,
+          "h": 72
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-review@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Бриф для консультанта",
+          "w": 346,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-review@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Бриф для консультанта",
+          "w": 416,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-edit@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Что хотите изменить?",
+          "w": 346,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-success@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Принято",
+          "w": 145,
+          "h": 40
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-success@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Принято",
+          "w": 145,
+          "h": 40
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-expired@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Время сессии истекло",
+          "w": 295,
+          "h": 34
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "miniapp-boot-failure@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Не удалось открыть форму",
+          "w": 346,
+          "h": 67
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "xray-result-ru@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Результат анализа",
+          "w": 346,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "xray-result-ru@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Результат анализа",
+          "w": 416,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "xray-result-ro@390": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Rezultatul analizei",
+          "w": 346,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  },
+  "xray-result-ro@1440": {
+    "settle": {
+      "fontsReady": true,
+      "fontStatus": "loaded",
+      "pendingFaces": [],
+      "layoutSamples": 3,
+      "stable": true,
+      "frames": 2
+    },
+    "painted": {
+      "anchors": [
+        {
+          "sel": "h1",
+          "text": "Rezultatul analizei",
+          "w": 416,
+          "h": 36
+        },
+        {
+          "sel": ".brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        },
+        {
+          "sel": ".topbar .brand",
+          "text": "finmentor",
+          "w": 73,
+          "h": 21
+        }
+      ],
+      "missing": [],
+      "ok": true
+    }
+  }
+}

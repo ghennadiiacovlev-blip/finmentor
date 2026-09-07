@@ -1,0 +1,82 @@
+{
+  "generatedBy": "qa/visual-evidence.mjs",
+  "chrome": "Chrome/152.0.7977.77",
+  "shots": {
+    "ru-homepage-390.png": {
+      "sha256": "172ce2062135704643786b72aacac29241d4dbbae153f08790d378c897ce9bfd",
+      "bytes": 297346
+    },
+    "ro-homepage-390.png": {
+      "sha256": "dba1eb80c704073b9cbd8ccaa623cf9501d27106a75f5d6eb5b67ffb87d7f8ef",
+      "bytes": 290508
+    },
+    "ru-questionnaire-390.png": {
+      "sha256": "9188f3682db8da96d9cac3c2a85f29b14961c9afb76a922452b6dd54a56114c0",
+      "bytes": 51221
+    },
+    "ro-questionnaire-390.png": {
+      "sha256": "8c6fd7793c0f55b93f6b15e9ed4796cb123f7df82096e4a5b69ce0839439ed0f",
+      "bytes": 61852
+    },
+    "ru-packages-390.png": {
+      "sha256": "c2dffcc48c9fff6140dca535522924a8f32d7b5742b232f0b24bd13f3df4b130",
+      "bytes": 48844
+    },
+    "ro-packages-390.png": {
+      "sha256": "1355459429399b3963ccf154e568563b2db49d723faf3d1a2e2436c288db732e",
+      "bytes": 47661
+    },
+    "ru-real-estate-390.png": {
+      "sha256": "deb81cadf263d3e1e2397b5dfc7be624cf321ac0ad366ba92a11114235cbe543",
+      "bytes": 62867
+    },
+    "thank-you-390.png": {
+      "sha256": "9034d00623321de59f8627058ab69e5a392932698c2be1bce7350da6440552e1",
+      "bytes": 43925
+    },
+    "miniapp-populated-390.png": {
+      "sha256": "df9904f04d9778ecbbc2b20c3d0410dde4091f93c2bdacd6189186037c4325a4",
+      "bytes": 47394
+    },
+    "miniapp-review-390.png": {
+      "sha256": "dc50a840f4475810b2541469e31bcb78fa41f7d00f1cc9403c27daa6373c9305",
+      "bytes": 37309
+    },
+    "miniapp-success-390.png": {
+      "sha256": "5835bb92bf3555b58cbdf21018fa5707074d9f3bff88b66364e95ebc7697e7e5",
+      "bytes": 32437
+    },
+    "xray-result-ru-390.png": {
+      "sha256": "23a6d643938a502bfa790c1a634d17610dae7227de3ff955545008dea86c8bf6",
+      "bytes": 41227
+    },
+    "ru-homepage-1440.png": {
+      "sha256": "5130f579ddf6122650229421d6a9a63e385c9f7e60c63f335a5b33232e97849a",
+      "bytes": 819466
+    },
+    "ro-homepage-1440.png": {
+      "sha256": "3ed2a5fc59b0e043f0561ca7ad9fef252c345838f6c51b4a4adf293f009c0bb4",
+      "bytes": 799488
+    },
+    "ru-questionnaire-1440.png": {
+      "sha256": "7cfe9587627dd4e1bf2d95051ebae3d3de01da96ba1a9818794d658745a3b6cf",
+      "bytes": 110492
+    },
+    "ru-packages-1440.png": {
+      "sha256": "0f4142df6a8e4483e448298e0b9fcd1c5460c6c1d548feace6cc2723cfba5ac7",
+      "bytes": 153264
+    },
+    "miniapp-populated-1440.png": {
+      "sha256": "2019f517afa73d7c0aa4372504bf40c7f4bc53339c314e36652b81a3781d6c79",
+      "bytes": 60002
+    },
+    "miniapp-review-1440.png": {
+      "sha256": "036b760da1e12d0454d2b211afc70f2ad5963eefdcd6c474831a199ab95fc40d",
+      "bytes": 48022
+    },
+    "xray-result-ru-1440.png": {
+      "sha256": "a860471e5beba9d94eedada095115cf44e4c4cdab9a60597ee606fc96c521ceb",
+      "bytes": 57909
+    }
+  }
+}
