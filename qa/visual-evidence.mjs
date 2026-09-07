@@ -1287,6 +1287,45 @@ const renderedText = {};
     assert(bad.length === 0, bad.join(' | '));
   });
 
+  check('REPAIRED COPY REACHES THE SCREEN — the corrected sentences render, the broken ones do not', () => {
+    // The copy gates in qa/website-contract.test.mjs read the SOURCE. This reads what Chrome
+    // actually painted, which is the only thing that proves a customer sees the correction: a
+    // sentence repaired in a file that some script overwrites at runtime would pass there and
+    // fail here. Each entry is a sentence this release repaired.
+    const FIXED = {
+      'ru-homepage@1440': ['На первичном финансовом разборе обсуждаем', 'какие — поглощают денежные средства',
+        'для управления: денежный поток', 'Прибыль есть, денег нет: отчёт о прибыли и убытках'],
+      'ro-homepage@1440': ['La discuția financiară inițială discutăm', 'Contabilitatea există',
+        'Există comenzi, dar marja', 'Banii „există”, dar sunt blocați',
+        'Inteligența artificială (AI) și automatizarea', 'inteligența artificială pe care o folosiți',
+        'pentru management: flux de numerar', 'Există profit, dar nu sunt bani'],
+      'ru-questionnaire@1440': ['финансового контроля: денежный поток'],
+      'ro-questionnaire@1440': ['controlului financiar: flux de numerar', 'Există profit, dar nu sunt bani',
+        'trebuie pusă ordine?', 'Planific pe termen lung', 'Fluxul de numerar nu este suficient'],
+      'ru-monthly-pricing@1440': ['Обзор 5–7 ключевых финансовых показателей', 'Дебиторка по срокам возникновения',
+        'Кассовый разрыв и покрытие', 'мониторинг в Power BI', 'Ежемесячная управленческая сводка',
+        'CFO Control Partner · Standard', 'CFO AI Control · Premium'],
+      'ro-monthly-pricing@1440': ['Revizuirea a 5–7 indicatori-cheie', 'Vechimea creanțelor', 'Golul de numerar',
+        'monitorizare în Power BI', 'Sinteză managerială lunară', 'CFO Control Partner · Standard']
+    };
+    // …and the defects themselves must be gone from the painted page, in either language.
+    const BROKEN = ['На Первичный финансовый разбор', 'La Discuție financiară inițială',
+      'Profit există, dar bani nu', 'Nu ajunge flux de numerar', 'pusă ordinea',
+      'Planific pentru perspectivă', 'inteligența artificială dvs.', 'Contabilitate există',
+      'Comenzi există', 'Bani „există”', 'Aging дебиторки', 'Cash gap', 'управленческий summary',
+      'Summary managerial', 'Aging-ul creanțelor'];
+    const bad = [];
+    for (const [k, needles] of Object.entries(FIXED)) {
+      const text = renderedText[k];
+      if (text === undefined) { bad.push(k + ' was never rendered'); continue; }
+      for (const n of needles) { if (text.indexOf(n) === -1) { bad.push(k + ' does not paint "' + n + '"'); } }
+    }
+    for (const [k, text] of Object.entries(renderedText)) {
+      for (const n of BROKEN) { if (text.indexOf(n) !== -1) { bad.push(k + ' still paints the repaired defect "' + n + '"'); } }
+    }
+    assert(bad.length === 0, bad.length + ' copy defect(s) on the painted page: ' + bad.slice(0, 6).join(' | '));
+  });
+
   check('RU/RO VISUAL PARITY = PASS — the two editions render the same structure', () => {
     const pairs = [['ru-homepage', 'ro-homepage'], ['ru-questionnaire', 'ro-questionnaire'],
       ['ru-packages', 'ro-packages'], ['ru-monthly-pricing', 'ro-monthly-pricing'],
@@ -1430,6 +1469,11 @@ const renderedText = {};
     writeFileSync(join(KEEP_DIR, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
     writeFileSync(join(KEEP_DIR, 'measurements.json'), JSON.stringify(results, null, 2), 'utf8');
     writeFileSync(join(KEEP_DIR, 'capture-determinism.json'), JSON.stringify(settleReports, null, 2), 'utf8');
+    // The copy each surface actually PAINTED. Retained because the release claims a language
+    // result, and a claim about language that a reviewer cannot grep is a claim about nothing:
+    // the screenshots are viewport-height, so a sentence repaired below the fold is provable
+    // from here and from nowhere else in the committed evidence.
+    writeFileSync(join(KEEP_DIR, 'rendered-text.json'), JSON.stringify(renderedText, null, 2), 'utf8');
     console.log('  retained ' + RETAIN.length + ' screenshots in ' + KEEP_DIR);
 
     check('SCREENSHOT HASH DRIFT = 0 (against the previously retained manifest)', () => {
