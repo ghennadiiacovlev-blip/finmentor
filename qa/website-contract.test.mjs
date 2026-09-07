@@ -629,8 +629,11 @@ console.log('\nCOPY: TERMINOLOGY DAMAGE');
 // Each check names the shape of the damage, not just the strings that were found, so a new
 // instance of the same shape fails here rather than reaching a customer.
 
-const RU_PAGES = ['index.html', 'questionnaire.html'];
-const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html'];
+// THE PRIMARY CUSTOMER JOURNEY, both editions. The home page and the X-Ray are where a customer
+// starts, the monthly page is where the packages are read and priced, and the thank-you page is
+// the last thing the journey shows them — a grammar defect on any of the four reaches every lead.
+const RU_PAGES = ['index.html', 'questionnaire.html', 'monthly-cfo-support.html', 'thank-you.html'];
+const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html', 'ro/monthly-cfo-support.html', 'ro/thank-you.html'];
 
 // Everything a customer can read, with machine values and markup removed. `value="..."` is the
 // CRM contract and is deliberately excluded: it must NOT be corrected, and including it here
@@ -681,11 +684,113 @@ check('no Russian sentence leaves a term in the nominative where a case is requi
   assert(bad.length === 0, bad.length + ' ungrammatical substitution(s): ' + bad.slice(0, 4).join(' | '));
 });
 
+// The four checks below close the classes found in the final sentence-by-sentence pass. Each one
+// describes the SHAPE of the damage the terminology substitution leaves behind, so the next
+// instance of it fails here instead of shipping.
+
+check('no list opened after a colon or semicolon capitalises only its first item', () => {
+  // «для управления: Денежный поток, прибыль и убытки, обязательства…» and «în creștere: Cont de
+  // profit și pierdere managerial, flux de numerar, trezorerie…». The first item used to be an
+  // English term that carried a capital — «Cash Flow», «P&L» — and kept it when it was localized,
+  // while every following item in the SAME list is lowercase. The inconsistency inside one
+  // sentence is the tell, so that is what is matched: a capitalised opener followed by a comma
+  // and a lowercase continuation.
+  //
+  // Metadata counts. A `description` is customer-readable in a search snippet and a social card,
+  // and the corrupted openers shipped there too, mirroring the on-page sentence word for word.
+  const OPENER = /[:;] ([А-ЯЁA-ZĂÂÎȘȚ][а-яёa-zăâîșț]+(?: [а-яёa-zăâîșț]+){0,4}(?: \([^)]*\))?), ([а-яёa-zăâîșț])/g;
+  const bad = [];
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    const html = read(f);
+    // The visible sentences, plus the customer-readable description strings that mirror them.
+    const zones = [visibleCopy(f)];
+    for (const m of html.matchAll(/<meta[^>]+name="(?:description|twitter:description)"[^>]*content="([^"]*)"/g)) { zones.push(m[1]); }
+    for (const m of html.matchAll(/<meta[^>]+property="og:description"[^>]*content="([^"]*)"/g)) { zones.push(m[1]); }
+    for (const m of html.matchAll(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/g)) { zones.push(m[1]); }
+    for (const zone of zones) {
+      OPENER.lastIndex = 0;
+      for (const m of zone.matchAll(OPENER)) {
+        // A proper name legitimately keeps its capital anywhere in a list.
+        if (/^(FINMENTOR|Power BI|Google|Microsoft|Excel|Telegram|Zoom|Dropbox|Make|Control|CFO|Financial|Business|Monthly|Client|Big4|IFRS|Light|Standard|Premium)/.test(m[1])) { continue; }
+        bad.push(f + ': "' + m[0].replace(/\s+/g, ' ').trim() + '"');
+      }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' half-capitalised list(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no two-line card drops the comma before its adversative conjunction', () => {
+  // The AI-economics cards paint a bold claim and a continuation as two lines of one sentence.
+  // «ИИ-бюджет растёт» + «но рентабельность…» and «Bugetul IA crește» + «dar rentabilitatea…»
+  // read — and are announced by a screen reader — as one string with no comma before «но» / «dar».
+  const bad = [];
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    for (const m of read(f).matchAll(/<strong>([^<]*[^,\s])<\/strong>\s*<span>((?:но|dar) [^<]*)<\/span>/g)) {
+      bad.push(f + ': "' + m[1] + '" + "' + m[2].slice(0, 40) + '"');
+    }
+  }
+  assert(bad.length === 0, bad.length + ' missing comma(s) before an adversative: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no Romanian sentence keeps Russian word order or a Russian impersonal construction', () => {
+  // These four shipped as literal transpositions of the Russian source: «Прибыль есть, а денег
+  // нет» -> «Profit există, dar bani nu»; «Не хватает cash flow» -> «Nu ajunge flux de numerar»;
+  // «навести порядок» -> «a pune ordinea» (the idiom takes no article); «на перспективу» ->
+  // «pentru perspectivă». The machine `value="…"` beside each label stays Russian and is
+  // deliberately outside `visibleCopy`, because it is the CRM contract.
+  const SHAPES = [
+    /Profit există, (?:dar )?bani nu/,
+    /Nu ajunge flux de numerar/,
+    /pusă ordinea/,
+    /Planific pentru perspectivă/,
+    /inteligența artificială dvs\./,
+    /Inteligență artificială \(AI\) și automatizarea/
+  ];
+  const bad = [];
+  for (const f of RO_PAGES) {
+    const copy = visibleCopy(f);
+    for (const r of SHAPES) { const m = r.exec(copy); if (m) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' Russian-shaped Romanian sentence(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no English noun is left standing inside a primary-journey sentence', () => {
+  // FINMENTOR is premium AND readable by a founder who does not speak English. Approved product
+  // names stay — n8n, Make, Power BI, Zoom, Excel, Google Sheets, Telegram, Dropbox — and a term
+  // of art may appear once in parentheses beside its localized form. A bare English NOUN carrying
+  // the meaning of the sentence may not: «Aging дебиторки», «Cash gap», «управленческий summary»,
+  // «часов и deliverables», «Power BI monitoring», «Telegram / email alerts» all shipped.
+  const BARE = [
+    /\bAging\b(?!\s*\))/, /\bCash gap\b/, /\bdeliverables\b/, /\bmonitoring\b/,
+    /\balerts\b/, /(?:управленческий|managerial)\s+[Ss]ummary/, /\bSummary\s+managerial/,
+    /улучшению cash flow/, /\bMake \/ n8n сценарии/
+  ];
+  const bad = [];
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    const copy = visibleCopy(f);
+    for (const r of BARE) { const m = r.exec(copy); if (m) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' untranslated English noun(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the approved tier labels Light / Standard / Premium are not lowercased', () => {
+  // `Light`, `Standard` and `Premium` are owner-approved tier labels. The package cards had them
+  // as lowercase Latin words — `CFO Control Partner · standard` — and «Control Light · базовый
+  // light-формат» stacked `Light` twice in one title.
+  const bad = [];
+  for (const f of ['monthly-cfo-support.html', 'ro/monthly-cfo-support.html']) {
+    const html = read(f);
+    for (const m of html.matchAll(/<h2>[^<]*·\s*(standard|premium|light)[^<]*<\/h2>/g)) { bad.push(f + ': ' + m[0]); }
+    for (const m of html.matchAll(/Control Light[^<]*\b(light)\b/g)) { bad.push(f + ': ' + m[0]); }
+  }
+  assert(bad.length === 0, bad.length + ' lowercased tier label(s): ' + bad.slice(0, 4).join(' | '));
+});
+
 check('no Romanian sentence stacks `director financiar` onto another noun', () => {
   // Romanian cannot use a role noun as an adjective: `funcție director financiar` needs its
   // preposition, and where the Russian page resolved CFO to the adjective, so must this one.
   const bad = [];
-  for (const f of RO_PAGES.concat(['ro/monthly-cfo-support.html'])) {
+  for (const f of RO_PAGES) {
     const copy = visibleCopy(f);
     for (const m of copy.matchAll(/\b(sistem|nucleu|logică|funcți[ae]|control|suport|întâlnire|disciplinei|disciplină|sistemul|suportul)\s+director financiar/gi)) {
       bad.push(f + ': ' + m[0]);
