@@ -722,7 +722,7 @@
   if (!form) return;
 
   // v9.2 — optional ?topic= deep-link from articles (additive; no-op if absent/unknown)
-  var TOPIC_MAP = { 'financial-diagnostic': 'Финансовый рентген бизнеса', 'cfo-system': 'CFO-система управления', treasury: 'Казначейство и платёжная дисциплина', margin: 'Факторный анализ маржи', 'supplier-rating': 'Рейтинг поставщиков и закупки', 'fcf-sku': 'FCF по SKU', 'working-capital': 'Оборотный капитал', 'power-bi': 'Power BI dashboard собственника', automation: 'Автоматизация финансов (n8n / Make)' };
+  var TOPIC_MAP = { 'financial-diagnostic': 'Финансовый рентген бизнеса', 'cfo-system': 'Система финансового управления', treasury: 'Казначейство и платёжная дисциплина', margin: 'Факторный анализ маржи', 'supplier-rating': 'Рейтинг поставщиков и закупки', 'fcf-sku': 'FCF по SKU', 'working-capital': 'Оборотный капитал', 'power-bi': 'Панель собственника в Power BI', automation: 'Автоматизация финансов (n8n / Make)' };
   var sourceTopic = '', sourceTopicLabel = '';
   try { var _tp = (new URLSearchParams(window.location.search)).get('topic') || ''; if (_tp && TOPIC_MAP[_tp]) { sourceTopic = _tp; sourceTopicLabel = TOPIC_MAP[_tp]; } } catch (e) {}
   var URL_PARAMS = { model: '', pain: '', intent: '', source: '', utm_source: '', utm_medium: '', utm_campaign: '', utm_content: '', utm_term: '' };
