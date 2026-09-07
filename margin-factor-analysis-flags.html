@@ -117,10 +117,10 @@
         <p class="doc-hero__eyebrow">FINMENTOR · Маржа и управленческий анализ</p>
         <h1>Факторный анализ маржи с флагами: как понять, почему бизнес заработал больше или меньше</h1>
         <p class="doc-hero__lead">«Маржа выросла» или «маржа упала» — это факт, а не причина. Разбираем факторный мост (количество, ассортимент, себестоимость, цена) и систему флагов, которая объясняет, почему маржа изменилась на самом деле: маркетинг, наличие товара, сезонность, канал, скидки.</p>
-        <p class="art-author">Геннадий Яковлев · FINMENTOR — внешний CFO</p>
+        <p class="art-author">Геннадий Яковлев · FINMENTOR — внешний финансовый директор</p>
         <div class="article-cta-actions">
           <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">Проверить маржу бизнеса <span>&rarr;</span></a>
-          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать CFO-диагностику <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать финансовую диагностику <span>&rarr;</span></a>
         </div>
       </div>
     </section>
@@ -243,7 +243,7 @@
           <div class="art-table-wrap"><table>
             <thead><tr><th>Признак</th><th>Что проверяем</th><th>Почему важно</th></tr></thead>
             <tbody>
-              <tr><td>Marketing Activity Flag</td><td>Была ли маркетинговая активность по SKU / категории</td><td>Рост продаж мог быть куплен рекламой или скидкой</td></tr>
+              <tr><td>Marketing Activity Flag</td><td>Была ли маркетинговая активность по товарной позиции (SKU) / категории</td><td>Рост продаж мог быть куплен рекламой или скидкой</td></tr>
               <tr><td>Promo Days</td><td>Сколько дней товар был в акции</td><td>Цена и маржа могут быть временно снижены</td></tr>
               <tr><td>Marketing Spend</td><td>Сколько потрачено на продвижение</td><td>Рост выручки нужно сравнивать с затратами</td></tr>
               <tr><td>Discount Depth</td><td>Насколько снижалась цена</td><td>Price Effect может быть отрицательным из-за промо</td></tr>
@@ -292,11 +292,11 @@
               <tr><td>Logistics Cost Impact</td><td>Изменилась ли логистика</td><td>Себестоимость могла вырасти из-за доставки, а не товара</td></tr>
               <tr><td>VAT / Import Cost</td><td>Была ли заморозка НДС или импортные расходы</td><td>Влияет на деньги и эффективную себестоимость</td></tr>
               <tr><td>One-off Deals</td><td>Были ли разовые крупные сделки</td><td>Могут исказить период</td></tr>
-              <tr><td>Data Quality</td><td>Есть ли ошибки, пропуски, некорректные SKU</td><td>Без качественных данных вывод опасен</td></tr>
+              <tr><td>Data Quality</td><td>Есть ли ошибки, пропуски, некорректные товарная позиция</td><td>Без качественных данных вывод опасен</td></tr>
             </tbody>
           </table></div>
 
-          <h2>Расширенная dashboard-таблица факторного анализа</h2>
+          <h2>Расширенная таблица панели собственника факторного анализа</h2>
           <div class="art-table-wrap art-table-wrap--wide"><table>
             <thead><tr><th>Фактор</th><th class="num">Влияние на маржу</th><th>Базовый флаг</th><th>Диагностический признак</th><th>Интерпретация</th></tr></thead>
             <tbody>
@@ -304,7 +304,7 @@
               <tr><td>Ассортимент / Mix</td><td class="num">+280 294</td><td><span class="art-dot art-dot--green"></span>Green</td><td>Сезонный товар</td><td>Улучшение mix нужно сравнить с аналогичным периодом прошлого года</td></tr>
               <tr><td>Себестоимость</td><td class="num">+284 691</td><td><span class="art-dot art-dot--green"></span>Green</td><td>Supplier terms improved</td><td>Закупки улучшили маржу</td></tr>
               <tr><td>Цена</td><td class="num">−157 742</td><td><span class="art-dot art-dot--red"></span>Red</td><td>Promo active / скидки</td><td>Цена снизила маржу, нужно проверить эффективность акции</td></tr>
-              <tr><td>Данные</td><td class="num">—</td><td><span class="art-dot art-dot--yellow"></span>Yellow</td><td>Есть неполные признаки</td><td>Перед решением проверить справочники и SKU</td></tr>
+              <tr><td>Данные</td><td class="num">—</td><td><span class="art-dot art-dot--yellow"></span>Yellow</td><td>Есть неполные признаки</td><td>Перед решением проверить справочники и товарная позиция</td></tr>
             </tbody>
           </table></div>
           <div class="callout"><span class="callout__label">Правильный вывод</span><p>Маржа выросла, но качество роста смешанное. Плюс дали ассортимент и себестоимость, минус — цена и количество. При этом падение количества может быть связано с отсутствием товара, а снижение цены — с маркетинговой активностью. Решение нельзя принимать только по факторному мосту: нужно проверить stock-out, сезонность и эффективность промо.</p></div>
@@ -363,27 +363,27 @@
             <li><strong>Цена.</strong> Отличать управляемые акции от потери ценовой дисциплины; проверять ROI промо.</li>
             <li><strong>Ассортимент.</strong> Усиливать позиции, реально улучшающие mix; не путать сезонный всплеск с устойчивым ростом.</li>
             <li><strong>Закупки.</strong> При отрицательном Cost Effect — переходить к рейтингу поставщиков и условиям закупки.</li>
-            <li><strong>Склад.</strong> Закрывать stock-out по ходовым SKU, чтобы не терять объём и маржу.</li>
+            <li><strong>Склад.</strong> Закрывать stock-out по ходовым товарная позиция, чтобы не терять объём и маржу.</li>
           </ul>
 
-          <h2>Как связать факторный анализ с FCF по SKU и рейтингом поставщиков</h2>
+          <h2>Как связать факторный анализ с FCF по товарной позиции и рейтингом поставщиков</h2>
           <p>Факторный анализ показывает, что себестоимость дала плюс или минус. Но чтобы понять причину, нужно перейти к поставщикам. Если <strong>Cost Effect положительный</strong> — проверьте: поставщик дал лучшую цену, улучшилась отсрочка, снизилась логистика, улучшились условия возврата, снизилась заморозка НДС, была разовая закупочная акция или изменился валютный курс. Если <strong>Cost Effect отрицательный</strong> — проверьте: ухудшилась закупочная цена, поставщик сократил отсрочку, выросла логистика или заморозка НДС, сменился поставщик, ухудшились условия импорта, либо закупки выбрали «дешевле по прайсу», но дороже по полной стоимости.</p>
-          <div class="callout"><span class="callout__label">Связка методологии</span><p>Факторный анализ маржи показывает, <strong>где</strong> появилась проблема, а <a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a> помогает понять, <strong>у кого и на каких условиях</strong> нужно покупать, чтобы её исправить. А <a href="fcf-postavshiki.html">FCF по SKU</a> показывает, какие товары вообще создают деньги.</p></div>
+          <div class="callout"><span class="callout__label">Связка методологии</span><p>Факторный анализ маржи показывает, <strong>где</strong> появилась проблема, а <a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a> помогает понять, <strong>у кого и на каких условиях</strong> нужно покупать, чтобы её исправить. А <a href="fcf-postavshiki.html">FCF по товарной позиции</a> показывает, какие товары вообще создают деньги.</p></div>
 
           <h2>Общая формула управленческого решения</h2>
-          <div class="art-formula"><b>Решение по товару</b> = Маржа + FCF + Рейтинг поставщика + Флаги периода<em>Маржа показывает экономику продажи. FCF — денежный вклад SKU. Рейтинг поставщика — качество закупочных условий. Флаги периода — контекст: маркетинг, stock-out, сезонность, канал, скидки, возвраты, данные.</em></div>
+          <div class="art-formula"><b>Решение по товару</b> = Маржа + FCF + Рейтинг поставщика + Флаги периода<em>Маржа показывает экономику продажи. FCF — денежный вклад товарная позиция. Рейтинг поставщика — качество закупочных условий. Флаги периода — контекст: маркетинг, stock-out, сезонность, канал, скидки, возвраты, данные.</em></div>
 
           <h2>Финальный вывод</h2>
           <p>Маржа — это итог, а не объяснение. Факторный мост показывает, что её изменило: количество, ассортимент, себестоимость или цена. Флаги и диагностические признаки показывают, почему: промо, stock-out, сезонность, канал, поставщик. Только вместе они дают решение, которому можно доверять.</p>
-          <p>Одинаковый товар нельзя оценивать только по цене закупки или марже. Его нужно видеть через связку: какие товары создают деньги (<a href="fcf-postavshiki.html">FCF по SKU</a>), у кого выгоднее покупать (<a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a>), как это влияет на маржу (этот факторный анализ) — и какие факторы исказили результат периода.</p>
+          <p>Одинаковый товар нельзя оценивать только по цене закупки или марже. Его нужно видеть через связку: какие товары создают деньги (<a href="fcf-postavshiki.html">FCF по товарной позиции</a>), у кого выгоднее покупать (<a href="supplier-rating-purchasing-priorities.html">рейтинг поставщиков</a>), как это влияет на маржу (этот факторный анализ) — и какие факторы исказили результат периода.</p>
 
           <h2>Как автоматизировать факторный анализ маржи</h2>
           <p>Факторный анализ не должен собираться вручную в конце месяца. Данные по продажам, себестоимости, складу, маркетингу и возвратам должны автоматически попадать в модель.</p>
           <h3>Что можно автоматизировать через n8n / Make</h3>
-          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Процесс</th><th>Что делает автоматизация</th></tr></thead><tbody><tr><td>Импорт продаж</td><td>Загружает продажи по SKU из ERP / CRM / кассы / маркетплейса</td></tr><tr><td>Импорт себестоимости</td><td>Подтягивает COGS и закупочные цены</td></tr><tr><td>Импорт склада</td><td>Загружает наличие, stock-out days, availability %</td></tr><tr><td>Импорт маркетинга</td><td>Подтягивает campaign name, marketing spend, promo days</td></tr><tr><td>Импорт возвратов</td><td>Добавляет returns rate и сумму возвратов</td></tr><tr><td>Обновление справочников</td><td>SKU, категории, поставщики, сезонность, каналы продаж</td></tr><tr><td>Уведомления</td><td>Отправляет alerts, если Price Effect или Cost Effect в красной зоне</td></tr></tbody></table></div>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Процесс</th><th>Что делает автоматизация</th></tr></thead><tbody><tr><td>Импорт продаж</td><td>Загружает продажи по товарной позиции из ERP / CRM / кассы / маркетплейса</td></tr><tr><td>Импорт себестоимости</td><td>Подтягивает COGS и закупочные цены</td></tr><tr><td>Импорт склада</td><td>Загружает наличие, stock-out days, availability %</td></tr><tr><td>Импорт маркетинга</td><td>Подтягивает campaign name, marketing spend, promo days</td></tr><tr><td>Импорт возвратов</td><td>Добавляет returns rate и сумму возвратов</td></tr><tr><td>Обновление справочников</td><td>Товарная позиция, категории, поставщики, сезонность, каналы продаж</td></tr><tr><td>Уведомления</td><td>Отправляет alerts, если Price Effect или Cost Effect в красной зоне</td></tr></tbody></table></div>
           <h3>Что показывает Power BI</h3>
-          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Dashboard</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>Margin Bridge</td><td>Изменение маржи по факторам: volume, mix, cost, price</td></tr><tr><td>Risk Flags</td><td>Price, Volume, Mix, Cost, Data Quality</td></tr><tr><td>Promo Impact</td><td>Как маркетинг и скидки повлияли на маржу</td></tr><tr><td>Stock-out Impact</td><td>Сколько маржи потеряно из-за отсутствия товара</td></tr><tr><td>Seasonality Check</td><td>Сопоставимость периодов и сезонный эффект</td></tr><tr><td>SKU Drill-down</td><td>Какие товары ухудшили или улучшили маржу</td></tr></tbody></table></div>
-          <div class="callout"><span class="callout__label">Главный вывод</span><p>Факторный анализ маржи становится сильным только тогда, когда цифры обновляются автоматически, а собственник видит не таблицу, а dashboard причин и решений.</p></div>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Панель собственника (Dashboard)</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>Margin Bridge</td><td>Изменение маржи по факторам: volume, mix, cost, price</td></tr><tr><td>Risk Flags</td><td>Price, Volume, Mix, Cost, Data Quality</td></tr><tr><td>Promo Impact</td><td>Как маркетинг и скидки повлияли на маржу</td></tr><tr><td>Stock-out Impact</td><td>Сколько маржи потеряно из-за отсутствия товара</td></tr><tr><td>Seasonality Check</td><td>Сопоставимость периодов и сезонный эффект</td></tr><tr><td>Товарная позиция Drill-down</td><td>Какие товары ухудшили или улучшили маржу</td></tr></tbody></table></div>
+          <div class="callout"><span class="callout__label">Главный вывод</span><p>Факторный анализ маржи становится сильным только тогда, когда цифры обновляются автоматически, а собственник видит не таблицу, а панель собственника причин и решений.</p></div>
           </section>
       </article>
     </div>
@@ -394,15 +394,15 @@
         <p class="cta-band__text">FINMENTOR помогает собственникам построить факторный анализ маржи с флагами: цена, количество, mix, себестоимость, маркетинговая активность, наличие товара на складе, сезонность, скидки, возвраты и качество данных.</p>
         <div class="article-cta-actions">
           <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=margin" onclick="gtag('event','click_margin_factor_questionnaire')">Проверить маржу бизнеса <span>&rarr;</span></a>
-          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать CFO-диагностику <span>&rarr;</span></a>
+          <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_margin_factor_discovery')">Заказать финансовую диагностику <span>&rarr;</span></a>
         </div>
       </section>
     </div>
 
     <div class="container">
       <nav class="related" aria-label="Связанные материалы">
-        <p class="related__label">Серия FINMENTOR: закупки, поставщики, маржа, Cash Flow</p>
-        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="fcf-postavshiki.html">FCF по SKU: какие товары создают Cash Flow</a><a href="working-capital.html">Оборотный капитал</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="upravlencheskiy-pl.html">Управленческий P&L</a></div>
+        <p class="related__label">Серия FINMENTOR: закупки, поставщики, маржа, денежный поток (Cash Flow)</p>
+        <div class="related__grid"><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="fcf-postavshiki.html">FCF по товарной позиции: какие товары создают денежный поток</a><a href="working-capital.html">Оборотный капитал</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="upravlencheskiy-pl.html">Управленческий P&L</a></div>
       </nav>
     </div>
   </main>

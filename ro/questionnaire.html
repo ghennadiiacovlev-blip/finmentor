@@ -16,7 +16,7 @@
   <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
   <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
   <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
-  <title>Test financiar FINMENTOR — Cash Flow, P&L, KPI și riscuri | FINMENTOR</title>
+  <title>Test financiar FINMENTOR — Flux de numerar (Cash Flow), P&L, indicatori-cheie de performanță (KPI) și riscuri | FINMENTOR</title>
   <meta name="description" content="Test financiar FINMENTOR FINMENTOR: Cash Flow, P&L, plăți, creanțe, marjă, KPI, automatizare și riscuri. Test rapid, diagnostic extins și pregătire pentru Financial Health Check." />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#08111F" />
@@ -328,7 +328,7 @@
      1 = хаос, нет управленческого учёта;
      2 = базовые отчёты есть, но нет регулярного контроля;
      3 = есть P&L / CF / бюджет частично;
-     4 = есть управленческий контур и KPI;
+     4 = есть управленческий контур и indicatori-cheie;
      5 = есть BI / automation / регулярный контроль.
   4. RISK MAP
      cash_flow_risk, profitability_risk, reporting_risk, debt_risk,
@@ -337,7 +337,7 @@
      Low | Medium | High | Critical.
   6. RECOMMENDED FIRST STEP
      Health Check | Business Control System | Monthly Support |
-     CFO AI Transformation | request documents first | discovery call first.
+     director financiar inteligență artificială (AI) Transformation | request documents first | discovery call first.
   7. MEETING AGENDA
      5-7 пунктов для первой встречи.
   8. DOCUMENT REQUEST LIST
@@ -350,7 +350,7 @@
      communication_format, meeting_frequency, channels, quality_control,
      document_exchange, how_to_address_client_concerns.
 
-  TODO: questionnaire submit -> webhook -> AI agent -> Telegram + Gmail + Google Sheets / CRM.
+  TODO: questionnaire submit -> webhook -> IA agent -> Telegram + Gmail + Google Sheets / CRM.
 ================================================================================
 -->
 
@@ -368,7 +368,7 @@
       <div class="container">
         <p class="q-hero__eyebrow">Test financiar FINMENTOR</p>
         <h1>Cât de sănătos este sistemul financiar al afacerii dumneavoastră?</h1>
-        <p>Răspundeți la câteva întrebări pentru ca FINMENTOR să evalueze preliminar nivelul controlului financiar: Cash Flow, profit, plăți, creanțe, KPI, marjă, automatizare și riscurile proprietarului.</p>
+        <p>Răspundeți la câteva întrebări pentru ca FINMENTOR să evalueze preliminar nivelul controlului financiar: Flux de numerar, profit, plăți, creanțe, indicatori-cheie, marjă, automatizare și riscurile proprietarului.</p>
         <p>Este o autodiagnoză structurată. Concluziile finale și recomandările se formează după analiza datelor și validarea expertului FINMENTOR.</p>
         <span class="q-hero__meta">12 întrebări · ≈ 2–3 minute · rezultat preliminar imediat · pregătire extinsă — la dorință</span>
       </div>
@@ -397,11 +397,11 @@
           </div>
 
           <fieldset class="q"><legend class="q__label">Q1. Modelul dvs. de business</legend><div class="q__cards">
-            <label><input type="radio" name="dx_model" value="Real Estate" data-model="real-estate" /> Real Estate</label>
+            <label><input type="radio" name="dx_model" value="Real Estate" data-model="real-estate" /> Imobiliare și închiriere</label>
             <label><input type="radio" name="dx_model" value="Retail" data-model="retail" /> Retail</label>
-            <label><input type="radio" name="dx_model" value="E-commerce" data-model="ecommerce" /> E-commerce</label>
-            <label><input type="radio" name="dx_model" value="Distribution" data-model="distribution" /> Distribution</label>
-            <label><input type="radio" name="dx_model" value="Custom Manufacturing" data-model="manufacturing" /> Custom Manufacturing</label>
+            <label><input type="radio" name="dx_model" value="E-commerce" data-model="ecommerce" /> Comerț online</label>
+            <label><input type="radio" name="dx_model" value="Distribution" data-model="distribution" /> Comerț cu ridicata / distribuție</label>
+            <label><input type="radio" name="dx_model" value="Custom Manufacturing" data-model="manufacturing" /> Producție la comandă</label>
             <label><input type="radio" name="dx_model" value="Fitness" data-model="fitness" /> Fitness</label>
             <label><input type="radio" name="dx_model" value="Services" data-model="services" /> Services</label>
             <label><input type="radio" name="dx_model" value="Other" data-model="other" /> Other</label>
@@ -413,15 +413,15 @@
             <label><input type="radio" name="dx_pain" value="Платежи хаотично / кассовые разрывы" data-pain="payments" /> Plăți haotice / goluri de numerar</label>
             <label><input type="radio" name="dx_pain" value="Маржа / прибыль непонятна" data-pain="margin" /> Marja / profitul sunt neclare</label>
             <label><input type="radio" name="dx_pain" value="Дебиторка и склад замораживают деньги" data-pain="receivables" /> Creanțele și depozitul blochează banii</label>
-            <label><input type="radio" name="dx_pain" value="Нет единой картины KPI и рисков" data-pain="kpi" /> Nu există o imagine unică a KPI și riscurilor</label>
+            <label><input type="radio" name="dx_pain" value="Нет единой картины KPI и рисков" data-pain="kpi" /> Nu există o imagine unică a indicatori-cheie și riscurilor</label>
           </div></fieldset>
 
-          <fieldset class="q" data-score-key="cash_flow" data-weight="18"><legend class="q__label">Q3. Vedeți regulat mișcarea banilor Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="dx_cash_flow" value="Да, есть регулярный Cash Flow и прогноз" data-score="full" /> Da, există Cash Flow regulat și prognoză</label><label><input type="radio" name="dx_cash_flow" value="Частично, смотрю остатки на счёте" data-score="half" /> Parțial, mă uit la soldurile din cont</label><label><input type="radio" name="dx_cash_flow" value="Нет, узнаю по факту" data-score="zero" /> Nu, aflu post-factum</label></div></fieldset>
+          <fieldset class="q" data-score-key="cash_flow" data-weight="18"><legend class="q__label">Q3. Vedeți regulat mișcarea banilor flux de numerar?</legend><div class="q__choices"><label><input type="radio" name="dx_cash_flow" value="Да, есть регулярный Cash Flow и прогноз" data-score="full" /> Da, există flux de numerar regulat și prognoză</label><label><input type="radio" name="dx_cash_flow" value="Частично, смотрю остатки на счёте" data-score="half" /> Parțial, mă uit la soldurile din cont</label><label><input type="radio" name="dx_cash_flow" value="Нет, узнаю по факту" data-score="zero" /> Nu, aflu post-factum</label></div></fieldset>
           <fieldset class="q" data-score-key="management_pl" data-weight="16"><legend class="q__label">Q4. Există P&L managerial pe direcții / imobile / produse?</legend><div class="q__choices"><label><input type="radio" name="dx_pl" value="Да, регулярный управленческий P&L" data-score="full" /> Da, P&L managerial regulat</label><label><input type="radio" name="dx_pl" value="Только бухгалтерская / налоговая прибыль" data-score="half" /> Doar profitul contabil / fiscal</label><label><input type="radio" name="dx_pl" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
           <fieldset class="q" data-score-key="payments" data-weight="14"><legend class="q__label">Q5. Există calendar al plăților / control al plăților?</legend><div class="q__choices"><label><input type="radio" name="dx_payments" value="Да, платежи по приоритетам и фондам" data-score="full" /> Da, plăți pe priorități și fonduri</label><label><input type="radio" name="dx_payments" value="Частично, список на оплату" data-score="half" /> Parțial, o listă „de plată”</label><label><input type="radio" name="dx_payments" value="Нет, платим по ситуации" data-score="zero" /> Nu, plătim după situație</label></div></fieldset>
           <fieldset class="q" data-score-key="receivables_payables" data-weight="14"><legend class="q__label">Q6. Controlați creanțele și datoriile către furnizori?</legend><div class="q__choices"><label><input type="radio" name="dx_ar_ap" value="Да, реестры и сроки под контролем" data-score="full" /> Da, registrele și scadențele sunt sub control</label><label><input type="radio" name="dx_ar_ap" value="Частично" data-score="half" /> Parțial</label><label><input type="radio" name="dx_ar_ap" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
           <fieldset class="q" data-score-key="margin" data-weight="16"><legend class="q__label">Q7. Cunoașteți marja reală?</legend><p class="q-model-note" id="dxMarginHint">Pe direcție / client / proiect.</p><div class="q__choices"><label><input type="radio" name="dx_margin" value="Да, вижу маржу в нужном разрезе" data-score="full" /> Da, văd marja pe dimensiunea necesară</label><label><input type="radio" name="dx_margin" value="Примерно, без точного разреза" data-score="half" /> Aproximativ, fără o defalcare exactă</label><label><input type="radio" name="dx_margin" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
-          <fieldset class="q" data-score-key="kpi_dashboard" data-weight="12"><legend class="q__label">Q8. Vedeți KPI, riscurile și abaterile într-un singur loc?</legend><div class="q__choices"><label><input type="radio" name="dx_kpi" value="Да, единый dashboard / отчёт" data-score="full" /> Da, dashboard / raport unic</label><label><input type="radio" name="dx_kpi" value="Частично, разрозненно" data-score="half" /> Parțial, dispersat</label><label><input type="radio" name="dx_kpi" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
+          <fieldset class="q" data-score-key="kpi_dashboard" data-weight="12"><legend class="q__label">Q8. Vedeți indicatorii-cheie, riscurile și abaterile într-un singur loc?</legend><div class="q__choices"><label><input type="radio" name="dx_kpi" value="Да, единый dashboard / отчёт" data-score="full" /> Da, tablou de bord pentru proprietar (Dashboard) / raport unic</label><label><input type="radio" name="dx_kpi" value="Частично, разрозненно" data-score="half" /> Parțial, dispersat</label><label><input type="radio" name="dx_kpi" value="Нет" data-score="zero" /> Nu</label></div></fieldset>
           <fieldset class="q" data-score-key="data_systems" data-weight="10"><legend class="q__label">Q9. În câte sisteme trăiesc datele?</legend><div class="q__choices"><label><input type="radio" name="dx_systems" value="Один источник / единая система" data-score="full" /> O singură sursă / sistem unic</label><label><input type="radio" name="dx_systems" value="2–3 источника" data-score="half" /> 2–3 surse</label><label><input type="radio" name="dx_systems" value="4 и больше / всё разрознено" data-score="zero" /> 4 și mai multe / totul dispersat</label></div></fieldset>
 
           <fieldset class="q"><legend class="q__label">Q10. Cât de urgent trebuie pusă ordinea?</legend><div class="q__cards"><label><input type="radio" name="dx_urgency" value="Уже горит / есть разрывы" /> Arde deja / există goluri</label><label><input type="radio" name="dx_urgency" value="В ближайшие 1–3 месяца" /> În următoarele 1–3 luni</label><label><input type="radio" name="dx_urgency" value="Планирую на перспективу" /> Planific pentru perspectivă</label></div></fieldset>
@@ -472,7 +472,7 @@
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Profilul de business</h2><span class="q-block__count">2 / 11</span></div>
           <div class="q-grid">
-            <fieldset class="q" data-key="industry_category"><legend class="q__label">Domeniul de activitate</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="Торговля / Retail" /> Comerț / Retail</label><label><input type="radio" name="q_industry" value="HoReCa / рестораны / кафе" /> HoReCa / restaurante / cafenele</label><label><input type="radio" name="q_industry" value="Недвижимость / аренда" /> Imobiliare / închiriere</label><label><input type="radio" name="q_industry" value="Строительство / проекты / CAPEX" /> Construcții / proiecte / CAPEX</label><label><input type="radio" name="q_industry" value="Импорт / дистрибуция" /> Import / distribuție</label><label><input type="radio" name="q_industry" value="Производство" /> Producție</label><label><input type="radio" name="q_industry" value="Услуги / консалтинг" /> Servicii / consultanță</label><label><input type="radio" name="q_industry" value="E-commerce" /> E-commerce</label><label><input type="radio" name="q_industry" value="Группа компаний" /> Grup de companii</label><label><input type="radio" name="q_industry" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
+            <fieldset class="q" data-key="industry_category"><legend class="q__label">Domeniul de activitate</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="Торговля / Retail" /> Comerț / Retail</label><label><input type="radio" name="q_industry" value="HoReCa / рестораны / кафе" /> HoReCa / restaurante / cafenele</label><label><input type="radio" name="q_industry" value="Недвижимость / аренда" /> Imobiliare / închiriere</label><label><input type="radio" name="q_industry" value="Строительство / проекты / CAPEX" /> Construcții / proiecte / investiții de capital (CAPEX)</label><label><input type="radio" name="q_industry" value="Импорт / дистрибуция" /> Import / distribuție</label><label><input type="radio" name="q_industry" value="Производство" /> Producție</label><label><input type="radio" name="q_industry" value="Услуги / консалтинг" /> Servicii / consultanță</label><label><input type="radio" name="q_industry" value="E-commerce" /> Comerț online</label><label><input type="radio" name="q_industry" value="Группа компаний" /> Grup de companii</label><label><input type="radio" name="q_industry" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
           <div class="q"><span class="q__label">Precizați pe scurt domeniul, dacă este nevoie</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></div>
             <fieldset class="q" data-key="companies_in_group"><legend class="q__label">Companii în grup</legend><div class="q__choices"><label><input type="radio" name="q_companies" value="1 компания" /> 1 companie</label><label><input type="radio" name="q_companies" value="2–3 компании" /> 2–3 companii</label><label><input type="radio" name="q_companies" value="4–5 компаний" /> 4–5 companii</label><label><input type="radio" name="q_companies" value="6+ компаний" /> 6+ companii</label><label><input type="radio" name="q_companies" value="Есть связанные компании, но структура не формализована" /> Există companii afiliate, dar structura nu este formalizată</label><label><input type="radio" name="q_companies" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
             <fieldset class="q" data-key="employees_range"><legend class="q__label">Angajați</legend><div class="q__choices"><label><input type="radio" name="q_employees" value="до 10" /> până la 10</label><label><input type="radio" name="q_employees" value="10–25" /> 10–25</label><label><input type="radio" name="q_employees" value="25–50" /> 25–50</label><label><input type="radio" name="q_employees" value="50–100" /> 50–100</label><label><input type="radio" name="q_employees" value="100+" /> 100+</label><label><input type="radio" name="q_employees" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
@@ -480,12 +480,12 @@
           <div class="q"><span class="q__label">Ce direcții / imobile trebuie evidențiate separat?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></div>
           </div>
           <fieldset class="q" data-key="annual_turnover"><legend class="q__label">Cifra de afaceri anuală aproximativă</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> până la 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Prefer să discut personal</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Există sezonalitate în business?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Da</label><label><input type="radio" name="q_seasonality" value="Нет" /> Nu</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Există credite / leasing / investitori?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Nu</label><label><input type="radio" name="q_loans" value="Кредиты" /> Credite</label><label><input type="radio" name="q_loans" value="Лизинг" /> Leasing</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Investitori</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Mai multe surse</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Există proiecte / CAPEX / construcții?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Nu</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Da, proiecte separate</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Da, construcții active</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Există sezonalitate în business?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Da</label><label><input type="radio" name="q_seasonality" value="Нет" /> Nu</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Există credite / leasing / investitori?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Nu</label><label><input type="radio" name="q_loans" value="Кредиты" /> Credite</label><label><input type="radio" name="q_loans" value="Лизинг" /> Leasing</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Investitori</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Mai multe surse</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Există proiecte / investiții de capital / construcții?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Nu</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Da, proiecte separate</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Da, construcții active</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset>
           <div class="q"><span class="q__label">Sursele principale de venit</span><input type="text" name="q_income" /></div>
           <fieldset class="q"><legend class="q__label">Principalele articole de cheltuieli</legend><div class="q__choices q__choices--multi" data-key="main_expense_categories"><label><input type="checkbox" name="q_expenses" value="Зарплата / ФОТ" /> Salarii / fond de salarizare</label><label><input type="checkbox" name="q_expenses" value="Аренда" /> Chirie</label><label><input type="checkbox" name="q_expenses" value="Закупка товара / материалов" /> Achiziția de marfă / materiale</label><label><input type="checkbox" name="q_expenses" value="Логистика" /> Logistică</label><label><input type="checkbox" name="q_expenses" value="Маркетинг" /> Marketing</label><label><input type="checkbox" name="q_expenses" value="Кредиты / проценты" /> Credite / dobânzi</label><label><input type="checkbox" name="q_expenses" value="Налоги" /> Impozite</label><label><input type="checkbox" name="q_expenses" value="Подрядчики" /> Antreprenori</label><label><input type="checkbox" name="q_expenses" value="Коммунальные / эксплуатационные расходы" /> Utilități / cheltuieli de exploatare</label><label><input type="checkbox" name="q_expenses" value="IT / CRM / ERP" /> IT / CRM / ERP</label><label><input type="checkbox" name="q_expenses" value="Другое" /> Altceva</label></div></fieldset>
           <div class="q"><span class="q__label">Precizați cheltuielile mari, dacă este nevoie</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></div>
           <div class="q"><span class="q__label">Cine ia deciziile financiare?</span><input type="text" name="q_decision" /></div>
-          <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Există director financiar / echipă financiară?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет финансового директора" /> Nu există director financiar</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает финансовую функцию" /> Contabilul cumulează funcția financiară</label><label><input type="radio" name="q_finteam" value="Есть финансист / экономист" /> Există finanțist / economist</label><label><input type="radio" name="q_finteam" value="Есть финансовый директор" /> Există director financiar</label><label><input type="radio" name="q_finteam" value="Есть внешнее CFO-сопровождение" /> Există suport CFO extern</label><label><input type="radio" name="q_finteam" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
+          <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Există director financiar / echipă financiară?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет финансового директора" /> Nu există director financiar</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает финансовую функцию" /> Contabilul cumulează funcția financiară</label><label><input type="radio" name="q_finteam" value="Есть финансист / экономист" /> Există finanțist / economist</label><label><input type="radio" name="q_finteam" value="Есть финансовый директор" /> Există director financiar</label><label><input type="radio" name="q_finteam" value="Есть внешнее CFO-сопровождение" /> Există suport director financiar extern</label><label><input type="radio" name="q_finteam" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
         </section>
 
         <!-- Блок 3 — Главные боли -->
@@ -493,15 +493,15 @@
           <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Durerile principale</legend><span class="q-block__count">3 / 11</span></div>
           <div class="q__choices q__choices--multi" data-key="primary_problem">
             <label><input type="checkbox" name="q_pain" value="Прибыль есть, но денег нет" /> Profit există, dar bani nu</label>
-            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Nu ajunge cash flow</label>
+            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Nu ajunge flux de numerar</label>
             <label><input type="checkbox" name="q_pain" value="Кассовые разрывы" /> Goluri de numerar</label>
             <label><input type="checkbox" name="q_pain" value="Нет понятного P&L" /> Nu există un P&L clar</label>
             <label><input type="checkbox" name="q_pain" value="Нет управленческого учёта" /> Nu există contabilitate managerială</label>
             <label><input type="checkbox" name="q_pain" value="Платежи идут хаотично" /> Plățile merg haotic</label>
             <label><input type="checkbox" name="q_pain" value="Отчёты приходят поздно" /> Rapoartele vin târziu</label>
             <label><input type="checkbox" name="q_pain" value="Собственник не видит реальную картину" /> Nu văd imaginea reală</label>
-            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Nu există KPI</label>
-            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Nu există Power BI / dashboard</label>
+            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Nu există indicatori-cheie</label>
+            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Nu există Power BI / tablou de bord</label>
             <label><input type="checkbox" name="q_pain" value="Много ручной работы" /> Multă muncă manuală</label>
             <label><input type="checkbox" name="q_pain" value="Excel-файлы не связаны между собой" /> Fișierele Excel nu sunt legate</label>
             <label><input type="checkbox" name="q_pain" value="Сложно контролировать группу компаний" /> Grupul este greu de controlat</label>
@@ -509,27 +509,27 @@
             <label><input type="checkbox" name="q_pain" value="Нет контроля кредиторки" /> Nu există control al datoriilor către furnizori</label>
             <label><input type="checkbox" name="q_pain" value="Есть долги / кредиты / просрочки" /> Datorii / credite / restanțe</label>
             <label><input type="checkbox" name="q_pain" value="Нужны инвестиции / банк / финансирование" /> Este nevoie de investiții / bancă</label>
-            <label><input type="checkbox" name="q_pain" value="Нужен контроль строительства / CAPEX" /> Controlul construcțiilor / CAPEX</label>
+            <label><input type="checkbox" name="q_pain" value="Нужен контроль строительства / CAPEX" /> Controlul construcțiilor / investiții de capital</label>
             <label><input type="checkbox" name="q_pain" value="Нужно внедрить BI / автоматизацию" /> Este nevoie de BI / automatizare</label>
             <label><input type="checkbox" name="q_pain" value="Другое" /> Altceva</label>
           </div>
           <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Descrieți problema principală cu propriile cuvinte</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
           <fieldset class="q" data-key="urgency"><legend class="q__label">Urgența solicitării</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Obișnuită</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Ridicată</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Înaltă — există gol de numerar</label><label><input type="radio" name="q_urgency" value="Кризис" /> Criză</label></div></fieldset>
-          <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Ce doriți de la FINMENTOR în primul rând?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовый рентген бизнеса" /> Test financiar FINMENTOR</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Construirea sistemului de control</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Suport CFO regulat</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / dashboard</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Controlul plăților / trezorerie</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Capital de lucru</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Finanțare (bancă / investitor)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Încă nu știu — am nevoie de consultație</label></div></fieldset>
+          <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Ce doriți de la FINMENTOR în primul rând?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовый рентген бизнеса" /> Test financiar FINMENTOR</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Construirea sistemului de control</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Suport director financiar regulat</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / tablou de bord</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Controlul plăților / trezorerie</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Capital de lucru</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Finanțare (bancă / investitor)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Încă nu știu — am nevoie de consultație</label></div></fieldset>
         </fieldset>
 
         <!-- Блок 4 — Финансовый контроль -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Control financiar</h2><span class="q-block__count">4 / 11</span></div>
           <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Există P&L managerial?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Da</label><label><input type="radio" name="q_f1" value="Нет" /> Nu</label><label><input type="radio" name="q_f1" value="Частично" /> Parțial</label><label><input type="radio" name="q_f1" value="Не знаю" /> Nu știu</label></div></fieldset>
-          <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Există Cash Flow?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Da</label><label><input type="radio" name="q_f2" value="Нет" /> Nu</label><label><input type="radio" name="q_f2" value="Частично" /> Parțial</label><label><input type="radio" name="q_f2" value="Не знаю" /> Nu știu</label></div></fieldset>
+          <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Există flux de numerar?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Da</label><label><input type="radio" name="q_f2" value="Нет" /> Nu</label><label><input type="radio" name="q_f2" value="Частично" /> Parțial</label><label><input type="radio" name="q_f2" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q" data-key="has_payment_calendar"><legend class="q__label">Există calendar al plăților?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Da</label><label><input type="radio" name="q_f3" value="Нет" /> Nu</label><label><input type="radio" name="q_f3" value="Частично" /> Parțial</label><label><input type="radio" name="q_f3" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există buget?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Да" /> Da</label><label><input type="radio" name="q_f4" value="Нет" /> Nu</label><label><input type="radio" name="q_f4" value="Частично" /> Parțial</label><label><input type="radio" name="q_f4" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există analiză plan–realizat?</legend><div class="q__choices"><label><input type="radio" name="q_f5" value="Да" /> Da</label><label><input type="radio" name="q_f5" value="Нет" /> Nu</label><label><input type="radio" name="q_f5" value="Частично" /> Parțial</label><label><input type="radio" name="q_f5" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există control al creanțelor?</legend><div class="q__choices"><label><input type="radio" name="q_f6" value="Да" /> Da</label><label><input type="radio" name="q_f6" value="Нет" /> Nu</label><label><input type="radio" name="q_f6" value="Частично" /> Parțial</label><label><input type="radio" name="q_f6" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există control al datoriilor către furnizori?</legend><div class="q__choices"><label><input type="radio" name="q_f7" value="Да" /> Da</label><label><input type="radio" name="q_f7" value="Нет" /> Nu</label><label><input type="radio" name="q_f7" value="Частично" /> Parțial</label><label><input type="radio" name="q_f7" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există model financiar?</legend><div class="q__choices"><label><input type="radio" name="q_f8" value="Да" /> Da</label><label><input type="radio" name="q_f8" value="Нет" /> Nu</label><label><input type="radio" name="q_f8" value="Частично" /> Parțial</label><label><input type="radio" name="q_f8" value="Не знаю" /> Nu știu</label></div></fieldset>
-          <fieldset class="q"><legend class="q__label">Există KPI?</legend><div class="q__choices"><label><input type="radio" name="q_f9" value="Да" /> Da</label><label><input type="radio" name="q_f9" value="Нет" /> Nu</label><label><input type="radio" name="q_f9" value="Частично" /> Parțial</label><label><input type="radio" name="q_f9" value="Не знаю" /> Nu știu</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Există indicatori-cheie?</legend><div class="q__choices"><label><input type="radio" name="q_f9" value="Да" /> Da</label><label><input type="radio" name="q_f9" value="Нет" /> Nu</label><label><input type="radio" name="q_f9" value="Частично" /> Parțial</label><label><input type="radio" name="q_f9" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există raport regulat pentru proprietar?</legend><div class="q__choices"><label><input type="radio" name="q_f10" value="Да" /> Da</label><label><input type="radio" name="q_f10" value="Нет" /> Nu</label><label><input type="radio" name="q_f10" value="Частично" /> Parțial</label><label><input type="radio" name="q_f10" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există control al marjelor?</legend><div class="q__choices"><label><input type="radio" name="q_f11" value="Да" /> Da</label><label><input type="radio" name="q_f11" value="Нет" /> Nu</label><label><input type="radio" name="q_f11" value="Частично" /> Parțial</label><label><input type="radio" name="q_f11" value="Не знаю" /> Nu știu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există control al cheltuielilor pe centre de responsabilitate?</legend><div class="q__choices"><label><input type="radio" name="q_f12" value="Да" /> Da</label><label><input type="radio" name="q_f12" value="Нет" /> Nu</label><label><input type="radio" name="q_f12" value="Частично" /> Parțial</label><label><input type="radio" name="q_f12" value="Не знаю" /> Nu știu</label></div></fieldset>
@@ -567,7 +567,7 @@
           <div class="q-block__head"><span class="q-block__num">6</span><legend class="q-block__title">Documente pentru diagnostic</legend><span class="q-block__count">6 / 11</span></div>
           <div class="q__choices q__choices--multi">
             <label><input type="checkbox" name="q_doc" value="P&L за 6–12 месяцев" /> P&L pe 6–12 luni</label>
-            <label><input type="checkbox" name="q_doc" value="Cash Flow / движение денег" /> Cash Flow / mișcarea banilor</label>
+            <label><input type="checkbox" name="q_doc" value="Cash Flow / движение денег" /> Flux de numerar / mișcarea banilor</label>
             <label><input type="checkbox" name="q_doc" value="Баланс" /> Bilanț</label>
             <label><input type="checkbox" name="q_doc" value="Оборотно-сальдовая ведомость" /> Balanța de verificare</label>
             <label><input type="checkbox" name="q_doc" value="Реестр платежей" /> Registrul plăților</label>
@@ -578,7 +578,7 @@
             <label><input type="checkbox" name="q_doc" value="Расходы по категориям" /> Cheltuieli pe categorii</label>
             <label><input type="checkbox" name="q_doc" value="Зарплатный фонд" /> Fondul de salarizare</label>
             <label><input type="checkbox" name="q_doc" value="Договоры с ключевыми клиентами / арендаторами / поставщиками" /> Contracte-cheie</label>
-            <label><input type="checkbox" name="q_doc" value="Инвестиционные проекты / CAPEX" /> Proiecte de investiții / CAPEX</label>
+            <label><input type="checkbox" name="q_doc" value="Инвестиционные проекты / CAPEX" /> Proiecte de investiții / investiții de capital</label>
             <label><input type="checkbox" name="q_doc" value="Power BI / Excel / Google Sheets отчёты" /> Rapoarte Power BI / Excel / Sheets</label>
             <label><input type="checkbox" name="q_doc" value="Другое" /> Altceva</label>
           </div>
@@ -596,7 +596,7 @@
             <label><input type="checkbox" name="q_goal" value="Внедрить платёжный календарь" /> Să implementez calendarul plăților</label>
             <label><input type="checkbox" name="q_goal" value="Внедрить Power BI" /> Să implementez Power BI</label>
             <label><input type="checkbox" name="q_goal" value="Автоматизировать отчётность" /> Să automatizez raportarea</label>
-            <label><input type="checkbox" name="q_goal" value="Получить KPI" /> Să obțin KPI</label>
+            <label><input type="checkbox" name="q_goal" value="Получить KPI" /> Să obțin indicatori-cheie</label>
             <label><input type="checkbox" name="q_goal" value="Подготовить бизнес к росту" /> Să pregătesc afacerea pentru creștere</label>
             <label><input type="checkbox" name="q_goal" value="Подготовить к инвестору / банку" /> Să pregătesc pentru investitor / bancă</label>
             <label><input type="checkbox" name="q_goal" value="Контролировать группу компаний" /> Să controlez grupul</label>
@@ -645,7 +645,7 @@
             <label><input type="checkbox" name="q_remote_format" value="Регулярный отчёт по задачам" /> Raport regulat pe sarcini</label>
             <label><input type="checkbox" name="q_remote_format" value="Telegram-связь" /> Legătură prin Telegram</label>
             <label><input type="checkbox" name="q_remote_format" value="Email summary после встречи" /> Email summary după întâlnire</label>
-            <label><input type="checkbox" name="q_remote_format" value="Dashboard со статусом задач" /> Dashboard cu statusul sarcinilor</label>
+            <label><input type="checkbox" name="q_remote_format" value="Dashboard со статусом задач" /> Tablou de bord cu statusul sarcinilor</label>
             <label><input type="checkbox" name="q_remote_format" value="Гибридный формат" /> Format hibrid</label>
             <label><input type="checkbox" name="q_remote_format" value="Другое" /> Altceva</label>
           </div></fieldset>
@@ -723,7 +723,7 @@
         <h2>Întrebări despre Testul financiar FINMENTOR</h2>
         <details class="faq__item">
           <summary>Ce este Testul financiar FINMENTOR?</summary>
-          <div class="faq__item__body">Este o autodiagnoză structurată și un intake înainte de Financial Health Check: FINMENTOR analizează Cash Flow, P&L, plățile, creanțele, marja, KPI, automatizarea și riscurile proprietarului.</div>
+          <div class="faq__item__body">Este o autodiagnoză structurată și un intake înainte de diagnostic financiar (Financial Health Check): FINMENTOR analizează flux de numerar, P&L, plățile, creanțele, marja, indicatori-cheie, automatizarea și riscurile proprietarului.</div>
         </details>
         <details class="faq__item">
           <summary>Înlocuiește auditul?</summary>
@@ -738,8 +738,8 @@
           <div class="faq__item__body">FINMENTOR va evalua preliminar contextul și va reveni cu primul pas: diagnostic, listă de documente sau propunere privind formatul de lucru.</div>
         </details>
         <details class="faq__item">
-          <summary>Ce este Financial Health Check?</summary>
-          <div class="faq__item__body">Financial Health Check este o analiză de expert a controlului financiar al afacerii: bani, profit, Cash Flow, plăți, creanțe, marjă, KPI și riscuri.</div>
+          <summary>Ce este diagnostic financiar?</summary>
+          <div class="faq__item__body">Diagnostic financiar este o analiză de expert a controlului financiar al afacerii: bani, profit, flux de numerar, plăți, creanțe, marjă, indicatori-cheie și riscuri.</div>
         </details>
         <details class="faq__item">
           <summary>Se folosește automatizarea?</summary>

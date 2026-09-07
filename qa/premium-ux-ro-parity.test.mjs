@@ -240,7 +240,11 @@ check('the client agrees with the server on what counts as Romanian', () => {
 check('no AI or model call participates in choosing the language', () => {
   // Comments are stripped first: this gate is about what the module DOES, and the module's own
   // prose explains that no model is involved — which is not the same as calling one.
+  // `\r` is normalised away first: on a Windows checkout the lines carry CRLF, and a comment
+  // stripper that anchors on `$` then leaves the carriage return behind — which is enough to make
+  // this gate disagree with itself between a worktree and a clean archive.
   const code = read(join('n8n', 'src', 'premium-ux', 'locale.js'))
+    .replace(/\r/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
   for (const needle of ['openai', 'gpt', 'model', 'prompt', 'fetch', 'require(\'http']) {
