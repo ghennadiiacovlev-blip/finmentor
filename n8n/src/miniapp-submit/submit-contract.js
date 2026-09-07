@@ -143,8 +143,12 @@ const RETRYABLE = {
 // `leadIntake.lookup`, and nothing in this repository answers it.
 const RECOVERY_ADAPTER_CONTRACT = {
   method: 'leadIntake.lookup',
-  signature: 'lookup(idempotencyKey) -> { ok: boolean, known: boolean, body?: object }',
-  key_shape: 'miniapp:<telegram_user_id>:<cycle_id>',
+  signature: 'lookup(submissionKey) -> { ok: boolean, known: boolean, body?: object }',
+  key_shape: 'sub_<32 lowercase hex>',
+  key_source: 'Bot_Sessions.submission_key — the AUTHORITATIVE preallocated key',
+  server_minted: true,
+  browser_may_supply: false,
+  derived_from_identity: false,
   // Answers must be distinguishable. `ok:false` means "could not answer" and preserves
   // ambiguity; `ok:true, known:false` is a positive assertion that nothing was created and
   // is the ONLY answer that may release a claim for a fresh attempt.
@@ -155,12 +159,24 @@ const RECOVERY_ADAPTER_CONTRACT = {
   },
   requirements: [
     'durable: survives gateway restart, workflow redeploy and app-session TTL expiry',
-    'written at or before the Lead Intake commit, never after it, or the ambiguous window is not covered',
-    'indexed by the stable key: a scan over Pipeline rows is not a lookup and is not acceptable',
+    'PREALLOCATED: the receipt exists before the cycle becomes authoritative, so the submit ' +
+      'path only ever performs conditional updates (P3)',
+    'indexed by the submission key: a scan over Pipeline rows is not a lookup and is not acceptable',
     'server-side only: no browser-supplied value may select or satisfy a recovery',
-    'the stable key must reach the durable record, which today it does not — the outbound ' +
-      'envelope carries no idempotency key, so no downstream row can be indexed by it'
-  ]
+    'absence is NEVER an answer: a missing receipt for a current cycle is a broken ' +
+      'preallocation invariant and must resolve to CANNOT_ANSWER, never to NOT_COMMITTED'
+  ],
+  // HISTORICAL, kept because it explains why the key shape changed. P1/P2 used a key derived
+  // from telegram_user_id + cycle_id. P2 proved the n8n Data Table has no atomic
+  // insert-if-absent, and P3 proved two issuers can mint the same cycle_id in one millisecond
+  // — so a derived key could collide with nothing able to arbitrate it. MODEL B replaced it
+  // with an opaque random key. See docs/PHASE_B2_1C_G1_P3_PREALLOCATION_DECISION.md.
+  superseded_model_a: {
+    historical: true,
+    key_shape: 'miniapp:<telegram_user_id>:<cycle_id>',
+    retired_because: 'derived-key collision under same-millisecond issuance, unarbitrable ' +
+      'without insert-if-absent (P2 proved absent)'
+  }
 };
 
 // Absence of the adapter is a deployment condition, not a request error. It is reported
@@ -173,22 +189,24 @@ const RECOVERY_ADAPTER_CONTRACT = {
 // Mini App retries, which it cannot:
 //
 //   * two attempts at one submission carry DIFFERENT request_ids while sharing ONE
-//     idempotency key, so no downstream index on request_id can collapse a retry;
-//   * the outbound envelope carries NO idempotency key at all today, so no downstream record
-//     is indexed by one either. This is the same precondition RECOVERY_ADAPTER_CONTRACT
-//     records, and it is why G1 is not merely unimplemented but currently unbuildable;
-//   * therefore ALL retry safety in this slice rests on gateway-side resolution --
-//     `resolvePriorSubmission` -- and none of it on downstream idempotency.
+//     submission key, so no downstream index on request_id can collapse a retry;
+//   * request_id is NEVER the submission key and never a deduplication identity. Under P3 the
+//     submission identity is `submission_key`, minted by the cycle issuer and read from
+//     authority -- request_id has no relationship to it at all;
+//   * retry safety rests on the PREALLOCATED RECEIPT plus gateway-side resolution
+//     (`resolvePriorSubmission`), never on request_id.
 //
-// Read this next to RECOVERY_ADAPTER_CONTRACT. Together they say exactly where the gap is:
-// the gateway can recognise its own retries, and nothing downstream can.
+// Read this next to RECOVERY_ADAPTER_CONTRACT: request_id correlates log lines, and
+// submission_key identifies the submission. Conflating them is the failure this exists to
+// prevent.
 const REQUEST_ID_SEMANTICS = {
   field: 'meta.request_id',
   source: 'server correlation id',
   stable_across_attempts: false,
   is_deduplication_key: false,
-  downstream_idempotency_key_present: false,
-  retry_safety_rests_on: 'gateway-side resolution (resolvePriorSubmission)'
+  is_submission_key: false,
+  submission_identity_is: 'submission_key, from Bot_Sessions',
+  retry_safety_rests_on: 'the preallocated receipt plus gateway-side resolution'
 };
 
 function recoveryAdapterStatus(leadIntake) {
@@ -241,12 +259,12 @@ function canTransition(from, to) {
 
 // §10 — the idempotency key. Derived only from server-owned values. A caller-supplied
 // request_id can never appear here, so it cannot steer which key a submission claims.
-function idempotencyKey(telegramUserId, cycleId) {
-  const u = normValue(telegramUserId);
-  const c = normValue(cycleId);
-  if (u === '' || c === '') { return null; }
-  if (!/^[0-9]+$/.test(u)) { return null; }
-  return 'miniapp:' + u + ':' + c;
+// RETIRED in P3.1. The derived key is gone rather than left available: keeping two competing
+// submission identities in the codebase is exactly how one of them gets used by accident.
+// The submission identity is `Bot_Sessions.submission_key`, minted by the cycle issuer.
+// See RECOVERY_ADAPTER_CONTRACT.superseded_model_a for why it was retired.
+function idempotencyKey() {
+  throw new Error('idempotencyKey is retired (P3.1): use the authoritative submission_key');
 }
 
 // ---------------------------------------------------------------- §11 urgency guard
@@ -469,9 +487,22 @@ function evaluateConsent(opts) {
 
 // ---------------------------------------------------------------- §9.6 Lead Intake payload
 
-// Project the whitelisted Mini App answers onto the payload shape the EXISTING Lead Intake
-// already parses (`{ source, payload }`, read by its Validate Payload node). Two omissions
-// are deliberate and load-bearing:
+// Project the whitelisted Mini App answers onto the lead payload, and wrap it in the
+// `{ source, payload }` ENVELOPE.
+//
+// F10 — read the scope of that envelope precisely, because an earlier version of this very
+// comment did not. The envelope is the contract between THIS GATEWAY and the internal
+// route's `Internal Auth Entry` node, and nothing further. It is NOT the shape Lead
+// Intake's `Validate Payload` parses: that node is INHERITED PRODUCTION and reads the
+// WEBHOOK REQUEST shape, `raw.body` / `raw.headers`. `Internal Envelope Unwrap` is the node
+// that translates one into the other.
+//
+// The earlier claim that Lead Intake "already parses { source, payload }" was false, and it
+// was load-bearing: the unwrap was built to satisfy it, so every internal submission
+// resolved to INVALID_PAYLOAD and the route could not accept a single lead (live exec
+// 3583). The seam is now proven by execution in qa/internal-route-contract.test.mjs.
+//
+// Two omissions from the payload are deliberate and load-bearing:
 //
 //   * no `lead_id` — a caller-supplied lead_id must never become canonical identity, and
 //     downstream Dedup Guard uses it to select a merge target. The gateway is a caller.
@@ -554,16 +585,45 @@ function buildLeadIntakePayload(opts) {
 
 // ---------------------------------------------------------------- §9 client response
 
-const ALLOWED_MODES = ['new', 'merged'];
+// F9 — `retry` is a REAL live Lead Intake outcome, not an anomaly.
+//
+// The production graph has returned it all along: `Respond Retry` answers
+// `mode: 'retry'` when `Dedup Guard` sets `dedup_is_retry`. The vocabulary here listed only
+// `new` and `merged`, so a perfectly valid live retry would have been reported by
+// `internalMode` as `known: false` and then written verbatim to `Bot_Sessions.lead_mode` —
+// an out-of-contract value in authority, produced by the system working correctly.
+//
+// The fix is to admit the third outcome, not to coerce it. Clamping `retry` to `new` would
+// tell an authority-resolved replay that a CRM row was created for this cycle when none was.
+//
+// This changes NOTHING about what crosses TB-1: `mode` and `lead_mode` stay on
+// RESPONSE_FORBIDDEN_KEYS and the browser never sees any of the three.
+const ALLOWED_MODES = ['new', 'merged', 'retry'];
 const ALLOWED_PRIORITIES = ['HOT', 'WARM', 'COLD', 'INCOMPLETE'];
 const ALLOWED_ZONES = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'UNKNOWN'];
 
 // ------------------------------------------- B.2.1-C deployment precondition (owner, N6.2)
 //
-// These three `Bot_Sessions` columns are a DEPLOYMENT PREREQUISITE. They are not created
+// These `Bot_Sessions` columns are a DEPLOYMENT PREREQUISITE. They are not created
 // here and the live sheet is not touched: what lives in this file is the contract a
 // deployment must satisfy before the G6 classification write can land, plus a preflight that
 // FAILS CLOSED when it is not satisfied.
+//
+// P5 ADDED `submission_key`, on evidence rather than assumption. The canonical live writer
+// column list appears verbatim in three Code nodes of the live Concierge export
+// (n8n/production/mppzthlkSJFr6Kle...json — "Build Session Row", "Build Intake State Row",
+// "Build Confirmation State Row"). That list has 36 columns and DOES include cycle_id,
+// consent_cycle_id, consent_at, lead_cycle_id and lead_intake_ok — all preserved — but it
+// does NOT include submission_key. So the authoritative binding column MODEL B depends on
+// does not exist live yet, and appending it is part of the same migration as the three
+// classification columns rather than something already done.
+//
+// This corrected a fixture that had assumed otherwise. Getting it wrong in the optimistic
+// direction would have been the expensive mistake: persistCanonical patches by key, and a
+// patch key with no header is silently DROPPED by Google Sheets, so a deployment against an
+// unmigrated sheet would appear to bind the submission key while storing nothing — and every
+// later authority read would then see a current cycle with no submission_key, which is
+// PRE_ACTIVATION_BLOCKED for every user on that cycle.
 //
 // Why fail closed rather than default. Google Sheets silently drops a patch key that has no
 // header — the write does not error, it does nothing. The next authority-resolved retry then
@@ -580,10 +640,31 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
   // patches by key and never by column index — but a mistyped header is an absent column as
   // far as the writer is concerned, which is why the preflight compares text, not count.
   header_contract: 'exact lower_snake_case header text in row 1, appended after the existing headers; position not depended upon',
+  // Preserved by the migration, never rewritten: these already exist live and carry cycle
+  // and consent state that B.2.1-C depends on.
+  preserved_existing_columns: [
+    'cycle_id', 'consent_cycle_id', 'consent_at', 'lead_cycle_id', 'lead_intake_ok'
+  ],
   columns: [
     {
+      name: 'submission_key',
+      semantics: 'The preallocated MODEL B receipt key for this cycle. Half of the authority ' +
+        'binding: authority is (cycle_id AND submission_key), never cycle_id alone.',
+      vocabulary: ['sub_<32 lowercase hex>'],
+      written_by: 'the Concierge at cycle issuance, AFTER verifyPreallocationReadback confirms the receipt',
+      read_by: 'handleSubmit authority read, and the gateway pre-handoff guard',
+      crosses_tb1: false,
+      on_absent: 'a current cycle can never name a receipt, so every submit on it is ' +
+        'PRE_ACTIVATION_BLOCKED and the Mini App cannot hand off at all'
+    },
+    {
       name: 'lead_mode',
-      semantics: 'Lead Intake mode for this cycle\'s canonical lead: "new" or "merged".',
+      // F9 — describes the INTERNAL LEAD INTAKE OUTCOME for this cycle, not "was a CRM row
+      // created or merged". The looser wording would be wrong for `retry`, which writes no
+      // Pipeline row at all: dedup resolved the submission to a row that already existed.
+      semantics: 'The internal Lead Intake outcome for this cycle: "new" (a Pipeline row was ' +
+        'created), "merged" (an existing row was updated) or "retry" (dedup resolved to an ' +
+        'existing row and NO Pipeline write occurred).',
       vocabulary: ALLOWED_MODES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',
@@ -592,7 +673,16 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
     },
     {
       name: 'lead_priority',
-      semantics: 'Canonical lead priority as Lead Intake scored it.',
+      // F9 — these are the values needed to REPLAY THE MINI APP RESPONSE for this cycle.
+      // That is a weaker and more accurate claim than "the current CRM row priority".
+      // On new/merge they correspond to the write-bearing outcome and the Pipeline row was
+      // written or updated with them. On RETRY they are what Lead Intake scored for THIS
+      // attempt, and the existing Pipeline row is deliberately NOT rewritten — so after a
+      // retry these fields may differ from the persisted CRM row, by design. The public retry
+      // path is unchanged; this only states accurately what it already does.
+      semantics: 'Lead priority as Lead Intake scored it for this cycle, i.e. the value needed ' +
+        'to replay the Mini App response. On "retry" the existing Pipeline row is not rewritten, ' +
+        'so this is the score for that attempt rather than necessarily the persisted CRM value.',
       vocabulary: ALLOWED_PRIORITIES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',
@@ -601,7 +691,9 @@ const AUTHORITY_SCHEMA_PRECONDITION = {
     },
     {
       name: 'financial_zone',
-      semantics: 'Canonical financial zone as Lead Intake scored it.',
+      semantics: 'Financial zone as Lead Intake scored it for this cycle, i.e. the value needed ' +
+        'to replay the Mini App response. On "retry" the existing Pipeline row is not rewritten, ' +
+        'so this is the score for that attempt rather than necessarily the persisted CRM value.',
       vocabulary: ALLOWED_ZONES,
       written_by: 'persistCanonical, at the authoritative commit',
       read_by: 'resolvePriorSubmission, authority branch',

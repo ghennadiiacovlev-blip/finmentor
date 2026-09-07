@@ -1,0 +1,152 @@
+{
+  "name": "FINMENTOR Error Monitor PREMIUM",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "a309eb36-2833-4af4-b310-fcd01c067742",
+      "name": "Error Monitor Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1871239368,
+          "mode": "list",
+          "cachedResultName": "Settings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1871239368"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -260,
+        0
+      ],
+      "id": "9fda2289-6636-4d16-b21e-e08b7fc5ca3a",
+      "name": "Read Settings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "waitBetweenTries": 2000,
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "// Превращает строки листа Settings (key/value) в объект и прокидывает дальше.\nconst rows = $input.all().map(i => i.json);\nconst settings = {};\nfor (const r of rows) {\n  const key = (r.key ?? r.Key ?? '').toString().trim();\n  if (!key) continue;\n  settings[key] = (r.value ?? r.Value ?? '').toString().trim();\n}\nfunction bool(v, def) {\n  if (v === undefined || v === '') return def;\n  return String(v).toLowerCase() === 'true' || v === '1';\n}\nfunction num(v, def) {\n  const n = Number(v);\n  return Number.isFinite(n) ? n : def;\n}\nconst cfg = {\n  owner_chat_id: settings.owner_chat_id || '551662084',\n  manager_chat_id: settings.manager_chat_id || '',\n  allowed_chat_ids: (settings.allowed_chat_ids || settings.owner_chat_id || '551662084'),\n  sla_hot_hours: num(settings.sla_hot_hours, 4),\n  sla_warm_hours: num(settings.sla_warm_hours, 24),\n  sla_repeat_hours: num(settings.sla_repeat_hours, 6),\n  default_responsible: settings.default_responsible || 'Геннадий',\n  ai_model: settings.ai_model || 'gpt-4.1-mini',\n  ai_enabled_for_hot: bool(settings.ai_enabled_for_hot, true),\n  ai_enabled_for_warm: bool(settings.ai_enabled_for_warm, true),\n  ai_enabled_for_cold: bool(settings.ai_enabled_for_cold, false),\n  auto_reply_enabled: bool(settings.auto_reply_enabled, false),\n  auto_reply_default_lang: (settings.auto_reply_default_lang || 'ru').toLowerCase(),\n  follow_up_enabled: bool(settings.follow_up_enabled, false),\n  followup_hot_hours: num(settings.followup_hot_hours, 24),\n  followup_warm_hours: num(settings.followup_warm_hours, 72),\n  timezone: settings.timezone || 'Europe/Chisinau',\n  currency: settings.currency || 'EUR'\n};\nreturn [{ json: { settings: cfg } }];\n"
+      },
+      "id": "846ba14a-bcdc-4187-8364-146ce58ab02c",
+      "name": "Settings to Object",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// FINMENTOR — build the owner error alert.\n//\n// Deployed as the Code node \"Build Error Alert\" in the central Error Monitor, which every\n// production workflow points at via settings.errorWorkflow.\n//\n// The alert carries operational identifiers only: which workflow, which node, what class of\n// error, when, and the execution id to open in n8n. It deliberately does NOT carry the\n// failing item's payload. An error alert is a notification channel, not a data export, and\n// the payload at the point of failure routinely holds lead contact data.\n\nconst trigger = $('Error Monitor Trigger').first().json || {};\nconst cfg = (function () {\n  try { return $('Settings to Object').first().json.settings || {}; } catch (e) { return {}; }\n})();\n\nconst wf = trigger.workflow || {};\nconst ex = trigger.execution || {};\nconst err = ex.error || {};\n\n// Order matters. URLs are removed first and whole: a URL can contain digit runs that the\n// phone rule would otherwise match, splitting the link and leaving a readable remnant.\n//\n// The pattern also catches scheme-less forms. n8n splits a thrown message at the first\n// \": \", so a URL routinely arrives already decapitated as \"//host/path\" with its scheme\n// stranded in error.description. Matching only https?:// would let that remnant through.\nconst URL_RE = /(?:[a-z][a-z0-9+.-]*:)?\\/\\/\\S+|\\bwww\\.\\S+|\\b[a-z0-9-]+(?:\\.[a-z0-9-]+)+\\/\\S*/gi;\nconst EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi;\n// Bounded to a standalone phone-shaped token. An unbounded digit run also matches build\n// stamps and ids such as 20260825-204040, which are not personal data and whose removal\n// makes an alert harder to act on.\nconst PHONE_RE = /(?<![\\w-])\\+?\\d[\\d\\s().-]{5,13}\\d(?![\\w-])/g;\n\n// Internal identifiers - workflow and node names - are configuration, not personal data.\n// Scrubbing them produced alerts that could not be acted on, so they are only bounded.\nfunction label(value, max) {\n  return String(value === undefined || value === null ? '' : value)\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, max || 120);\n}\n\n// The error message is free text produced by whatever threw, so it is the one field that\n// can carry payload data. It gets the full treatment.\nfunction scrubMessage(value, max) {\n  return String(value === undefined || value === null ? '' : value)\n    .replace(URL_RE, '[link removed]')\n    .replace(EMAIL_RE, '[contact removed]')\n    .replace(PHONE_RE, '[contact removed]')\n    .replace(/\\s+/g, ' ')\n    .trim()\n    .slice(0, max || 300);\n}\n\n// Classify so repeated failures are recognisable at a glance without reading the message.\nfunction classify(message, name) {\n  const m = String(message || '').toLowerCase();\n  if (/sheet with id .* not found|unable to parse range|not found/.test(m)) return 'SHEET_LOCATOR';\n  if (/quota|rate limit|429/.test(m)) return 'RATE_LIMIT';\n  if (/service unavailable|503|502|504|econnreset|etimedout|timeout/.test(m)) return 'UPSTREAM_TRANSIENT';\n  if (/auth|credential|401|403|unauthor|forbidden/.test(m)) return 'AUTH';\n  if (/json|parse|unexpected token/.test(m)) return 'DATA_SHAPE';\n  return String(name || 'ERROR').toUpperCase().slice(0, 32);\n}\n\n// n8n splits a thrown error at the first \": \" — the head lands in error.description and the\n// tail in error.message. Reading only one of them yields a truncated, often meaningless\n// alert, and description is precisely the half that tends to carry the payload text. Both\n// are recombined and scrubbed as one string. error.stack is deliberately never used.\nconst rawMessage = [err.description, err.message].filter(Boolean).join(': ');\n\nconst errorClass = classify(rawMessage, err.name);\nconst workflowName = label(wf.name, 120);\nconst nodeName = label(ex.lastNodeExecuted || (err.node && err.node.name), 120);\nconst message = scrubMessage(rawMessage, 400);\nconst when = new Date().toISOString();\n\n// Correlation id: the n8n execution id is the one identifier that ties this alert back to\n// the full record without reproducing any of its content.\nconst correlationId = String(ex.id || '');\n\nconst lines = [\n  '\\u26a0\\ufe0f FINMENTOR — сбой в production workflow',\n  '',\n  'Workflow: ' + (workflowName || 'unknown'),\n  'ID: ' + label(wf.id, 40),\n  'Узел: ' + (nodeName || 'unknown'),\n  'Класс: ' + errorClass,\n  'Время: ' + when,\n  'Execution: ' + (correlationId || 'n/a'),\n  '',\n  'Сообщение: ' + (message || 'no message'),\n  '',\n  'Payload не включён в оповещение.'\n];\n\nreturn [{\n  json: {\n    owner_chat_id: String(cfg.owner_chat_id || ''),\n    alert_text: lines.join('\\n'),\n    workflow_id: String(wf.id || ''),\n    workflow_name: workflowName,\n    node_name: nodeName,\n    error_class: errorClass,\n    error_message: message,\n    correlation_id: correlationId,\n    ts: when\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        0
+      ],
+      "id": "a2c7a66c-7eee-4c68-bdc7-7d7078d71efa",
+      "name": "Build Error Alert"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.owner_chat_id }}",
+        "text": "={{ $json.alert_text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        0
+      ],
+      "id": "457ac770-f759-48de-a8da-5a2e062c98b3",
+      "name": "Telegram Error Alert",
+      "credentials": {
+        "telegramApi": {
+          "id": "Mj41qrGHfrthCtAw",
+          "name": "FINMENTOR Leads Bot FINAL"
+        }
+      },
+      "webhookId": "9e8d026e-51eb-43bf-8ff9-7b7c15e4b760"
+    }
+  ],
+  "connections": {
+    "Error Monitor Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Settings": {
+      "main": [
+        [
+          {
+            "node": "Settings to Object",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings to Object": {
+      "main": [
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Alert": {
+      "main": [
+        [
+          {
+            "node": "Telegram Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  }
+}

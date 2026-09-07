@@ -38,12 +38,6 @@ concurrency:
   group: quality-gates-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Raise this deliberately when gates are added. It must never be lowered to make a red
-  # build green: a falling count means coverage was removed, which is the thing worth
-  # catching.
-  ASSERTION_BASELINE: '553'
-
 jobs:
   quality-gates:
     runs-on: ubuntu-latest
@@ -117,20 +111,36 @@ jobs:
           grep -E '^[0-9]+/[0-9]+ gates passed' gates.out
           grep -E '^TOTAL ASSERTIONS:' gates.out
 
-      - name: Assertion baseline
+      - name: Assertion floor (canonical, from qa/assertion-baseline.json)
         shell: bash
         run: |
           set -euo pipefail
+          # There is deliberately NO baseline number in this file. It used to carry its own
+          # copy of the floor, that copy drifted 412 assertions behind the suite, and a stale
+          # duplicate is worse than no second net at all. The single source of truth is
+          # qa/assertion-baseline.json, enforced by qa/run-all.mjs above -- which has already
+          # failed this job if any per-gate floor or the total was breached.
+          #
+          # What is left for this step is the thing the gate run cannot check about itself:
+          # that the recorded floor is coherent, and that the run we just saw is consistent
+          # with it. qa/assertion-floor.test.mjs proves the mechanism; this re-states the
+          # numbers in the job log so a human reading CI can see them.
           total="$(grep -oE '^TOTAL ASSERTIONS: [0-9]+' gates.out | grep -oE '[0-9]+')"
-          echo "total=$total baseline=${ASSERTION_BASELINE}"
-          if [ "$total" -lt "${ASSERTION_BASELINE}" ]; then
-            echo "FAIL: assertion count fell from ${ASSERTION_BASELINE} to $total — coverage was removed"
+          recorded="$(node -e "const b=require('./qa/assertion-baseline.json');console.log(b.total)")"
+          sum="$(node -e "const b=require('./qa/assertion-baseline.json');console.log(Object.values(b.gates).reduce((a,c)=>a+c,0))")"
+          echo "observed=$total recorded_floor=$recorded sum_of_gate_floors=$sum"
+          if [ "$recorded" -ne "$sum" ]; then
+            echo "FAIL: qa/assertion-baseline.json is incoherent - total $recorded, per-gate floors sum to $sum"
             exit 1
           fi
-          if [ "$total" -gt "${ASSERTION_BASELINE}" ]; then
-            echo "NOTE: assertions grew to $total; raise ASSERTION_BASELINE in this workflow"
+          if [ "$total" -lt "$recorded" ]; then
+            echo "FAIL: observed $total is below the recorded floor $recorded - coverage was removed"
+            exit 1
           fi
-          echo "assertion baseline: PASS"
+          if [ "$total" -gt "$recorded" ]; then
+            echo "NOTE: assertions grew to $total; raise total and the per-gate floors in qa/assertion-baseline.json"
+          fi
+          echo "assertion floor: PASS"
 
       - name: Gates are cwd-independent
         shell: bash
@@ -139,7 +149,19 @@ jobs:
           repo="$PWD"
           cd /
           node "$repo/qa/run-all.mjs" > /tmp/cwd.out
-          grep -qE '^11/11 gates passed' /tmp/cwd.out
+          # Assert "N/N", not a hardcoded N. This line carried a literal gate count that was last
+          # updated at 9 gates and had silently gone stale as the suite grew -- the same
+          # duplicated-number failure mode that the ASSERTION_BASELINE copy hit, and it was
+          # failing this step for the count rather than for cwd dependence. The runner is the one
+          # authority on how many gates there are; this step only checks that all of them passed
+          # from a foreign working directory.
+          node -e "
+            const t = require('fs').readFileSync('/tmp/cwd.out','utf8');
+            const m = t.match(/^(\d+)\/(\d+) gates passed$/m);
+            if (!m) { console.error('no gate tally in the cwd-independent run'); process.exit(1); }
+            if (m[1] !== m[2]) { console.error('cwd-independent run: only ' + m[1] + '/' + m[2] + ' gates passed'); process.exit(1); }
+            console.log('cwd-independent run: ' + m[1] + '/' + m[2] + ' gates passed');
+          "
           echo "cwd independence: PASS"
 
       - name: Secret scan self-test

@@ -93,6 +93,46 @@ check('every entry records id, name, active, hash and updatedAt', () => {
   }
 });
 
+// THE DRIFT THIS FILE IS NAMED FOR, AND DID NOT CHECK.
+//
+// Sealing the P7.5R baseline advanced the Concierge export from 33 nodes to 45 and the manifest
+// went on saying 33, beside it, silently — every check here was about the manifest's internal
+// consistency, none about whether it agreed with the files it describes. `nodeCount` and
+// `nodeTypes` are both derivable from the export, so this costs nothing and is the one pair that
+// cannot be verified by reading the manifest alone.
+check('every entry agrees with the export beside it on nodeCount and nodeTypes', () => {
+  for (const w of manifest.workflows) {
+    const wf = JSON.parse(readFileSync(join(DIR, w.export), 'utf8'));
+    const nodes = wf.nodes || [];
+    assert(nodes.length === w.nodeCount,
+      `${w.id}: manifest says ${w.nodeCount} nodes, ${w.export} has ${nodes.length}`);
+    const onDisk = [...new Set(nodes.map((n) => n.type))].sort();
+    const listed = [...(w.nodeTypes || [])].sort();
+    assert(JSON.stringify(onDisk) === JSON.stringify(listed),
+      `${w.id}: nodeTypes drifted — manifest ${listed.join(',')} vs export ${onDisk.join(',')}`);
+  }
+});
+
+// structuralHash is deliberately NOT recomputed here, and that is a finding rather than a gap:
+// it fingerprints the LIVE workflow as the exporter read it from the API, then the file written
+// beside it is REDACTED. So the value can never equal a hash of the tracked artifact — checked,
+// and it differs for all nine entries, not only the changed one. It is a live-drift fingerprint,
+// refreshable only by scripts/export-n8n-production.ps1 against the tenant.
+//
+// Which leaves one thing that IS checkable offline: an entry whose workflow was updated after
+// the manifest run must say so, rather than presenting a pre-update fingerprint as current.
+check('an entry updated after the manifest run declares its structuralHash stale', () => {
+  const runAt = Date.parse(manifest.generatedAt);
+  assert(!isNaN(runAt), 'the manifest carries no parseable generatedAt');
+  for (const w of manifest.workflows) {
+    const updated = Date.parse(w.updatedAt);
+    if (isNaN(updated) || updated <= runAt) { continue; }
+    assert(typeof w.structuralHashStale === 'string' && w.structuralHashStale.length > 40,
+      `${w.id}: updated ${w.updatedAt}, after the manifest run at ${manifest.generatedAt}, `
+      + 'but its structuralHash is presented as current. Declare structuralHashStale with the reason.');
+  }
+});
+
 check('structural hashes are unique per workflow', () => {
   const seen = new Map();
   for (const w of manifest.workflows) {

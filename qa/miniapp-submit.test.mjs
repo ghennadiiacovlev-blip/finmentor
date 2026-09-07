@@ -51,6 +51,9 @@ const CLOCK = { now: () => NOW };
 const SESSION_ID = 'AS-0123456789abcdef0123';
 const CHAT = '551662084';
 const CYCLE = 'C-2026-08-26-01';
+// P3 — the recovery key is the AUTHORITATIVE preallocated submission_key, not a value
+// derived from identity. The caller still cannot steer it; it just comes from a safer place.
+const AUTH_SUBMISSION_KEY = 'sub_' + '1'.repeat(32);
 
 // Shared ordered event log, so a test can assert that the authoritative commit happened
 // BEFORE the derived mirror ran rather than merely that both happened.
@@ -65,6 +68,9 @@ function makeSessions(initial) {
     telegram_user_id: CHAT,
     chat_id: CHAT,
     cycle_id: CYCLE,
+    // P3.1 — the session is bound to (cycle_id AND submission_key). A cycle id alone is not
+    // an identity: two issuers can mint the same one in a millisecond with different keys.
+    submission_key: AUTH_SUBMISSION_KEY,
     submit_state: 'draft',
     lead_id: '',
     expires_at: '2026-08-26T03:00:00.000Z'
@@ -96,9 +102,20 @@ function makeSessions(initial) {
   };
 }
 
-// The header set the LIVE Bot_Sessions sheet has TODAY. The three N6.2 classification
-// columns are deliberately absent, because a fixture that pretends they exist would hide the
-// deployment prerequisite instead of proving it.
+// The header set the LIVE Bot_Sessions sheet has TODAY. The classification columns are
+// deliberately absent, because a fixture that pretends they exist would hide the deployment
+// prerequisite instead of proving it.
+//
+// P5 CORRECTION — 'submission_key' was removed from this list on evidence. The canonical
+// live writer column list appears verbatim in three Code nodes of the live Concierge export
+// (n8n/production/mppzthlkSJFr6Kle...json: 'Build Session Row', 'Build Intake State Row',
+// 'Build Confirmation State Row'). It has 36 columns, it DOES include cycle_id,
+// consent_cycle_id, consent_at, lead_cycle_id and lead_intake_ok, and it does NOT include
+// submission_key. The fixture had assumed the column already existed; it does not, and the
+// optimistic direction was the dangerous one — Google Sheets silently DROPS a patch key with
+// no header, so a deployment against an unmigrated sheet would appear to bind the submission
+// key while storing nothing, and every later authority read would report a current cycle
+// with no key, i.e. PRE_ACTIVATION_BLOCKED for every user on that cycle.
 const LIVE_AUTHORITY_COLUMNS = [
   'chat_id', 'cycle_id', 'consent', 'consent_cycle_id', 'consent_at', 'consent_source',
   'lead_id', 'lead_cycle_id', 'lead_intake_ok', 'updated_at'
@@ -107,7 +124,7 @@ const LIVE_AUTHORITY_COLUMNS = [
 // The header set a deployment that has satisfied AUTHORITY_SCHEMA_PRECONDITION will have.
 // Tests of post-deployment behaviour use this; a dedicated test proves the difference between
 // the two lists is exactly the precondition and nothing else.
-const MIGRATED_AUTHORITY_COLUMNS = LIVE_AUTHORITY_COLUMNS.concat(['lead_mode', 'lead_priority', 'financial_zone']);
+const MIGRATED_AUTHORITY_COLUMNS = LIVE_AUTHORITY_COLUMNS.concat(['submission_key', 'lead_mode', 'lead_priority', 'financial_zone']);
 
 // Bot_Sessions double. Same read/write contract the read-model mirror helper is injected
 // with, so authority behaves identically across both slices.
@@ -120,6 +137,8 @@ function makeAuthority(initial, columns) {
   const row = Object.assign({
     chat_id: CHAT,
     cycle_id: CYCLE,
+    // P3 — preallocated at cycle issuance by the Concierge. A current cycle always has one.
+    submission_key: 'sub_' + '1'.repeat(32),
     consent: '',
     consent_cycle_id: '',
     consent_at: '',
@@ -220,6 +239,84 @@ function run(over, wiring) {
   });
   return { out, sessions, authority, leadIntake, mirrored, events: EVENTS.slice() };
 }
+
+// ================================================ P6.4 §2 — a retry must RECOVER, not RESUBMIT
+//
+// The F13 owner decision turns a post-claim Pipeline failure into SUBMIT_UNRESOLVED with
+// retryable:true. That is only safe if "retry" means RECOVER THE SAME SUBMISSION. If any
+// ordinary retry minted a fresh submission_key, the retry would bypass the receipt entirely and
+// could duplicate a lead that already exists — a duplicate-risk blocker independent of which
+// error code the terminal returns.
+//
+// These execute the real handler rather than reading it. The mutation checks are the point: a
+// passing assertion that the key "is still the same" proves nothing unless the same assertion
+// FAILS when the key is deliberately rotated.
+
+const AUTH_KEY = 'sub_' + '1'.repeat(32);
+
+check('(P6.4-R1) an ambiguous submit leaves cycle_id and submission_key untouched on AUTHORITY', () => {
+  const authority = makeAuthority();
+  const before = { cycle: authority.row.cycle_id, key: authority.row.submission_key };
+  const r = run({}, { authority, leadIntake: makeIntake({ ambiguous: true }) });
+  eq(r.out.response.error_code, 'SUBMIT_UNRESOLVED', 'the ambiguous submit did not report unresolved');
+  eq(authority.row.cycle_id, before.cycle, 'the cycle id moved on an ambiguous submit');
+  eq(authority.row.submission_key, before.key, 'the submission key ROTATED on an ambiguous submit');
+  eq(authority.row.submission_key, AUTH_KEY, 'the authoritative key is not the preallocated one');
+});
+
+check('(P6.4-R2) NO authority write on any path may carry cycle_id or submission_key', () => {
+  // Stronger than checking the row afterwards: it inspects every patch the handler offers,
+  // so a write that is silently dropped by a missing column still fails here.
+  const seen = [];
+  const authority = makeAuthority();
+  const realWrite = authority.write.bind(authority);
+  authority.write = function (chatId, patch) { seen.push(Object.keys(patch)); return realWrite(chatId, patch); };
+  run({}, { authority, leadIntake: makeIntake({ ambiguous: true }) });
+  const offending = seen.filter((keys) => keys.indexOf('submission_key') !== -1 || keys.indexOf('cycle_id') !== -1);
+  eq(offending.length, 0, 'a handler write carried identity fields: ' + JSON.stringify(offending));
+  assert(seen.length > 0, 'no authority write happened at all — the check proved nothing');
+});
+
+check('(P6.4-R3) the SAME-KEY retry hands Lead Intake the SAME key, and mints nothing', () => {
+  const authority = makeAuthority();
+  const sessions = makeSessions();
+
+  const first = run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  eq(first.out.response.error_code, 'SUBMIT_UNRESOLVED', 'first attempt did not go unresolved');
+  const firstKey = first.leadIntake.calls[0].submission_key;
+  eq(firstKey, AUTH_KEY, 'the first attempt did not use the preallocated key');
+
+  // Second attempt on the SAME session and the SAME authority row — an ordinary client retry.
+  const second = run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  const secondKey = second.leadIntake.calls.length ? second.leadIntake.calls[0].submission_key : firstKey;
+  eq(secondKey, firstKey, 'the retry used a DIFFERENT submission key');
+  eq(authority.row.submission_key, AUTH_KEY, 'authority rotated the key across the retry');
+  eq(authority.row.cycle_id, CYCLE, 'authority rotated the cycle across the retry');
+});
+
+check('(P6.4-R4) MUTATION: rotating the key on retry is DETECTED by R3', () => {
+  // R3 only means something if it fails when the thing it forbids happens. Simulate an issuer
+  // that rotates the key between attempts and prove the comparison catches it.
+  const authority = makeAuthority();
+  const sessions = makeSessions();
+  run({}, { authority, sessions, leadIntake: makeIntake({ ambiguous: true }) });
+  const firstKey = AUTH_KEY;
+
+  authority.row.submission_key = 'sub_' + '2'.repeat(32);   // the forbidden mutation
+  let caught = false;
+  try {
+    eq(authority.row.submission_key, firstKey, 'rotated');
+  } catch (e) { caught = true; }
+  assert(caught, 'the key-equality assertion does NOT detect a rotated key — R3 is vacuous');
+});
+
+check('(P6.4-R5) an ambiguous submit performs NO second Lead Intake call and leaves state submitting', () => {
+  const intake = makeIntake({ ambiguous: true });
+  const r = run({}, { leadIntake: intake });
+  eq(intake.calls.length, 1, 'the handler called Lead Intake more than once on one attempt');
+  eq(r.out.response.retryable, true, 'unresolved was reported as non-retryable');
+  eq(r.out.status_code, 503, 'unresolved did not map to 503');
+});
 
 // ------------------------------------------------- §12 transport and schema guards
 
@@ -322,16 +419,19 @@ check('caller request_id cannot become the payload request_id', () => {
   eq(p.meta.request_id, r.out.log.correlation_id, 'request_id is not the server correlation id');
 });
 
-check('request_id cannot steer the idempotency key', () => {
+check('request_id cannot steer the submission key', () => {
   const r = run({ request_id: 'miniapp:999:C-OTHER', idempotency_key: 'miniapp:999:C-OTHER' });
-  eq(r.leadIntake.calls[0].idempotency_key, 'miniapp:' + CHAT + ':' + CYCLE, 'key was steered by the caller');
+  eq(r.leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'key was steered by the caller');
 });
 
-check('the idempotency key is built only from server-owned values', () => {
-  eq(C.idempotencyKey(CHAT, CYCLE), 'miniapp:' + CHAT + ':' + CYCLE, 'key shape drifted from §10');
-  eq(C.idempotencyKey('', CYCLE), null, 'key built without a Telegram id');
-  eq(C.idempotencyKey(CHAT, ''), null, 'key built without a cycle');
-  eq(C.idempotencyKey('not-a-number', CYCLE), null, 'non-numeric Telegram id accepted');
+check('the submission key comes only from authority, never from the caller', () => {
+  // P3.1 — the derived generator is RETIRED and throws, so there is no second submission
+  // identity in the codebase for anyone to reach for by accident.
+  let threw = false;
+  try { C.idempotencyKey(CHAT, CYCLE); } catch (e) { threw = true; }
+  assert(threw, 'the retired derived-key generator still produces a key');
+  // The only source is authority, proven on the wire.
+  eq(run({}).leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'the key did not come from authority');
 });
 
 check('browser-supplied cycle, consent and scoring fields are ignored', () => {
@@ -620,7 +720,7 @@ check('the retry after ambiguity resolves state first and makes zero extra Intak
   });
   const r = run({}, { sessions, leadIntake: intake });
   eq(r.leadIntake.calls.length, 0, 'a duplicate Intake call followed an ambiguous attempt');
-  eq(r.leadIntake.lookups[0], 'miniapp:' + CHAT + ':' + CYCLE, 'lookup used the wrong key');
+  eq(r.leadIntake.lookups[0], AUTH_SUBMISSION_KEY, 'lookup used the wrong key');
   eq(r.out.response.lead_id, 'FIN-RECOVERED-9', 'the recovered lead was not returned');
   eq(r.out.log.resolved_from, 'lookup', 'not resolved via lookup');
 });
@@ -857,7 +957,7 @@ check('(h) a caller-supplied request_id cannot steer which submission is recover
     leadIntake: makeIntake({ lookup: { ok: true, known: true, body: PRIOR_BODY } })
   });
   eq(r.leadIntake.lookups.length, 1, 'the adapter was not consulted');
-  eq(r.leadIntake.lookups[0], 'miniapp:' + CHAT + ':' + CYCLE, 'the caller steered the lookup key');
+  eq(r.leadIntake.lookups[0], AUTH_SUBMISSION_KEY, 'the caller steered the lookup key');
   assert(r.out.log.untrusted_fields_ignored.indexOf('request_id') !== -1,
     'the hostile request_id was not recorded as ignored');
 });
@@ -894,7 +994,7 @@ check('consent NO still works with no recovery adapter, because it risks nothing
 check('the recovery adapter contract is declared, not left implicit', () => {
   const k = C.RECOVERY_ADAPTER_CONTRACT;
   eq(k.method, 'leadIntake.lookup', 'the required adapter is not named');
-  eq(k.key_shape, 'miniapp:<telegram_user_id>:<cycle_id>', 'the stable key shape drifted');
+  eq(k.key_shape, 'sub_<32 lowercase hex>', 'the stable key shape drifted');
   assert(k.requirements.length >= 5, 'the adapter requirements were thinned out');
   eq(C.recoveryAdapterStatus(null).available, false, 'a null client was reported as available');
   eq(C.recoveryAdapterStatus({}).available, false, 'a client with no lookup was reported as available');
@@ -1163,7 +1263,7 @@ check('(G3) a throw at the handoff preserves the claim and the submitting state'
   const r = run({}, { leadIntake: makeThrowingIntakeSubmit(), correlationId: CID });
   eq(r.sessions.row.submit_state, 'submitting', 'the state was downgraded after a possible lead');
   eq(r.sessions.row.claim_owner, CID, 'the claim owner was cleared by the catch');
-  eq(r.sessions.row.idempotency_key, 'miniapp:' + CHAT + ':' + CYCLE, 'the claim key was lost');
+  eq(r.sessions.row.submission_key, AUTH_SUBMISSION_KEY, 'the claim key was lost');
 });
 
 check('(G3) a throw AFTER the Intake call returns is also unresolved', () => {
@@ -1284,7 +1384,7 @@ check('(G7) the outbound envelope carries no idempotency key at all', () => {
   // can be indexed by the stable key, because the stable key never travels with the payload.
   const r = run({});
   const call = r.leadIntake.calls[0];
-  assert(call.idempotency_key !== undefined, 'the key is not passed beside the envelope any more');
+  assert(call.submission_key !== undefined, 'the key is not passed beside the envelope any more');
   const keys = [];
   (function walk(node) {
     if (!node || typeof node !== 'object') { return; }
@@ -1292,7 +1392,7 @@ check('(G7) the outbound envelope carries no idempotency key at all', () => {
     Object.keys(node).forEach((k) => { keys.push(k); walk(node[k]); });
   }(call.envelope));
   assert(keys.indexOf('idempotency_key') === -1, 'the envelope now carries an idempotency key');
-  assert(keys.indexOf('idempotency-key') === -1, 'the envelope now carries an idempotency key');
+  assert(keys.indexOf('submission_key') === -1, 'the envelope body now carries the submission key');
 });
 
 check('(G7) the request_id semantics are a declared contract, not a comment', () => {
@@ -1301,8 +1401,8 @@ check('(G7) the request_id semantics are a declared contract, not a comment', ()
   eq(d.field, 'meta.request_id', 'the declared field drifted');
   eq(d.is_deduplication_key, false, 'request_id was declared a deduplication key');
   eq(d.stable_across_attempts, false, 'request_id was declared stable across attempts');
-  eq(d.downstream_idempotency_key_present, false,
-    'the declaration claims a downstream key exists -- if that became true, G1 is buildable and this must be revisited');
+  eq(d.is_submission_key, false, 'request_id was declared the submission key');
+  assert(/submission_key/.test(d.submission_identity_is), 'the submission identity is no longer named');
 });
 
 // ------------------------------------- T32 / T25 open test recommendations (N6.2)
@@ -1436,6 +1536,103 @@ check('the logged mode is the OBSERVED value, not one clamped into the vocabular
   eq(C.internalMode('merged').known, true, 'a known mode was flagged unknown');
 });
 
+// ------------------------- F9: retry is a real Lead Intake outcome (P5.2)
+//
+// The production graph has answered `mode: 'retry'` all along — `Respond Retry` returns it
+// whenever `Dedup Guard` sets `dedup_is_retry`. The gateway vocabulary listed only
+// `new` and `merged`, so a perfectly valid live retry would have been logged as
+// `lead_mode_known: false` and then written verbatim into `Bot_Sessions.lead_mode` — an
+// out-of-contract value in authority, produced by the system working correctly.
+//
+// P5.2 admits the third outcome rather than coercing it. Clamping `retry` to `new` would
+// tell an authority-resolved replay that a CRM row was created for this cycle when none was.
+
+console.log('\nF9 RETRY OUTCOME CONTRACT');
+
+check('(1) the mode vocabulary is exactly new, merged, retry', () => {
+  eq(C.ALLOWED_MODES.join(','), 'new,merged,retry', 'the mode vocabulary drifted');
+});
+
+check('(2) internalMode reports retry as KNOWN, and a bogus mode as unknown', () => {
+  ['new', 'merged', 'retry'].forEach((m) => {
+    const r = C.internalMode(m);
+    eq(r.observed, m, 'internalMode changed the observed value for ' + m);
+    eq(r.known, true, m + ' is not reported as a known mode');
+  });
+  // The point of `known` is to make a genuine vocabulary drift visible, so it must still
+  // fail for something that really is unknown.
+  const bogus = C.internalMode('teleported');
+  eq(bogus.known, false, 'an unknown mode was reported as known');
+  eq(bogus.observed, 'teleported', 'an unknown mode was coerced instead of observed');
+});
+
+check('(4) the gateway persists lead_mode=retry to authority verbatim', () => {
+  const intake = makeIntake({
+    body: { ok: true, lead_id: 'FIN-EXISTING-441', mode: 'retry', priority: 'WARM', financial_zone: 'YELLOW' }
+  });
+  const r = run({}, { leadIntake: intake });
+  eq(r.out.ok, true, 'a retry outcome was rejected: ' + JSON.stringify(r.out.response));
+  eq(r.authority.row.lead_mode, 'retry', 'lead_mode was not persisted as retry');
+  eq(r.authority.row.lead_id, 'FIN-EXISTING-441', 'the canonical lead id was not persisted');
+  // ...and the log records it as a KNOWN mode, so it is not flagged as drift.
+  eq(r.out.log.lead_mode, 'retry', 'the log did not record the observed mode');
+  eq(r.out.log.lead_mode_known, true, 'a valid retry was logged as an unknown mode');
+});
+
+check('(5,6,7) retry never crosses TB-1 — mode and lead_mode stay refused', () => {
+  // buildSubmitSuccess is a whitelist, so mode simply is not there.
+  const success = C.buildSubmitSuccess({
+    lead_id: 'FIN-EXISTING-441', priority: 'WARM', financial_zone: 'YELLOW', mode: 'retry'
+  });
+  eq(Object.keys(success).sort().join(','), 'financial_zone,lead_id,ok,priority,submit_state',
+    'the client response shape drifted');
+  assert(!Object.prototype.hasOwnProperty.call(success, 'mode'), 'mode reached the client response');
+
+  // ...and responseLeaks REFUSES both spellings rather than merely omitting them, at any
+  // nesting depth and by any route.
+  eq(C.responseLeaks({ mode: 'retry' }).join(','), 'mode', 'mode is no longer a forbidden response key');
+  eq(C.responseLeaks({ lead_mode: 'retry' }).join(','), 'lead_mode', 'lead_mode is no longer forbidden');
+  eq(C.responseLeaks({ a: { b: [{ mode: 'retry' }] } }).join(','), 'mode', 'a nested mode was not caught');
+  ['mode', 'lead_mode'].forEach((k) =>
+    assert(C.RESPONSE_FORBIDDEN_KEYS.indexOf(k) !== -1, k + ' left the response deny list'));
+  assert(C.CLIENT_RESPONSE_FIELDS.indexOf('mode') === -1, 'mode entered the client whitelist');
+});
+
+check('(11) an end-to-end retry exposes no mode and no new browser field', () => {
+  const intake = makeIntake({
+    body: { ok: true, lead_id: 'FIN-EXISTING-441', mode: 'retry', priority: 'WARM', financial_zone: 'YELLOW' }
+  });
+  const r = run({}, { leadIntake: intake });
+  eq(C.responseLeaks(r.out.response).join(','), '', 'the retry response leaked a forbidden key');
+  Object.keys(r.out.response).forEach((k) =>
+    assert(C.CLIENT_RESPONSE_FIELDS.indexOf(k) !== -1, 'retry response gained field ' + k));
+});
+
+check('(8) the authority schema declares lead_mode as the internal outcome, retry included', () => {
+  const col = C.AUTHORITY_SCHEMA_PRECONDITION.columns.find((c) => c.name === 'lead_mode');
+  assert(col, 'lead_mode left the schema precondition');
+  eq(col.vocabulary.join(','), 'new,merged,retry', 'the lead_mode vocabulary drifted');
+  eq(col.crosses_tb1, false, 'lead_mode was declared as crossing TB-1');
+  // The semantics must NOT describe it universally as created-or-merged: retry writes no
+  // Pipeline row at all, so that wording would be false for one outcome in three.
+  assert(/retry/i.test(col.semantics), 'the lead_mode semantics do not mention retry');
+  assert(/NO Pipeline write/i.test(col.semantics),
+    'the lead_mode semantics do not record that retry writes no Pipeline row');
+});
+
+check('priority and zone are declared as replay values, not as the persisted CRM row', () => {
+  // On retry the existing Pipeline row is deliberately NOT rewritten, so these fields are
+  // what is needed to replay the Mini App response — a weaker and accurate claim.
+  ['lead_priority', 'financial_zone'].forEach((name) => {
+    const col = C.AUTHORITY_SCHEMA_PRECONDITION.columns.find((c) => c.name === name);
+    assert(col, name + ' left the schema precondition');
+    assert(/replay the Mini App response/i.test(col.semantics),
+      name + ' is not declared as a replay value');
+    assert(/not rewritten/i.test(col.semantics),
+      name + ' does not record that retry leaves the Pipeline row alone');
+  });
+});
+
 // ------------------------- OWNER DECISION: Bot_Sessions schema precondition (N6.2)
 //
 // Approved as a DEPLOYMENT PREREQUISITE only. Nothing here touches a live sheet. These
@@ -1450,7 +1647,7 @@ check('the precondition is a declared contract with fail-closed semantics', () =
   eq(p.store, 'Bot_Sessions', 'the precondition names the wrong store');
   eq(p.fail_mode, 'FAIL_CLOSED', 'the precondition does not declare fail-closed');
   eq(p.silent_default_permitted, false, 'the precondition permits a silent default');
-  eq(p.columns.map((c) => c.name).join(','), 'lead_mode,lead_priority,financial_zone',
+  eq(p.columns.map((c) => c.name).join(','), 'submission_key,lead_mode,lead_priority,financial_zone',
     'the required column set drifted');
   p.columns.forEach((c) => {
     assert(c.semantics && c.semantics.length > 10, c.name + ' has no documented semantics');
@@ -1465,11 +1662,17 @@ check('the preflight fails closed on absent, partial and unreadable headers', ()
   const absent = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS);
   eq(absent.deploy, false, 'the preflight cleared a deployment against the live schema');
   eq(absent.reason, 'COLUMNS_ABSENT', 'the refusal reason drifted');
-  eq(absent.missing.join(','), 'lead_mode,lead_priority,financial_zone', 'the missing set is wrong');
+  eq(absent.missing.join(','), 'submission_key,lead_mode,lead_priority,financial_zone', 'the missing set is wrong');
 
-  const partial = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['lead_mode']));
+  const partial = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['submission_key', 'lead_mode']));
   eq(partial.deploy, false, 'a partial migration cleared the preflight');
   eq(partial.missing.join(','), 'lead_priority,financial_zone', 'the partial missing set is wrong');
+  // A migration that adds only the classification columns and forgets the binding column is
+  // the most likely partial failure, because the three classification columns were specified
+  // first. It must refuse just as loudly.
+  const noKey = C.authoritySchemaPreflight(LIVE_AUTHORITY_COLUMNS.concat(['lead_mode', 'lead_priority', 'financial_zone']));
+  eq(noKey.deploy, false, 'a migration missing submission_key cleared the preflight');
+  eq(noKey.missing.join(','), 'submission_key', 'the missing binding column was not reported');
 
   // "We could not check" and "it is fine" must never be the same answer.
   [null, undefined, 'lead_mode', {}, 42].forEach((bad) => {
@@ -1526,6 +1729,144 @@ check('an unmigrated sheet cannot recover the classification on a retry', () => 
   eq(retry.out.log.lead_mode, '', 'a dropped column produced a value from nowhere');
   // And still nothing crosses TB-1.
   assertNoModeAnywhere(retry.out.response, 'an unmigrated authority replay');
+});
+
+check('(P3) a current cycle with no preallocated submission_key fails closed', () => {
+  // The preallocation invariant, enforced at the gateway: a current authoritative cycle is
+  // REQUIRED to have a receipt key. Its absence is a broken invariant, and must never be read
+  // as an empty ledger that permits a fresh submit — that was the duplicate-lead path.
+  const authority = makeAuthority();
+  delete authority.row.submission_key;
+  const r = run({}, { authority });
+  eq(r.out.ok, false, 'a cycle with no submission key was allowed to submit');
+  eq(r.out.response.error_code, 'PRE_ACTIVATION_BLOCKED', 'the missing key was not reported as blocked');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_MISSING_ON_AUTHORITY', 'the stage was not named');
+  eq(r.leadIntake.calls.length, 0, 'a broken invariant reached Lead Intake');
+  eq(r.authority.stats.writes, 0, 'a broken invariant wrote to authority');
+});
+
+check('(P3) the recovery lookup is asked with the AUTHORITATIVE submission key', () => {
+  // Not the derived miniapp:<user>:<cycle> value, which P2/P3 retired: two issuers minting in
+  // one millisecond derive the same key, and the ledger cannot arbitrate that.
+  const authority = makeAuthority();
+  authority.row.submission_key = 'sub_' + 'b'.repeat(32);
+  const sessions = makeSessions({ submit_state: 'submitting', submission_key: 'sub_' + 'b'.repeat(32) });
+  const leadIntake = makeIntake({ lookup: { ok: true, known: false } });
+  const r = run({}, { sessions, authority, leadIntake });
+  eq(r.leadIntake.lookups[0], 'sub_' + 'b'.repeat(32), 'the lookup did not use the authority key');
+  assert(String(r.leadIntake.lookups[0]).indexOf('miniapp:') === -1,
+    'the retired derived key is still being used for recovery');
+});
+
+console.log('\nP3.1  SUBMISSION KEY IS THE SUBMISSION IDENTITY');
+
+check('(2) the fresh submit carries the AUTHORITATIVE submission key downstream', () => {
+  const r = run({});
+  const call = r.leadIntake.calls[0];
+  eq(call.submission_key, AUTH_SUBMISSION_KEY, 'the fresh call did not carry the authority key');
+  eq(call.idempotency_key, undefined, 'the retired derived key is still being sent');
+  assert(JSON.stringify(call.envelope).indexOf(AUTH_SUBMISSION_KEY) === -1,
+    'the submission key leaked into the envelope body');
+});
+
+check('(3,4) neither the browser nor request_id can supply the submission key', () => {
+  // A browser-supplied value is dropped by the validator and never reaches the call.
+  const r = run({ submission_key: 'sub_' + 'f'.repeat(32), idempotency_key: 'sub_' + 'e'.repeat(32) });
+  eq(r.leadIntake.calls[0].submission_key, AUTH_SUBMISSION_KEY, 'a browser value steered the submission key');
+  // request_id is a correlation reference and is declared as never being the submission key.
+  eq(C.REQUEST_ID_SEMANTICS.is_submission_key, false, 'request_id was declared a submission key');
+  assert(/submission_key/.test(C.REQUEST_ID_SEMANTICS.submission_identity_is),
+    'the submission identity is no longer named');
+});
+
+check('(1) the canonical recovery contract is MODEL B', () => {
+  const k = C.RECOVERY_ADAPTER_CONTRACT;
+  eq(k.key_shape, 'sub_<32 lowercase hex>', 'the canonical key shape is still MODEL A');
+  eq(k.server_minted, true, 'the key is no longer declared server-minted');
+  eq(k.browser_may_supply, false, 'the browser was declared able to supply the key');
+  eq(k.derived_from_identity, false, 'the key is declared identity-derived');
+  assert(/submissionKey/.test(k.signature), 'the lookup signature still names the old key');
+  assert(/Bot_Sessions/.test(k.key_source), 'the key source is not authority');
+  // The old model survives only as an explicitly historical note.
+  eq(k.superseded_model_a.historical, true, 'MODEL A is not labelled historical');
+  assert(/miniapp:/.test(k.superseded_model_a.key_shape), 'the historical note lost its shape');
+  // And the retired generator refuses to run rather than sitting there usable.
+  let threw = false;
+  try { C.idempotencyKey('551662084', 'C-1'); } catch (e) { threw = true; }
+  assert(threw, 'the retired derived-key generator still produces a key');
+});
+
+check('(5) same cycle, DIFFERENT submission key — the handoff is stopped', () => {
+  // The exact race P3 proved: two issuers mint one cycle_id with different keys, and the
+  // later one wins Bot_Sessions. Execution A must not hand off against its stale key.
+  const authority = makeRacingAuthority(1, { submission_key: 'sub_' + 'b'.repeat(32) });
+  const r = run({}, { authority });
+  eq(r.leadIntake.calls.length, 0, 'a stale submission key reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the key drift was not refused');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_DRIFT_IN_FLIGHT', 'the drift stage was not named');
+  eq(r.authority.row.cycle_id, CYCLE, 'the fixture no longer holds the cycle id constant');
+});
+
+check('(6) same submission key, DIFFERENT cycle — also refused', () => {
+  const authority = makeRacingAuthority(1, { cycle_id: NEW_CYCLE });
+  const r = run({}, { authority });
+  eq(r.leadIntake.calls.length, 0, 'a superseded cycle reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the cycle drift was not refused');
+});
+
+check('(7) an app session bound to another key is refused before anything happens', () => {
+  const sessions = makeSessions({ submission_key: 'sub_' + 'c'.repeat(32) });
+  const r = run({}, { sessions });
+  eq(r.leadIntake.calls.length, 0, 'a mis-bound session reached Lead Intake');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the session key drift was not refused');
+  eq(r.out.log.stage, 'SUBMISSION_KEY_DRIFT', 'the session drift stage was not named');
+  eq(r.authority.stats.writes, 0, 'a mis-bound session wrote to authority');
+});
+
+check('(7) a session with no submission key at all is refused', () => {
+  const sessions = makeSessions();
+  delete sessions.row.submission_key;
+  const r = run({}, { sessions });
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'an unbound session was allowed to submit');
+  eq(r.leadIntake.calls.length, 0, 'an unbound session reached Lead Intake');
+});
+
+check('(8) the losing issuer key produces zero Lead Intake calls', () => {
+  // Authority holds the winner's key; the session still carries the loser's.
+  const sessions = makeSessions({ submission_key: 'sub_' + 'a'.repeat(32) });
+  const authority = makeAuthority();      // default carries the winner key
+  const r = run({}, { sessions, authority });
+  eq(r.leadIntake.calls.length, 0, 'the losing key reached Lead Intake');
+  eq(r.authority.stats.writes, 0, 'the losing key wrote a consent stamp');
+});
+
+check('the session claim records the submission key, not the retired one', () => {
+  run({});
+  // The claim patch is asserted through a fresh run so the row reflects the claim.
+  const sessions = makeSessions();
+  run({}, { sessions });
+  eq(sessions.row.submission_key, AUTH_SUBMISSION_KEY, 'the claim overwrote the bound key');
+  eq(sessions.row.idempotency_key, undefined, 'the claim still records the retired key');
+});
+
+check('(7) an app session RE-BOUND to another key mid-request stops the handoff', () => {
+  // The gap the §9.2 check cannot cover: the session passes the initial binding check, then a
+  // concurrent bootstrap re-binds it to a newer key while this request is in flight. Only the
+  // pre-handoff guard re-reads the session, so only the guard can catch this.
+  const sessions = makeSessions();
+  const inner = sessions.read.bind(sessions);
+  let reads = 0;
+  sessions.read = function (id) {
+    reads++;
+    const out = inner(id);
+    // Re-bound between the §9.2 read and the pre-handoff guard read.
+    if (reads === 1) { sessions.row.submission_key = 'sub_' + 'd'.repeat(32); }
+    return out;
+  };
+  const r = run({}, { sessions });
+  eq(r.leadIntake.calls.length, 0, 'a re-bound session handed off anyway');
+  eq(r.out.response.error_code, 'CYCLE_SUPERSEDED', 'the re-bind was not refused');
+  eq(r.out.log.stage, 'SESSION_KEY_REBOUND', 'the re-bind stage was not named');
 });
 
 // ---------------------------------------------------------------------- summary

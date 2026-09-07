@@ -1,0 +1,12 @@
+
+# owner-only UAT deployment artifacts (rollback bodies, resolved values)
+.uat/
+
+# non-production DDL validation harness deps (never shipped, never deployed)
+db/validation/node_modules/
+db/validation/package-lock.json
+db/validation/.pgdata/
+
+# rendered visual-evidence working output (browser profile + the full render set).
+# The retained release screenshots are committed at the repository root; see qa/visual-evidence.mjs.
+qa-artifacts/

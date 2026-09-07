@@ -32,8 +32,8 @@ function check(name, fn) {
 const assert = (c, m) => { if (!c) throw new Error(m); };
 
 const PAGES = [
-  { file: 'questionnaire.html', label: 'RU', head: 'Контактные данные', name: 'Имя', company: 'Компания', contact: 'Контакт', placeholder: 'Email или @Telegram', errors: ['Укажите имя', 'Укажите компанию', 'Укажите email или @Telegram', 'Проверьте формат: email или @Telegram'] },
-  { file: 'ro/questionnaire.html', label: 'RO', head: 'Date de contact', name: 'Nume', company: 'Companie', contact: 'Contact', placeholder: 'Email sau @Telegram', errors: ['Indicați numele', 'Indicați compania', 'Indicați email sau @Telegram', 'Verificați formatul: email sau @Telegram'] }
+  { file: 'questionnaire.html', label: 'RU', head: 'Контактные данные', name: 'Имя', company: 'Компания', contact: 'Контакт', placeholder: 'E-mail или @Telegram', errors: ['Укажите имя', 'Укажите компанию', 'Укажите e-mail или @Telegram', 'Проверьте формат: E-mail или @Telegram'] },
+  { file: 'ro/questionnaire.html', label: 'RO', head: 'Date de contact', name: 'Nume', company: 'Companie', contact: 'Contact', placeholder: 'E-mail sau @Telegram', errors: ['Indicați numele', 'Indicați compania', 'Indicați e-mail sau @Telegram', 'Verificați formatul: E-mail sau @Telegram'] }
 ];
 
 console.log('\nFINMENTOR — X-Ray questionnaire: required identity is editable where it is missing\n');
@@ -124,7 +124,7 @@ check('RO panel copy carries no Cyrillic (the RO page gate)', () => {
   const ro = read('ro/questionnaire.html');
   const panel = /<div class="q-validate__fields"[\s\S]*?<\/div><ul/.exec(ro)[0];
   assert(!/[Ѐ-ӿ]/.test(panel), 'Cyrillic in the RO panel markup');
-  for (const lit of ["'Indicați numele'", "'Indicați compania'", "'Indicați email sau @Telegram'"]) { assert(ro.includes(lit), 'missing RO error literal ' + lit); }
+  for (const lit of ["'Indicați numele'", "'Indicați compania'", "'Indicați e-mail sau @Telegram'"]) { assert(ro.includes(lit), 'missing RO error literal ' + lit); }
   assert(!/'Укажите имя'/.test(ro), 'Russian error copy leaked into the RO page');
 });
 

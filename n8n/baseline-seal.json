@@ -1,0 +1,191 @@
+{
+  "_policy": [
+    "POST-CUTOVER BASELINE SEALING. Every successful cutover invalidates the tracked reference it",
+    "used, because R(L) == A can only hold while A describes current production.",
+    "A_next = R(L_post) is accepted for ONE reason: L_post matched the materialized target that",
+    "was just approved. Never because it is live, never because it is newer.",
+    "FAIL CLOSED: if the most recent record for a workflow is not SEALED, the next deployment of",
+    "that workflow is refused until it is."
+  ],
+  "records": [
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P7.5R",
+      "status": "SEALED",
+      "sealedAt": "2026-08-27T21:18:45.515Z",
+      "preVersionId": "2b98eba9-8404-42a1-82cd-9ee0b0cae2f6",
+      "postVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
+      "deployedTargetSha": "a6d2f8aac394f0d9efd2c7817e5fd6824bac8345354cf9a44cf9b253bbbaac0e",
+      "postLiveRedactedSha": "1e5660778e9b6e99810657848b7b7e6e91970df4b119c8fa28cbe5eec7518fbc",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 45,
+      "sealProof": {
+        "method": "offline rebuild: applyDelta(delta(A,B), A), redacted, compared to R(L_current)",
+        "approvedRedactedSha": "8bba38d9488e587599c94e75334feec9c4ab5209a623aa627b94c8a71476f28a",
+        "rebuiltTargetSha": "8bba38d9488e587599c94e75334feec9c4ab5209a623aa627b94c8a71476f28a",
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-27. Recorded UNSEALED first, because that was the truth: P7.5R deployed 45",
+        "nodes while the tracked reference was still the 33-node pre-Model-B export, so R(L) == A",
+        "could not hold and the next deployment failed closed rather than comparing against a",
+        "reference that described neither the old production nor the new one.",
+        "SEALING NEEDED A LIVE READ, but the acceptance test was offline-computable: R(L_pre) == A",
+        "held at the time, so the approved P7.5R target redacts to applyDelta(delta(A,B), A). The",
+        "fresh live read was required to equal that and did, with the version chain intact -- see",
+        "sealProof above and docs/P8_3A_P7_5R_BASELINE_SEAL.md. A proof, not a rubber stamp.",
+        "The 33-node pre-state is frozen at n8n/history/mppzthlkSJFr6Kle.pre-P7-5R-cutover.json;",
+        "its versionId must equal preVersionId here, and the tracked reference postVersionId."
+      ]
+    },
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P8.3A",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T17:50:50.895Z",
+      "preVersionId": "ff6c8103-6823-4666-86fd-c50d4ec89a01",
+      "postVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+      "deployedTargetSha": "2d285ed76487ca99e14e08f2b0fbf9f850cd9ff78195d03effd29060022617d2",
+      "postLiveRedactedSha": "fc8c8248fb3077c26483698ec946c9f0ff808c4299351af833df7f98be84224b",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 50,
+      "_note": [
+        "SEALED 2026-08-28, immediately after the P8.3A cutover. A_next = R(L_post) is accepted for",
+        "ONE reason: L_post equalled the materialized target that was approved -- sealBaseline",
+        "recomputed that equality itself and would have refused otherwise.",
+        "The delta: +6 nodes, -1 (Read Settings, physically removed), 4 field changes, 9 rewires.",
+        "P8.3A-1 closed the hole that made this phase necessary twice over: Build Authority Unresolved",
+        "Event had no outgoing edge, so AUTHORITY_WRITE_NOT_PERSISTED was built per incident and",
+        "discarded; and APPROVED_EDGES was declared but never handed to the materializer, so at deploy",
+        "time it constrained nothing. Both halves are now enforced -- see the commit that precedes this",
+        "seal and qa/p83a-cutover-policy.test.mjs mutations 4c-4f.",
+        "The 45-node pre-P8.3A state is the reference this record supersedes; its versionId is",
+        "preVersionId here and the P7.5R record postVersionId."
+      ],
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "f5dc6397e3b627ba7b67866b7fa1d85e815fe2e9533e0f7035535a6e58d69bec",
+        "postLiveRedactedSha": "fc8c8248fb3077c26483698ec946c9f0ff808c4299351af833df7f98be84224b",
+        "matches": true,
+        "versionChainVerified": true,
+        "_shaNote": "the two shas differ by SHAPE, not content: approvedRedactedSha covers the four-field {name,nodes,connections,settings} projection of C_live, postLiveRedactedSha the whole redacted document. The equality that gates the seal is matches:true, computed on the safety-relevant surface by baselineEquivalence -- not string equality of these two."
+      }
+    },
+    {
+      "workflowId": "QmIyEW2ZEqKregmN",
+      "phase": "P8.4A-WRITE-A",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T18:54:59.569Z",
+      "preVersionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
+      "postVersionId": "2c51b904-fbab-45b6-b60a-d34403777757",
+      "deployedTargetSha": "49b6d21bc2628b77fba48120a449a273ad46d517b874d01c2d609c91a06ee165",
+      "postLiveRedactedSha": "87f0637b057e5daea528937a066b264c33dce06be0ae271cd0650b13be3e6d90",
+      "trackedReferencePath": "n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
+      "nodeCount": 100,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "49b6d21bc2628b77fba48120a449a273ad46d517b874d01c2d609c91a06ee165",
+        "postLiveRedactedSha": "87f0637b057e5daea528937a066b264c33dce06be0ae271cd0650b13be3e6d90",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after Write A: the Lead Intake internal Model-B route.",
+        "Delta: +43 nodes, 0 removals, 0 field changes, 42 rewires. The workflow gained a SECOND",
+        "ENTRY POINT -- an executeWorkflowTrigger reachable only from inside the tenant -- beside the",
+        "unchanged public website webhook, which was pinned to LIVE by id, webhookId and every",
+        "parameter rather than merely left alone in the candidate.",
+        "PRE-STATE NOTE: the 57-node pre-state is frozen at n8n/history/QmIyEW2ZEqKregmN.pre-write-a.json.",
+        "Its versionId equals preVersionId here. That reference had to be rebaselined onto the",
+        "corrected redactor FIRST: the old redactor replaced chatId by FIELD NAME, destroying four",
+        "={{ $('Settings...') }} node-reference expressions, so R(L) == A could not hold. All four",
+        "differences classified EXPRESSION_RESTORED with zero OTHER drift, by the tracked",
+        "scripts/rebaseline-production-reference.mjs, which refuses on anything else.",
+        "CONSEQUENCE WORTH KNOWING: this reference now carries ZERO redaction markers, because every",
+        "chatId in Lead Intake is an expression and there is no concrete identity to redact. Its",
+        "artifact class moved REDACTED_REFERENCE_ONLY -> REVIEW_REFERENCE (\"no markers, still not a",
+        "deploy source\"); deployable_to_production stays false. The marker-based \"is this really a",
+        "live export?\" control is therefore VACUOUS for this workflow -- see the backlog note.",
+        "BEHAVIOURAL PROOFS ARE NOT PART OF THIS SEAL. The seal asserts only that production equals",
+        "the approved target, which it does, byte for byte on the executable surface."
+      ]
+    },
+    {
+      "workflowId": "QmIyEW2ZEqKregmN",
+      "phase": "P8.4A-R-REPLAY-FIX",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T19:37:07.176Z",
+      "preVersionId": "2c51b904-fbab-45b6-b60a-d34403777757",
+      "postVersionId": "93139028-527a-454e-8070-7bdbba0e3c3f",
+      "deployedTargetSha": "b942fb4f880129bf2b79d3c2994bb511733d20526b0592a2ac42657051c89707",
+      "postLiveRedactedSha": "9d4536c8be8e7951e15c81db8833e0dc594e499ef6ab9bfd77c28137bc8f10fa",
+      "trackedReferencePath": "n8n/production/QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
+      "nodeCount": 102,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "b942fb4f880129bf2b79d3c2994bb511733d20526b0592a2ac42657051c89707",
+        "postLiveRedactedSha": "9d4536c8be8e7951e15c81db8833e0dc594e499ef6ab9bfd77c28137bc8f10fa",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after the P8.4A-R correction: COMMITTED replay is now",
+        "idempotently SUCCESSFUL. Delta: +2 nodes (IF Receipt Settled, Internal Result (Committed",
+        "Replay)), one modified body (Receipt Read Verdict), one rewire (IF Receipt Claimable false).",
+        "WHY: live execution 3791 replayed an already-COMMITTED submission and got SUBMIT_UNRESOLVED",
+        "with retryable:true. Safe -- no second write, no corruption -- but not idempotent, and the",
+        "retry advice was wrong for a permanently settled submission. After the Concierge migration",
+        "that would have meant the lead IS captured while the customer is never confirmed.",
+        "SETTLED is a SEPARATE flag from CLAIMABLE on purpose: claiming writes, resolving does not.",
+        "Conflating them would have put a Pipeline write on the replay path -- the defect inverted.",
+        "COMMITTED without a canonical_lead_id FAILS CLOSED; identity is never inferred from email,",
+        "phone or a Pipeline search. The receipt correlation_id is never rewritten and",
+        "Pipeline.request_id is never mutated: the original commit correlation stays immutable.",
+        "LIVE RE-PROOF: exec 3797 (a1) and 3799 (a2) both returned ok:true with the ORIGINAL",
+        "canonical_lead_id, zero Pipeline writes, zero receipt writes. Regression re-checked:",
+        "exec 3801 missing-receipt, 3803 IN_FLIGHT, 3805 correlation mismatch -- all unchanged.",
+        "The 100-node pre-correction state is frozen at n8n/history/QmIyEW2ZEqKregmN.pre-replay-fix.json."
+      ]
+    },
+    {
+      "workflowId": "mppzthlkSJFr6Kle",
+      "phase": "P8.4B-WRITE-B",
+      "status": "SEALED",
+      "sealedAt": "2026-08-28T19:56:15.502Z",
+      "preVersionId": "1a2e37df-5292-48c6-b7af-a6f63b6eb66d",
+      "postVersionId": "5fe6142d-b2dc-4d12-a43d-30abbbb0441b",
+      "deployedTargetSha": "10962d877cf849b2ff4b7f3d877acb1de2ff8f33f5fcba896dbdff8131599d97",
+      "postLiveRedactedSha": "85f610b28e2a1eb7253a3e52074fcd97f63aba11d87547825cbc48a185b0b7d1",
+      "trackedReferencePath": "n8n/production/mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
+      "nodeCount": 51,
+      "sealProof": {
+        "method": "live: sealBaseline() redacted BOTH the approved target and the fresh post-deploy read, then required baselineEquivalence(R(C_live), R(L_post)).ok before returning A_next",
+        "approvedRedactedSha": "4705b253b12a475ad06e4cf81bbd9eebdd07ce2695d4e0e4265b729e14cc1b1a",
+        "postLiveRedactedSha": "85f610b28e2a1eb7253a3e52074fcd97f63aba11d87547825cbc48a185b0b7d1",
+        "matches": true,
+        "versionChainVerified": true
+      },
+      "_note": [
+        "SEALED 2026-08-28, immediately after WRITE B: the Concierge lead handoff moved from the",
+        "PUBLIC Lead Intake webhook to the STRUCTURAL internal Execute Workflow route deployed by",
+        "Write A. Delta: +2 nodes (Build Internal Handoff, Send Lead to Intake (Internal)), -1 node",
+        "(Send Lead to Intake, the public httpRequest, removed by exact id and exact live edges),",
+        "4 rewires, ZERO modified inherited bodies.",
+        "THE KEY IS NOT MINTED AT HANDOFF. Build Internal Handoff reads the submission_key from",
+        "Issuance Gate -- the same node Receipt Preallocate writes the receipt with -- so the handoff",
+        "carries the authoritative key the cycle already owns. A second mint would orphan that receipt.",
+        "Issuance Gate is used rather than Issuance Verdict because Verdict only runs when a",
+        "preallocation was required; on the REUSE path it never executes.",
+        "TWO MATERIALIZER GAPS WERE CLOSED to make this deployable, both found by this battery:",
+        "approvedAddedNodes approved a node by NAME and left its PARAMETERS unconstrained, so the",
+        "Execute Workflow target could be repointed or made a caller-steerable expression and the",
+        "handoff body could take the key from the request or mint one -- all inside approved names.",
+        "And an approvedRemovals entry was only a PERMISSION: a candidate that simply kept the public",
+        "HTTP node produced no delta op and nothing objected, which would have deployed BOTH paths.",
+        "The 50-node pre-Write-B state is frozen at n8n/history/mppzthlkSJFr6Kle.pre-write-b.json.",
+        "LIVE END-TO-END TELEGRAM PROOF IS NOT PART OF THIS SEAL: it requires a real Telegram cycle",
+        "driven by the owner. The seal asserts only that production equals the approved target."
+      ]
+    }
+  ]
+}

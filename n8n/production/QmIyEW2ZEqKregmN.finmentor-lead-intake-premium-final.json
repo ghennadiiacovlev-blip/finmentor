@@ -3,12 +3,12 @@
   "name": "FINMENTOR Lead Intake PREMIUM FINAL",
   "description": null,
   "active": true,
-  "activeVersionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
+  "activeVersionId": "8f01b095-81ac-4e67-9ffa-2049aaec7399",
   "createdAt": "2026-07-01T07:56:26.205Z",
-  "updatedAt": "2026-08-25T20:02:09.49Z",
+  "updatedAt": "2026-08-29T09:32:53.169Z",
   "isArchived": false,
-  "versionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
-  "versionCounter": 33,
+  "versionId": "8f01b095-81ac-4e67-9ffa-2049aaec7399",
+  "versionCounter": 36,
   "sourceWorkflowId": null,
   "triggerCount": 1,
   "nodes": [
@@ -1467,7 +1467,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "replyMarkup": "inlineKeyboard",
         "inlineKeyboard": {
@@ -1539,7 +1539,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -1564,7 +1564,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -1673,7 +1673,7 @@
     },
     {
       "parameters": {
-        "chatId": "<REDACTED_CHAT_ID>",
+        "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
         "text": "={{ String($json.ai_telegram_message_short || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -1827,11 +1827,11 @@
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 2000,
-      "onError": "continueErrorOutput"
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Dedup Guard v2 — tiered matching against Pipeline (source of truth).\n// strong: lead_id | medium: normalized email / phone / telegram | weak: company+name only within 48h (older weak matches are flagged, never auto-merged).\n// Won/Lost rows never absorb a new submission (returning contact = new lead, flagged).\nconst lead = $('Normalize + Score Lead').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.lead_id || '').trim() !== '');\nfunction lower(x) { return String(x ?? '').trim().toLowerCase().replace(/ё/g, 'е'); }\nfunction normEmail(x) { const e = lower(x); return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(e) ? e : ''; }\n// Must stay identical to normalizePhoneIdentity in Normalize + Score Lead. Stripping every\n// non-digit from an arbitrary string turned digit-bearing emails into phone identities, which\n// let a crafted address collide with a real subscriber's number and merge into their row.\nfunction normPhone(x) {\n  const s = String(x ?? '').trim();\n  if (!s) return '';\n  if (s.includes('@')) return '';\n  if (/telegram|t\\.me/i.test(s)) return '';\n  const core = s.split(/[(,;]/)[0].trim();\n  if (!/^[+\\d][\\d\\s().\\-\\/]*$/.test(core)) return '';\n  const d = core.replace(/[^\\d]/g, '');\n  return (d.length >= 6 && d.length <= 15) ? d : '';\n}\nfunction normTelegram(x) { let s = lower(x); if (!s) return ''; s = s.replace(/^telegram(\\s*chat_id)?\\s*:\\s*/, '').replace(/^https?:\\/\\/t\\.me\\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\\d{5,20}$/.test(s)) ? s : ''; }\nfunction ts(x) { const t = Date.parse(String(x || '')); return Number.isFinite(t) ? t : 0; }\nconst now = Date.now();\nconst newest = list => list.slice().sort((a, b) => ts(b.updated_at || b.created_at) - ts(a.updated_at || a.created_at))[0];\nconst closed = r => ['won', 'lost'].includes(lower(r.deal_stage));\nlet match = null, matchBy = '', tier = '', possibleDuplicateOf = '';\nfunction consider(candidates, by, t) { if (match || !candidates.length) return; const open = candidates.filter(r => !closed(r)); if (open.length) { match = newest(open); matchBy = by; tier = t; } else { possibleDuplicateOf = newest(candidates).lead_id || ''; matchBy = by + '_closed'; } }\n// Idempotency tier — CORROBORATED, never standalone.\n//\n// request_id is minted in the browser by lead-transport.js, and that function also accepts\n// a caller-supplied payload.meta.request_id. It is therefore attacker-controllable and is\n// NOT a server-owned key. Matching on it alone would hand back exactly the capability\n// INDP1-02 removed: anyone who learned a request_id could name the row it belongs to.\n//\n// It is honoured only when the same row is ALSO reached by an identity the server derived\n// itself from the submitted contact data. That combination means \"this is the same\n// submission arriving again\", which is a retry signal, not a selection capability.\nlet requestIdCorroborated = false;\nif (lead.request_id) {\n  const rid = String(lead.request_id).trim();\n  const sameRequest = rows.filter(r => String(r.request_id || '').trim() !== '' && String(r.request_id || '').trim() === rid);\n  const corroborated = sameRequest.filter(r =>\n    (lead.email_norm && normEmail(r.email) === lead.email_norm) ||\n    (lead.phone_norm && normPhone(r.phone) === lead.phone_norm) ||\n    (lead.telegram_norm && normTelegram(r.telegram) === lead.telegram_norm));\n  if (corroborated.length) {\n    consider(corroborated, 'request_id+identity', 'strong');\n    requestIdCorroborated = !!match && matchBy === 'request_id+identity';\n  }\n}\n// Strong tier requires proven provenance. A caller-supplied lead_id is not a row-selection\n// capability: honouring it let a public request name an existing CRM row and merge into it.\n// Normalize only sets provenance_trusted for requests that arrived through the authenticated\n// internal route, so untrusted callers fall through to contact-based matching below.\nif (lead.provenance_trusted && lead.lead_id) consider(rows.filter(r => lower(r.lead_id) === lower(lead.lead_id)), 'lead_id', 'strong');\nif (!match && lead.email_norm) consider(rows.filter(r => normEmail(r.email) === lead.email_norm), 'email', 'medium');\nif (!match && lead.phone_norm) consider(rows.filter(r => normPhone(r.phone) === lead.phone_norm), 'phone', 'medium');\nif (!match && lead.telegram_norm) consider(rows.filter(r => normTelegram(r.telegram) === lead.telegram_norm), 'telegram', 'medium');\nif (!match && lead.company_norm && lead.name_norm) {\n  const weak = rows.filter(r => lower(r.company) === lead.company_norm && lower(r.name) === lead.name_norm && !closed(r));\n  const recent = weak.filter(r => now - ts(r.created_at || r.updated_at) < 48 * 36e5);\n  if (recent.length) { match = newest(recent); matchBy = 'company_name_48h'; tier = 'weak'; }\n  else if (weak.length) { possibleDuplicateOf = newest(weak).lead_id || ''; matchBy = 'company_name_old'; }\n}\n// A corroborated request_id IS the same submission, whatever the clock says, so it is a\n// retry regardless of the two-minute window. That in turn suppresses escalation below and\n// tells Build Merge Update to leave attribution alone.\nconst isRetry = requestIdCorroborated || (!!match && (now - ts(match.updated_at || match.created_at)) < 2 * 60 * 1000);\nconst PR = { INCOMPLETE: 0, COLD: 1, WARM: 2, HOT: 3 };\nconst ZR = { UNKNOWN: 0, GREEN: 1, YELLOW: 2, ORANGE: 3, RED: 4 };\nconst pr = x => PR[String(x || '').toUpperCase()] ?? 0;\nconst zr = x => ZR[String(x || '').toUpperCase()] ?? 0;\n// Escalation may only raise priority/zone, never lower them, and only on a match reached\n// through an identity the server derived itself (contact data or proven provenance).\n// A weak company+name match is too loose to justify rewriting canonical state.\nconst escalationAllowed = !!match && !isRetry && tier !== 'weak';\nconst escalated = escalationAllowed && (pr(lead.lead_priority) > pr(match.priority) || zr(lead.financial_zone) > zr(match.financial_zone));\nreturn [{ json: {\n  ...lead,\n  submission_lead_id: lead.submission_lead_id || '',\n  request_id: lead.request_id || '',\n  provenance_trusted: !!lead.provenance_trusted,\n  dedup_mode: match ? 'duplicate' : 'new',\n  dedup_match_by: match ? matchBy : (possibleDuplicateOf ? matchBy : ''),\n  dedup_tier: tier,\n  dedup_is_retry: isRetry,\n  dedup_request_id_corroborated: requestIdCorroborated,\n  dedup_escalated: escalated,\n  existing_lead_id: match ? String(match.lead_id || '') : '',\n  merge_lead_id: match ? String(match.lead_id || lead.lead_id) : lead.lead_id,\n  possible_duplicate_of: match ? '' : possibleDuplicateOf,\n  existing_row: match || {}\n} }];"
+        "jsCode": "// Dedup Guard v3 — the dedup READ VERDICT, then tiered matching against Pipeline.\n// strong: lead_id | medium: normalized email / phone / telegram | weak: company+name only within 48h (older weak matches are flagged, never auto-merged).\n// Won/Lost rows never absorb a new submission (returning contact = new lead, flagged).\n//\n// ===================== P9-R4: FAIL CLOSED ON A READ THAT DID NOT SUCCEED =====================\n//\n// v2 opened straight into `rows = $input.all()...filter(lead_id)` and read the survivors' COUNT\n// as its verdict. That is fail-OPEN, and P9-R3 proved it live: `Read Pipeline (Dedup)` carried\n// `alwaysOutputData: true` with `onError: 'continueErrorOutput'`, so a Sheets failure emitted on\n// BOTH outputs — the error item on output 1 and a synthetic `{}` on output 0. The filter dropped\n// the synthetic item, `rows` became `[]`, and \"store unreachable\" was indistinguishable from\n// \"no existing lead matched\". The execution then reached `Save to Pipeline` — a write — and\n// `Respond New Lead` won the race against `Respond Infra Failed`, so the caller was told\n// `{\"ok\":true,\"mode\":\"new\"}` at HTTP 200 while n8n recorded the run as an error.\n//\n// Two measured facts constrain what can fix it, both from P9-R3/P9-R4 harness runs:\n//\n//   1. The output-0 item on a failure was BYTE-IDENTICAL to the one a legitimately empty read\n//      produces — `{\"json\":{},\"pairedItem\":[{\"item\":0,\"input\":0}]}`. So no check on this node's\n//      input could tell them apart while the error stayed on a separate output.\n//   2. The success branch ran to COMPLETION before the error branch started (Dedup Guard at\n//      index 10, IF Internal (Infra) at 31). So no cross-branch lookup and no \"the stop node\n//      will get there first\" argument could work either.\n//\n// The fix moves the failure onto the REGULAR output: `Read Pipeline (Dedup)` now carries\n// `onError: 'continueRegularOutput'`. Measured consequences, not assumed ones:\n//\n//   read succeeds, N rows  -> output 0 = N row items\n//   read succeeds, 0 rows  -> output 0 = one `{}`, manufactured by alwaysOutputData, which is\n//                             still required so an empty Pipeline sheet does not stall the graph\n//   read FAILS             -> output 0 = one `{ error: <message> }` item, and NOTHING ELSE.\n//                             alwaysOutputData no longer manufactures an anonymous item on a\n//                             failure, because there is no separate success output for it to\n//                             appear on.\n//\n// There is now exactly ONE branch out of the read, so there is no race, no second responder and\n// no parallel write path — structurally, not by ordering luck. This node is the single consumer,\n// and it refuses to proceed unless every item is POSITIVELY classifiable. It carries\n// `onError: 'continueErrorOutput'` and no `alwaysOutputData`, so a throw here produces no item on\n// output 0 at all: the write path cannot start, and output 1 carries the existing\n// `IF Internal (Infra) -> Respond Infra Failed` contract (HTTP 503, CRM_UNAVAILABLE,\n// retryable: true) — one response, and the correct one.\n//\n// The classification below is deliberately not \"does it look like an error\". An item is a FAULT\n// unless it is recognisably the empty-sheet marker or recognisably a Pipeline row. An unexpected\n// shape fails closed rather than being filtered away, which is precisely what v2 did wrong.\nconst PIPELINE_FIELDS = ['lead_id', 'name', 'company', 'email', 'phone', 'telegram',\n  'deal_stage', 'priority', 'financial_zone', 'created_at', 'updated_at', 'request_id'];\n\nconst readItems = $input.all().map(i => i.json);\nfor (const r of readItems) {\n  if (!r || typeof r !== 'object' || Array.isArray(r)) {\n    throw new Error('DEDUP_READ_FAULT: the dedup read produced a non-object item');\n  }\n  const keys = Object.keys(r);\n  // The empty-sheet marker. Under continueRegularOutput this can ONLY arise from a SUCCESSFUL\n  // read that matched nothing — a failure delivers the error item instead. That is the measured\n  // distinction the whole fix rests on.\n  if (keys.length === 0) { continue; }\n  const looksLikeRow = keys.some(k => PIPELINE_FIELDS.includes(k));\n  if (looksLikeRow) { continue; }\n  // No recognised Pipeline field. An `error` key here is n8n's failure item; anything else is a\n  // shape this node cannot vouch for. Both fail closed, and both are retryable to the caller.\n  if (Object.prototype.hasOwnProperty.call(r, 'error')) {\n    throw new Error('DEDUP_READ_FAULT: the dedup read returned an error item: '\n      + String(r.error && r.error.message ? r.error.message : r.error).slice(0, 200));\n  }\n  throw new Error('DEDUP_READ_FAULT: the dedup read returned an unrecognised item shape: '\n    + keys.slice(0, 8).join(','));\n}\n\nconst lead = $('Normalize + Score Lead').first().json;\n// Unchanged from v2 on purpose: the read is now verified above, so filtering on lead_id here is\n// once again only about selecting real rows, not about inferring whether the read worked.\nconst rows = readItems.filter(r => r && String(r.lead_id || '').trim() !== '');\nfunction lower(x) { return String(x ?? '').trim().toLowerCase().replace(/ё/g, 'е'); }\nfunction normEmail(x) { const e = lower(x); return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(e) ? e : ''; }\n// Must stay identical to normalizePhoneIdentity in Normalize + Score Lead. Stripping every\n// non-digit from an arbitrary string turned digit-bearing emails into phone identities, which\n// let a crafted address collide with a real subscriber's number and merge into their row.\nfunction normPhone(x) {\n  const s = String(x ?? '').trim();\n  if (!s) return '';\n  if (s.includes('@')) return '';\n  if (/telegram|t\\.me/i.test(s)) return '';\n  const core = s.split(/[(,;]/)[0].trim();\n  if (!/^[+\\d][\\d\\s().\\-\\/]*$/.test(core)) return '';\n  const d = core.replace(/[^\\d]/g, '');\n  return (d.length >= 6 && d.length <= 15) ? d : '';\n}\nfunction normTelegram(x) { let s = lower(x); if (!s) return ''; s = s.replace(/^telegram(\\s*chat_id)?\\s*:\\s*/, '').replace(/^https?:\\/\\/t\\.me\\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\\d{5,20}$/.test(s)) ? s : ''; }\nfunction ts(x) { const t = Date.parse(String(x || '')); return Number.isFinite(t) ? t : 0; }\nconst now = Date.now();\nconst newest = list => list.slice().sort((a, b) => ts(b.updated_at || b.created_at) - ts(a.updated_at || a.created_at))[0];\nconst closed = r => ['won', 'lost'].includes(lower(r.deal_stage));\nlet match = null, matchBy = '', tier = '', possibleDuplicateOf = '';\nfunction consider(candidates, by, t) { if (match || !candidates.length) return; const open = candidates.filter(r => !closed(r)); if (open.length) { match = newest(open); matchBy = by; tier = t; } else { possibleDuplicateOf = newest(candidates).lead_id || ''; matchBy = by + '_closed'; } }\n// Idempotency tier — CORROBORATED, never standalone.\n//\n// request_id is minted in the browser by lead-transport.js, and that function also accepts\n// a caller-supplied payload.meta.request_id. It is therefore attacker-controllable and is\n// NOT a server-owned key. Matching on it alone would hand back exactly the capability\n// INDP1-02 removed: anyone who learned a request_id could name the row it belongs to.\n//\n// It is honoured only when the same row is ALSO reached by an identity the server derived\n// itself from the submitted contact data. That combination means \"this is the same\n// submission arriving again\", which is a retry signal, not a selection capability.\nlet requestIdCorroborated = false;\nif (lead.request_id) {\n  const rid = String(lead.request_id).trim();\n  const sameRequest = rows.filter(r => String(r.request_id || '').trim() !== '' && String(r.request_id || '').trim() === rid);\n  const corroborated = sameRequest.filter(r =>\n    (lead.email_norm && normEmail(r.email) === lead.email_norm) ||\n    (lead.phone_norm && normPhone(r.phone) === lead.phone_norm) ||\n    (lead.telegram_norm && normTelegram(r.telegram) === lead.telegram_norm));\n  if (corroborated.length) {\n    consider(corroborated, 'request_id+identity', 'strong');\n    requestIdCorroborated = !!match && matchBy === 'request_id+identity';\n  }\n}\n// Strong tier requires proven provenance. A caller-supplied lead_id is not a row-selection\n// capability: honouring it let a public request name an existing CRM row and merge into it.\n// Normalize only sets provenance_trusted for requests that arrived through the authenticated\n// internal route, so untrusted callers fall through to contact-based matching below.\nif (lead.provenance_trusted && lead.lead_id) consider(rows.filter(r => lower(r.lead_id) === lower(lead.lead_id)), 'lead_id', 'strong');\nif (!match && lead.email_norm) consider(rows.filter(r => normEmail(r.email) === lead.email_norm), 'email', 'medium');\nif (!match && lead.phone_norm) consider(rows.filter(r => normPhone(r.phone) === lead.phone_norm), 'phone', 'medium');\nif (!match && lead.telegram_norm) consider(rows.filter(r => normTelegram(r.telegram) === lead.telegram_norm), 'telegram', 'medium');\nif (!match && lead.company_norm && lead.name_norm) {\n  const weak = rows.filter(r => lower(r.company) === lead.company_norm && lower(r.name) === lead.name_norm && !closed(r));\n  const recent = weak.filter(r => now - ts(r.created_at || r.updated_at) < 48 * 36e5);\n  if (recent.length) { match = newest(recent); matchBy = 'company_name_48h'; tier = 'weak'; }\n  else if (weak.length) { possibleDuplicateOf = newest(weak).lead_id || ''; matchBy = 'company_name_old'; }\n}\n// A corroborated request_id IS the same submission, whatever the clock says, so it is a\n// retry regardless of the two-minute window. That in turn suppresses escalation below and\n// tells Build Merge Update to leave attribution alone.\nconst isRetry = requestIdCorroborated || (!!match && (now - ts(match.updated_at || match.created_at)) < 2 * 60 * 1000);\nconst PR = { INCOMPLETE: 0, COLD: 1, WARM: 2, HOT: 3 };\nconst ZR = { UNKNOWN: 0, GREEN: 1, YELLOW: 2, ORANGE: 3, RED: 4 };\nconst pr = x => PR[String(x || '').toUpperCase()] ?? 0;\nconst zr = x => ZR[String(x || '').toUpperCase()] ?? 0;\n// Escalation may only raise priority/zone, never lower them, and only on a match reached\n// through an identity the server derived itself (contact data or proven provenance).\n// A weak company+name match is too loose to justify rewriting canonical state.\nconst escalationAllowed = !!match && !isRetry && tier !== 'weak';\nconst escalated = escalationAllowed && (pr(lead.lead_priority) > pr(match.priority) || zr(lead.financial_zone) > zr(match.financial_zone));\nreturn [{ json: {\n  ...lead,\n  submission_lead_id: lead.submission_lead_id || '',\n  request_id: lead.request_id || '',\n  provenance_trusted: !!lead.provenance_trusted,\n  dedup_mode: match ? 'duplicate' : 'new',\n  dedup_match_by: match ? matchBy : (possibleDuplicateOf ? matchBy : ''),\n  dedup_tier: tier,\n  dedup_is_retry: isRetry,\n  dedup_request_id_corroborated: requestIdCorroborated,\n  dedup_escalated: escalated,\n  existing_lead_id: match ? String(match.lead_id || '') : '',\n  merge_lead_id: match ? String(match.lead_id || lead.lead_id) : lead.lead_id,\n  possible_duplicate_of: match ? '' : possibleDuplicateOf,\n  existing_row: match || {}\n} }];"
       },
       "id": "9dde41d5-3d8e-45fb-9b2e-86660e121c27",
       "name": "Dedup Guard",
@@ -1840,7 +1840,8 @@
       "position": [
         240,
         400
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -2586,6 +2587,1390 @@
         "errorMessage": "=Lead Intake: CRM read unavailable, lead NOT persisted. Caller got 503 retryable. Error: {{ String(($json.error && $json.error.message) || $json.error || 'unknown').slice(0, 300) }}",
         "errorType": "errorMessage"
       }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "p51-01-trigger",
+      "name": "Internal Subworkflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1116,
+        76
+      ],
+      "notes": "P1-L10 internal entry. Invoked in-tenant by the Mini App gateway. No public URL, no transport secret. Receives the wrapper { submission_key, envelope }."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F1 — provenance marker, written by the GRAPH, on THIS node, which is reachable only\n// from the internal sub-workflow trigger. internalRouteProven() reads exactly this node,\n// so the marker and the proof are the same output. The caller cannot supply it: the\n// wrapper is read for submission_key and envelope only, and any __internal_route,\n// provenanceTrusted, internal or authenticated field the caller sends is never consulted.\n//\n// F2 — prove the WRAPPER before anything downstream sees it.\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\nconst raw = $input.first().json || {};\n\nlet fault = 0;\nlet faultReason = '';\n\nconst key = typeof raw.submission_key === 'string' ? raw.submission_key : '';\nif (!KEY_RE.test(key)) { fault = 1; faultReason = faultReason || 'SUBMISSION_KEY_INVALID'; }\n\nconst env = raw.envelope;\nconst envOk = !!env && typeof env === 'object' && !Array.isArray(env);\nif (!envOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_MISSING'; }\nconst src = envOk ? String(env.source || '') : '';\nif (envOk && src !== 'telegram_miniapp') { fault = 1; faultReason = faultReason || 'ENVELOPE_SOURCE_INVALID'; }\nconst payload = envOk ? env.payload : undefined;\nconst payloadOk = !!payload && typeof payload === 'object' && !Array.isArray(payload);\nif (envOk && !payloadOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_PAYLOAD_MISSING'; }\n\n// F2 — the correlation id is read from the CANONICAL location and nowhere else:\n// envelope.payload.meta.request_id. P5 read e.meta.request_id || e.request_id, neither of\n// which exists on this wrapper, so it resolved empty every time.\nconst meta = payloadOk && payload.meta && typeof payload.meta === 'object' ? payload.meta : {};\nconst correlationId = String(meta.request_id || '').trim().slice(0, 80);\nif (correlationId === '') { fault = 1; faultReason = faultReason || 'CORRELATION_ID_MISSING'; }\n\nreturn [{ json: {\n  __internal_route: true,\n  __submission_key: fault ? '' : key,\n  __correlation_id: fault ? '' : correlationId,\n  __internal_fault: fault,\n  __fault_reason: faultReason,\n  __envelope_source: src,\n  __envelope: envOk ? env : null\n} }];"
+      },
+      "id": "p51-02-code",
+      "name": "Internal Auth Entry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        76
+      ],
+      "notes": "F1 marker + F2 wrapper proof. The marker is on THIS node because internalRouteProven() reads THIS node. Never reads provenance from the caller."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-03-cond",
+              "leftValue": "={{ $json.__internal_fault }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-04-if",
+      "name": "IF Internal Fault",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -676,
+        76
+      ],
+      "notes": "F3. TRUE = trusted internal call with unusable controls -> fail closed, zero Pipeline, zero receipt writes, never the public flow."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.__fault_reason || 'INTERNAL_REQUEST_INVALID'),\n  retryable: false\n} }];"
+      },
+      "id": "p51-05-code",
+      "name": "Internal Result (Fault)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -456,
+        -24
+      ],
+      "notes": "F3/F4 terminal. Reachable only from the internal fault gate."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F10 — emit the shape Validate Payload READS, which is the WEBHOOK request shape\n// { headers, body } -- NOT { source, payload }.\n//\n// This node previously emitted { source, payload }, on the documented but WRONG belief\n// that Lead Intake parses the envelope shape. Validate Payload is an INHERITED\n// PRODUCTION node and it reads raw.body / raw.headers. The consequence was total: every\n// internal submission resolved to INVALID_PAYLOAD (\"Body must be a JSON object\") and the\n// internal route could never accept a lead at all. Found live in P6.2 (exec 3583), not\n// offline -- the old gate asserted the WIRING across this seam but never the SHAPE.\n//\n// The header is a SERVER-SIDE LITERAL, not env.source. Internal Auth Entry has already\n// hard-required env.source === telegram_miniapp, so the literal is exactly as truthful\n// and cannot be steered by a caller -- provenance is established by the route, never by\n// a field in a body. Validate Payload is the only node in the graph that reads headers,\n// and only headers['x-finmentor-source'].\n//\n// submission_key is deliberately NOT injected into the body. It is a receipt control,\n// not lead data, and putting it in the body would make it indistinguishable from a\n// caller-supplied field one node later. The receipt nodes read it from\n// $('Internal Auth Entry') by node reference instead.\nconst env = $('Internal Auth Entry').first().json.__envelope || {};\nreturn [{ json: {\n  headers: { 'x-finmentor-source': 'telegram_miniapp' },\n  body: env.payload\n} }];"
+      },
+      "id": "p51-06-code",
+      "name": "Internal Envelope Unwrap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -456,
+        76
+      ],
+      "notes": "F10. Emits the webhook request shape { headers, body }. submission_key never enters the body."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// One safe answer to \"is this the internal route?\", computed with try/catch because\n// $('Internal Auth Entry') THROWS on the public path, where that node never ran.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven() ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = isInternal;\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-07-code",
+      "name": "Internal Flag",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        520
+      ],
+      "notes": "Passes Validate Payload output through untouched and adds __internal for the terminal gates."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F2 — prove the correlation id the receipt will stamp is the SAME value the rest of the\n// pipeline uses. Normalize + Score Lead derives request_id from payload.meta.request_id,\n// and that value is what reaches Pipeline column AZ on a write-bearing branch. If the two\n// ever differ, one of them is wrong and there is no safe way to pick — so this fails\n// closed BEFORE the receipt leaves READY rather than silently choosing a winner.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven();\nlet expected = '';\nif (isInternal) {\n  try { expected = String($('Internal Auth Entry').first().json.__correlation_id || ''); }\n  catch (e) { expected = ''; }\n}\nconst observed = String($('Normalize + Score Lead').first().json.request_id || '');\n// Public traffic has nothing to compare, so it always passes.\nconst okFlag = (!isInternal || (expected !== '' && expected === observed)) ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__correlation_ok = okFlag;\n  j.__internal = isInternal ? 1 : 0;\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-08-code",
+      "name": "Correlation Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        560
+      ],
+      "notes": "F2. Internal correlation id must equal Normalize request_id, or fail closed before the claim."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-09-cond",
+              "leftValue": "={{ $json.__correlation_ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-10-if",
+      "name": "IF Correlation OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -324,
+        560
+      ],
+      "notes": "FALSE = the receipt correlation and the pipeline request_id disagree. Never silently pick one."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-11-code",
+      "name": "Internal Result (Correlation)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -104,
+        660
+      ],
+      "notes": "F2 terminal. Correlation mismatch, fail closed before READY -> IN_FLIGHT."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Decide whether this execution is inside the receipt critical section.\n//\n// TWO conditions, both server-side and both re-derived here rather than trusted from\n// upstream: internal provenance proven by the GRAPH, and an exact submission key that\n// arrived over that trusted transport.\n//\n// The public path fails the first and therefore never reads, creates, claims or commits a\n// receipt, and never reveals whether any key exists. A public caller that sends a\n// submission_key gets ordinary public behaviour with the field ignored — not an error,\n// because an error that fires only for real keys is an existence oracle.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst trusted = internalRouteProven();\n\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\n// Read the key ONLY from the trusted internal entry, never from the request body.\nlet key = '';\nlet correlationId = '';\nif (trusted) {\n  try {\n    const e = $('Internal Auth Entry').first().json;\n    key = String(e.__submission_key || '').trim();\n    correlationId = String(e.__correlation_id || '').trim();\n  } catch (e) { key = ''; correlationId = ''; }\n}\nconst keyValid = KEY_RE.test(key);\nconst receiptRequired = trusted && keyValid && correlationId !== '';\n\n// F3 defence in depth. Internal Auth Entry already fails closed on malformed controls, so\n// this should be unreachable — but if a trusted call ever arrives here without usable\n// controls it must NOT quietly become a public request.\nconst fault = (trusted && !receiptRequired) ? 1 : 0;\n\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = trusted ? 1 : 0;\n  j.__receipt_required = receiptRequired ? 1 : 0;\n  j.__receipt_fault = fault;\n  j.__submission_key = receiptRequired ? key : '';\n  j.__correlation_id = receiptRequired ? correlationId : '';\n  out.push({ json: j });\n}\nreturn out;"
+      },
+      "id": "p51-12-code",
+      "name": "Receipt Gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        660
+      ],
+      "notes": "Receipt branch requires INTERNAL provenance + exact key + server correlation id. Public path bypasses the whole branch and reveals nothing about key existence."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-13-cond",
+              "leftValue": "={{ $json.__receipt_fault }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-14-if",
+      "name": "IF Receipt Fault",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        780
+      ],
+      "notes": "F3 second gate. TRUE = trusted but receipt controls unusable -> fail closed, never public."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-15-cond",
+              "leftValue": "={{ $json.__receipt_required }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-16-if",
+      "name": "IF Receipt Required",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        660
+      ],
+      "notes": "TRUE -> receipt critical section. FALSE -> public/ordinary path, receipt untouched."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.__submission_key }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "p51-17-read",
+      "name": "Receipt Exact Read",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        580
+      ],
+      "alwaysOutputData": true,
+      "notes": "Exact-key read. alwaysOutputData so an ABSENT receipt still reaches the verdict node instead of silently skipping the rest of the branch (P4 zero-item semantics)."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// ABSENCE IS NEVER AN ANSWER: a current cycle is required to have a preallocated receipt,\n// so a missing row is a broken invariant, not permission to proceed.\n//\n// P8.4A-R: a COMMITTED receipt carrying a canonical_lead_id is a TERMINAL SUCCESSFUL\n// submission. It is classified as SETTLED, which is deliberately a SEPARATE flag from\n// claimable: claiming WRITES (READY -> IN_FLIGHT) and resolving does not. Conflating them\n// would put a Pipeline write on the replay path, which is the defect this fixes, inverted.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nlet settled = 0;\nlet leadId = '';\nlet mode = '';\nlet priority = '';\nlet zone = '';\n\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else if (state === 'COMMITTED') {\n    leadId = String(rows[0].canonical_lead_id || '').trim();\n    if (leadId !== '') {\n      settled = 1;\n      reason = 'COMMITTED_SETTLED';\n      mode = String(rows[0].lead_mode || '');\n      priority = String(rows[0].lead_priority || '');\n      zone = String(rows[0].financial_zone || '');\n    } else {\n      // FAIL CLOSED. A receipt that cannot say what it settled has proven nothing, and\n      // identity is never inferred from email, phone or a Pipeline search.\n      reason = 'RECEIPT_COMMITTED_WITHOUT_LEAD_ID';\n    }\n  }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, {\n  __receipt_read_ok: ok,\n  __receipt_reason: reason,\n  __receipt_settled: settled,\n  __settled_lead_id: leadId,\n  __settled_mode: mode,\n  __settled_priority: priority,\n  __settled_zone: zone\n}) }];"
+      },
+      "id": "p51-18-code",
+      "name": "Receipt Read Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        580
+      ],
+      "notes": "Absence resolves to a broken invariant, never to \"safe to proceed\"."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-19-cond",
+              "leftValue": "={{ $json.__receipt_read_ok }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-20-if",
+      "name": "IF Receipt Claimable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1340,
+        580
+      ],
+      "notes": "Only a single READY row for the exact key may proceed."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-21-cond",
+              "leftValue": "={{ $('Dedup Guard').first().json.dedup_is_retry ? 1 : 0 }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-22-if",
+      "name": "IF Receipt Is Retry",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1560,
+        580
+      ],
+      "notes": "F6. TRUE = dedup already resolved this to an existing Pipeline row and NO write will occur, so the receipt is settled READY -> COMMITTED directly. No IN_FLIGHT window is created for a submission that provably writes nothing."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "READY"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id }}",
+            "lead_mode": "retry",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}",
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "p51-23-retry-settle",
+      "name": "Receipt Retry Settlement",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1780,
+        460
+      ],
+      "alwaysOutputData": true,
+      "notes": "F6 READY -> COMMITTED in one CAS. No Pipeline write occurs on this branch, so there is no ambiguous window to protect and no IN_FLIGHT state is created. canonical_lead_id is the DEDUP-SELECTED existing lead, matching Respond Retry exactly."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Same zero-item discriminator as the claim. alwaysOutputData means a zero-match arrives\n// as a synthetic EMPTY item, which must read as ZERO rows and never as success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __retry_updated_rows: updated,\n  __retry_settled: updated === 1 ? 1 : 0\n}) }];"
+      },
+      "id": "p51-24-code",
+      "name": "Retry Settlement Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        460
+      ],
+      "notes": "F6. A lost settlement CAS fails closed; it never reports ordinary success."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-25-cond",
+              "leftValue": "={{ $json.__retry_updated_rows }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-26-if",
+      "name": "IF Retry Settled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2220,
+        460
+      ],
+      "notes": "Only exactly one settled row permits the retry success return."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id),\n  mode: 'retry',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
+      },
+      "id": "p51-27-code",
+      "name": "Internal Result (Retry)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        460
+      ],
+      "notes": "F4/F5 terminal. Returns the SAME canonical lead id that the public Respond Retry returns."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "READY"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "IN_FLIGHT",
+            "claimed_at": "={{ $now.toISO() }}",
+            "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "claimed_at",
+              "displayName": "claimed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "correlation_id",
+              "displayName": "correlation_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "p51-28-claim",
+      "name": "Receipt Claim",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1780,
+        700
+      ],
+      "alwaysOutputData": true,
+      "notes": "READY -> IN_FLIGHT CAS for the write-bearing branches. alwaysOutputData:true is LOAD-BEARING: P4 proved a zero-match returns main[0]===[] and skips every downstream node, so without it the fail-closed branch could never run. Sets correlation_id (P1-L9)."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// The zero-item discriminator. Returns { updated_rows } and NEVER throws.\n//\n// Under alwaysOutputData:true n8n substitutes a single EMPTY item {} when the update\n// matched nothing. That synthetic item is the trap: a truthy test or a field read in a\n// try/catch would turn it into a fake success. So the discriminator keys on a field a\n// genuinely updated row ALWAYS carries — the node returns the full post-update row — and\n// an empty item NEVER does.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\n\nlet updated = 0;\nlet reason = 'STATE_ALREADY_MOVED';\nif (items.length > 1) {\n  updated = items.length;\n  reason = 'MULTIPLE_ROWS_AFFECTED';\n} else if (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  if (stored === '') { updated = 0; reason = 'STATE_ALREADY_MOVED'; }\n  else if (stored !== key) { updated = 0; reason = 'UPDATE_TOUCHED_WRONG_KEY'; }\n  else { updated = 1; reason = 'EXACTLY_ONE_ROW'; }\n}\n\n// updated_rows === 1 is the ONLY value that permits the Pipeline path.\nreturn [{ json: Object.assign({}, gate, {\n  __updated_rows: updated,\n  __claim_ok: updated === 1 ? 1 : 0,\n  __claim_reason: reason\n}) }];"
+      },
+      "id": "p51-29-code",
+      "name": "Claim Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        700
+      ],
+      "notes": "Converts item presence into an explicit count. The synthetic empty item is ZERO, never success."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-30-cond",
+              "leftValue": "={{ $json.__updated_rows }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-31-if",
+      "name": "IF Claim Won",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2220,
+        700
+      ],
+      "notes": "THE gate. Only updated_rows === 1 reaches Pipeline. 0, >1 and unreadable all fail closed."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-32-code",
+      "name": "Internal Result (Unresolved)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        860
+      ],
+      "notes": "F4 terminal. Reached when a receipt read, claim, settlement or commit CAS did not return exactly one row. NO Pipeline node is reachable from here. Not a RespondToWebhook: the internal path must never depend on one."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-33-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-34-if",
+      "name": "IF Internal (New)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        1056
+      ],
+      "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "IN_FLIGHT"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Dedup Guard').first().json.lead_id }}",
+            "lead_mode": "new",
+            "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+            "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "p51-35-commit",
+      "name": "Receipt Commit (New)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -244,
+        1056
+      ],
+      "alwaysOutputData": true,
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+      },
+      "id": "p51-36-code",
+      "name": "Commit Verdict (New)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -24,
+        1056
+      ],
+      "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-37-cond",
+              "leftValue": "={{ $json.__commit_updated_rows }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-38-if",
+      "name": "IF Committed (New)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        196,
+        1056
+      ],
+      "notes": "Only exactly one committed row permits the success return."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.lead_id),\n  mode: 'new',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
+      },
+      "id": "p51-39-code",
+      "name": "Internal Result (New)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        1056
+      ],
+      "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-40-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-41-if",
+      "name": "IF Internal (Merge)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        1424
+      ],
+      "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Submission_Receipts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "submission_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+            },
+            {
+              "keyName": "commit_state",
+              "condition": "eq",
+              "keyValue": "IN_FLIGHT"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commit_state": "COMMITTED",
+            "canonical_lead_id": "={{ $('Build Merge Update').first().json.lead_id }}",
+            "lead_mode": "merged",
+            "lead_priority": "={{ $('Build Merge Update').first().json.priority }}",
+            "financial_zone": "={{ $('Build Merge Update').first().json.financial_zone }}",
+            "settled_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "commit_state",
+              "displayName": "commit_state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "canonical_lead_id",
+              "displayName": "canonical_lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_mode",
+              "displayName": "lead_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_priority",
+              "displayName": "lead_priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "financial_zone",
+              "displayName": "financial_zone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "settled_at",
+              "displayName": "settled_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "id": "p51-42-commit",
+      "name": "Receipt Commit (Merge)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1132,
+        1424
+      ],
+      "alwaysOutputData": true,
+      "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+      },
+      "id": "p51-43-code",
+      "name": "Commit Verdict (Merge)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1352,
+        1424
+      ],
+      "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-44-cond",
+              "leftValue": "={{ $json.__commit_updated_rows }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-45-if",
+      "name": "IF Committed (Merge)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1572,
+        1424
+      ],
+      "notes": "Only exactly one committed row permits the success return."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Build Merge Update').first().json.lead_id),\n  mode: 'merged',\n  priority: String($('Build Merge Update').first().json.priority),\n  financial_zone: String($('Build Merge Update').first().json.financial_zone)\n} }];"
+      },
+      "id": "p51-46-code",
+      "name": "Internal Result (Merge)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        1424
+      ],
+      "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-47-cond",
+              "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-48-if",
+      "name": "IF Internal (Retry)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        1000
+      ],
+      "notes": "F4 structural guarantee. Internal retries are normally diverted at IF Receipt Is Retry; this catches any internal call that still reaches the ordinary retry edge."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-49-cond",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-50-if",
+      "name": "IF Internal (Invalid)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1020,
+        720
+      ],
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.error_code || 'INVALID_PAYLOAD'),\n  retryable: false\n} }];"
+      },
+      "id": "p51-51-code",
+      "name": "Internal Result (Invalid)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        720
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-52-cond",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-53-if",
+      "name": "IF Internal (Infra)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -820,
+        940
+      ],
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'CRM_UNAVAILABLE',\n  retryable: true\n} }];"
+      },
+      "id": "p51-54-code",
+      "name": "Internal Result (Infra)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        940
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-55-cond",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-56-if",
+      "name": "IF Internal (PipelineFailed)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        580,
+        620
+      ],
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-57-code",
+      "name": "Internal Result (PipelineFailed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        620
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p51-58-cond",
+              "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p51-59-if",
+      "name": "IF Internal (MergeFailed)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        780,
+        1380
+      ],
+      "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+      },
+      "id": "p51-60-code",
+      "name": "Internal Result (MergeFailed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        1380
+      ],
+      "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "p84r-settled-cond",
+              "leftValue": "={{ $json.__receipt_settled }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p84r-01-if-settled",
+      "name": "IF Receipt Settled",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// P8.4A-R — idempotent replay of a TERMINAL SUCCESSFUL submission.\n//\n// Reads the receipt and NOTHING else. No Pipeline write, no claim, no state change, no new\n// correlation and no new submission_key. The receipt is the authority for what was settled,\n// and its correlation_id stays immutable evidence of the original canonical write -- a replay\n// attempt does not get to overwrite it or masquerade as it.\n//\n// Same narrow return contract as the other internal terminals: no stage, no detail, no key.\nconst v = $('Receipt Read Verdict').first().json;\nreturn [{ json: {\n  ok: true,\n  lead_id: String(v.__settled_lead_id || ''),\n  mode: String(v.__settled_mode || ''),\n  priority: String(v.__settled_priority || ''),\n  financial_zone: String(v.__settled_zone || ''),\n  replay: true\n} }];"
+      },
+      "id": "p84r-02-result-replay",
+      "name": "Internal Result (Committed Replay)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        840
+      ]
     }
   ],
   "connections": {
@@ -2600,7 +3985,7 @@
         ],
         [
           {
-            "node": "Respond Infra Failed",
+            "node": "IF Internal (Infra)",
             "type": "main",
             "index": 0
           }
@@ -2622,7 +4007,7 @@
       "main": [
         [
           {
-            "node": "Read Pipeline (Dedup)",
+            "node": "Correlation Guard",
             "type": "main",
             "index": 0
           }
@@ -2637,13 +4022,6 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Respond Infra Failed",
-            "type": "main",
-            "index": 0
-          }
         ]
       ]
     },
@@ -2651,7 +4029,14 @@
       "main": [
         [
           {
-            "node": "IF Is New",
+            "node": "Receipt Gate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Internal (Infra)",
             "type": "main",
             "index": 0
           }
@@ -2904,7 +4289,7 @@
       "main": [
         [
           {
-            "node": "IF Valid",
+            "node": "Internal Flag",
             "type": "main",
             "index": 0
           }
@@ -2922,7 +4307,7 @@
         ],
         [
           {
-            "node": "Respond Invalid",
+            "node": "IF Internal (Invalid)",
             "type": "main",
             "index": 0
           }
@@ -2933,14 +4318,14 @@
       "main": [
         [
           {
-            "node": "Respond New Lead",
+            "node": "IF Internal (New)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Pipeline Failed",
+            "node": "IF Internal (PipelineFailed)",
             "type": "main",
             "index": 0
           }
@@ -3009,7 +4394,7 @@
       "main": [
         [
           {
-            "node": "Respond Retry",
+            "node": "IF Internal (Retry)",
             "type": "main",
             "index": 0
           }
@@ -3038,14 +4423,14 @@
       "main": [
         [
           {
-            "node": "Respond Merged",
+            "node": "IF Internal (Merge)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond Merge Failed",
+            "node": "IF Internal (MergeFailed)",
             "type": "main",
             "index": 0
           }
@@ -3187,6 +4572,506 @@
           }
         ]
       ]
+    },
+    "Internal Subworkflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Internal Auth Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Auth Entry": {
+      "main": [
+        [
+          {
+            "node": "IF Internal Fault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal Fault": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Fault)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Envelope Unwrap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Envelope Unwrap": {
+      "main": [
+        [
+          {
+            "node": "Validate Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Internal Flag": {
+      "main": [
+        [
+          {
+            "node": "IF Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Invalid)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Invalid)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Infra)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Infra)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Infra Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correlation Guard": {
+      "main": [
+        [
+          {
+            "node": "IF Correlation OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Correlation OK": {
+      "main": [
+        [
+          {
+            "node": "Read Pipeline (Dedup)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Correlation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Gate": {
+      "main": [
+        [
+          {
+            "node": "IF Receipt Fault",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Fault": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Receipt Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Required": {
+      "main": [
+        [
+          {
+            "node": "Receipt Exact Read",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Is New",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Exact Read": {
+      "main": [
+        [
+          {
+            "node": "Receipt Read Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Read Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Receipt Claimable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Claimable": {
+      "main": [
+        [
+          {
+            "node": "IF Receipt Is Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Receipt Settled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Is Retry": {
+      "main": [
+        [
+          {
+            "node": "Receipt Retry Settlement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Receipt Claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Retry Settlement": {
+      "main": [
+        [
+          {
+            "node": "Retry Settlement Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Settlement Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Retry Settled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Retry Settled": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Claim": {
+      "main": [
+        [
+          {
+            "node": "Claim Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Verdict": {
+      "main": [
+        [
+          {
+            "node": "IF Claim Won",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Claim Won": {
+      "main": [
+        [
+          {
+            "node": "IF Is New",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (New)": {
+      "main": [
+        [
+          {
+            "node": "Receipt Commit (New)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Commit (New)": {
+      "main": [
+        [
+          {
+            "node": "Commit Verdict (New)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit Verdict (New)": {
+      "main": [
+        [
+          {
+            "node": "IF Committed (New)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Committed (New)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (New)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (PipelineFailed)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (PipelineFailed)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Pipeline Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Merge)": {
+      "main": [
+        [
+          {
+            "node": "Receipt Commit (Merge)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Merged",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receipt Commit (Merge)": {
+      "main": [
+        [
+          {
+            "node": "Commit Verdict (Merge)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit Verdict (Merge)": {
+      "main": [
+        [
+          {
+            "node": "IF Committed (Merge)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Committed (Merge)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Merge)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (MergeFailed)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (MergeFailed)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Merge Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Internal (Retry)": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Receipt Settled": {
+      "main": [
+        [
+          {
+            "node": "Internal Result (Committed Replay)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Internal Result (Unresolved)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "nodeGroups": [],
@@ -3223,7 +5108,7 @@
     }
   ],
   "activeVersion": {
-    "versionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
+    "versionId": "8f01b095-81ac-4e67-9ffa-2049aaec7399",
     "workflowId": "QmIyEW2ZEqKregmN",
     "nodes": [
       {
@@ -4681,7 +6566,7 @@
       },
       {
         "parameters": {
-          "chatId": "<REDACTED_CHAT_ID>",
+          "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
           "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
           "replyMarkup": "inlineKeyboard",
           "inlineKeyboard": {
@@ -4753,7 +6638,7 @@
       },
       {
         "parameters": {
-          "chatId": "<REDACTED_CHAT_ID>",
+          "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
           "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
           "additionalFields": {
             "appendAttribution": false,
@@ -4778,7 +6663,7 @@
       },
       {
         "parameters": {
-          "chatId": "<REDACTED_CHAT_ID>",
+          "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
           "text": "={{ String($json.telegram_message || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
           "additionalFields": {
             "appendAttribution": false,
@@ -4887,7 +6772,7 @@
       },
       {
         "parameters": {
-          "chatId": "<REDACTED_CHAT_ID>",
+          "chatId": "={{ $('Settings to Object').first().json.settings.owner_chat_id }}",
           "text": "={{ String($json.ai_telegram_message_short || '').replace(/[_*\\[\\]()`]/g, ' ').replace(/[<>]/g, '').replace(/\\r/g, '').trim() }}",
           "additionalFields": {
             "appendAttribution": false,
@@ -5041,11 +6926,11 @@
         "retryOnFail": true,
         "maxTries": 3,
         "waitBetweenTries": 2000,
-        "onError": "continueErrorOutput"
+        "onError": "continueRegularOutput"
       },
       {
         "parameters": {
-          "jsCode": "// Dedup Guard v2 — tiered matching against Pipeline (source of truth).\n// strong: lead_id | medium: normalized email / phone / telegram | weak: company+name only within 48h (older weak matches are flagged, never auto-merged).\n// Won/Lost rows never absorb a new submission (returning contact = new lead, flagged).\nconst lead = $('Normalize + Score Lead').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r && String(r.lead_id || '').trim() !== '');\nfunction lower(x) { return String(x ?? '').trim().toLowerCase().replace(/ё/g, 'е'); }\nfunction normEmail(x) { const e = lower(x); return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(e) ? e : ''; }\n// Must stay identical to normalizePhoneIdentity in Normalize + Score Lead. Stripping every\n// non-digit from an arbitrary string turned digit-bearing emails into phone identities, which\n// let a crafted address collide with a real subscriber's number and merge into their row.\nfunction normPhone(x) {\n  const s = String(x ?? '').trim();\n  if (!s) return '';\n  if (s.includes('@')) return '';\n  if (/telegram|t\\.me/i.test(s)) return '';\n  const core = s.split(/[(,;]/)[0].trim();\n  if (!/^[+\\d][\\d\\s().\\-\\/]*$/.test(core)) return '';\n  const d = core.replace(/[^\\d]/g, '');\n  return (d.length >= 6 && d.length <= 15) ? d : '';\n}\nfunction normTelegram(x) { let s = lower(x); if (!s) return ''; s = s.replace(/^telegram(\\s*chat_id)?\\s*:\\s*/, '').replace(/^https?:\\/\\/t\\.me\\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\\d{5,20}$/.test(s)) ? s : ''; }\nfunction ts(x) { const t = Date.parse(String(x || '')); return Number.isFinite(t) ? t : 0; }\nconst now = Date.now();\nconst newest = list => list.slice().sort((a, b) => ts(b.updated_at || b.created_at) - ts(a.updated_at || a.created_at))[0];\nconst closed = r => ['won', 'lost'].includes(lower(r.deal_stage));\nlet match = null, matchBy = '', tier = '', possibleDuplicateOf = '';\nfunction consider(candidates, by, t) { if (match || !candidates.length) return; const open = candidates.filter(r => !closed(r)); if (open.length) { match = newest(open); matchBy = by; tier = t; } else { possibleDuplicateOf = newest(candidates).lead_id || ''; matchBy = by + '_closed'; } }\n// Idempotency tier — CORROBORATED, never standalone.\n//\n// request_id is minted in the browser by lead-transport.js, and that function also accepts\n// a caller-supplied payload.meta.request_id. It is therefore attacker-controllable and is\n// NOT a server-owned key. Matching on it alone would hand back exactly the capability\n// INDP1-02 removed: anyone who learned a request_id could name the row it belongs to.\n//\n// It is honoured only when the same row is ALSO reached by an identity the server derived\n// itself from the submitted contact data. That combination means \"this is the same\n// submission arriving again\", which is a retry signal, not a selection capability.\nlet requestIdCorroborated = false;\nif (lead.request_id) {\n  const rid = String(lead.request_id).trim();\n  const sameRequest = rows.filter(r => String(r.request_id || '').trim() !== '' && String(r.request_id || '').trim() === rid);\n  const corroborated = sameRequest.filter(r =>\n    (lead.email_norm && normEmail(r.email) === lead.email_norm) ||\n    (lead.phone_norm && normPhone(r.phone) === lead.phone_norm) ||\n    (lead.telegram_norm && normTelegram(r.telegram) === lead.telegram_norm));\n  if (corroborated.length) {\n    consider(corroborated, 'request_id+identity', 'strong');\n    requestIdCorroborated = !!match && matchBy === 'request_id+identity';\n  }\n}\n// Strong tier requires proven provenance. A caller-supplied lead_id is not a row-selection\n// capability: honouring it let a public request name an existing CRM row and merge into it.\n// Normalize only sets provenance_trusted for requests that arrived through the authenticated\n// internal route, so untrusted callers fall through to contact-based matching below.\nif (lead.provenance_trusted && lead.lead_id) consider(rows.filter(r => lower(r.lead_id) === lower(lead.lead_id)), 'lead_id', 'strong');\nif (!match && lead.email_norm) consider(rows.filter(r => normEmail(r.email) === lead.email_norm), 'email', 'medium');\nif (!match && lead.phone_norm) consider(rows.filter(r => normPhone(r.phone) === lead.phone_norm), 'phone', 'medium');\nif (!match && lead.telegram_norm) consider(rows.filter(r => normTelegram(r.telegram) === lead.telegram_norm), 'telegram', 'medium');\nif (!match && lead.company_norm && lead.name_norm) {\n  const weak = rows.filter(r => lower(r.company) === lead.company_norm && lower(r.name) === lead.name_norm && !closed(r));\n  const recent = weak.filter(r => now - ts(r.created_at || r.updated_at) < 48 * 36e5);\n  if (recent.length) { match = newest(recent); matchBy = 'company_name_48h'; tier = 'weak'; }\n  else if (weak.length) { possibleDuplicateOf = newest(weak).lead_id || ''; matchBy = 'company_name_old'; }\n}\n// A corroborated request_id IS the same submission, whatever the clock says, so it is a\n// retry regardless of the two-minute window. That in turn suppresses escalation below and\n// tells Build Merge Update to leave attribution alone.\nconst isRetry = requestIdCorroborated || (!!match && (now - ts(match.updated_at || match.created_at)) < 2 * 60 * 1000);\nconst PR = { INCOMPLETE: 0, COLD: 1, WARM: 2, HOT: 3 };\nconst ZR = { UNKNOWN: 0, GREEN: 1, YELLOW: 2, ORANGE: 3, RED: 4 };\nconst pr = x => PR[String(x || '').toUpperCase()] ?? 0;\nconst zr = x => ZR[String(x || '').toUpperCase()] ?? 0;\n// Escalation may only raise priority/zone, never lower them, and only on a match reached\n// through an identity the server derived itself (contact data or proven provenance).\n// A weak company+name match is too loose to justify rewriting canonical state.\nconst escalationAllowed = !!match && !isRetry && tier !== 'weak';\nconst escalated = escalationAllowed && (pr(lead.lead_priority) > pr(match.priority) || zr(lead.financial_zone) > zr(match.financial_zone));\nreturn [{ json: {\n  ...lead,\n  submission_lead_id: lead.submission_lead_id || '',\n  request_id: lead.request_id || '',\n  provenance_trusted: !!lead.provenance_trusted,\n  dedup_mode: match ? 'duplicate' : 'new',\n  dedup_match_by: match ? matchBy : (possibleDuplicateOf ? matchBy : ''),\n  dedup_tier: tier,\n  dedup_is_retry: isRetry,\n  dedup_request_id_corroborated: requestIdCorroborated,\n  dedup_escalated: escalated,\n  existing_lead_id: match ? String(match.lead_id || '') : '',\n  merge_lead_id: match ? String(match.lead_id || lead.lead_id) : lead.lead_id,\n  possible_duplicate_of: match ? '' : possibleDuplicateOf,\n  existing_row: match || {}\n} }];"
+          "jsCode": "// Dedup Guard v3 — the dedup READ VERDICT, then tiered matching against Pipeline.\n// strong: lead_id | medium: normalized email / phone / telegram | weak: company+name only within 48h (older weak matches are flagged, never auto-merged).\n// Won/Lost rows never absorb a new submission (returning contact = new lead, flagged).\n//\n// ===================== P9-R4: FAIL CLOSED ON A READ THAT DID NOT SUCCEED =====================\n//\n// v2 opened straight into `rows = $input.all()...filter(lead_id)` and read the survivors' COUNT\n// as its verdict. That is fail-OPEN, and P9-R3 proved it live: `Read Pipeline (Dedup)` carried\n// `alwaysOutputData: true` with `onError: 'continueErrorOutput'`, so a Sheets failure emitted on\n// BOTH outputs — the error item on output 1 and a synthetic `{}` on output 0. The filter dropped\n// the synthetic item, `rows` became `[]`, and \"store unreachable\" was indistinguishable from\n// \"no existing lead matched\". The execution then reached `Save to Pipeline` — a write — and\n// `Respond New Lead` won the race against `Respond Infra Failed`, so the caller was told\n// `{\"ok\":true,\"mode\":\"new\"}` at HTTP 200 while n8n recorded the run as an error.\n//\n// Two measured facts constrain what can fix it, both from P9-R3/P9-R4 harness runs:\n//\n//   1. The output-0 item on a failure was BYTE-IDENTICAL to the one a legitimately empty read\n//      produces — `{\"json\":{},\"pairedItem\":[{\"item\":0,\"input\":0}]}`. So no check on this node's\n//      input could tell them apart while the error stayed on a separate output.\n//   2. The success branch ran to COMPLETION before the error branch started (Dedup Guard at\n//      index 10, IF Internal (Infra) at 31). So no cross-branch lookup and no \"the stop node\n//      will get there first\" argument could work either.\n//\n// The fix moves the failure onto the REGULAR output: `Read Pipeline (Dedup)` now carries\n// `onError: 'continueRegularOutput'`. Measured consequences, not assumed ones:\n//\n//   read succeeds, N rows  -> output 0 = N row items\n//   read succeeds, 0 rows  -> output 0 = one `{}`, manufactured by alwaysOutputData, which is\n//                             still required so an empty Pipeline sheet does not stall the graph\n//   read FAILS             -> output 0 = one `{ error: <message> }` item, and NOTHING ELSE.\n//                             alwaysOutputData no longer manufactures an anonymous item on a\n//                             failure, because there is no separate success output for it to\n//                             appear on.\n//\n// There is now exactly ONE branch out of the read, so there is no race, no second responder and\n// no parallel write path — structurally, not by ordering luck. This node is the single consumer,\n// and it refuses to proceed unless every item is POSITIVELY classifiable. It carries\n// `onError: 'continueErrorOutput'` and no `alwaysOutputData`, so a throw here produces no item on\n// output 0 at all: the write path cannot start, and output 1 carries the existing\n// `IF Internal (Infra) -> Respond Infra Failed` contract (HTTP 503, CRM_UNAVAILABLE,\n// retryable: true) — one response, and the correct one.\n//\n// The classification below is deliberately not \"does it look like an error\". An item is a FAULT\n// unless it is recognisably the empty-sheet marker or recognisably a Pipeline row. An unexpected\n// shape fails closed rather than being filtered away, which is precisely what v2 did wrong.\nconst PIPELINE_FIELDS = ['lead_id', 'name', 'company', 'email', 'phone', 'telegram',\n  'deal_stage', 'priority', 'financial_zone', 'created_at', 'updated_at', 'request_id'];\n\nconst readItems = $input.all().map(i => i.json);\nfor (const r of readItems) {\n  if (!r || typeof r !== 'object' || Array.isArray(r)) {\n    throw new Error('DEDUP_READ_FAULT: the dedup read produced a non-object item');\n  }\n  const keys = Object.keys(r);\n  // The empty-sheet marker. Under continueRegularOutput this can ONLY arise from a SUCCESSFUL\n  // read that matched nothing — a failure delivers the error item instead. That is the measured\n  // distinction the whole fix rests on.\n  if (keys.length === 0) { continue; }\n  const looksLikeRow = keys.some(k => PIPELINE_FIELDS.includes(k));\n  if (looksLikeRow) { continue; }\n  // No recognised Pipeline field. An `error` key here is n8n's failure item; anything else is a\n  // shape this node cannot vouch for. Both fail closed, and both are retryable to the caller.\n  if (Object.prototype.hasOwnProperty.call(r, 'error')) {\n    throw new Error('DEDUP_READ_FAULT: the dedup read returned an error item: '\n      + String(r.error && r.error.message ? r.error.message : r.error).slice(0, 200));\n  }\n  throw new Error('DEDUP_READ_FAULT: the dedup read returned an unrecognised item shape: '\n    + keys.slice(0, 8).join(','));\n}\n\nconst lead = $('Normalize + Score Lead').first().json;\n// Unchanged from v2 on purpose: the read is now verified above, so filtering on lead_id here is\n// once again only about selecting real rows, not about inferring whether the read worked.\nconst rows = readItems.filter(r => r && String(r.lead_id || '').trim() !== '');\nfunction lower(x) { return String(x ?? '').trim().toLowerCase().replace(/ё/g, 'е'); }\nfunction normEmail(x) { const e = lower(x); return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(e) ? e : ''; }\n// Must stay identical to normalizePhoneIdentity in Normalize + Score Lead. Stripping every\n// non-digit from an arbitrary string turned digit-bearing emails into phone identities, which\n// let a crafted address collide with a real subscriber's number and merge into their row.\nfunction normPhone(x) {\n  const s = String(x ?? '').trim();\n  if (!s) return '';\n  if (s.includes('@')) return '';\n  if (/telegram|t\\.me/i.test(s)) return '';\n  const core = s.split(/[(,;]/)[0].trim();\n  if (!/^[+\\d][\\d\\s().\\-\\/]*$/.test(core)) return '';\n  const d = core.replace(/[^\\d]/g, '');\n  return (d.length >= 6 && d.length <= 15) ? d : '';\n}\nfunction normTelegram(x) { let s = lower(x); if (!s) return ''; s = s.replace(/^telegram(\\s*chat_id)?\\s*:\\s*/, '').replace(/^https?:\\/\\/t\\.me\\//, '').replace(/^@/, '').trim(); return (/^[a-z0-9_]{3,32}$/.test(s) || /^\\d{5,20}$/.test(s)) ? s : ''; }\nfunction ts(x) { const t = Date.parse(String(x || '')); return Number.isFinite(t) ? t : 0; }\nconst now = Date.now();\nconst newest = list => list.slice().sort((a, b) => ts(b.updated_at || b.created_at) - ts(a.updated_at || a.created_at))[0];\nconst closed = r => ['won', 'lost'].includes(lower(r.deal_stage));\nlet match = null, matchBy = '', tier = '', possibleDuplicateOf = '';\nfunction consider(candidates, by, t) { if (match || !candidates.length) return; const open = candidates.filter(r => !closed(r)); if (open.length) { match = newest(open); matchBy = by; tier = t; } else { possibleDuplicateOf = newest(candidates).lead_id || ''; matchBy = by + '_closed'; } }\n// Idempotency tier — CORROBORATED, never standalone.\n//\n// request_id is minted in the browser by lead-transport.js, and that function also accepts\n// a caller-supplied payload.meta.request_id. It is therefore attacker-controllable and is\n// NOT a server-owned key. Matching on it alone would hand back exactly the capability\n// INDP1-02 removed: anyone who learned a request_id could name the row it belongs to.\n//\n// It is honoured only when the same row is ALSO reached by an identity the server derived\n// itself from the submitted contact data. That combination means \"this is the same\n// submission arriving again\", which is a retry signal, not a selection capability.\nlet requestIdCorroborated = false;\nif (lead.request_id) {\n  const rid = String(lead.request_id).trim();\n  const sameRequest = rows.filter(r => String(r.request_id || '').trim() !== '' && String(r.request_id || '').trim() === rid);\n  const corroborated = sameRequest.filter(r =>\n    (lead.email_norm && normEmail(r.email) === lead.email_norm) ||\n    (lead.phone_norm && normPhone(r.phone) === lead.phone_norm) ||\n    (lead.telegram_norm && normTelegram(r.telegram) === lead.telegram_norm));\n  if (corroborated.length) {\n    consider(corroborated, 'request_id+identity', 'strong');\n    requestIdCorroborated = !!match && matchBy === 'request_id+identity';\n  }\n}\n// Strong tier requires proven provenance. A caller-supplied lead_id is not a row-selection\n// capability: honouring it let a public request name an existing CRM row and merge into it.\n// Normalize only sets provenance_trusted for requests that arrived through the authenticated\n// internal route, so untrusted callers fall through to contact-based matching below.\nif (lead.provenance_trusted && lead.lead_id) consider(rows.filter(r => lower(r.lead_id) === lower(lead.lead_id)), 'lead_id', 'strong');\nif (!match && lead.email_norm) consider(rows.filter(r => normEmail(r.email) === lead.email_norm), 'email', 'medium');\nif (!match && lead.phone_norm) consider(rows.filter(r => normPhone(r.phone) === lead.phone_norm), 'phone', 'medium');\nif (!match && lead.telegram_norm) consider(rows.filter(r => normTelegram(r.telegram) === lead.telegram_norm), 'telegram', 'medium');\nif (!match && lead.company_norm && lead.name_norm) {\n  const weak = rows.filter(r => lower(r.company) === lead.company_norm && lower(r.name) === lead.name_norm && !closed(r));\n  const recent = weak.filter(r => now - ts(r.created_at || r.updated_at) < 48 * 36e5);\n  if (recent.length) { match = newest(recent); matchBy = 'company_name_48h'; tier = 'weak'; }\n  else if (weak.length) { possibleDuplicateOf = newest(weak).lead_id || ''; matchBy = 'company_name_old'; }\n}\n// A corroborated request_id IS the same submission, whatever the clock says, so it is a\n// retry regardless of the two-minute window. That in turn suppresses escalation below and\n// tells Build Merge Update to leave attribution alone.\nconst isRetry = requestIdCorroborated || (!!match && (now - ts(match.updated_at || match.created_at)) < 2 * 60 * 1000);\nconst PR = { INCOMPLETE: 0, COLD: 1, WARM: 2, HOT: 3 };\nconst ZR = { UNKNOWN: 0, GREEN: 1, YELLOW: 2, ORANGE: 3, RED: 4 };\nconst pr = x => PR[String(x || '').toUpperCase()] ?? 0;\nconst zr = x => ZR[String(x || '').toUpperCase()] ?? 0;\n// Escalation may only raise priority/zone, never lower them, and only on a match reached\n// through an identity the server derived itself (contact data or proven provenance).\n// A weak company+name match is too loose to justify rewriting canonical state.\nconst escalationAllowed = !!match && !isRetry && tier !== 'weak';\nconst escalated = escalationAllowed && (pr(lead.lead_priority) > pr(match.priority) || zr(lead.financial_zone) > zr(match.financial_zone));\nreturn [{ json: {\n  ...lead,\n  submission_lead_id: lead.submission_lead_id || '',\n  request_id: lead.request_id || '',\n  provenance_trusted: !!lead.provenance_trusted,\n  dedup_mode: match ? 'duplicate' : 'new',\n  dedup_match_by: match ? matchBy : (possibleDuplicateOf ? matchBy : ''),\n  dedup_tier: tier,\n  dedup_is_retry: isRetry,\n  dedup_request_id_corroborated: requestIdCorroborated,\n  dedup_escalated: escalated,\n  existing_lead_id: match ? String(match.lead_id || '') : '',\n  merge_lead_id: match ? String(match.lead_id || lead.lead_id) : lead.lead_id,\n  possible_duplicate_of: match ? '' : possibleDuplicateOf,\n  existing_row: match || {}\n} }];"
         },
         "id": "9dde41d5-3d8e-45fb-9b2e-86660e121c27",
         "name": "Dedup Guard",
@@ -5054,7 +6939,8 @@
         "position": [
           240,
           400
-        ]
+        ],
+        "onError": "continueErrorOutput"
       },
       {
         "parameters": {
@@ -5800,6 +7686,1390 @@
           "errorMessage": "=Lead Intake: CRM read unavailable, lead NOT persisted. Caller got 503 retryable. Error: {{ String(($json.error && $json.error.message) || $json.error || 'unknown').slice(0, 300) }}",
           "errorType": "errorMessage"
         }
+      },
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "p51-01-trigger",
+        "name": "Internal Subworkflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -1116,
+          76
+        ],
+        "notes": "P1-L10 internal entry. Invoked in-tenant by the Mini App gateway. No public URL, no transport secret. Receives the wrapper { submission_key, envelope }."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F1 — provenance marker, written by the GRAPH, on THIS node, which is reachable only\n// from the internal sub-workflow trigger. internalRouteProven() reads exactly this node,\n// so the marker and the proof are the same output. The caller cannot supply it: the\n// wrapper is read for submission_key and envelope only, and any __internal_route,\n// provenanceTrusted, internal or authenticated field the caller sends is never consulted.\n//\n// F2 — prove the WRAPPER before anything downstream sees it.\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\nconst raw = $input.first().json || {};\n\nlet fault = 0;\nlet faultReason = '';\n\nconst key = typeof raw.submission_key === 'string' ? raw.submission_key : '';\nif (!KEY_RE.test(key)) { fault = 1; faultReason = faultReason || 'SUBMISSION_KEY_INVALID'; }\n\nconst env = raw.envelope;\nconst envOk = !!env && typeof env === 'object' && !Array.isArray(env);\nif (!envOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_MISSING'; }\nconst src = envOk ? String(env.source || '') : '';\nif (envOk && src !== 'telegram_miniapp') { fault = 1; faultReason = faultReason || 'ENVELOPE_SOURCE_INVALID'; }\nconst payload = envOk ? env.payload : undefined;\nconst payloadOk = !!payload && typeof payload === 'object' && !Array.isArray(payload);\nif (envOk && !payloadOk) { fault = 1; faultReason = faultReason || 'ENVELOPE_PAYLOAD_MISSING'; }\n\n// F2 — the correlation id is read from the CANONICAL location and nowhere else:\n// envelope.payload.meta.request_id. P5 read e.meta.request_id || e.request_id, neither of\n// which exists on this wrapper, so it resolved empty every time.\nconst meta = payloadOk && payload.meta && typeof payload.meta === 'object' ? payload.meta : {};\nconst correlationId = String(meta.request_id || '').trim().slice(0, 80);\nif (correlationId === '') { fault = 1; faultReason = faultReason || 'CORRELATION_ID_MISSING'; }\n\nreturn [{ json: {\n  __internal_route: true,\n  __submission_key: fault ? '' : key,\n  __correlation_id: fault ? '' : correlationId,\n  __internal_fault: fault,\n  __fault_reason: faultReason,\n  __envelope_source: src,\n  __envelope: envOk ? env : null\n} }];"
+        },
+        "id": "p51-02-code",
+        "name": "Internal Auth Entry",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -896,
+          76
+        ],
+        "notes": "F1 marker + F2 wrapper proof. The marker is on THIS node because internalRouteProven() reads THIS node. Never reads provenance from the caller."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-03-cond",
+                "leftValue": "={{ $json.__internal_fault }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-04-if",
+        "name": "IF Internal Fault",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -676,
+          76
+        ],
+        "notes": "F3. TRUE = trusted internal call with unusable controls -> fail closed, zero Pipeline, zero receipt writes, never the public flow."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.__fault_reason || 'INTERNAL_REQUEST_INVALID'),\n  retryable: false\n} }];"
+        },
+        "id": "p51-05-code",
+        "name": "Internal Result (Fault)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -456,
+          -24
+        ],
+        "notes": "F3/F4 terminal. Reachable only from the internal fault gate."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F10 — emit the shape Validate Payload READS, which is the WEBHOOK request shape\n// { headers, body } -- NOT { source, payload }.\n//\n// This node previously emitted { source, payload }, on the documented but WRONG belief\n// that Lead Intake parses the envelope shape. Validate Payload is an INHERITED\n// PRODUCTION node and it reads raw.body / raw.headers. The consequence was total: every\n// internal submission resolved to INVALID_PAYLOAD (\"Body must be a JSON object\") and the\n// internal route could never accept a lead at all. Found live in P6.2 (exec 3583), not\n// offline -- the old gate asserted the WIRING across this seam but never the SHAPE.\n//\n// The header is a SERVER-SIDE LITERAL, not env.source. Internal Auth Entry has already\n// hard-required env.source === telegram_miniapp, so the literal is exactly as truthful\n// and cannot be steered by a caller -- provenance is established by the route, never by\n// a field in a body. Validate Payload is the only node in the graph that reads headers,\n// and only headers['x-finmentor-source'].\n//\n// submission_key is deliberately NOT injected into the body. It is a receipt control,\n// not lead data, and putting it in the body would make it indistinguishable from a\n// caller-supplied field one node later. The receipt nodes read it from\n// $('Internal Auth Entry') by node reference instead.\nconst env = $('Internal Auth Entry').first().json.__envelope || {};\nreturn [{ json: {\n  headers: { 'x-finmentor-source': 'telegram_miniapp' },\n  body: env.payload\n} }];"
+        },
+        "id": "p51-06-code",
+        "name": "Internal Envelope Unwrap",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -456,
+          76
+        ],
+        "notes": "F10. Emits the webhook request shape { headers, body }. submission_key never enters the body."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// One safe answer to \"is this the internal route?\", computed with try/catch because\n// $('Internal Auth Entry') THROWS on the public path, where that node never ran.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven() ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = isInternal;\n  out.push({ json: j });\n}\nreturn out;"
+        },
+        "id": "p51-07-code",
+        "name": "Internal Flag",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1200,
+          520
+        ],
+        "notes": "Passes Validate Payload output through untouched and adds __internal for the terminal gates."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F2 — prove the correlation id the receipt will stamp is the SAME value the rest of the\n// pipeline uses. Normalize + Score Lead derives request_id from payload.meta.request_id,\n// and that value is what reaches Pipeline column AZ on a write-bearing branch. If the two\n// ever differ, one of them is wrong and there is no safe way to pick — so this fails\n// closed BEFORE the receipt leaves READY rather than silently choosing a winner.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst isInternal = internalRouteProven();\nlet expected = '';\nif (isInternal) {\n  try { expected = String($('Internal Auth Entry').first().json.__correlation_id || ''); }\n  catch (e) { expected = ''; }\n}\nconst observed = String($('Normalize + Score Lead').first().json.request_id || '');\n// Public traffic has nothing to compare, so it always passes.\nconst okFlag = (!isInternal || (expected !== '' && expected === observed)) ? 1 : 0;\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__correlation_ok = okFlag;\n  j.__internal = isInternal ? 1 : 0;\n  out.push({ json: j });\n}\nreturn out;"
+        },
+        "id": "p51-08-code",
+        "name": "Correlation Guard",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -544,
+          560
+        ],
+        "notes": "F2. Internal correlation id must equal Normalize request_id, or fail closed before the claim."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-09-cond",
+                "leftValue": "={{ $json.__correlation_ok }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-10-if",
+        "name": "IF Correlation OK",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -324,
+          560
+        ],
+        "notes": "FALSE = the receipt correlation and the pipeline request_id disagree. Never silently pick one."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+        },
+        "id": "p51-11-code",
+        "name": "Internal Result (Correlation)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -104,
+          660
+        ],
+        "notes": "F2 terminal. Correlation mismatch, fail closed before READY -> IN_FLIGHT."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// Decide whether this execution is inside the receipt critical section.\n//\n// TWO conditions, both server-side and both re-derived here rather than trusted from\n// upstream: internal provenance proven by the GRAPH, and an exact submission key that\n// arrived over that trusted transport.\n//\n// The public path fails the first and therefore never reads, creates, claims or commits a\n// receipt, and never reveals whether any key exists. A public caller that sends a\n// submission_key gets ordinary public behaviour with the field ignored — not an error,\n// because an error that fires only for real keys is an existence oracle.\nfunction internalRouteProven() {\n  try { return $('Internal Auth Entry').first().json.__internal_route === true; }\n  catch (e) { return false; }\n}\nconst trusted = internalRouteProven();\n\nconst KEY_RE = /^sub_[0-9a-f]{32}$/;\n// Read the key ONLY from the trusted internal entry, never from the request body.\nlet key = '';\nlet correlationId = '';\nif (trusted) {\n  try {\n    const e = $('Internal Auth Entry').first().json;\n    key = String(e.__submission_key || '').trim();\n    correlationId = String(e.__correlation_id || '').trim();\n  } catch (e) { key = ''; correlationId = ''; }\n}\nconst keyValid = KEY_RE.test(key);\nconst receiptRequired = trusted && keyValid && correlationId !== '';\n\n// F3 defence in depth. Internal Auth Entry already fails closed on malformed controls, so\n// this should be unreachable — but if a trusted call ever arrives here without usable\n// controls it must NOT quietly become a public request.\nconst fault = (trusted && !receiptRequired) ? 1 : 0;\n\nconst out = [];\nfor (const i of $input.all()) {\n  const j = Object.assign({}, i.json);\n  j.__internal = trusted ? 1 : 0;\n  j.__receipt_required = receiptRequired ? 1 : 0;\n  j.__receipt_fault = fault;\n  j.__submission_key = receiptRequired ? key : '';\n  j.__correlation_id = receiptRequired ? correlationId : '';\n  out.push({ json: j });\n}\nreturn out;"
+        },
+        "id": "p51-12-code",
+        "name": "Receipt Gate",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          240,
+          660
+        ],
+        "notes": "Receipt branch requires INTERNAL provenance + exact key + server correlation id. Public path bypasses the whole branch and reveals nothing about key existence."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-13-cond",
+                "leftValue": "={{ $json.__receipt_fault }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-14-if",
+        "name": "IF Receipt Fault",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          460,
+          780
+        ],
+        "notes": "F3 second gate. TRUE = trusted but receipt controls unusable -> fail closed, never public."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-15-cond",
+                "leftValue": "={{ $json.__receipt_required }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-16-if",
+        "name": "IF Receipt Required",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          680,
+          660
+        ],
+        "notes": "TRUE -> receipt critical section. FALSE -> public/ordinary path, receipt untouched."
+      },
+      {
+        "parameters": {
+          "resource": "row",
+          "operation": "get",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "Submission_Receipts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "submission_key",
+                "condition": "eq",
+                "keyValue": "={{ $json.__submission_key }}"
+              }
+            ]
+          },
+          "returnAll": true
+        },
+        "id": "p51-17-read",
+        "name": "Receipt Exact Read",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          900,
+          580
+        ],
+        "alwaysOutputData": true,
+        "notes": "Exact-key read. alwaysOutputData so an ABSENT receipt still reaches the verdict node instead of silently skipping the rest of the branch (P4 zero-item semantics)."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// ABSENCE IS NEVER AN ANSWER: a current cycle is required to have a preallocated receipt,\n// so a missing row is a broken invariant, not permission to proceed.\n//\n// P8.4A-R: a COMMITTED receipt carrying a canonical_lead_id is a TERMINAL SUCCESSFUL\n// submission. It is classified as SETTLED, which is deliberately a SEPARATE flag from\n// claimable: claiming WRITES (READY -> IN_FLIGHT) and resolving does not. Conflating them\n// would put a Pipeline write on the replay path, which is the defect this fixes, inverted.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst rows = $input.all()\n  .map((i) => i.json)\n  .filter((r) => r && typeof r === 'object' && String(r.submission_key || '') !== '');\n\nlet ok = 0;\nlet reason = 'RECEIPT_ABSENT_INVARIANT_BROKEN';\nlet settled = 0;\nlet leadId = '';\nlet mode = '';\nlet priority = '';\nlet zone = '';\n\nif (rows.length === 1 && String(rows[0].submission_key) === key) {\n  const state = String(rows[0].commit_state || '').trim();\n  if (state === 'READY') { ok = 1; reason = 'READY'; }\n  else if (state === 'COMMITTED') {\n    leadId = String(rows[0].canonical_lead_id || '').trim();\n    if (leadId !== '') {\n      settled = 1;\n      reason = 'COMMITTED_SETTLED';\n      mode = String(rows[0].lead_mode || '');\n      priority = String(rows[0].lead_priority || '');\n      zone = String(rows[0].financial_zone || '');\n    } else {\n      // FAIL CLOSED. A receipt that cannot say what it settled has proven nothing, and\n      // identity is never inferred from email, phone or a Pipeline search.\n      reason = 'RECEIPT_COMMITTED_WITHOUT_LEAD_ID';\n    }\n  }\n  else { ok = 0; reason = 'RECEIPT_NOT_READY_' + (state || 'EMPTY'); }\n} else if (rows.length > 1) {\n  reason = 'DUPLICATE_RECEIPTS';\n} else if (rows.length === 1) {\n  reason = 'LOOKUP_CONTRACT_VIOLATION';\n}\n\nreturn [{ json: Object.assign({}, gate, {\n  __receipt_read_ok: ok,\n  __receipt_reason: reason,\n  __receipt_settled: settled,\n  __settled_lead_id: leadId,\n  __settled_mode: mode,\n  __settled_priority: priority,\n  __settled_zone: zone\n}) }];"
+        },
+        "id": "p51-18-code",
+        "name": "Receipt Read Verdict",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1120,
+          580
+        ],
+        "notes": "Absence resolves to a broken invariant, never to \"safe to proceed\"."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-19-cond",
+                "leftValue": "={{ $json.__receipt_read_ok }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-20-if",
+        "name": "IF Receipt Claimable",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1340,
+          580
+        ],
+        "notes": "Only a single READY row for the exact key may proceed."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-21-cond",
+                "leftValue": "={{ $('Dedup Guard').first().json.dedup_is_retry ? 1 : 0 }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-22-if",
+        "name": "IF Receipt Is Retry",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1560,
+          580
+        ],
+        "notes": "F6. TRUE = dedup already resolved this to an existing Pipeline row and NO write will occur, so the receipt is settled READY -> COMMITTED directly. No IN_FLIGHT window is created for a submission that provably writes nothing."
+      },
+      {
+        "parameters": {
+          "resource": "row",
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "Submission_Receipts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "submission_key",
+                "condition": "eq",
+                "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+              },
+              {
+                "keyName": "commit_state",
+                "condition": "eq",
+                "keyValue": "READY"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "commit_state": "COMMITTED",
+              "canonical_lead_id": "={{ $('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id }}",
+              "lead_mode": "retry",
+              "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+              "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+              "settled_at": "={{ $now.toISO() }}",
+              "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+            },
+            "schema": [
+              {
+                "id": "commit_state",
+                "displayName": "commit_state",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "canonical_lead_id",
+                "displayName": "canonical_lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_mode",
+                "displayName": "lead_mode",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_priority",
+                "displayName": "lead_priority",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "financial_zone",
+                "displayName": "financial_zone",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "settled_at",
+                "displayName": "settled_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "correlation_id",
+                "displayName": "correlation_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ]
+          }
+        },
+        "id": "p51-23-retry-settle",
+        "name": "Receipt Retry Settlement",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1780,
+          460
+        ],
+        "alwaysOutputData": true,
+        "notes": "F6 READY -> COMMITTED in one CAS. No Pipeline write occurs on this branch, so there is no ambiguous window to protect and no IN_FLIGHT state is created. canonical_lead_id is the DEDUP-SELECTED existing lead, matching Respond Retry exactly."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// Same zero-item discriminator as the claim. alwaysOutputData means a zero-match arrives\n// as a synthetic EMPTY item, which must read as ZERO rows and never as success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __retry_updated_rows: updated,\n  __retry_settled: updated === 1 ? 1 : 0\n}) }];"
+        },
+        "id": "p51-24-code",
+        "name": "Retry Settlement Verdict",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2000,
+          460
+        ],
+        "notes": "F6. A lost settlement CAS fails closed; it never reports ordinary success."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-25-cond",
+                "leftValue": "={{ $json.__retry_updated_rows }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-26-if",
+        "name": "IF Retry Settled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          2220,
+          460
+        ],
+        "notes": "Only exactly one settled row permits the retry success return."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.merge_lead_id || $('Dedup Guard').first().json.lead_id),\n  mode: 'retry',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
+        },
+        "id": "p51-27-code",
+        "name": "Internal Result (Retry)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2440,
+          460
+        ],
+        "notes": "F4/F5 terminal. Returns the SAME canonical lead id that the public Respond Retry returns."
+      },
+      {
+        "parameters": {
+          "resource": "row",
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "Submission_Receipts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "submission_key",
+                "condition": "eq",
+                "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+              },
+              {
+                "keyName": "commit_state",
+                "condition": "eq",
+                "keyValue": "READY"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "commit_state": "IN_FLIGHT",
+              "claimed_at": "={{ $now.toISO() }}",
+              "correlation_id": "={{ $('Receipt Gate').first().json.__correlation_id }}"
+            },
+            "schema": [
+              {
+                "id": "commit_state",
+                "displayName": "commit_state",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "claimed_at",
+                "displayName": "claimed_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "correlation_id",
+                "displayName": "correlation_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ]
+          }
+        },
+        "id": "p51-28-claim",
+        "name": "Receipt Claim",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1780,
+          700
+        ],
+        "alwaysOutputData": true,
+        "notes": "READY -> IN_FLIGHT CAS for the write-bearing branches. alwaysOutputData:true is LOAD-BEARING: P4 proved a zero-match returns main[0]===[] and skips every downstream node, so without it the fail-closed branch could never run. Sets correlation_id (P1-L9)."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// The zero-item discriminator. Returns { updated_rows } and NEVER throws.\n//\n// Under alwaysOutputData:true n8n substitutes a single EMPTY item {} when the update\n// matched nothing. That synthetic item is the trap: a truthy test or a field read in a\n// try/catch would turn it into a fake success. So the discriminator keys on a field a\n// genuinely updated row ALWAYS carries — the node returns the full post-update row — and\n// an empty item NEVER does.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\n\nlet updated = 0;\nlet reason = 'STATE_ALREADY_MOVED';\nif (items.length > 1) {\n  updated = items.length;\n  reason = 'MULTIPLE_ROWS_AFFECTED';\n} else if (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  if (stored === '') { updated = 0; reason = 'STATE_ALREADY_MOVED'; }\n  else if (stored !== key) { updated = 0; reason = 'UPDATE_TOUCHED_WRONG_KEY'; }\n  else { updated = 1; reason = 'EXACTLY_ONE_ROW'; }\n}\n\n// updated_rows === 1 is the ONLY value that permits the Pipeline path.\nreturn [{ json: Object.assign({}, gate, {\n  __updated_rows: updated,\n  __claim_ok: updated === 1 ? 1 : 0,\n  __claim_reason: reason\n}) }];"
+        },
+        "id": "p51-29-code",
+        "name": "Claim Verdict",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2000,
+          700
+        ],
+        "notes": "Converts item presence into an explicit count. The synthetic empty item is ZERO, never success."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-30-cond",
+                "leftValue": "={{ $json.__updated_rows }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-31-if",
+        "name": "IF Claim Won",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          2220,
+          700
+        ],
+        "notes": "THE gate. Only updated_rows === 1 reaches Pipeline. 0, >1 and unreadable all fail closed."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+        },
+        "id": "p51-32-code",
+        "name": "Internal Result (Unresolved)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          2440,
+          860
+        ],
+        "notes": "F4 terminal. Reached when a receipt read, claim, settlement or commit CAS did not return exactly one row. NO Pipeline node is reachable from here. Not a RespondToWebhook: the internal path must never depend on one."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-33-cond",
+                "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-34-if",
+        "name": "IF Internal (New)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -464,
+          1056
+        ],
+        "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
+      },
+      {
+        "parameters": {
+          "resource": "row",
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "Submission_Receipts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "submission_key",
+                "condition": "eq",
+                "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+              },
+              {
+                "keyName": "commit_state",
+                "condition": "eq",
+                "keyValue": "IN_FLIGHT"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "commit_state": "COMMITTED",
+              "canonical_lead_id": "={{ $('Dedup Guard').first().json.lead_id }}",
+              "lead_mode": "new",
+              "lead_priority": "={{ $('Dedup Guard').first().json.lead_priority }}",
+              "financial_zone": "={{ $('Dedup Guard').first().json.financial_zone }}",
+              "settled_at": "={{ $now.toISO() }}"
+            },
+            "schema": [
+              {
+                "id": "commit_state",
+                "displayName": "commit_state",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "canonical_lead_id",
+                "displayName": "canonical_lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_mode",
+                "displayName": "lead_mode",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_priority",
+                "displayName": "lead_priority",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "financial_zone",
+                "displayName": "financial_zone",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "settled_at",
+                "displayName": "settled_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ]
+          }
+        },
+        "id": "p51-35-commit",
+        "name": "Receipt Commit (New)",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          -244,
+          1056
+        ],
+        "alwaysOutputData": true,
+        "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+        },
+        "id": "p51-36-code",
+        "name": "Commit Verdict (New)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -24,
+          1056
+        ],
+        "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-37-cond",
+                "leftValue": "={{ $json.__commit_updated_rows }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-38-if",
+        "name": "IF Committed (New)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          196,
+          1056
+        ],
+        "notes": "Only exactly one committed row permits the success return."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Dedup Guard').first().json.lead_id),\n  mode: 'new',\n  priority: String($('Dedup Guard').first().json.lead_priority),\n  financial_zone: String($('Dedup Guard').first().json.financial_zone)\n} }];"
+        },
+        "id": "p51-39-code",
+        "name": "Internal Result (New)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          416,
+          1056
+        ],
+        "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-40-cond",
+                "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-41-if",
+        "name": "IF Internal (Merge)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          912,
+          1424
+        ],
+        "notes": "F4/§6. TRUE = internal: settle the receipt and return the internal contract. FALSE = public: respond through the existing webhook node, receipt table untouched."
+      },
+      {
+        "parameters": {
+          "resource": "row",
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "mode": "name",
+            "value": "Submission_Receipts"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "submission_key",
+                "condition": "eq",
+                "keyValue": "={{ $('Receipt Gate').first().json.__submission_key }}"
+              },
+              {
+                "keyName": "commit_state",
+                "condition": "eq",
+                "keyValue": "IN_FLIGHT"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "commit_state": "COMMITTED",
+              "canonical_lead_id": "={{ $('Build Merge Update').first().json.lead_id }}",
+              "lead_mode": "merged",
+              "lead_priority": "={{ $('Build Merge Update').first().json.priority }}",
+              "financial_zone": "={{ $('Build Merge Update').first().json.financial_zone }}",
+              "settled_at": "={{ $now.toISO() }}"
+            },
+            "schema": [
+              {
+                "id": "commit_state",
+                "displayName": "commit_state",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "canonical_lead_id",
+                "displayName": "canonical_lead_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_mode",
+                "displayName": "lead_mode",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "lead_priority",
+                "displayName": "lead_priority",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "financial_zone",
+                "displayName": "financial_zone",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "settled_at",
+                "displayName": "settled_at",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ]
+          }
+        },
+        "id": "p51-42-commit",
+        "name": "Receipt Commit (Merge)",
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          1132,
+          1424
+        ],
+        "alwaysOutputData": true,
+        "notes": "IN_FLIGHT -> COMMITTED CAS. correlation_id is NOT in the set: it was written by the winning claim and is immutable (P1-L9). canonical_lead_id matches the public response for this branch exactly."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// Same zero-item discriminator as the claim. A commit that affected zero rows means the\n// receipt is no longer IN_FLIGHT — so the Pipeline write happened but the ledger did not\n// record it. That is UNRESOLVED, never an ordinary success.\nconst gate = $('Receipt Gate').first().json;\nconst key = String(gate.__submission_key || '');\nconst items = $input.all();\nlet updated = 0;\nif (items.length === 1) {\n  const row = (items[0] && items[0].json) || {};\n  const stored = String(row.submission_key || '').trim();\n  updated = (stored !== '' && stored === key) ? 1 : 0;\n} else if (items.length > 1) {\n  updated = items.length;\n}\nreturn [{ json: Object.assign({}, gate, {\n  __commit_updated_rows: updated,\n  __commit_ok: updated === 1 ? 1 : 0\n}) }];"
+        },
+        "id": "p51-43-code",
+        "name": "Commit Verdict (Merge)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1352,
+          1424
+        ],
+        "notes": "Pipeline succeeded but commit CAS !== 1 must NOT report ordinary success."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-44-cond",
+                "leftValue": "={{ $json.__commit_updated_rows }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-45-if",
+        "name": "IF Committed (Merge)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1572,
+          1424
+        ],
+        "notes": "Only exactly one committed row permits the success return."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract. The parent gateway receives THIS node output.\n// Deliberately narrow: no stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: true,\n  lead_id: String($('Build Merge Update').first().json.lead_id),\n  mode: 'merged',\n  priority: String($('Build Merge Update').first().json.priority),\n  financial_zone: String($('Build Merge Update').first().json.financial_zone)\n} }];"
+        },
+        "id": "p51-46-code",
+        "name": "Internal Result (Merge)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1792,
+          1424
+        ],
+        "notes": "F4/F5 terminal. Returns the SAME canonical values the public response for this branch returns."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-47-cond",
+                "leftValue": "={{ $('Receipt Gate').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-48-if",
+        "name": "IF Internal (Retry)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          580,
+          1000
+        ],
+        "notes": "F4 structural guarantee. Internal retries are normally diverted at IF Receipt Is Retry; this catches any internal call that still reaches the ordinary retry edge."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-49-cond",
+                "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-50-if",
+        "name": "IF Internal (Invalid)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -1020,
+          720
+        ],
+        "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: String($json.error_code || 'INVALID_PAYLOAD'),\n  retryable: false\n} }];"
+        },
+        "id": "p51-51-code",
+        "name": "Internal Result (Invalid)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -800,
+          720
+        ],
+        "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-52-cond",
+                "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-53-if",
+        "name": "IF Internal (Infra)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -820,
+          940
+        ],
+        "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'CRM_UNAVAILABLE',\n  retryable: true\n} }];"
+        },
+        "id": "p51-54-code",
+        "name": "Internal Result (Infra)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -600,
+          940
+        ],
+        "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-55-cond",
+                "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-56-if",
+        "name": "IF Internal (PipelineFailed)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          580,
+          620
+        ],
+        "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+        },
+        "id": "p51-57-code",
+        "name": "Internal Result (PipelineFailed)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          800,
+          620
+        ],
+        "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p51-58-cond",
+                "leftValue": "={{ $('Internal Flag').first().json.__internal }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p51-59-if",
+        "name": "IF Internal (MergeFailed)",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          780,
+          1380
+        ],
+        "notes": "F4/F11. TRUE = internal: return the internal contract. FALSE = public: existing webhook response. The flag is read by node reference so it survives an error-output feed."
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// F4 internal return contract, failure form. No stage, no detail, no submission_key.\nreturn [{ json: {\n  ok: false,\n  error_code: 'SUBMIT_UNRESOLVED',\n  retryable: true\n} }];"
+        },
+        "id": "p51-60-code",
+        "name": "Internal Result (MergeFailed)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1000,
+          1380
+        ],
+        "notes": "F4 terminal for the internal path. Never a RespondToWebhook."
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "p84r-settled-cond",
+                "leftValue": "={{ $json.__receipt_settled }}",
+                "rightValue": 1,
+                "operator": {
+                  "type": "number",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "p84r-01-if-settled",
+        "name": "IF Receipt Settled",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1540,
+          900
+        ]
+      },
+      {
+        "parameters": {
+          "mode": "runOnceForAllItems",
+          "language": "javaScript",
+          "jsCode": "// P8.4A-R — idempotent replay of a TERMINAL SUCCESSFUL submission.\n//\n// Reads the receipt and NOTHING else. No Pipeline write, no claim, no state change, no new\n// correlation and no new submission_key. The receipt is the authority for what was settled,\n// and its correlation_id stays immutable evidence of the original canonical write -- a replay\n// attempt does not get to overwrite it or masquerade as it.\n//\n// Same narrow return contract as the other internal terminals: no stage, no detail, no key.\nconst v = $('Receipt Read Verdict').first().json;\nreturn [{ json: {\n  ok: true,\n  lead_id: String(v.__settled_lead_id || ''),\n  mode: String(v.__settled_mode || ''),\n  priority: String(v.__settled_priority || ''),\n  financial_zone: String(v.__settled_zone || ''),\n  replay: true\n} }];"
+        },
+        "id": "p84r-02-result-replay",
+        "name": "Internal Result (Committed Replay)",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1760,
+          840
+        ]
       }
     ],
     "connections": {
@@ -5814,7 +9084,7 @@
           ],
           [
             {
-              "node": "Respond Infra Failed",
+              "node": "IF Internal (Infra)",
               "type": "main",
               "index": 0
             }
@@ -5836,7 +9106,7 @@
         "main": [
           [
             {
-              "node": "Read Pipeline (Dedup)",
+              "node": "Correlation Guard",
               "type": "main",
               "index": 0
             }
@@ -5851,13 +9121,6 @@
               "type": "main",
               "index": 0
             }
-          ],
-          [
-            {
-              "node": "Respond Infra Failed",
-              "type": "main",
-              "index": 0
-            }
           ]
         ]
       },
@@ -5865,7 +9128,14 @@
         "main": [
           [
             {
-              "node": "IF Is New",
+              "node": "Receipt Gate",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Internal (Infra)",
               "type": "main",
               "index": 0
             }
@@ -6118,7 +9388,7 @@
         "main": [
           [
             {
-              "node": "IF Valid",
+              "node": "Internal Flag",
               "type": "main",
               "index": 0
             }
@@ -6136,7 +9406,7 @@
           ],
           [
             {
-              "node": "Respond Invalid",
+              "node": "IF Internal (Invalid)",
               "type": "main",
               "index": 0
             }
@@ -6147,14 +9417,14 @@
         "main": [
           [
             {
-              "node": "Respond New Lead",
+              "node": "IF Internal (New)",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Respond Pipeline Failed",
+              "node": "IF Internal (PipelineFailed)",
               "type": "main",
               "index": 0
             }
@@ -6223,7 +9493,7 @@
         "main": [
           [
             {
-              "node": "Respond Retry",
+              "node": "IF Internal (Retry)",
               "type": "main",
               "index": 0
             }
@@ -6252,14 +9522,14 @@
         "main": [
           [
             {
-              "node": "Respond Merged",
+              "node": "IF Internal (Merge)",
               "type": "main",
               "index": 0
             }
           ],
           [
             {
-              "node": "Respond Merge Failed",
+              "node": "IF Internal (MergeFailed)",
               "type": "main",
               "index": 0
             }
@@ -6401,6 +9671,506 @@
             }
           ]
         ]
+      },
+      "Internal Subworkflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Internal Auth Entry",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Internal Auth Entry": {
+        "main": [
+          [
+            {
+              "node": "IF Internal Fault",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal Fault": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Fault)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Envelope Unwrap",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Internal Envelope Unwrap": {
+        "main": [
+          [
+            {
+              "node": "Validate Payload",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Internal Flag": {
+        "main": [
+          [
+            {
+              "node": "IF Valid",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (Invalid)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Invalid)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Invalid",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (Infra)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Infra)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Infra Failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Correlation Guard": {
+        "main": [
+          [
+            {
+              "node": "IF Correlation OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Correlation OK": {
+        "main": [
+          [
+            {
+              "node": "Read Pipeline (Dedup)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Correlation)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Gate": {
+        "main": [
+          [
+            {
+              "node": "IF Receipt Fault",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Receipt Fault": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Receipt Required",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Receipt Required": {
+        "main": [
+          [
+            {
+              "node": "Receipt Exact Read",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Is New",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Exact Read": {
+        "main": [
+          [
+            {
+              "node": "Receipt Read Verdict",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Read Verdict": {
+        "main": [
+          [
+            {
+              "node": "IF Receipt Claimable",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Receipt Claimable": {
+        "main": [
+          [
+            {
+              "node": "IF Receipt Is Retry",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Receipt Settled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Receipt Is Retry": {
+        "main": [
+          [
+            {
+              "node": "Receipt Retry Settlement",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Receipt Claim",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Retry Settlement": {
+        "main": [
+          [
+            {
+              "node": "Retry Settlement Verdict",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Retry Settlement Verdict": {
+        "main": [
+          [
+            {
+              "node": "IF Retry Settled",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Retry Settled": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Retry)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Claim": {
+        "main": [
+          [
+            {
+              "node": "Claim Verdict",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Claim Verdict": {
+        "main": [
+          [
+            {
+              "node": "IF Claim Won",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Claim Won": {
+        "main": [
+          [
+            {
+              "node": "IF Is New",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (New)": {
+        "main": [
+          [
+            {
+              "node": "Receipt Commit (New)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond New Lead",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Commit (New)": {
+        "main": [
+          [
+            {
+              "node": "Commit Verdict (New)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Commit Verdict (New)": {
+        "main": [
+          [
+            {
+              "node": "IF Committed (New)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Committed (New)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (New)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (PipelineFailed)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (PipelineFailed)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Pipeline Failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (Merge)": {
+        "main": [
+          [
+            {
+              "node": "Receipt Commit (Merge)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Merged",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Receipt Commit (Merge)": {
+        "main": [
+          [
+            {
+              "node": "Commit Verdict (Merge)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Commit Verdict (Merge)": {
+        "main": [
+          [
+            {
+              "node": "IF Committed (Merge)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Committed (Merge)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Merge)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (MergeFailed)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (MergeFailed)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Merge Failed",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Internal (Retry)": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Retry)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Respond Retry",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Receipt Settled": {
+        "main": [
+          [
+            {
+              "node": "Internal Result (Committed Replay)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Internal Result (Unresolved)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "nodeGroups": [],
@@ -6408,16 +10178,16 @@
     "name": null,
     "description": null,
     "autosaved": false,
-    "createdAt": "2026-08-25T20:02:09.506Z",
-    "updatedAt": "2026-08-25T20:02:09.506Z",
+    "createdAt": "2026-08-29T09:32:53.174Z",
+    "updatedAt": "2026-08-29T09:32:53.174Z",
     "workflowPublishHistory": [
       {
-        "id": 98,
+        "id": 130,
         "workflowId": "QmIyEW2ZEqKregmN",
-        "versionId": "7108ec2d-410c-4b57-b546-2229dc21c2b8",
+        "versionId": "8f01b095-81ac-4e67-9ffa-2049aaec7399",
         "event": "activated",
         "userId": "16ddab0f-26b7-42e6-b114-69385b7d80a0",
-        "createdAt": "2026-08-25T20:02:09.723Z"
+        "createdAt": "2026-08-29T09:32:53.362Z"
       }
     ]
   }

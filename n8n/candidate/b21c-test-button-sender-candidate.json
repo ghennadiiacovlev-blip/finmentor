@@ -1,0 +1,109 @@
+{
+  "name": "FINMENTOR B.2.1-C Test Button Sender",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "b21c-sender-trigger",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "551662084",
+        "text": "FINMENTOR — B21C Gateway Test (owner only).\n\nЭто НОВАЯ кнопка. Старая Canary-кнопка выведена из строя и больше не используется.\n\nНажмите кнопку ниже ОДИН раз. Страница отправит подписанный Telegram-контекст в текущий Gateway и покажет результат.\nЛид не создаётся, эксперту ничего не передаётся, анкета не открывается.",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "B21C Gateway Test",
+                    "additionalFields": {
+                      "web_app": {
+                        "url": "https://ghennadi.app.n8n.cloud/webhook/b21c/gateway-test"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "b21c-sender-send",
+      "name": "Send B21C Test Button",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "2JnVm0BIX0Z8tvBf",
+          "name": "FINMENTOR Client Concierge Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const item = $input.first().json || {};\nconst result = item.result || item;\nconst chat = result.chat || {};\nconst from = result.from || {};\nreturn [{ json: {\n  delivered: result.message_id !== undefined && result.message_id !== null,\n  message_id: result.message_id === undefined ? null : result.message_id,\n  chat_type: chat.type === undefined ? null : String(chat.type),\n  bot_id: from.id === undefined ? null : String(from.id),\n  button_label: \"B21C Gateway Test\",\n  target_url: \"https://ghennadi.app.n8n.cloud/webhook/b21c/gateway-test\",\n  bot_token_exposure: 'NONE'\n} }];"
+      },
+      "id": "b21c-sender-receipt",
+      "name": "Delivery Receipt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Send B21C Test Button",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send B21C Test Button": {
+      "main": [
+        [
+          {
+            "node": "Delivery Receipt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none"
+  }
+}

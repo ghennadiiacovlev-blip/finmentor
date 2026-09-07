@@ -1,0 +1,63 @@
+# FINMENTOR — line endings are part of the release contract, not a local preference.
+#
+# WHY THIS FILE EXISTS.
+#
+# Several gates compare a TRACKED GENERATED ARTIFACT byte-for-byte against what its generator
+# produces right now — that is the whole point of them, because an artifact nobody can reproduce
+# is a number without a source. Every generator in this repository writes LF. Every blob in this
+# repository is stored LF.
+#
+# On Windows, `core.autocrlf=true` (the default that ships with Git for Windows) rewrites those
+# blobs to CRLF on checkout. It also rewrites them in `git archive`, which is how a "clean LF
+# archive" used for release verification silently stopped being LF. The comparison then fails on
+# the line endings alone, and the failure message — "the tracked artifact is stale relative to the
+# generator" — says nothing about why. That is exactly how the canonical suite came to sit at
+# 78/83 with an explanation attached, and how that explanation came to name the wrong cause: the
+# four artifacts were never stale, and regenerating them would have changed nothing.
+#
+# WHAT THIS FIXES, AND WHAT IT DELIBERATELY DOES NOT.
+#
+# `eol=lf` pins the WORKING TREE to LF on every platform, so a Windows checkout, a Linux CI
+# checkout and `git archive` all produce the same bytes the generators write. No test is weakened,
+# no floor is lowered and no comparison is loosened — the inputs simply stop being corrupted
+# between the blob and the test.
+#
+# It does NOT touch what is stored: the blobs were already LF, so this changes no commit content.
+#
+# Binary formats are marked explicitly rather than left to `text=auto` detection. A PNG or a ZIP
+# that autodetection got wrong would be corrupted by a line-ending pass, and "usually right" is
+# not the standard for the release artifacts.
+
+* text=auto eol=lf
+
+# Sources, gates, generators and tracked artifacts — LF, always.
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.xml   text eol=lf
+*.svg   text eol=lf
+*.txt   text eol=lf
+*.csv   text eol=lf
+*.sql   text eol=lf
+CNAME     text eol=lf
+_headers  text eol=lf
+.gitignore text eol=lf
+
+# PowerShell is run by Windows hosts. It tolerates LF, and pinning it with everything else keeps
+# one rule rather than an exception nobody remembers.
+*.ps1   text eol=lf
+
+# Never transformed.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.ico  binary
+*.zip  binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary

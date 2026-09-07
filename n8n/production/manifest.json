@@ -121,12 +121,14 @@
       "name": "FINMENTOR Lead Intake PREMIUM FINAL",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 20:02:09",
-      "nodeCount": 57,
-      "structuralHash": "0dfebb810d7ee2e3d97b17b10b4e1d90e36b82739cf6f99bb2bef67ab1308d8e",
+      "updatedAt": "08/29/2026 09:32:53",
+      "nodeCount": 102,
+      "structuralHash": "0003fe025cef35fb1f3f3f4e5ed7e88012b8837bfdd89048a6d19566d1465beb",
       "nodeTypes": [
         "@n8n/n8n-nodes-langchain.openAi",
         "n8n-nodes-base.code",
+        "n8n-nodes-base.dataTable",
+        "n8n-nodes-base.executeWorkflowTrigger",
         "n8n-nodes-base.googleSheets",
         "n8n-nodes-base.if",
         "n8n-nodes-base.respondToWebhook",
@@ -141,7 +143,8 @@
         "OpenAI account"
       ],
       "export": "QmIyEW2ZEqKregmN.finmentor-lead-intake-premium-final.json",
-      "trackedReason": ""
+      "trackedReason": "",
+      "structuralHashStale": "REFRESHED 2026-08-29 from the live tenant after the P9-R4 dedup fail-open remediation (Read Pipeline (Dedup) onError -> continueRegularOutput; Dedup Guard v3 read verdict + error output). This value is current for THIS entry. The manifest RUN at generatedAt still predates it and the other entries were not re-read."
     },
     {
       "id": "LZ2mvKXbBikmeVTn",
@@ -169,14 +172,14 @@
       "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED",
       "active": true,
       "archived": false,
-      "updatedAt": "08/25/2026 17:39:02",
-      "nodeCount": 33,
-      "structuralHash": "a0ce72c3c702be36cf326ca0f8c262953408d5990e72cea0b02f3941747e9e29",
+      "updatedAt": "08/28/2026 20:10:00",
+      "nodeCount": 51,
+      "structuralHash": "414e44eeb49a154dc2e39275287abe351576a52b37c412a2688300c7865c6a93",
       "nodeTypes": [
         "n8n-nodes-base.code",
+        "n8n-nodes-base.dataTable",
         "n8n-nodes-base.executeWorkflow",
         "n8n-nodes-base.googleSheets",
-        "n8n-nodes-base.httpRequest",
         "n8n-nodes-base.if",
         "n8n-nodes-base.telegram",
         "n8n-nodes-base.telegramTrigger"
@@ -186,7 +189,8 @@
         "Google Sheets OAuth2 API"
       ],
       "export": "mppzthlkSJFr6Kle.finmentor-telegram-client-concierge-premium-ai-guarded.json",
-      "trackedReason": ""
+      "trackedReason": "",
+      "structuralHashStale": "REFRESHED 2026-08-28 from the live tenant after P8.4B (Write B, the internal handoff migration), so this value is current for THIS entry. The manifest RUN at generatedAt still predates it."
     },
     {
       "id": "ShcmmJeLSE8LYVBk",

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>FINMENTOR — B21C Gateway Test</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--navy:#0d1b2a;--graphite:#1b2735;--line:#2a3a4d;--gold:#c9a227;--off:#f4f1ea;--muted:#8fa0b3;--ok:#2e7d5b;--bad:#a33a3a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--navy);color:var(--off);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:22px 18px calc(22px + env(safe-area-inset-bottom));min-height:100vh}
+  .eyebrow{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+  h1{font-family:Georgia,serif;font-size:20px;font-weight:600;margin-bottom:6px}
+  p.sub{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:18px}
+  .card{background:var(--graphite);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px}
+  .head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+  .dot.ok{background:var(--ok)}
+  .dot.bad{background:var(--bad)}
+  .title{font-size:14px;font-weight:600}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:12px}
+  dt{color:var(--muted)}
+  dd{font-family:ui-monospace,Menlo,monospace;word-break:break-all}
+  .note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:14px}
+  #prog{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--gold);margin-bottom:12px}
+  .warn{border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.55;color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="eyebrow">B.2.1-C · Gateway Live Proof</div>
+<h1>Проверка Mini App Gateway</h1>
+<p class="sub">Две проверки одного подписанного контекста, одна сразу за другой. Лид не создаётся, эксперту ничего не передаётся, анкета не открывается.</p>
+<div class="warn">Проверка занимает несколько секунд. Ждать ничего не нужно — дождитесь карточки SUMMARY и покажите экран.</div>
+<div id="prog">Запуск…</div>
+<div id="out"></div>
+<p class="note" id="note"></p>
+<script>
+(function () {
+  'use strict';
+
+  // The CURRENT deployed Gateway. Same origin as this page, so the browser issues no CORS
+  // preflight and the Gateway needs no CORS change - which is exactly why this page is served
+  // from n8n and not from www.finmentor.md.
+  var ENDPOINT = 'https://ghennadi.app.n8n.cloud/webhook/finmentor-miniapp-gateway';
+
+  var CLIENT_VERSION = 'b2.1.0';
+  var LOCALE = 'ru';
+
+  // ---------------------------------------------------------------- the two shots
+  //
+  // ONE genuine Telegram-signed context, sent twice, unchanged. The browser is the only place
+  // it can safely live: holding it here means it is never written to n8n, GitHub, Sheets or any
+  // store, and no human ever reads it.
+  //
+  //   A  immediately     expect 200  ok:true, app_session_id issued, G5 row +1
+  //   B  right after A   expect 409  REPLAY_REFUSED, G5 row count unchanged, no second session
+  //
+  // The freshness gate is NOT re-run here. It was live-proven on 2026-08-29 with a genuine
+  // Telegram signature gone stale, and is banked as a PASS; repeating it would cost sixteen
+  // minutes of held context to re-prove something already recorded. So this page carries no
+  // timer at all - both shots complete in one uninterrupted run, and the page can be closed
+  // the moment SUMMARY appears.
+
+  // If any of these ever appears in a Gateway response, TB-1 has leaked. Checked at every
+  // nesting depth, not just the top level.
+  var FORBIDDEN = ['init_data','initData','signature','hash','replay_key','submission_key',
+                   'telegram_user_id','lead_id','canonical_lead_id','cycle_id','consent',
+                   'mode','lead_mode','credential','token','bot_token','row_number','id'];
+
+  var out = document.getElementById('out');
+  var note = document.getElementById('note');
+  var prog = document.getElementById('prog');
+
+  function card(title, kind, rows) {
+    var c = document.createElement('div'); c.className = 'card';
+    var h = document.createElement('div'); h.className = 'head';
+    var d = document.createElement('span'); d.className = 'dot' + (kind ? ' ' + kind : '');
+    var t = document.createElement('span'); t.className = 'title'; t.textContent = title;
+    h.appendChild(d); h.appendChild(t); c.appendChild(h);
+    var dl = document.createElement('dl');
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i][1] === undefined || rows[i][1] === null || rows[i][1] === '') { continue; }
+      var a = document.createElement('dt'); a.textContent = rows[i][0];
+      var b = document.createElement('dd'); b.textContent = String(rows[i][1]);
+      dl.appendChild(a); dl.appendChild(b);
+    }
+    c.appendChild(dl); out.appendChild(c);
+  }
+
+  function scan(obj, found, depth) {
+    if (obj === null || typeof obj !== 'object' || depth > 8) { return found; }
+    var k = Object.keys(obj);
+    for (var i = 0; i < k.length; i++) {
+      if (FORBIDDEN.indexOf(k[i]) !== -1 && found.indexOf(k[i]) === -1) { found.push(k[i]); }
+      scan(obj[k[i]], found, depth + 1);
+    }
+    return found;
+  }
+
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (!tg) {
+    prog.textContent = '';
+    card('Вне Telegram', 'bad', [['статус', 'Telegram WebApp SDK недоступен']]);
+    note.textContent = 'Откройте страницу кнопкой в Telegram, а не в обычном браузере.';
+    return;
+  }
+  tg.ready();
+  if (tg.expand) { tg.expand(); }
+  try { tg.setHeaderColor('#0d1b2a'); tg.setBackgroundColor('#0d1b2a'); } catch (e) {}
+  try { if (tg.disableClosingConfirmation) { tg.enableClosingConfirmation(); } } catch (e) {}
+
+  // The ONLY place the raw signed context is touched. It is read into a local, placed straight
+  // into each request body, and never written to the DOM, console, storage, cookies or the URL.
+  var initData = tg.initData;
+  if (typeof initData !== 'string' || initData.length === 0) {
+    prog.textContent = '';
+    card('Нет Telegram-контекста', 'bad', [['статус', 'подписанный контекст пуст']]);
+    note.textContent = 'Telegram не передал подписанный контекст. Переоткройте кнопку.';
+    return;
+  }
+  var initDataBytes = initData.length;
+
+  // ONE outbound code path, used by both shots, so the bytes cannot differ between them.
+  var body = JSON.stringify({ init_data: initData, client_version: CLIENT_VERSION, locale: LOCALE });
+
+  function send() {
+    var t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    return fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      body: body
+    })
+    .then(function (res) {
+      return res.json()
+        .then(function (d) { return { status: res.status, data: d }; })
+        .catch(function () { return { status: res.status, data: null }; });
+    })
+    .catch(function () { return { status: 0, data: null }; })
+    .then(function (r) {
+      r.ms = Math.round(((window.performance && performance.now) ? performance.now() : Date.now()) - t0);
+      return r;
+    });
+  }
+
+  function render(shot, expected, r, pass) {
+    var d = r.data || {};
+    var leaks = scan(d, [], 0);
+    // A PREFIX only. app_session_id is a session-binding token with a TTL; 16 of its characters
+    // are enough to match this open against its MiniApp_App_Sessions row, and not enough to be
+    // used as one.
+    var prefix = (typeof d.app_session_id === 'string' && d.app_session_id.length)
+      ? (d.app_session_id.substring(0, 16) + '…') : '';
+    card(shot + ' — ' + (pass ? 'PASS' : 'UNEXPECTED'), pass ? 'ok' : 'bad', [
+      ['expected', expected],
+      ['HTTP', r.status === 0 ? 'network error' : r.status],
+      ['ok', String(d.ok)],
+      ['error_code', d.error_code],
+      ['retryable', d.retryable === undefined ? '' : String(d.retryable)],
+      ['app_session_id', prefix],
+      ['session_id_len', typeof d.app_session_id === 'string' ? d.app_session_id.length : ''],
+      ['expires_at', d.expires_at],
+      ['locale', d.locale],
+      ['browser_total_ms', r.ms],
+      ['leak_fields', leaks.length ? leaks.join(',') : '[]']
+    ]);
+    return leaks;
+  }
+
+  var allLeaks = [];
+  var verdict = { a: false, b: false };
+
+  prog.textContent = 'A — отправляю подписанный контекст…';
+
+  send().then(function (rA) {
+    var dA = rA.data || {};
+    verdict.a = rA.status === 200 && dA.ok === true &&
+                typeof dA.app_session_id === 'string' && dA.app_session_id.length > 0;
+    allLeaks = allLeaks.concat(render('A · ACCEPT', '200 ok:true + app_session_id', rA, verdict.a));
+
+    // B reuses `body` - the same variable A sent, never rebuilt - so these are provably the
+    // same signed bytes and not a second context. B must also mint NO session.
+    prog.textContent = 'B — повторяю те же байты…';
+    return send().then(function (rB) {
+      var dB = rB.data || {};
+      verdict.b = rB.status === 409 && dB.ok === false && dB.error_code === 'REPLAY_REFUSED' &&
+                  (dB.app_session_id === undefined || dB.app_session_id === null);
+      allLeaks = allLeaks.concat(render('B · EXACT REPLAY', '409 REPLAY_REFUSED', rB, verdict.b));
+
+      var all = verdict.a && verdict.b && allLeaks.length === 0;
+      prog.textContent = 'Готово.';
+      card('SUMMARY', all ? 'ok' : 'bad', [
+        ['A accept', verdict.a ? 'PASS' : 'FAIL'],
+        ['B exact replay', verdict.b ? 'PASS' : 'FAIL'],
+        ['same bytes', 'A and B sent one body, built once'],
+        ['initdata_bytes', initDataBytes],
+        ['leak_fields', allLeaks.length ? allLeaks.join(',') : '[]']
+      ]);
+      note.textContent = 'Покажите все карточки. Подписанный контекст нигде не показан и не сохранён — ' +
+        'он существовал только в памяти этой страницы и исчезает при её закрытии.';
+    });
+  });
+})();
+</script>
+</body>
+</html>

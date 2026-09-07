@@ -17,7 +17,8 @@
 //   * Authority-first: consent and the canonical lead id commit to Bot_Sessions BEFORE the
 //     derived read model is touched. The mirror runs only after an authoritative commit.
 //   * The caller cannot steer identity. lead_id, cycle_id and request_id from the body are
-//     dropped by the validator; the idempotency key is built from server-owned values only.
+//     dropped by the validator; the submission identity is the AUTHORITATIVE submission_key,
+//     minted by the cycle issuer and read from Bot_Sessions, never from the body.
 //   * Exactly one Lead Intake call per (telegram user, cycle). A retry resolves server state
 //     first and returns the prior canonical success rather than submitting again.
 //   * `submitted` is terminal. Nothing moves it back to `draft`.
@@ -39,8 +40,8 @@
 //   sessions.update(appSessionId, patch)           -> { ok }
 //   authority.read(chatId)                         -> { ok, row }
 //   authority.write(chatId, patch)                 -> { ok }
-//   leadIntake.submit({ idempotency_key, envelope })-> { ok, ambiguous, body }
-//   leadIntake.lookup(idempotencyKey)              -> { ok, known, body }   REQUIRED
+//   leadIntake.submit({ submission_key, envelope })-> { ok, ambiguous, body }
+//   leadIntake.lookup(submissionKey)               -> { ok, known, body }   REQUIRED
 //   mirror(chatId)                                 -> optional; derived read model refresh
 //   clock.now()                                    -> ISO string
 //
@@ -227,14 +228,18 @@ function resolvePriorSubmission(ctx, session) {
   }
 
   // An interrupted attempt. The only safe way to learn what happened is to ask the
-  // downstream for the idempotency key -- never to submit again and see.
+  // downstream for the authoritative submission_key -- never to submit again and see.
   if (state === 'submitting' || state === 'submitted') {
     const adapter = C.recoveryAdapterStatus(ctx.leadIntake);
     if (adapter.available) {
       // The lookup is asked with the SERVER-derived key only. Nothing a caller sent -- not
       // request_id, not lead_id -- reaches this argument, so a caller cannot steer which
       // submission a recovery resolves to.
-      const found = ctx.leadIntake.lookup(ctx.idempotencyKey);
+      // P3 — the recovery lookup uses the AUTHORITATIVE submission_key, minted by the cycle
+      // issuer and preallocated with the receipt. It is NOT derived from identity: the old
+      // derived key could collide when two issuers minted in the same millisecond, and the
+      // ledger has no insert-if-absent to arbitrate that (P2).
+      const found = ctx.leadIntake.lookup(ctx.submissionKey);
       ctx.counts.lead_intake_lookups++;
       if (found && found.ok && found.known) {
         const result = canonicalResult(found.body);
@@ -269,7 +274,7 @@ function resolvePriorSubmission(ctx, session) {
     // mechanism exists to prevent. Two safe recoveries remain open and neither needs this
     // code path: an operator writing the canonical binding to Bot_Sessions (resolved by the
     // `authority` branch above on the next attempt), or a Concierge cycle change, which
-    // changes the idempotency key and frees the user without touching the stale claim.
+    // mints a new submission_key and frees the user without touching the stale claim.
     return { resolved: false, unresolved: true, blocked: true, reason: adapter.reason };
   }
 
@@ -312,6 +317,14 @@ function assertHandoffGuard(ctx) {
     return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'CYCLE_RESET_IN_FLIGHT' };
   }
 
+  // F3 -- and the SAME SUBMISSION KEY. The dangerous case the cycle check cannot see: a
+  // competing issuer won Bot_Sessions with the same cycle_id but its own key, so authority
+  // still reads cycle X while the authoritative receipt is now a different one. Handing off
+  // here would claim a receipt that is no longer current.
+  if (C.normValue(row.submission_key) !== ctx.submissionKey) {
+    return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'SUBMISSION_KEY_DRIFT_IN_FLIGHT' };
+  }
+
   // Consent must still be current for THIS cycle. A consent withdrawn or re-stamped onto a
   // newer cycle between the stamp and the handoff must stop the submit.
   if (C.normValue(row.consent) !== 'yes' || C.normValue(row.consent_cycle_id) !== ctx.cycleId) {
@@ -329,13 +342,18 @@ function assertHandoffGuard(ctx) {
     return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'SESSION_REBOUND' };
   }
 
+  // F3 -- nor to a different submission key on the same cycle.
+  if (C.normValue(session.submission_key) !== ctx.submissionKey) {
+    return { ok: false, code: 'CYCLE_SUPERSEDED', stage: 'SESSION_KEY_REBOUND' };
+  }
+
   // Legal state: only a live claim may hand off.
   if (C.normValue(session.submit_state) !== 'submitting') {
     return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'HANDOFF_STATE_ILLEGAL' };
   }
 
-  // The claim must still belong to THIS operation. The idempotency key alone cannot prove
-  // that -- two concurrent submits for one (user, cycle) share it by construction -- so the
+  // The claim must still belong to THIS operation. The submission_key alone cannot prove
+  // that -- two concurrent submits on one cycle share it by construction -- so the
   // claim carries a per-operation owner token, which is the server correlation id.
   if (C.normValue(session.claim_owner) !== ctx.correlationId) {
     return { ok: false, code: 'SUBMIT_IN_PROGRESS', stage: 'CLAIM_REASSIGNED' };
@@ -463,16 +481,33 @@ function submitSequence(o, run) {
     return reject('CYCLE_SUPERSEDED', 'CYCLE_DRIFT', correlationId, counts);
   }
 
-  const idempotencyKey = C.idempotencyKey(telegramUserId, cycleId);
-  if (!idempotencyKey) {
-    return reject('TEMPORARY_BACKEND_ERROR', 'IDEMPOTENCY_KEY', correlationId, counts);
+  // P3 — read the preallocated submission key from AUTHORITY. A current cycle is required to
+  // have one (the preallocation invariant), so its absence is a broken invariant: it must fail
+  // closed, never be read as an empty ledger that permits a fresh submit.
+  const submissionKey = C.normValue(authorityRow.submission_key);
+  if (submissionKey === '') {
+    return reject('PRE_ACTIVATION_BLOCKED', 'SUBMISSION_KEY_MISSING_ON_AUTHORITY', correlationId, counts);
+  }
+
+  // F3 — THE CYCLE ID ALONE IS NOT AN IDENTITY.
+  //
+  // P3 proved two concurrent issuers can mint the SAME cycle_id (it is
+  // `C-<chat_id>-<Date.now()>`, 1 ms resolution) while holding DIFFERENT submission keys. So a
+  // session bound to cycle X / key A can find authority still showing cycle X — but key B,
+  // because the other issuer won Bot_Sessions afterwards. Comparing cycles alone would pass
+  // that, and the submit would hand off against a receipt no longer current.
+  //
+  // The binding is therefore (cycle_id AND submission_key), everywhere.
+  const sessionSubmissionKey = C.normValue(session.submission_key);
+  if (sessionSubmissionKey === '' || sessionSubmissionKey !== submissionKey) {
+    return reject('CYCLE_SUPERSEDED', 'SUBMISSION_KEY_DRIFT', correlationId, counts);
   }
 
   const ctx = {
     chatId: chatId,
     cycleId: cycleId,
+    submissionKey: submissionKey,
     appSessionId: v.app_session_id,
-    idempotencyKey: idempotencyKey,
     correlationId: correlationId,
     sessions: sessions,
     authority: o.authority,
@@ -627,10 +662,18 @@ function submitSequence(o, run) {
   const claim = sessions.claim(v.app_session_id, {
     from: fromState,
     to: 'submitting',
-    // G2 -- `claim_owner` is the per-operation ownership token. The idempotency key cannot
-    // serve as one: two concurrent submits for the same (user, cycle) share it by
-    // construction, so it identifies the submission, not the operation holding the claim.
-    patch: { idempotency_key: idempotencyKey, claimed_at: stamp, claim_owner: correlationId }
+    // G2 -- `claim_owner` is the per-operation ownership token. The submission key cannot
+    // serve as one: two concurrent submits on the same cycle share it by construction, so it
+    // identifies the submission, not the operation holding the claim.
+    // P5 -- this is the same server correlation id that goes out as envelope.meta.request_id
+    // and that the WINNING Lead Intake receipt claim stamps onto receipt.correlation_id, so
+    // one value ties the session claim, the outbound envelope, the receipt and Pipeline AZ
+    // together for an operator. See P1_L9_CORRELATION_CHAIN.
+    // P3.1 -- the claim records OWNERSHIP only. It must NOT write submission_key back onto
+    // the session: the binding is set at bootstrap, and re-stamping it here would silently
+    // repair a drift that the pre-handoff guard exists to catch. Found by the mid-request
+    // re-bind test, which passed for the wrong reason until this was removed.
+    patch: { claimed_at: stamp, claim_owner: correlationId }
   });
   counts.session_writes++;
   if (!claim || !claim.ok || claim.updated_rows === 0) {
@@ -657,8 +700,15 @@ function submitSequence(o, run) {
   // lead may exist", and the top-level catch answers SUBMIT_UNRESOLVED instead of inviting a
   // retry into a duplicate.
   run.handoffAttempted = true;
+  // F2 -- the fresh server-to-server call carries the AUTHORITATIVE submission key. Not the
+  // retired derived key, not request_id, and nothing the browser can influence: it was read
+  // from Bot_Sessions at §9.2 and re-proved unchanged by the handoff guard a moment ago.
+  //
+  // Lead Intake claims the receipt with it BEFORE writing to Pipeline
+  // (LEAD_INTAKE_CLAIM_ORDER), which is what makes this handoff safe rather than merely
+  // identified.
   const called = o.leadIntake.submit({
-    idempotency_key: idempotencyKey,
+    submission_key: ctx.submissionKey,
     envelope: built.envelope
   });
   counts.lead_intake_calls++;

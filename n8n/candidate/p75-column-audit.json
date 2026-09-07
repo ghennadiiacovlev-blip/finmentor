@@ -1,0 +1,102 @@
+{
+  "name": "FINMENTOR P75 COLUMN AUDIT Bot_Sessions tail (READ-ONLY, DISPOSABLE)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "p75-ca-entry",
+      "name": "Audit Entry",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRange",
+              "range": "A:BZ",
+              "headerRow": 1,
+              "firstDataRow": 1
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "id": "p75-ca-read",
+      "name": "Audit Read Wide",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Read Bot Sessions parameters VERBATIM except the range, widened A:AV -> A:BZ so the residue is visible and \"nothing past BE\" is measured rather than assumed."
+    },
+    {
+      "parameters": {
+        "jsCode": "// P7.5 §1 read-only audit of the Bot_Sessions tail. Emits header names, counts, booleans and\n// column letters ONLY -- never a customer cell value.\nconst EXPECTED_KEEP = ['submission_key', 'lead_mode', 'lead_priority', 'financial_zone'];\n// NINE, not the six P7.1b listed. P7.5 measured three MORE: __do_write, __mode and __before,\n// appended by the P7.4 state tool, whose Tool Plan emitted them alongside the row and whose\n// write node carries Save Bot Session's autoMapInputData. That is F16 firing again, caused by\n// this project's own instrumentation rather than by production.\nconst EXPECTED_DEAD = ['key', '__rows_seen', '__advance', '__reason', '__verified_submission_key', 'p71_absent_column', '__do_write', '__mode', '__before'];\n\nconst all = $input.all().map(i => i.json);\n// Item 0 is the HEADER ROW echoed as data (headerRow=1, firstDataRow=1). Its keys are the\n// sheet's real columns -- including every column that is empty on all customer rows, which a\n// normal read cannot see at all because the node omits keys for empty cells.\nconst headerEcho = all.length ? all[0] : {};\nconst rows = all.slice(1);\nconst headerSet = Object.keys(headerEcho).filter(k => k !== 'row_number');\n\nconst letter = (i) => { let s = '', n = i + 1; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };\n\n// P3 -- every cell of every DEAD header must be empty on every row.\nconst nonEmpty = {};\nEXPECTED_DEAD.forEach(h => { nonEmpty[h] = 0; });\nrows.forEach(r => EXPECTED_DEAD.forEach(h => {\n  const v = (r || {})[h];\n  if (v !== undefined && v !== null && String(v).trim() !== '') { nonEmpty[h]++; }\n}));\n\n// P5 -- no synthetic 900000xxx row may be left behind.\nconst synthetic = rows.filter(r => /^900000\\d{3}$/.test(String((r || {}).chat_id || '').trim())).length;\n\n// Any header the audit did not expect at all.\nconst known = EXPECTED_KEEP.concat(EXPECTED_DEAD);\nconst tailStart = headerSet.findIndex(h => h === 'submission_key');\nconst tail = tailStart === -1 ? [] : headerSet.slice(tailStart);\nconst unexpectedTail = tail.filter(h => known.indexOf(h) === -1);\n\nreturn [{ json: {\n  __audit: 'P75_COLUMN_TAIL',\n  total_rows: rows.length,\n  header_echo_first: headerSet.slice(0,3),\n  total_headers: headerSet.length,\n  header_tail_from_submission_key: tail.map((h, i) => letter(tailStart + i) + ' ' + h),\n  keep_expected: EXPECTED_KEEP,\n  dead_expected: EXPECTED_DEAD,\n  dead_present: EXPECTED_DEAD.filter(h => headerSet.indexOf(h) !== -1),\n  dead_absent: EXPECTED_DEAD.filter(h => headerSet.indexOf(h) === -1),\n  dead_are_physically_trailing: tail.length === EXPECTED_KEEP.length + EXPECTED_DEAD.length\n    && EXPECTED_KEEP.every((h, i) => tail[i] === h)\n    && EXPECTED_DEAD.every((h, i) => tail[EXPECTED_KEEP.length + i] === h),\n  dead_nonempty_cell_counts: nonEmpty,\n  dead_all_empty: EXPECTED_DEAD.every(h => nonEmpty[h] === 0),\n  unexpected_tail_headers: unexpectedTail,\n  synthetic_9000007xx_rows: synthetic,\n  first_header: headerSet[0] || '',\n  last_header: headerSet[headerSet.length - 1] || ''\n} }];"
+      },
+      "id": "p75-ca-report",
+      "name": "Audit Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Audit Entry": {
+      "main": [
+        [
+          {
+            "node": "Audit Read Wide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Read Wide": {
+      "main": [
+        [
+          {
+            "node": "Audit Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}

@@ -1,0 +1,651 @@
+{
+  "name": "FINMENTOR P74 STATE TOOL synthetic Bot_Sessions (DISPOSABLE)",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "p74-st-entry",
+      "name": "Tool Entry",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "notes": "Test-only entry. Receives { mode, chat_id, fields }. No public URL, no bot."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "id": "p74-st-read",
+      "name": "Tool Read",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Parameters lifted VERBATIM from the audited wrapper Read Bot Sessions."
+    },
+    {
+      "parameters": {
+        "jsCode": "// P7.4 synthetic state tool -- guards, then plan. See scripts/build-p74-state-tool.mjs.\nconst want = $('Tool Entry').first().json || {};\nconst mode = String(want.mode || '').trim().toUpperCase();\nconst chat = String(want.chat_id == null ? '' : want.chat_id).trim();\nconst fields = (want.fields && typeof want.fields === 'object') ? want.fields : {};\n\n// GUARD 1 -- reserved synthetic range only, for every mode.\nif (!/^900000\\d{3}$/.test(chat)) { throw new Error('REFUSING: chat_id ' + JSON.stringify(chat) + ' is outside the reserved 900000xxx range'); }\nif (['READ', 'SEED_MERGE', 'SEED_NEW'].indexOf(mode) === -1) { throw new Error('REFUSING: unknown mode ' + JSON.stringify(mode)); }\n\n// GUARD 4 -- never stage a row that looks like it reached the CRM.\nif (Object.prototype.hasOwnProperty.call(fields, 'lead_id') && String(fields.lead_id || '').trim() !== '') {\n  throw new Error('REFUSING: this tool will not write a non-empty lead_id');\n}\n\nconst cell = (r, n) => String(r[n] == null ? '' : r[n]).trim();\nconst all = $input.all().map(i => i.json).filter(r => r && cell(r, 'chat_id') !== '');\nconst mine = all.filter(r => cell(r, 'chat_id') === chat);\n\nif (mode === 'READ') {\n  return [{ json: { __do_write: false, mode: mode, chat_id: chat, matched: mine.length, rows: mine } }];\n}\n\nlet row = null;\nif (mode === 'SEED_MERGE') {\n  // GUARD 2 -- merge needs exactly one row to merge into.\n  if (mine.length !== 1) { throw new Error('REFUSING SEED_MERGE: ' + mine.length + ' rows carry chat_id ' + chat + ', expected exactly 1'); }\n  row = Object.assign({}, mine[0]);\n  delete row.row_number;   // a sheet coordinate, not a column\n} else {\n  // GUARD 3 -- appendOrUpdate matches on chat_id, so an existing row would be OVERWRITTEN.\n  if (mine.length !== 0) { throw new Error('REFUSING SEED_NEW: ' + mine.length + ' row(s) already carry chat_id ' + chat + '; appendOrUpdate would overwrite'); }\n  row = { chat_id: chat };\n}\n\nObject.keys(fields).forEach(k => { row[k] = fields[k] == null ? '' : fields[k]; });\nrow.chat_id = chat;\n\nreturn [{ json: Object.assign({ __do_write: true, __mode: mode, __before: mine[0] || null }, row) }];"
+      },
+      "id": "p74-st-plan",
+      "name": "Tool Plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "p74-st-cond",
+              "leftValue": "={{ String($json.__do_write) }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              },
+              "rightValue": "true"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "p74-st-if",
+      "name": "IF Do Write",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A",
+          "mode": "list",
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1584265787,
+          "mode": "list",
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "first_name",
+              "displayName": "first_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_name",
+              "displayName": "last_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_message_at",
+              "displayName": "last_message_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "entry_source",
+              "displayName": "entry_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "selected_service",
+              "displayName": "selected_service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "business_model",
+              "displayName": "business_model",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "turnover_range",
+              "displayName": "turnover_range",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "main_pain",
+              "displayName": "main_pain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "has_cfo",
+              "displayName": "has_cfo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "documents_status",
+              "displayName": "documents_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_phone",
+              "displayName": "contact_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "free_text_request",
+              "displayName": "free_text_request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "consent",
+              "displayName": "consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_sent_at",
+              "displayName": "lead_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "raw_json",
+              "displayName": "raw_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_text",
+              "displayName": "reply_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reply_markup",
+              "displayName": "reply_markup",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tg_body",
+              "displayName": "tg_body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "session",
+              "displayName": "session",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_ready",
+              "displayName": "lead_ready",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_payload",
+              "displayName": "lead_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event",
+              "displayName": "event",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ai_guarded",
+              "displayName": "ai_guarded",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ok",
+              "displayName": "ok",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "result",
+              "displayName": "result",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "p74-st-write",
+      "name": "Tool Write Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        -100
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "notes": "Parameters lifted VERBATIM from the audited wrapper Save Bot Session -- autoMapInputData matched on chat_id, the same mapping the issuer writes through."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "cachedResultName": "FINMENTOR_LEADS_CRM_PREMIUM_FINAL",
+          "mode": "list",
+          "value": "1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "firstDataRow": 2,
+              "headerRow": 1,
+              "range": "A:AV",
+              "rangeDefinition": "specifyRange"
+            }
+          }
+        },
+        "sheetName": {
+          "__rl": true,
+          "cachedResultName": "Bot_Sessions",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit#gid=1584265787",
+          "mode": "list",
+          "value": 1584265787
+        }
+      },
+      "id": "p74-st-verify",
+      "name": "Tool Verify",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1100,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PzVCuEPa9YF3YSaD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      },
+      "alwaysOutputData": true,
+      "notes": "Re-reads AFTER the write so the result is measured, not asserted."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reports what the tool actually did, measured by re-reading the sheet afterwards.\nconst grab = (fn, f) => { try { return fn(); } catch (e) { return f; } };\nconst plan = grab(() => $('Tool Plan').first().json, { __absent: true });\nconst chat = String(plan.chat_id || plan.__chat_id || '').trim() || String($('Tool Entry').first().json.chat_id || '').trim();\nconst after = grab(() => $('Tool Verify').all().map(i => i.json).filter(r => String(r.chat_id || '').trim() === chat), null);\nconst cell = (r, n) => String((r || {})[n] == null ? '' : (r || {})[n]).trim();\nconst one = after && after.length === 1 ? after[0] : null;\nreturn [{ json: {\n  __tool: 'P74_STATE',\n  mode: plan.__mode || plan.mode || '',\n  chat_id: chat,\n  wrote: plan.__do_write === true,\n  rows_for_chat_after: after === null ? null : after.length,\n  observed: one === null ? null : {\n    cycle_id: cell(one, 'cycle_id'),\n    submission_key: cell(one, 'submission_key'),\n    consent: cell(one, 'consent'),\n    consent_cycle_id: cell(one, 'consent_cycle_id'),\n    contact_name: cell(one, 'contact_name'),\n    company: cell(one, 'company'),\n    contact_email: cell(one, 'contact_email'),\n    selected_service: cell(one, 'selected_service'),\n    state: cell(one, 'state'),\n    status: cell(one, 'status'),\n    lead_id: cell(one, 'lead_id'),\n    row_number: one.row_number\n  },\n  read_rows: plan.rows || null\n} }];"
+      },
+      "id": "p74-st-result",
+      "name": "Tool Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Tool Entry": {
+      "main": [
+        [
+          {
+            "node": "Tool Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Read": {
+      "main": [
+        [
+          {
+            "node": "Tool Plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Plan": {
+      "main": [
+        [
+          {
+            "node": "IF Do Write",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Do Write": {
+      "main": [
+        [
+          {
+            "node": "Tool Write Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tool Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Write Row": {
+      "main": [
+        [
+          {
+            "node": "Tool Verify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool Verify": {
+      "main": [
+        [
+          {
+            "node": "Tool Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}

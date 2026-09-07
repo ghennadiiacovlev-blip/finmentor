@@ -141,7 +141,7 @@ for (const p of POLICIES) {
     assert(p.supabase.test(html), 'the processor sentence is missing');
     // GATE 3: RU names it Financial X-Ray; RO now names it by the canonical Romanian product
         // name, which superseded the retired one.
-        assert(/Financial X-Ray|Radiografi(a|ei) Financiar(ă|e)/.test(html), 'the analysis is not named');
+        assert(/Financial X-Ray|Test(ul|ului)? financiar FINMENTOR/.test(html), 'the analysis is not named');
   });
 
   check(p.lang + ': the page makes no absolute security or compliance guarantee', () => {
@@ -173,7 +173,7 @@ check('the controller appears exactly once as the controller declaration in each
 // Every Romanian page carries CTAs to the public Telegram contact, whose non-owner branch answers
 // in Russian. Three of them on the landing page were pure duplicates: ghost buttons reading
 // «Mai simplu: scrieți direct → FINMENTOR Bot» sitting immediately beside the primary
-// «Începeți Radiografia Financiară» button, so they added no route the reader did not already
+// «Începeți Testul financiar FINMENTOR» button, so they added no route the reader did not already
 // have. Those three are removed. The rest stay, because they are the contact and fallback routes
 // the approved privacy policy names, and a Romanian first-contact branch in the Concierge now
 // answers them in Romanian.
@@ -204,7 +204,7 @@ check('every affected RO page still offers a working customer route', () => {
 
 check('the landing page keeps its primary Romanian diagnostic CTA', () => {
   const h = read('ro/index.html');
-  const primary = (h.match(/Începeți Radiografia Financiară/g) || []).length;
+  const primary = (h.match(/Începeți Testul financiar FINMENTOR/g) || []).length;
   assert(primary >= 3, 'the primary RO CTA count fell to ' + primary);
 });
 
@@ -216,8 +216,9 @@ check('the RU pages were not touched by the Romanian CTA cleanup', () => {
 
 check('the RO privacy page carries the canonical product name and no superseded one', () => {
   const h = read('ro/privacy.html');
-  assert(h.indexOf('Radiografiei Financiare FINMENTOR') !== -1, 'the canonical name is missing from the AI paragraph');
-  assert(h.indexOf('Testul de sănătate') === -1, 'the superseded product name survives');
+  assert(h.indexOf('Testului financiar FINMENTOR') !== -1, 'the canonical name is missing from the AI paragraph');
+  assert(h.indexOf('Testul de sănătate') === -1, 'a superseded product name survives');
+  assert(!/Radiografi[ae]i? Financiar/.test(h), 'a superseded product name survives');
 });
 
 check('the Gate 1 legal meaning survived the terminology fix', () => {

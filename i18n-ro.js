@@ -22,11 +22,11 @@
       navSteps: 'Cum lucrăm',
       navSolutions: 'Soluții',
       navMaterials: 'Materiale',
-      navXray: 'Radiografia Financiară',
+      navXray: 'Test financiar FINMENTOR',
       navContacts: 'Contacte',
       langLabel: 'Limbă · Язык',
       langAria: 'Selectarea limbii',
-      ctaXray: 'Începeți Radiografia Financiară',
+      ctaXray: 'Începeți Testul financiar FINMENTOR',
       ctaBot: 'Mai bine scrieți direct → FINMENTOR Bot',
 
       /* ---- cases block ---- */
@@ -38,9 +38,10 @@
       caseCtaDefault: 'Discutați cazul dvs.',
 
       /* ---- forms / cookies ---- */
-      formFail: '<strong>Trimiterea automată a solicitării nu a reușit.</strong> Copiați textul solicitării și trimiteți-l în <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> sau la <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.',
+      formFail: '<strong>Trimiterea automată a solicitării nu a reușit.</strong> Copiați textul solicitării și trimiteți-l în <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> sau la <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.',
       formConflict: '<strong>Această solicitare a fost deja procesată.</strong> Datele s-au schimbat față de momentul trimiterii, așa că nu a fost acceptată din nou. Începeți o solicitare nouă.',
       formNewRequest: 'Începeți o solicitare nouă',
+      scanConflict: 'Această solicitare a fost deja procesată. Datele s-au schimbat, așa că nu a fost acceptată din nou. Începeți o solicitare nouă.',
       cookieAria: 'Setările cookies FINMENTOR',
       cookieTitle: 'Cookies și analitică',
       cookieText: 'FINMENTOR folosește cookies tehnice și analitică anonimizată. Datele personale nu se trimit în GA4.',
@@ -196,7 +197,7 @@
         ctas: [
           { l: 'Programați un Discovery Call', h: DISCO, e: 'assistant_click_discovery_call', p: true },
           { l: 'Vedeți scenariile anonime', h: 'cases.html' },
-          { l: 'Lăsați un mesaj în FINMENTOR Bot', h: 'https://t.me/finmentor_md_bot', e: 'assistant_click_bot', tg: true }
+          { l: 'Lăsați un mesaj în FINMENTOR Bot', h: 'https://t.me/finmentor_md_bot?start=ro', e: 'assistant_click_bot', tg: true }
         ] }
     ]
   };
