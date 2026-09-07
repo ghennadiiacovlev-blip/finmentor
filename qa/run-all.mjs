@@ -54,6 +54,7 @@ const GATES = [
   ['P9-R3 Lead Intake dedup-outage harness', 'lead-intake-dedup-harness.test.mjs'],
   ['P9-R4 Lead Intake dedup remediation', 'lead-intake-dedup-remediation.test.mjs'],
   ['Premium UX content contract', 'premium-ux-content.test.mjs'],
+  ['Premium UX RO parity + locale authority', 'premium-ux-ro-parity.test.mjs'],
   ['Premium UX draft + provenance', 'premium-ux-draft.test.mjs'],
   ['Premium UX submit projection', 'premium-ux-submit.test.mjs'],
   ['Premium UX Telegram state machine', 'premium-ux-state.test.mjs'],

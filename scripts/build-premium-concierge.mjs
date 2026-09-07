@@ -53,6 +53,7 @@ export const RESPONSE_NODE = 'Build Bot Response';
 export const MINIAPP_URL_PLACEHOLDER = '__PREMIUM_MINIAPP_URL__';
 
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
+const L = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'locale.js'));
 const SM_PATH = join(ROOT, 'n8n', 'src', 'premium-ux', 'tg-state-machine.js');
 const CX_PATH = join(ROOT, 'n8n', 'src', 'premium-ux', 'context-extraction.js');
 const SM = require(SM_PATH);
@@ -117,6 +118,29 @@ const ADAPTER_HEAD = [
   '// value that is not in branches.js cannot appear here. The extraction module reads',
   '// B.OBJECTIVE_IDS and B.objectiveById; leaving those off produced a node that threw on the first',
   '// message, which is what the executed gate caught.',
+  // ── SPRINT 1 — Romanian presentation ────────────────────────────────────────────────────────
+  //
+  // The Concierge is now fully bilingual, and it is bilingual the same way the Mini App is: one
+  // state machine, one set of Russian machine values, and a display table consulted at the render
+  // boundary. `TR()` is called from renderCopy() and from the button `text` — never from a state
+  // transition, a callback_data lookup, a lead payload or a comparison — so the conversation is
+  // Romanian while everything the CRM stores is byte-identical to the Russian path.
+  //
+  // The table is emitted from n8n/src/premium-ux/ro-labels.js via locale.js, which refuses to
+  // produce it while any customer-visible string is untranslated. A Code node cannot require(),
+  // so it is inlined; it is data, and the build is the only thing that writes it.
+  'const RO_LABELS = ' + JSON.stringify(L.roTable(B), null, 2) + ';',
+  '',
+  '// A language TAG match, not equality: `ro` and `ro-MD` are Romanian, `roman` is not. The locale',
+  '// the session carries wins; Telegram\'s own UI language is only consulted when the session has',
+  '// none, which is the cold-first-contact case. This is the same order as locale.js.',
+  'function isRo(v) { return /^ro(-|$)/i.test(String(v == null ? "" : v).trim()); }',
+  'function TR(s) {',
+  '  if (typeof s !== "string" || !RO_ACTIVE) { return s; }',
+  '  const t = RO_LABELS[s];',
+  '  return t === undefined ? s : t;',
+  '}',
+  '',
   'const OBJECTIVE_LABEL = ' + JSON.stringify(B.OBJECTIVES.reduce((a, o) => { a[o.id] = o.label; return a; }, {}), null, 2) + ';',
   'const B = {',
   '  TG_COPY: ' + JSON.stringify(B.TG_COPY, null, 2).split('\n').join('\n') + ',',
@@ -210,14 +234,17 @@ const ADAPTER_TAIL = [
   'function buildMarkup(labels, sessionId, state) {',
   '  const perState = LABEL_ACTION_BY_STATE[String(state || "")] || {};',
   '  const rows = [];',
+  // SPRINT 1 — the button LABEL is localised, the callback_data is not. `label` stays the Russian
+  // key on both lookups (LABEL_ACTION and the web_app test), so the callback contract and the
+  // routing that reads it are byte-identical in Romanian. Only `text` changes.
   '  for (const label of labels || []) {',
   '    if (label === "Открыть бриф") {',
-  '      rows.push([{ text: label, web_app: { url: MINIAPP_URL } }]);',
+  '      rows.push([{ text: TR(label), web_app: { url: MINIAPP_URL } }]);',
   '      continue;',
   '    }',
   '    const action = perState[label] || LABEL_ACTION[label];',
   '    if (!action) { continue; }',
-  '    rows.push([{ text: label, callback_data: action }]);',
+  '    rows.push([{ text: TR(label), callback_data: action }]);',
   '  }',
   '  return rows.length ? { inline_keyboard: rows } : { inline_keyboard: [] };',
   '}',
@@ -227,16 +254,20 @@ const ADAPTER_TAIL = [
   'function renderCopy(copy, auth) {',
   '  if (!copy) { return { text: "", actions: [] }; }',
   '  if (copy.header) {',
-  '    const lines = [copy.header, ""];',
+  '    const lines = [TR(copy.header), ""];',
   '    for (const s of confirmContextSections(auth.context_extracted)) {',
-  '      lines.push(s.label);',
+  // The LABEL is ours and is localised. The VALUE is the customer's own words, read back to them:
+  // it is never translated and never looked up — a customer must see what they actually wrote, and
+  // running client text through a label table would be both wrong and a way to smuggle a lookup hit
+  // into user input. It stays escaped, which is the whole defence on an HTML screen.
+  '      lines.push(TR(s.label));',
   '      lines.push("<b>" + escapeHtml(s.value) + "</b>");',
   '      lines.push("");',
   '    }',
-  '    lines.push(copy.closing);',
+  '    lines.push(TR(copy.closing));',
   '    return { text: lines.join("\\n"), actions: copy.actions || [] };',
   '  }',
-  '  return { text: (copy.text || []).join("\\n\\n"), actions: copy.actions || [] };',
+  '  return { text: (copy.text || []).map(TR).join("\\n\\n"), actions: copy.actions || [] };',
   '}',
   '',
   '// ---------------------------------------------------------------- input',
@@ -251,6 +282,10 @@ const ADAPTER_TAIL = [
   '// The message and the callback come from Parse Telegram Update, which is the only node that has',
   '// them. `$` does not exist in the offline harness, so its absence is a normal case, not an error.',
   'const p = (function () { try { return $("Parse Telegram Update").first().json || {}; } catch (e) { return {}; } })();',
+  // The locale for THIS reply, decided once. session.language is what the Gateway recorded for
+  // the customer journey; p.language is Telegram's own hint and is only reached when the session
+  // carries none.
+  'const RO_ACTIVE = isRo(session.language || p.language);',
   'const chat_id = String(session.chat_id || src.chat_id || p.chat_id || "");',
   'const text = String(p.message_text || src.message_text || src.text || "");',
   'const data = String(p.callback_data || src.callback_data || src.data || "");',

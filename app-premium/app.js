@@ -249,10 +249,27 @@
   }
 
   // ---------------------------------------------------------------- dom helpers
+  // SPRINT 1 — the single render boundary, and the only place a Romanian label is chosen.
+  //
+  // Every visible string in this app reaches the DOM through `el()`: rowBtn, cardBtn and btn all
+  // delegate here. Translating at this one point localises the whole surface, and — more
+  // importantly — it CANNOT localise a value, because `set()`, `get()` and every `===` comparison
+  // work on the literals from FM_CONTENT and never pass through here. That is what keeps the
+  // Pipeline storing the same Russian machine value in both languages (owner decision, Option A).
+  //
+  // The `|| s` below is unreachable by construction: scripts/build-premium-app-content.mjs refuses
+  // to emit a bundle while any customer-visible string lacks a Romanian label, and
+  // qa/premium-ux-ro-parity.test.mjs re-proves it for both branches.js and this file. It is a
+  // last-resort guard, not a fallback policy.
+  function T(s) {
+    if (typeof s !== 'string' || uiLocale() !== 'ro') { return s; }
+    var t = window.FM_RO && window.FM_RO[s];
+    return t === undefined ? s : t;
+  }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) { n.className = cls; }
-    if (text !== undefined && text !== null) { n.textContent = text; }
+    if (text !== undefined && text !== null) { n.textContent = T(text); }
     return n;
   }
   // ---------------------------------------------------------------- privacy links
@@ -1158,10 +1175,15 @@
   };
   // The server decides the locale once a session exists; before that, Telegram's language_code is
   // the only hint, and it is used for the bootstrap-failure copy alone.
+  // SPRINT 1 — locale authority, client side. The order mirrors n8n/src/premium-ux/locale.js:
+  // the locale the SERVER recorded for this session wins, and Telegram's UI language is only a
+  // hint used before a session exists. A tag match, not equality: `ro-MD` is Romanian, and before
+  // Sprint 1 an `=== 'ro'` test sent every Moldovan Romanian customer down the Russian path.
+  function isRoTag(v) { return /^ro(-|$)/i.test(String(v == null ? '' : v).trim()); }
   function uiLocale() {
     var l = get('locale');
     if (!l) { var u = tgUser(); l = u && u.language_code; }
-    return l === 'ro' ? 'ro' : 'ru';
+    return isRoTag(l) ? 'ro' : 'ru';
   }
   function ui() { return UI[uiLocale()]; }
 
@@ -1439,7 +1461,7 @@
     // The locale the Gateway is asked to record. `initDataUnsafe` is used for this and for the
     // greeting only — never for trust — and the Gateway returns the locale it actually stored.
     var u = tgUser();
-    var locale = (u && u.language_code === 'ro') ? 'ro' : 'ru';
+    var locale = isRoTag(u && u.language_code) ? 'ro' : 'ru';
 
     window.FM_NET.bootstrap(locale).then(function (r) {
       if (r.ok !== true) {

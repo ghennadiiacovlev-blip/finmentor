@@ -23,6 +23,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
+const L = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'locale.js'));
 
 export const OUT = join(ROOT, 'app-premium', 'content.js');
 
@@ -56,12 +57,20 @@ export function buildContent() {
     RESUME: B.RESUME,
     STAGES: B.STAGES
   };
+  // SPRINT 1 — Romanian presentation. `roTable()` throws when any customer-visible string has no
+  // Romanian label, so an incomplete translation fails THE BUILD rather than reaching a Romanian
+  // customer as Russian. The structures above are emitted unchanged and remain the machine values
+  // in both languages; this table is display-only and is never submitted or compared.
+  const RO = L.roTable(B);
   return [
     '/* GENERATED — do not edit.',
-    ' * Source: n8n/src/premium-ux/branches.js',
+    ' * Source: n8n/src/premium-ux/branches.js (machine values) + n8n/src/premium-ux/ro-labels.js (RO presentation)',
     ' * Rebuild: node scripts/build-premium-app-content.mjs',
     ' * Held against docs/PREMIUM_UX_FINAL_RU_SPEC.md by qa/premium-ux-content.test.mjs. */',
     'window.FM_CONTENT = ' + JSON.stringify(payload, null, 2) + ';',
+    '/* Machine value -> Romanian label. Display only: the app renders through FM_T() and submits',
+    ' * the untranslated key, so the Pipeline stores the same value in both languages. */',
+    'window.FM_RO = ' + JSON.stringify(RO, null, 2) + ';',
     ''
   ].join('\n');
 }
