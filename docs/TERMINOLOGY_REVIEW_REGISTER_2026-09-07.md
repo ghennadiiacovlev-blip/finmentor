@@ -57,13 +57,13 @@ English parenthetical already shipped in `43b1f2a` is also not counted as a resi
 
 | class | meaning | rows |
 |---|---|---|
-| A | MUST_LOCALIZE | 698 |
+| A | MUST_LOCALIZE | 695 |
 | B | LOCALIZE_WITH_ENGLISH_ONCE | 69 |
 | E | OWNER_DECISION_REQUIRED | 41 |
-| C | APPROVED_PROPER_NAME | 36 |
+| C | APPROVED_PROPER_NAME | 27 |
+| G | APPROVED_SOFTWARE_PRODUCT | 12 |
 | F | BRANDED_PACKAGE_NAME | 8 |
-| H | DETECTOR_FALSE_POSITIVE | 4 |
-| G | APPROVED_SOFTWARE_PRODUCT | 2 |
+| H | DETECTOR_FALSE_POSITIVE | 6 |
 
 `APPROVED_PROPER_NAME` currently contains **Power BI only**. No FINMENTOR module name has been
 placed in that class: every one is an explicit owner decision in §8.
@@ -150,13 +150,13 @@ Tier 1.**
 | light- | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Premium | RU | BRANDED_PACKAGE_NAME | 3 | MEDIUM | Premium | Premium | NO | BRANDED_PACKAGE_NAME |
 | cookies | RU | MUST_LOCALIZE | 3 | MEDIUM | файлы cookie | fișiere cookie | NO | APPROVED |
-| OpenAI | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | BRAND |
+| OpenAI | RU | APPROVED_SOFTWARE_PRODUCT | 3 | MEDIUM | OpenAI | OpenAI | NO | APPROVED_SOFTWARE_PRODUCT |
 | NDA | RU | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о конфиденциальности | Acord de confidențialitate | YES | APPROVED |
 | Monthly | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Fitness Membership Renewal Engine | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | APPROVED |
 | Target Marja | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | APPROVED |
 | Fitness | RO | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | APPROVED |
-| OpenAI | RO | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | BRAND |
+| OpenAI | RO | APPROVED_SOFTWARE_PRODUCT | 3 | MEDIUM | OpenAI | OpenAI | NO | APPROVED_SOFTWARE_PRODUCT |
 | NDA | RO | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о конфиденциальности | Acord de confidențialitate | YES | APPROVED |
 | Spend | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Automation | RU | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | APPROVED |
@@ -169,16 +169,16 @@ Tier 1.**
 | action list | RU | MUST_LOCALIZE | 2 | MEDIUM | План действий | Plan de acțiune | NO | APPROVED |
 | Digital | RU | MUST_LOCALIZE | 2 | MEDIUM | Цифровые решения | Soluții digitale | NO | APPROVED |
 | mini-scan | RU | MUST_LOCALIZE | 2 | MEDIUM | Экспресс-диагностика | Diagnostic rapid | NO | APPROVED |
-| Zoom | RU | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | BRAND |
+| Zoom | RU | APPROVED_SOFTWARE_PRODUCT | 2 | MEDIUM | Zoom | Zoom | NO | APPROVED_SOFTWARE_PRODUCT |
 | Spend | RO | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Automation | RO | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | APPROVED |
 | Monthly owner report | RO | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | APPROVED |
-| Zoom | RO | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | BRAND |
+| Zoom | RO | APPROVED_SOFTWARE_PRODUCT | 2 | MEDIUM | Zoom | Zoom | NO | APPROVED_SOFTWARE_PRODUCT |
 | Selectarea limbii | RU | DETECTOR_FALSE_POSITIVE | 1 | MEDIUM | — | — | NO | FALSE_POSITIVE |
 | ROM | RU | DETECTOR_FALSE_POSITIVE | 1 | MEDIUM | — | — | NO | FALSE_POSITIVE |
 | SCROLL | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Cap Rate | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Ставка капитализации | Rata de capitalizare | YES | APPROVED |
-| deposit coverage | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| deposit coverage | RU | MUST_LOCALIZE | 1 | MEDIUM | Покрытие депозитом и обеспечением | Acoperirea cu depozit și garanții | NO | APPROVED |
 | payback | RU | MUST_LOCALIZE | 1 | MEDIUM | срок окупаемости | perioada de recuperare a investiției | YES | AUTO_RESOLVED |
 | RETAIL ENGINE | RU | OWNER_DECISION_REQUIRED | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | margin per meter | RU | MUST_LOCALIZE | 1 | MEDIUM | Маржа на 1 м² | Marjă pe m² | NO | APPROVED |
@@ -199,39 +199,39 @@ Tier 1.**
 | Supplier Rating & Procurement Control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Margin Factor Analysis | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Power BI Owner | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
-| DIGITAL LABOUR CONTROL | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| DIGITAL LABOUR CONTROL | RU | MUST_LOCALIZE | 1 | MEDIUM | Финансовый контроль цифрового труда | Control financiar al muncii digitale | NO | APPROVED |
 | ChatGPT | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | ChatGPT | ChatGPT | NO | BRAND |
 | Copilot | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Copilot | Copilot | NO | BRAND |
 | Claude | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Claude | Claude | NO | BRAND |
 | Accepted Business Outcome | RU | MUST_LOCALIZE | 1 | MEDIUM | Результат, принятый бизнесом | Rezultat acceptat de companie | NO | APPROVED |
 | Financial Effect | RU | MUST_LOCALIZE | 1 | MEDIUM | Финансовый эффект | Impact financiar | NO | APPROVED |
 | Management Decision | RU | MUST_LOCALIZE | 1 | MEDIUM | Управленческое решение | Decizie managerială | NO | APPROVED |
-| Diagnostic memo | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Diagnostic memo | RU | MUST_LOCALIZE | 1 | MEDIUM | Диагностическое заключение | Concluzie de diagnostic | NO | APPROVED |
 | Risk map | RU | MUST_LOCALIZE | 1 | MEDIUM | Карта финансовых рисков | Harta riscurilor financiare | NO | APPROVED |
-| quick wins | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| quick wins | RU | MUST_LOCALIZE | 1 | MEDIUM | Меры с быстрым эффектом | Măsuri cu efect rapid | NO | APPROVED |
 | Document checklist | RU | MUST_LOCALIZE | 1 | MEDIUM | Список необходимых документов | Lista documentelor necesare | NO | APPROVED |
-| structure | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| structure | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Payment calendar logic | RU | MUST_LOCALIZE | 1 | MEDIUM | Логика платёжного календаря | Logica calendarului de plăți | NO | APPROVED |
 | Action plan | RU | MUST_LOCALIZE | 1 | MEDIUM | План действий | Plan de acțiune | NO | APPROVED |
-| concept | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| concept | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Recommendation | RU | MUST_LOCALIZE | 1 | MEDIUM | Рекомендация FINMENTOR | Recomandarea FINMENTOR | NO | APPROVED |
 | Bank statements | RU | MUST_LOCALIZE | 1 | MEDIUM | Банковские выписки | Extrase bancare | NO | APPROVED |
 | AP aging | RU | MUST_LOCALIZE | 1 | MEDIUM | Анализ кредиторской задолженности по срокам | Analiza datoriilor către furnizori pe scadențe | NO | APPROVED |
-| AR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| AR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Owner view | RU | MUST_LOCALIZE | 1 | MEDIUM | Взгляд собственника | Perspectiva proprietarului | NO | APPROVED |
-| IFRS- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Big | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| IFRS- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Big | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Cash flow & treasury control | RU | MUST_LOCALIZE | 1 | MEDIUM | Управление денежным потоком и казначейством | Gestionarea fluxului de numerar și a trezoreriei | NO | APPROVED |
-| triage | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| triage | RU | MUST_LOCALIZE | 1 | MEDIUM | Первичная оценка и приоритизация | Evaluare inițială și prioritizare | NO | APPROVED |
 | Iacovlev Ghennadi | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Iacovlev Ghennadi | Iacovlev Ghennadi | NO | BRAND |
-| questionnaire | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| working-capital-scan | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| rule-based | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Analytics | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Analytics | Google Analytics | NO | BRAND |
-| score | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| questionnaire | RU | DETECTOR_FALSE_POSITIVE | 1 | MEDIUM | — | — | NO | FILENAME_REFERENCE |
+| working-capital-scan | RU | DETECTOR_FALSE_POSITIVE | 1 | MEDIUM | — | — | NO | FILENAME_REFERENCE |
+| rule-based | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | ALREADY_COMPLIANT |
+| Google Analytics | RU | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Google Analytics | Google Analytics | NO | APPROVED_SOFTWARE_PRODUCT |
+| score | RU | MUST_LOCALIZE | 1 | MEDIUM | оценка | scor | NO | APPROVED |
 | GitHub Pages | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | GitHub Pages | GitHub Pages | NO | BRAND |
 | email- | RU | MUST_LOCALIZE | 1 | MEDIUM | e-mail | e-mail | NO | AUTO_RESOLVED |
-| Financial X-Ray | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Financial X-Ray | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | ALREADY_COMPLIANT |
 | Cookies | RU | MUST_LOCALIZE | 1 | MEDIUM | Файлы cookie | Fișiere cookie | NO | APPROVED |
 | GMT | RU | MUST_LOCALIZE | 1 | MEDIUM | GMT | GMT | NO | APPROVED |
 | Services | RU | MUST_LOCALIZE | 1 | MEDIUM | Услуги | Servicii | NO | APPROVED |
@@ -240,18 +240,18 @@ Tier 1.**
 | Microsoft Teams | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft Teams | Microsoft Teams | NO | BRAND |
 | Telegram call | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Telegram call | Telegram call | NO | BRAND |
 | HoReCa | RU | MUST_LOCALIZE | 1 | MEDIUM | HoReCa | HoReCa | NO | APPROVED |
-| Excel- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Excel- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Tableau | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Tableau | Tableau | NO | BRAND |
 | Looker | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Looker | Looker | NO | BRAND |
 | Zapier | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Zapier | Zapier | NO | BRAND |
 | Meet | RU | MUST_LOCALIZE | 1 | MEDIUM | встреча | întâlnire | NO | APPROVED |
 | Email summary | RU | MUST_LOCALIZE | 1 | MEDIUM | Итоги встречи по e-mail | Sinteza întâlnirii prin e-mail | NO | APPROVED |
 | Google Drive | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Drive | Google Drive | NO | BRAND |
-| Microsoft OneDrive | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft OneDrive | Microsoft OneDrive | NO | BRAND |
-| Dropbox | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Dropbox | Dropbox | NO | BRAND |
-| intake | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| webhook FINMENTOR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| GA | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Microsoft OneDrive | RU | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Microsoft OneDrive | Microsoft OneDrive | NO | APPROVED_SOFTWARE_PRODUCT |
+| Dropbox | RU | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Dropbox | Dropbox | NO | APPROVED_SOFTWARE_PRODUCT |
+| intake | RU | MUST_LOCALIZE | 1 | MEDIUM | Первичный сбор информации | Colectare inițială de informații | NO | APPROVED |
+| webhook FINMENTOR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| GA | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | GA | GA | NO | INDUSTRY_STANDARD |
 | Limb | RO | DETECTOR_FALSE_POSITIVE | 1 | MEDIUM | — | — | NO | FALSE_POSITIVE |
 | SCROLL | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Cap Rate | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Ставка капитализации | Rata de capitalizare | YES | APPROVED |
@@ -285,13 +285,13 @@ Tier 1.**
 | Owner view | RO | MUST_LOCALIZE | 1 | MEDIUM | Взгляд собственника | Perspectiva proprietarului | NO | APPROVED |
 | Cash flow & treasury control | RO | MUST_LOCALIZE | 1 | MEDIUM | Управление денежным потоком и казначейством | Gestionarea fluxului de numerar și a trezoreriei | NO | APPROVED |
 | Iacovlev Ghennadi | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Iacovlev Ghennadi | Iacovlev Ghennadi | NO | BRAND |
-| Google Analytics | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Analytics | Google Analytics | NO | BRAND |
+| Google Analytics | RO | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Google Analytics | Google Analytics | NO | APPROVED_SOFTWARE_PRODUCT |
 | GitHub Pages | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | GitHub Pages | GitHub Pages | NO | BRAND |
 | Cookies | RO | MUST_LOCALIZE | 1 | MEDIUM | Файлы cookie | Fișiere cookie | NO | APPROVED |
 | GMT | RO | MUST_LOCALIZE | 1 | MEDIUM | GMT | GMT | NO | APPROVED |
 | Services | RO | MUST_LOCALIZE | 1 | MEDIUM | Услуги | Servicii | NO | APPROVED |
 | Other | RO | MUST_LOCALIZE | 1 | MEDIUM | Другое | Altele | NO | APPROVED |
-| Rom | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Rom | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Google Meet | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Meet | Google Meet | NO | BRAND |
 | Microsoft Teams | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft Teams | Microsoft Teams | NO | BRAND |
 | Telegram call | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Telegram call | Telegram call | NO | BRAND |
@@ -302,8 +302,8 @@ Tier 1.**
 | Meet | RO | MUST_LOCALIZE | 1 | MEDIUM | встреча | întâlnire | NO | APPROVED |
 | Email summary | RO | MUST_LOCALIZE | 1 | MEDIUM | Итоги встречи по e-mail | Sinteza întâlnirii prin e-mail | NO | APPROVED |
 | Google Drive | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Drive | Google Drive | NO | BRAND |
-| Microsoft OneDrive | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft OneDrive | Microsoft OneDrive | NO | BRAND |
-| Dropbox | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Dropbox | Dropbox | NO | BRAND |
+| Microsoft OneDrive | RO | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Microsoft OneDrive | Microsoft OneDrive | NO | APPROVED_SOFTWARE_PRODUCT |
+| Dropbox | RO | APPROVED_SOFTWARE_PRODUCT | 1 | MEDIUM | Dropbox | Dropbox | NO | APPROVED_SOFTWARE_PRODUCT |
 
 ## 6. TIER 2 — commercial specialist pages
 
@@ -563,7 +563,7 @@ The commercially critical language, separated from the long tail so it can be ap
 | Fitness Membership Renewal Engine | Fitness Membership Renewal Engine | Система продления абонементов | Fitness Membership Renewal Engine | Sistem de reînnoire a abonamentelor | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
 | Target Marja | Target Marja | Целевая маржа | Target Marja | Marjă țintă | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Fitness | Fitness | Фитнес / спортивный бизнес | Fitness | Fitness / activități sportive | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
-| OpenAI | OpenAI | OpenAI | OpenAI | OpenAI | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | BRAND |
+| OpenAI | OpenAI | OpenAI | OpenAI | OpenAI | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED_SOFTWARE_PRODUCT |
 | NDA | NDA | Соглашение о конфиденциальности | NDA | Acord de confidențialitate | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
 | Control System | Control System | Система финансового контроля | Control System | Sistem de control financiar | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Monthly | Monthly | **needs wording** | Monthly | **needs wording** | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NOT_STANDALONE |
@@ -623,7 +623,7 @@ as a translation of the Russian.
 | Fitness | Фитнес / спортивный бизнес | Fitness / activități sportive | MUST_LOCALIZE | NO |
 | Premium | Premium | Premium | BRANDED_PACKAGE_NAME | NO |
 | cookies | файлы cookie | fișiere cookie | MUST_LOCALIZE | NO |
-| OpenAI | OpenAI | OpenAI | APPROVED_PROPER_NAME | NO |
+| OpenAI | OpenAI | OpenAI | APPROVED_SOFTWARE_PRODUCT | NO |
 | NDA | Соглашение о конфиденциальности | Acord de confidențialitate | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Automation | Автоматизация | Automatizare | MUST_LOCALIZE | NO |
 | Monthly owner report | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | OWNER_DECISION_REQUIRED | YES |
@@ -632,8 +632,9 @@ as a translation of the Russian.
 | action list | План действий | Plan de acțiune | MUST_LOCALIZE | NO |
 | Digital | Цифровые решения | Soluții digitale | MUST_LOCALIZE | NO |
 | mini-scan | Экспресс-диагностика | Diagnostic rapid | MUST_LOCALIZE | NO |
-| Zoom | Zoom | Zoom | APPROVED_PROPER_NAME | NO |
+| Zoom | Zoom | Zoom | APPROVED_SOFTWARE_PRODUCT | NO |
 | Cap Rate | Ставка капитализации | Rata de capitalizare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| deposit coverage | Покрытие депозитом и обеспечением | Acoperirea cu depozit și garanții | MUST_LOCALIZE | NO |
 | payback | срок окупаемости | perioada de recuperare a investiției | MUST_LOCALIZE | YES |
 | margin per meter | Маржа на 1 м² | Marjă pe m² | MUST_LOCALIZE | NO |
 | promo economics | Эффективность промоакции | Eficiența promoției | MUST_LOCALIZE | NO |
@@ -644,13 +645,16 @@ as a translation of the Russian.
 | e-commerce | интернет-торговля | comerț online | MUST_LOCALIZE | NO |
 | Manufacturing | Производство | Producție | MUST_LOCALIZE | NO |
 | cash destroyers | Товарные позиции, поглощающие денежные средства | Produse care consumă numerar | MUST_LOCALIZE | NO |
+| DIGITAL LABOUR CONTROL | Финансовый контроль цифрового труда | Control financiar al muncii digitale | MUST_LOCALIZE | NO |
 | ChatGPT | ChatGPT | ChatGPT | APPROVED_PROPER_NAME | NO |
 | Copilot | Copilot | Copilot | APPROVED_PROPER_NAME | NO |
 | Claude | Claude | Claude | APPROVED_PROPER_NAME | NO |
 | Accepted Business Outcome | Результат, принятый бизнесом | Rezultat acceptat de companie | MUST_LOCALIZE | NO |
 | Financial Effect | Финансовый эффект | Impact financiar | MUST_LOCALIZE | NO |
 | Management Decision | Управленческое решение | Decizie managerială | MUST_LOCALIZE | NO |
+| Diagnostic memo | Диагностическое заключение | Concluzie de diagnostic | MUST_LOCALIZE | NO |
 | Risk map | Карта финансовых рисков | Harta riscurilor financiare | MUST_LOCALIZE | NO |
+| quick wins | Меры с быстрым эффектом | Măsuri cu efect rapid | MUST_LOCALIZE | NO |
 | Document checklist | Список необходимых документов | Lista documentelor necesare | MUST_LOCALIZE | NO |
 | Payment calendar logic | Логика платёжного календаря | Logica calendarului de plăți | MUST_LOCALIZE | NO |
 | Action plan | План действий | Plan de acțiune | MUST_LOCALIZE | NO |
@@ -659,8 +663,10 @@ as a translation of the Russian.
 | AP aging | Анализ кредиторской задолженности по срокам | Analiza datoriilor către furnizori pe scadențe | MUST_LOCALIZE | NO |
 | Owner view | Взгляд собственника | Perspectiva proprietarului | MUST_LOCALIZE | NO |
 | Cash flow & treasury control | Управление денежным потоком и казначейством | Gestionarea fluxului de numerar și a trezoreriei | MUST_LOCALIZE | NO |
+| triage | Первичная оценка и приоритизация | Evaluare inițială și prioritizare | MUST_LOCALIZE | NO |
 | Iacovlev Ghennadi | Iacovlev Ghennadi | Iacovlev Ghennadi | APPROVED_PROPER_NAME | NO |
-| Google Analytics | Google Analytics | Google Analytics | APPROVED_PROPER_NAME | NO |
+| Google Analytics | Google Analytics | Google Analytics | APPROVED_SOFTWARE_PRODUCT | NO |
+| score | оценка | scor | MUST_LOCALIZE | NO |
 | GitHub Pages | GitHub Pages | GitHub Pages | APPROVED_PROPER_NAME | NO |
 | email- | e-mail | e-mail | MUST_LOCALIZE | NO |
 | Cookies | Файлы cookie | Fișiere cookie | MUST_LOCALIZE | NO |
@@ -677,8 +683,10 @@ as a translation of the Russian.
 | Meet | встреча | întâlnire | MUST_LOCALIZE | NO |
 | Email summary | Итоги встречи по e-mail | Sinteza întâlnirii prin e-mail | MUST_LOCALIZE | NO |
 | Google Drive | Google Drive | Google Drive | APPROVED_PROPER_NAME | NO |
-| Microsoft OneDrive | Microsoft OneDrive | Microsoft OneDrive | APPROVED_PROPER_NAME | NO |
-| Dropbox | Dropbox | Dropbox | APPROVED_PROPER_NAME | NO |
+| Microsoft OneDrive | Microsoft OneDrive | Microsoft OneDrive | APPROVED_SOFTWARE_PRODUCT | NO |
+| Dropbox | Dropbox | Dropbox | APPROVED_SOFTWARE_PRODUCT | NO |
+| intake | Первичный сбор информации | Colectare inițială de informații | MUST_LOCALIZE | NO |
+| GA | GA | GA | APPROVED_PROPER_NAME | NO |
 | Payment Gate | Контроль платежей | Controlul plăților | OWNER_DECISION_REQUIRED | YES |
 | Revenue at Risk | Выручка под риском | Venituri expuse riscului | OWNER_DECISION_REQUIRED | YES |
 | Expected Renewal Value | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | OWNER_DECISION_REQUIRED | YES |
@@ -726,6 +734,8 @@ as a translation of the Russian.
 | inventory days | период оборачиваемости запасов, дней | durata de rotație a stocurilor | MUST_LOCALIZE | YES |
 | FCF- | Свободный денежный поток | Flux de numerar liber | MUST_LOCALIZE | YES |
 | Promo economics | Эффективность промоакции | Eficiența promoției | MUST_LOCALIZE | NO |
+| Supplier score | Рейтинг поставщика | Ratingul furnizorului | MUST_LOCALIZE | NO |
+| Supplier Score | Рейтинг поставщика | Ratingul furnizorului | MUST_LOCALIZE | NO |
 | DIO | Срок оборота запасов | Durata de rotație a stocurilor | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | EBITDA | Прибыль до вычета процентов, налогов и амортизации | Profit înainte de dobânzi, impozite și amortizare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Payment Calendar | Платёжный календарь | Calendar de plăți | MUST_LOCALIZE | NO |
@@ -740,7 +750,7 @@ as a translation of the Russian.
 
 ## 11. Terms with no wording yet
 
-588 rows carry no proposed wording. They are the long tail — mostly one- and two-use
+576 rows carry no proposed wording. They are the long tail — mostly one- and two-use
 specialist labels on Tier 2 and Tier 3 pages. They are listed in the CSV with an empty
 `ru_proposal` so a reviewer can fill them in, and none of them is on the Tier 1 approval path.
 
