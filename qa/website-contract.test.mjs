@@ -744,7 +744,20 @@ check('no Romanian sentence keeps Russian word order or a Russian impersonal con
     /pusă ordinea/,
     /Planific pentru perspectivă/,
     /inteligența artificială dvs\./,
-    /Inteligență artificială \(AI\) și automatizarea/
+    /Inteligență artificială \(AI\) și automatizarea/,
+    // THE SHAPE behind the first of those, which the adversarial pass then found three more
+    // instances of: a bare, unarticulated common noun in subject position before «există».
+    // Russian has no articles, so «Бухгалтерский учёт есть», «Заказы есть» and «Деньги «есть»»
+    // transpose to «Contabilitate există», «Comenzi există» and «Bani „există”» and read as a
+    // foreigner's Romanian. The language wants the article — «Contabilitatea există», «Banii
+    // „există”» — or the existential inversion, «Există comenzi».
+    //
+    // The lookbehind lets an ARTICULATED noun through, which is the corrected form: -a, -ea, -ua,
+    // -ul, -le and -ii are the definite endings. And the tail is `(?![a-zăâîșț])`, not `\b`:
+    // «există» ends in ă, which is not an ASCII word character, so a `\b` there matches NOTHING
+    // and silently turns the whole rule into decoration. That bug hid the three extra instances
+    // on the first pass.
+    /(?:^|\n)\s*(?!FINMENTOR)[A-ZĂÂÎȘȚ][a-zăâîșț]{3,}(?<!ea|ua|ul|le|ii|[ao]) *[„”"']?există(?![a-zăâîșț])/m
   ];
   const bad = [];
   for (const f of RO_PAGES) {
