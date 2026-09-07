@@ -58,10 +58,10 @@ English parenthetical already shipped in `43b1f2a` is also not counted as a resi
 | class | meaning | rows |
 |---|---|---|
 | A | MUST_LOCALIZE | 698 |
-| B | LOCALIZE_WITH_ENGLISH_ONCE | 71 |
+| B | LOCALIZE_WITH_ENGLISH_ONCE | 69 |
 | E | OWNER_DECISION_REQUIRED | 41 |
 | C | APPROVED_PROPER_NAME | 36 |
-| F | BRANDED_PACKAGE_NAME | 6 |
+| F | BRANDED_PACKAGE_NAME | 8 |
 | H | DETECTOR_FALSE_POSITIVE | 4 |
 | G | APPROVED_SOFTWARE_PRODUCT | 2 |
 
@@ -90,8 +90,8 @@ Tier 1.**
 | CFO | RU | MUST_LOCALIZE | 19 | CRITICAL | Финансовый директор | Director financiar | NO | APPROVED |
 | KPI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | APPROVED |
 | KPI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | APPROVED |
-| Financial Health Check | RU | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
-| Financial Health Check | RO | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
+| Financial Health Check | RU | BRANDED_PACKAGE_NAME | 13 | CRITICAL | Financial Health Check | Financial Health Check | NO | BRANDED_PACKAGE_NAME |
+| Financial Health Check | RO | BRANDED_PACKAGE_NAME | 13 | CRITICAL | Financial Health Check | Financial Health Check | NO | BRANDED_PACKAGE_NAME |
 | Control Light | RU | BRANDED_PACKAGE_NAME | 11 | CRITICAL | Control Light | Control Light | NO | BRANDED_PACKAGE_NAME |
 | AI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | CRITICAL | Искусственный интеллект | Inteligență artificială | YES | APPROVED |
 | DPO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | YES | APPROVED |
@@ -527,7 +527,7 @@ The commercially critical language, separated from the long tail so it can be ap
 | Business Control System | Business Control System | Система финансового управления бизнесом | Business Control System | Sistem de management financiar al afacerii | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | CFO | CFO | Финансовый директор | CFO | Director financiar | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | KPI | KPI | Ключевые показатели бизнеса | KPI | Indicatori-cheie de performanță | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
-| Financial Health Check | Financial Health Check | Экспертная финансовая диагностика | Financial Health Check | Diagnostic financiar aprofundat | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| Financial Health Check | Financial Health Check | Financial Health Check | Financial Health Check | Financial Health Check | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | BRANDED_PACKAGE_NAME |
 | Control Light | Control Light | Control Light | Control Light | Control Light | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | BRANDED_PACKAGE_NAME |
 | AI | AI | Искусственный интеллект | AI | Inteligență artificială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | DPO | DPO | Средний срок оплаты поставщикам | DPO | Termenul mediu de plată către furnizori | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
@@ -585,7 +585,7 @@ as a translation of the Russian.
 | CFO | Финансовый директор | Director financiar | MUST_LOCALIZE | NO |
 | Business Control System | Система финансового управления бизнесом | Sistem de management financiar al afacerii | OWNER_DECISION_REQUIRED | YES |
 | KPI | Ключевые показатели бизнеса | Indicatori-cheie de performanță | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Financial Health Check | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | LOCALIZE_WITH_ENGLISH_ONCE | NO |
+| Financial Health Check | Financial Health Check | Financial Health Check | BRANDED_PACKAGE_NAME | NO |
 | Control Light | Control Light | Control Light | BRANDED_PACKAGE_NAME | NO |
 | AI | Искусственный интеллект | Inteligență artificială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | DPO | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
