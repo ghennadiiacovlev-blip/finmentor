@@ -296,7 +296,7 @@
      Low | Medium | High | Critical.
   6. RECOMMENDED FIRST STEP
      Health Check | Business Control System | Monthly CFO Support |
-     финансовый директор искусственный интеллект (AI) Transformation | request documents first | discovery call first.
+     CFO AI Transformation | request documents first | discovery call first.
   7. MEETING AGENDA
      5-7 пунктов для первой встречи.
   8. DOCUMENT REQUEST LIST
@@ -376,7 +376,7 @@
           </div></fieldset>
 
           <fieldset class="q" data-score-key="cash_flow" data-weight="18"><legend class="q__label">Q3. Видите ли движение денег денежный поток регулярно?</legend><div class="q__choices"><label><input type="radio" name="dx_cash_flow" value="Да, есть регулярный Cash Flow и прогноз" data-score="full" /> Да, есть регулярный денежный поток и прогноз</label><label><input type="radio" name="dx_cash_flow" value="Частично, смотрю остатки на счёте" data-score="half" /> Частично, смотрю остатки на счёте</label><label><input type="radio" name="dx_cash_flow" value="Нет, узнаю по факту" data-score="zero" /> Нет, узнаю по факту</label></div></fieldset>
-          <fieldset class="q" data-score-key="management_pl" data-weight="16"><legend class="q__label">Q4. Есть ли управленческий прибыль и убытки по направлениям / объектам / продуктам?</legend><div class="q__choices"><label><input type="radio" name="dx_pl" value="Да, регулярный управленческий P&L" data-score="full" /> Да, регулярный управленческий прибыль и убытки</label><label><input type="radio" name="dx_pl" value="Только бухгалтерская / налоговая прибыль" data-score="half" /> Только бухгалтерская / налоговая прибыль</label><label><input type="radio" name="dx_pl" value="Нет" data-score="zero" /> Нет</label></div></fieldset>
+          <fieldset class="q" data-score-key="management_pl" data-weight="16"><legend class="q__label">Q4. Есть ли управленческий отчёт о прибыли и убытках по направлениям / объектам / продуктам?</legend><div class="q__choices"><label><input type="radio" name="dx_pl" value="Да, регулярный управленческий P&L" data-score="full" /> Да, регулярный управленческий отчёт о прибыли и убытках</label><label><input type="radio" name="dx_pl" value="Только бухгалтерская / налоговая прибыль" data-score="half" /> Только бухгалтерская / налоговая прибыль</label><label><input type="radio" name="dx_pl" value="Нет" data-score="zero" /> Нет</label></div></fieldset>
           <fieldset class="q" data-score-key="payments" data-weight="14"><legend class="q__label">Q5. Есть ли платёжный календарь / контроль платежей?</legend><div class="q__choices"><label><input type="radio" name="dx_payments" value="Да, платежи по приоритетам и фондам" data-score="full" /> Да, платежи по приоритетам и фондам</label><label><input type="radio" name="dx_payments" value="Частично, список на оплату" data-score="half" /> Частично, список “на оплату”</label><label><input type="radio" name="dx_payments" value="Нет, платим по ситуации" data-score="zero" /> Нет, платим по ситуации</label></div></fieldset>
           <fieldset class="q" data-score-key="receivables_payables" data-weight="14"><legend class="q__label">Q6. Контролируете дебиторку и кредиторку?</legend><div class="q__choices"><label><input type="radio" name="dx_ar_ap" value="Да, реестры и сроки под контролем" data-score="full" /> Да, реестры и сроки под контролем</label><label><input type="radio" name="dx_ar_ap" value="Частично" data-score="half" /> Частично</label><label><input type="radio" name="dx_ar_ap" value="Нет" data-score="zero" /> Нет</label></div></fieldset>
           <fieldset class="q" data-score-key="margin" data-weight="16"><legend class="q__label">Q7. Знаете реальную маржу?</legend><p class="q-model-note" id="dxMarginHint">По направлению / клиенту / проекту.</p><div class="q__choices"><label><input type="radio" name="dx_margin" value="Да, вижу маржу в нужном разрезе" data-score="full" /> Да, вижу маржу в нужном разрезе</label><label><input type="radio" name="dx_margin" value="Примерно, без точного разреза" data-score="half" /> Примерно, без точного разреза</label><label><input type="radio" name="dx_margin" value="Нет" data-score="zero" /> Нет</label></div></fieldset>
@@ -452,15 +452,15 @@
           <div class="q-block__head"><span class="q-block__num">3</span><legend class="q-block__title">Главные боли</legend><span class="q-block__count">3 / 11</span></div>
           <div class="q__choices q__choices--multi" data-key="primary_problem">
             <label><input type="checkbox" name="q_pain" value="Прибыль есть, но денег нет" /> Прибыль есть, но денег нет</label>
-            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Не хватает денежный поток (cash flow)</label>
+            <label><input type="checkbox" name="q_pain" value="Не хватает cash flow" /> Не хватает денежного потока (cash flow)</label>
             <label><input type="checkbox" name="q_pain" value="Кассовые разрывы" /> Кассовые разрывы</label>
-            <label><input type="checkbox" name="q_pain" value="Нет понятного P&L" /> Нет понятного прибыль и убытки</label>
+            <label><input type="checkbox" name="q_pain" value="Нет понятного P&L" /> Нет понятного отчёта о прибыли и убытках</label>
             <label><input type="checkbox" name="q_pain" value="Нет управленческого учёта" /> Нет управленческого учёта</label>
             <label><input type="checkbox" name="q_pain" value="Платежи идут хаотично" /> Платежи идут хаотично</label>
             <label><input type="checkbox" name="q_pain" value="Отчёты приходят поздно" /> Отчёты приходят поздно</label>
             <label><input type="checkbox" name="q_pain" value="Собственник не видит реальную картину" /> Не вижу реальную картину</label>
-            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Нет ключевые показатели</label>
-            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Нет Power BI / панель собственника</label>
+            <label><input type="checkbox" name="q_pain" value="Нет KPI" /> Нет ключевых показателей</label>
+            <label><input type="checkbox" name="q_pain" value="Нет Power BI / dashboard" /> Нет Power BI / панели собственника</label>
             <label><input type="checkbox" name="q_pain" value="Много ручной работы" /> Много ручной работы</label>
             <label><input type="checkbox" name="q_pain" value="Excel-файлы не связаны между собой" /> Excel-файлы не связаны</label>
             <label><input type="checkbox" name="q_pain" value="Сложно контролировать группу компаний" /> Сложно контролировать группу</label>
@@ -480,7 +480,7 @@
         <!-- Блок 4 — Финансовый контроль -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">4</span><h2 class="q-block__title">Финансовый контроль</h2><span class="q-block__count">4 / 11</span></div>
-          <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Есть управленческий прибыль и убытки?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
+          <fieldset class="q" data-key="has_management_pl"><legend class="q__label">Есть управленческий отчёт о прибыли и убытках?</legend><div class="q__choices"><label><input type="radio" name="q_f1" value="Да" /> Да</label><label><input type="radio" name="q_f1" value="Нет" /> Нет</label><label><input type="radio" name="q_f1" value="Частично" /> Частично</label><label><input type="radio" name="q_f1" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q" data-key="has_cash_flow"><legend class="q__label">Есть денежный поток?</legend><div class="q__choices"><label><input type="radio" name="q_f2" value="Да" /> Да</label><label><input type="radio" name="q_f2" value="Нет" /> Нет</label><label><input type="radio" name="q_f2" value="Частично" /> Частично</label><label><input type="radio" name="q_f2" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q" data-key="has_payment_calendar"><legend class="q__label">Есть платёжный календарь?</legend><div class="q__choices"><label><input type="radio" name="q_f3" value="Да" /> Да</label><label><input type="radio" name="q_f3" value="Нет" /> Нет</label><label><input type="radio" name="q_f3" value="Частично" /> Частично</label><label><input type="radio" name="q_f3" value="Не знаю" /> Не знаю</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть бюджет?</legend><div class="q__choices"><label><input type="radio" name="q_f4" value="Да" /> Да</label><label><input type="radio" name="q_f4" value="Нет" /> Нет</label><label><input type="radio" name="q_f4" value="Частично" /> Частично</label><label><input type="radio" name="q_f4" value="Не знаю" /> Не знаю</label></div></fieldset>
@@ -599,7 +599,7 @@
             <label><input type="checkbox" name="q_remote_doubts" value="Другое" /> Другое</label>
           </div></fieldset>
           <fieldset class="q"><legend class="q__label">Какой формат вам комфортнее?</legend><div class="q__choices q__choices--multi">
-            <label><input type="checkbox" name="q_remote_format" value="Еженедельные Zoom/Meet встречи" /> Еженедельные Zoom/встреча встречи</label>
+            <label><input type="checkbox" name="q_remote_format" value="Еженедельные Zoom/Meet встречи" /> Еженедельные онлайн-встречи</label>
             <label><input type="checkbox" name="q_remote_format" value="Общая рабочая папка" /> Общая рабочая папка</label>
             <label><input type="checkbox" name="q_remote_format" value="Регулярный отчёт по задачам" /> Регулярный отчёт по задачам</label>
             <label><input type="checkbox" name="q_remote_format" value="Telegram-связь" /> Telegram-связь</label>
@@ -618,7 +618,7 @@
             <label><input type="checkbox" name="q_remote_tools" value="Microsoft Teams" /> Microsoft Teams</label>
             <label><input type="checkbox" name="q_remote_tools" value="Другое" /> Другое</label>
           </div></fieldset>
-          <fieldset class="q"><legend class="q__label">Нужен ли соглашение о конфиденциальности (NDA) / соглашение о конфиденциальности?</legend><div class="q__choices"><label><input type="radio" name="q_nda" value="Да" /> Да</label><label><input type="radio" name="q_nda" value="Нет" /> Нет</label><label><input type="radio" name="q_nda" value="Возможно" /> Возможно</label></div></fieldset>
+          <fieldset class="q"><legend class="q__label">Нужно ли соглашение о конфиденциальности (NDA)?</legend><div class="q__choices"><label><input type="radio" name="q_nda" value="Да" /> Да</label><label><input type="radio" name="q_nda" value="Нет" /> Нет</label><label><input type="radio" name="q_nda" value="Возможно" /> Возможно</label></div></fieldset>
         </section>
 
         <!-- Блок 10 — Ожидания от первой встречи -->
@@ -665,13 +665,13 @@
           Если автоматическая отправка временно недоступна, вы можете скопировать ответы
           и отправить их напрямую:
           <a href="mailto:cfo@finmentor.md">E-mail</a> ·
-          <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_fallback_bot" data-cta-location="questionnaire_fallback" data-destination="telegram">FINMENTOR Bot</a>
+          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_fallback_bot" data-cta-location="questionnaire_fallback" data-destination="telegram">FINMENTOR Bot</a>
         </p>
 
         <div class="q-success" id="qSuccess" hidden>
           <strong>Готово.</strong> <span id="qSuccessText">Финансовый рентген подготовлен. Чтобы передать его FINMENTOR, откройте FINMENTOR Bot или отправьте ответы на e-mail.</span>
           <span class="q-success__row">
-            <a class="btn btn--ghost" href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_success_bot" data-cta-location="questionnaire_success" data-destination="telegram">Открыть FINMENTOR Bot</a>
+            <a class="btn btn--ghost" href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" data-event="bot_click" data-cta-id="questionnaire_success_bot" data-cta-location="questionnaire_success" data-destination="telegram">Открыть FINMENTOR Bot</a>
             <button type="button" class="btn btn--ghost" id="qCopySuccess">Скопировать ответы</button>
             <a class="btn btn--ghost" href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
           </span>
@@ -683,7 +683,7 @@
         <h2>Вопросы о финансовом рентгене</h2>
         <details class="faq__item">
           <summary>Что такое финансовый рентген FINMENTOR?</summary>
-          <div class="faq__item__body">Это структурированная самодиагностика и первичный сбор информации перед экспертная финансовая диагностика (Financial Health Check): FINMENTOR смотрит денежный поток, прибыль и убытки, платежи, дебиторку, маржу, ключевые показатели, автоматизацию и риски собственника.</div>
+          <div class="faq__item__body">Это структурированная самодиагностика и первичный сбор информации перед экспертной финансовой диагностикой (Financial Health Check): FINMENTOR смотрит денежный поток, прибыль и убытки, платежи, дебиторку, маржу, ключевые показатели, автоматизацию и риски собственника.</div>
         </details>
         <details class="faq__item">
           <summary>Это замена аудиту?</summary>

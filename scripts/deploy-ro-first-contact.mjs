@@ -1,4 +1,22 @@
 #!/usr/bin/env node
+// ============================================================================================
+// SUPERSEDED — DO NOT RUN. Kept for the record only.
+//
+// P1-01 replaced this. The Concierge conversation is now bilingual end to end and is the
+// CUSTOMER conversation rather than an owner-gated branch: see the "customer conversation"
+// section of scripts/build-premium-concierge.mjs, the locale authority in
+// n8n/src/premium-ux/locale.js, and the gate that stands behind the Romanian customer,
+// qa/ro-first-contact.test.mjs — which now drives the tracked candidate artifact instead of
+// this file.
+//
+// Running this would splice a Romanian ACKNOWLEDGEMENT WITH NO KEYBOARD over a node that now
+// answers Romanian customers with the full conversation. That is a regression, not a fix.
+//
+// An independent release audit also found that the QA gate named after this script tested the
+// stand-in fragment below rather than the shipping path. That is why the gate was rewritten and
+// why this file is no longer part of any release command.
+// ============================================================================================
+//
 // FINMENTOR — GATE 3: the Romanian first-contact safe branch in the Concierge.
 //
 //   node scripts/deploy-ro-first-contact.mjs --dry-run   read live, prove the delta, write nothing

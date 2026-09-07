@@ -25,6 +25,12 @@
   }
   var SITE_LANG = (document.documentElement.getAttribute('lang') || 'ru').toLowerCase();
 
+  /* The bot deep link carries the JOURNEY ORIGIN (P1-01). Telegram delivers `?start=ro` to the
+     Concierge as the message text `/start ro`, and that origin — not the language the customer
+     happens to read Telegram in — decides the language they are answered in. Derived from the
+     page, because this file is served on both the Russian and the Romanian site. */
+  var BOT_URL = 'https://t.me/finmentor_md_bot?start=' + (SITE_LANG.indexOf('ro') === 0 ? 'ro' : 'ru');
+
   var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
@@ -688,7 +694,7 @@
             tr('formNewRequest', 'Начать новую заявку'),
             function () { success.hidden = true; });
         } else {
-          success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
+          success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
         }
         success.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
@@ -898,7 +904,7 @@
       var text = lines.join('\n');
       root.__shareText = text;
       var tg = document.getElementById('scanTg');
-      if (tg) tg.href = 'https://t.me/finmentor_md_bot';
+      if (tg) tg.href = BOT_URL;
     }
     function show() {
       if (Object.keys(answers).length < questions.length) {

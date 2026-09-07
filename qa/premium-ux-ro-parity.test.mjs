@@ -229,6 +229,57 @@ check('a tag match, not a prefix match: "roman" is not Romanian', () => {
   return true;
 });
 
+// ── 4b. the journey-origin carrier (P1-01) ───────────────────────────────────────────────────
+//
+// The order above was correct and, until this correction, unreachable: nothing on the shipping
+// path ever supplied `journeyLocale`. The carrier is the bot's deep-link start parameter, which
+// arrives as the message text `/start ro`.
+
+check('the deep-link start parameter carries the journey origin', () => {
+  assert(L.startPayloadLocale('/start ro') === 'ro', 'the Romanian origin was not read');
+  assert(L.startPayloadLocale('/start ru') === 'ru', 'the Russian origin was not read');
+  assert(L.startPayloadLocale('/start ro-MD') === 'ro', 'a regional tag in the payload is Romanian');
+  assert(L.startPayloadLocale('/start RO') === 'ro', 'the payload is case-insensitive');
+  assert(L.startPayloadLocale('/start@finmentor_md_bot ro') === 'ro',
+    'a group-addressed start command lost its payload');
+  return true;
+});
+
+check('the start payload is a CLOSED vocabulary — anything else carries no origin', () => {
+  // A payload the resolver half-understood would be worse than one it ignores: the customer would
+  // be routed by a tracking code. Everything outside the two supported tags returns '' and the
+  // turn falls through to the persisted session and then to Telegram's hint.
+  for (const bad of ['roman', 'romanian', 'en', 'fr', 'utm_source=ads', '../ro', 'ro ru', 'RU;DROP',
+                     '<script>', '0', '']) {
+    assert(L.startPayloadLocale('/start ' + bad) === '', 'an unsupported payload carried an origin: ' + bad);
+  }
+  assert(L.startPayloadLocale('/start') === '', 'a bare /start carried an origin');
+  assert(L.startPayloadLocale('/startro') === '', '/startro is not a start payload');
+  assert(L.startPayloadLocale('ro') === '', 'a bare word is not a start payload');
+  assert(L.startPayloadLocale('Bună ziua, sunt din Chișinău') === '',
+    'a customer sentence was read as a journey origin — that would be language detection');
+  return true;
+});
+
+check('resolveCustomerLocale is the whole order, in one call', () => {
+  const R = L.resolveCustomerLocale;
+  // 1 — journey origin beats everything, in both directions.
+  assert(R({ messageText: '/start ro', sessionLocale: 'ru', telegramLanguageCode: 'ru' }) === 'ro',
+    'the Romanian journey lost to a Russian session and a Russian Telegram');
+  assert(R({ messageText: '/start ru', sessionLocale: 'ro', telegramLanguageCode: 'ro' }) === 'ru',
+    'the Russian journey lost to a Romanian session and a Romanian Telegram');
+  // 2 — the persisted session, once the deep link has been followed.
+  assert(R({ messageText: 'ceva', sessionLocale: 'ro', telegramLanguageCode: 'ru' }) === 'ro',
+    'a returning Romanian customer was switched back to Russian');
+  // 3 — Telegram, only for a customer with neither.
+  assert(R({ messageText: '/start', telegramLanguageCode: 'ro-MD' }) === 'ro', 'the cold hint was ignored');
+  assert(R({ messageText: '/start', telegramLanguageCode: 'ru' }) === 'ru');
+  // 4 — ru.
+  assert(R({ messageText: '/start', telegramLanguageCode: 'en' }) === 'ru', 'an unknown tag did not default');
+  assert(R({}) === 'ru', 'no signal at all did not default');
+  return true;
+});
+
 check('the client agrees with the server on what counts as Romanian', () => {
   assert(/function isRoTag\(v\) \{ return \/\^ro\(-\|\$\)\/i\.test/.test(APP),
     'app.js no longer uses a tag match for the Romanian locale');

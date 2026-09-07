@@ -23,7 +23,7 @@ const require = createRequire(import.meta.url);
 const M = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'tg-state-machine.js'));
 
 const wf = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-concierge-candidate.json'), 'utf8'));
-const body = wf.nodes.find((n) => n.name === 'Build Bot Response (Premium)').parameters.jsCode;
+const body = wf.nodes.find((n) => n.name === 'Build Bot Response').parameters.jsCode;
 const runner = new Function('$input', body);
 const run = (src) => runner({ first: () => ({ json: src }) })[0].json;
 

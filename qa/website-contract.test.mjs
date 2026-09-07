@@ -594,6 +594,330 @@ check('RO pages declare lang="ro"', () => {
   }
 });
 
+// --------------------------------------------------------------- structured-data helpers
+//
+// Shared by the copy checks and the SEO checks below, so both read a page's graph the same way.
+const SITE = 'https://www.finmentor.md/';
+const LD = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g;
+
+// index.html and its directory are the same page. Everything else is compared literally.
+function selfUrls(rel) {
+  const abs = SITE + rel;
+  return rel.endsWith('index.html') ? [abs, SITE + rel.slice(0, -'index.html'.length)] : [abs];
+}
+const strip = (u) => String(u || '').split('#')[0];
+// Site-level nodes name the site or the person, not the page they happen to be declared on.
+const SITE_LEVEL = /#(organization|website|person|service|financial-control-service)$/;
+
+function graphNodes(html) {
+  const out = [];
+  for (const m of html.matchAll(LD)) {
+    const parsed = JSON.parse(m[1]);
+    for (const n of (parsed['@graph'] || [parsed])) { out.push(n); }
+  }
+  return out;
+}
+
+// --------------------------------------------------------------- customer copy integrity
+console.log('\nCOPY: TERMINOLOGY DAMAGE');
+
+// P1-03/P1-04/P1-05. The customer terminology pass replaced tokens inside sentences rather than
+// rewriting the sentences, which left behind three signatures: a noun phrase standing where an
+// adjective or a case-inflected form belongs, a word repeated because a substitution overlapped
+// text that was already there, and a BRANDED product title whose English tokens were translated.
+//
+// Each check names the shape of the damage, not just the strings that were found, so a new
+// instance of the same shape fails here rather than reaching a customer.
+
+const RU_PAGES = ['index.html', 'questionnaire.html'];
+const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html'];
+
+// Everything a customer can read, with machine values and markup removed. `value="..."` is the
+// CRM contract and is deliberately excluded: it must NOT be corrected, and including it here
+// would turn the frozen contract into a test failure.
+//
+// ELEMENT BOUNDARIES SURVIVE AS NEWLINES. A tag between two words means they are not one
+// sentence — a card's tag and its title, two radio labels — and a stripper that joins them with a
+// space invents repetitions and agreement errors no customer ever reads.
+function visibleCopy(f) {
+  return read(f)
+    .replace(/<script[\s\S]*?<\/script>/g, '\n')
+    .replace(/<style[\s\S]*?<\/style>/g, '\n')
+    .replace(/value="[^"]*"/g, ' ')
+    .replace(/data-[a-z-]+="[^"]*"/g, ' ')
+    .replace(/<[^>]+>/g, '\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/[ \t]+/g, ' ');
+}
+
+check('no customer sentence repeats a word a substitution duplicated', () => {
+  // «Базовый базовый формат», «панель собственника собственника», «Test financiar FINMENTOR
+  // FINMENTOR» — a replacement that overlapped the words already around it.
+  const bad = [];
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    for (const m of visibleCopy(f).matchAll(/([A-Za-zА-Яа-яЁёĂÂÎȘȚăâîșț]{4,})[ ]+\1(?![A-Za-zА-Яа-яЁёĂÂÎȘȚăâîșț])/gi)) {
+      bad.push(f + ': ' + m[0]);
+    }
+  }
+  assert(bad.length === 0, bad.length + ' duplicated word(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no Russian sentence leaves a term in the nominative where a case is required', () => {
+  // «управленческий прибыль и убытки», «контроль денежный поток», «перед экспертная финансовая
+  // диагностика» — the replacement term was dropped in citation form into a governed position.
+  const SHAPES = [
+    /управленческий прибыль и убытки/,
+    /(?:контроль|структура|анализ|обзор|экономика|логика|внедрение)\s+(?:денежный поток|прибыль и убытки|панель собственника|промоакция)/,
+    /перед\s+экспертная/,
+    /Не хватает денежный поток/,
+    /Нет (?:понятного )?(?:ключевые показатели|прибыль и убытки)/,
+    /Power BI панель собственника/
+  ];
+  const bad = [];
+  for (const f of RU_PAGES) {
+    const copy = visibleCopy(f);
+    for (const r of SHAPES) { const m = r.exec(copy); if (m) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' ungrammatical substitution(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no Romanian sentence stacks `director financiar` onto another noun', () => {
+  // Romanian cannot use a role noun as an adjective: `funcție director financiar` needs its
+  // preposition, and where the Russian page resolved CFO to the adjective, so must this one.
+  const bad = [];
+  for (const f of RO_PAGES.concat(['ro/monthly-cfo-support.html'])) {
+    const copy = visibleCopy(f);
+    for (const m of copy.matchAll(/\b(sistem|nucleu|logică|funcți[ae]|control|suport|întâlnire|disciplinei|disciplină|sistemul|suportul)\s+director financiar/gi)) {
+      bad.push(f + ': ' + m[0]);
+    }
+    for (const m of copy.matchAll(/\bPower BI tablou de bord\b/g)) { bad.push(f + ': ' + m[0]); }
+    for (const m of copy.matchAll(/\btransformarea inteligență\b/g)) { bad.push(f + ': ' + m[0]); }
+  }
+  assert(bad.length === 0, bad.length + ' noun-stacked phrase(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the branded package title CFO AI Control is exact everywhere it appears', () => {
+  // The words inside a branded title are not translated. `CFO ИИ Control`, `CFO IA Control`,
+  // `Финансовый директор ИИ Control`, `Director financiar IA Control` and
+  // `CFO inteligență artificială (AI) Control` all shipped.
+  const bad = [];
+  // The legacy `name (N).html` archives are noindexed history, deliberately left unedited so the
+  // audit trail survives; they are not customer copy.
+  for (const f of collectHtml('').filter((p) => !/ \(\d+\)\.html$/.test(p))) {
+    const html = read(f);
+    // The role token, then AT MOST ONE intervening word or parenthesis, then `Control`. Anything
+    // longer is a sentence that happens to contain both, not a package title — and the branded
+    // title itself is exactly one word wide.
+    for (const m of html.matchAll(/(?:CFO|[Фф]инансовый директор|[Dd]irector financiar)(?:\s+(?:[^\s.,;:<>"|]+|\([^)]*\))){0,3}?\s+Control\b(?!\s*(?:Light|Partner|Checklist|System|Center))/g)) {
+      const found = m[0].replace(/\s+/g, ' ').trim();
+      if (found === 'CFO AI Control') { continue; }
+      bad.push(f + ': ' + found);
+    }
+  }
+  assert(bad.length === 0, bad.length + ' corrupted package title(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the bot links built in JavaScript carry the journey origin too', () => {
+  // P1-01. Three shipped scripts build the bot link at runtime. `assistant.js` and `main.js` are
+  // served on BOTH sites, so their origin must come from the page's declared language; `i18n-ro.js`
+  // is the Romanian string table and is Romanian by definition.
+  //
+  // The check runs the derivation rather than reading it, because "it mentions documentElement.lang"
+  // is exactly the kind of assertion that passes while the value is wrong.
+  for (const [f, decl] of [['assistant.js', /var TG = ([\s\S]*?);\r?\n/], ['main.js', /var BOT_URL = ([\s\S]*?);\r?\n/]]) {
+    const src = read(f);
+    const m = decl.exec(src);
+    assert(m, f + ' no longer declares the bot link in one place');
+    for (const [lang, want] of [['ro', 'ro'], ['ru', 'ru'], ['ro-MD', 'ro'], ['en', 'ru']]) {
+      const built = new Function('SITE_LANG', 'document', 'return (' + m[1] + ');')(
+        lang.toLowerCase(), { documentElement: { getAttribute: () => lang } });
+      assert(built === 'https://t.me/finmentor_md_bot?start=' + want,
+        f + ' on a lang="' + lang + '" page builds ' + built);
+    }
+    // …and no bot link may survive without an origin beside it, or the derived one is decoration.
+    // `?start=` with the tag concatenated at runtime counts as seeded; a bare link does not.
+    const bare = (src.match(/https:\/\/t\.me\/finmentor_md_bot(?!\?start=)/g) || []);
+    assert(bare.length === 0, f + ' hard-codes ' + bare.length + ' bot link(s) with no journey origin');
+  }
+  const ro = read('i18n-ro.js').match(/https:\/\/t\.me\/finmentor_md_bot[^"'\s]*/g) || [];
+  assert(ro.length > 0, 'i18n-ro.js no longer links to the bot');
+  for (const u of ro) { assert(u.endsWith('?start=ro'), 'the Romanian string table links to ' + u); }
+});
+
+check('the AI-agent prompt enum was not translated', () => {
+  // `CFO AI Transformation` is a machine enum inside the questionnaire's AI prompt spec, and the
+  // terminology pass translated its tokens in both languages.
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    const html = read(f);
+    if (html.indexOf('RECOMMENDED FIRST STEP') === -1) { continue; }
+    assert(html.indexOf('CFO AI Transformation') !== -1, f + ': the RECOMMENDED FIRST STEP enum lost `CFO AI Transformation`');
+  }
+});
+
+check('the Real Estate page presents its approved name, not its English working title', () => {
+  // P1-05. The slug, the canonical URL and every href stay English — a filename is an address,
+  // not a product name. Every slot a customer or a crawler reads as the page identity must carry
+  // the approved title.
+  const CASES = [
+    ['real-estate-control-system.html', 'Система финансового управления недвижимостью'],
+    ['ro/real-estate-control-system.html', 'Sistem de management financiar al activelor imobiliare']
+  ];
+  for (const [f, approved] of CASES) {
+    const html = read(f);
+    const slots = {
+      'title': /<title>([^<]*)<\/title>/,
+      'meta description': /<meta name="description" content="([^"]*)"/,
+      'og:title': /<meta property="og:title" content="([^"]*)"/,
+      'og:description': /<meta property="og:description" content="([^"]*)"/,
+      'twitter:title': /<meta name="twitter:title" content="([^"]*)"/,
+      'twitter:description': /<meta name="twitter:description" content="([^"]*)"/,
+      'h1': /<h1>([^<]*)<\/h1>/
+    };
+    for (const [slot, re] of Object.entries(slots)) {
+      const m = re.exec(html);
+      assert(m, f + ': no ' + slot);
+      assert(m[1].indexOf(approved) !== -1, f + ' ' + slot + ' does not carry the approved name: ' + m[1].slice(0, 70));
+    }
+    for (const n of graphNodes(html)) {
+      if (n.headline) { assert(String(n.headline).indexOf(approved) !== -1, f + ': JSON-LD headline is not the approved name'); }
+      if (n['@type'] === 'BreadcrumbList') {
+        const last = (n.itemListElement || []).slice(-1)[0];
+        assert(last && String(last.name).indexOf(approved) !== -1, f + ': the breadcrumb label is not the approved name');
+      }
+    }
+    // The English working title must not survive as the page's own identity anywhere a customer
+    // reads it. It stays in the slug, the canonical URL and the hrefs, which are not copy.
+    const copy = visibleCopy(f) + ' ' + [...html.matchAll(/content="([^"]*)"/g)].map((m) => m[1]).join(' ')
+      + ' ' + [...html.matchAll(/"(?:headline|name|description)":\s*"([^"]*)"/g)].map((m) => m[1]).join(' ');
+    assert(copy.indexOf('Real Estate Control System') === -1,
+      f + ': the English working title is still presented to the customer');
+  }
+});
+
+// --------------------------------------------------------------- structured data
+console.log('\nSEO: STRUCTURED DATA IDENTITY');
+
+// P1-02. Twelve pages shipped a VERBATIM COPY of the Treasury (kaznacheystvo) graph — its Article
+// @id, its headline, its mainEntityOfPage, its breadcrumb trail and its four Treasury FAQ
+// questions — above their own, correct graph. Every crawler that read those pages was told they
+// were the Treasury page.
+//
+// The copied graph was removed rather than rewritten: keeping the FAQPage would have meant
+// inventing four questions the page does not answer.
+//
+// These checks are site-wide and structural, so the same defect cannot be reintroduced on a
+// thirteenth page by another copy-paste.
+
+
+check('every JSON-LD block on every page parses', () => {
+  const bad = [];
+  for (const f of collectHtml('')) {
+    for (const m of read(f).matchAll(LD)) {
+      try { JSON.parse(m[1]); } catch (e) { bad.push(f + ': ' + e.message); }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' JSON-LD parse error(s): ' + bad.slice(0, 3).join(' | '));
+});
+
+check('no page carries a graph whose @id belongs to a different page', () => {
+  const bad = [];
+  for (const f of collectHtml('')) {
+    const self = selfUrls(f);
+    for (const n of graphNodes(read(f))) {
+      const id = String(n['@id'] || '');
+      if (!id || !id.startsWith(SITE) || SITE_LEVEL.test(id)) { continue; }
+      if (!self.includes(strip(id))) { bad.push(f + ' -> ' + id); }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' wrong-page @id: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no page points mainEntityOfPage at a different page', () => {
+  const bad = [];
+  for (const f of collectHtml('')) {
+    const self = selfUrls(f);
+    for (const n of graphNodes(read(f))) {
+      const mp = typeof n.mainEntityOfPage === 'string' ? n.mainEntityOfPage : (n.mainEntityOfPage || {})['@id'];
+      if (!mp) { continue; }
+      if (!self.includes(strip(mp))) { bad.push(f + ' -> ' + mp); }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' wrong-page mainEntityOfPage: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('every breadcrumb trail ends on the page that declares it', () => {
+  const bad = [];
+  for (const f of collectHtml('')) {
+    const self = selfUrls(f);
+    for (const n of graphNodes(read(f))) {
+      if (n['@type'] !== 'BreadcrumbList') { continue; }
+      const last = (n.itemListElement || []).slice(-1)[0];
+      if (last && last.item && !self.includes(strip(last.item))) { bad.push(f + ' -> ' + last.item); }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' wrong-page breadcrumb tail: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no page carries another page\'s FAQ graph', () => {
+  // The copied Treasury graph brought four Treasury FAQ questions onto twelve pages that answer
+  // none of them. A question set is "another page's" when it is BYTE-IDENTICAL to a set declared
+  // elsewhere: that is the copy-paste signature, and it is what must never come back.
+  //
+  // SCOPE. This is not the wider question of whether every declared FAQ is also VISIBLE on its
+  // own page. Eleven pages declare 17 questions (of 118) that are not in their visible copy —
+  // their OWN questions, pre-dating this work and unrelated to the copied graph. That is recorded
+  // for the next integration gate rather than fixed here, because closing it means either writing
+  // new customer-facing copy or dropping schema, and both are content decisions.
+  const sets = new Map();
+  const bad = [];
+  for (const f of collectHtml('')) {
+    for (const n of graphNodes(read(f))) {
+      if (n['@type'] !== 'FAQPage') { continue; }
+      const key = (n.mainEntity || []).map((q) => String(q.name || '').replace(/\s+/g, ' ').trim()).join(' ');
+      if (!key) { continue; }
+      if (sets.has(key)) { bad.push(f + ' repeats the FAQ graph of ' + sets.get(key)); continue; }
+      sets.set(key, f);
+    }
+  }
+  // The RU and RO editions of a page are different question sets (different languages), so a
+  // repeat here is always a copy between unrelated pages.
+  assert(bad.length === 0, bad.length + ' copied FAQ graph(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('structured data declares the language its page is written in', () => {
+  const bad = [];
+  for (const f of collectHtml('')) {
+    const html = read(f);
+    const lang = (/<html[^>]*\blang="([^"]*)"/i.exec(html) || [, ''])[1].toLowerCase().slice(0, 2);
+    if (!lang) { continue; }
+    for (const n of graphNodes(html)) {
+      if (!n.inLanguage) { continue; }
+      if (String(n.inLanguage).toLowerCase().slice(0, 2) !== lang) {
+        bad.push(f + ' (lang=' + lang + ') -> inLanguage=' + n.inLanguage);
+      }
+    }
+  }
+  assert(bad.length === 0, bad.length + ' wrong inLanguage: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the twelve repaired pages carry exactly one graph, and it is their own', () => {
+  const REPAIRED = ['capacity-released.html', 'client-base-control-system.html', 'pribyl-vs-cash.html',
+    'real-estate-control-system.html', 'renewal-revenue-at-risk.html', 'supplier-shelf-credit.html'];
+  for (const dir of ['', 'ro/']) {
+    for (const p of REPAIRED) {
+      const f = dir + p;
+      const html = read(f);
+      const blocks = [...html.matchAll(LD)];
+      assert(blocks.length === 1, f + ' carries ' + blocks.length + ' JSON-LD blocks, expected 1');
+      assert(html.indexOf('kaznacheystvo.html#article') === -1,
+        f + ' still carries the copied Treasury Article @id');
+      const nodes = graphNodes(html);
+      assert(nodes.some((n) => selfUrls(f).includes(strip(n['@id'] || ''))),
+        f + ' has no graph node describing itself');
+    }
+  }
+});
+
 // --------------------------------------------------------------- x-default
 console.log('\nSEO: x-default POLICY');
 

@@ -30,7 +30,12 @@
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
-  var TG = 'https://t.me/finmentor_md_bot';
+  // The bot deep link carries the JOURNEY ORIGIN (P1-01). A customer who arrives from a Romanian
+  // page stays Romanian in the Concierge whatever language their Telegram interface is set to, and
+  // the same holds for the Russian journey. The tag is derived from the page rather than hard-coded,
+  // because this file is served on both.
+  var TG = 'https://t.me/finmentor_md_bot?start='
+    + (((document.documentElement.getAttribute('lang') || 'ru').toLowerCase().indexOf('ro') === 0) ? 'ro' : 'ru');
   // Discovery Call target: same-page section on the homepage, otherwise the homepage section.
   function disco() { return document.getElementById('consult') ? '#consult' : 'index.html#consult'; }
 
@@ -83,7 +88,7 @@
       '</div>' +
       '<div class="mobile-menu__footer">' +
         '<a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="docbar_mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">' + tr('ctaXray', 'Пройти финансовый рентген') + '</a>' +
-        '<a href="https://t.me/finmentor_md_bot" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">' + tr('ctaBot', 'Лучше сразу написать → FINMENTOR Bot') + '</a>' +
+        '<a href="' + TG + '" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">' + tr('ctaBot', 'Лучше сразу написать → FINMENTOR Bot') + '</a>' +
       '</div>';
     document.body.appendChild(menu);
 

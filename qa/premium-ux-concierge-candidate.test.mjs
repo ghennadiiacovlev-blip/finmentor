@@ -33,7 +33,7 @@ const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.strin
 const wf = JSON.parse(readFileSync(CANDIDATE, 'utf8'));
 // The premium body lives on its OWN node now. `Build Bot Response` is the legacy node and must
 // stay exactly as it is, because that is what every non-owner still runs.
-const body = wf.nodes.find((n) => n.name === 'Build Bot Response (Premium)').parameters.jsCode;
+const body = wf.nodes.find((n) => n.name === 'Build Bot Response').parameters.jsCode;
 
 // The node reads `$input.first().json`. Everything else it touches is its own.
 const runner = new Function('$input', body);
@@ -396,64 +396,149 @@ check('the P9-R2 flag pair is absent from every node', () => {
     assert(!(n.alwaysOutputData === true && n.onError === 'continueErrorOutput'),
       'P9-R2 flag pair on ' + n.name);
   }
-  eq(wf.nodes.length, 54, 'node count');
+  eq(wf.nodes.length, 51, 'node count');
 });
 
-// ---------------------------------------------------------------- the owner gate
+// ---------------------------------------------------------------- the customer conversation
 
-check('the premium branch is ADDITIVE — three nodes added, none modified, none removed', () => {
+check('the conversation is SPLICED — no node added, none removed, no edge moved', () => {
+  // P1-01. The premium conversation used to be three ADDED nodes behind an owner gate. It is now
+  // the two live nodes themselves, because thirteen downstream nodes read `$('Build Bot Response')`
+  // and thirteen read `$('Get Bot Session')` BY NAME: a customer sent down a parallel branch would
+  // reach a node whose `$('Build Bot Response')` never ran.
   const live = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
-  const added = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
-  eq(wf.nodes.length, live.nodes.length + 3, 'node count');
+  const spliced = ['Get Bot Session', 'Build Bot Response'];
+  eq(wf.nodes.length, live.nodes.length, 'node count');
   for (const n of wf.nodes) {
-    if (added.indexOf(n.name) !== -1) { continue; }
     const was = live.nodes.find((x) => x.name === n.name);
     assert(was, 'unexpected new node: ' + n.name);
+    if (spliced.indexOf(n.name) !== -1) {
+      // The spliced nodes may differ in `parameters.jsCode` and in nothing else.
+      const a = JSON.parse(JSON.stringify(n));
+      const b = JSON.parse(JSON.stringify(was));
+      a.parameters.jsCode = ''; b.parameters.jsCode = '';
+      eq(JSON.stringify(a), JSON.stringify(b), n.name + ' changed beyond its node body');
+      assert(n.parameters.jsCode !== was.parameters.jsCode, n.name + ': the splice did not change the body');
+      continue;
+    }
     eq(JSON.stringify(n), JSON.stringify(was), 'a live node was modified: ' + n.name);
   }
   for (const n of live.nodes) {
     assert(wf.nodes.find((x) => x.name === n.name), 'a live node was removed: ' + n.name);
   }
-});
-
-check('a NON-owner reaches the legacy node, and the legacy node still resets on /start', () => {
-  // The legacy behaviour is not merely 'preserved' — it is the same object. And it must still
-  // carry the /start reset: removing it for everyone would be a silent change to the live product.
-  const legacy = wf.nodes.find((n) => n.name === 'Build Bot Response');
-  assert(legacy, 'the legacy response node is gone');
-  const legacySession = wf.nodes.find((n) => n.name === 'Get Bot Session');
-  assert(/if \(isStart\) reset = 'start';/.test(legacySession.parameters.jsCode),
-    'the /start reset was removed for NON-owners too — that is a live product change');
-  const gate = wf.connections['Premium Owner Gate'];
-  eq(gate.main[1][0].node, 'Get Bot Session', 'the FALSE branch does not lead to the legacy path');
-  eq(wf.connections['Get Bot Session'].main[0][0].node, 'Build Bot Response', 'the legacy path was rewired');
-});
-
-check('the OWNER path drops the /start reset, and keeps everything else', () => {
-  const premiumSession = wf.nodes.find((n) => n.name === 'Get Bot Session (Premium)');
-  assert(premiumSession, 'the premium session node is missing');
-  const code = premiumSession.parameters.jsCode;
-  const exec = code.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
-  assert(!/if \(isStart\) reset = /.test(exec), 'the /start reset is still executable on the owner path');
-  assert(/\[premium\] REMOVED/.test(code), 'the removal is not recorded in the node');
-  // The cycle-semantics gate and submission-key issuance must survive intact.
-  for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'cycle_reset', '__submission_key_action']) {
-    assert(code.indexOf(keep) !== -1, 'the premium session node lost ' + keep);
+  // The retired owner branch must be gone, not merely bypassed.
+  for (const gone of ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)']) {
+    assert(!wf.nodes.find((x) => x.name === gone), 'the retired owner branch is still present: ' + gone);
   }
-  eq(wf.connections['Premium Owner Gate'].main[0][0].node, 'Get Bot Session (Premium)', 'TRUE branch');
-  eq(wf.connections['Get Bot Session (Premium)'].main[0][0].node, 'Build Bot Response (Premium)', 'premium chain');
-  eq(wf.connections['Build Bot Response (Premium)'].main[0][0].node, 'Build Transport Request', 'premium rejoin');
 });
 
-check('the gate reads the owner identity from Settings, and embeds no Telegram id', () => {
-  const gate = wf.nodes.find((n) => n.name === 'Premium Owner Gate');
-  const j = JSON.stringify(gate);
-  assert(j.indexOf('owner_chat_id') !== -1, 'the gate does not read owner_chat_id from Settings');
-  assert(j.indexOf('Parse Telegram Update') !== -1, 'the gate does not read the incoming chat id');
-  assert(!/\b\d{6,}\b/.test(j), 'a literal Telegram id is embedded in the gate');
-  // Two outputs, and only two.
-  eq(gate.type, 'n8n-nodes-base.if', 'the gate is not an IF node');
-  eq(wf.connections['Premium Owner Gate'].main.length, 2, 'the gate must have exactly two outputs');
+check('the connection graph is byte-identical to the live workflow', () => {
+  const live = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
+  const keys = [...new Set(Object.keys(live.connections).concat(Object.keys(wf.connections)))].sort();
+  for (const k of keys) {
+    eq(JSON.stringify(wf.connections[k]), JSON.stringify(live.connections[k]), 'edge changed: ' + k);
+  }
+  eq(wf.connections['Find Session'].main[0][0].node, 'Get Bot Session', 'the customer path entry');
+  eq(wf.connections['Get Bot Session'].main[0][0].node, 'Build Bot Response', 'the customer path');
+  eq(wf.connections['Build Bot Response'].main[0][0].node, 'Build Transport Request', 'the rejoin');
+});
+
+check('every downstream $(...) reference names a node the candidate still contains', () => {
+  // This is the check the retired parallel branch could never have passed.
+  const names = new Set(wf.nodes.map((n) => n.name));
+  const referenced = new Set();
+  for (const n of wf.nodes) {
+    const j = JSON.stringify(n.parameters || {});
+    for (const m of j.matchAll(/\$\(\\?['"]([^'"\\]+)\\?['"]\)/g)) { referenced.add(m[1]); }
+  }
+  for (const r of referenced) { assert(names.has(r), 'a node references $("' + r + '"), which is gone'); }
+  for (const must of ['Get Bot Session', 'Build Bot Response']) {
+    assert(referenced.has(must), 'nothing references $("' + must + '") — the splice went to the wrong node');
+  }
+});
+
+check('the /start reset is gone for EVERY customer, not just the owner', () => {
+  // The reset archived lead_id, cleared consent and wiped every qualification answer. It is a
+  // customer-facing data-loss defect, and it matters more now that `/start ro` is the ordinary way
+  // a Romanian customer arrives.
+  const session = wf.nodes.find((n) => n.name === 'Get Bot Session');
+  const code = session.parameters.jsCode;
+  const exec = code.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  assert(!/if \(isStart\) reset = /.test(exec), 'the /start reset is still executable');
+  assert(/\[premium\] REMOVED/.test(code), 'the removal is not recorded in the node');
+  for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'cycle_reset', '__submission_key_action']) {
+    assert(code.indexOf(keep) !== -1, 'the session node lost ' + keep);
+  }
+});
+
+// ---------------------------------------------------------------- the owner boundary
+
+check('no owner identity decides anything on the customer path', () => {
+  // Making the conversation reachable by customers must not hand a customer one byte of owner
+  // authority. The Concierge holds no owner control at all — `Hot Path Config` deliberately stops
+  // emitting owner_chat_id — and the two spliced nodes must not reintroduce one.
+  for (const name of ['Get Bot Session', 'Build Bot Response']) {
+    const n = wf.nodes.find((x) => x.name === name);
+    const exec = n.parameters.jsCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+    assert(!/owner_chat_id|owner_id|is_owner|isOwner/.test(exec), name + ' reads an owner identity');
+    const hits = (exec.match(/\b\d{7,}\b/g) || []);
+    eq(hits.length, 0, name + ' embeds a long numeric id: ' + hits.slice(0, 3).join(', '));
+  }
+});
+
+check('a non-owner customer can only ever be shown the customer callback vocabulary', () => {
+  // Every keyboard the conversation can build, across every reachable screen, over both locales.
+  const APPROVED = new Set(Object.keys(A).map((k) => A[k]));
+  const seen = new Set();
+  const sessions = [
+    fresh(), fresh({ state: 'TG_FREEFORM_PROBLEM' }), fresh({ state: 'TG_CONFIRM_CONTEXT' }),
+    drafting(), drafting({ state: 'TG_RESUME_DRAFT' }), committed(),
+    committed({ state: 'TG_APPEND_MESSAGE' }), committed({ state: 'TG_NEW_REQUEST_CONFIRM' })
+  ];
+  const inputs = [{ message_text: '/start' }, { message_text: '/start ro' }, { message_text: 'текст' }]
+    .concat(Object.keys(A).map((k) => ({ callback_data: A[k] })));
+  for (const language of ['ru', 'ro', 'ro-MD', 'en', '']) {
+    for (const s of sessions) {
+      for (const i of inputs) {
+        const r = run(Object.assign({ session: Object.assign({}, s, { language: language }) }, i));
+        for (const row of r.reply_markup.inline_keyboard || []) {
+          for (const btn of row) {
+            if (btn.web_app) { continue; }
+            seen.add(btn.callback_data);
+          }
+        }
+      }
+    }
+  }
+  assert(seen.size > 0, 'no keyboard was produced at all — the sweep proved nothing');
+  for (const cb of seen) {
+    assert(APPROVED.has(cb), 'a callback outside the customer vocabulary reached a customer: ' + cb);
+  }
+  // The owner surfaces use their own prefixes. None may appear anywhere in the customer node.
+  const body2 = wf.nodes.find((n) => n.name === 'Build Bot Response').parameters.jsCode;
+  for (const owner of ['lead|', 'stage|', 'crm|', 'ack|', 'close|', 'won|', 'lost|', 'nurture|', 'admin|', 'owner|']) {
+    assert(body2.indexOf('"' + owner) === -1 && body2.indexOf("'" + owner) === -1,
+      'an owner callback prefix is present in the customer node: ' + owner);
+  }
+});
+
+check('the set of workflows the Concierge calls is unchanged', () => {
+  // The transport and the internal Lead Intake handoff, both of which already existed and neither
+  // of which is an owner control. A new executeWorkflow call would be a new authority.
+  const live = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
+  const now = wf.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow').map((n) => n.name).sort();
+  const was = live.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow').map((n) => n.name).sort();
+  eq(now.join(','), was.join(','), 'the set of called workflows changed');
+});
+
+check('the two spliced nodes embed no Telegram id', () => {
+  // Scoped to what this delta introduced. The rest of the artifact is the live workflow verbatim,
+  // and the long numbers in it are spreadsheet gids and timestamps that were already there.
+  for (const name of ['Get Bot Session', 'Build Bot Response']) {
+    const n = wf.nodes.find((x) => x.name === name);
+    const hits = (JSON.stringify(n).match(/\b\d{7,}\b/g) || []);
+    eq(hits.length, 0, name + ' embeds a long numeric id: ' + hits.slice(0, 3).join(', '));
+  }
 });
 
 check('an empty message stays on the free-text screen and stores nothing', () => {
@@ -476,20 +561,6 @@ check('a real message still leaves the free-text screen', () => {
     message_text: 'Я собственник, кассовые разрывы, нужен прогноз движения денежных средств.' });
   assert(r.debug.state_after !== 'TG_FREEFORM_PROBLEM', 'a real message was swallowed by the empty guard');
   assert(String(r.session.free_text_request || '').length > 0, 'the real text was not stored');
-});
-
-check('the THREE ADDED nodes embed no Telegram id', () => {
-  // Scoped to what this delta introduced. The rest of the artifact is the live workflow verbatim,
-  // and the long numbers in it are spreadsheet gids and timestamps that were already there — a
-  // check that flagged those would be measuring the repo's history, not this change.
-  const added = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
-  for (const name of added) {
-    const n = wf.nodes.find((x) => x.name === name);
-    assert(n, 'missing added node: ' + name);
-    const j = JSON.stringify(n);
-    const hits = (j.match(/\b\d{7,}\b/g) || []);
-    eq(hits.length, 0, name + ' embeds a long numeric id: ' + hits.slice(0, 3).join(', '));
-  }
 });
 
 console.log('');

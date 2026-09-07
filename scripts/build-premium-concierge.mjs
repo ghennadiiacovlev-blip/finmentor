@@ -1,25 +1,33 @@
 #!/usr/bin/env node
-// FINMENTOR — Premium RU Concierge candidate.
+// FINMENTOR — Premium bilingual Concierge candidate (the CUSTOMER conversation).
 //
 //   node scripts/build-premium-concierge.mjs --live <live-export.json>
 //
 // REPO-ONLY. Emits n8n/candidate/premium-concierge-candidate.json and never contacts n8n.
 // It is a CANDIDATE, not a deployment.
 //
-// IT REPLACES NOTHING. It ADDS an owner-only branch.
+// IT SPLICES TWO NODE BODIES. It adds no node, removes none, and moves no edge.
 //
 // The live Concierge is 51 nodes and serves real customers. Almost all of those nodes are the
 // SPINE: session read, the issuance gate, receipt preallocation and readback, the authority re-read
 // and verdict, the stale- and unresolved-authority branches, the transport worker, the internal
 // handoff to Lead Intake. Every P8/P9 hardening decision lives there and every one is closed at GO.
 //
-// An earlier version of this script OVERWROTE `Build Bot Response`. That was fine while the
-// candidate was never going to be deployed; it stopped being fine the moment owner-only UAT on the
-// live bot became the plan, because it would have put the Premium flow in front of every customer.
+// P1-01 — WHY THIS IS NO LONGER AN OWNER-GATED BRANCH. Until this build the premium conversation
+// was three ADDED nodes behind a `Premium Owner Gate`, so that owner-only UAT could run on the live
+// bot without putting an unproven flow in front of customers. That shape has to go for the release,
+// for two independent reasons:
 //
-// So: three nodes are added, none is modified, none is removed, and a non-owner reaches exactly
-// the node they reach today — one IF later. Owner-only becomes a server-side property rather than
-// an unlisted URL.
+//   * it made the BILINGUAL path the OWNER path. The whole Romanian presentation and the locale
+//     authority sat on the branch only the owner could enter, so a Romanian customer following the
+//     Romanian site's own call to action met a Russian-only state machine;
+//   * it could not have carried customers even with the gate opened, because thirteen downstream
+//     nodes read `$('Build Bot Response')` and thirteen read `$('Get Bot Session')` by NAME.
+//
+// So the conversation is spliced INTO the two nodes those readers already name. See "the customer
+// conversation" below for the full argument, including why this hands a customer no owner
+// authority: this workflow contains no owner control, and the invariants assert it rather than
+// assume it.
 //
 // THE NODE BODY IS GENERATED FROM THE GATED MODULES. `n8n/src/premium-ux/tg-state-machine.js` and
 // the TG_COPY block of `branches.js` are inlined verbatim at build time rather than retyped here.
@@ -102,6 +110,33 @@ const smSource = readFileSync(SM_PATH, 'utf8')
   .replace(/^module\.exports = \{[\s\S]*?\};\s*$/m, '')
   .trim();
 
+// P1-01 — the locale authority, taken from locale.js rather than restated here.
+//
+// The node used to carry its own two-line `isRo()`. It agreed with locale.js by inspection only,
+// and it consulted no journey origin at all, so the module the QA gate drives and the code the
+// customer actually met were two different decisions. They are now one: these four functions are
+// LIFTED VERBATIM from n8n/src/premium-ux/locale.js at build time, and the gate below refuses to
+// emit a node in which any of them is missing or has been re-typed.
+const LOCALE_PATH = join(ROOT, 'n8n', 'src', 'premium-ux', 'locale.js');
+export const LOCALE_FUNCTIONS = ['normalize', 'resolveLocale', 'startPayloadLocale', 'resolveCustomerLocale'];
+
+export function takeFunctions(source, names) {
+  const out = [];
+  const re0 = /^const START_PAYLOAD_RE = .*$/m.exec(source);
+  if (!re0) { throw new Error('locale.js no longer declares START_PAYLOAD_RE'); }
+  out.push(re0[0]);
+  for (const name of names) {
+    const re = new RegExp('^function ' + name + '\\([\\s\\S]*?\\n\\}', 'm');
+    const m = re.exec(source);
+    if (!m) { throw new Error('locale.js no longer exports a liftable `' + name + '`'); }
+    out.push(m[0]);
+  }
+  return out.join('\n\n');
+}
+
+const localeSource = takeFunctions(readFileSync(LOCALE_PATH, 'utf8'), LOCALE_FUNCTIONS)
+  .replace(/\bDEFAULT_LOCALE\b/g, '"ru"');
+
 const ADAPTER_HEAD = [
   '// Build Bot Response — FINMENTOR PREMIUM RU Concierge.',
   '//',
@@ -131,10 +166,17 @@ const ADAPTER_HEAD = [
   // so it is inlined; it is data, and the build is the only thing that writes it.
   'const RO_LABELS = ' + JSON.stringify(L.roTable(B), null, 2) + ';',
   '',
-  '// A language TAG match, not equality: `ro` and `ro-MD` are Romanian, `roman` is not. The locale',
-  '// the session carries wins; Telegram\'s own UI language is only consulted when the session has',
-  '// none, which is the cold-first-contact case. This is the same order as locale.js.',
-  'function isRo(v) { return /^ro(-|$)/i.test(String(v == null ? "" : v).trim()); }',
+  '// ── the locale authority ─────────────────────────────────────────────────────────────────',
+  '//',
+  '// LIFTED VERBATIM from n8n/src/premium-ux/locale.js by scripts/build-premium-concierge.mjs.',
+  '// A Code node cannot require(), and a re-typed copy is how the shipping path and the tested',
+  '// module drifted apart in the first place: the module resolved a journey origin that nothing',
+  '// ever supplied, and the node consulted Telegram\'s UI language alone.',
+  '//',
+  '// The order is journey origin -> persisted session -> Telegram language_code -> ru, and a',
+  '// language TAG match rather than equality, so `ro-MD` is Romanian and `roman` is not.',
+  localeSource,
+  '',
   'function TR(s) {',
   '  if (typeof s !== "string" || !RO_ACTIVE) { return s; }',
   '  const t = RO_LABELS[s];',
@@ -282,13 +324,32 @@ const ADAPTER_TAIL = [
   '// The message and the callback come from Parse Telegram Update, which is the only node that has',
   '// them. `$` does not exist in the offline harness, so its absence is a normal case, not an error.',
   'const p = (function () { try { return $("Parse Telegram Update").first().json || {}; } catch (e) { return {}; } })();',
-  // The locale for THIS reply, decided once. session.language is what the Gateway recorded for
-  // the customer journey; p.language is Telegram's own hint and is only reached when the session
-  // carries none.
-  'const RO_ACTIVE = isRo(session.language || p.language);',
   'const chat_id = String(session.chat_id || src.chat_id || p.chat_id || "");',
   'const text = String(p.message_text || src.message_text || src.text || "");',
   'const data = String(p.callback_data || src.callback_data || src.data || "");',
+  '',
+  // ── the locale for THIS reply, decided once, by the module ──────────────────────────────────
+  //
+  // 1. the JOURNEY ORIGIN, carried by the Telegram deep-link start parameter the /ro/ and RU pages
+  //    publish (`?start=ro` arrives here as the message text `/start ro`);
+  // 2. the PERSISTED session locale, which is what the journey origin became on the turn it
+  //    arrived — a returning customer keeps the language they started in;
+  // 3. Telegram's `language_code`, a hint, reached only by a customer with neither of the above;
+  // 4. `ru`.
+  //
+  // A Romanian who reads Telegram in Russian therefore stays Romanian, which is the defect this
+  // closes. No model call and no language detection participates: the origin is a page, not a guess.
+  'const LOCALE = resolveCustomerLocale({',
+  '  messageText: text,',
+  '  sessionLocale: session.language,',
+  '  telegramLanguageCode: p.language',
+  '});',
+  'const RO_ACTIVE = LOCALE === "ro";',
+  '',
+  // PERSISTED, so the deep link only has to happen once. `language` is an EXISTING Bot_Sessions
+  // column that Build Session Row already writes — no column is added, and F16 (a stray property
+  // permanently widening the sheet) cannot repeat here.
+  'session.language = LOCALE;',
   '',
   '// The authority snapshot is resolved UPSTREAM, from Bot_Sessions, and is read here rather than',
   '// derived from the message. `committed` is never taken from a caller.',
@@ -470,49 +531,76 @@ const candidate = {
 
 const fail = [];
 
-// ------------------------------------------------------------------ the owner gate
+// ------------------------------------------------------------------ the customer conversation
 //
-// THE PREMIUM FLOW IS ADDITIVE, NOT A REPLACEMENT. The live Concierge serves real customers, so
-// this candidate does NOT overwrite the existing response builder. It adds a branch only the owner
-// can enter, and leaves every existing node byte-identical:
+// P1-01. THE PREMIUM CONVERSATION IS THE CUSTOMER CONVERSATION. It is spliced INTO the two live
+// nodes, and it is no longer gated on owner identity.
+//
+// WHAT THIS REPLACES AND WHY. The previous shape added three nodes behind a `Premium Owner Gate`
+// that compared the Telegram chat id to Settings `owner_chat_id`:
 //
 //   Find Session -> Premium Owner Gate --[owner]--> Get Bot Session (Premium)
-//                          |                            -> Build Bot Response (Premium) --+
-//                          --[everyone else]--> Get Bot Session -> Build Bot Response ----+
-//                                                                                         v
-//                                                                        Build Transport Request
+//                          |                          -> Build Bot Response (Premium) --+
+//                          --[everyone else]--> Get Bot Session -> Build Bot Response ---+
 //
-// A non-owner reaches the SAME node running the SAME code, one IF later. That is what makes
-// owner-only a server-side property rather than an unlisted URL.
+// That was right for owner-only UAT and wrong for the release. Two things were wrong with it:
 //
-// WHY THE GATE SITS BEFORE Get Bot Session AND NOT AFTER IT. Get Bot Session is where the /start
-// reset lives:
+//   1. THE BILINGUAL PATH WAS THE OWNER PATH. Every Romanian string, and the whole locale
+//      authority, lived on the branch only the owner could enter. A Romanian customer following
+//      the Romanian site's own call to action reached the legacy node, which holds 67 Russian
+//      sendable strings and no Romanian at all. The audit finding — "the isolated locale resolver
+//      is correct but the shipping customer path does not use it end to end" — is exactly this.
+//
+//   2. THE PARALLEL BRANCH COULD NEVER HAVE CARRIED CUSTOMERS ANYWAY. Thirteen downstream nodes
+//      read `$('Build Bot Response')` and thirteen read `$('Get Bot Session')` BY NAME — Build
+//      Session Row, Build Bot Event, Build Internal Handoff, the issuance and authority verdicts,
+//      the transport builders. A customer routed down the parallel branch would reach a node whose
+//      `$('Build Bot Response')` never executed. Opening the gate would not have shipped the
+//      premium conversation; it would have broken the spine.
+//
+// So the branch is removed and the logic is spliced into the nodes those thirteen readers already
+// name. Node count is unchanged, the connection graph is UNTOUCHED, and every downstream reference
+// resolves exactly as it does today.
+//
+// WHAT THIS DOES NOT DO — THE OWNER BOUNDARY. It grants a customer NOTHING that belongs to the
+// owner. This workflow contains no owner control: `Hot Path Config` deliberately stops emitting
+// `owner_chat_id` (it is one of its four dead keys), and no node in the Concierge reads an owner
+// identity to decide what a person may do. Owner authority — the lead lifecycle commands, the CRM
+// stage and terminal writes, the internal lead actions, the alert keyboards — lives in the Lead
+// Command Center and Lead Alerts workflows, each behind its own owner gate, and none of them is
+// touched here. The invariants below ASSERT that separation rather than assuming it: the spliced
+// nodes may emit only the approved CUSTOMER callback vocabulary, and may not read an owner
+// identity at all.
+//
+// WHY THE /start RESET STILL GOES. `Get Bot Session` does, unconditionally:
 //
 //     const isStart = text === '/start';
 //     if (isStart) reset = 'start';
-//     if (reset) cycleId = 'C-' + chat_id + '-' + Date.now();
 //
-// It mints a new cycle BEFORE any response node runs. Gating after it would leave the premium
-// machine enforcing a terminal rule on a session that had already been reset out from under it:
-// the fix would appear to work and would in fact do nothing.
+// so `/start` after a committed submission archives lead_id, clears consent and wipes every
+// qualification answer. That is a customer-facing data-loss defect, not an owner convenience, and
+// it matters more once the deep link makes `/start ro` the ordinary way a Romanian customer
+// arrives. The premium machine's terminal rule replaces it: after a committed submission no input
+// returns the customer to qualification without an explicit CONFIRMED action.
 
-const OWNER_GATE = 'Premium Owner Gate';
-const PREMIUM_SESSION = 'Get Bot Session (Premium)';
-const PREMIUM_RESPONSE = 'Build Bot Response (Premium)';
+const CUSTOMER_SESSION = 'Get Bot Session';
+const CUSTOMER_RESPONSE = RESPONSE_NODE;
 const ANCHOR_IN = 'Find Session';
-const LEGACY_SESSION = 'Get Bot Session';
 const ANCHOR_OUT = 'Build Transport Request';
+const RETIRED_NODES = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
 
-for (const n of [ANCHOR_IN, LEGACY_SESSION, RESPONSE_NODE, ANCHOR_OUT]) {
+for (const n of [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, ANCHOR_OUT]) {
   if (!candidate.nodes.find((x) => x.name === n)) { fail.push('missing anchor node: ' + n); }
 }
 
-// The owner path's session resolution: the live code with the /start reset removed and nothing
-// else changed. Generated from the live node so it cannot drift from the spine it mirrors.
-const legacySession = baseNodes.find((n) => n.name === LEGACY_SESSION);
+// The customer session node: the live code with the /start reset removed and the journey origin
+// added, and nothing else changed. Generated from the live node so it cannot drift from the spine
+// it mirrors.
+const legacySession = baseNodes.find((n) => n.name === CUSTOMER_SESSION);
 const RESET_LINE = "if (isStart) reset = 'start';";
+const RETURN_ANCHOR = 'return [{ json: s }];';
 
-// THE LINE IS NEUTERED, NOT COMMENTED OUT.
+// THE RESET LINE IS NEUTERED, NOT COMMENTED OUT.
 //
 // It is the HEAD of an if/else chain in the live node:
 //
@@ -522,181 +610,295 @@ const RESET_LINE = "if (isStart) reset = 'start';";
 //
 // Commenting the head out orphans the first `else`, and the node dies with
 // `SyntaxError: Unexpected token 'else'`. That is not hypothetical: the owner's first two real
-// /start messages reached n8n and routed correctly through the owner gate, and then this node
-// threw — so the bot answered nothing at all, with no error visible to the person typing.
+// /start messages reached n8n and routed correctly, and then this node threw — so the bot answered
+// nothing at all, with no error visible to the person typing.
 //
-// `if (false)` keeps the chain syntactically intact and keeps the removal legible in the
-// deployed source. The `isStart` binding above stays — unused and harmless — rather than being
-// deleted, because every other byte of this node is the live code verbatim and each extra edit
-// is another chance to break something that was working.
+// `if (false)` keeps the chain syntactically intact and keeps the removal legible in the deployed
+// source. The `isStart` binding above stays — unused and harmless — rather than being deleted,
+// because every other byte of this node is the live code verbatim and each extra edit is another
+// chance to break something that was working.
 const PREMIUM_RESET_REPLACEMENT = [
   '// [premium] REMOVED: /start no longer resets the cycle. `if (false)` rather than a comment,',
   '// because this line heads an if/else chain and commenting it out orphans the `else` below.',
   "if (false) { reset = 'start'; }"
 ].join('\n');
+
+// P1-01 — the journey origin, captured on the turn it arrives.
+//
+// `?start=ro` on the Romanian pages and `?start=ru` on the Russian ones reach Telegram as the
+// message text `/start ro`. The cycle gate is where that text is already in hand and where the
+// session row is already being assembled, so the origin is recorded here and the response node
+// reads it back off the session like any other persisted field.
+//
+// It is a CLOSED vocabulary — the two supported tags and nothing else — and it is lifted from
+// n8n/src/premium-ux/locale.js exactly as the response node's copy is, so there is one statement
+// of what a start payload may mean.
+//
+// It writes to `language`, an EXISTING Bot_Sessions column that Build Session Row already
+// persists. No column is added: F16 proved a stray property permanently widens the sheet.
+const JOURNEY_ORIGIN_SPLICE = [
+  '',
+  '// ============ P1-01 — JOURNEY-ORIGIN LOCALE (deep-link start parameter) ============',
+  '//',
+  '// GENERATED from n8n/src/premium-ux/locale.js. The Romanian pages publish the bot deep link',
+  '// with `?start=ro` and the Russian pages with `?start=ru`; Telegram delivers that as the message',
+  '// text `/start ro`. A customer who entered from the Romanian journey therefore stays',
+  '// Romanian on every later turn, whatever language Telegram\'s own interface is set to.',
+  '//',
+  '// Only the two supported tags are recognised. Any other payload is ignored and the turn resolves',
+  '// exactly as a bare `/start` does — persisted session locale, then Telegram\'s hint, then ru.',
+  '//',
+  '// The resolution runs on EVERY turn, not only on a start: it also normalises a cold session that',
+  '// Find Session seeded with a raw Telegram tag such as `ro-MD` or `en`, so every later turn reads',
+  '// an authoritative `ru` or `ro` rather than re-deriving one.',
+  localeSource,
+  '',
+  's.language = resolveCustomerLocale({',
+  '  messageText: String(p.message_text || ""),',
+  '  sessionLocale: s.language,',
+  '  telegramLanguageCode: p.language',
+  '});',
+  '// ============ end P1-01 ============',
+  ''
+].join('\n');
+
 let premiumSessionCode = '';
 if (legacySession) {
   const orig = legacySession.parameters.jsCode;
   if (orig.indexOf(RESET_LINE) === -1) {
-    fail.push(LEGACY_SESSION + ': the /start reset line was not found -- do not splice blindly');
+    fail.push(CUSTOMER_SESSION + ': the /start reset line was not found -- do not splice blindly');
+  } else if (orig.indexOf(RETURN_ANCHOR) === -1) {
+    fail.push(CUSTOMER_SESSION + ': the return anchor was not found -- do not splice blindly');
+  } else if (orig.split(RETURN_ANCHOR).length !== 2) {
+    fail.push(CUSTOMER_SESSION + ': the return anchor is not unique -- do not splice blindly');
   } else {
     premiumSessionCode = [
-      '// Get Bot Session (PREMIUM) -- the live cycle-semantics gate, with ONE line removed.',
+      '// Get Bot Session — the live cycle-semantics gate, with ONE line removed and the',
+      '// journey-origin locale added.',
       '//',
       '// GENERATED by scripts/build-premium-concierge.mjs from the live Get Bot Session node.',
-      '// Do not edit here. This is the live code minus the /start reset, and nothing else.',
+      '// DO NOT EDIT IN THE n8n UI: the next build overwrites it, and an edit here would not be',
+      '// covered by qa/ro-first-contact.test.mjs.',
       '//',
       '// REMOVED:  ' + RESET_LINE,
+      '// ADDED:    the journey-origin locale capture (P1-01), lifted from',
+      '//           n8n/src/premium-ux/locale.js.',
       '//',
-      '// In the premium flow, /start after a committed submission must land on the terminal screen',
-      '// with the lead intact. Minting a new cycle here would destroy the lead before the state',
-      '// machine ever saw it, and the terminal rule would be enforcing nothing.',
+      '// /start after a committed submission must land on the terminal screen with the lead intact.',
+      '// Minting a new cycle here would destroy the lead before the state machine ever saw it, and',
+      '// the terminal rule would be enforcing nothing.',
       '//',
       '// isRestart and hasNoCycle are UNCHANGED: a session with no cycle still bootstraps one, and',
-      '// the legacy m|diag restart stays as it is -- the premium flow never sends that callback, so',
-      '// it is inert here rather than removed.',
+      '// the legacy m|diag restart stays as it is.',
       ''
-    ].join('\n') + orig.replace(RESET_LINE, PREMIUM_RESET_REPLACEMENT);
+    ].join('\n')
+      + orig.replace(RESET_LINE, PREMIUM_RESET_REPLACEMENT)
+            .replace(RETURN_ANCHOR, JOURNEY_ORIGIN_SPLICE + RETURN_ANCHOR);
   }
 }
 
-// The owner identity is READ FROM SETTINGS, never hard-coded. The live workflow already resolves
-// owner_chat_id in Settings to Object, so this reuses the identity the instance already trusts
-// rather than introducing a second source of truth -- and nothing about the owner reaches this repo.
-const OWNER_EXPR = '={{ String($("Parse Telegram Update").first().json.chat_id || "") }}';
-const OWNER_VALUE = '={{ String(($("Settings to Object").first().json.settings || {}).owner_chat_id || "") }}';
-
+// ------------------------------------------------------------------ splice
+//
+// TWO NODE BODIES CHANGE. Nothing else in the workflow does: no node is added, no node is removed,
+// no edge moves, and no other node's parameters differ by a byte from the live export.
 if (!fail.length) {
-  const anchorNode = candidate.nodes.find((n) => n.name === ANCHOR_IN);
-  const baseX = (anchorNode && anchorNode.position && anchorNode.position[0]) || 0;
-  const baseY = (anchorNode && anchorNode.position && anchorNode.position[1]) || 0;
-
-  candidate.nodes.push({
-    parameters: {
-      conditions: {
-        options: { caseSensitive: true, leftValue: '', typeValidation: 'strict', version: 2 },
-        conditions: [{
-          id: 'premium-owner-gate',
-          leftValue: OWNER_EXPR,
-          rightValue: OWNER_VALUE,
-          operator: { type: 'string', operation: 'equals' }
-        }],
-        combinator: 'and'
-      },
-      options: {}
-    },
-    id: 'premium-owner-gate', name: OWNER_GATE,
-    type: 'n8n-nodes-base.if', typeVersion: 2, position: [baseX + 160, baseY - 240]
-  });
-
-  candidate.nodes.push({
-    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: premiumSessionCode },
-    id: 'premium-get-session', name: PREMIUM_SESSION,
-    type: 'n8n-nodes-base.code', typeVersion: 2, position: [baseX + 400, baseY - 240]
-  });
-
-  candidate.nodes.push({
-    parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: NODE_BODY },
-    id: 'premium-build-response', name: PREMIUM_RESPONSE,
-    type: 'n8n-nodes-base.code', typeVersion: 2, position: [baseX + 640, baseY - 240]
-  });
-
-  // Rewire: Find Session now feeds the gate; the gate feeds the two session nodes.
-  candidate.connections[ANCHOR_IN] = { main: [[{ node: OWNER_GATE, type: 'main', index: 0 }]] };
-  candidate.connections[OWNER_GATE] = {
-    main: [
-      [{ node: PREMIUM_SESSION, type: 'main', index: 0 }],   // true  -- owner
-      [{ node: LEGACY_SESSION, type: 'main', index: 0 }]     // false -- everyone else, unchanged
-    ]
-  };
-  candidate.connections[PREMIUM_SESSION] = { main: [[{ node: PREMIUM_RESPONSE, type: 'main', index: 0 }]] };
-  candidate.connections[PREMIUM_RESPONSE] = { main: [[{ node: ANCHOR_OUT, type: 'main', index: 0 }]] };
+  const sessionNode = candidate.nodes.find((n) => n.name === CUSTOMER_SESSION);
+  const responseNode = candidate.nodes.find((n) => n.name === CUSTOMER_RESPONSE);
+  sessionNode.parameters = Object.assign({}, sessionNode.parameters, { jsCode: premiumSessionCode });
+  responseNode.parameters = Object.assign({}, responseNode.parameters, { jsCode: NODE_BODY });
+  candidate.name = '[CANDIDATE] FINMENTOR Telegram Client Concierge PREMIUM UX (customer, bilingual)';
 }
 
 // ------------------------------------------------------------------ invariants
 
-// EXACTLY three nodes are added and NONE is modified. That is the strongest statement available
-// about a workflow that serves real customers: the non-owner path is not 'equivalent', it is the
-// same objects.
-const ADDED = [OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE];
+// EXACTLY TWO NODE BODIES CHANGE, AND NOTHING ELSE DOES. That is the strongest statement available
+// about a workflow that serves real customers: every other node is not 'equivalent', it is the
+// same object.
+const SPLICED = [CUSTOMER_SESSION, CUSTOMER_RESPONSE];
 
-if (candidate.nodes.length !== baseNodes.length + 3) {
-  fail.push('node count moved: ' + baseNodes.length + ' -> ' + candidate.nodes.length + ' (expected +3)');
+if (candidate.nodes.length !== baseNodes.length) {
+  fail.push('node count moved: ' + baseNodes.length + ' -> ' + candidate.nodes.length + ' (expected no change)');
+}
+
+// The retired owner branch must be gone. If a later live export is taken from a tenant that still
+// carries those three nodes, they must not be silently re-emitted as part of the customer graph.
+for (const n of RETIRED_NODES) {
+  if (candidate.nodes.find((x) => x.name === n)) {
+    fail.push('the retired owner-gated branch is still present: ' + n);
+  }
 }
 
 const drift = [];
 for (const n of candidate.nodes) {
-  if (ADDED.indexOf(n.name) !== -1) { continue; }
   const was = baseNodes.find((x) => x.name === n.name);
   if (!was) { drift.push(n.name + ' (new)'); continue; }
+  if (SPLICED.indexOf(n.name) !== -1) {
+    // The spliced nodes may differ in `parameters.jsCode` and in NOTHING else — not credentials,
+    // not typeVersion, not retry policy, not position.
+    const a = JSON.parse(JSON.stringify(n));
+    const b = JSON.parse(JSON.stringify(was));
+    a.parameters.jsCode = '';
+    b.parameters.jsCode = '';
+    if (JSON.stringify(a) !== JSON.stringify(b)) { drift.push(n.name + ' (beyond jsCode)'); }
+    continue;
+  }
   if (JSON.stringify(n) !== JSON.stringify(was)) { drift.push(n.name); }
 }
 if (drift.length) { fail.push('UNRELATED DRIFT in ' + drift.length + ' node(s): ' + drift.slice(0, 8).join(', ')); }
+
+// Both spliced nodes must ACTUALLY have changed. A splice that silently no-opped would emit a
+// candidate identical to the live workflow and every gate below would still pass.
+for (const name of SPLICED) {
+  const now = candidate.nodes.find((x) => x.name === name);
+  const was = baseNodes.find((x) => x.name === name);
+  if (now && was && now.parameters.jsCode === was.parameters.jsCode) {
+    fail.push(name + ': the splice did not change the node body');
+  }
+}
 
 // No live node was removed.
 for (const n of baseNodes) {
   if (!candidate.nodes.find((x) => x.name === n.name)) { fail.push('node removed: ' + n.name); }
 }
 
-// The connection graph may differ in EXACTLY four keys, and no others.
-const EXPECTED_EDGE_KEYS = [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE].sort();
+// THE CONNECTION GRAPH IS UNTOUCHED. Not "differs in the expected keys" — identical. That is what
+// makes the thirteen downstream `$('Build Bot Response')` and thirteen `$('Get Bot Session')`
+// references safe: they name nodes that still exist, still run, and still sit where they sat.
 const edgeDiff = [];
 for (const k of new Set(Object.keys(live.connections).concat(Object.keys(candidate.connections)))) {
   if (JSON.stringify(live.connections[k]) !== JSON.stringify(candidate.connections[k])) { edgeDiff.push(k); }
 }
-if (edgeDiff.sort().join(',') !== EXPECTED_EDGE_KEYS.join(',')) {
-  fail.push('unexpected rewiring: ' + edgeDiff.join(', ') + ' (expected exactly ' + EXPECTED_EDGE_KEYS.join(', ') + ')');
+if (edgeDiff.length) {
+  fail.push('the connection graph was rewired: ' + edgeDiff.sort().join(', ') + ' (expected none)');
 }
 
-// The legacy path must still be intact end to end.
-const legacyEdge = candidate.connections[LEGACY_SESSION];
-if (JSON.stringify(legacyEdge) !== JSON.stringify(live.connections[LEGACY_SESSION])) {
-  fail.push(LEGACY_SESSION + ': the legacy path was rewired');
-}
-if (JSON.stringify(candidate.connections[RESPONSE_NODE]) !== JSON.stringify(live.connections[RESPONSE_NODE])) {
-  fail.push(RESPONSE_NODE + ': the legacy response path was rewired');
-}
-
-// The gate must route the FALSE branch to the legacy path. A gate that sent everyone to premium,
-// or that had only one output, would expose the flow to every customer.
-const gateEdges = candidate.connections[OWNER_GATE];
-if (!gateEdges || !gateEdges.main || gateEdges.main.length !== 2) {
-  fail.push(OWNER_GATE + ': must have exactly two outputs');
-} else {
-  const t = gateEdges.main[0][0] && gateEdges.main[0][0].node;
-  const f = gateEdges.main[1][0] && gateEdges.main[1][0].node;
-  if (t !== PREMIUM_SESSION) { fail.push(OWNER_GATE + ': the TRUE branch does not lead to the premium path'); }
-  if (f !== LEGACY_SESSION) { fail.push(OWNER_GATE + ': the FALSE branch does not lead to the legacy path'); }
+// Every downstream reader must still name a node that exists in the candidate. This is the check
+// the retired parallel branch could never have passed.
+{
+  const names = new Set(candidate.nodes.map((n) => n.name));
+  const referenced = new Set();
+  for (const n of candidate.nodes) {
+    const j = JSON.stringify(n.parameters || {});
+    for (const m of j.matchAll(/\$\(\\?['"]([^'"\\]+)\\?['"]\)/g)) { referenced.add(m[1]); }
+  }
+  for (const r of referenced) {
+    if (!names.has(r)) { fail.push('a node references $("' + r + '"), which the candidate does not contain'); }
+  }
+  for (const must of [CUSTOMER_SESSION, CUSTOMER_RESPONSE]) {
+    if (!referenced.has(must)) { fail.push('nothing references $("' + must + '") any more — the splice went to the wrong node'); }
+  }
 }
 
-// The owner identity must be read from Settings, never embedded.
-const gateNode = candidate.nodes.find((n) => n.name === OWNER_GATE);
-const gateJson = JSON.stringify(gateNode || {});
-if (gateJson.indexOf('owner_chat_id') === -1) { fail.push(OWNER_GATE + ': does not read owner_chat_id from Settings'); }
-if (/\b\d{6,}\b/.test(gateJson)) { fail.push(OWNER_GATE + ': a literal Telegram id is embedded in the gate'); }
+// ------------------------------------------------------------------ the owner boundary
+//
+// P1-01. The customer conversation becoming reachable by customers must not hand a customer one
+// byte of owner authority. Asserted, not assumed.
+{
+  // 1. NO OWNER IDENTITY DECIDES ANYTHING ON THE CUSTOMER PATH. Neither spliced node may read an
+  //    owner id, and neither may compare a chat id to one. `Settings to Object` still carries the
+  //    key for the workflows that legitimately need it; nothing on this path consults it.
+  for (const name of SPLICED) {
+    const n = candidate.nodes.find((x) => x.name === name);
+    const js = (n && n.parameters && n.parameters.jsCode) || '';
+    const codeOnly = js.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+    if (/owner_chat_id|owner_id|is_owner|isOwner/.test(codeOnly)) {
+      fail.push(name + ': the customer path reads an owner identity');
+    }
+    if (/\b\d{7,}\b/.test(codeOnly)) {
+      fail.push(name + ': a literal Telegram id is embedded in the customer path');
+    }
+  }
 
-// The premium session node must be the live code MINUS the reset, and nothing else.
+  // 2. THE CUSTOMER MAY EMIT ONLY THE CUSTOMER VOCABULARY. Every callback_data the conversation can
+  //    put in front of a customer is one of the approved conversation ACTIONS. An owner command —
+  //    a CRM stage write, a terminal close, a lead action, an alert acknowledgement — cannot be
+  //    rendered, so it cannot be tapped.
+  const approved = Object.keys(SM.ACTIONS).map((k) => SM.ACTIONS[k]).sort();
+  const emitted = [];
+  for (const m of NODE_BODY.matchAll(/ACTIONS\.([A-Z_]+)/g)) {
+    const v = SM.ACTIONS[m[1]];
+    if (v === undefined) { fail.push('the node emits ACTIONS.' + m[1] + ', which the machine does not define'); }
+    else if (emitted.indexOf(v) === -1) { emitted.push(v); }
+  }
+  for (const v of emitted) {
+    if (approved.indexOf(v) === -1) { fail.push('the node emits a callback outside the approved customer vocabulary: ' + v); }
+  }
+  // The owner surfaces use their own prefixes. None of them may appear in a customer reply.
+  for (const owner of ['lead|', 'stage|', 'crm|', 'ack|', 'close|', 'won|', 'lost|', 'nurture|', 'admin|', 'owner|']) {
+    if (NODE_BODY.indexOf('"' + owner) !== -1 || NODE_BODY.indexOf("'" + owner) !== -1) {
+      fail.push('an owner callback prefix reached the customer node: ' + owner);
+    }
+  }
+
+  // 3. NO OWNER-ONLY WORKFLOW IS CALLED FROM THE CUSTOMER PATH. The Concierge's only
+  //    executeWorkflow calls are the transport and the internal Lead Intake handoff, both of which
+  //    already existed and neither of which is an owner control. Asserted against the live export
+  //    so a new call cannot be introduced here unnoticed.
+  const callsNow = candidate.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow').map((n) => n.name).sort();
+  const callsWas = baseNodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow').map((n) => n.name).sort();
+  if (callsNow.join(',') !== callsWas.join(',')) {
+    fail.push('the set of called workflows changed: ' + callsWas.join(', ') + ' -> ' + callsNow.join(', '));
+  }
+}
+
+// ------------------------------------------------------------------ the locale authority
+//
+// P1-01. The shipping path must use the MODULE, not a re-typed copy of it.
+{
+  const sessionJs = (candidate.nodes.find((n) => n.name === CUSTOMER_SESSION) || { parameters: {} }).parameters.jsCode || '';
+  for (const [label, body] of [[CUSTOMER_SESSION, sessionJs], [CUSTOMER_RESPONSE, NODE_BODY]]) {
+    for (const fn of LOCALE_FUNCTIONS) {
+      if (body.indexOf('function ' + fn + '(') === -1) {
+        fail.push(label + ': the lifted locale authority is missing `' + fn + '`');
+      }
+    }
+    if (body.indexOf('resolveCustomerLocale({') === -1) {
+      fail.push(label + ': does not resolve the locale through resolveCustomerLocale');
+    }
+  }
+  // The ad-hoc predicate the node used to carry must not come back.
+  if (/function isRo\b/.test(NODE_BODY)) {
+    fail.push(CUSTOMER_RESPONSE + ': the retired ad-hoc `isRo` locale test is back');
+  }
+  // The resolved locale must be PERSISTED, or the deep link would have to be re-followed on every
+  // turn — which is the defect in a different shape.
+  if (NODE_BODY.indexOf('session.language = LOCALE;') === -1) {
+    fail.push(CUSTOMER_RESPONSE + ': the resolved locale is not persisted onto the session');
+  }
+  if (sessionJs.indexOf('s.language = resolveCustomerLocale({') === -1) {
+    fail.push(CUSTOMER_SESSION + ': the journey origin is not recorded onto the session');
+  }
+  // `language` must stay an EXISTING column. A new one would silently widen Bot_Sessions (F16).
+  const rowBuilder = candidate.nodes.find((n) => n.name === 'Build Session Row');
+  if (rowBuilder && (rowBuilder.parameters.jsCode || '').indexOf("'language'") === -1) {
+    fail.push('Build Session Row no longer persists `language` — the locale would not survive a turn');
+  }
+  // No language DETECTION. The origin is a page, never a guess about what a customer wrote.
+  const localeCode = NODE_BODY.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  for (const banned of ['detectLanguage', 'franc', 'langdetect', 'cld3', 'guessLanguage']) {
+    if (localeCode.indexOf(banned) !== -1) { fail.push('a language detector reached the customer node: ' + banned); }
+  }
+}
+
+// The customer session node must be the live code MINUS the reset PLUS the journey origin, and
+// nothing else.
 if (legacySession && premiumSessionCode) {
   if (premiumSessionCode.indexOf('[premium] REMOVED') === -1) {
-    fail.push(PREMIUM_SESSION + ': the removal of the /start reset is not recorded in the node');
+    fail.push(CUSTOMER_SESSION + ': the removal of the /start reset is not recorded in the node');
   }
   const strippedPremium = premiumSessionCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
   if (/if \(isStart\) reset = /.test(strippedPremium)) {
-    fail.push(PREMIUM_SESSION + ': the /start reset is still executable on the premium path');
+    fail.push(CUSTOMER_SESSION + ': the /start reset is still executable on the customer path');
   }
   // Everything else must survive: the cycle-semantics gate and the submission-key issuance are
   // what make the spine trustworthy, and removing either by accident would be invisible here
   // without this check.
   for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'isRestart', 'cycle_reset', '__submission_key_action']) {
-    if (premiumSessionCode.indexOf(keep) === -1) { fail.push(PREMIUM_SESSION + ': lost ' + keep); }
-  }
-  // …and the legacy node itself must be untouched.
-  if (legacySession.parameters.jsCode.indexOf(RESET_LINE) === -1) {
-    fail.push(LEGACY_SESSION + ': the LIVE node was modified — non-owners must keep exactly today\'s behaviour');
+    if (premiumSessionCode.indexOf(keep) === -1) { fail.push(CUSTOMER_SESSION + ': lost ' + keep); }
   }
 }
 
-// The output contract eleven downstream nodes read.
+// The output contract thirteen downstream nodes read.
 for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session', 'lead_ready',
                    'lead_payload', 'ai_guarded', 'debug', 'event']) {
   if (NODE_BODY.indexOf(key + ':') === -1) { fail.push('output contract lost the key: ' + key); }
@@ -813,7 +1015,7 @@ for (const leak of ['cachedResultUrl', 'activeVersion', 'versionId', 'pinData'])
 // EVERY generated node body must parse. The response body was checked here from the start; the
 // SESSION body was not, and that omission is precisely what reached production: a spliced
 // if/else chain that no test executed and no gate parsed, discovered by the owner typing /start.
-for (const [label, body] of [[PREMIUM_RESPONSE, NODE_BODY], [PREMIUM_SESSION, premiumSessionCode]]) {
+for (const [label, body] of [[CUSTOMER_RESPONSE, NODE_BODY], [CUSTOMER_SESSION, premiumSessionCode]]) {
   if (!body) { continue; }
   // A parse failure names a line number in a body that exists nowhere on disk. BUILD_DUMP_DIR
   // writes it out so that number means something.
@@ -846,23 +1048,30 @@ const premiumLines = NODE_BODY.split('\n').length;
 const legacyLines = baseNodes.find((n) => n.name === RESPONSE_NODE).parameters.jsCode.split('\n').length;
 
 console.log('');
-console.log('Premium RU Concierge candidate — OWNER-GATED, ADDITIVE');
+console.log('Premium Concierge candidate — CUSTOMER CONVERSATION, BILINGUAL, SPLICED');
 console.log('  source (live)      : ' + live.name + '  (' + baseNodes.length + ' nodes)');
 console.log('  display caches     : ' + cachesStripped + ' stripped');
 console.log('  out                : n8n/candidate/premium-concierge-candidate.json');
 console.log('');
-console.log('  nodes ADDED (3)    : ' + ADDED.join(', '));
-console.log('  nodes MODIFIED     : NONE — every one of the ' + baseNodes.length + ' live nodes is byte-identical');
+console.log('  nodes ADDED        : NONE');
 console.log('  nodes REMOVED      : NONE');
-console.log('  edges rewired (4)  : ' + [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE].join(', '));
+console.log('  edges rewired      : NONE — the connection graph is byte-identical to the live export');
+console.log('  nodes MODIFIED (2) : ' + [CUSTOMER_SESSION, CUSTOMER_RESPONSE].join(', ') + '  (parameters.jsCode only)');
 console.log('');
-console.log('  owner path         : ' + [ANCHOR_IN, OWNER_GATE, PREMIUM_SESSION, PREMIUM_RESPONSE, ANCHOR_OUT].join(' -> '));
-console.log('  everyone else      : ' + [ANCHOR_IN, OWNER_GATE, LEGACY_SESSION, RESPONSE_NODE, ANCHOR_OUT].join(' -> '));
-console.log('  owner identity     : read from Settings owner_chat_id; no literal id in this artifact');
+console.log('  customer path      : ' + [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, ANCHOR_OUT].join(' -> '));
+console.log('  owner gate         : REMOVED from the customer conversation. Owner authority stays');
+console.log('                       where it lives — Lead Command Center and Lead Alerts, each with');
+console.log('                       its own gate; neither is touched by this candidate.');
+console.log('  owner identity     : NOT read on the customer path, and no literal id in this artifact');
 console.log('');
-console.log('  premium response   : ' + premiumLines + ' lines, generated from the gated modules');
-console.log('  legacy response    : ' + legacyLines + ' lines, UNTOUCHED');
-console.log('  /start reset       : removed on the PREMIUM path only; the legacy node keeps it');
+console.log('  locale authority   : journey origin (deep-link ?start=) -> session -> Telegram -> ru');
+console.log('                       lifted verbatim from n8n/src/premium-ux/locale.js: '
+  + LOCALE_FUNCTIONS.join(', '));
+console.log('  RO labels          : ' + Object.keys(L.roTable(B)).length + ' customer-visible strings, 0 untranslated');
+console.log('');
+console.log('  response body      : ' + premiumLines + ' lines, generated from the gated modules');
+console.log('                       (replaces ' + legacyLines + ' lines of the live Russian-only builder)');
+console.log('  /start reset       : removed — a committed lead survives /start');
 console.log('  spine              : UNTOUCHED (issuance gate, receipts, authority verdicts, transport, handoff)');
 console.log('  states             : ' + SM.STATES.length + '   rotate branches: ' + rotates + ' (both confirmed)');
 console.log('  web_app buttons    : 1  (Открыть бриф, URL = ' + MINIAPP_URL_PLACEHOLDER + ')');
@@ -870,7 +1079,7 @@ console.log('  P9-R2 flag pair    : ABSENT across all ' + candidate.nodes.length
 console.log('');
 console.log('  structural sha256  : ' + structural(baseNodes, live.connections) + '   (before)');
 console.log('                       ' + structural(candidate.nodes, candidate.connections) + '   (after)');
-console.log('    These DIFFER, and must: three nodes were added and four edges rewired. A candidate');
-console.log('    that added a branch and reported an unchanged structural hash would be lying.');
+console.log('    These MATCH, and must: no node was added, removed, retyped or rewired. Only two');
+console.log('    node BODIES changed, which a structural hash deliberately does not see.');
 console.log('  candidate sha256   : ' + crypto.createHash('sha256').update(json).digest('hex'));
 console.log('');

@@ -49,6 +49,44 @@ function resolveLocale(sources) {
     || DEFAULT_LOCALE;                   // 4
 }
 
+// ── the journey-origin carrier ───────────────────────────────────────────────────────────────
+//
+// P1-01. The resolver above was correct and unreachable: nothing on the shipping path ever
+// supplied `journeyLocale`, so a Romanian customer arriving from a /ro/ page was answered from
+// Telegram's UI language, and a Romanian who reads Telegram in Russian got Russian.
+//
+// The carrier is Telegram's OWN deep-link start parameter — `https://t.me/<bot>?start=ro` — which
+// arrives as the message text `/start ro`. No new transport, no new session column, no model call:
+// the website already links to the bot, and this adds the origin of the journey to that link.
+//
+// It is deliberately a CLOSED vocabulary. Only the two supported locale tags are recognised;
+// anything else (a tracking payload, a referral code, a hostile string) returns '' and the
+// resolution falls through to the persisted session and then to Telegram's hint, exactly as it
+// does for a customer who typed a bare `/start`.
+const START_PAYLOAD_RE = /^\/start(?:@[A-Za-z0-9_]+)?(?:\s+(\S+))?\s*$/;
+
+function startPayloadLocale(messageText) {
+  const m = START_PAYLOAD_RE.exec(String(messageText == null ? '' : messageText).trim());
+  if (!m || !m[1]) { return ''; }
+  return normalize(m[1]);
+}
+
+// The one resolution the shipping customer path calls. It exists so that the Concierge node, the
+// QA gate and any future caller share a single statement of the authority order rather than each
+// re-deriving it from the comment above.
+//
+// `messageText` is consulted ONLY through startPayloadLocale, so a customer cannot change their
+// locale by typing a word — `/start ro` is a deep link, not a command anyone types by accident,
+// and the origin it carries is the page that published it.
+function resolveCustomerLocale(ctx) {
+  const c = ctx || {};
+  return resolveLocale({
+    journeyLocale: startPayloadLocale(c.messageText) || c.journeyLocale,
+    sessionLocale: c.sessionLocale,
+    telegramLanguageCode: c.telegramLanguageCode
+  });
+}
+
 // ── the customer-visible string inventory ────────────────────────────────────────────────────
 //
 // Walks the branches.js exports that reach a customer and returns every distinct Cyrillic-bearing
@@ -161,7 +199,7 @@ function roTable(branches) {
 }
 
 module.exports = {
-  LOCALES, DEFAULT_LOCALE, normalize, resolveLocale,
+  LOCALES, DEFAULT_LOCALE, normalize, resolveLocale, startPayloadLocale, resolveCustomerLocale,
   VISIBLE_EXPORTS, collectVisibleStrings, missingRoLabels, assertComplete, roTable,
   collectShellStrings, missingShellLabels
 };
