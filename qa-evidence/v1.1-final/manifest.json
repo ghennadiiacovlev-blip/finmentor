@@ -1,16 +1,16 @@
 {
   "generatedBy": "qa/visual-evidence.mjs",
-  "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+  "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
   "branch": "release/v1.1-final-integration",
-  "generated_at": "2026-09-07T18:10:35.592Z",
+  "generated_at": "2026-09-07T18:23:44.760Z",
   "chrome": "Chrome/152.0.7977.77",
   "random_seed": 20260907,
   "reduced_motion": true,
   "shots": {
     "ru-homepage-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:09:59.604Z",
+      "capture_timestamp": "2026-09-07T18:23:08.311Z",
       "viewport": "390x844",
       "surface_id": "ru-homepage",
       "language": "ru",
@@ -29,9 +29,9 @@
       "ab_reproducible": true
     },
     "ro-homepage-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:01.852Z",
+      "capture_timestamp": "2026-09-07T18:23:10.794Z",
       "viewport": "390x844",
       "surface_id": "ro-homepage",
       "language": "ro",
@@ -50,9 +50,9 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:03.930Z",
+      "capture_timestamp": "2026-09-07T18:23:13.130Z",
       "viewport": "390x844",
       "surface_id": "ru-questionnaire",
       "language": "ru",
@@ -71,9 +71,9 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:05.648Z",
+      "capture_timestamp": "2026-09-07T18:23:14.831Z",
       "viewport": "390x844",
       "surface_id": "ro-questionnaire",
       "language": "ro",
@@ -92,9 +92,9 @@
       "ab_reproducible": true
     },
     "ru-packages-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:07.351Z",
+      "capture_timestamp": "2026-09-07T18:23:16.532Z",
       "viewport": "390x844",
       "surface_id": "ru-packages",
       "language": "ru",
@@ -113,9 +113,9 @@
       "ab_reproducible": true
     },
     "ro-packages-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:09.099Z",
+      "capture_timestamp": "2026-09-07T18:23:18.282Z",
       "viewport": "390x844",
       "surface_id": "ro-packages",
       "language": "ro",
@@ -134,9 +134,9 @@
       "ab_reproducible": true
     },
     "ru-real-estate-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:14.447Z",
+      "capture_timestamp": "2026-09-07T18:23:23.514Z",
       "viewport": "390x844",
       "surface_id": "ru-real-estate",
       "language": "ru",
@@ -155,9 +155,9 @@
       "ab_reproducible": true
     },
     "thank-you-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:17.795Z",
+      "capture_timestamp": "2026-09-07T18:23:26.861Z",
       "viewport": "390x844",
       "surface_id": "thank-you",
       "language": "ru",
@@ -176,9 +176,9 @@
       "ab_reproducible": true
     },
     "miniapp-populated-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:24.710Z",
+      "capture_timestamp": "2026-09-07T18:23:33.677Z",
       "viewport": "390x844",
       "surface_id": "miniapp-populated",
       "language": "ru",
@@ -197,9 +197,9 @@
       "ab_reproducible": true
     },
     "miniapp-review-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:26.376Z",
+      "capture_timestamp": "2026-09-07T18:23:35.530Z",
       "viewport": "390x844",
       "surface_id": "miniapp-review",
       "language": "ru",
@@ -218,9 +218,9 @@
       "ab_reproducible": true
     },
     "miniapp-edit-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:28.043Z",
+      "capture_timestamp": "2026-09-07T18:23:37.227Z",
       "viewport": "390x844",
       "surface_id": "miniapp-edit",
       "language": "ru",
@@ -239,9 +239,9 @@
       "ab_reproducible": true
     },
     "miniapp-success-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:29.709Z",
+      "capture_timestamp": "2026-09-07T18:23:38.892Z",
       "viewport": "390x844",
       "surface_id": "miniapp-success",
       "language": "ru",
@@ -260,9 +260,9 @@
       "ab_reproducible": true
     },
     "xray-result-ru-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:33.041Z",
+      "capture_timestamp": "2026-09-07T18:23:42.176Z",
       "viewport": "390x844",
       "surface_id": "xray-result-ru",
       "language": "ru",
@@ -281,9 +281,9 @@
       "ab_reproducible": true
     },
     "xray-result-ro-390.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:34.712Z",
+      "capture_timestamp": "2026-09-07T18:23:43.893Z",
       "viewport": "390x844",
       "surface_id": "xray-result-ro",
       "language": "ro",
@@ -302,9 +302,9 @@
       "ab_reproducible": true
     },
     "ru-homepage-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:00.903Z",
+      "capture_timestamp": "2026-09-07T18:23:09.763Z",
       "viewport": "1440x900",
       "surface_id": "ru-homepage",
       "language": "ru",
@@ -323,9 +323,9 @@
       "ab_reproducible": true
     },
     "ro-homepage-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:03.099Z",
+      "capture_timestamp": "2026-09-07T18:23:12.306Z",
       "viewport": "1440x900",
       "surface_id": "ro-homepage",
       "language": "ro",
@@ -344,9 +344,9 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:04.814Z",
+      "capture_timestamp": "2026-09-07T18:23:13.997Z",
       "viewport": "1440x900",
       "surface_id": "ru-questionnaire",
       "language": "ru",
@@ -365,9 +365,9 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:06.517Z",
+      "capture_timestamp": "2026-09-07T18:23:15.700Z",
       "viewport": "1440x900",
       "surface_id": "ro-questionnaire",
       "language": "ro",
@@ -386,9 +386,9 @@
       "ab_reproducible": true
     },
     "ru-packages-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:08.264Z",
+      "capture_timestamp": "2026-09-07T18:23:17.428Z",
       "viewport": "1440x900",
       "surface_id": "ru-packages",
       "language": "ru",
@@ -407,9 +407,9 @@
       "ab_reproducible": true
     },
     "ro-packages-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:10.099Z",
+      "capture_timestamp": "2026-09-07T18:23:19.301Z",
       "viewport": "1440x900",
       "surface_id": "ro-packages",
       "language": "ro",
@@ -428,9 +428,9 @@
       "ab_reproducible": true
     },
     "miniapp-populated-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:25.553Z",
+      "capture_timestamp": "2026-09-07T18:23:34.671Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-populated",
       "language": "ru",
@@ -449,9 +449,9 @@
       "ab_reproducible": true
     },
     "miniapp-review-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:27.235Z",
+      "capture_timestamp": "2026-09-07T18:23:36.404Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-review",
       "language": "ru",
@@ -470,9 +470,9 @@
       "ab_reproducible": true
     },
     "miniapp-edit-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:28.887Z",
+      "capture_timestamp": "2026-09-07T18:23:38.070Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-edit",
       "language": "ru",
@@ -491,9 +491,9 @@
       "ab_reproducible": true
     },
     "miniapp-success-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:30.551Z",
+      "capture_timestamp": "2026-09-07T18:23:39.735Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-success",
       "language": "ru",
@@ -512,9 +512,9 @@
       "ab_reproducible": true
     },
     "xray-result-ru-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:33.887Z",
+      "capture_timestamp": "2026-09-07T18:23:43.020Z",
       "viewport": "1440x900",
       "surface_id": "xray-result-ru",
       "language": "ru",
@@ -533,9 +533,9 @@
       "ab_reproducible": true
     },
     "xray-result-ro-1440.png": {
-      "candidate_sha": "e33f6368d91c72265f9c4fe3bff44c6895124f23",
+      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:10:35.570Z",
+      "capture_timestamp": "2026-09-07T18:23:44.737Z",
       "viewport": "1440x900",
       "surface_id": "xray-result-ro",
       "language": "ro",
