@@ -57,10 +57,11 @@ English parenthetical already shipped in `43b1f2a` is also not counted as a resi
 
 | class | meaning | rows |
 |---|---|---|
-| A | MUST_LOCALIZE | 710 |
+| A | MUST_LOCALIZE | 708 |
 | B | LOCALIZE_WITH_ENGLISH_ONCE | 71 |
-| E | OWNER_DECISION_REQUIRED | 43 |
+| E | OWNER_DECISION_REQUIRED | 41 |
 | C | APPROVED_PROPER_NAME | 32 |
+| F | BRANDED_PACKAGE_NAME | 4 |
 | D | TECHNICAL_INTERNAL_ONLY | 2 |
 
 `APPROVED_PROPER_NAME` currently contains **Power BI only**. No FINMENTOR module name has been
@@ -90,7 +91,7 @@ Tier 1.**
 | KPI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | APPROVED |
 | Financial Health Check | RU | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
 | Financial Health Check | RO | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
-| Control Light | RU | OWNER_DECISION_REQUIRED | 11 | CRITICAL | Базовый финансовый контроль | Control financiar esențial | YES | APPROVED |
+| Control Light | RU | BRANDED_PACKAGE_NAME | 11 | CRITICAL | Control Light | Control Light | NO | BRANDED_PACKAGE_NAME |
 | AI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | CRITICAL | Искусственный интеллект | Inteligență artificială | YES | APPROVED |
 | DPO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | YES | APPROVED |
 | DPO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | YES | APPROVED |
@@ -341,14 +342,14 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Supplier Financing Benefit | RU | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Выгода от финансирования поставщиком | Beneficiul finanțării de la furnizor | YES | NO |
 | COGS | RU | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Себестоимость продаж | Costul bunurilor vândute | YES | NO |
 | Volume Effect | RU | MUST_LOCALIZE | 6 | MEDIUM | Эффект объёма | Efectul volumului | NO | NO |
-| CFO Control Partner | RU | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
+| CFO Control Partner | RU | BRANDED_PACKAGE_NAME | 6 | MEDIUM | CFO Control Partner | CFO Control Partner | NO | BRANDED_PACKAGE_NAME |
 | Coverage | RU | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
 | Accepted Outcome | RO | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
 | Supplier Financing Benefit | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Выгода от финансирования поставщиком | Beneficiul finanțării de la furnizor | YES | NO |
 | COGS | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Себестоимость продаж | Costul bunurilor vândute | YES | NO |
-| CFO Control Partner | RO | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
+| CFO Control Partner | RO | BRANDED_PACKAGE_NAME | 6 | MEDIUM | CFO Control Partner | CFO Control Partner | NO | BRANDED_PACKAGE_NAME |
 | Coverage | RO | MUST_LOCALIZE | 6 | MEDIUM | — | — | NO | NO |
-| Control Partner | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Финансовый партнёр | Partener financiar | YES | APPROVED |
+| Control Partner | RU | BRANDED_PACKAGE_NAME | 5 | MEDIUM | Control Partner | Control Partner | NO | BRANDED_PACKAGE_NAME |
 | backtest | RU | MUST_LOCALIZE | 5 | MEDIUM | ретропроверка | testare retroactivă | NO | NO |
 | Final FCF | RU | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
 | roadmap | RU | MUST_LOCALIZE | 5 | MEDIUM | план действий | plan de acțiune | YES | AUTO_RESOLVED |
@@ -496,11 +497,9 @@ currently in that class.
 | Funding Gap | the money the business will be short of, and when | Дефицит финансирования | Deficit de finanțare | YES | YES |
 | Expected Renewal Value | the money expected from renewals still to come | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | YES | YES |
 | Supplier Shelf Credit | how much of the stock on the shelf the supplier is really financing | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | YES |
-| Control Light | the entry service tier | Базовый финансовый контроль | Control financiar esențial | YES | YES |
 | Retail Margin Engine | how margin is made and lost per shelf, product and supplier | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | YES |
 | Margin Gap | the difference between the margin earned and the margin targeted | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | YES |
 | Control System | — | Система финансового контроля | Sistem de control financiar | YES | YES |
-| Control Partner | the ongoing partner service tier | Финансовый партнёр | Partener financiar | YES | YES |
 | Monthly Owner Report | the monthly report the owner actually reads | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | YES |
 | Real Estate Control System | control over a property portfolio's income, cost and risk | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | YES | YES |
 | Recoverable VAT | VAT the business can get back rather than absorb | НДС к возмещению | TVA de recuperat | YES | YES |
@@ -528,7 +527,7 @@ The commercially critical language, separated from the long tail so it can be ap
 | CFO | CFO | Финансовый директор | CFO | Director financiar | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | KPI | KPI | Ключевые показатели бизнеса | KPI | Indicatori-cheie de performanță | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | Financial Health Check | Financial Health Check | Экспертная финансовая диагностика | Financial Health Check | Diagnostic financiar aprofundat | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
-| Control Light | Control Light | Базовый финансовый контроль | Control Light | Control financiar esențial | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| Control Light | Control Light | Control Light | Control Light | Control Light | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | BRANDED_PACKAGE_NAME |
 | AI | AI | Искусственный интеллект | AI | Inteligență artificială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | DPO | DPO | Средний срок оплаты поставщикам | DPO | Termenul mediu de plată către furnizori | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Email | Email | E-mail | Email | E-mail | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
@@ -586,7 +585,7 @@ as a translation of the Russian.
 | Business Control System | Система финансового управления бизнесом | Sistem de management financiar al afacerii | OWNER_DECISION_REQUIRED | YES |
 | KPI | Ключевые показатели бизнеса | Indicatori-cheie de performanță | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Financial Health Check | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | LOCALIZE_WITH_ENGLISH_ONCE | NO |
-| Control Light | Базовый финансовый контроль | Control financiar esențial | OWNER_DECISION_REQUIRED | YES |
+| Control Light | Control Light | Control Light | BRANDED_PACKAGE_NAME | NO |
 | AI | Искусственный интеллект | Inteligență artificială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | DPO | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Email | E-mail | E-mail | MUST_LOCALIZE | NO |
@@ -694,7 +693,8 @@ as a translation of the Russian.
 | Supplier Financing Benefit | Выгода от финансирования поставщиком | Beneficiul finanțării de la furnizor | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | COGS | Себестоимость продаж | Costul bunurilor vândute | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Volume Effect | Эффект объёма | Efectul volumului | MUST_LOCALIZE | NO |
-| Control Partner | Финансовый партнёр | Partener financiar | OWNER_DECISION_REQUIRED | YES |
+| CFO Control Partner | CFO Control Partner | CFO Control Partner | BRANDED_PACKAGE_NAME | NO |
+| Control Partner | Control Partner | Control Partner | BRANDED_PACKAGE_NAME | NO |
 | backtest | ретропроверка | testare retroactivă | MUST_LOCALIZE | NO |
 | roadmap | план действий | plan de acțiune | MUST_LOCALIZE | YES |
 | Mix Effect | Эффект структуры продаж | Efectul structurii vânzărilor | MUST_LOCALIZE | NO |
@@ -734,7 +734,7 @@ as a translation of the Russian.
 
 ## 11. Terms with no wording yet
 
-596 rows carry no proposed wording. They are the long tail — mostly one- and two-use
+594 rows carry no proposed wording. They are the long tail — mostly one- and two-use
 specialist labels on Tier 2 and Tier 3 pages. They are listed in the CSV with an empty
 `ru_proposal` so a reviewer can fill them in, and none of them is on the Tier 1 approval path.
 
