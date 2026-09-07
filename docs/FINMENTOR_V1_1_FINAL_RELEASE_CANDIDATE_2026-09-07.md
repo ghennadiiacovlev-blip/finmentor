@@ -13,7 +13,7 @@ and it does not claim one. Nothing has been deployed, merged or activated.
 | --- | --- |
 | Branch | `release/v1.1-final-integration` |
 | Final source SHA | `7f0574182cf78227aa58c148549105d1b98e6566` |
-| Branch HEAD at sealing | `65750ac76a7c46dc70814a0f307a34051b09e52c` |
+| Branch HEAD at sealing | `1908038343ddab9782cacb00fbb6dc24c257cf4e` (this record; documentation only) |
 | Parent (authorised start) | `9f62e6f542a361163358aaa96b1d8ba1f2187dd6` |
 | Production `main` baseline | `b57ac259847ca77e249ec133e41bcb6435f8e031` |
 | `origin/main` at sealing | `b57ac259847ca77e249ec133e41bcb6435f8e031` — **unchanged during this run** |
@@ -306,14 +306,30 @@ be a product decision.
 ## 6. What a re-auditor should re-run
 
 ```bash
-git rev-parse HEAD                              # 65750ac…, worktree clean
+git rev-parse HEAD                              # worktree clean
 node qa/run-all.mjs                             # 85/85, 2966 assertions, floors PASS
+git status --porcelain                          # EMPTY — canonical QA mutates nothing
+rm -rf qa-artifacts
 node qa/visual-evidence.mjs --keep qa-evidence/v1.1-final   # 22/22, hash drift 0
-git status --porcelain                          # must be empty afterwards
+git diff --stat qa-evidence/v1.1-final          # manifest.json only, volatile fields only
 ```
 
-The second command re-renders every surface and compares each retained image against the digest
+The last command re-renders every surface and compares each retained image against the digest
 already committed in `manifest.json`. If any pixel moved, it fails and names the file.
+
+**One expected diff, and only one.** Re-running with `--keep` rewrites `manifest.json`, because
+`capture_timestamp` and `candidate_sha` are required evidence and are volatile by construction —
+26 timestamps and 26 SHAs. **No `sha256` changes and no PNG changes**; that is exactly what the
+hash-drift gate asserts before writing. Confirm with:
+
+```bash
+git diff qa-evidence/v1.1-final/manifest.json \
+  | grep -E '^[+-]' | grep -v '^[+-][+-]' \
+  | grep -vE 'capture_timestamp|candidate_sha|generated_at'    # must print nothing
+```
+
+Then `git checkout -- qa-evidence/v1.1-final/manifest.json` to return to a clean tree. The PNGs
+themselves are never rewritten with different bytes — that is the whole claim.
 
 To disprove the language result independently, `qa-evidence/v1.1-final/rendered-text.json` holds
 the copy every audited surface actually painted — greppable, no PNG reading required.
