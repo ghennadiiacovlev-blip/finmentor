@@ -57,10 +57,10 @@ English parenthetical already shipped in `43b1f2a` is also not counted as a resi
 
 | class | meaning | rows |
 |---|---|---|
-| A | MUST_LOCALIZE | 736 |
+| A | MUST_LOCALIZE | 710 |
 | B | LOCALIZE_WITH_ENGLISH_ONCE | 71 |
 | E | OWNER_DECISION_REQUIRED | 43 |
-| C | APPROVED_PROPER_NAME | 6 |
+| C | APPROVED_PROPER_NAME | 32 |
 | D | TECHNICAL_INTERNAL_ONLY | 2 |
 
 `APPROVED_PROPER_NAME` currently contains **Power BI only**. No FINMENTOR module name has been
@@ -76,230 +76,230 @@ Tier 1.**
 
 | term | lang | class | occ | importance | RU proposal | RO proposal | EN once | owner decision |
 |---|---|---|---|---|---|---|---|---|
-| P&L | RO | LOCALIZE_WITH_ENGLISH_ONCE | 114 | CRITICAL | Отчёт о прибыли и убытках | Cont de profit și pierdere | YES | NO |
-| P&L | RU | LOCALIZE_WITH_ENGLISH_ONCE | 63 | CRITICAL | Отчёт о прибыли и убытках | Cont de profit și pierdere | YES | NO |
-| Cash Flow | RU | LOCALIZE_WITH_ENGLISH_ONCE | 53 | CRITICAL | Денежный поток | Flux de numerar | YES | NO |
-| Cash Flow | RO | LOCALIZE_WITH_ENGLISH_ONCE | 53 | CRITICAL | Денежный поток | Flux de numerar | YES | NO |
-| Discovery Call | RU | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | YES | NO |
-| Discovery Call | RO | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | YES | NO |
-| CFO | RO | MUST_LOCALIZE | 29 | CRITICAL | Финансовый директор | Director financiar | NO | NO |
+| P&L | RO | LOCALIZE_WITH_ENGLISH_ONCE | 114 | CRITICAL | Отчёт о прибыли и убытках | Cont de profit și pierdere | YES | APPROVED |
+| P&L | RU | LOCALIZE_WITH_ENGLISH_ONCE | 63 | CRITICAL | Отчёт о прибыли и убытках | Cont de profit și pierdere | YES | APPROVED |
+| Cash Flow | RU | LOCALIZE_WITH_ENGLISH_ONCE | 53 | CRITICAL | Денежный поток | Flux de numerar | YES | APPROVED |
+| Cash Flow | RO | LOCALIZE_WITH_ENGLISH_ONCE | 53 | CRITICAL | Денежный поток | Flux de numerar | YES | APPROVED |
+| Discovery Call | RU | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | NO | APPROVED |
+| Discovery Call | RO | LOCALIZE_WITH_ENGLISH_ONCE | 39 | CRITICAL | Первичный финансовый разбор | Discuție financiară inițială | NO | APPROVED |
+| CFO | RO | MUST_LOCALIZE | 29 | CRITICAL | Финансовый директор | Director financiar | NO | APPROVED |
 | Business Control System | RU | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система финансового управления бизнесом | Sistem de management financiar al afacerii | YES | APPROVED |
 | Business Control System | RO | OWNER_DECISION_REQUIRED | 26 | CRITICAL | Система финансового управления бизнесом | Sistem de management financiar al afacerii | YES | APPROVED |
-| CFO | RU | MUST_LOCALIZE | 19 | CRITICAL | Финансовый директор | Director financiar | NO | NO |
-| KPI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | NO |
-| KPI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | NO |
-| Financial Health Check | RU | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar | YES | NO |
-| Financial Health Check | RO | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar | YES | NO |
+| CFO | RU | MUST_LOCALIZE | 19 | CRITICAL | Финансовый директор | Director financiar | NO | APPROVED |
+| KPI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | APPROVED |
+| KPI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 15 | CRITICAL | Ключевые показатели бизнеса | Indicatori-cheie de performanță | YES | APPROVED |
+| Financial Health Check | RU | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
+| Financial Health Check | RO | LOCALIZE_WITH_ENGLISH_ONCE | 13 | CRITICAL | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | NO | APPROVED |
 | Control Light | RU | OWNER_DECISION_REQUIRED | 11 | CRITICAL | Базовый финансовый контроль | Control financiar esențial | YES | APPROVED |
-| AI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | CRITICAL | Искусственный интеллект | Inteligență artificială | YES | NO |
-| DPO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Срок оплаты поставщикам | Termenul de plată la furnizori | YES | NO |
-| DPO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Срок оплаты поставщикам | Termenul de plată la furnizori | YES | NO |
-| Email | RU | MUST_LOCALIZE | 34 | HIGH | Электронная почта | E-mail | NO | NO |
-| Email | RO | MUST_LOCALIZE | 34 | HIGH | Электронная почта | E-mail | NO | NO |
-| FCF | RO | LOCALIZE_WITH_ENGLISH_ONCE | 34 | HIGH | Свободный денежный поток | Flux de numerar liber | YES | NO |
-| FCF | RU | LOCALIZE_WITH_ENGLISH_ONCE | 33 | HIGH | Свободный денежный поток | Flux de numerar liber | YES | NO |
-| DSO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 26 | HIGH | Срок оплаты от клиентов | Termenul de încasare de la clienți | YES | NO |
-| DSO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 26 | HIGH | Срок оплаты от клиентов | Termenul de încasare de la clienți | YES | NO |
-| promo | RU | MUST_LOCALIZE | 21 | HIGH | промоакция | promoție | NO | NO |
-| Sheets | RO | APPROVED_PROPER_NAME | 19 | HIGH | Google Sheets | Google Sheets | NO | NO |
-| Cash | RU | MUST_LOCALIZE | 18 | HIGH | Деньги | Numerar | NO | NO |
-| Cash | RO | MUST_LOCALIZE | 18 | HIGH | Деньги | Numerar | NO | NO |
+| AI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | CRITICAL | Искусственный интеллект | Inteligență artificială | YES | APPROVED |
+| DPO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | YES | APPROVED |
+| DPO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 45 | HIGH | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | YES | APPROVED |
+| Email | RU | MUST_LOCALIZE | 34 | HIGH | E-mail | E-mail | NO | APPROVED |
+| Email | RO | MUST_LOCALIZE | 34 | HIGH | E-mail | E-mail | NO | APPROVED |
+| FCF | RO | LOCALIZE_WITH_ENGLISH_ONCE | 34 | HIGH | Свободный денежный поток | Flux de numerar liber | YES | APPROVED |
+| FCF | RU | LOCALIZE_WITH_ENGLISH_ONCE | 33 | HIGH | Свободный денежный поток | Flux de numerar liber | YES | APPROVED |
+| DSO | RU | LOCALIZE_WITH_ENGLISH_ONCE | 26 | HIGH | Средний срок оплаты от клиентов | Termenul mediu de încasare de la clienți | YES | APPROVED |
+| DSO | RO | LOCALIZE_WITH_ENGLISH_ONCE | 26 | HIGH | Средний срок оплаты от клиентов | Termenul mediu de încasare de la clienți | YES | APPROVED |
+| promo | RU | MUST_LOCALIZE | 21 | HIGH | промоакция | promoție | NO | APPROVED |
+| Sheets | RO | APPROVED_PROPER_NAME | 19 | HIGH | Google Sheets | Google Sheets | NO | APPROVED |
+| Cash | RU | MUST_LOCALIZE | 18 | HIGH | Денежные средства | Disponibilități bănești | NO | APPROVED |
+| Cash | RO | MUST_LOCALIZE | 18 | HIGH | Денежные средства | Disponibilități bănești | NO | APPROVED |
 | Make | RU | TECHNICAL_INTERNAL_ONLY | 17 | HIGH | автоматизация | automatizare | NO | NO |
-| retrobonus | RU | MUST_LOCALIZE | 17 | HIGH | ретробонус | retrobonus | NO | NO |
+| retrobonus | RU | MUST_LOCALIZE | 17 | HIGH | ретробонус | bonus retroactiv | NO | APPROVED |
 | Make | RO | TECHNICAL_INTERNAL_ONLY | 17 | HIGH | автоматизация | automatizare | NO | NO |
-| Cash Saving | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Денежная экономия | Economie în numerar | YES | NO |
-| cash flow | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | денежный поток | flux de numerar | YES | NO |
-| Cash Saving | RO | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Денежная экономия | Economie în numerar | YES | NO |
+| Cash Saving | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Фактическая экономия денежных средств | Economie efectivă de numerar | YES | APPROVED |
+| cash flow | RU | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | денежный поток | flux de numerar | YES | AUTO_RESOLVED |
+| Cash Saving | RO | LOCALIZE_WITH_ENGLISH_ONCE | 16 | HIGH | Фактическая экономия денежных средств | Economie efectivă de numerar | YES | APPROVED |
 | Client Base Control System | RU | OWNER_DECISION_REQUIRED | 15 | HIGH | Система управления клиентской базой | Sistem de management al bazei de clienți | YES | APPROVED |
 | Funding Gap | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | APPROVED |
 | Funding Gap | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Дефицит финансирования | Deficit de finanțare | YES | APPROVED |
-| Light | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | Лёгкий | Simplificat | NO | YES |
-| Full Cost | RU | LOCALIZE_WITH_ENGLISH_ONCE | 11 | HIGH | Полная стоимость | Costul total | YES | NO |
-| BI | RU | MUST_LOCALIZE | 11 | HIGH | аналитика | analiză | NO | NO |
-| vacancy | RU | MUST_LOCALIZE | 11 | HIGH | вакантность | grad de neocupare | NO | NO |
-| Retail | RU | MUST_LOCALIZE | 11 | HIGH | Розничная торговля | Comerț cu amănuntul | NO | NO |
-| Full Cost | RO | LOCALIZE_WITH_ENGLISH_ONCE | 11 | HIGH | Полная стоимость | Costul total | YES | NO |
-| Retail | RO | MUST_LOCALIZE | 11 | HIGH | Розничная торговля | Comerț cu amănuntul | NO | NO |
-| CFO- | RU | MUST_LOCALIZE | 10 | HIGH | финансовый | financiar | NO | NO |
-| Inventory Days | RU | LOCALIZE_WITH_ENGLISH_ONCE | 10 | HIGH | Дни запасов | Zile de stoc | YES | NO |
-| cash gap | RU | MUST_LOCALIZE | 10 | HIGH | кассовый разрыв | gol de numerar | NO | NO |
-| email | RU | MUST_LOCALIZE | 10 | HIGH | электронная почта | e-mail | NO | NO |
-| Owner | RO | MUST_LOCALIZE | 10 | HIGH | Собственник | Proprietar | NO | NO |
-| Inventory Days | RO | LOCALIZE_WITH_ENGLISH_ONCE | 10 | HIGH | Дни запасов | Zile de stoc | YES | NO |
-| Owner | RU | MUST_LOCALIZE | 9 | HIGH | Собственник | Proprietar | NO | NO |
+| Light | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | — | — | NO | NOT_STANDALONE |
+| Full Cost | RU | LOCALIZE_WITH_ENGLISH_ONCE | 11 | HIGH | Полная стоимость | Cost total | YES | APPROVED |
+| BI | RU | MUST_LOCALIZE | 11 | HIGH | Управленческая аналитика | Analiză managerială | NO | APPROVED |
+| vacancy | RU | MUST_LOCALIZE | 11 | HIGH | Доля свободных площадей | Grad de neocupare | NO | APPROVED |
+| Retail | RU | MUST_LOCALIZE | 11 | HIGH | Розничная торговля | Comerț cu amănuntul | NO | APPROVED |
+| Full Cost | RO | LOCALIZE_WITH_ENGLISH_ONCE | 11 | HIGH | Полная стоимость | Cost total | YES | APPROVED |
+| Retail | RO | MUST_LOCALIZE | 11 | HIGH | Розничная торговля | Comerț cu amănuntul | NO | APPROVED |
+| CFO- | RU | MUST_LOCALIZE | 10 | HIGH | — | — | NO | NOT_STANDALONE |
+| Inventory Days | RU | LOCALIZE_WITH_ENGLISH_ONCE | 10 | HIGH | Период оборачиваемости запасов, дней | Durata de rotație a stocurilor | YES | APPROVED |
+| cash gap | RU | MUST_LOCALIZE | 10 | HIGH | Кассовый разрыв | Deficit temporar de lichiditate | NO | APPROVED |
+| email | RU | MUST_LOCALIZE | 10 | HIGH | E-mail | E-mail | NO | APPROVED |
+| Owner | RO | MUST_LOCALIZE | 10 | HIGH | Собственник | Proprietar | NO | APPROVED |
+| Inventory Days | RO | LOCALIZE_WITH_ENGLISH_ONCE | 10 | HIGH | Период оборачиваемости запасов, дней | Durata de rotație a stocurilor | YES | APPROVED |
+| Owner | RU | MUST_LOCALIZE | 9 | HIGH | Собственник | Proprietar | NO | APPROVED |
 | Retail Margin Engine | RU | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | APPROVED |
 | tenant rating | RU | MUST_LOCALIZE | 7 | MEDIUM | рейтинг арендаторов | ratingul chiriașilor | NO | NO |
-| NOI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | NO |
+| NOI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | APPROVED |
 | rent vs market | RU | MUST_LOCALIZE | 7 | MEDIUM | аренда против рынка | chiria față de piață | NO | NO |
 | Retail Margin Engine | RO | OWNER_DECISION_REQUIRED | 7 | MEDIUM | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | APPROVED |
-| NOI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | NO |
-| ERP | RU | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Учётная система | Sistem de evidență | YES | NO |
+| NOI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Чистый операционный доход | Venit operațional net | YES | APPROVED |
+| ERP | RU | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Корпоративная учётная система | Sistem integrat de gestiune | YES | APPROVED |
 | Margin Gap | RU | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | APPROVED |
-| ERP | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Учётная система | Sistem de evidență | YES | NO |
+| ERP | RO | LOCALIZE_WITH_ENGLISH_ONCE | 6 | MEDIUM | Корпоративная учётная система | Sistem integrat de gestiune | YES | APPROVED |
 | Margin Gap | RO | OWNER_DECISION_REQUIRED | 6 | MEDIUM | Отклонение маржи от целевой | Abaterea marjei față de țintă | YES | APPROVED |
 | Control System | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Система финансового контроля | Sistem de control financiar | YES | APPROVED |
 | Standard | RU | MUST_LOCALIZE | 4 | MEDIUM | Стандартный | Standard | NO | NO |
 | ROI | RU | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Отдача от вложений | Randamentul investiției | YES | NO |
 | ROI | RO | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Отдача от вложений | Randamentul investiției | YES | NO |
-| Sheets | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | Google Sheets | Google Sheets | NO | NO |
+| Sheets | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | Google Sheets | Google Sheets | NO | APPROVED |
 | Fitness Membership Renewal Engine | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | APPROVED |
 | Target Marja | RU | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | APPROVED |
-| Fitness | RU | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | NO |
-| light- | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NO |
+| Fitness | RU | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | APPROVED |
+| light- | RU | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Premium | RU | MUST_LOCALIZE | 3 | MEDIUM | Премиальный | Premium | NO | NO |
-| cookies | RU | MUST_LOCALIZE | 3 | MEDIUM | файлы cookie | fișiere cookie | NO | NO |
-| OpenAI | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | NO |
+| cookies | RU | MUST_LOCALIZE | 3 | MEDIUM | файлы cookie | fișiere cookie | NO | APPROVED |
+| OpenAI | RU | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | BRAND |
 | NDA | RU | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о неразглашении | Acord de confidențialitate | YES | NO |
-| Monthly | RO | MUST_LOCALIZE | 3 | MEDIUM | Ежемесячно | Lunar | NO | NO |
+| Monthly | RO | MUST_LOCALIZE | 3 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Fitness Membership Renewal Engine | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Система продления абонементов | Sistem de reînnoire a abonamentelor | YES | APPROVED |
 | Target Marja | RO | OWNER_DECISION_REQUIRED | 3 | MEDIUM | Целевая маржа | Marjă țintă | NO | APPROVED |
-| Fitness | RO | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | NO |
-| OpenAI | RO | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | NO |
+| Fitness | RO | MUST_LOCALIZE | 3 | MEDIUM | Фитнес / спортивный бизнес | Fitness / activități sportive | NO | APPROVED |
+| OpenAI | RO | APPROVED_PROPER_NAME | 3 | MEDIUM | OpenAI | OpenAI | NO | BRAND |
 | NDA | RO | LOCALIZE_WITH_ENGLISH_ONCE | 3 | MEDIUM | Соглашение о неразглашении | Acord de confidențialitate | YES | NO |
 | Spend | RU | MUST_LOCALIZE | 2 | MEDIUM | Расходы | Cheltuieli | NO | NO |
 | Automation | RU | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | NO |
-| Telegram- | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NO |
+| Telegram- | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Monthly owner report | RU | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | APPROVED |
-| Limb | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NO |
+| Limb | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | risk traffic light | RU | MUST_LOCALIZE | 2 | MEDIUM | светофор рисков | semafor de risc | NO | NO |
 | profitability | RU | MUST_LOCALIZE | 2 | MEDIUM | прибыльность | profitabilitate | NO | NO |
-| Monthly | RU | MUST_LOCALIZE | 2 | MEDIUM | Ежемесячно | Lunar | NO | NO |
+| Monthly | RU | MUST_LOCALIZE | 2 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | action list | RU | MUST_LOCALIZE | 2 | MEDIUM | список действий | listă de acțiuni | NO | NO |
 | Digital | RU | MUST_LOCALIZE | 2 | MEDIUM | Цифровой | Digital | NO | NO |
 | mini-scan | RU | MUST_LOCALIZE | 2 | MEDIUM | мини-диагностика | mini-diagnostic | NO | NO |
-| Zoom | RU | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | NO |
+| Zoom | RU | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | BRAND |
 | Spend | RO | MUST_LOCALIZE | 2 | MEDIUM | Расходы | Cheltuieli | NO | NO |
 | Automation | RO | MUST_LOCALIZE | 2 | MEDIUM | Автоматизация | Automatizare | NO | NO |
 | Monthly owner report | RO | OWNER_DECISION_REQUIRED | 2 | MEDIUM | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | APPROVED |
-| Zoom | RO | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | NO |
+| Zoom | RO | APPROVED_PROPER_NAME | 2 | MEDIUM | Zoom | Zoom | NO | BRAND |
 | Selectarea limbii | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | ROM | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| SCROLL | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| SCROLL | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Cap Rate | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Ставка капитализации | Rata de capitalizare | YES | NO |
 | deposit coverage | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| payback | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| RETAIL ENGINE | RU | OWNER_DECISION_REQUIRED | 1 | MEDIUM | СИСТЕМА УПРАВЛЕНИЯ МАРЖОЙ | SISTEM DE MANAGEMENT AL MARJEI | NO | YES |
+| payback | RU | MUST_LOCALIZE | 1 | MEDIUM | срок окупаемости | perioada de recuperare a investiției | YES | AUTO_RESOLVED |
+| RETAIL ENGINE | RU | OWNER_DECISION_REQUIRED | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | margin per meter | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | promo economics | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | Unit economics | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Юнит-экономика | Economia unitară | YES | NO |
 | ROAS | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Отдача от рекламных расходов | Randamentul cheltuielilor publicitare | YES | NO |
 | CAC | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Стоимость привлечения клиента | Costul de achiziție a clientului | YES | NO |
 | LTV | RU | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Пожизненная ценность клиента | Valoarea pe durata de viață a clientului | YES | NO |
-| e-commerce | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| e-commerce | RU | MUST_LOCALIZE | 1 | MEDIUM | интернет-торговля | comerț online | NO | AUTO_RESOLVED |
 | Manufacturing | RU | MUST_LOCALIZE | 1 | MEDIUM | Производство | Producție | NO | NO |
 | Support | RU | MUST_LOCALIZE | 1 | MEDIUM | Поддержка | Suport | NO | NO |
 | review | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Treasury & Payment Discipline | RU | OWNER_DECISION_REQUIRED | 1 | MEDIUM | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | YES | YES |
-| Fund Planning & Payment Waterfall | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Working Capital Control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Analysis | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Treasury & Payment Discipline | RU | OWNER_DECISION_REQUIRED | 1 | MEDIUM | — | — | YES | NOT_STANDALONE |
+| Fund Planning & Payment Waterfall | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Working Capital Control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Analysis | RU | MUST_LOCALIZE | 1 | MEDIUM | Анализ | Analiză | NO | NO |
 | cash destroyers | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Supplier Rating & Procurement Control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Margin Factor Analysis | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Power BI Owner | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Supplier Rating & Procurement Control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Margin Factor Analysis | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Power BI Owner | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | DIGITAL LABOUR CONTROL | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| ChatGPT | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Copilot | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Claude | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Accepted Business Outcome | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Financial Effect | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Management Decision | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| ChatGPT | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | ChatGPT | ChatGPT | NO | BRAND |
+| Copilot | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Copilot | Copilot | NO | BRAND |
+| Claude | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Claude | Claude | NO | BRAND |
+| Accepted Business Outcome | RU | MUST_LOCALIZE | 1 | MEDIUM | Принятый бизнес-результат | Rezultat de business acceptat | YES | NO |
+| Financial Effect | RU | MUST_LOCALIZE | 1 | MEDIUM | Финансовый эффект | Efect financiar | NO | NO |
+| Management Decision | RU | MUST_LOCALIZE | 1 | MEDIUM | Управленческое решение | Decizie managerială | NO | NO |
 | Diagnostic memo | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Risk map | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Risk map | RU | MUST_LOCALIZE | 1 | MEDIUM | Карта финансовых рисков | Harta riscurilor financiare | NO | APPROVED |
 | quick wins | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Document checklist | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Document checklist | RU | MUST_LOCALIZE | 1 | MEDIUM | Список необходимых документов | Lista documentelor necesare | NO | APPROVED |
 | structure | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Payment calendar logic | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Action plan | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Payment calendar logic | RU | MUST_LOCALIZE | 1 | MEDIUM | Логика платёжного календаря | Logica calendarului de plăți | NO | APPROVED |
+| Action plan | RU | MUST_LOCALIZE | 1 | MEDIUM | План действий | Plan de acțiune | NO | APPROVED |
 | concept | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Recommendation | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Bank statements | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| AP aging | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Recommendation | RU | MUST_LOCALIZE | 1 | MEDIUM | Рекомендация FINMENTOR | Recomandarea FINMENTOR | NO | APPROVED |
+| Bank statements | RU | MUST_LOCALIZE | 1 | MEDIUM | Банковские выписки | Extrase bancare | NO | NO |
+| AP aging | RU | MUST_LOCALIZE | 1 | MEDIUM | Кредиторская задолженность по срокам | Vechimea datoriilor către furnizori | YES | NO |
 | AR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Owner view | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Owner view | RU | MUST_LOCALIZE | 1 | MEDIUM | Взгляд собственника | Perspectiva proprietarului | NO | NO |
 | IFRS- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | Big | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Cash flow & treasury control | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Cash flow & treasury control | RU | MUST_LOCALIZE | 1 | MEDIUM | Управление денежным потоком и казначейством | Gestiunea fluxului de numerar și a trezoreriei | NO | NO |
 | triage | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Iacovlev Ghennadi | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Iacovlev Ghennadi | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Iacovlev Ghennadi | Iacovlev Ghennadi | NO | BRAND |
 | questionnaire | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | working-capital-scan | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | rule-based | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Analytics | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Google Analytics | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Analytics | Google Analytics | NO | BRAND |
 | score | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| GitHub Pages | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| email- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| GitHub Pages | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | GitHub Pages | GitHub Pages | NO | BRAND |
+| email- | RU | MUST_LOCALIZE | 1 | MEDIUM | e-mail | e-mail | NO | AUTO_RESOLVED |
 | Financial X-Ray | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Cookies | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| GMT | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Services | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Other | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Meet | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Microsoft Teams | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Telegram call | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| HoReCa | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Cookies | RU | MUST_LOCALIZE | 1 | MEDIUM | Файлы cookie | Fișiere cookie | NO | APPROVED |
+| GMT | RU | MUST_LOCALIZE | 1 | MEDIUM | GMT | GMT | NO | APPROVED |
+| Services | RU | MUST_LOCALIZE | 1 | MEDIUM | Услуги | Servicii | NO | APPROVED |
+| Other | RU | MUST_LOCALIZE | 1 | MEDIUM | Другое | Altele | NO | APPROVED |
+| Google Meet | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Meet | Google Meet | NO | BRAND |
+| Microsoft Teams | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft Teams | Microsoft Teams | NO | BRAND |
+| Telegram call | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Telegram call | Telegram call | NO | BRAND |
+| HoReCa | RU | MUST_LOCALIZE | 1 | MEDIUM | HoReCa | HoReCa | NO | APPROVED |
 | Excel- | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Tableau | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Looker | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Zapier | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Meet | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Email summary | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Drive | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Tableau | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Tableau | Tableau | NO | BRAND |
+| Looker | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Looker | Looker | NO | BRAND |
+| Zapier | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Zapier | Zapier | NO | BRAND |
+| Meet | RU | MUST_LOCALIZE | 1 | MEDIUM | встреча | întâlnire | NO | NO |
+| Email summary | RU | MUST_LOCALIZE | 1 | MEDIUM | Итоги встречи по e-mail | Sinteza întâlnirii pe e-mail | NO | NO |
+| Google Drive | RU | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Drive | Google Drive | NO | BRAND |
 | Microsoft OneDrive | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | Dropbox | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | intake | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | webhook FINMENTOR | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | GA | RU | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Limb | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| SCROLL | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Limb | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| SCROLL | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Cap Rate | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Ставка капитализации | Rata de capitalizare | YES | NO |
-| RETAIL ENGINE | RO | OWNER_DECISION_REQUIRED | 1 | MEDIUM | СИСТЕМА УПРАВЛЕНИЯ МАРЖОЙ | SISTEM DE MANAGEMENT AL MARJEI | NO | YES |
+| RETAIL ENGINE | RO | OWNER_DECISION_REQUIRED | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
 | Unit economics | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Юнит-экономика | Economia unitară | YES | NO |
 | ROAS | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Отдача от рекламных расходов | Randamentul cheltuielilor publicitare | YES | NO |
 | CAC | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Стоимость привлечения клиента | Costul de achiziție a clientului | YES | NO |
 | LTV | RO | LOCALIZE_WITH_ENGLISH_ONCE | 1 | MEDIUM | Пожизненная ценность клиента | Valoarea pe durata de viață a clientului | YES | NO |
 | Manufacturing | RO | MUST_LOCALIZE | 1 | MEDIUM | Производство | Producție | NO | NO |
 | Support | RO | MUST_LOCALIZE | 1 | MEDIUM | Поддержка | Suport | NO | NO |
-| Treasury & Payment Discipline | RO | OWNER_DECISION_REQUIRED | 1 | MEDIUM | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | YES | YES |
-| Fund Planning & Payment Waterfall | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Working Capital Control | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Analysis | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Supplier Rating & Procurement Control | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Margin Factor Analysis | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Power BI Owner | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| ChatGPT | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Copilot | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Claude | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Accepted Business Outcome | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Financial Effect | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Management Decision | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Risk map | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Document checklist | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Payment calendar logic | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Action plan | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Recommendation | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Bank statements | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| AP aging | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Owner view | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Cash flow & treasury control | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Iacovlev Ghennadi | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Analytics | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| GitHub Pages | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Cookies | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| GMT | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Services | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Other | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Treasury & Payment Discipline | RO | OWNER_DECISION_REQUIRED | 1 | MEDIUM | — | — | YES | NOT_STANDALONE |
+| Fund Planning & Payment Waterfall | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Working Capital Control | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Analysis | RO | MUST_LOCALIZE | 1 | MEDIUM | Анализ | Analiză | NO | NO |
+| Supplier Rating & Procurement Control | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Margin Factor Analysis | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| Power BI Owner | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NOT_STANDALONE |
+| ChatGPT | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | ChatGPT | ChatGPT | NO | BRAND |
+| Copilot | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Copilot | Copilot | NO | BRAND |
+| Claude | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Claude | Claude | NO | BRAND |
+| Accepted Business Outcome | RO | MUST_LOCALIZE | 1 | MEDIUM | Принятый бизнес-результат | Rezultat de business acceptat | YES | NO |
+| Financial Effect | RO | MUST_LOCALIZE | 1 | MEDIUM | Финансовый эффект | Efect financiar | NO | NO |
+| Management Decision | RO | MUST_LOCALIZE | 1 | MEDIUM | Управленческое решение | Decizie managerială | NO | NO |
+| Risk map | RO | MUST_LOCALIZE | 1 | MEDIUM | Карта финансовых рисков | Harta riscurilor financiare | NO | APPROVED |
+| Document checklist | RO | MUST_LOCALIZE | 1 | MEDIUM | Список необходимых документов | Lista documentelor necesare | NO | APPROVED |
+| Payment calendar logic | RO | MUST_LOCALIZE | 1 | MEDIUM | Логика платёжного календаря | Logica calendarului de plăți | NO | APPROVED |
+| Action plan | RO | MUST_LOCALIZE | 1 | MEDIUM | План действий | Plan de acțiune | NO | APPROVED |
+| Recommendation | RO | MUST_LOCALIZE | 1 | MEDIUM | Рекомендация FINMENTOR | Recomandarea FINMENTOR | NO | APPROVED |
+| Bank statements | RO | MUST_LOCALIZE | 1 | MEDIUM | Банковские выписки | Extrase bancare | NO | NO |
+| AP aging | RO | MUST_LOCALIZE | 1 | MEDIUM | Кредиторская задолженность по срокам | Vechimea datoriilor către furnizori | YES | NO |
+| Owner view | RO | MUST_LOCALIZE | 1 | MEDIUM | Взгляд собственника | Perspectiva proprietarului | NO | NO |
+| Cash flow & treasury control | RO | MUST_LOCALIZE | 1 | MEDIUM | Управление денежным потоком и казначейством | Gestiunea fluxului de numerar și a trezoreriei | NO | NO |
+| Iacovlev Ghennadi | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Iacovlev Ghennadi | Iacovlev Ghennadi | NO | BRAND |
+| Google Analytics | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Analytics | Google Analytics | NO | BRAND |
+| GitHub Pages | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | GitHub Pages | GitHub Pages | NO | BRAND |
+| Cookies | RO | MUST_LOCALIZE | 1 | MEDIUM | Файлы cookie | Fișiere cookie | NO | APPROVED |
+| GMT | RO | MUST_LOCALIZE | 1 | MEDIUM | GMT | GMT | NO | APPROVED |
+| Services | RO | MUST_LOCALIZE | 1 | MEDIUM | Услуги | Servicii | NO | APPROVED |
+| Other | RO | MUST_LOCALIZE | 1 | MEDIUM | Другое | Altele | NO | APPROVED |
 | Rom | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Meet | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Microsoft Teams | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Telegram call | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| HoReCa | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Tableau | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Looker | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Zapier | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Meet | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Email summary | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
-| Google Drive | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
+| Google Meet | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Meet | Google Meet | NO | BRAND |
+| Microsoft Teams | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Microsoft Teams | Microsoft Teams | NO | BRAND |
+| Telegram call | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Telegram call | Telegram call | NO | BRAND |
+| HoReCa | RO | MUST_LOCALIZE | 1 | MEDIUM | HoReCa | HoReCa | NO | APPROVED |
+| Tableau | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Tableau | Tableau | NO | BRAND |
+| Looker | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Looker | Looker | NO | BRAND |
+| Zapier | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Zapier | Zapier | NO | BRAND |
+| Meet | RO | MUST_LOCALIZE | 1 | MEDIUM | встреча | întâlnire | NO | NO |
+| Email summary | RO | MUST_LOCALIZE | 1 | MEDIUM | Итоги встречи по e-mail | Sinteza întâlnirii pe e-mail | NO | NO |
+| Google Drive | RO | APPROVED_PROPER_NAME | 1 | MEDIUM | Google Drive | Google Drive | NO | BRAND |
 | Microsoft OneDrive | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 | Dropbox | RO | MUST_LOCALIZE | 1 | MEDIUM | — | — | NO | NO |
 
@@ -314,22 +314,22 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Payment Gate | RO | OWNER_DECISION_REQUIRED | 15 | HIGH | Контроль платежей | Controlul plăților | YES | APPROVED |
 | Revenue at Risk | RU | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri expuse riscului | YES | APPROVED |
 | Revenue at Risk | RO | OWNER_DECISION_REQUIRED | 14 | HIGH | Выручка под риском | Venituri expuse riscului | YES | APPROVED |
-| Expected Renewal Value | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | APPROVED |
-| Expected Renewal Value | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | APPROVED |
-| dashboard | RU | MUST_LOCALIZE | 12 | HIGH | панель собственника | tablou de bord | NO | NO |
+| Expected Renewal Value | RU | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | YES | APPROVED |
+| Expected Renewal Value | RO | OWNER_DECISION_REQUIRED | 13 | HIGH | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | YES | APPROVED |
+| dashboard | RU | MUST_LOCALIZE | 12 | HIGH | панель собственника | tablou de bord | NO | APPROVED |
 | SKU | RU | LOCALIZE_WITH_ENGLISH_ONCE | 12 | HIGH | Товарная позиция | Articol de stoc | YES | NO |
 | Supplier Shelf Credit | RU | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | APPROVED |
 | SKU | RO | LOCALIZE_WITH_ENGLISH_ONCE | 12 | HIGH | Товарная позиция | Articol de stoc | YES | NO |
 | Supplier Shelf Credit | RO | OWNER_DECISION_REQUIRED | 12 | HIGH | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | APPROVED |
 | treasury briefing | RU | MUST_LOCALIZE | 11 | HIGH | — | — | NO | NO |
-| funding gap | RU | MUST_LOCALIZE | 11 | HIGH | — | — | NO | NO |
+| funding gap | RU | MUST_LOCALIZE | 11 | HIGH | дефицит финансирования | deficit de finanțare | YES | AUTO_RESOLVED |
 | Power BI dashboard | RU | MUST_LOCALIZE | 10 | HIGH | — | — | NO | NO |
 | Cost Effect | RU | MUST_LOCALIZE | 9 | MEDIUM | Эффект себестоимости | Efectul costului | NO | NO |
-| retail | RU | MUST_LOCALIZE | 9 | MEDIUM | — | — | NO | NO |
+| retail | RU | MUST_LOCALIZE | 9 | MEDIUM | розничная торговля | comerț cu amănuntul | NO | APPROVED |
 | Price Effect | RU | MUST_LOCALIZE | 8 | MEDIUM | Эффект цены | Efectul prețului | NO | NO |
-| CAPEX | RU | LOCALIZE_WITH_ENGLISH_ONCE | 8 | MEDIUM | Капитальные вложения | Investiții de capital | YES | NO |
+| CAPEX | RU | LOCALIZE_WITH_ENGLISH_ONCE | 8 | MEDIUM | Капитальные вложения | Investiții de capital | YES | APPROVED |
 | Price Effect | RO | MUST_LOCALIZE | 8 | MEDIUM | Эффект цены | Efectul prețului | NO | NO |
-| CAPEX | RO | LOCALIZE_WITH_ENGLISH_ONCE | 8 | MEDIUM | Капитальные вложения | Investiții de capital | YES | NO |
+| CAPEX | RO | LOCALIZE_WITH_ENGLISH_ONCE | 8 | MEDIUM | Капитальные вложения | Investiții de capital | YES | APPROVED |
 | stock-out | RU | MUST_LOCALIZE | 7 | MEDIUM | дефицит товара | lipsă de stoc | NO | NO |
 | FINMENTOR Retail Margin Engine | RU | MUST_LOCALIZE | 7 | MEDIUM | — | — | NO | NO |
 | Available Cash | RU | LOCALIZE_WITH_ENGLISH_ONCE | 7 | MEDIUM | Доступные деньги | Numerar disponibil | YES | NO |
@@ -351,7 +351,7 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Control Partner | RU | OWNER_DECISION_REQUIRED | 5 | MEDIUM | Финансовый партнёр | Partener financiar | YES | APPROVED |
 | backtest | RU | MUST_LOCALIZE | 5 | MEDIUM | ретропроверка | testare retroactivă | NO | NO |
 | Final FCF | RU | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
-| roadmap | RU | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
+| roadmap | RU | MUST_LOCALIZE | 5 | MEDIUM | план действий | plan de acțiune | YES | AUTO_RESOLVED |
 | Mix Effect | RU | MUST_LOCALIZE | 5 | MEDIUM | Эффект структуры продаж | Efectul structurii vânzărilor | NO | NO |
 | Data Model | RU | MUST_LOCALIZE | 5 | MEDIUM | Модель данных | Model de date | NO | NO |
 | Final FCF | RO | MUST_LOCALIZE | 5 | MEDIUM | — | — | NO | NO |
@@ -363,7 +363,7 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Mix | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
 | Real Estate Control System FINMENTOR | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
 | Real Estate Control System | RU | OWNER_DECISION_REQUIRED | 4 | MEDIUM | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | YES | APPROVED |
-| retail- | RU | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
+| retail- | RU | MUST_LOCALIZE | 4 | MEDIUM | розничная торговля | comerț cu amănuntul | NO | AUTO_RESOLVED |
 | Supplier Rating | RU | MUST_LOCALIZE | 4 | MEDIUM | Рейтинг поставщиков | Ratingul furnizorilor | NO | NO |
 | Free Treasury Cash | RU | LOCALIZE_WITH_ENGLISH_ONCE | 4 | MEDIUM | Свободные деньги казначейства | Numerar liber de trezorerie | YES | NO |
 | Quality | RO | MUST_LOCALIZE | 4 | MEDIUM | — | — | NO | NO |
@@ -417,7 +417,7 @@ modules. Reachable, commercially meaningful, but not on the first-contact path.
 | Forecast | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
 | email alerts | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
 | Treasury | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
-| Cash gap | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
+| Cash gap | RU | MUST_LOCALIZE | 2 | LOW | Кассовый разрыв | Deficit temporar de lichiditate | NO | AUTO_RESOLVED |
 | tenure | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
 | recency | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
 | Indicative Revenue at Risk | RU | MUST_LOCALIZE | 2 | LOW | — | — | NO | NO |
@@ -494,7 +494,7 @@ currently in that class.
 | Payment Gate | the approval step a payment must pass before it is released | Контроль платежей | Controlul plăților | YES | YES |
 | Revenue at Risk | revenue that will be lost unless something is done | Выручка под риском | Venituri expuse riscului | YES | YES |
 | Funding Gap | the money the business will be short of, and when | Дефицит финансирования | Deficit de finanțare | YES | YES |
-| Expected Renewal Value | the money expected from renewals still to come | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | YES | YES |
+| Expected Renewal Value | the money expected from renewals still to come | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | YES | YES |
 | Supplier Shelf Credit | how much of the stock on the shelf the supplier is really financing | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | YES | YES |
 | Control Light | the entry service tier | Базовый финансовый контроль | Control financiar esențial | YES | YES |
 | Retail Margin Engine | how margin is made and lost per shelf, product and supplier | Система управления маржой в рознице | Sistem de management al marjei în retail | YES | YES |
@@ -510,9 +510,9 @@ currently in that class.
 | Own-Funded | the part of stock paid for with the company's own money | За счёт собственных средств | Din surse proprii | YES | YES |
 | Purchase Gate | the approval step a purchase must pass before money leaves | Контроль закупок | Controlul achizițiilor | YES | YES |
 | Monthly owner report | — | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | YES | YES |
-| RETAIL ENGINE | — | СИСТЕМА УПРАВЛЕНИЯ МАРЖОЙ | SISTEM DE MANAGEMENT AL MARJEI | NO | YES |
-| Treasury & Payment Discipline | — | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | YES | YES |
-| Light | — | Лёгкий | Simplificat | NO | YES |
+| RETAIL ENGINE | — | — | — | NO | YES |
+| Treasury & Payment Discipline | — | — | — | YES | YES |
+| Light | — | — | — | NO | YES |
 
 ## 9. TOP TIER 1 TERMS FOR OWNER APPROVAL
 
@@ -521,52 +521,52 @@ The commercially critical language, separated from the long tail so it can be ap
 
 | term | current RU | proposed RU | current RO | proposed RO | EN once? | why it matters | owner decision? |
 |---|---|---|---|---|---|---|---|
-| P&L | P&L | Отчёт о прибыли и убытках | P&L | Cont de profit și pierdere | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| Cash Flow | Cash Flow | Денежный поток | Cash Flow | Flux de numerar | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| Discovery Call | Discovery Call | Первичный финансовый разбор | Discovery Call | Discuție financiară inițială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
+| P&L | P&L | Отчёт о прибыли и убытках | P&L | Cont de profit și pierdere | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| Cash Flow | Cash Flow | Денежный поток | Cash Flow | Flux de numerar | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| Discovery Call | Discovery Call | Первичный финансовый разбор | Discovery Call | Discuție financiară inițială | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | Business Control System | Business Control System | Система финансового управления бизнесом | Business Control System | Sistem de management financiar al afacerii | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
-| CFO | CFO | Финансовый директор | CFO | Director financiar | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| KPI | KPI | Ключевые показатели бизнеса | KPI | Indicatori-cheie de performanță | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| Financial Health Check | Financial Health Check | Экспертная финансовая диагностика | Financial Health Check | Diagnostic financiar | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
+| CFO | CFO | Финансовый директор | CFO | Director financiar | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| KPI | KPI | Ключевые показатели бизнеса | KPI | Indicatori-cheie de performanță | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| Financial Health Check | Financial Health Check | Экспертная финансовая диагностика | Financial Health Check | Diagnostic financiar aprofundat | NO | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
 | Control Light | Control Light | Базовый финансовый контроль | Control Light | Control financiar esențial | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
-| AI | AI | Искусственный интеллект | AI | Inteligență artificială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | NO |
-| DPO | DPO | Срок оплаты поставщикам | DPO | Termenul de plată la furnizori | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Email | Email | Электронная почта | Email | E-mail | NO | Appears in a button, card or formula where the customer decides. | NO |
-| FCF | FCF | Свободный денежный поток | FCF | Flux de numerar liber | YES | Appears in a button, card or formula where the customer decides. | NO |
-| DSO | DSO | Срок оплаты от клиентов | DSO | Termenul de încasare de la clienți | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Cash | Cash | Деньги | Cash | Numerar | NO | Appears in a button, card or formula where the customer decides. | NO |
+| AI | AI | Искусственный интеллект | AI | Inteligență artificială | YES | Needed to understand the offer or the next step before contacting FINMENTOR. | APPROVED |
+| DPO | DPO | Средний срок оплаты поставщикам | DPO | Termenul mediu de plată către furnizori | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
+| Email | Email | E-mail | Email | E-mail | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| FCF | FCF | Свободный денежный поток | FCF | Flux de numerar liber | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
+| DSO | DSO | Средний срок оплаты от клиентов | DSO | Termenul mediu de încasare de la clienți | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
+| Cash | Cash | Денежные средства | Cash | Disponibilități bănești | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Make | Make | автоматизация | Make | automatizare | NO | Appears in a button, card or formula where the customer decides. | NO |
-| Cash Saving | Cash Saving | Денежная экономия | Cash Saving | Economie în numerar | YES | Appears in a button, card or formula where the customer decides. | NO |
+| Cash Saving | Cash Saving | Фактическая экономия денежных средств | Cash Saving | Economie efectivă de numerar | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Funding Gap | Funding Gap | Дефицит финансирования | Funding Gap | Deficit de finanțare | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
-| Sheets | Sheets | Google Sheets | Sheets | Google Sheets | NO | Appears in a button, card or formula where the customer decides. | NO |
-| Full Cost | Full Cost | Полная стоимость | Full Cost | Costul total | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| Retail | Retail | Розничная торговля | Retail | Comerț cu amănuntul | NO | Appears in a button, card or formula where the customer decides. | NO |
-| promo | promo | промоакция | promo | promoție | NO | Appears in a button, card or formula where the customer decides. | NO |
-| Inventory Days | Inventory Days | Дни запасов | Inventory Days | Zile de stoc | YES | Appears in a button, card or formula where the customer decides. | NO |
-| Owner | Owner | Собственник | Owner | Proprietar | NO | Appears in a button, card or formula where the customer decides. | NO |
-| retrobonus | retrobonus | ретробонус | retrobonus | retrobonus | NO | Appears in a button, card or formula where the customer decides. | NO |
-| cash flow | cash flow | денежный поток | cash flow | flux de numerar | YES | Appears in a button, card or formula where the customer decides. | NO |
+| Sheets | Sheets | Google Sheets | Sheets | Google Sheets | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| Full Cost | Full Cost | Полная стоимость | Full Cost | Cost total | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| Retail | Retail | Розничная торговля | Retail | Comerț cu amănuntul | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| promo | promo | промоакция | promo | promoție | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| Inventory Days | Inventory Days | Период оборачиваемости запасов, дней | Inventory Days | Durata de rotație a stocurilor | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
+| Owner | Owner | Собственник | Owner | Proprietar | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| retrobonus | retrobonus | ретробонус | retrobonus | bonus retroactiv | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| cash flow | cash flow | денежный поток | cash flow | flux de numerar | YES | Appears in a button, card or formula where the customer decides. | AUTO_RESOLVED |
 | Client Base Control System | Client Base Control System | Система управления клиентской базой | Client Base Control System | Sistem de management al bazei de clienți | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
-| Light | Light | Лёгкий | Light | Simplificat | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | YES |
-| BI | BI | аналитика | BI | analiză | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| vacancy | vacancy | вакантность | vacancy | grad de neocupare | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| CFO- | CFO- | финансовый | CFO- | financiar | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| cash gap | cash gap | кассовый разрыв | cash gap | gol de numerar | NO | Appears in a button, card or formula where the customer decides. | NO |
-| email | email | электронная почта | email | e-mail | NO | Appears in a button, card or formula where the customer decides. | NO |
+| Light | Light | **needs wording** | Light | **needs wording** | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NOT_STANDALONE |
+| BI | BI | Управленческая аналитика | BI | Analiză managerială | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| vacancy | vacancy | Доля свободных площадей | vacancy | Grad de neocupare | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| CFO- | CFO- | **needs wording** | CFO- | **needs wording** | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NOT_STANDALONE |
+| cash gap | cash gap | Кассовый разрыв | cash gap | Deficit temporar de lichiditate | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
+| email | email | E-mail | email | E-mail | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Retail Margin Engine | Retail Margin Engine | Система управления маржой в рознице | Retail Margin Engine | Sistem de management al marjei în retail | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
-| NOI | NOI | Чистый операционный доход | NOI | Venit operațional net | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| ERP | ERP | Учётная система | ERP | Sistem de evidență | YES | Appears in a button, card or formula where the customer decides. | NO |
+| NOI | NOI | Чистый операционный доход | NOI | Venit operațional net | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| ERP | ERP | Корпоративная учётная система | ERP | Sistem integrat de gestiune | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | Margin Gap | Margin Gap | Отклонение маржи от целевой | Margin Gap | Abaterea marjei față de țintă | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
 | ROI | ROI | Отдача от вложений | ROI | Randamentul investiției | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | tenant rating | tenant rating | рейтинг арендаторов | tenant rating | ratingul chiriașilor | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | rent vs market | rent vs market | аренда против рынка | rent vs market | chiria față de piață | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Fitness Membership Renewal Engine | Fitness Membership Renewal Engine | Система продления абонементов | Fitness Membership Renewal Engine | Sistem de reînnoire a abonamentelor | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
 | Target Marja | Target Marja | Целевая маржа | Target Marja | Marjă țintă | NO | Appears in a button, card or formula where the customer decides. | APPROVED |
-| Fitness | Fitness | Фитнес / спортивный бизнес | Fitness | Fitness / activități sportive | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
-| OpenAI | OpenAI | OpenAI | OpenAI | OpenAI | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
+| Fitness | Fitness | Фитнес / спортивный бизнес | Fitness | Fitness / activități sportive | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | APPROVED |
+| OpenAI | OpenAI | OpenAI | OpenAI | OpenAI | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | BRAND |
 | NDA | NDA | Соглашение о неразглашении | NDA | Acord de confidențialitate | YES | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Control System | Control System | Система финансового контроля | Control System | Sistem de control financiar | YES | Appears in a button, card or formula where the customer decides. | APPROVED |
-| Monthly | Monthly | Ежемесячно | Monthly | Lunar | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
+| Monthly | Monthly | **needs wording** | Monthly | **needs wording** | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NOT_STANDALONE |
 | Standard | Standard | Стандартный | Standard | Standard | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Spend | Spend | Расходы | Spend | Cheltuieli | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
 | Automation | Automation | Автоматизация | Automation | Automatizare | NO | Visible on the homepage, questionnaire, confirmation or privacy text during the journey. | NO |
@@ -581,41 +581,39 @@ as a translation of the Russian.
 |---|---|---|---|---|
 | P&L | Отчёт о прибыли и убытках | Cont de profit și pierdere | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Cash Flow | Денежный поток | Flux de numerar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Discovery Call | Первичный финансовый разбор | Discuție financiară inițială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| Discovery Call | Первичный финансовый разбор | Discuție financiară inițială | LOCALIZE_WITH_ENGLISH_ONCE | NO |
 | CFO | Финансовый директор | Director financiar | MUST_LOCALIZE | NO |
 | Business Control System | Система финансового управления бизнесом | Sistem de management financiar al afacerii | OWNER_DECISION_REQUIRED | YES |
 | KPI | Ключевые показатели бизнеса | Indicatori-cheie de performanță | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Financial Health Check | Экспертная финансовая диагностика | Diagnostic financiar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| Financial Health Check | Экспертная финансовая диагностика | Diagnostic financiar aprofundat | LOCALIZE_WITH_ENGLISH_ONCE | NO |
 | Control Light | Базовый финансовый контроль | Control financiar esențial | OWNER_DECISION_REQUIRED | YES |
 | AI | Искусственный интеллект | Inteligență artificială | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| DPO | Срок оплаты поставщикам | Termenul de plată la furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Email | Электронная почта | E-mail | MUST_LOCALIZE | NO |
+| DPO | Средний срок оплаты поставщикам | Termenul mediu de plată către furnizori | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| Email | E-mail | E-mail | MUST_LOCALIZE | NO |
 | FCF | Свободный денежный поток | Flux de numerar liber | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| DSO | Срок оплаты от клиентов | Termenul de încasare de la clienți | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| DSO | Средний срок оплаты от клиентов | Termenul mediu de încasare de la clienți | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | promo | промоакция | promoție | MUST_LOCALIZE | NO |
 | Sheets | Google Sheets | Google Sheets | APPROVED_PROPER_NAME | NO |
-| Cash | Деньги | Numerar | MUST_LOCALIZE | NO |
+| Cash | Денежные средства | Disponibilități bănești | MUST_LOCALIZE | NO |
 | Make | автоматизация | automatizare | TECHNICAL_INTERNAL_ONLY | NO |
-| retrobonus | ретробонус | retrobonus | MUST_LOCALIZE | NO |
-| Cash Saving | Денежная экономия | Economie în numerar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| retrobonus | ретробонус | bonus retroactiv | MUST_LOCALIZE | NO |
+| Cash Saving | Фактическая экономия денежных средств | Economie efectivă de numerar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | cash flow | денежный поток | flux de numerar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Client Base Control System | Система управления клиентской базой | Sistem de management al bazei de clienți | OWNER_DECISION_REQUIRED | YES |
 | Funding Gap | Дефицит финансирования | Deficit de finanțare | OWNER_DECISION_REQUIRED | YES |
-| Light | Лёгкий | Simplificat | OWNER_DECISION_REQUIRED | NO |
-| Full Cost | Полная стоимость | Costul total | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| BI | аналитика | analiză | MUST_LOCALIZE | NO |
-| vacancy | вакантность | grad de neocupare | MUST_LOCALIZE | NO |
+| Full Cost | Полная стоимость | Cost total | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| BI | Управленческая аналитика | Analiză managerială | MUST_LOCALIZE | NO |
+| vacancy | Доля свободных площадей | Grad de neocupare | MUST_LOCALIZE | NO |
 | Retail | Розничная торговля | Comerț cu amănuntul | MUST_LOCALIZE | NO |
-| CFO- | финансовый | financiar | MUST_LOCALIZE | NO |
-| Inventory Days | Дни запасов | Zile de stoc | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| cash gap | кассовый разрыв | gol de numerar | MUST_LOCALIZE | NO |
-| email | электронная почта | e-mail | MUST_LOCALIZE | NO |
+| Inventory Days | Период оборачиваемости запасов, дней | Durata de rotație a stocurilor | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| cash gap | Кассовый разрыв | Deficit temporar de lichiditate | MUST_LOCALIZE | NO |
+| email | E-mail | E-mail | MUST_LOCALIZE | NO |
 | Owner | Собственник | Proprietar | MUST_LOCALIZE | NO |
 | Retail Margin Engine | Система управления маржой в рознице | Sistem de management al marjei în retail | OWNER_DECISION_REQUIRED | YES |
 | tenant rating | рейтинг арендаторов | ratingul chiriașilor | MUST_LOCALIZE | NO |
 | NOI | Чистый операционный доход | Venit operațional net | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | rent vs market | аренда против рынка | chiria față de piață | MUST_LOCALIZE | NO |
-| ERP | Учётная система | Sistem de evidență | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| ERP | Корпоративная учётная система | Sistem integrat de gestiune | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Margin Gap | Отклонение маржи от целевой | Abaterea marjei față de țintă | OWNER_DECISION_REQUIRED | YES |
 | Control System | Система финансового контроля | Sistem de control financiar | OWNER_DECISION_REQUIRED | YES |
 | Standard | Стандартный | Standard | MUST_LOCALIZE | NO |
@@ -627,7 +625,6 @@ as a translation of the Russian.
 | cookies | файлы cookie | fișiere cookie | MUST_LOCALIZE | NO |
 | OpenAI | OpenAI | OpenAI | APPROVED_PROPER_NAME | NO |
 | NDA | Соглашение о неразглашении | Acord de confidențialitate | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| Monthly | Ежемесячно | Lunar | MUST_LOCALIZE | NO |
 | Spend | Расходы | Cheltuieli | MUST_LOCALIZE | NO |
 | Automation | Автоматизация | Automatizare | MUST_LOCALIZE | NO |
 | Monthly owner report | Ежемесячный отчёт для собственника | Raport lunar pentru proprietar | OWNER_DECISION_REQUIRED | YES |
@@ -638,21 +635,57 @@ as a translation of the Russian.
 | mini-scan | мини-диагностика | mini-diagnostic | MUST_LOCALIZE | NO |
 | Zoom | Zoom | Zoom | APPROVED_PROPER_NAME | NO |
 | Cap Rate | Ставка капитализации | Rata de capitalizare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
-| RETAIL ENGINE | СИСТЕМА УПРАВЛЕНИЯ МАРЖОЙ | SISTEM DE MANAGEMENT AL MARJEI | OWNER_DECISION_REQUIRED | NO |
+| payback | срок окупаемости | perioada de recuperare a investiției | MUST_LOCALIZE | YES |
 | Unit economics | Юнит-экономика | Economia unitară | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | ROAS | Отдача от рекламных расходов | Randamentul cheltuielilor publicitare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | CAC | Стоимость привлечения клиента | Costul de achiziție a clientului | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | LTV | Пожизненная ценность клиента | Valoarea pe durata de viață a clientului | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| e-commerce | интернет-торговля | comerț online | MUST_LOCALIZE | NO |
 | Manufacturing | Производство | Producție | MUST_LOCALIZE | NO |
 | Support | Поддержка | Suport | MUST_LOCALIZE | NO |
-| Treasury & Payment Discipline | Казначейство и платёжная дисциплина | Trezorerie și disciplina plăților | OWNER_DECISION_REQUIRED | YES |
+| Analysis | Анализ | Analiză | MUST_LOCALIZE | NO |
+| ChatGPT | ChatGPT | ChatGPT | APPROVED_PROPER_NAME | NO |
+| Copilot | Copilot | Copilot | APPROVED_PROPER_NAME | NO |
+| Claude | Claude | Claude | APPROVED_PROPER_NAME | NO |
+| Accepted Business Outcome | Принятый бизнес-результат | Rezultat de business acceptat | MUST_LOCALIZE | YES |
+| Financial Effect | Финансовый эффект | Efect financiar | MUST_LOCALIZE | NO |
+| Management Decision | Управленческое решение | Decizie managerială | MUST_LOCALIZE | NO |
+| Risk map | Карта финансовых рисков | Harta riscurilor financiare | MUST_LOCALIZE | NO |
+| Document checklist | Список необходимых документов | Lista documentelor necesare | MUST_LOCALIZE | NO |
+| Payment calendar logic | Логика платёжного календаря | Logica calendarului de plăți | MUST_LOCALIZE | NO |
+| Action plan | План действий | Plan de acțiune | MUST_LOCALIZE | NO |
+| Recommendation | Рекомендация FINMENTOR | Recomandarea FINMENTOR | MUST_LOCALIZE | NO |
+| Bank statements | Банковские выписки | Extrase bancare | MUST_LOCALIZE | NO |
+| AP aging | Кредиторская задолженность по срокам | Vechimea datoriilor către furnizori | MUST_LOCALIZE | YES |
+| Owner view | Взгляд собственника | Perspectiva proprietarului | MUST_LOCALIZE | NO |
+| Cash flow & treasury control | Управление денежным потоком и казначейством | Gestiunea fluxului de numerar și a trezoreriei | MUST_LOCALIZE | NO |
+| Iacovlev Ghennadi | Iacovlev Ghennadi | Iacovlev Ghennadi | APPROVED_PROPER_NAME | NO |
+| Google Analytics | Google Analytics | Google Analytics | APPROVED_PROPER_NAME | NO |
+| GitHub Pages | GitHub Pages | GitHub Pages | APPROVED_PROPER_NAME | NO |
+| email- | e-mail | e-mail | MUST_LOCALIZE | NO |
+| Cookies | Файлы cookie | Fișiere cookie | MUST_LOCALIZE | NO |
+| GMT | GMT | GMT | MUST_LOCALIZE | NO |
+| Services | Услуги | Servicii | MUST_LOCALIZE | NO |
+| Other | Другое | Altele | MUST_LOCALIZE | NO |
+| Google Meet | Google Meet | Google Meet | APPROVED_PROPER_NAME | NO |
+| Microsoft Teams | Microsoft Teams | Microsoft Teams | APPROVED_PROPER_NAME | NO |
+| Telegram call | Telegram call | Telegram call | APPROVED_PROPER_NAME | NO |
+| HoReCa | HoReCa | HoReCa | MUST_LOCALIZE | NO |
+| Tableau | Tableau | Tableau | APPROVED_PROPER_NAME | NO |
+| Looker | Looker | Looker | APPROVED_PROPER_NAME | NO |
+| Zapier | Zapier | Zapier | APPROVED_PROPER_NAME | NO |
+| Meet | встреча | întâlnire | MUST_LOCALIZE | NO |
+| Email summary | Итоги встречи по e-mail | Sinteza întâlnirii pe e-mail | MUST_LOCALIZE | NO |
+| Google Drive | Google Drive | Google Drive | APPROVED_PROPER_NAME | NO |
 | Payment Gate | Контроль платежей | Controlul plăților | OWNER_DECISION_REQUIRED | YES |
 | Revenue at Risk | Выручка под риском | Venituri expuse riscului | OWNER_DECISION_REQUIRED | YES |
-| Expected Renewal Value | Ожидаемая выручка от продлений | Venituri estimate din reînnoiri | OWNER_DECISION_REQUIRED | YES |
+| Expected Renewal Value | Ожидаемая выручка от продлений | Venituri așteptate din reînnoiri | OWNER_DECISION_REQUIRED | YES |
 | dashboard | панель собственника | tablou de bord | MUST_LOCALIZE | NO |
 | SKU | Товарная позиция | Articol de stoc | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Supplier Shelf Credit | Финансирование товарной полки поставщиком | Finanțarea stocului de către furnizor | OWNER_DECISION_REQUIRED | YES |
+| funding gap | дефицит финансирования | deficit de finanțare | MUST_LOCALIZE | YES |
 | Cost Effect | Эффект себестоимости | Efectul costului | MUST_LOCALIZE | NO |
+| retail | розничная торговля | comerț cu amănuntul | MUST_LOCALIZE | NO |
 | Price Effect | Эффект цены | Efectul prețului | MUST_LOCALIZE | NO |
 | CAPEX | Капитальные вложения | Investiții de capital | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | stock-out | дефицит товара | lipsă de stoc | MUST_LOCALIZE | NO |
@@ -663,11 +696,13 @@ as a translation of the Russian.
 | Volume Effect | Эффект объёма | Efectul volumului | MUST_LOCALIZE | NO |
 | Control Partner | Финансовый партнёр | Partener financiar | OWNER_DECISION_REQUIRED | YES |
 | backtest | ретропроверка | testare retroactivă | MUST_LOCALIZE | NO |
+| roadmap | план действий | plan de acțiune | MUST_LOCALIZE | YES |
 | Mix Effect | Эффект структуры продаж | Efectul structurii vânzărilor | MUST_LOCALIZE | NO |
 | Data Model | Модель данных | Model de date | MUST_LOCALIZE | NO |
 | Retention Discount Leakage | Потери на скидках удержания | Pierderi din discounturi de retenție | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Executive Summary | Краткое резюме | Rezumat executiv | MUST_LOCALIZE | NO |
 | Real Estate Control System | Система финансового управления недвижимостью | Sistem de management financiar al activelor imobiliare | OWNER_DECISION_REQUIRED | YES |
+| retail- | розничная торговля | comerț cu amănuntul | MUST_LOCALIZE | NO |
 | Supplier Rating | Рейтинг поставщиков | Ratingul furnizorilor | MUST_LOCALIZE | NO |
 | Free Treasury Cash | Свободные деньги казначейства | Numerar liber de trezorerie | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Supplier-Financed | Финансируется поставщиком | Finanțat de furnizor | OWNER_DECISION_REQUIRED | YES |
@@ -677,9 +712,15 @@ as a translation of the Russian.
 | Yellow | Жёлтая зона | Zonă galbenă | MUST_LOCALIZE | NO |
 | Orange | Оранжевая зона | Zonă portocalie | MUST_LOCALIZE | NO |
 | Red | Красная зона | Zonă roșie | MUST_LOCALIZE | NO |
+| Cash gap | Кассовый разрыв | Deficit temporar de lichiditate | MUST_LOCALIZE | NO |
 | Working Capital | Оборотный капитал | Capital de lucru | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Data Quality | Качество данных | Calitatea datelor | MUST_LOCALIZE | NO |
+| Retrobonus | ретробонус | bonus retroactiv | MUST_LOCALIZE | NO |
+| Promo | промоакция | promoție | MUST_LOCALIZE | NO |
+| Cash flow | Денежный поток | Flux de numerar | MUST_LOCALIZE | YES |
 | Dashboard | Панель собственника | Tablou de bord pentru proprietar | LOCALIZE_WITH_ENGLISH_ONCE | YES |
+| inventory days | период оборачиваемости запасов, дней | durata de rotație a stocurilor | MUST_LOCALIZE | YES |
+| FCF- | Свободный денежный поток | Flux de numerar liber | MUST_LOCALIZE | YES |
 | DIO | Срок оборота запасов | Durata de rotație a stocurilor | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | EBITDA | Прибыль до вычета процентов, налогов и амортизации | Profit înainte de dobânzi, impozite și amortizare | LOCALIZE_WITH_ENGLISH_ONCE | YES |
 | Payment Calendar | Платёжный календарь | Calendar de plăți | MUST_LOCALIZE | NO |
@@ -693,7 +734,7 @@ as a translation of the Russian.
 
 ## 11. Terms with no wording yet
 
-669 rows carry no proposed wording. They are the long tail — mostly one- and two-use
+596 rows carry no proposed wording. They are the long tail — mostly one- and two-use
 specialist labels on Tier 2 and Tier 3 pages. They are listed in the CSV with an empty
 `ru_proposal` so a reviewer can fill them in, and none of them is on the Tier 1 approval path.
 
