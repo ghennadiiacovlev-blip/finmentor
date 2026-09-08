@@ -1,16 +1,16 @@
 {
   "generatedBy": "qa/visual-evidence.mjs",
-  "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+  "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
   "branch": "release/v1.1-final-integration",
-  "generated_at": "2026-09-07T18:23:44.760Z",
+  "generated_at": "2026-09-08T05:05:24.296Z",
   "chrome": "Chrome/152.0.7977.77",
   "random_seed": 20260907,
   "reduced_motion": true,
   "shots": {
     "ru-homepage-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:08.311Z",
+      "capture_timestamp": "2026-09-08T05:04:40.352Z",
       "viewport": "390x844",
       "surface_id": "ru-homepage",
       "language": "ru",
@@ -29,9 +29,9 @@
       "ab_reproducible": true
     },
     "ro-homepage-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:10.794Z",
+      "capture_timestamp": "2026-09-08T05:04:43.387Z",
       "viewport": "390x844",
       "surface_id": "ro-homepage",
       "language": "ro",
@@ -50,9 +50,9 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:13.130Z",
+      "capture_timestamp": "2026-09-08T05:04:46.293Z",
       "viewport": "390x844",
       "surface_id": "ru-questionnaire",
       "language": "ru",
@@ -71,9 +71,9 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:14.831Z",
+      "capture_timestamp": "2026-09-08T05:04:48.014Z",
       "viewport": "390x844",
       "surface_id": "ro-questionnaire",
       "language": "ro",
@@ -92,9 +92,9 @@
       "ab_reproducible": true
     },
     "ru-packages-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:16.532Z",
+      "capture_timestamp": "2026-09-08T05:04:49.712Z",
       "viewport": "390x844",
       "surface_id": "ru-packages",
       "language": "ru",
@@ -113,9 +113,9 @@
       "ab_reproducible": true
     },
     "ro-packages-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:18.282Z",
+      "capture_timestamp": "2026-09-08T05:04:52.263Z",
       "viewport": "390x844",
       "surface_id": "ro-packages",
       "language": "ro",
@@ -134,9 +134,9 @@
       "ab_reproducible": true
     },
     "ru-real-estate-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:23.514Z",
+      "capture_timestamp": "2026-09-08T05:04:59.946Z",
       "viewport": "390x844",
       "surface_id": "ru-real-estate",
       "language": "ru",
@@ -155,9 +155,9 @@
       "ab_reproducible": true
     },
     "thank-you-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:26.861Z",
+      "capture_timestamp": "2026-09-08T05:05:04.991Z",
       "viewport": "390x844",
       "surface_id": "thank-you",
       "language": "ru",
@@ -176,13 +176,13 @@
       "ab_reproducible": true
     },
     "miniapp-populated-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:33.677Z",
+      "capture_timestamp": "2026-09-08T05:05:13.491Z",
       "viewport": "390x844",
       "surface_id": "miniapp-populated",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_PROBLEM (as requested)",
       "screenshot_filename": "miniapp-populated-390.png",
       "sha256": "df9904f04d9778ecbbc2b20c3d0410dde4091f93c2bdacd6189186037c4325a4",
       "bytes": 47394,
@@ -197,13 +197,13 @@
       "ab_reproducible": true
     },
     "miniapp-review-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:35.530Z",
+      "capture_timestamp": "2026-09-08T05:05:15.141Z",
       "viewport": "390x844",
       "surface_id": "miniapp-review",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_REVIEW (as requested)",
       "screenshot_filename": "miniapp-review-390.png",
       "sha256": "dc50a840f4475810b2541469e31bcb78fa41f7d00f1cc9403c27daa6373c9305",
       "bytes": 37309,
@@ -218,13 +218,13 @@
       "ab_reproducible": true
     },
     "miniapp-edit-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:37.227Z",
+      "capture_timestamp": "2026-09-08T05:05:16.824Z",
       "viewport": "390x844",
       "surface_id": "miniapp-edit",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_EDIT_SELECTOR (as requested)",
       "screenshot_filename": "miniapp-edit-390.png",
       "sha256": "cd1758db04d8bd26dfda327a2aa6d523c23b780275f319383aabd6fa43a00aa9",
       "bytes": 43310,
@@ -239,13 +239,13 @@
       "ab_reproducible": true
     },
     "miniapp-success-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:38.892Z",
+      "capture_timestamp": "2026-09-08T05:05:18.489Z",
       "viewport": "390x844",
       "surface_id": "miniapp-success",
       "language": "ru",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_SUCCESS (as requested)",
       "screenshot_filename": "miniapp-success-390.png",
       "sha256": "5835bb92bf3555b58cbdf21018fa5707074d9f3bff88b66364e95ebc7697e7e5",
       "bytes": 32437,
@@ -260,13 +260,13 @@
       "ab_reproducible": true
     },
     "xray-result-ru-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:42.176Z",
+      "capture_timestamp": "2026-09-08T05:05:21.773Z",
       "viewport": "390x844",
       "surface_id": "xray-result-ru",
       "language": "ru",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_RESULT (as requested)",
       "screenshot_filename": "xray-result-ru-390.png",
       "sha256": "23a6d643938a502bfa790c1a634d17610dae7227de3ff955545008dea86c8bf6",
       "bytes": 41227,
@@ -281,13 +281,13 @@
       "ab_reproducible": true
     },
     "xray-result-ro-390.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:43.893Z",
+      "capture_timestamp": "2026-09-08T05:05:23.423Z",
       "viewport": "390x844",
       "surface_id": "xray-result-ro",
       "language": "ro",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_RESULT (as requested)",
       "screenshot_filename": "xray-result-ro-390.png",
       "sha256": "58c9f039bbb7df043e57be17dc85765c46ba55c222d3efeb5b4274cb25cc820b",
       "bytes": 37202,
@@ -302,9 +302,9 @@
       "ab_reproducible": true
     },
     "ru-homepage-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:09.763Z",
+      "capture_timestamp": "2026-09-08T05:04:42.439Z",
       "viewport": "1440x900",
       "surface_id": "ru-homepage",
       "language": "ru",
@@ -323,9 +323,9 @@
       "ab_reproducible": true
     },
     "ro-homepage-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:12.306Z",
+      "capture_timestamp": "2026-09-08T05:04:45.464Z",
       "viewport": "1440x900",
       "surface_id": "ro-homepage",
       "language": "ro",
@@ -344,16 +344,16 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:13.997Z",
+      "capture_timestamp": "2026-09-08T05:04:47.179Z",
       "viewport": "1440x900",
       "surface_id": "ru-questionnaire",
       "language": "ru",
       "application_state": "as served",
       "screenshot_filename": "ru-questionnaire-1440.png",
-      "sha256": "84ff0c18971bad70544bebcd7c229368dd2437ad8a27bbf2b5c62a923e836639",
-      "bytes": 110393,
+      "sha256": "20baefcce818e9d128555f4940ae08b6883babb7e4d0d06311022cd210ee1c65",
+      "bytes": 110538,
       "random_seed": 20260907,
       "reduced_motion": true,
       "font_status": "loaded",
@@ -365,9 +365,9 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:15.700Z",
+      "capture_timestamp": "2026-09-08T05:04:48.881Z",
       "viewport": "1440x900",
       "surface_id": "ro-questionnaire",
       "language": "ro",
@@ -386,9 +386,9 @@
       "ab_reproducible": true
     },
     "ru-packages-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:17.428Z",
+      "capture_timestamp": "2026-09-08T05:04:51.426Z",
       "viewport": "1440x900",
       "surface_id": "ru-packages",
       "language": "ru",
@@ -407,16 +407,16 @@
       "ab_reproducible": true
     },
     "ro-packages-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:19.301Z",
+      "capture_timestamp": "2026-09-08T05:04:54.113Z",
       "viewport": "1440x900",
       "surface_id": "ro-packages",
       "language": "ro",
       "application_state": "as served",
       "screenshot_filename": "ro-packages-1440.png",
-      "sha256": "8ef8f5f04c70b6afdb0c6d2b9afd2f41b8da995945da1c965c8dd56af00399bc",
-      "bytes": 161551,
+      "sha256": "f164cd0453077bcfe9b4c52fd4f3e90ffad4f9c2b3165f07f2d81d3dbacbdf59",
+      "bytes": 161631,
       "random_seed": 20260907,
       "reduced_motion": true,
       "font_status": "loaded",
@@ -428,13 +428,13 @@
       "ab_reproducible": true
     },
     "miniapp-populated-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:34.671Z",
+      "capture_timestamp": "2026-09-08T05:05:14.334Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-populated",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_PROBLEM (as requested)",
       "screenshot_filename": "miniapp-populated-1440.png",
       "sha256": "2019f517afa73d7c0aa4372504bf40c7f4bc53339c314e36652b81a3781d6c79",
       "bytes": 60002,
@@ -449,13 +449,13 @@
       "ab_reproducible": true
     },
     "miniapp-review-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:36.404Z",
+      "capture_timestamp": "2026-09-08T05:05:16.000Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-review",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_REVIEW (as requested)",
       "screenshot_filename": "miniapp-review-1440.png",
       "sha256": "036b760da1e12d0454d2b211afc70f2ad5963eefdcd6c474831a199ab95fc40d",
       "bytes": 48022,
@@ -470,13 +470,13 @@
       "ab_reproducible": true
     },
     "miniapp-edit-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:38.070Z",
+      "capture_timestamp": "2026-09-08T05:05:17.668Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-edit",
       "language": "ru",
-      "application_state": "2 driven step(s)",
+      "application_state": "APP_EDIT_SELECTOR (as requested)",
       "screenshot_filename": "miniapp-edit-1440.png",
       "sha256": "8ca3d6f88b567a2214124508776e3fd1e8fc7e2f8742aba02f11f6277a5ca2f3",
       "bytes": 53797,
@@ -491,13 +491,13 @@
       "ab_reproducible": true
     },
     "miniapp-success-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:39.735Z",
+      "capture_timestamp": "2026-09-08T05:05:19.315Z",
       "viewport": "1440x900",
       "surface_id": "miniapp-success",
       "language": "ru",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_SUCCESS (as requested)",
       "screenshot_filename": "miniapp-success-1440.png",
       "sha256": "e2451619f8433382eb47d31b4c398b81141ac4272901b52c5909284da739f103",
       "bytes": 39489,
@@ -512,13 +512,13 @@
       "ab_reproducible": true
     },
     "xray-result-ru-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:43.020Z",
+      "capture_timestamp": "2026-09-08T05:05:22.618Z",
       "viewport": "1440x900",
       "surface_id": "xray-result-ru",
       "language": "ru",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_RESULT (as requested)",
       "screenshot_filename": "xray-result-ru-1440.png",
       "sha256": "a860471e5beba9d94eedada095115cf44e4c4cdab9a60597ee606fc96c521ceb",
       "bytes": 57909,
@@ -533,13 +533,13 @@
       "ab_reproducible": true
     },
     "xray-result-ro-1440.png": {
-      "candidate_sha": "7f0574182cf78227aa58c148549105d1b98e6566",
+      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
       "branch": "release/v1.1-final-integration",
-      "capture_timestamp": "2026-09-07T18:23:44.737Z",
+      "capture_timestamp": "2026-09-08T05:05:24.267Z",
       "viewport": "1440x900",
       "surface_id": "xray-result-ro",
       "language": "ro",
-      "application_state": "seeded bootstrap",
+      "application_state": "APP_RESULT (as requested)",
       "screenshot_filename": "xray-result-ro-1440.png",
       "sha256": "27b8ca32c1d9b67c7039cc0bec531427dcf9030f44e57a44728d554a54edc714",
       "bytes": 56317,

@@ -1,0 +1,2284 @@
+{
+  "ru-homepage@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 516
+          },
+          "rect": [
+            282,
+            502,
+            316,
+            530
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 516
+          },
+          "rect": [
+            318,
+            502,
+            352,
+            530
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "burger",
+    "after": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ro-homepage@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 516
+          },
+          "rect": [
+            282,
+            502,
+            316,
+            530
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 516
+          },
+          "rect": [
+            318,
+            502,
+            352,
+            530
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "burger",
+    "after": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 37
+        },
+        "rect": [
+          338,
+          26,
+          366,
+          48
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ru-questionnaire@390": {
+    "probed": false,
+    "why": "no burger painted at 390px",
+    "before": {
+      "lang": "ru",
+      "burger": null,
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "questionnaire.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 185,
+            "y": 33
+          },
+          "rect": [
+            171,
+            21,
+            199,
+            46
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/questionnaire.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 216,
+            "y": 33
+          },
+          "rect": [
+            201,
+            21,
+            230,
+            46
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [
+      "ru",
+      "ro"
+    ]
+  },
+  "ro-questionnaire@390": {
+    "probed": false,
+    "why": "no burger painted at 390px",
+    "before": {
+      "lang": "ro",
+      "burger": null,
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../questionnaire.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 169,
+            "y": 33
+          },
+          "rect": [
+            155,
+            21,
+            184,
+            46
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "questionnaire.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 200,
+            "y": 33
+          },
+          "rect": [
+            186,
+            21,
+            215,
+            46
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [
+      "ru",
+      "ro"
+    ]
+  },
+  "ru-packages@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 516
+          },
+          "rect": [
+            282,
+            502,
+            316,
+            530
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 516
+          },
+          "rect": [
+            318,
+            502,
+            352,
+            530
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "burger",
+    "after": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ro-packages@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 516
+          },
+          "rect": [
+            282,
+            502,
+            316,
+            530
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 516
+          },
+          "rect": [
+            318,
+            502,
+            352,
+            530
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "burger",
+    "after": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 352,
+          "y": 31
+        },
+        "rect": [
+          338,
+          20,
+          366,
+          42
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": null,
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "index.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ru-monthly-pricing@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ru",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ro-monthly-pricing@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ro",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "monthly-cfo-support.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ru-real-estate@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ru",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ro-real-estate@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ro",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "real-estate-control-system.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "thank-you@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ru",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ru",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": false,
+          "href": "ro/thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  },
+  "ro-thank-you@390": {
+    "probed": true,
+    "why": null,
+    "before": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    },
+    "barReachable": [],
+    "open": {
+      "lang": "ro",
+      "burger": {
+        "painted": false,
+        "actionable": false
+      },
+      "drawerRendered": true,
+      "drawerOpenClass": true,
+      "bodyLocked": true,
+      "close": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 336,
+          "y": 38
+        },
+        "rect": [
+          314,
+          16,
+          358,
+          60
+        ]
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 299,
+            "y": 514
+          },
+          "rect": [
+            282,
+            500,
+            316,
+            528
+          ]
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": true,
+          "inFrame": true,
+          "actionable": true,
+          "centre": {
+            "x": 335,
+            "y": 514
+          },
+          "rect": [
+            318,
+            500,
+            352,
+            528
+          ]
+        }
+      ],
+      "collisions": []
+    },
+    "closedVia": "close control",
+    "after": {
+      "lang": "ro",
+      "burger": {
+        "painted": true,
+        "inFrame": true,
+        "actionable": true,
+        "centre": {
+          "x": 368,
+          "y": 36
+        },
+        "rect": [
+          346,
+          14,
+          390,
+          58
+        ]
+      },
+      "drawerRendered": false,
+      "drawerOpenClass": false,
+      "bodyLocked": false,
+      "close": {
+        "painted": false,
+        "actionable": false
+      },
+      "options": [
+        {
+          "code": "ru",
+          "inDrawer": false,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": false,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ru",
+          "inDrawer": true,
+          "active": false,
+          "href": "../thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        },
+        {
+          "code": "ro",
+          "inDrawer": true,
+          "active": true,
+          "href": "thank-you.html",
+          "disabled": false,
+          "painted": false,
+          "actionable": false
+        }
+      ],
+      "collisions": []
+    }
+  }
+}

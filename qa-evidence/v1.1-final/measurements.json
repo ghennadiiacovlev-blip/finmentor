@@ -150,6 +150,9 @@
     "lang": "ru",
     "textElements": 457,
     "scrollContainers": [],
+    "paintedTextLines": 895,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -164,7 +167,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -179,7 +183,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -360,6 +365,9 @@
     "lang": "ru",
     "textElements": 469,
     "scrollContainers": [],
+    "paintedTextLines": 777,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -374,7 +382,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -389,7 +398,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -561,6 +571,9 @@
     "lang": "ro",
     "textElements": 455,
     "scrollContainers": [],
+    "paintedTextLines": 833,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -575,7 +588,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -590,7 +604,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -771,6 +786,9 @@
     "lang": "ro",
     "textElements": 467,
     "scrollContainers": [],
+    "paintedTextLines": 735,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -785,7 +803,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -800,7 +819,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -889,6 +909,9 @@
     "lang": "ru",
     "textElements": 489,
     "scrollContainers": [],
+    "paintedTextLines": 630,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -976,6 +999,9 @@
     "lang": "ru",
     "textElements": 500,
     "scrollContainers": [],
+    "paintedTextLines": 581,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -1063,6 +1089,9 @@
     "lang": "ro",
     "textElements": 489,
     "scrollContainers": [],
+    "paintedTextLines": 587,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -1150,6 +1179,9 @@
     "lang": "ro",
     "textElements": 500,
     "scrollContainers": [],
+    "paintedTextLines": 565,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -1320,6 +1352,9 @@
     "lang": "ru",
     "textElements": 457,
     "scrollContainers": [],
+    "paintedTextLines": 895,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -1334,7 +1369,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -1349,7 +1385,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -1530,6 +1567,9 @@
     "lang": "ru",
     "textElements": 469,
     "scrollContainers": [],
+    "paintedTextLines": 777,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -1544,7 +1584,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -1559,7 +1600,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -1731,6 +1773,9 @@
     "lang": "ro",
     "textElements": 455,
     "scrollContainers": [],
+    "paintedTextLines": 833,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -1745,7 +1790,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -1760,7 +1806,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -1941,6 +1988,9 @@
     "lang": "ro",
     "textElements": 467,
     "scrollContainers": [],
+    "paintedTextLines": 735,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Financial Health Check",
@@ -1955,7 +2005,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "Monthly CFO Support",
@@ -1970,7 +2021,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -2078,6 +2130,9 @@
     "lang": "ru",
     "textElements": 81,
     "scrollContainers": [],
+    "paintedTextLines": 176,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Control Light",
@@ -2092,7 +2147,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 2
+        "elementLines": 2,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO Control Partner",
@@ -2107,7 +2163,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 2
+        "elementLines": 2,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO AI Control",
@@ -2122,7 +2179,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -2239,6 +2297,9 @@
     "lang": "ru",
     "textElements": 88,
     "scrollContainers": [],
+    "paintedTextLines": 116,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Control Light",
@@ -2253,7 +2314,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO Control Partner",
@@ -2268,7 +2330,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO AI Control",
@@ -2283,7 +2346,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -2391,6 +2455,9 @@
     "lang": "ro",
     "textElements": 81,
     "scrollContainers": [],
+    "paintedTextLines": 157,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Control Light",
@@ -2405,7 +2472,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO Control Partner",
@@ -2420,7 +2488,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 2
+        "elementLines": 2,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO AI Control",
@@ -2435,7 +2504,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -2552,6 +2622,9 @@
     "lang": "ro",
     "textElements": 88,
     "scrollContainers": [],
+    "paintedTextLines": 112,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [
       {
         "title": "Control Light",
@@ -2566,7 +2639,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO Control Partner",
@@ -2581,7 +2655,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       },
       {
         "title": "CFO AI Control",
@@ -2596,7 +2671,8 @@
         "outsideViewport": false,
         "escapesCard": false,
         "lines": 1,
-        "elementLines": 1
+        "elementLines": 1,
+        "paintedTextClipped": false
       }
     ],
     "brand": {
@@ -2704,6 +2780,9 @@
     "lang": "ru",
     "textElements": 48,
     "scrollContainers": [],
+    "paintedTextLines": 151,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -2819,6 +2898,9 @@
     "lang": "ru",
     "textElements": 55,
     "scrollContainers": [],
+    "paintedTextLines": 84,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -2925,6 +3007,9 @@
     "lang": "ro",
     "textElements": 48,
     "scrollContainers": [],
+    "paintedTextLines": 139,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3040,6 +3125,9 @@
     "lang": "ro",
     "textElements": 55,
     "scrollContainers": [],
+    "paintedTextLines": 80,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3146,6 +3234,9 @@
     "lang": "ru",
     "textElements": 13,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3253,6 +3344,9 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3351,6 +3445,9 @@
     "lang": "ro",
     "textElements": 13,
     "scrollContainers": [],
+    "paintedTextLines": 23,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3458,6 +3555,9 @@
     "lang": "ro",
     "textElements": 19,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3510,6 +3610,9 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "paintedTextLines": 29,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3570,6 +3673,9 @@
     "lang": "ru",
     "textElements": 19,
     "scrollContainers": [],
+    "paintedTextLines": 27,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3630,6 +3736,9 @@
     "lang": "ru",
     "textElements": 11,
     "scrollContainers": [],
+    "paintedTextLines": 14,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3682,6 +3791,9 @@
     "lang": "ru",
     "textElements": 11,
     "scrollContainers": [],
+    "paintedTextLines": 14,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3734,6 +3846,9 @@
     "lang": "ru",
     "textElements": 21,
     "scrollContainers": [],
+    "paintedTextLines": 25,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3786,6 +3901,9 @@
     "lang": "ru",
     "textElements": 21,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3838,6 +3956,9 @@
     "lang": "ru",
     "textElements": 47,
     "scrollContainers": [],
+    "paintedTextLines": 52,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3890,6 +4011,9 @@
     "lang": "ru",
     "textElements": 47,
     "scrollContainers": [],
+    "paintedTextLines": 50,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3942,6 +4066,9 @@
     "lang": "ru",
     "textElements": 33,
     "scrollContainers": [],
+    "paintedTextLines": 36,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -3994,6 +4121,9 @@
     "lang": "ru",
     "textElements": 33,
     "scrollContainers": [],
+    "paintedTextLines": 35,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4046,6 +4176,9 @@
     "lang": "ru",
     "textElements": 20,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4098,6 +4231,9 @@
     "lang": "ru",
     "textElements": 20,
     "scrollContainers": [],
+    "paintedTextLines": 22,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4150,6 +4286,9 @@
     "lang": "ru",
     "textElements": 9,
     "scrollContainers": [],
+    "paintedTextLines": 11,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4202,6 +4341,9 @@
     "lang": "ru",
     "textElements": 9,
     "scrollContainers": [],
+    "paintedTextLines": 12,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4254,6 +4396,9 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "paintedTextLines": 125,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4306,6 +4451,9 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "paintedTextLines": 113,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4358,6 +4506,9 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "paintedTextLines": 118,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [
@@ -4410,6 +4561,9 @@
     "lang": "ru",
     "textElements": 92,
     "scrollContainers": [],
+    "paintedTextLines": 109,
+    "paintedTextClipped": [],
+    "paintedTextOutside": [],
     "approvedTitles": [],
     "brand": {
       "rootBg": [

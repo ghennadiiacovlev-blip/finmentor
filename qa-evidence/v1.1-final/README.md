@@ -15,6 +15,9 @@ Regenerate with:
 | `manifest.json` | the full evidence record for each retained image (see below) |
 | `measurements.json` | the rendered box model of all 43 audited surfaces, not only the retained ones |
 | `capture-determinism.json` | per-surface proof that fonts, layout and paint had settled before the shot |
+| `rendered-text.json` | the copy each audited surface actually painted — greppable, no PNG reading |
+| `state-proofs.json` | which Mini App screen each shot is evidence OF, proven from the app's own state and that screen's DOM markers |
+| `drawer-probes.json` | what pressing the burger at 390px actually did, and what became reachable inside the drawer |
 
 `qa-artifacts/` (the full render set and the browser profile) is git-ignored working output; this
 directory is the committed evidence.
@@ -97,3 +100,47 @@ Gateway returns, and for the result screens the CLIENT_READY fixtures from
 Every endpoint points at `preview.invalid`, which does not resolve. The screens are then driven
 through the app's own `FM_APP.set()` / `FM_APP.goto()`, so the states shown are states the app can
 actually reach.
+
+**And the state each shot claims is now PROVEN, not assumed.** `goto()` returning without throwing
+says the call was made, not that the app arrived: a router can decline a transition, land on a
+guard screen, or route on again the moment a draft turns out to be incomplete, and every one of
+those returns quietly. So each surface declares the state it is evidence of, and the run asserts
+it twice — against the app's own `current()`, and against DOM markers only that screen builds:
+
+| state | what the DOM has to show |
+| --- | --- |
+| `APP_PROBLEM` (populated) | option cards, at least one already chosen from the resumed draft, under its objective kicker |
+| `APP_REVIEW` | the `.dossier` memo, a named company, three or more memo sections, the readiness block |
+| `APP_EDIT_SELECTOR` (edit) | three or more edit rows, every row labelled, at least two rendering the content they edit, at least one reachable by a tap |
+| `APP_SUCCESS` | the confirmation mark, the status line, the next steps, and no back affordance on a terminal screen |
+| `APP_SESSION_EXPIRED`, `APP_BOOT_FAILURE` | a terminal screen with copy and exactly one way out |
+| `APP_RESULT` (X-Ray) | the promoted analysis, rendered, not a shell |
+
+`application_state` in the manifest now records the state the app was actually in, read from the
+app, instead of how many steps the harness drove.
+
+## The mobile language switch, opened rather than assumed
+
+A DOM node inside a closed drawer is not a control a customer can reach. The previous harness
+accepted one as reachable without ever opening the drawer — and `drawer-probes.json` shows why
+that was worth nothing: on every burger page, **both** language options measure unpainted and
+untappable before the burger is pressed, in the bar and in the drawer alike.
+
+So the run presses it. A real `Input.dispatchMouseEvent` at the burger's own centre — not
+`element.click()`, which skips hit-testing and would pass on a burger sitting under an overlay —
+then re-measures. Each option is graded painted **and** hit-testable: a tap at its centre has to
+land on that control and not on something covering it. Then the drawer is closed through its own
+close control, and the bar has to return to the state it started in.
+
+The probe runs **after** both screenshots of the surface are already in hand, so nothing it taps
+can move a pixel of the retained evidence.
+
+## Painted text, not the element box
+
+`getBoundingClientRect()` is the box the layout gave an element. It is not where the glyphs are: a
+block is as wide as its container whatever its text does, so a line overflowing to the right still
+reports a rect ending neatly at the container edge. A Range over each text node returns one rect
+per line box actually laid out — the real ink — and that is what is measured against the viewport,
+the element's own box and the nearest clipping ancestor. `PAINTED TEXT CLIPPING` and `PAINTED TEXT
+OUTSIDE VIEWPORT` are both **0** across the audited set, and the sweep proves it did the work: it
+must return at least one line box for every text-bearing element the box sweep graded.
