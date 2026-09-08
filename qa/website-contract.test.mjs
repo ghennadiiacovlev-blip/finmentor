@@ -799,6 +799,287 @@ check('the approved tier labels Light / Standard / Premium are not lowercased', 
   assert(bad.length === 0, bad.length + ' lowercased tier label(s): ' + bad.slice(0, 4).join(' | '));
 });
 
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// THE SECOND SENTENCE-BY-SENTENCE PASS. Eight more classes, found by reading the two editions
+// SIDE BY SIDE: where one language says a thing cleanly and the other does not, the untidy one
+// is the defect. Each gate below names the shape, so the next instance fails here.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+// `visibleCopy` keeps HTML comments, which is right for the gates above — a comment is source the
+// terminology pass also damaged. The gates below grade what a CUSTOMER READS, and a comment is not
+// that, so they strip comments first. `ro/questionnaire.html` carries a Russian developer comment
+// with `P&L / CF` in it, kept deliberately as audit trail and invisible on the page.
+// Comments must go BEFORE the tag stripper, not after: `<[^>]+>` stops at the first `>`, so a
+// comment containing one — this one contains `->` — is only partly eaten and leaves its prose
+// behind looking like copy.
+function paintedCopy(f) {
+  return read(f)
+    .replace(/<!--[\s\S]*?-->/g, '\n')
+    .replace(/<script[\s\S]*?<\/script>/g, '\n')
+    .replace(/<style[\s\S]*?<\/style>/g, '\n')
+    .replace(/value="[^"]*"/g, ' ')
+    .replace(/data-[a-z-]+="[^"]*"/g, ' ')
+    .replace(/<[^>]+>/g, '\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/[ \t]+/g, ' ');
+}
+
+// The X-Ray's answer sets, located by the input `name` that carries them. The CRM `value="…"` is
+// stripped first: it is the frozen machine contract and is deliberately NOT graded as prose.
+function answerSet(f, inputName) {
+  const html = read(f).replace(/<!--[\s\S]*?-->/g, '\n');
+  const out = [];
+  for (const m of html.matchAll(/<fieldset\b[\s\S]*?<\/fieldset>/g)) {
+    if (m[0].indexOf('name="' + inputName + '"') === -1) { continue; }
+    out.push(m[0].replace(/value="[^"]*"/g, ' ').replace(/data-[a-z-]+="[^"]*"/g, ' ')
+      .replace(/<[^>]+>/g, '\n').replace(/&nbsp;/g, ' ').replace(/[ \t]+/g, ' '));
+  }
+  return out.join('\n');
+}
+
+// A language rule that PROVES, every run, that it can still fail.
+//
+// `\b` and `\w` are ASCII-only in JavaScript. `\bна удалёнке\b`, `\bДЗ/КЗ\b` and `еженедель\w*`
+// all match NOTHING — the boundary before «н» never exists, and `\w*` stops dead at «е» — so a
+// rule written that way against Cyrillic or Romanian diacritics is decoration that reports PASS
+// forever. That is exactly how the `\b`-terminated «există» rule shipped as a no-op last cycle.
+//
+// So no rule below is used until it has flagged every broken string it was written for and let
+// every corrected string through. A dead rule fails HERE, loudly, instead of on a customer.
+function langRule(re, mustFlag, mustPass) {
+  for (const s of mustFlag) {
+    re.lastIndex = 0;
+    assert(re.test(s), 'rule ' + re + ' no longer flags: ' + s);
+  }
+  for (const s of mustPass) {
+    re.lastIndex = 0;
+    assert(!re.test(s), 'rule ' + re + ' wrongly flags: ' + s);
+  }
+  re.lastIndex = 0;
+  return re;
+}
+
+check('no X-Ray answer welds a unit noun to its own gloss', () => {
+  // «1 объект-точка», «2–5 объектов-точек» and their Romanian «1 imobil-punct», «2–5
+  // imobile-puncte»: the substitution pass put a term and its gloss side by side and a hyphen
+  // welded them into a compound that inflects on BOTH halves — which no Russian or Romanian
+  // compound does. These two answer sets name a count of things; there is no legitimate
+  // hyphenated compound in either of them, so any hyphen joining two words is the defect.
+  const WELD = langRule(/[A-Za-zА-Яа-яЁёĂÂÎȘȚăâîșț]{3,}-[A-Za-zА-Яа-яЁёĂÂÎȘȚăâîșț]{3,}/g,
+    ['До €0.5M / 1 объект-точка', '€0.5–2M / 2–5 объектов-точек', 'Până la €0.5M / 1 imobil-punct',
+      '€0.5–2M / 2–5 imobile-puncte', '1 direcție / imobil-punct'],
+    ['До €0.5M / 1 объект', '€0.5–2M / 2–5 объектов', 'Până la €0.5M / 1 locație',
+      '€0.5–2M / 2–5 locații', '6+ direcții / locații', 'Не хочу указывать']);
+  // …and the Romanian edition of these two, and of the P&L breakdown question, asks every model
+  // the site serves — retail, e-commerce, fitness, manufacturing. `объект` there is a site the
+  // business operates, not a building, so `imobil` is the real-estate reading of a generic word.
+  // (`Imobiliare` as an INDUSTRY name is a different word and keeps its capital, so the rule is
+  // deliberately case-sensitive and guards its own right edge.)
+  const IMOBIL = langRule(/imobil(?:ului|ul|e)?(?![a-zăâîșț])/g,
+    ['1 direcție / imobil', '2–3 direcții / imobile', 'pe direcții / imobile / produse'],
+    ['1 direcție / locație', 'pe direcții / locații / produse', 'Imobiliare / închiriere',
+      'imobiliare și închiriere']);
+  const bad = [];
+  for (const [f, n] of [['questionnaire.html', 'dx_scale'], ['ro/questionnaire.html', 'dx_scale'],
+    ['questionnaire.html', 'q_branches'], ['ro/questionnaire.html', 'q_branches']]) {
+    for (const m of answerSet(f, n).matchAll(WELD)) { bad.push(f + ' ' + n + ': ' + m[0]); }
+  }
+  for (const n of ['dx_scale', 'q_branches', 'dx_pl']) {
+    for (const m of answerSet('ro/questionnaire.html', n).matchAll(IMOBIL)) {
+      bad.push('ro/questionnaire.html ' + n + ': ' + m[0]);
+    }
+  }
+  assert(bad.length === 0, bad.length + ' welded / mis-sensed unit noun(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('each edition quotes with its own quotation marks', () => {
+  // Russian quotes with « », Romanian with „ ”. One English pair — «шаблон “для всех”», «список
+  // “на оплату”» — survived the terminology pass in the Russian edition, and a stray guillemet
+  // is the same defect pointing the other way. Both are visible punctuation on the page.
+  const RU_Q = langRule(/[“”][^\n“”]{0,40}/g,
+    ['Это не шаблон “для всех”, а система', 'Частично, список “на оплату”'],
+    ['Это не шаблон «для всех», а система', 'Частично, список «на оплату»',
+      'Платежи идут хаотично, «кто громче попросил»']);
+  // Romanian's own pair is „ ” — its CLOSING mark is the same glyph English uses, so only the
+  // guillemets and the English OPENING quote are foreign on this side.
+  const RO_Q = langRule(/[«»“][^\n«»“]{0,40}/g,
+    ['Parțial, o listă «de plată»', 'un șablon “pentru toți”'],
+    ['Parțial, o listă „de plată”', 'un șablon „pentru toți”', 'limitele clienților — „din ochi”']);
+  const bad = [];
+  for (const f of RU_PAGES) {
+    for (const m of paintedCopy(f).matchAll(RU_Q)) { bad.push(f + ': ' + m[0].trim()); }
+  }
+  for (const f of RO_PAGES) {
+    for (const m of paintedCopy(f).matchAll(RO_Q)) { bad.push(f + ': ' + m[0].trim()); }
+  }
+  assert(bad.length === 0, bad.length + ' foreign quotation mark(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no customer sentence states the same recurrence twice', () => {
+  // «Еженедельный регулярный финансовый разбор» and «Analiză financiară periodică săptămânală»:
+  // the cadence adjective and the word for "recurring" both survived, and weekly IS the
+  // regularity. The same pleonasm in the other direction — «регулярный еженедельный» — counts.
+  const RU_CADENCE = '(?:[Ее]жеднев|[Ее]женедель|[Ее]жемесяч|[Ее]жекварталь)[а-яё]*';
+  const RU_1 = langRule(new RegExp(RU_CADENCE + '\\s+[Рр]егулярн[а-яё]*', 'g'),
+    ['Еженедельный регулярный финансовый разбор.', 'Ежемесячный регулярный отчёт'],
+    ['Еженедельный финансовый разбор.', 'Регулярный финансовый разбор и контроль решений.',
+      'Ежемесячный отчёт для собственника']);
+  const RU_2 = langRule(new RegExp('[Рр]егулярн[а-яё]*\\s+' + RU_CADENCE, 'g'),
+    ['регулярный еженедельный разбор'],
+    ['Регулярный финансовый разбор и контроль решений.', 'регулярного финансового разбора в месяц']);
+  const RO_CAD = '(?:zilnic|săptămânal|lunar|trimestrial)[ăaei]*(?![a-zăâîșț])';
+  const RO_PER = '(?:periodic|regulat)[ăaei]*(?![a-zăâîșț])';
+  const RO_1 = langRule(new RegExp(RO_PER + '\\s+' + RO_CAD, 'gi'),
+    ['Analiză financiară periodică săptămânală.', 'raport regulat lunar'],
+    ['Analiză financiară săptămânală.', 'ore de analiză financiară regulată pe lună.',
+      'Raport lunar pentru proprietar']);
+  const RO_2 = langRule(new RegExp(RO_CAD + '\\s+' + RO_PER, 'gi'),
+    ['raport lunar periodic', 'analiză săptămânală regulată'],
+    ['Sinteză de business săptămânală și sesiune strategică.', 'Suportul lunar poate include']);
+  const bad = [];
+  for (const f of RU_PAGES) {
+    const copy = paintedCopy(f);
+    for (const r of [RU_1, RU_2]) { for (const m of copy.matchAll(r)) { bad.push(f + ': ' + m[0]); } }
+  }
+  for (const f of RO_PAGES) {
+    const copy = paintedCopy(f);
+    for (const r of [RO_1, RO_2]) { for (const m of copy.matchAll(r)) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' restated recurrence(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no Romanian noun carrying a determinative complement stands unarticulated after a preposition', () => {
+  // «În comerț cu amănuntul — raftul…», «În comerț cu ridicata…», «În comerț online…». A bare
+  // «în comerț» would be correct: Romanian drops the article after most prepositions. It does
+  // NOT drop it when the noun carries a determinative complement, and «cu amănuntul», «cu
+  // ridicata» and «online» are exactly that — so the head has to be «comerțul».
+  //
+  // The lookbehind lets the ARTICULATED head through, which is the corrected form. `de` is not
+  // in the preposition list on purpose: «rețele de comerț cu amănuntul» is a compound noun and
+  // is correct unarticulated.
+  //
+  // `gi`, not `g`: the sentence this class shipped in opens with a capital «În …», and a rule
+  // that cannot match the one instance it was written for is decoration. The discrimination
+  // cases below are what catch that.
+  // The left edge is `(?:^|[\s(«„·—])`, NOT `\b`: `î` is not an ASCII word character, so `\bîn`
+  // can never match and the whole rule would be a no-op — which is what the first draft of it
+  // was, and what the discrimination cases caught.
+  const PREP = '(?:^|[\\s(«„·—])(?:în|din|pe|pentru|despre|prin|la)\\s+';
+  // «cu amănuntul» and «cu ridicata» are articulated complements and attach to one head noun, so
+  // any unarticulated head in front of them is the defect.
+  const RULE_A = langRule(new RegExp(PREP + '([a-zăâîșț]{3,})(?<!ul|le|ua|ii|ea|a)\\s+cu (?:amănuntul|ridicata)(?![a-zăâîșț])', 'gi'),
+    ['În comerț cu amănuntul — raftul, categoria', 'În comerț cu ridicata / distribuție — depozitul'],
+    ['În comerțul cu amănuntul — raftul, categoria', 'În comerțul cu ridicata / distribuție — depozitul',
+      'rețele de comerț cu amănuntul și magazine', 'Metodologie · comerț cu amănuntul',
+      'Comerț cu amănuntul']);
+  // `online` is a bare adjective and modifies plenty of nouns that correctly take no article —
+  // «prin întâlniri online regulate». It is a determinative complement only on the SECTOR noun,
+  // which is the one the broken sentence used, so the head is pinned rather than generalised.
+  const RULE_B = langRule(new RegExp(PREP + 'comerț\\s+online(?![a-zăâîșț])', 'gi'),
+    ['În comerț online — canalul, comanda', 'venituri din comerț online'],
+    ['În comerțul online — canalul, comanda', 'Comerț online',
+      'Lucrul merge prin întâlniri online regulate', 'Întâlniri online săptămânale']);
+  const bad = [];
+  for (const f of RO_PAGES) {
+    const copy = paintedCopy(f);
+    for (const r of [RULE_A, RULE_B]) { for (const m of copy.matchAll(r)) { bad.push(f + ': ' + m[0].trim()); } }
+  }
+  assert(bad.length === 0, bad.length + ' unarticulated head noun(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('no customer sentence hides a term behind an abbreviation or a bare English noun', () => {
+  // Same principle as the gate above on `Aging` / `Cash gap`, extended with what the second pass
+  // found: «реестр ДЗ/КЗ» — an accountant's shorthand on a page that writes «Анализ дебиторской
+  // и кредиторской задолженности» four lines below; a bare `mix` standing as a noun in a Russian
+  // and a Romanian list; and «Control financiar regulat (Monthly)», an English parenthesis that
+  // glosses nothing and that the Russian line it mirrors does not carry.
+  const SHAPES = [
+    langRule(/ДЗ\s*\/\s*КЗ/g, ['Денежный поток, реестр ДЗ/КЗ, платёжный календарь'],
+      ['Денежный поток, реестр дебиторской и кредиторской задолженности, платёжный календарь',
+        'Анализ дебиторской и кредиторской задолженности по срокам']),
+    langRule(/[,:]\s+mix\s*[,.]/g,
+      ['Факторный разбор: цена, количество, mix, себестоимость, промоакции',
+        'Analiză factorială: preț, cantitate, mix, cost, promoție'],
+      ['Факторный разбор: цена, количество, структура ассортимента, себестоимость, промоакции',
+        'Analiză factorială: preț, cantitate, structura sortimentului, cost, promoție']),
+    langRule(/regulat \(Monthly\)/g, ['Control financiar regulat (Monthly) sau analiză managerială'],
+      ['Control financiar regulat sau analiză managerială', 'Raport lunar pentru proprietar (Monthly owner report)']),
+    langRule(/Много Excel(?![-А-Яа-яЁё])/g, ['Много Excel, но нет единой картины'],
+      ['Много Excel-файлов, но нет единой картины']),
+    langRule(/Mult Excel(?![-a-zăâîșț])/g, ['Mult Excel, dar nicio imagine unică'],
+      ['Multe fișiere Excel, dar nicio imagine unică'])
+  ];
+  const bad = [];
+  for (const f of RU_PAGES.concat(RO_PAGES)) {
+    const copy = paintedCopy(f);
+    for (const r of SHAPES) { r.lastIndex = 0; const m = r.exec(copy); if (m) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' abbreviated / untranslated term(s): ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the Romanian edition names the owner dashboard and the P&L by one term each', () => {
+  // `tablou de bord` six times and `Panoul` twice — once two lines under its own «Tablou de bord
+  // pentru proprietar în Power BI» — and `contul de profit și pierdere` everywhere except two
+  // lines that kept the English abbreviation the terminology pass exists to remove. A customer
+  // reading two names for one artefact cannot tell they are the same artefact.
+  const PANOU = langRule(/Panou(?:ri)?(?:l|le)?(?![a-zăâîșț])/g,
+    ['Panoul zilnic al proprietarului: bani, marjă', 'Panoul proprietarului'],
+    ['Tabloul de bord zilnic al proprietarului: bani, marjă', 'Tabloul de bord al proprietarului',
+      'Tablou de bord pentru proprietar în Power BI']);
+  // `P&L` is allowed only as a parenthetical gloss beside the spelled-out term, which is how the
+  // rest of the edition writes it.
+  const PL = langRule(/P&L(?!\))[-\w]*/g,
+    ['Structura P&L-ului managerial, a fluxului de numerar', '(Cash Flow), al P&L-ului, al calendarului'],
+    ['Structura contului de profit și pierdere managerial, a fluxului de numerar',
+      'cont de profit și pierdere (P&L), indicatori-cheie',
+      '(Cash Flow), al contului de profit și pierdere (P&L), al calendarului']);
+  const bad = [];
+  for (const f of RO_PAGES) {
+    const copy = paintedCopy(f);
+    for (const r of [PANOU, PL]) { for (const m of copy.matchAll(r)) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' second name(s) for one artefact: ' + bad.slice(0, 4).join(' | '));
+});
+
+check('the data-reliability answers grade the axis the question asks about', () => {
+  // «Насколько данные достоверны?» was answered «Низко · Средне · Хорошо» — two degree adverbs
+  // and a quality adverb, three points that are not on one scale — and the Romanian edition
+  // answered a plural-feminine question «Slab · Mediu · Bine», which does not agree with it
+  // either. Every graded option must name the axis it grades; only the opt-out may not.
+  for (const [f, axis, optOut] of [['questionnaire.html', 'Достоверность', 'Не знаю'],
+    ['ro/questionnaire.html', 'Fiabilitate', 'Nu știu']]) {
+    const opts = answerSet(f, 'q_reliability').split('\n').map((s) => s.trim()).filter(Boolean)
+      .filter((s) => !/[?:]$/.test(s));
+    assert(opts.length >= 4, f + ': the data-reliability answer set lost its options');
+    for (const o of opts) {
+      assert(o === optOut || o.indexOf(axis) === 0,
+        f + ': the reliability answer «' + o + '» does not grade ' + axis);
+    }
+  }
+});
+
+check('no Russian customer sentence uses slang or a word that is not Russian', () => {
+  // «на удалёнке» is slang in the lead paragraph of a premium service page whose own FAQ asks
+  // «Можно ли работать удалённо?», and «Высокововлечённый» is not a word — a letter-for-letter
+  // calque of "high-involvement" that the Romanian edition renders correctly as «cu implicare
+  // ridicată». Both were read past twice because they look Russian.
+  const SHAPES = [
+    langRule(/на удалёнке/g, ['помощь в решениях — на удалёнке, через понятный процесс'],
+      ['помощь в решениях — удалённо, через понятный процесс', 'Можно ли работать удалённо?',
+        'Удалённая работа не означает потерю контроля.']),
+    langRule(/[Вв]ысокововлеч[а-яё]*/g, ['Высокововлечённый формат для групп компаний'],
+      ['Формат с высокой вовлечённостью для групп компаний', 'Ниже — три уровня вовлечённости.']),
+    langRule(/помесячн[а-яё]+/g, ['выросшая из помесячного управленческого цикла'],
+      ['выросшая из ежемесячного управленческого цикла', 'ежемесячное сопровождение Control Light.'])
+  ];
+  const bad = [];
+  for (const f of RU_PAGES) {
+    const copy = paintedCopy(f);
+    for (const r of SHAPES) { r.lastIndex = 0; const m = r.exec(copy); if (m) { bad.push(f + ': ' + m[0]); } }
+  }
+  assert(bad.length === 0, bad.length + ' slang or non-word(s): ' + bad.slice(0, 4).join(' | '));
+});
+
 check('no Romanian sentence stacks `director financiar` onto another noun', () => {
   // Romanian cannot use a role noun as an adjective: `funcție director financiar` needs its
   // preposition, and where the Russian page resolved CFO to the adjective, so must this one.

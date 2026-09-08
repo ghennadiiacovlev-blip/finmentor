@@ -327,12 +327,93 @@ const PAINTED = `(() => {
 // The text sweep covers EVERY element that paints its own sentence — not a hand-picked list of
 // tags and not only the CTAs. An element qualifies when it owns a direct, non-whitespace text
 // node; that is exactly the set a customer reads.
+// THE OWNER-APPROVED PACKAGE TITLES, declared ONCE at module scope so the locator that finds them
+// in the page and the gate that asserts coverage of them cannot drift apart. `Control Partner` was
+// in one and not the other, which is how a protected title went unmeasured while the run said PASS.
+const APPROVED_TITLES = ['CFO Control Partner', 'CFO AI Control', 'Monthly CFO Support',
+  'Financial Health Check', 'Control Light', 'Control Partner'];
+
+// ── THE LANGUAGE CONTROL, SNAPSHOT AT ONE MOMENT ─────────────────────────────────────────────
+//
+// A DOM node inside a closed drawer is NOT a language control a customer can reach. The old gate
+// accepted `inDrawer` as reachability without ever opening the drawer, which passes on a page
+// where the burger is broken, the drawer never opens, or the control inside it is covered.
+//
+// This snapshot answers only what is true RIGHT NOW: is the control painted, and would a tap at
+// its own centre actually land on it. The harness takes one before the burger is pressed, one
+// while the drawer is open, and one after it is closed again — and asserts the transition.
+const LANG_SNAPSHOT = `(() => {
+  const vis = (el) => {
+    if (!el) { return false; }
+    const r = el.getBoundingClientRect();
+    const shown = el.checkVisibility
+      ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true, contentVisibilityAuto: true })
+      : el.getClientRects().length > 0;
+    return shown && r.width > 0 && r.height > 0;
+  };
+  // ACTIONABLE = painted, inside the frame, and the thing a tap at its centre reaches. Hit-testing
+  // is the only way to see a control that is visible and covered — which is what an open drawer
+  // does to the bar underneath it.
+  const probe = (el) => {
+    if (!vis(el)) { return { painted: false, actionable: false }; }
+    const r = el.getBoundingClientRect();
+    const x = Math.round(r.left + r.width / 2), y = Math.round(r.top + r.height / 2);
+    const inFrame = x >= 0 && y >= 0 && x <= window.innerWidth && y <= window.innerHeight;
+    const hit = inFrame ? document.elementFromPoint(x, y) : null;
+    return { painted: true, inFrame,
+      actionable: !!(inFrame && hit && (hit === el || el.contains(hit) || hit.contains(el))),
+      centre: { x, y }, rect: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)] };
+  };
+  const DRAWER = '.mobile-menu, .nav-mobile, [data-qa-drawer]';
+  const burgerEl = document.querySelector('.burger, #burger');
+  const drawerEl = document.querySelector(DRAWER);
+  const options = [];
+  for (const a of document.querySelectorAll('.lang [data-lang-switch], .lang a, .lang button')) {
+    const code = (a.getAttribute('data-lang-switch') || a.getAttribute('lang')
+      || (a.textContent || '').trim()).toLowerCase().slice(0, 2);
+    if (code !== 'ru' && code !== 'ro') { continue; }
+    const cls = String(a.className || '');
+    options.push(Object.assign({
+      code,
+      inDrawer: !!(a.closest && a.closest(DRAWER)),
+      active: /\\bis-active\\b|\\bactive\\b|\\bis-current\\b/.test(cls)
+        || a.getAttribute('aria-current') !== null || a.getAttribute('aria-selected') === 'true',
+      href: a.getAttribute('href') || null,
+      disabled: !!a.disabled || a.getAttribute('aria-disabled') === 'true'
+    }, probe(a)));
+  }
+  // Collisions between the controls a customer can currently see and tap.
+  const collisions = [];
+  const painted = options.filter((o) => o.painted && o.rect);
+  for (let i = 0; i < painted.length; i++) {
+    for (let j = i + 1; j < painted.length; j++) {
+      const a = painted[i].rect, b = painted[j].rect;
+      const ox = Math.min(a[2], b[2]) - Math.max(a[0], b[0]);
+      const oy = Math.min(a[3], b[3]) - Math.max(a[1], b[1]);
+      if (ox > 1 && oy > 1) { collisions.push(painted[i].code + '/' + painted[j].code + ' ' + ox + 'x' + oy); }
+    }
+  }
+  const closeEl = document.querySelector('.mobile-menu__close, [data-menu-close], .drawer__close');
+  return {
+    lang: document.documentElement.lang,
+    burger: burgerEl ? probe(burgerEl) : null,
+    drawerRendered: drawerEl ? vis(drawerEl) : false,
+    drawerOpenClass: drawerEl ? /is-open|open|active/.test(String(drawerEl.className || '')) : false,
+    bodyLocked: /menu-open|nav-open|is-locked|no-scroll/.test(String(document.body.className || '')),
+    close: closeEl ? probe(closeEl) : null,
+    options, collisions
+  };
+})()`;
+
 const MEASURE = `(() => {
   const vw = window.innerWidth;
   const TOL = 2;
   const out = { width: vw, overflow: null, clipped: [], ctaOverflow: [], offscreen: [], textOutside: [],
     textZeroBox: [], packageTitles: [], header: null, h1: null, lang: document.documentElement.lang,
-    textElements: 0, scrollContainers: [] };
+    textElements: 0, scrollContainers: [],
+    // The Range-measured ink: how many line boxes were graded, and the ones that were cut or left
+    // the frame. Counted, so a sweep that silently measured nothing cannot report PASS.
+    paintedTextLines: 0, paintedTextClipped: [], paintedTextOutside: [] };
   const de = document.documentElement;
   if (de.scrollWidth > vw + 1) { out.overflow = { scrollWidth: de.scrollWidth, viewport: vw }; }
 
@@ -393,6 +474,43 @@ const MEASURE = `(() => {
     return false;
   };
 
+  // ── THE PAINTED TEXT ITSELF, not the box the layout gave it ─────────────────────────────────
+  //
+  // getBoundingClientRect() is the ELEMENT's border box. It is not where the glyphs are. A block
+  // is as wide as its container whatever its text does, so a line that overflows to the right
+  // still reports a rect ending neatly at the container edge; and a box whose height was fixed in
+  // CSS reports that height while its second and third lines are painted below it and hidden.
+  // Both read as clean. The customer reads half a sentence.
+  //
+  // A Range over a TEXT NODE returns one rect per LINE BOX actually laid out — the real ink. That
+  // is what has to be inside the viewport, inside the element's own box when the element hides its
+  // overflow, and inside the nearest clipping ancestor.
+  const lineBoxes = (el) => {
+    const rects = [];
+    for (const n of el.childNodes) {
+      if (n.nodeType !== 3 || !n.nodeValue || !n.nodeValue.trim()) { continue; }
+      let range;
+      try {
+        range = document.createRange();
+        range.selectNodeContents(n);
+      } catch (e) { continue; }
+      for (const rr of range.getClientRects()) {
+        // Sub-pixel and empty rects are the collapsed whitespace between inline children, not ink.
+        if (rr.width > 0.5 && rr.height > 0.5) { rects.push(rr); }
+      }
+    }
+    return rects;
+  };
+  // The box that actually clips: the PADDING box, which is the border box minus the borders. A
+  // bordered card must not be read as clipping its own content with its own frame.
+  const clipEdges = (n) => {
+    const nr = n.getBoundingClientRect();
+    const ns = cs(n);
+    const px = (v) => parseFloat(v) || 0;
+    return { l: nr.left + px(ns.borderLeftWidth), t: nr.top + px(ns.borderTopWidth),
+      r: nr.right - px(ns.borderRightWidth), b: nr.bottom - px(ns.borderBottomWidth) };
+  };
+
   for (const el of document.querySelectorAll('body *')) {
     if (!ownsText(el)) { continue; }
     if (!rendered(el)) { continue; }
@@ -411,15 +529,18 @@ const MEASURE = `(() => {
     if (srOnlyBox(el)) { continue; }
     out.textElements++;
 
-    // VISIBLE TEXT OUTSIDE THE VIEWPORT.
+    // VISIBLE TEXT OUTSIDE THE VIEWPORT. Recorded, but NOT skipped past: the ink sweep at the end
+    // of this loop has to run on every element it can, or the count that proves the sweep did its
+    // work drops whenever another finding fires and turns into a second alarm for one defect.
+    let boxOutside = false;
     if (r.left < -TOL || r.right > vw + TOL) {
+      boxOutside = true;
       out.textOutside.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 40), text: label(el),
         left: Math.round(r.left), right: Math.round(r.right), vw });
-      continue;
     }
 
     // CLIPPED TEXT — by the element's own hidden overflow, or by an ancestor's.
-    if (!intentionalScroll(el) && s.textOverflow !== 'ellipsis') {
+    if (!boxOutside && !intentionalScroll(el) && s.textOverflow !== 'ellipsis') {
       const hides = (a) => a === 'hidden' || a === 'clip';
       if ((hides(s.overflowX) || hides(s.overflowY)) &&
           (el.scrollHeight > el.clientHeight + TOL || el.scrollWidth > el.clientWidth + TOL)) {
@@ -442,6 +563,36 @@ const MEASURE = `(() => {
             box: String(box.className || box.tagName).slice(0, 40),
             r: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)],
             b: [Math.round(bl), Math.round(bt), Math.round(br), Math.round(bb)] });
+        }
+      }
+    }
+
+    // ── AND NOW THE SAME QUESTION ASKED OF THE INK ────────────────────────────────────────────
+    //
+    // Everything above measured the element. This measures the LINE BOXES the element painted,
+    // which is the thing a customer's eye lands on and the only thing that can prove a sentence
+    // was not cut. A declared truncation — text-overflow: ellipsis — is skipped, and an
+    // intentional scroll container is skipped for the same reason it is skipped above.
+    if (!intentionalScroll(el) && s.textOverflow !== 'ellipsis') {
+      const hides2 = (a) => a === 'hidden' || a === 'clip';
+      const bounds = [];
+      if (hides2(s.overflowX) || hides2(s.overflowY)) { bounds.push(['its own box', clipEdges(el)]); }
+      const anc = clipper(el.parentElement);
+      if (anc && anc !== el) { bounds.push(['.' + String(anc.className || anc.tagName).slice(0, 40), clipEdges(anc)]); }
+      for (const rr of lineBoxes(el)) {
+        out.paintedTextLines++;
+        if (rr.left < -TOL || rr.right > vw + TOL) {
+          out.paintedTextOutside.push({ tag: el.tagName, text: label(el),
+            left: Math.round(rr.left), right: Math.round(rr.right), vw });
+          continue;
+        }
+        for (const [why, b] of bounds) {
+          if (rr.right > b.r + TOL || rr.left < b.l - TOL || rr.bottom > b.b + TOL || rr.top < b.t - TOL) {
+            out.paintedTextClipped.push({ tag: el.tagName, text: label(el), by: why,
+              ink: [Math.round(rr.left), Math.round(rr.top), Math.round(rr.right), Math.round(rr.bottom)],
+              box: [Math.round(b.l), Math.round(b.t), Math.round(b.r), Math.round(b.b)] });
+            break;
+          }
         }
       }
     }
@@ -566,8 +717,7 @@ const MEASURE = `(() => {
   // over the element's contents returns one rect per line box; counting DISTINCT tops is the
   // number of lines a customer sees, and it stays right when padding, a border or a different
   // line-height would have made the arithmetic lie.
-  const APPROVED = ['CFO Control Partner', 'CFO AI Control', 'Monthly CFO Support',
-    'Financial Health Check', 'Control Light', 'Control Partner'];
+  const APPROVED = ${JSON.stringify(APPROVED_TITLES)};
   // The line boxes of a SUBSTRING of an element's text. The monthly page heads each tier
   // «Control Light · базовый формат»: the heading wrapping after the separator on a phone is the
   // design, and only «Control Light» itself breaking across two lines is the defect. Measuring
@@ -629,7 +779,22 @@ const MEASURE = `(() => {
       outsideViewport: r.left < -TOL || r.right > vw + TOL,
       escapesCard: escapes,
       lines: lineCount(el, hit),
-      elementLines: lineCount(el)
+      elementLines: lineCount(el),
+      // …and the title's own INK, not its box: the line boxes the title actually painted have to
+      // sit inside whatever clips them, which is the measurement a rect cannot make.
+      paintedTextClipped: (() => {
+        const bounds = [];
+        const hides3 = (a) => a === 'hidden' || a === 'clip';
+        if (hides3(s2.overflowX) || hides3(s2.overflowY)) { bounds.push(clipEdges(el)); }
+        if (box && box !== el) { bounds.push(clipEdges(box)); }
+        if (!bounds.length) { return false; }
+        for (const rr of lineBoxes(el)) {
+          for (const b of bounds) {
+            if (rr.right > b.r + TOL || rr.left < b.l - TOL || rr.bottom > b.b + TOL || rr.top < b.t - TOL) { return true; }
+          }
+        }
+        return false;
+      })()
     });
   }
 
@@ -736,10 +901,63 @@ const SEED_BRIEF = `(() => {
   return { ok: true, objective: obj.id };
 })()`;
 
+// `goto()` NOT THROWING IS NOT A STATE. The app's router can decline a transition, land on a
+// guard screen, or route on to somewhere else the moment the draft turns out to be incomplete —
+// and every one of those returns quietly. So the request is verified against `current()` here,
+// and against state-specific DOM markers by STATE_PROOF below. A screenshot is only evidence of
+// the state it actually shows.
 const gotoScreen = (screen) => `(() => {
   if (!window.FM_APP) { return { ok: false, why: 'the app did not boot' }; }
   window.FM_APP.goto('${screen}');
-  return { ok: true, state: window.FM_APP.current() };
+  const now = window.FM_APP.current ? window.FM_APP.current() : null;
+  if (now !== '${screen}') { return { ok: false, why: 'goto("${screen}") left the app in ' + now }; }
+  return { ok: true, state: now };
+})()`;
+
+// THE SEMANTIC MARKERS OF EACH SCREEN, read off the DOM the app actually built. `current()` is the
+// app's own opinion of where it is; this is what a customer can see, which is the thing the
+// evidence claims.
+const STATE_PROOF = `(() => {
+  const t = (el) => (el && (el.textContent || '').replace(/\\s+/g, ' ').trim()) || '';
+  const main = document.getElementById('main');
+  // "Actionable" = the control is painted AND is what a tap at its own centre would reach. A
+  // button under an overlay is present, visible and untappable, and only hit-testing sees that.
+  const actionable = (b) => {
+    const r = b.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) { return false; }
+    const x = Math.round(r.left + r.width / 2);
+    const y = Math.round(r.top + Math.min(r.height / 2, 20));
+    if (x < 0 || y < 0 || x > window.innerWidth || y > window.innerHeight) { return false; }
+    const hit = document.elementFromPoint(x, y);
+    return !!(hit && (hit === b || b.contains(hit) || hit.contains(b)));
+  };
+  return {
+    state: window.FM_APP && window.FM_APP.current ? window.FM_APP.current() : null,
+    mainChildren: main ? main.children.length : 0,
+    textLength: t(main).length,
+    // POPULATED — a question screen carrying option cards, with the draft's own answer already
+    // chosen. Cards with nothing selected is the empty screen, not the resumed one.
+    cards: document.querySelectorAll('.card').length,
+    cardsSelected: document.querySelectorAll('.card.is-selected, .card[aria-pressed="true"]').length,
+    kicker: t(document.querySelector('.kicker')),
+    // REVIEW — the memo dossier built from the draft.
+    dossier: !!document.querySelector('.dossier'),
+    dossierCompany: t(document.querySelector('.dossier .company')),
+    memos: document.querySelectorAll('.dossier .memo').length,
+    readiness: !!document.querySelector('.readiness'),
+    // EDIT — the selector screen, its per-field controls, and the content each one is offering
+    // to edit. An edit screen with no rows, or rows with no values, is not the edit state.
+    editRows: [...document.querySelectorAll('button.edit-row')].map((b) => ({
+      label: t(b.querySelector('i')), value: t(b.querySelector('b')), actionable: actionable(b)
+    })),
+    // SUCCESS — the confirmation screen.
+    orb: !!document.querySelector('.orb'),
+    statusLine: t(document.querySelector('.status-line')),
+    steps: document.querySelectorAll('.steps .step').length,
+    // EXPIRED / ERROR — a terminal screen with its own single action and no back affordance.
+    actions: document.querySelectorAll('.actions button').length,
+    backHidden: (() => { const b = document.getElementById('back'); return b ? !!b.hidden : null; })()
+  };
 })()`;
 
 // The stub the Mini App surfaces are opened behind.
@@ -796,31 +1014,36 @@ const SURFACES = [
 
   // ── the premium Mini App, in the states a customer actually meets ─────────────────────────
   { id: 'miniapp-entry', url: '/app-premium/index.html', widths: [390, 1440],
-    seed: miniappSeed(bootstrapBody()) },
+    seed: miniappSeed(bootstrapBody()), expect: 'APP_BOOTSTRAP' },
+  // `expect` is the state the screenshot CLAIMS to be evidence of. It is asserted against the
+  // app's own `current()` and against the screen's DOM markers, so a shot that silently landed
+  // somewhere else cannot be filed as proof of this state.
   { id: 'miniapp-populated', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
-    after: [SEED_BRIEF, gotoScreen('APP_PROBLEM')] },
+    after: [SEED_BRIEF, gotoScreen('APP_PROBLEM')], expect: 'APP_PROBLEM' },
   { id: 'miniapp-review', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
-    after: [SEED_BRIEF, gotoScreen('APP_REVIEW')] },
+    after: [SEED_BRIEF, gotoScreen('APP_REVIEW')], expect: 'APP_REVIEW' },
   { id: 'miniapp-edit', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
-    after: [SEED_BRIEF, gotoScreen('APP_EDIT_SELECTOR')] },
+    after: [SEED_BRIEF, gotoScreen('APP_EDIT_SELECTOR')], expect: 'APP_EDIT_SELECTOR' },
   { id: 'miniapp-success', url: '/app-premium/index.html', widths: [390, 1440],
-    seed: miniappSeed(bootstrapBody({ state: 'submitted', resumed: true, draft: RESUMED_DRAFT })) },
+    seed: miniappSeed(bootstrapBody({ state: 'submitted', resumed: true, draft: RESUMED_DRAFT })),
+    expect: 'APP_SUCCESS' },
   { id: 'miniapp-expired', url: '/app-premium/index.html', widths: [390],
     seed: miniappSeed(bootstrapBody({ resumed: true, draft: RESUMED_DRAFT })),
-    after: [gotoScreen('APP_SESSION_EXPIRED')] },
+    after: [gotoScreen('APP_SESSION_EXPIRED')], expect: 'APP_SESSION_EXPIRED' },
   { id: 'miniapp-boot-failure', url: '/app-premium/index.html', widths: [390],
-    seed: miniappSeed({ ok: false, error_code: 'GATEWAY_UNAVAILABLE', retryable: true }) },
+    seed: miniappSeed({ ok: false, error_code: 'GATEWAY_UNAVAILABLE', retryable: true }),
+    expect: 'APP_BOOT_FAILURE' },
 
   // ── the customer X-Ray result, promoted to CLIENT_READY ───────────────────────────────────
   { id: 'xray-result-ru', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ state: 'submitted', resumed: true, draft: RESUMED_DRAFT,
-      result: RESULT_FIXTURES['ru-score'] })) },
+      result: RESULT_FIXTURES['ru-score'] })), expect: 'APP_RESULT' },
   { id: 'xray-result-ro', url: '/app-premium/index.html', widths: [390, 1440],
     seed: miniappSeed(bootstrapBody({ state: 'submitted', resumed: true, locale: 'ro', draft: RESUMED_DRAFT,
-      result: RESULT_FIXTURES['ro-score'] })) }
+      result: RESULT_FIXTURES['ro-score'] })), expect: 'APP_RESULT' }
 ];
 
 // Surfaces that are a Mini App WebView, not a site page: no site header, no language gate, and
@@ -835,6 +1058,12 @@ const abPairs = {};
 // The text a customer actually reads on each surface, so a populated state can be asserted as
 // populated rather than merely rendered.
 const renderedText = {};
+// The Mini App screen each shot is evidence OF, proven from the app's own state and from the DOM
+// markers of that screen — never from "goto() did not throw".
+const stateProofs = {};
+// What the burger actually did at 390px: the drawer opened through the real UI, what became
+// reachable inside it, and whether the bar went back to normal afterwards.
+const drawerProbes = {};
 
 (async () => {
   if (!CHROME) {
@@ -879,6 +1108,47 @@ const renderedText = {};
       throw new Error((r.exceptionDetails.exception && r.exceptionDetails.exception.description) || r.exceptionDetails.text);
     }
     return r.result.value;
+  };
+
+  // A REAL TAP, not `el.click()`. Dispatched at viewport coordinates, it goes through the
+  // browser's own hit-testing: a burger under an overlay, behind a transparent shim or off the
+  // edge does not receive it, which is exactly the failure a synthetic `.click()` hides.
+  const tap = async (x, y) => {
+    for (const type of ['mousePressed', 'mouseReleased']) {
+      await c.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1, buttons: type === 'mousePressed' ? 1 : 0 });
+    }
+    await sleep(400);
+  };
+
+  // ── 6B. THE MOBILE LANGUAGE SWITCH, ACTUALLY OPENED ────────────────────────────────────────
+  //
+  // Runs AFTER both screenshots, so nothing it does can move a pixel of the retained evidence,
+  // and asserts the whole journey rather than the presence of a node: the burger is tappable, the
+  // drawer opens because it was tapped, the language controls inside it become painted AND
+  // hit-testable, the page's own edition is the current one, the other edition is offered, the
+  // options do not collide — and the bar returns to its normal state when the drawer closes.
+  const probeDrawer = async () => {
+    const P = { probed: false, why: null };
+    P.before = await evaluate(LANG_SNAPSHOT);
+    const barPainted = P.before.options.filter((o) => !o.inDrawer && o.painted && o.actionable);
+    P.barReachable = barPainted.map((o) => o.code);
+    if (!P.before.burger || !P.before.burger.painted) {
+      // No burger at this width. Then the control is not allowed to be hiding in a drawer: it has
+      // to be painted in the bar, and the assertion below says so.
+      P.why = 'no burger painted at 390px';
+      return P;
+    }
+    if (!P.before.burger.actionable) { P.why = 'the burger is painted but a tap at its centre does not reach it'; return P; }
+    P.probed = true;
+    await tap(P.before.burger.centre.x, P.before.burger.centre.y);
+    P.open = await evaluate(LANG_SNAPSHOT);
+    // Close through the drawer's own close control if it has one, otherwise the burger again.
+    const back = (P.open.close && P.open.close.actionable) ? P.open.close.centre
+      : (P.open.burger && P.open.burger.actionable ? P.open.burger.centre : null);
+    if (back) { await tap(back.x, back.y); }
+    P.closedVia = back ? ((P.open.close && P.open.close.actionable) ? 'close control' : 'burger') : null;
+    P.after = await evaluate(LANG_SNAPSHOT);
+    return P;
   };
 
   for (const s of SURFACES) {
@@ -1031,6 +1301,24 @@ const renderedText = {};
         header_collision_count: m.header && m.header.present ? (m.header.overlaps.length + m.header.outside.length) : 0,
         ab_reproducible: shaA === shaB
       };
+      // ── THE TWO PROOFS THAT COME AFTER THE PIXELS ─────────────────────────────────────────
+      //
+      // Both run once the screenshots are already in hand. The drawer probe TAPS things; running
+      // it before the capture would put the retained evidence in whatever state it left behind
+      // and make the hash-drift gate a lottery. Running it here it cannot touch the evidence and
+      // still proves the claim the evidence is filed under.
+      if (MINIAPP(s.id)) {
+        const proof = await evaluate(STATE_PROOF);
+        proof.expected = s.expect || null;
+        stateProofs[s.id + '@' + w] = proof;
+        // The manifest records the state the app WAS IN, read from the app, instead of "2 driven
+        // step(s)" — which said how hard the harness tried, not where it ended up.
+        shotMeta[name].application_state = proof.state
+          + (s.expect ? (proof.state === s.expect ? ' (as requested)' : ' (REQUESTED ' + s.expect + ')') : '');
+      } else if (w === 390) {
+        drawerProbes[s.id + '@' + w] = await probeDrawer();
+      }
+
       process.stdout.write('  rendered ' + (s.id + '@' + w).padEnd(28) + ' ' + name
         + (shaA === shaB ? '' : '  [A/B PIXEL DRIFT]')
         + (settled.stable ? '' : '  [LAYOUT NOT STABLE]') + '\n');
@@ -1047,6 +1335,10 @@ const renderedText = {};
   // The copy each surface actually painted, kept beside the screenshots: a reviewer can grep the
   // evidence for a string instead of reading twenty PNGs.
   writeFileSync(join(SHOT_DIR, 'rendered-text.json'), JSON.stringify(renderedText, null, 2), 'utf8');
+  // The two new proofs, retained beside the images: which Mini App screen each shot is actually
+  // of, and what the burger did when it was pressed.
+  writeFileSync(join(SHOT_DIR, 'state-proofs.json'), JSON.stringify(stateProofs, null, 2), 'utf8');
+  writeFileSync(join(SHOT_DIR, 'drawer-probes.json'), JSON.stringify(drawerProbes, null, 2), 'utf8');
 
   // ── the assertions ─────────────────────────────────────────────────────────────────────────
   const all = Object.entries(results);
@@ -1119,6 +1411,45 @@ const renderedText = {};
     assert(bad.length === 0, bad.length + ' clipped element(s): ' + bad.slice(0, 6).join(' | '));
   });
 
+  check('PAINTED TEXT CLIPPING = 0 — the ink itself, not the box, stays inside what draws it', () => {
+    // The check above grades the element's rect. This one grades the LINE BOXES the element
+    // actually painted, obtained from a Range over each text node — the only measurement that can
+    // see a line overflowing a box that reports a tidy rect, or a third line painted under a
+    // fixed-height card. Both are half a sentence on a customer's screen.
+    const bad = [];
+    for (const [k, r] of all) {
+      for (const c2 of (r.paintedTextClipped || [])) {
+        bad.push(k + ': <' + c2.tag.toLowerCase() + '> ink ' + c2.ink.join(',') + ' past ' + c2.by
+          + ' ' + c2.box.join(',') + ' — ' + c2.text);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' clipped painted text run(s): ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('PAINTED TEXT OUTSIDE VIEWPORT = 0 — every line box is inside the frame', () => {
+    const bad = [];
+    for (const [k, r] of all) {
+      for (const t of (r.paintedTextOutside || [])) {
+        bad.push(k + ': <' + t.tag.toLowerCase() + '> ink ' + t.left + '..' + t.right + ' of ' + t.vw + ' — ' + t.text);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' line box(es) outside the viewport: ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('the painted-text sweep actually measured ink on every surface', () => {
+    // A Range sweep that throws, or that finds no text nodes because a selector changed, reports
+    // zero findings and looks exactly like a clean pass. It has to prove it did the work.
+    //
+    // The invariant is structural rather than a magic number: every element the BOX sweep graded
+    // owns at least one text node, and every text node that paints produces at least one line
+    // box, so the ink count can never be lower than the element count. It holds with room to
+    // spare on every surface here (1.05x on the densest, 1.77x on the airiest), and it collapses
+    // the moment the Range measurement stops running.
+    const bad = all.filter(([, r]) => !(r.textElements > 0 && r.paintedTextLines >= r.textElements))
+      .map(([k, r]) => k + ' (' + r.paintedTextLines + ' line boxes for ' + r.textElements + ' text elements)');
+    assert(bad.length === 0, 'the painted-text measurement graded less ink than there is text on: ' + bad.join(', '));
+  });
+
   check('ZERO-HEIGHT TEXT = 0 — no customer string renders with no box', () => {
     const bad = [];
     for (const [k, r] of all) {
@@ -1188,9 +1519,17 @@ const renderedText = {};
     // a class name happens to be: fully painted, not clipped by their own box, inside the
     // viewport, not escaping their card, and — because the approved design sets them as
     // single-line card headings — on exactly ONE line at 390px and at 1440px.
-    const REQUIRED = ['Control Light', 'CFO Control Partner', 'CFO AI Control',
+    // THE PROTECTED LIST IS ITSELF ASSERTED. A hand-maintained "must be found" list is exactly
+    // the thing that silently loses a name — `Control Partner` was missing from it, so the tier
+    // it names was outside the contract while the gate reported PASS. These six are the approved
+    // package titles; dropping one from the locator now fails here.
+    const PROTECTED = ['Control Light', 'Control Partner', 'CFO Control Partner', 'CFO AI Control',
       'Monthly CFO Support', 'Financial Health Check'];
     const bad = [];
+    for (const want of PROTECTED) {
+      if (!APPROVED_TITLES.includes(want)) { bad.push('the locator no longer protects the title "' + want + '"'); }
+    }
+
     const seen = new Set();
     for (const [k, r] of all) {
       for (const t of (r.approvedTitles || [])) {
@@ -1200,13 +1539,166 @@ const renderedText = {};
         if (t.outsideViewport) { bad.push(k + ': "' + t.title + '" sits at ' + t.left + '..' + t.right + ' of ' + r.width); }
         if (t.escapesCard) { bad.push(k + ': "' + t.title + '" escapes its card horizontally'); }
         if (t.lines !== 1) { bad.push(k + ': "' + t.title + '" wraps onto ' + t.lines + ' lines'); }
+        if (t.paintedTextClipped) { bad.push(k + ': "' + t.title + '" has ink outside the box drawing it'); }
       }
     }
-    // …and the titles must actually have been on a rendered surface, or this check proved nothing.
-    for (const want of REQUIRED) {
-      if (!seen.has(want)) { bad.push('the approved title "' + want + '" was never rendered on any audited surface'); }
+
+    // COVERAGE IS DERIVED, NOT DECLARED. Every protected title that stands as its own heading in
+    // the SOURCE of an audited surface must have been located and measured on that surface. A
+    // title that no page carries — `Control Partner` never appears except inside `CFO Control
+    // Partner` — is correctly not required, and the day a card is added for it, it becomes
+    // required here without anyone remembering to edit a list.
+    const AUDITED_SOURCES = [...new Set(SURFACES.filter((s) => !MINIAPP(s.id) && s.url.endsWith('.html'))
+      .map((s) => s.url.replace(/^\//, '')))];
+    for (const src of AUDITED_SOURCES) {
+      const abs = join(ROOT, src);
+      if (!existsSync(abs)) { continue; }
+      const html = readFileSync(abs, 'utf8');
+      for (const t of PROTECTED) {
+        const own = new RegExp('>\\s*' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*(?:·[^<]*)?<');
+        if (!own.test(html)) { continue; }
+        if (!seen.has(t)) {
+          bad.push(src + ' carries the title "' + t + '" but no audited surface measured it');
+        }
+      }
     }
     assert(bad.length === 0, bad.length + ' package title failure(s): ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('MOBILE LANGUAGE SWITCH REACHABLE = PASS — the drawer was opened, not assumed', () => {
+    // The old gate accepted a language link that merely EXISTED inside the mobile drawer as
+    // "reachable", without ever opening it. That passes on a page whose burger does not work, or
+    // whose drawer never paints, or where the control inside it is covered — none of which a
+    // customer can use. This asserts the journey: tap the burger, and the control has to become
+    // painted AND hit-testable, with the right edition current and the other one offered.
+    const bad = [];
+    let probed = 0;
+    for (const [k, p] of Object.entries(drawerProbes)) {
+      const want = (p.before.lang || 'ru').slice(0, 2) === 'ro' ? 'ro' : 'ru';
+      const other = want === 'ro' ? 'ru' : 'ro';
+
+      // A page with no burger has no drawer to hide behind: the control must be painted in the bar.
+      if (!p.probed) {
+        for (const code of [want, other]) {
+          if (!p.barReachable.includes(code)) {
+            bad.push(k + ': no burger (' + p.why + ') and ' + code.toUpperCase() + ' is not reachable in the bar either');
+          }
+        }
+        continue;
+      }
+      probed++;
+      // …and on a page that HAS a burger, pressing it has to change something.
+      if (!p.open) { bad.push(k + ': the drawer was never measured after the tap'); continue; }
+      const opened = p.open.drawerRendered || p.open.drawerOpenClass || p.open.bodyLocked
+        || p.open.options.some((o) => o.inDrawer && o.actionable);
+      if (!opened) { bad.push(k + ': tapping the burger opened nothing'); continue; }
+
+      const reachable = (code) => p.open.options.some((o) => o.code === code && o.painted && o.actionable)
+        || p.before.options.some((o) => o.code === code && !o.inDrawer && o.painted && o.actionable);
+      if (!reachable(want)) { bad.push(k + ': with the drawer open, ' + want.toUpperCase() + ' is not a control a tap can reach'); }
+      if (!reachable(other)) { bad.push(k + ': LANGUAGE CONTROL MISSING — ' + other.toUpperCase() + ' is not reachable even with the drawer open'); }
+
+      // STATE, read off the controls that are now reachable.
+      const live = p.open.options.filter((o) => o.painted && o.actionable);
+      const active = new Set(live.filter((o) => o.active).map((o) => o.code));
+      if (!active.has(want)) { bad.push(k + ': ' + want.toUpperCase() + ' ACTIVE STATE — the open drawer does not mark this page\'s edition current'); }
+      if (active.has(other)) { bad.push(k + ': ' + other.toUpperCase() + ' ACTIVE STATE — the other edition is marked current too'); }
+      // The alternate edition must actually go somewhere.
+      const alt = live.find((o) => o.code === other);
+      if (alt && !alt.href && !alt.disabled === false) { bad.push(k + ': the ' + other.toUpperCase() + ' control has no destination'); }
+      for (const c2 of p.open.collisions) { bad.push(k + ': language options collide — ' + c2); }
+
+      // …and the page goes back to normal, or the probe left the site in a state no customer is in.
+      if (!p.after) { bad.push(k + ': the bar was never re-measured after closing'); continue; }
+      if (p.after.drawerRendered && !p.before.drawerRendered) { bad.push(k + ': the drawer stayed open after it was closed'); }
+      if (p.after.bodyLocked && !p.before.bodyLocked) { bad.push(k + ': the page scroll lock survived the drawer'); }
+      if (!p.after.burger || !p.after.burger.actionable) { bad.push(k + ': the burger is no longer tappable once the drawer closed'); }
+    }
+    assert(probed > 0, 'no surface exercised a burger at 390px — the drawer probe measured nothing');
+    assert(bad.length === 0, bad.length + ' mobile language-switch failure(s): ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('MINI APP STATE PROVEN = PASS — every screen is asserted, not assumed from goto()', () => {
+    // `goto()` returning without throwing says the call was made, not that the app arrived. Each
+    // state below is proven twice: against the app's own `current()`, and against DOM markers
+    // that only that screen builds. A shot filed as evidence of EDIT that is really REVIEW is
+    // exactly the kind of thing this closes.
+    const MARKERS = {
+      APP_PROBLEM: (p) => {
+        if (!(p.cards >= 2)) { return 'no option cards on the question screen (' + p.cards + ')'; }
+        if (!(p.cardsSelected >= 1)) { return 'no card is selected — this is the empty screen, not the populated one'; }
+        if (!p.kicker) { return 'no objective kicker above the question'; }
+        return null;
+      },
+      APP_REVIEW: (p) => {
+        if (!p.dossier) { return 'no .dossier — the review memo was not built'; }
+        if (!p.dossierCompany) { return 'the review memo names no company'; }
+        if (!(p.memos >= 3)) { return 'the review memo has ' + p.memos + ' sections'; }
+        if (!p.readiness) { return 'no readiness block'; }
+        return null;
+      },
+      APP_EDIT_SELECTOR: (p) => {
+        // The mandate for this state is explicit: an edit MARKER, an edit CONTROL, and the
+        // editable content actually rendered.
+        if (!(p.editRows.length >= 3)) { return 'the edit screen offers ' + p.editRows.length + ' rows'; }
+        if (!p.editRows.every((r) => r.label)) { return 'an edit row has no field label'; }
+        const withValue = p.editRows.filter((r) => r.value && r.value !== '—');
+        if (!(withValue.length >= 2)) { return 'only ' + withValue.length + ' edit row(s) render the content they edit'; }
+        if (!p.editRows.some((r) => r.actionable)) { return 'no edit control is reachable by a tap'; }
+        return null;
+      },
+      APP_SUCCESS: (p) => {
+        if (!p.orb) { return 'no confirmation mark'; }
+        if (!p.statusLine) { return 'no status line'; }
+        if (!(p.steps >= 1)) { return 'no next steps'; }
+        if (p.backHidden === false) { return 'a back affordance on a terminal screen'; }
+        return null;
+      },
+      APP_SESSION_EXPIRED: (p) => {
+        if (!(p.textLength > 40)) { return 'the expiry screen rendered almost nothing'; }
+        if (!(p.actions >= 1)) { return 'the expiry screen offers no action'; }
+        if (p.backHidden === false) { return 'a back affordance on a terminal screen'; }
+        return null;
+      },
+      // The error state the Gateway can put a customer in, and the entry screen they land on
+      // before any of it — both are captured, so both are proven rather than assumed.
+      APP_BOOT_FAILURE: (p) => {
+        if (!(p.textLength > 40)) { return 'the failure screen rendered almost nothing'; }
+        if (!(p.actions >= 1)) { return 'the failure screen offers no way out'; }
+        if (p.backHidden === false) { return 'a back affordance on a terminal screen'; }
+        return null;
+      },
+      APP_BOOTSTRAP: (p) => {
+        if (!(p.textLength > 40)) { return 'the entry screen rendered almost nothing'; }
+        if (!(p.actions >= 1)) { return 'the entry screen offers no way to start'; }
+        return null;
+      },
+      // The promoted X-Ray analysis, which is the only Mini App screen a customer reads as a
+      // RESULT rather than as a form.
+      APP_RESULT: (p) => {
+        if (!(p.textLength > 200)) { return 'the result screen rendered ' + p.textLength + ' characters'; }
+        if (!(p.mainChildren >= 1)) { return 'the result screen built no content'; }
+        return null;
+      }
+    };
+    const REQUIRED = ['APP_PROBLEM', 'APP_REVIEW', 'APP_EDIT_SELECTOR', 'APP_SUCCESS',
+      'APP_SESSION_EXPIRED', 'APP_BOOT_FAILURE', 'APP_RESULT'];
+    const bad = [];
+    const proven = new Set();
+    for (const [k, p] of Object.entries(stateProofs)) {
+      if (!p.expected) { continue; }
+      if (p.state !== p.expected) {
+        bad.push(k + ': requested ' + p.expected + ', the app is in ' + p.state);
+        continue;
+      }
+      const why = MARKERS[p.expected] ? MARKERS[p.expected](p) : null;
+      if (why) { bad.push(k + ' (' + p.expected + '): ' + why); continue; }
+      proven.add(p.expected);
+    }
+    for (const want of REQUIRED) {
+      if (!proven.has(want)) { bad.push('no captured surface proved the state ' + want); }
+    }
+    assert(bad.length === 0, bad.length + ' unproven Mini App state(s): ' + bad.slice(0, 6).join(' | '));
   });
 
   check('LANGUAGE CONTROL MISSING = 0 / WRONG STATE = 0 / COLLISION = 0', () => {
@@ -1221,8 +1713,14 @@ const renderedText = {};
       if (!h || !h.present) { bad.push(k + ': no header to carry a language control'); continue; }
       const opts = h.langOptions || [];
       if (opts.length === 0) { bad.push(k + ': LANGUAGE CONTROL MISSING — no RU/RO option in the bar or the drawer'); continue; }
-      // Reachable = painted in the bar, or present in the drawer the burger opens.
-      const reachable = (code) => opts.some((o) => o.code === code && (o.painted || o.inDrawer));
+      // REACHABLE = painted in the bar, or PROVEN reachable inside a drawer that this run actually
+      // opened. `o.inDrawer` on its own is a DOM node behind a closed panel: it satisfied the old
+      // gate and satisfies no customer. The drawer probe is the corroboration, and where there is
+      // no probe for this surface, only a painted control counts.
+      const probe = drawerProbes[k];
+      const provenInDrawer = (code) => !!(probe && probe.probed && probe.open
+        && probe.open.options.some((o) => o.code === code && o.painted && o.actionable));
+      const reachable = (code) => opts.some((o) => o.code === code && o.painted) || provenInDrawer(code);
       if (!reachable(want)) { bad.push(k + ': the current edition (' + want.toUpperCase() + ') has no reachable control'); }
       if (!reachable(other)) { bad.push(k + ': LANGUAGE CONTROL MISSING — ' + other.toUpperCase() + ' is not offered'); }
       // State: the page's own language is the active one, and the other is not.
@@ -1474,6 +1972,11 @@ const renderedText = {};
     // the screenshots are viewport-height, so a sentence repaired below the fold is provable
     // from here and from nowhere else in the committed evidence.
     writeFileSync(join(KEEP_DIR, 'rendered-text.json'), JSON.stringify(renderedText, null, 2), 'utf8');
+    // The two proofs behind the claims the manifest makes: which Mini App screen each retained
+    // shot is actually of, and what pressing the burger at 390px actually did. Both are retained
+    // for the same reason as rendered-text.json — a claim a reviewer cannot check is not evidence.
+    writeFileSync(join(KEEP_DIR, 'state-proofs.json'), JSON.stringify(stateProofs, null, 2), 'utf8');
+    writeFileSync(join(KEEP_DIR, 'drawer-probes.json'), JSON.stringify(drawerProbes, null, 2), 'utf8');
     console.log('  retained ' + RETAIN.length + ' screenshots in ' + KEEP_DIR);
 
     check('SCREENSHOT HASH DRIFT = 0 (against the previously retained manifest)', () => {
