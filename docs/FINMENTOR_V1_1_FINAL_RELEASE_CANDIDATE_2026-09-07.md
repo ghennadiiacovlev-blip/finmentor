@@ -1,9 +1,11 @@
 # FINMENTOR v1.1 — FINAL RELEASE CANDIDATE
 
-**FINAL CODEX LANGUAGE BLOCKER CLOSED — READY FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT**
+**PAGES BUILD BLOCKER CLOSED — RESEALED FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT**
 
 This record is written by the engineer who did the work. It is **not** an independent approval,
-and it does not claim one. Nothing has been deployed, merged or activated.
+and it does not claim one. A first controlled deployment reached a validated n8n v1.1 cutover,
+then GitHub Pages rejected the web build. Both n8n and web were safely rolled back to v1 before
+this correction; production is still on the recorded v1 baseline while this reseal is created.
 
 ---
 
@@ -16,37 +18,40 @@ convention that cannot go stale.
 | | |
 | --- | --- |
 | Branch | `release/v1.1-final-integration` |
-| **SOURCE SHA** | **`cbbe79e87fedb854698a091e91c792776c0606c4`** — final shipped source + harness tree |
+| **FINAL SHIPPED SOURCE SHA** | **`0ee14fc09b7e7024b50680646ff9e1016d6a05c9`** — final source, documentation fix and Pages gate |
 | **SEALING COMMIT** | **THIS COMMIT** — the commit that carries this file |
 | **Branch HEAD after the seal** | **the sealing commit**, i.e. `git rev-parse HEAD` |
 | Audited base (the commit this closure started from) | `85adbfbcc53818fe66df771f0cc56316da010ced` |
 | Parent (authorised start of v1.1) | `9f62e6f542a361163358aaa96b1d8ba1f2187dd6` |
-| Production `main` baseline | `b57ac259847ca77e249ec133e41bcb6435f8e031` — **unchanged during this run** |
+| Production `main` baseline | `b57ac259847ca77e249ec133e41bcb6435f8e031` — **restored after the failed publication attempt** |
 
 **Why it is written this way.** A commit cannot contain its own hash, so no honest document can
 print the SHA of the commit that carries it. What it can do is identify itself by provenance, and
 this one does:
 
-* `cbbe79e` carries the final shipped source tree and the accepted harness. Relative to the
-  previous seal, it changes only the four authorised primary-journey HTML files.
-* The sealing commit — the one you are reading — adds **only** `qa-evidence/` and this file. That
+* `cbbe79e` carries the final customer-facing language source tree and accepted harness.
+* `0ee14fc` adds only Jekyll-safe documentation literals and an isolated production-Jekyll build
+  gate. It changes no application JavaScript, n8n artifact, machine value or business contract.
+* The sealing commit — the one you are reading — changes **only** this release record. That
   is checkable, not asserted:
 
   ```bash
-  git diff cbbe79e87fedb854698a091e91c792776c0606c4 HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
+  git diff 0ee14fc09b7e7024b50680646ff9e1016d6a05c9 HEAD -- . ':!docs'   # EMPTY
   ```
 
 * **No commit follows this one.** The sealing commit is the tip of the branch, so
   `git rev-parse HEAD` and the release candidate are the same thing by construction, and this file
   cannot name a stale head.
 
-**The release candidate is the branch head.** The source it ships is `cbbe79e`'s tree, byte for
-byte, because the sealing commit changes no file outside `qa-evidence/` and `docs/`.
+**The release candidate is the branch head.** The source boundary it seals is `0ee14fc`; the
+sealing commit changes no file outside `docs/`.
 
 ### Commits in this run
 
 ```
-<sealing>  docs(release)+evidence(release): seal v1.1 after Codex language closure
+<sealing>  docs(release): reseal v1.1 after Pages build fix
+0ee14fc    fix(pages): escape Liquid syntax in release documentation
+76896f2    docs(release)+evidence(release): seal v1.1 after Codex language closure
 cbbe79e    fix(copy): close final Codex language blocker
 85adbfb    docs(release)+evidence(release): seal v1.1 on the audited head
 ```
@@ -63,6 +68,22 @@ ro/questionnaire.html        |   4 +-
 `n8n/`, `gateway/`, `db/`, `app-premium/`, `app/`, `analytics.js`, `lead-transport.js`, `main.js`,
 `assistant.js`, `i18n-ro.js`, `lang.css` and `style.css` are **untouched by this run**. No
 production workflow, no schema, no credential and no shipped application script was changed.
+
+### GitHub Pages rollback and correction
+
+The first owner-authorized release attempt validated the 60-node Concierge cutover and its exact
+four-node allowlist, but GitHub Pages failed before the new web revision became public. Jekyll's
+Liquid parser treated a literal n8n expression in
+`docs/RU_UAT_MINIAPP_BOOTSTRAP_AND_IDEMPOTENCY.md` as a template. The release procedure rolled
+both layers back: n8n was restored byte-for-byte to its captured 60-node active baseline and
+`main` was restored to `b57ac259847ca77e249ec133e41bcb6435f8e031`.
+
+Source `0ee14fc` protects that literal and every same-class documentation occurrence reported by
+the production renderer with Liquid raw/endraw protection. It also runs
+`actions/jekyll-build-pages@v1` in an isolated CI job and asserts the generated RU/RO homepages and
+questionnaires exist. The exact production renderer completed with exit code 0, required Pages
+output PASS, and **0 Liquid warnings or exceptions**. Canonical QA remains **85/85**, **2974
+assertions**, floors PASS. No runtime or business behavior changed in this correction.
 
 ---
 
@@ -509,9 +530,9 @@ QA confirms scoring, CRM, callback data, routing, CLIENT_READY and HOT / WARM / 
 | P3 remaining | 4 (deferred, listed below) |
 | Worktree | clean |
 | `HEAD == origin/release/v1.1-final-integration` | yes |
-| **PRODUCTION MUTATED** | **NO** |
-| **DEPLOYED** | **NO** |
-| **MERGED TO MAIN** | **NO** |
+| **CURRENT PRODUCTION** | **v1 RESTORED** |
+| Prior v1.1 n8n cutover | validated, then rolled back after Pages failure |
+| Production `main` now | `b57ac259847ca77e249ec133e41bcb6435f8e031` |
 
 ### POST_GO — deferred, not release-blocking
 
@@ -535,10 +556,13 @@ QA confirms scoring, CRM, callback data, routing, CLIENT_READY and HOT / WARM / 
 ```bash
 git rev-parse HEAD                              # the release candidate: this sealing commit
 git status --porcelain                          # EMPTY
-git diff cbbe79e87fedb854698a091e91c792776c0606c4 HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
+git diff 0ee14fc09b7e7024b50680646ff9e1016d6a05c9 HEAD -- . ':!docs'   # EMPTY
 
 node qa/run-all.mjs                             # 85/85, 2974 assertions, floors PASS
 git status --porcelain                          # still EMPTY — canonical QA mutates nothing
+
+# GitHub workflow: pages-build job
+# actions/jekyll-build-pages@v1 + required output assertions, zero Liquid issues
 
 node qa/visual-evidence.mjs                     # 25/25, same-candidate hash drift 0
 ```
@@ -558,7 +582,7 @@ findings between the seven that count.
 
 ---
 
-**RELEASE STATUS: FINAL LANGUAGE BLOCKER CLOSED — READY FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT.**
+**RELEASE STATUS: PAGES BUILD BLOCKER CLOSED — RESEALED FOR CONTROLLED DEPLOYMENT.**
 
-Production deployment still requires owner authorisation. Nothing in this run deployed, merged,
-activated, published or mutated any production system.
+Owner authorization for the controlled redeployment is recorded. No v1.1 layer is active while
+this seal is created: the previous attempt was fully rolled back to v1.
