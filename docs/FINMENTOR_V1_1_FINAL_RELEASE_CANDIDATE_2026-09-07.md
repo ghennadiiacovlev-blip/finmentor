@@ -1,6 +1,6 @@
 # FINMENTOR v1.1 — FINAL RELEASE CANDIDATE
 
-**READY FOR ONE FINAL INDEPENDENT RELEASE AUDIT**
+**FINAL CODEX LANGUAGE BLOCKER CLOSED — READY FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT**
 
 This record is written by the engineer who did the work. It is **not** an independent approval,
 and it does not claim one. Nothing has been deployed, merged or activated.
@@ -16,10 +16,10 @@ convention that cannot go stale.
 | | |
 | --- | --- |
 | Branch | `release/v1.1-final-integration` |
-| **Final audited source + harness SHA** | **`91ce8537ef4a5237492130987f66e15166ed8d5d`** |
-| **Release sealing commit** | **THIS COMMIT** — the commit that carries this file |
+| **SOURCE SHA** | **`cbbe79e87fedb854698a091e91c792776c0606c4`** — final shipped source + harness tree |
+| **SEALING COMMIT** | **THIS COMMIT** — the commit that carries this file |
 | **Branch HEAD after the seal** | **the sealing commit**, i.e. `git rev-parse HEAD` |
-| Audited base (the commit this run started from) | `d9b54657683e78c4f074ac4dcc000b74d5e90ad1` |
+| Audited base (the commit this closure started from) | `85adbfbcc53818fe66df771f0cc56316da010ced` |
 | Parent (authorised start of v1.1) | `9f62e6f542a361163358aaa96b1d8ba1f2187dd6` |
 | Production `main` baseline | `b57ac259847ca77e249ec133e41bcb6435f8e031` — **unchanged during this run** |
 
@@ -27,37 +27,37 @@ convention that cannot go stale.
 print the SHA of the commit that carries it. What it can do is identify itself by provenance, and
 this one does:
 
-* `91ce853` carries the source, the harness and nothing else. It is the SHA the visual evidence
-  records as `candidate_sha` on all 26 retained images, so the screenshots are demonstrably of it.
+* `cbbe79e` carries the final shipped source tree and the accepted harness. Relative to the
+  previous seal, it changes only the four authorised primary-journey HTML files.
 * The sealing commit — the one you are reading — adds **only** `qa-evidence/` and this file. That
   is checkable, not asserted:
 
   ```bash
-  git diff 91ce8537ef4a5237492130987f66e15166ed8d5d HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
+  git diff cbbe79e87fedb854698a091e91c792776c0606c4 HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
   ```
 
 * **No commit follows this one.** The sealing commit is the tip of the branch, so
   `git rev-parse HEAD` and the release candidate are the same thing by construction, and this file
   cannot name a stale head.
 
-**The release candidate is the branch head.** The source it ships is `91ce853`'s tree, byte for
+**The release candidate is the branch head.** The source it ships is `cbbe79e`'s tree, byte for
 byte, because the sealing commit changes no file outside `qa-evidence/` and `docs/`.
 
 ### Commits in this run
 
 ```
-<sealing>  docs(release)+evidence(release): seal v1.1 on the audited head
-91ce853    fix(copy)+test(qa): close the last three release blockers at their root
+<sealing>  docs(release)+evidence(release): seal v1.1 after Codex language closure
+cbbe79e    fix(copy): close final Codex language blocker
+85adbfb    docs(release)+evidence(release): seal v1.1 on the audited head
 ```
 
-### Files changed by `91ce853` (9)
+### Files changed by `cbbe79e` (4)
 
 ```
-index.html                   |  14 +-      questionnaire.html           |   6 +-
-monthly-cfo-support.html     |  10 +-      ro/index.html                |  22 +-
-ro/monthly-cfo-support.html  |   8 +-      ro/questionnaire.html        |  10 +-
-qa/assertion-baseline.json   |   4 +-      qa/visual-evidence.mjs       | 549 ++-
-qa/website-contract.test.mjs | 281 ++
+index.html                   |   2 +-
+questionnaire.html           |   2 +-
+ro/monthly-cfo-support.html  |  10 +-
+ro/questionnaire.html        |   4 +-
 ```
 
 `n8n/`, `gateway/`, `db/`, `app-premium/`, `app/`, `analytics.js`, `lead-transport.js`, `main.js`,
@@ -66,7 +66,26 @@ production workflow, no schema, no credential and no shipped application script 
 
 ---
 
-## 2. The three blocker classes, closed
+## 2. The blocker classes, closed
+
+### Final Codex P1 language closure
+
+The independent Codex audit of `85adbfb` disproved the earlier language-clean claim and found one
+remaining P1 blocker class: exactly seven constructions in the authorised primary journey. Source
+commit `cbbe79e` closes all seven without broad substitution:
+
+1. the Russian homepage now says `ключевые метрики вашей бизнес-модели`;
+2. the Russian questionnaire removes the duplicated `после встречи` from the visible e-mail label;
+3. Romanian Premium copy now says that automation and IA / BI are included `la nivel extins`;
+4. the Romanian CFO comparison answer now uses `un cadru clar de întâlniri, rapoarte și control`;
+5. the Romanian remote-work answer now uses `Colaborarea se desfășoară`;
+6. the Romanian questionnaire remote-work paragraph now describes `progresul colaborării`;
+7. the Romanian questionnaire removes the duplicated `după întâlnire` from the visible e-mail label.
+
+The two questionnaire controls still carry the byte-identical canonical machine value
+`value="Email summary после встречи"`. The two changed visible FAQ answers and their JSON-LD mirrors
+remain identical. A focused re-read of each changed sentence or paragraph with one preceding and
+one following paragraph found **0 new defects in touched context**.
 
 ### P1-A — the primary journey still failed a human read
 
@@ -99,10 +118,12 @@ glossary sweep and a list of known examples. This run did not start by editing.
 | --- | --- | --- |
 | Pass 1 defects | 8 classes, 13 strings | 11 classes, 27 strings |
 | Pass 2 NEW defects | 6 | 4 |
-| Pass 3 NEW defects | **0** | **0** |
-| Final clean pass | **YES** | **YES** |
+| Earlier record's Pass 3 NEW-defect claim | **0** | **0** |
+| Independent Codex audit at `85adbfb` | **2** | **5** |
+| Final touched-context pass at `cbbe79e` | **0** | **0** |
 
-**50 corrected strings.** No fourth pass was needed; three was the ceiling.
+The earlier run corrected 50 strings, but its final clean claim was not sufficient. The independent
+Codex audit found the seven constructions above; all seven are now closed.
 
 #### Russian
 
@@ -340,6 +361,8 @@ probes were placed after the captures precisely so they could not disturb any of
 
 ### Canonical QA
 
+The canonical suite was rerun after the final seven corrections at source `cbbe79e`.
+
 | | |
 | --- | --- |
 | Gates | **85 / 85 PASS** |
@@ -352,7 +375,7 @@ The count rose because `website-contract.test.mjs` gained eight checks (99 → 1
 `qa/assertion-baseline.json` was raised to match, exactly as `qa/run-all.mjs` instructed. No test
 was weakened, no floor lowered, no file excluded.
 
-### Visual — 27 / 27 checks
+### Visual — final-source harness PASS
 
 | | |
 | --- | --- |
@@ -376,19 +399,25 @@ was weakened, no floor lowered, no file excluded.
 
 | | |
 | --- | --- |
-| Run A vs Run B, same session | **26 / 26 identical** |
-| Cold run, `qa-artifacts/` deleted | **26 / 26 identical** |
-| Cold run **across the commit boundary** (`d9b5465` → `91ce853`) | **26 / 26 identical** |
-| **SCREENSHOT HASH DRIFT** | **0** |
+| Run A vs Run B, same candidate | **42 / 42 captures identical** |
+| Changed-page retained PNGs vs prior evidence | **6 / 6 identical** |
+| Prior-candidate retained set | **25 / 26 identical**; one allowed unrelated ±1 gradient variation |
+| **SCREENSHOT HASH DRIFT (same candidate)** | **0** |
 | Font / paint determinism | **PASS** — all 26 `font_status = loaded`, `layout_stable = true` |
 | Random seed | `20260907`, recorded on every entry |
 
-**Two of the 26 retained images differ from the previous candidate's evidence**, and the cause was
+At the earlier `91ce853` source boundary, **two of the 26 retained images differed from that
+run's previous candidate evidence**, and the cause was
 measured rather than assumed. `ru-questionnaire-1440.png` and `ro-packages-1440.png` differ on
 0.54% and 1.25% of their pixels, and **every differing pixel differs by exactly one 8-bit level in
 one channel** (`28,32,31` → `28,32,32`) on flat card backgrounds. That is the dither boundary of a
 subtle gradient moving because the card got shorter — Q12's answers and the Romanian package
 card's next-step line both lost characters. No text moved; the other 24 images are byte-identical.
+
+For the final `cbbe79e` language closure, every retained screenshot on a changed page reproduced
+byte-for-byte. One unrelated old-candidate image, `ru-packages-390.png`, showed only the allowed
+gradient-level variation; the source page was untouched, same-candidate A/B hashes were identical,
+and the unrelated committed retained PNG was deliberately not churned.
 
 ### Visual evidence manifest
 
@@ -402,7 +431,7 @@ Every entry carries `candidate_sha`, `branch`, `capture_timestamp`, `viewport`, 
 `overflow_count`, `header_collision_count`, `ab_reproducible`. The run asserts all of it, including
 that `candidate_sha` is the commit being audited.
 
-**All 26 entries carry `candidate_sha = 91ce8537ef4a5237492130987f66e15166ed8d5d`.** Totals across
+**All 26 entries carry `candidate_sha = cbbe79e87fedb854698a091e91c792776c0606c4`.** Totals across
 the retained set: text clipping **0**, overflow **0**, header collisions **0**, `ab_reproducible`
 true on all 26.
 
@@ -426,6 +455,7 @@ API or service was called.**
 | --- | --- |
 | **MACHINE VALUE DRIFT vs `9f62e6f` (authorised start)** | **0** |
 | **MACHINE VALUE DRIFT vs `d9b5465` (audited base)** | **0** |
+| **MACHINE VALUE DRIFT vs `85adbfb` (Codex closure base)** | **0** |
 | Files compared | **269 shipped** (HTML / JS / MJS / JSON) |
 | Distinct contract tokens compared | **6061**, as multisets, per file |
 | Scoring | UNCHANGED |
@@ -443,6 +473,11 @@ JSON-LD `@id` / `url` / `@type`, prices, the HOT/WARM/COLD and CLIENT_READY toke
 state enum and CRM stage strings were extracted from every shipped file at both revisions and
 compared as multisets. `qa/`, `scripts/`, `docs/` and `.github/` are excluded because they are not
 served — and this run deliberately added state names and regex fragments to two of them.
+
+For `85adbfb` → `cbbe79e`, the attributes and executable scripts in all four changed HTML files
+were compared directly and are identical. The diff in `n8n/`, `db/`, `gateway/`, `app/`,
+`app-premium/`, `analytics.js`, `assistant.js`, `lead-transport.js` and `main.js` is empty. Canonical
+QA confirms scoring, CRM, callback data, routing, CLIENT_READY and HOT / WARM / COLD unchanged.
 
 ### Previous P1 regression battery — re-run, still green
 
@@ -500,28 +535,16 @@ served — and this run deliberately added state names and regex fragments to tw
 ```bash
 git rev-parse HEAD                              # the release candidate: this sealing commit
 git status --porcelain                          # EMPTY
-git diff 91ce8537ef4a5237492130987f66e15166ed8d5d HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
+git diff cbbe79e87fedb854698a091e91c792776c0606c4 HEAD -- . ':!qa-evidence' ':!docs'   # EMPTY
 
 node qa/run-all.mjs                             # 85/85, 2974 assertions, floors PASS
 git status --porcelain                          # still EMPTY — canonical QA mutates nothing
 
-rm -rf qa-artifacts
-node qa/visual-evidence.mjs --keep qa-evidence/v1.1-final     # 27/27, hash drift 0
+node qa/visual-evidence.mjs                     # 25/25, same-candidate hash drift 0
 ```
 
-**One expected diff, and only one.** Re-running with `--keep` rewrites `manifest.json`, because
-`capture_timestamp` and `candidate_sha` are required evidence and are volatile by construction —
-and after the sealing commit, `candidate_sha` becomes the sealing commit rather than `91ce853`,
-which is correct: the tree is identical, so the screenshots are evidence of both. **No `sha256`
-changes and no PNG changes**; that is what the hash-drift gate asserts before writing. Confirm:
-
-```bash
-git diff qa-evidence/v1.1-final/manifest.json \
-  | grep -E '^[+-]' | grep -v '^[+-][+-]' \
-  | grep -vE 'capture_timestamp|candidate_sha|generated_at'    # must print nothing
-```
-
-Then `git checkout -- qa-evidence/v1.1-final/manifest.json` to return to a clean tree.
+Run without `--keep` when rechecking the sealed branch: the harness writes only ignored
+`qa-artifacts/` output and therefore leaves the committed evidence and worktree untouched.
 
 To disprove the results independently, without reading a single PNG:
 
@@ -535,7 +558,7 @@ findings between the seven that count.
 
 ---
 
-**RELEASE STATUS: READY FOR ONE FINAL INDEPENDENT CODEX AUDIT.**
+**RELEASE STATUS: FINAL LANGUAGE BLOCKER CLOSED — READY FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT.**
 
 Production deployment still requires owner authorisation. Nothing in this run deployed, merged,
 activated, published or mutated any production system.

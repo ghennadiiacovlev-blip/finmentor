@@ -1,6 +1,6 @@
 {
   "generatedBy": "qa/visual-evidence.mjs",
-  "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+  "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
   "branch": "release/v1.1-final-integration",
   "generated_at": "2026-09-08T05:05:24.296Z",
   "chrome": "Chrome/152.0.7977.77",
@@ -8,7 +8,7 @@
   "reduced_motion": true,
   "shots": {
     "ru-homepage-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:40.352Z",
       "viewport": "390x844",
@@ -29,7 +29,7 @@
       "ab_reproducible": true
     },
     "ro-homepage-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:43.387Z",
       "viewport": "390x844",
@@ -50,7 +50,7 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:46.293Z",
       "viewport": "390x844",
@@ -71,7 +71,7 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:48.014Z",
       "viewport": "390x844",
@@ -92,7 +92,7 @@
       "ab_reproducible": true
     },
     "ru-packages-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:49.712Z",
       "viewport": "390x844",
@@ -113,7 +113,7 @@
       "ab_reproducible": true
     },
     "ro-packages-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:52.263Z",
       "viewport": "390x844",
@@ -134,7 +134,7 @@
       "ab_reproducible": true
     },
     "ru-real-estate-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:59.946Z",
       "viewport": "390x844",
@@ -155,7 +155,7 @@
       "ab_reproducible": true
     },
     "thank-you-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:04.991Z",
       "viewport": "390x844",
@@ -176,7 +176,7 @@
       "ab_reproducible": true
     },
     "miniapp-populated-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:13.491Z",
       "viewport": "390x844",
@@ -197,7 +197,7 @@
       "ab_reproducible": true
     },
     "miniapp-review-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:15.141Z",
       "viewport": "390x844",
@@ -218,7 +218,7 @@
       "ab_reproducible": true
     },
     "miniapp-edit-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:16.824Z",
       "viewport": "390x844",
@@ -239,7 +239,7 @@
       "ab_reproducible": true
     },
     "miniapp-success-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:18.489Z",
       "viewport": "390x844",
@@ -260,7 +260,7 @@
       "ab_reproducible": true
     },
     "xray-result-ru-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:21.773Z",
       "viewport": "390x844",
@@ -281,7 +281,7 @@
       "ab_reproducible": true
     },
     "xray-result-ro-390.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:23.423Z",
       "viewport": "390x844",
@@ -302,7 +302,7 @@
       "ab_reproducible": true
     },
     "ru-homepage-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:42.439Z",
       "viewport": "1440x900",
@@ -323,7 +323,7 @@
       "ab_reproducible": true
     },
     "ro-homepage-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:45.464Z",
       "viewport": "1440x900",
@@ -344,7 +344,7 @@
       "ab_reproducible": true
     },
     "ru-questionnaire-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:47.179Z",
       "viewport": "1440x900",
@@ -365,7 +365,7 @@
       "ab_reproducible": true
     },
     "ro-questionnaire-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:48.881Z",
       "viewport": "1440x900",
@@ -386,7 +386,7 @@
       "ab_reproducible": true
     },
     "ru-packages-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:51.426Z",
       "viewport": "1440x900",
@@ -407,7 +407,7 @@
       "ab_reproducible": true
     },
     "ro-packages-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:04:54.113Z",
       "viewport": "1440x900",
@@ -428,7 +428,7 @@
       "ab_reproducible": true
     },
     "miniapp-populated-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:14.334Z",
       "viewport": "1440x900",
@@ -449,7 +449,7 @@
       "ab_reproducible": true
     },
     "miniapp-review-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:16.000Z",
       "viewport": "1440x900",
@@ -470,7 +470,7 @@
       "ab_reproducible": true
     },
     "miniapp-edit-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:17.668Z",
       "viewport": "1440x900",
@@ -491,7 +491,7 @@
       "ab_reproducible": true
     },
     "miniapp-success-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:19.315Z",
       "viewport": "1440x900",
@@ -512,7 +512,7 @@
       "ab_reproducible": true
     },
     "xray-result-ru-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:22.618Z",
       "viewport": "1440x900",
@@ -533,7 +533,7 @@
       "ab_reproducible": true
     },
     "xray-result-ro-1440.png": {
-      "candidate_sha": "91ce8537ef4a5237492130987f66e15166ed8d5d",
+      "candidate_sha": "cbbe79e87fedb854698a091e91c792776c0606c4",
       "branch": "release/v1.1-final-integration",
       "capture_timestamp": "2026-09-08T05:05:24.267Z",
       "viewport": "1440x900",

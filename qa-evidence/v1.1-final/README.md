@@ -3,6 +3,12 @@
 Retained output of `node qa/visual-evidence.mjs --keep qa-evidence/v1.1-final`, run on the
 `release/v1.1-final-integration` head recorded as `candidate_sha` in `manifest.json`.
 
+Final language-closure source: `cbbe79e87fedb854698a091e91c792776c0606c4`. The accepted harness
+was rerun at that exact commit. The six retained screenshots for the changed homepage and
+questionnaire surfaces reproduced byte-for-byte, so no PNG was rewritten. `rendered-text.json`
+and `measurements.json` were refreshed for the changed copy, and the manifest now records the
+final source SHA.
+
 Regenerate with:
 
     node qa/visual-evidence.mjs --keep qa-evidence/v1.1-final
@@ -73,9 +79,12 @@ the run fails if any of it did not hold.
 * **Cold run** — `--keep` compares against the manifest already in this directory. Delete
   `qa-artifacts/` and run again: any retained image whose pixels moved fails the run by name.
 
-Both hold. The retained set has been reproduced byte-for-byte across four cold runs, two of them
-across a source-commit boundary. Only `sha256` is compared — `capture_timestamp` is required
-evidence and is volatile by definition.
+Run A / Run B holds byte-for-byte on the final source. Against the older candidate, 25 of the 26
+retained PNGs were also byte-identical. The only old-candidate difference was an unrelated
+`ru-packages-390.png` gradient-level variation; that page was not changed by the language closure,
+and the same-candidate run remained deterministic. Per the release rule for old-candidate ±1
+gradient variation, the unrelated retained PNG was not churned. Only `sha256` is compared —
+`capture_timestamp` is required evidence and is volatile by definition.
 
 ## The evidence record
 
