@@ -235,7 +235,7 @@ Read Settings ──out[0]──> Settings to Object
                  OUTPUT                                  └─> Stop: CRM Unavailable  (THROWS)
 ```
 
-`IF Internal (Infra)` read `{{ $json.__internal }}`. **An n8n error output does not carry the
+`IF Internal (Infra)` read {% raw %}`{{ $json.__internal }}`{% endraw %}. **An n8n error output does not carry the
 failing node's input json** — it emits an error item. So the flag was `undefined`,
 `undefined === 1` is false, and the internal execution took the **public** branch: into a
 `RespondToWebhook` that has nothing to respond to inside a sub-workflow, and then into a
@@ -259,9 +259,11 @@ reference** (`$('Receipt Gate').first().json.__internal`), which survives anythi
 
 All four `IF Internal (*)` terminal gates now read
 
+{% raw %}
 ```
 {{ $('Internal Flag').first().json.__internal }}
 ```
+{% endraw %}
 
 `Internal Flag` is the single authority on internal-ness — that is what it exists for — and it
 runs on **both** routes before all four gates, so the reference can never throw:

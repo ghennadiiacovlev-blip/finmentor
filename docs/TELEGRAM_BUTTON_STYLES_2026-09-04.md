@@ -50,7 +50,7 @@ CLIENT_READY, credentials, chat routing, message copy.
 ## 4. Deferred, deliberately: the slotted SLA / Follow-up keyboards
 
 SLA and Follow-up do not hold literal buttons — each slot is an expression
-(`={{ $json.kb[0][0].text }}`). Adding `style: '={{ $json.kb[0][0].style }}'` would resolve to an
+({% raw %}`={{ $json.kb[0][0].text }}`{% endraw %}). Adding {% raw %}`style: '={{ $json.kb[0][0].style }}'`{% endraw %} would resolve to an
 **empty string** for every neutral button unless n8n drops undefined parameters, and an empty style
 is a 400 that would lose the alert. That behaviour cannot be established without sending a real
 message, so those two keyboards are **not** styled in this checkpoint. PRIORITY and FOLLOW-UP

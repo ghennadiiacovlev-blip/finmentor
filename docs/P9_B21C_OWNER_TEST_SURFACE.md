@@ -167,12 +167,12 @@ recorded as unproven. A and B are a real defect.
 
 `options.responseCode` on three of the four respond nodes was the string `'=200'` / `'=409'` /
 `'=503'`. In n8n a leading `=` marks a value as an **expression**, but those bodies contain no
-`{{ }}`, so each evaluates to a **string**. The HTTP layer then throws while writing the
+{% raw %}`{{ }}`{% endraw %}, so each evaluates to a **string**. The HTTP layer then throws while writing the
 response — *after* the graph has already finished. n8n records the execution as a **success**
 and the caller receives a bare `500`.
 
 `Respond Rejected` was the only node whose code was a real expression,
-`={{ $json.statusCode }}`, which evaluates to a number. That is precisely and only why C
+{% raw %}`={{ $json.statusCode }}`{% endraw %}, which evaluates to a number. That is precisely and only why C
 answered correctly, and why every negative-battery code in P9 §2/§3 (400/401/403) looked fine:
 **every one of them went through `Respond Rejected`.** `200`, `409` and `503` had never once
 been exercised live.
@@ -184,8 +184,8 @@ times:
 
 | `responseCode` | result |
 |---|---|
-| `'=409'` (expression marker, no `{{ }}`) | **HTTP 500** |
-| `'={{ 409 }}'` | HTTP 409 |
+| `'=409'` (expression marker, no {% raw %}`{{ }}`{% endraw %}) | **HTTP 500** |
+| {% raw %}`'={{ 409 }}'`{% endraw %} | HTTP 409 |
 | `409` (plain number) | HTTP 409 |
 
 No Telegram material, no credentials, no production node involved.
@@ -218,7 +218,7 @@ before redeploy returned **exactly three differences**:
     Respond Replay Refused    "=409" -> 409
     Respond Store Unavailable "=503" -> 503
 
-`Respond Rejected` keeps `={{ $json.statusCode }}`, because the validator chooses that code.
+`Respond Rejected` keeps {% raw %}`={{ $json.statusCode }}`{% endraw %}, because the validator chooses that code.
 
 Redeployed to `nTZHLbv2KFggdhh5`, still active, 13 nodes, one credential on `G5 Replay Claim`,
 `alwaysOutputData` intact, retention still `none`. The negative battery was re-run live
@@ -229,7 +229,7 @@ key). Ledger unchanged at 2 throughout.
 ### Two guards so it cannot come back
 
 - `verifyGateway` now **refuses to emit** a graph where any `responseCode` is neither a number
-  nor a `{{ }}` expression, and `respond()` throws on the broken form at build time.
+  nor a {% raw %}`{{ }}`{% endraw %} expression, and `respond()` throws on the broken form at build time.
 - `qa/miniapp-gateway.test.mjs` asserts the four codes explicitly and includes a mutation check
   that flips one back to `'=409'` and requires the verifier to reject it.
 
@@ -305,7 +305,9 @@ P9-R1 §8a paid for.
     Respond Bootstrap OK          200   numeric
     Respond Replay Refused        409   numeric
     Respond Store Unavailable     503   numeric
+{% raw %}
     Respond Rejected              ={{ $json.statusCode }}   dynamic numeric expression
+{% endraw %}
     Gateway structural hash       1cf43ea9a92838c52b836e336ffe5f49656ec75923a4c57f818edcd045500385
     telegram_initdata_replays     2 rows
     MiniApp_App_Sessions          2 rows
@@ -591,7 +593,9 @@ Invariants read back off the **live** graph after the write:
     public entry                exactly one webhook node
     credential-bearing nodes    exactly one - G5 Replay Claim
     credential                  FINMENTOR Supabase G5 (B6wRirWfjqoASXU3), unchanged
+{% raw %}
     respond nodes               the same four; 200 / 409 / 503 numeric + ={{ $json.statusCode }}
+{% endraw %}
     connection map              unchanged
     retention                   saveDataSuccessExecution / saveDataErrorExecution = none
     retained executions         0

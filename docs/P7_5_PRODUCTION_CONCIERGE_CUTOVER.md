@@ -148,13 +148,13 @@ before an export reaches git. That is right and must stay.
 
 But **every generator builds from that redacted export.** So the candidate — and therefore the
 wrapper, the API projection and this cutover artifact — carried `<REDACTED_CHAT_ID>` where
-production has `={{ $json.chat_id }}`:
+production has {% raw %}`={{ $json.chat_id }}`{% endraw %}:
 
 | node | production | what was deployed |
 |---|---|---|
-| `Send Client Message` | `={{ $json.chat_id }}` | `<REDACTED_CHAT_ID>` |
-| `Send Intake Confirmation` | `={{ $json.chat_id }}` | `<REDACTED_CHAT_ID>` |
-| `Send Recovery Message` | `={{ $json.chat_id }}` | `<REDACTED_CHAT_ID>` |
+| `Send Client Message` | {% raw %}`={{ $json.chat_id }}`{% endraw %} | `<REDACTED_CHAT_ID>` |
+| `Send Intake Confirmation` | {% raw %}`={{ $json.chat_id }}`{% endraw %} | `<REDACTED_CHAT_ID>` |
+| `Send Recovery Message` | {% raw %}`={{ $json.chat_id }}`{% endraw %} | `<REDACTED_CHAT_ID>` |
 
 **Consequence:** the bot would have kept running, kept issuing keys, kept writing authority rows —
 and been unable to reply to anyone, because every reply was addressed to a literal string.
@@ -215,7 +215,7 @@ pre-cutover export — deliberately not from the repo, which turned out to be th
 | Telegram trigger | byte-identical |
 | `<REDACTED_CHAT_ID>` in production | **0** |
 | `submission_key` in production | back to **0** |
-| `Send Client Message` `chat_id` | `={{ $json.chat_id }}` — restored |
+| `Send Client Message` `chat_id` | {% raw %}`={{ $json.chat_id }}`{% endraw %} — restored |
 
 ---
 

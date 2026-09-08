@@ -188,7 +188,7 @@ one of them the world must hold exactly one of each.
 Offline gates do not see what a tenant does with a template.
 
 1. **The terminal responder returned HTTP 200 with an empty body.** A ternary inside
-   `{{ JSON.stringify(… ? {…} : {…}) }}` fails silently and produces nothing. Every refusal now
+   {% raw %}`{{ JSON.stringify(… ? {…} : {…}) }}`{% endraw %} fails silently and produces nothing. Every refusal now
    carries `__status` and `__response`, and the responder does one thing it cannot get wrong.
 2. **A missing acknowledgement was flattened to `BAD_REQUEST` 400.** The shape branch ended at a
    responder that answered a hard-coded code, so a client that had not consented was told its

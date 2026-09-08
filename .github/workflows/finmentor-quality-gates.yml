@@ -5,7 +5,8 @@ name: FINMENTOR Quality Gates
 # remediated production behaviour, so before this workflow existed a merge to main had no
 # mandatory status check over them at all.
 #
-# Everything here is offline: no secrets, no network, no n8n, no Google, no browser.
+# The runtime gates are offline: no production secrets, n8n, Google, or browser. The Pages
+# renderer uses GitHub's own metadata token solely to exercise the same Jekyll build as production.
 #
 # WHAT A GREEN RUN HERE DOES AND DOES NOT MEAN.
 #
@@ -39,6 +40,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pages-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build GitHub Pages with production Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: .
+          destination: ./_site
+          future: false
+          verbose: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify required public output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s _site/index.html
+          test -s _site/ro/index.html
+          test -s _site/questionnaire.html
+          test -s _site/ro/questionnaire.html
+          echo "required Pages output: PASS"
+
   quality-gates:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -191,9 +217,10 @@ jobs:
               echo 'gates did not run'
             fi
             echo
-            echo 'Ran: JS syntax (all tracked sources), PowerShell parse, behavioural gates,'
+            echo 'Workflow also runs the production Jekyll renderer in an isolated job.'
+            echo 'This job ran: JS syntax (all tracked sources), PowerShell parse, behavioural gates,'
             echo 'assertion baseline, cwd-independence, secret scan + self-test.'
             echo 'NOT run here: the security mutation harness (separate, manual regression).'
-            echo 'Offline: no secrets, no network, no n8n, no Google, no browser.'
+            echo 'No production secrets, n8n, Google, or browser access.'
             echo 'This workflow changes nothing in production.'
           } >> "$GITHUB_STEP_SUMMARY"

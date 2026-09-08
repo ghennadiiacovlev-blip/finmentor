@@ -27,7 +27,7 @@ The old rule redacted by **field name**:
 (?<="(?:chat_?[Ii]d|chatId|…)"\s*:\s*")[^"]*   ->   <REDACTED_CHAT_ID>
 ```
 
-It replaced the value of any chat-id-named field whatever the value was, so `={{ $json.chat_id }}`
+It replaced the value of any chat-id-named field whatever the value was, so {% raw %}`={{ $json.chat_id }}`{% endraw %}
 — a template containing no identity at all — became a marker in every tracked export. That is the
 whole of the P7.5 failure.
 
@@ -36,14 +36,14 @@ the parsed object rather than regexing serialized text:
 
 | input | result |
 |---|---|
-| `={{ $json.chat_id }}` | **preserved byte-for-byte** |
-| `={{ $('Node').item.json.chat_id }}` | preserved |
-| `={{ $json.token }}` | preserved — the variable's *name* is not a secret |
+| {% raw %}`={{ $json.chat_id }}`{% endraw %} | **preserved byte-for-byte** |
+| {% raw %}`={{ $('Node').item.json.chat_id }}`{% endraw %} | preserved |
+| {% raw %}`={{ $json.token }}`{% endraw %} | preserved — the variable's *name* is not a secret |
 | `"123456789"` under a chat field | **redacted** |
 | `123456789` as a number | **redacted** |
 | `1234567890:AAH…` bot token | **redacted**, anywhere it appears |
 | `sk-…` / `AIza…` | **redacted** |
-| `={{ "1234567890:AAH…" }}` | token removed, **expression kept** |
+| {% raw %}`={{ "1234567890:AAH…" }}`{% endraw %} | token removed, **expression kept** |
 | `'1584265787'` in a Code body | preserved — a canonical sheet gid, not an identity |
 | `'123456789'` in a Code body | redacted — the hardcoded-owner shape |
 
@@ -169,9 +169,9 @@ to disk.**
 | executable drift vs `C_live` | **NONE** |
 | `submission_key` references | 0 → **102** |
 | Model-B issuance nodes | **8/8** present |
-| `Send Client Message` `chat_id` | `={{ $json.chat_id }}` **PASS** |
-| `Send Intake Confirmation` `chat_id` | `={{ $json.chat_id }}` **PASS** |
-| `Send Recovery Message` `chat_id` | `={{ $json.chat_id }}` **PASS** |
+| `Send Client Message` `chat_id` | {% raw %}`={{ $json.chat_id }}`{% endraw %} **PASS** |
+| `Send Intake Confirmation` `chat_id` | {% raw %}`={{ $json.chat_id }}`{% endraw %} **PASS** |
+| `Send Recovery Message` `chat_id` | {% raw %}`={{ $json.chat_id }}`{% endraw %} **PASS** |
 
 `versionId`: `2b98eba9…` → **`ff6c8103-6823-4666-86fd-c50d4ec89a01`**.
 

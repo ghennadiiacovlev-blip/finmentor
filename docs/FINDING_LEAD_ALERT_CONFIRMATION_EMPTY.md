@@ -37,10 +37,12 @@ Everything that decides a business outcome succeeded, in the designed order:
 
 `Telegram Update Reply` sources its text from the **Switch** node:
 
+{% raw %}
 ```
 ={{ $json.error ? $('Route Edit Shape').first().json.reply_text_presentation_failed
                 : $('Route Edit Shape').first().json.reply_text }}
 ```
+{% endraw %}
 
 `$('Route Edit Shape').first()` resolves against the switch's **first output branch**. A switch
 routes each item down exactly one branch, so only one of the four is ever populated. In execution
@@ -75,10 +77,12 @@ harness models. This is the class of defect a live tap exists to find.
 `reply_text` and `reply_text_presentation_failed` unchanged through `Verify Mutation`. It is a
 single-output Code node, so `.first()` is unambiguous there:
 
+{% raw %}
 ```
 ={{ $json.error ? $('Find & Build Update').first().json.reply_text_presentation_failed
                 : $('Find & Build Update').first().json.reply_text }}
 ```
+{% endraw %}
 
 One expression on one node. No graph change, no new node, no schema change.
 

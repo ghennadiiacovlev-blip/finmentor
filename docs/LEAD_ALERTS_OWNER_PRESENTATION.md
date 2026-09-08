@@ -158,12 +158,14 @@ Deliberately untouched, and asserted so:
 
 ### The Telegram nodes
 
-`parse_mode` becomes `HTML` and the text expression becomes `={{ $json.alert_html }}`. The old
+`parse_mode` becomes `HTML` and the text expression becomes {% raw %}`={{ $json.alert_html }}`{% endraw %}. The old
 expression was:
 
+{% raw %}
 ```
 ={{ String($json.telegram_message || '').replace(/[_*\[\]()`]/g, ' ').replace(/[<>]/g, '')… }}
 ```
+{% endraw %}
 
 That `[<>]` strip was correct for plain text and would delete every tag under HTML. Escaping now
 happens at the source, in the renderer, where the value and its context are both known.

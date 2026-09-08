@@ -131,7 +131,7 @@ flow.
 
 **Expect** the concise notice at first collection and the acknowledgement at Submit, both in RU,
 carrying the **DRAFT** notice version.
-**Fail if** any placeholder (`OWNER_INPUT_REQUIRED`, `{{...}}`) is visible, or if the words
+**Fail if** any placeholder (`OWNER_INPUT_REQUIRED`, {% raw %}`{{...}}`{% endraw %}) is visible, or if the words
 «pre_contractual_request» appear anywhere on screen.
 
 ### S. Submit
