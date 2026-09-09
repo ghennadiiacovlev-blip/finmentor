@@ -411,7 +411,7 @@ const MEASURE = `(() => {
   const TOL = 2;
   const out = { width: vw, overflow: null, clipped: [], ctaOverflow: [], ctaWrap: [], offscreen: [], textOutside: [],
     textZeroBox: [], packageTitles: [], header: null, h1: null, lang: document.documentElement.lang,
-    textElements: 0, scrollContainers: [], adjacentInline: [],
+    textElements: 0, scrollContainers: [], adjacentInline: [], editorial: null, legal: null, capital: null,
     // The Range-measured ink: how many line boxes were graded, and the ones that were cut or left
     // the frame. Counted, so a sweep that silently measured nothing cannot report PASS.
     paintedTextLines: 0, paintedTextElements: 0, paintedTextClipped: [], paintedTextOutside: [] };
@@ -748,6 +748,54 @@ const MEASURE = `(() => {
     out.packageTitles.push({ cls: el.className, text: label(el), w: Math.round(r.width), h: Math.round(r.height), lines: Math.round(r.height / parseFloat(getComputedStyle(el).lineHeight || '20')) });
   }
 
+  // EDITORIAL / LEGAL INTEGRITY. Geometry belongs beside the generic text sweep: source-only
+  // tests can prove that a heading exists, but only the rendered page can prove that the lead,
+  // decision path and formal document hierarchy are painted at a usable width.
+  if (document.body.classList.contains('article-page')) {
+    const lead = document.querySelector('.doc-hero__lead');
+    const columns = [...document.querySelectorAll('.doc, .article-section')].filter(visible).map((el) => {
+      const r = el.getBoundingClientRect();
+      return { cls: String(el.className || ''), width: Math.round(r.width), left: Math.round(r.left), right: Math.round(r.right) };
+    });
+    out.editorial = {
+      h2: [...document.querySelectorAll('main h2')].filter(visible).length,
+      lead: lead && visible(lead) ? { text: label(lead), lines: renderedLineCount(lead), width: Math.round(lead.getBoundingClientRect().width) } : null,
+      columns,
+      stages: [...document.querySelectorAll('[data-editorial-step]')].filter(visible).length,
+      financial: !![...document.querySelectorAll('.article-section--financial')].find(visible),
+      conclusion: !![...document.querySelectorAll('.article-conclusion')].find(visible)
+    };
+  }
+  if (document.body.classList.contains('legal-page')) {
+    const legal = document.querySelector('.legal');
+    const lr = legal && visible(legal) ? legal.getBoundingClientRect() : null;
+    out.legal = {
+      h1: [...document.querySelectorAll('.legal h1')].filter(visible).length,
+      h2: [...document.querySelectorAll('.legal h2')].filter(visible).length,
+      updated: !![...document.querySelectorAll('.legal__updated')].find(visible),
+      eyebrow: !![...document.querySelectorAll('.legal__eyebrow')].find(visible),
+      note: !![...document.querySelectorAll('.legal__note')].find(visible),
+      email: !![...document.querySelectorAll('.legal a[href^="mailto:"]')].find(visible),
+      width: lr ? Math.round(lr.width) : 0
+    };
+  }
+  const capital = document.querySelector('#capital-logic');
+  if (capital) {
+    out.capital = {
+      headline: [...capital.querySelectorAll('h2')].filter(visible).length,
+      map: !![...capital.querySelectorAll('.capital-map')].find(visible),
+      dimensions: [...capital.querySelectorAll('.capital-dimension')].filter(visible).length,
+      locations: [...capital.querySelectorAll('.capital-dimension ol > li')].filter(visible).length,
+      states: [...capital.querySelectorAll('.capital-states dt')].filter(visible).length,
+      risk: !![...capital.querySelectorAll('.capital-risk')].find(visible),
+      preservation: !![...capital.querySelectorAll('.capital-preservation')].find(visible),
+      preservationKinds: [...capital.querySelectorAll('.capital-preservation__grid > section')].filter(visible).length,
+      flow: [...capital.querySelectorAll('.capital-flow > span')].filter(visible).length,
+      principles: [...capital.querySelectorAll('.capital-principle')].filter(visible).length,
+      actions: [...capital.querySelectorAll('a,button')].filter(visible).length
+    };
+  }
+
   // ── THE APPROVED PACKAGE TITLES, found by NAME rather than by class ──────────────────────────
   //
   // The owner-approved titles live in two different components: the home page prices them in
@@ -1050,14 +1098,40 @@ const SURFACES = [
   { id: 'ro-how-we-work', url: '/ro/index.html', widths: [390, 1440], anchor: '.steps' },
   { id: 'ru-working-contour', url: '/index.html', widths: [390, 1440], anchor: '#working-contour' },
   { id: 'ro-working-contour', url: '/ro/index.html', widths: [390, 1440], anchor: '#working-contour' },
-  { id: 'ru-asset-logic', url: '/index.html', widths: [1440], anchor: '.industries__asset-callout' },
-  { id: 'ro-asset-logic', url: '/ro/index.html', widths: [1440], anchor: '.industries__asset-callout' },
+  { id: 'ru-asset-logic', url: '/index.html', widths: [390, 1440], anchor: '.industries__asset-callout' },
+  { id: 'ro-asset-logic', url: '/ro/index.html', widths: [390, 1440], anchor: '.industries__asset-callout' },
+  { id: 'ru-capital-logic', url: '/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
+  { id: 'ro-capital-logic', url: '/ro/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
+  { id: 'ru-capital-preservation', url: '/index.html', widths: [390, 1440], anchor: '.capital-preservation' },
+  { id: 'ro-capital-preservation', url: '/ro/index.html', widths: [390, 1440], anchor: '.capital-preservation' },
+  { id: 'ru-capital-control', url: '/index.html', widths: [390, 1440], anchor: '.capital-flow' },
+  { id: 'ro-capital-control', url: '/ro/index.html', widths: [390, 1440], anchor: '.capital-flow' },
   { id: 'ru-packages', url: '/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ro-packages', url: '/ro/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ru-ai-economics', url: '/ai-agent-economics.html', widths: RESPONSIVE_WIDTHS, anchor: '#implementation' },
   { id: 'ro-ai-economics', url: '/ro/ai-agent-economics.html', widths: RESPONSIVE_WIDTHS, anchor: '#implementation' },
   { id: 'ru-long-content', url: '/working-capital.html', widths: RESPONSIVE_WIDTHS, anchor: '.doc' },
   { id: 'ro-long-content', url: '/ro/working-capital.html', widths: RESPONSIVE_WIDTHS, anchor: '.doc' },
+  // Final editorial release: full header fit matrix, Materials catalogue, priority decision-path
+  // article, a second article and the four formal legal documents.
+  { id: 'ru-materials', url: '/materials.html', widths: [320, 390, 768, 1024, 1180, 1280, 1366, 1440, 1600] },
+  { id: 'ro-materials', url: '/ro/materials.html', widths: [320, 390, 768, 1024, 1180, 1280, 1366, 1440, 1600] },
+  { id: 'ru-materials-index', url: '/materials.html', widths: [390, 1440], anchor: '#featured' },
+  { id: 'ro-materials-index', url: '/ro/materials.html', widths: [390, 1440], anchor: '#featured' },
+  { id: 'ru-retail-article', url: '/supplier-shelf-credit.html', widths: [320, 390, 768, 1024, 1366, 1440] },
+  { id: 'ro-retail-article', url: '/ro/supplier-shelf-credit.html', widths: [320, 390, 768, 1024, 1366, 1440] },
+  { id: 'ru-retail-article-middle', url: '/supplier-shelf-credit.html', widths: [1440], anchor: '.article-section--financial' },
+  { id: 'ro-retail-article-middle', url: '/ro/supplier-shelf-credit.html', widths: [1440], anchor: '.article-section--financial' },
+  { id: 'ru-retail-article-conclusion', url: '/supplier-shelf-credit.html', widths: [1440], anchor: '.article-conclusion' },
+  { id: 'ro-retail-article-conclusion', url: '/ro/supplier-shelf-credit.html', widths: [1440], anchor: '.article-conclusion' },
+  { id: 'ru-additional-article', url: '/cash-flow.html', widths: [1440], anchor: '.doc' },
+  { id: 'ro-additional-article', url: '/ro/cash-flow.html', widths: [1440], anchor: '.doc' },
+  { id: 'ru-privacy', url: '/privacy.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ro-privacy', url: '/ro/privacy.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ru-terms', url: '/terms.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ro-terms', url: '/ro/terms.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ru-privacy-list', url: '/privacy.html', widths: [1440], anchor: '.legal h2:nth-of-type(2)' },
+  { id: 'ro-privacy-list', url: '/ro/privacy.html', widths: [1440], anchor: '.legal h2:nth-of-type(2)' },
   { id: 'ru-business-offer', url: '/index.html', widths: [390], anchor: '#business-control-offer' },
   { id: 'ro-business-offer', url: '/ro/index.html', widths: [390], anchor: '#business-control-offer' },
   { id: 'ru-partner-offer', url: '/index.html', widths: [390], anchor: '#control-partner-offer' },
@@ -1614,6 +1688,76 @@ const drawerProbes = {};
     assert(bad.length === 0, bad.length + ' header defect(s): ' + bad.slice(0, 6).join(' | '));
   });
 
+  check('MATERIALS NAVIGATION FIT = PASS — calm desktop navigation hands off to one approved drawer', () => {
+    const bad = [];
+    for (const [k, r] of site) {
+      if (!/^(ru|ro)-materials@/.test(k)) { continue; }
+      const h = r.header;
+      if (!h || !h.present) { bad.push(k + ': header missing'); continue; }
+      if (h.overlaps.length) { bad.push(k + ': ' + h.overlaps.length + ' overlap(s)'); }
+      if (h.outside.length) { bad.push(k + ': ' + h.outside.length + ' control(s) outside'); }
+      if (r.width <= 920) {
+        if (!h.burger || h.navs.length) { bad.push(k + ': mobile handoff is burger=' + !!h.burger + ', navs=' + h.navs.length); }
+      } else if (h.burger || h.navs.length !== 1) {
+        bad.push(k + ': desktop state is burger=' + !!h.burger + ', navs=' + h.navs.length);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' Materials header defect(s): ' + bad.slice(0, 8).join(' | '));
+  });
+
+  check('ARTICLE HEADING / CONCLUSION INTEGRITY = PASS — leads, decision stages and reading columns render whole', () => {
+    const bad = [];
+    for (const [k, r] of site) {
+      if (!/(retail-article|additional-article|long-content)/.test(k)) { continue; }
+      const a = r.editorial;
+      if (!a) { bad.push(k + ': article metrics missing'); continue; }
+      if (!a.lead || a.lead.lines < 1) { bad.push(k + ': lead missing'); }
+      if (a.h2 < 2) { bad.push(k + ': only ' + a.h2 + ' H2 headings'); }
+      if (!a.columns.length) { bad.push(k + ': no reading column'); }
+      for (const col of a.columns) {
+        if (col.width <= 0 || col.right > r.width + 2 || col.left < -2) {
+          bad.push(k + ': .' + col.cls + ' column is ' + col.left + '..' + col.right);
+        }
+        if (r.width >= 1024 && col.width > 840) { bad.push(k + ': .' + col.cls + ' is too wide at ' + col.width + 'px'); }
+      }
+      if (/retail-article/.test(k) && (a.stages !== 5 || !a.financial || !a.conclusion)) {
+        bad.push(k + ': decision path stages=' + a.stages + ', financial=' + a.financial + ', conclusion=' + a.conclusion);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' article integrity defect(s): ' + bad.slice(0, 8).join(' | '));
+  });
+
+  check('LEGAL PAGE INTEGRITY = PASS — formal hierarchy, email and restrained reading width all render', () => {
+    const bad = [];
+    for (const [k, r] of site) {
+      if (!/^(ru|ro)-(privacy|terms)(?:-list)?@/.test(k)) { continue; }
+      const l = r.legal;
+      if (!l) { bad.push(k + ': legal metrics missing'); continue; }
+      if (l.h1 !== 1 || l.h2 < 9) { bad.push(k + ': h1=' + l.h1 + ', h2=' + l.h2); }
+      if (!l.updated || !l.eyebrow || !l.note || !l.email) {
+        bad.push(k + ': updated=' + l.updated + ', eyebrow=' + l.eyebrow + ', note=' + l.note + ', email=' + l.email);
+      }
+      if (l.width <= 0 || l.width > Math.min(900, r.width)) { bad.push(k + ': legal column width=' + l.width + ' at ' + r.width); }
+    }
+    assert(bad.length === 0, bad.length + ' legal integrity defect(s): ' + bad.slice(0, 8).join(' | '));
+  });
+
+  check('CAPITAL MANAGEMENT INTEGRITY = PASS — map, preservation and control loop remain one restrained system', () => {
+    const bad = [];
+    for (const [k, r] of site) {
+      if (!/^(ru|ro)-capital-(logic|preservation|control)@/.test(k)) { continue; }
+      const c2 = r.capital;
+      if (!c2) { bad.push(k + ': capital metrics missing'); continue; }
+      if (c2.headline !== 1 || !c2.map || c2.dimensions !== 2 || c2.locations !== 5 || c2.states !== 5 || !c2.risk) {
+        bad.push(k + ': map h2=' + c2.headline + ', dimensions=' + c2.dimensions + ', locations=' + c2.locations + ', states=' + c2.states + ', risk=' + c2.risk);
+      }
+      if (!c2.preservation || c2.preservationKinds !== 4 || c2.flow !== 7 || c2.principles !== 4 || c2.actions !== 0) {
+        bad.push(k + ': preservation=' + c2.preservation + ', kinds=' + c2.preservationKinds + ', flow=' + c2.flow + ', principles=' + c2.principles + ', actions=' + c2.actions);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' Capital Management defect(s): ' + bad.slice(0, 8).join(' | '));
+  });
+
   check('PACKAGE TITLE BREAKAGE = 0 — every package name renders whole', () => {
     const bad = [];
     for (const [k, r] of all) {
@@ -2019,10 +2163,16 @@ const drawerProbes = {};
     // and an empty shell does not stand in for a populated review or a success screen.
     const REQUIRED_390 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
       'ru-how-we-work', 'ro-how-we-work', 'ru-packages', 'ro-packages', 'ru-cfo-consultation', 'ro-cfo-consultation', 'ru-real-estate', 'thank-you',
+      'ru-materials', 'ro-materials', 'ru-materials-index', 'ro-materials-index',
+      'ru-retail-article', 'ro-retail-article', 'ru-privacy', 'ro-privacy', 'ru-terms', 'ro-terms',
       'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
       'xray-result-ru', 'xray-result-ro'];
     const REQUIRED_1440 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
       'ru-how-we-work', 'ro-how-we-work', 'ru-packages', 'ro-packages', 'ru-cfo-consultation', 'ro-cfo-consultation',
+      'ru-materials', 'ro-materials', 'ru-materials-index', 'ro-materials-index',
+      'ru-retail-article', 'ro-retail-article', 'ru-retail-article-middle', 'ro-retail-article-middle',
+      'ru-retail-article-conclusion', 'ro-retail-article-conclusion', 'ru-additional-article', 'ro-additional-article',
+      'ru-privacy', 'ro-privacy', 'ru-privacy-list', 'ro-privacy-list', 'ru-terms', 'ro-terms',
       'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
       'xray-result-ru', 'xray-result-ro'];
     for (const id of REQUIRED_390) { assert(results[id + '@390'], 'the required 390px surface ' + id + ' is missing'); }
@@ -2065,9 +2215,22 @@ const drawerProbes = {};
       'ru-homepage-1440', 'ro-homepage-1440', 'ru-questionnaire-1440', 'ro-questionnaire-1440',
       'ru-questionnaire-mid-1440', 'ro-questionnaire-mid-1440', 'ru-questionnaire-submit-1440', 'ro-questionnaire-submit-1440',
       'ru-how-we-work-1440', 'ro-how-we-work-1440', 'ru-working-contour-1440', 'ro-working-contour-1440',
-      'ru-asset-logic-1440', 'ro-asset-logic-1440', 'ru-packages-1440', 'ro-packages-1440',
+      'ru-asset-logic-390', 'ro-asset-logic-390', 'ru-asset-logic-1440', 'ro-asset-logic-1440',
+      'ru-capital-logic-390', 'ro-capital-logic-390', 'ru-capital-logic-1440', 'ro-capital-logic-1440',
+      'ru-capital-preservation-390', 'ro-capital-preservation-390', 'ru-capital-preservation-1440', 'ro-capital-preservation-1440',
+      'ru-capital-control-390', 'ro-capital-control-390', 'ru-capital-control-1440', 'ro-capital-control-1440',
+      'ru-packages-1440', 'ro-packages-1440',
       'ru-ai-economics-1440', 'ro-ai-economics-1440', 'ru-long-content-1440', 'ro-long-content-1440',
       'ru-cfo-consultation-1440', 'ro-cfo-consultation-1440',
+      'ru-materials-1024', 'ro-materials-1024', 'ru-materials-1440', 'ro-materials-1440',
+      'ru-materials-index-390', 'ro-materials-index-390', 'ru-materials-index-1440', 'ro-materials-index-1440',
+      'ru-retail-article-390', 'ro-retail-article-390', 'ru-retail-article-1440', 'ro-retail-article-1440',
+      'ru-retail-article-middle-1440', 'ro-retail-article-middle-1440',
+      'ru-retail-article-conclusion-1440', 'ro-retail-article-conclusion-1440',
+      'ru-additional-article-1440', 'ro-additional-article-1440',
+      'ru-privacy-390', 'ro-privacy-390', 'ru-privacy-1440', 'ro-privacy-1440',
+      'ru-privacy-list-1440', 'ro-privacy-list-1440',
+      'ru-terms-390', 'ro-terms-390', 'ru-terms-1440', 'ro-terms-1440',
       'miniapp-populated-1440', 'miniapp-review-1440', 'miniapp-edit-1440', 'miniapp-success-1440',
       'xray-result-ru-1440', 'xray-result-ro-1440'];
 

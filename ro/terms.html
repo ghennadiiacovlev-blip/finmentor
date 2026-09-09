@@ -45,29 +45,6 @@
   <link rel="stylesheet" href="../lang.css" />
 
   <!-- NB: это шаблон. Перед публикацией рекомендуется проверить текст с юристом и подставить реальные данные оператора. -->
-  <style>
-    body { cursor: auto; }
-    .legal-bar {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 0;
-      background: rgba(10, 22, 38, 0.82);
-      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-gold);
-    }
-    .legal-back { font-size: 0.92rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
-    .legal-back:hover { color: var(--accent); }
-    .legal { max-width: 760px; margin: 0 auto; padding-block: var(--sp-9) var(--sp-10); }
-    .legal h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
-    .legal__updated { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; color: var(--text-muted); margin-top: var(--sp-3); margin-bottom: var(--sp-7); }
-    .legal h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; margin-top: var(--sp-7); margin-bottom: var(--sp-3); color: var(--text-primary); }
-    .legal p, .legal li { color: var(--text-secondary); line-height: 1.7; }
-    .legal p { margin-bottom: var(--sp-3); }
-    .legal ul { margin: 0 0 var(--sp-3) var(--sp-5); display: flex; flex-direction: column; gap: 6px; }
-    .legal li { list-style: disc; }
-    .legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-    .legal__note { margin-top: var(--sp-8); padding: var(--sp-5); border-radius: var(--r-md); border: 1px solid var(--border-hairline); background: var(--glass-fill); font-size: 0.9rem; }
-  </style>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -86,13 +63,16 @@
 }
   </script>
 </head>
-<body>
-  <div class="container legal-bar">
-    <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-    <span class="legal-bar__right"><span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../terms.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="terms.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span><a class="legal-back" href="index.html">← Pagina principală</a></span>
-  </div>
+<body class="legal-page">
+  <header class="legal-bar">
+    <div class="container legal-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <span class="legal-bar__right"><span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../terms.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="terms.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span><a class="legal-back" href="index.html">← Pagina principală</a></span>
+    </div>
+  </header>
 
   <main class="container legal">
+    <p class="legal__eyebrow">FINMENTOR · Informații juridice</p>
     <h1>Condiții de utilizare a materialelor FINMENTOR</h1>
     <p class="legal__updated">Actualizat: iunie 2026 · FINMENTOR™</p>
 
@@ -112,7 +92,7 @@
 
     <h2>3. Utilizarea interzisă</h2>
     <p>Fără acord scris este interzis să copiați, să publicați, să distribuiți, să prelucrați, să traduceți, să creați materiale derivate sau să folosiți conținutul site-ului, metodologia, elementele vizuale, imaginile și implementarea HTML/CSS/JS în scopuri comerciale.</p>
-    <p>De asemenea, este interzisă folosirea materialelor FINMENTOR™ pentru crearea unui site concurent, a prezentărilor comerciale, a produselor de consultanță, a programelor de instruire, a bazelor de cunoștințe sau a materialelor de instruire inteligență artificială (AI) fără permisiune prealabilă.</p>
+    <p>De asemenea, este interzisă folosirea materialelor FINMENTOR™ pentru crearea unui site concurent, a prezentărilor comerciale, a produselor de consultanță, a programelor de instruire, a bazelor de cunoștințe sau a materialelor pentru instruirea sistemelor de inteligență artificială (IA) fără permisiune prealabilă.</p>
     <div class="legal__note">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris.</div>
 
     <h2>4. Utilizarea permisă</h2>

@@ -69,37 +69,6 @@
     ]
   }
   </script>
-  <style>
-    .materials-hero__actions { display:flex; flex-wrap:wrap; gap:var(--sp-4); margin-top:var(--sp-5); }
-    .materials-hub { padding-bottom:var(--sp-10); }
-    .materials-nav { display:flex; flex-wrap:wrap; gap:10px; margin:var(--sp-6) 0 var(--sp-8); }
-    .materials-nav a { border:1px solid var(--glass-border); border-radius:var(--r-pill); padding:8px 12px; color:var(--text-secondary); font-size:0.84rem; transition:border-color var(--dur-base) ease, color var(--dur-base) ease, background var(--dur-base) ease; }
-    .materials-nav a:hover { border-color:var(--border-gold); color:var(--text-primary); background:rgba(201,162,39,0.06); }
-    .materials-section { margin-top:var(--sp-8); }
-    .materials-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-4); margin-bottom:var(--sp-4); border-bottom:1px solid var(--glass-border); padding-bottom:var(--sp-3); }
-    .materials-section__label { font-family:var(--font-mono); color:var(--accent); font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; }
-    .materials-section__note { color:var(--text-muted); font-size:0.92rem; line-height:1.6; margin:-6px 0 var(--sp-4); max-width:720px; }
-    .materials-hub.sec--light { padding-top: var(--sp-2); }
-    .materials-hub.sec--light .crumbs a:hover { color: var(--accent); }
-    .materials-section__note--empty { border:1px dashed var(--glass-border); border-radius:var(--r-md); padding:var(--sp-4) var(--sp-5); margin-top:var(--sp-2); }
-    .materials-section h2 { font-family:var(--font-display); font-size:clamp(1.45rem,2.2vw,2rem); margin-top:6px; }
-    .materials-count { color:var(--text-muted); font-size:0.84rem; white-space:nowrap; }
-    .materials-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:var(--sp-4); }
-    .kb-item { min-height:174px; display:flex; flex-direction:column; gap:8px; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); text-decoration:none; transition:border-color var(--dur-base) ease, transform var(--dur-base) ease, background var(--dur-base) ease; }
-    a.kb-item:hover { border-color:var(--border-gold); transform:translateY(-3px); background:rgba(255,255,255,0.065); }
-    .kb-item__cat { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
-    .kb-item__title { color:var(--text-primary); font-weight:700; font-size:1rem; line-height:1.35; }
-    .kb-item__desc { color:var(--text-secondary); font-size:0.86rem; line-height:1.55; }
-    .kb-item__status { margin-top:auto; display:inline-flex; width:max-content; max-width:100%; border:1px solid var(--glass-border-gold); border-radius:var(--r-pill); padding:4px 9px; color:var(--accent); font-size:0.74rem; font-weight:700; }
-    .kb-item--soon { opacity:0.82; }
-    .kb-item--soon .kb-item__status { color:var(--text-muted); border-color:var(--glass-border); }
-    .materials-note { margin-top:var(--sp-7); padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:rgba(255,255,255,0.025); color:var(--text-secondary); line-height:1.65; }
-    @media (max-width:640px) {
-      .materials-section__head { display:block; }
-      .materials-count { display:block; margin-top:8px; }
-      .kb-item { min-height:0; }
-    }
-  </style>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -113,7 +82,7 @@
   }
   </script>
 </head>
-<body>
+<body class="materials-page">
   <header class="doc-bar">
     <div class="container doc-bar__row">
       <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>

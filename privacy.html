@@ -45,29 +45,6 @@
   <link rel="stylesheet" href="lang.css" />
 
   <!-- NB: это шаблон. Перед публикацией рекомендуется проверить текст с юристом и подставить реальные данные оператора. -->
-  <style>
-    body { cursor: auto; }
-    .legal-bar {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 0;
-      background: rgba(10, 22, 38, 0.82);
-      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-gold);
-    }
-    .legal-back { font-size: 0.92rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
-    .legal-back:hover { color: var(--accent); }
-    .legal { max-width: 760px; margin: 0 auto; padding-block: var(--sp-9) var(--sp-10); }
-    .legal h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
-    .legal__updated { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; color: var(--text-muted); margin-top: var(--sp-3); margin-bottom: var(--sp-7); }
-    .legal h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; margin-top: var(--sp-7); margin-bottom: var(--sp-3); color: var(--text-primary); }
-    .legal p, .legal li { color: var(--text-secondary); line-height: 1.7; }
-    .legal p { margin-bottom: var(--sp-3); }
-    .legal ul { margin: 0 0 var(--sp-3) var(--sp-5); display: flex; flex-direction: column; gap: 6px; }
-    .legal li { list-style: disc; }
-    .legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-    .legal__note { margin-top: var(--sp-8); padding: var(--sp-5); border-radius: var(--r-md); border: 1px solid var(--border-hairline); background: var(--glass-fill); font-size: 0.9rem; }
-  </style>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -81,17 +58,20 @@
   }
   </script>
 </head>
-<body>
-  <div class="container legal-bar">
-    <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-    <span class="legal-bar__right"><span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="privacy.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/privacy.html" data-lang-switch="ro" lang="ro">RO</a></span><a class="legal-back" href="index.html">← На главную</a></span>
-  </div>
+<body class="legal-page">
+  <header class="legal-bar">
+    <div class="container legal-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <span class="legal-bar__right"><span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="privacy.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/privacy.html" data-lang-switch="ro" lang="ro">RO</a></span><a class="legal-back" href="index.html">← На главную</a></span>
+    </div>
+  </header>
 
   <main class="container legal">
-    <h1>Политика конфиденциальности</h1>
+    <p class="legal__eyebrow">FINMENTOR · Правовая информация</p>
+    <h1>Политика конфиден&shy;циальности</h1>
     <p class="legal__updated">Обновлено: 22 июня 2026 г.</p>
 
-    <p>Настоящая Политика описывает, какие данные обрабатывает FINMENTOR (авторская практика внешнего финансового директора Геннадия Яковлева, далее — «мы»), с какой целью и какими правами вы обладаете. Политика учитывает текущую структуру сайта: веб-аналитику, экспресс-диагностику оборотного капитала, финансовый рентген бизнеса, финансовый навигатор и каналы связи (FINMENTOR Bot, Telegram и e-mail). Используя сайт и отправляя данные через формы, вы соглашаетесь с условиями ниже.</p>
+    <p class="legal__intro">Настоящая Политика описывает, какие данные обрабатывает FINMENTOR (авторская практика внешнего финансового директора Геннадия Яковлева, далее — «мы»), с какой целью и какими правами вы обладаете. Политика учитывает текущую структуру сайта: веб-аналитику, экспресс-диагностику оборотного капитала, финансовый рентген бизнеса, финансовый навигатор и каналы связи (FINMENTOR Bot, Telegram и e-mail). Используя сайт и отправляя данные через формы, вы соглашаетесь с условиями ниже.</p>
 
     <h2>1. Кто обрабатывает данные</h2>
     <p>Оператор персональных данных: <strong>Iacovlev Ghennadi</strong>, Республика Молдова. FINMENTOR — название продукта и торговая марка, а не оператор данных.</p>
@@ -101,7 +81,7 @@
     <ul>
       <li><strong>Формы и каналы связи:</strong> имя, контакт (email, телефон или мессенджер), название компании или отрасль, комментарий и текст обращения — только то, что вы указываете сами.</li>
       <li><strong>Финансовый рентген</strong> (questionnaire.html): информация о вашем бизнесе и финансовом учёте, которую вы вводите для подготовки консультации.</li>
-      <li><strong>Мини-скан оборотного капитала</strong> (working-capital-scan.html): ответы на вопросы обрабатываются в вашем браузере. Необязательные поля (имя, компания, контакт, комментарий) используются только если вы их заполняете и отправляете через «Скопировать результат» или «Отправить результат в FINMENTOR Bot»; автоматически на сервер они не передаются.</li>
+      <li><strong>Мини-скан оборотного капитала</strong> (working-capital-scan.html): ответы на вопросы обрабатываются в вашем браузере. Необязательные поля (имя, компания, контакт, комментарий) используются только если вы их заполняете. Автоматически на сервер они не передаются; передача FINMENTOR происходит после отдельного нажатия «Отправить результат FINMENTOR» и подтверждения согласия.</li>
       <li><strong>Сообщения через FINMENTOR Bot, Telegram и по e-mail:</strong> мы получаем то, что вы отправляете нам в переписке. Основной канал обращений — FINMENTOR Bot в Telegram: бот собирает базовую информацию о запросе и передаёт её для ответа. При обращении через FINMENTOR Bot или Telegram ваши данные также могут обрабатываться платформой Telegram в соответствии с её правилами.</li>
       <li><strong>Технические данные веб-аналитики</strong> (см. раздел 4).</li>
     </ul>

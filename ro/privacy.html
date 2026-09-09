@@ -45,29 +45,6 @@
   <link rel="stylesheet" href="../lang.css" />
 
   <!-- NB: это шаблон. Перед публикацией рекомендуется проверить текст с юристом и подставить реальные данные оператора. -->
-  <style>
-    body { cursor: auto; }
-    .legal-bar {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 0;
-      background: rgba(10, 22, 38, 0.82);
-      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-gold);
-    }
-    .legal-back { font-size: 0.92rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
-    .legal-back:hover { color: var(--accent); }
-    .legal { max-width: 760px; margin: 0 auto; padding-block: var(--sp-9) var(--sp-10); }
-    .legal h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; letter-spacing: -0.01em; }
-    .legal__updated { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.06em; color: var(--text-muted); margin-top: var(--sp-3); margin-bottom: var(--sp-7); }
-    .legal h2 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 700; margin-top: var(--sp-7); margin-bottom: var(--sp-3); color: var(--text-primary); }
-    .legal p, .legal li { color: var(--text-secondary); line-height: 1.7; }
-    .legal p { margin-bottom: var(--sp-3); }
-    .legal ul { margin: 0 0 var(--sp-3) var(--sp-5); display: flex; flex-direction: column; gap: 6px; }
-    .legal li { list-style: disc; }
-    .legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-    .legal__note { margin-top: var(--sp-8); padding: var(--sp-5); border-radius: var(--r-md); border: 1px solid var(--border-hairline); background: var(--glass-fill); font-size: 0.9rem; }
-  </style>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -86,17 +63,20 @@
 }
   </script>
 </head>
-<body>
-  <div class="container legal-bar">
-    <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-    <span class="legal-bar__right"><span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../privacy.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="privacy.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span><a class="legal-back" href="index.html">← Pagina principală</a></span>
-  </div>
+<body class="legal-page">
+  <header class="legal-bar">
+    <div class="container legal-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <span class="legal-bar__right"><span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../privacy.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="privacy.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span><a class="legal-back" href="index.html">← Pagina principală</a></span>
+    </div>
+  </header>
 
   <main class="container legal">
+    <p class="legal__eyebrow">FINMENTOR · Informații juridice</p>
     <h1>Politica de confidențialitate</h1>
     <p class="legal__updated">Actualizat: 22 iunie 2026</p>
 
-    <p>Prezenta Politică descrie ce date prelucrează FINMENTOR (practica independentă de director financiar extern a lui Ghennadi Iacovlev, în continuare — „noi”), cu ce scop și ce drepturi aveți. Politica ține cont de structura actuală a site-ului: analitica web, diagnosticul rapid al capitalului de lucru, Testul financiar FINMENTOR, navigatorul financiar și canalele de comunicare (FINMENTOR Bot, Telegram și e-mail). Folosind site-ul și trimițând date prin formulare, sunteți de acord cu condițiile de mai jos.</p>
+    <p class="legal__intro">Prezenta Politică descrie ce date prelucrează FINMENTOR (practica independentă de director financiar extern a lui Ghennadi Iacovlev, în continuare — „noi”), cu ce scop și ce drepturi aveți. Politica ține cont de structura actuală a site-ului: analitica web, diagnosticul rapid al capitalului de lucru, Testul financiar FINMENTOR, navigatorul financiar și canalele de comunicare (FINMENTOR Bot, Telegram și e-mail). Folosind site-ul și trimițând date prin formulare, sunteți de acord cu condițiile de mai jos.</p>
 
     <h2>1. Cine prelucrează datele</h2>
     <p>Operator de date cu caracter personal: <strong>Iacovlev Ghennadi</strong>, Republica Moldova. FINMENTOR este denumirea produsului și marca comercială, nu operatorul de date.</p>
@@ -106,7 +86,7 @@
     <ul>
       <li><strong>Formulare și canale de comunicare:</strong> nume, contact (email, telefon sau messenger), denumirea companiei sau domeniul, comentariu și textul solicitării — doar ce indicați dvs.</li>
       <li><strong>Testul financiar FINMENTOR</strong> (questionnaire.html): informații despre afacerea și evidența dvs. financiară, pe care le introduceți pentru pregătirea consultației.</li>
-      <li><strong>Mini-scanarea capitalului de lucru</strong> (working-capital-scan.html): răspunsurile la întrebări se prelucrează în browserul dvs. Câmpurile opționale (nume, companie, contact, comentariu) se folosesc doar dacă le completați și le trimiteți prin „Copiați rezultatul” sau „Trimiteți rezultatul în FINMENTOR Bot”; automat pe server ele nu se transmit.</li>
+      <li><strong>Mini-scanarea capitalului de lucru</strong> (working-capital-scan.html): răspunsurile la întrebări se prelucrează în browserul dvs. Câmpurile opționale (nume, companie, contact, comentariu) se folosesc doar dacă le completați. Ele nu se transmit automat către server; transmiterea către FINMENTOR are loc după apăsarea separată a butonului „Trimiteți rezultatul către FINMENTOR” și confirmarea consimțământului.</li>
       <li><strong>Mesaje prin FINMENTOR Bot, Telegram și pe e-mail:</strong> primim ceea ce ne trimiteți în corespondență. Canalul principal al solicitărilor — FINMENTOR Bot în Telegram: botul adună informația de bază despre solicitare și o transmite pentru răspuns. La adresarea prin FINMENTOR Bot sau Telegram, datele dvs. pot fi prelucrate și de platforma Telegram, conform regulilor ei.</li>
       <li><strong>Date tehnice de analitică web</strong> (vezi secțiunea 4).</li>
     </ul>
