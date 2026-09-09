@@ -2709,6 +2709,8 @@ body.menu-open .mobile-menu {
   padding-bottom: var(--sp-6);
 }
 .capital-map__head > *,
+.capital-source__head > *,
+.capital-source__list > *,
 .capital-map__dimensions > *,
 .capital-dimension li > *,
 .capital-states > div > * { min-width: 0; }
@@ -2738,6 +2740,61 @@ body.menu-open .mobile-menu {
   line-height: 1.65;
   text-wrap: pretty;
 }
+.capital-source {
+  padding-block: var(--sp-5) var(--sp-6);
+  border-top: 1px solid var(--border-hairline);
+}
+.capital-source__head {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.52fr) minmax(0, 1.48fr);
+  gap: var(--sp-6);
+  align-items: start;
+}
+.capital-source__head h4 {
+  margin: 0;
+  color: var(--micro-label-gold);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.capital-source__head p,
+.capital-source__list dd,
+.capital-source__structure {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+.capital-source__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 clamp(var(--sp-5), 3vw, var(--sp-7));
+  margin: var(--sp-5) 0 0;
+}
+.capital-source__list > div {
+  min-width: 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.capital-source__list dt {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+.capital-source__list dd { margin: 0; }
+.capital-source__structure {
+  max-width: 86ch;
+  margin-top: var(--sp-5);
+  padding-left: var(--sp-4);
+  border-left: 1px solid var(--border-gold);
+}
+.capital-source__structure strong { color: var(--text-primary); font-weight: 650; }
 .capital-map__dimensions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2836,6 +2893,19 @@ body.menu-open .mobile-menu {
   text-wrap: pretty;
 }
 .capital-map__question strong { color: var(--text-primary); font-family: var(--font-display); font-size: 1.1em; }
+.capital-map__material {
+  display: inline-flex;
+  margin-top: var(--sp-4);
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border-gold);
+  color: var(--gold-400);
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.capital-map__material:hover { color: var(--gold-300); border-bottom-color: var(--gold-300); }
+.capital-map__material:focus-visible { outline: 2px solid var(--gold-400); outline-offset: 5px; }
 .capital-preservation {
   margin-top: clamp(var(--sp-8), 6vw, var(--sp-10));
   padding-top: clamp(var(--sp-6), 4vw, var(--sp-8));
@@ -2851,6 +2921,7 @@ body.menu-open .mobile-menu {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+.capital-preservation > h2,
 .capital-preservation > h3 {
   max-width: 27ch;
   margin: 0;
@@ -2881,6 +2952,7 @@ body.menu-open .mobile-menu {
   padding-block: var(--sp-5);
   border-bottom: 1px solid var(--border-hairline);
 }
+.capital-preservation__grid h3,
 .capital-preservation__grid h4 {
   margin: 0 0 7px;
   color: var(--micro-label-gold);
@@ -3056,6 +3128,7 @@ body.menu-open .mobile-menu {
   .capital-logic__head { grid-template-columns: 1fr; align-items: start; gap: var(--sp-5); }
   .capital-logic__title .section-title { max-width: 18ch; }
   .capital-map__head,
+  .capital-source__head,
   .capital-map__dimensions { grid-template-columns: 1fr; }
   .capital-map__head { align-items: start; gap: var(--sp-4); }
   .capital-dimension + .capital-dimension {
@@ -3067,6 +3140,8 @@ body.menu-open .mobile-menu {
   .capital-preservation__grid,
   .capital-preservation__distinction,
   .capital-preservation__checks { grid-template-columns: 1fr; }
+  .capital-source__list { grid-template-columns: 1fr; }
+  .capital-source__list > div + div { margin-top: var(--sp-4); }
   .capital-preservation__distinction { align-items: start; gap: var(--sp-3); }
   .capital-preservation__checks p + p { border-top: 1px solid var(--border-hairline); border-left: 0; }
   .capital-principles { grid-template-columns: 1fr; }

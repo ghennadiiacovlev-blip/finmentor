@@ -17,10 +17,13 @@ const ruShelf = read('supplier-shelf-credit.html');
 const roShelf = read('ro/supplier-shelf-credit.html');
 const ruHome = read('index.html');
 const roHome = read('ro/index.html');
+const ruCapital = read('capital-preservation.html');
+const roCapital = read('ro/capital-preservation.html');
 
 const ARTICLE_SLUGS = [
   'ai-dlya-cfo.html',
   'capacity-released.html',
+  'capital-preservation.html',
   'cash-flow.html',
   'fcf-postavshiki.html',
   'kaznacheystvo.html',
@@ -289,41 +292,55 @@ check('Capital positioning defines management capital without equating it to cas
   }
 });
 
-check('Capital Map keeps location and performance as two dimensions with risk as an overlay', () => {
+check('Capital Map adds a compact funding-source layer above location and performance', () => {
   for (const [name, html] of [['RU', ruHome], ['RO', roHome]]) {
     const map = html.slice(html.indexOf('<article class="capital-map'), html.indexOf('</article>', html.indexOf('<article class="capital-map')) + 10);
+    assert(count(map, /<section class="capital-source"/g) === 1, name + ' funding-source layer missing');
+    assert(count(map, /class="capital-source__list"/g) === 1, name + ' has more than one funding-source list');
+    assert(count(map.slice(map.indexOf('capital-source__list'), map.indexOf('</dl>', map.indexOf('capital-source__list'))), /<dt>/g) === 3, name + ' does not have three funding-source types');
     assert(count(map, /<section class="capital-dimension"/g) === 2, name + ' does not have two dimensions');
     assert(count(map, /<li>/g) === 5, name + ' location dimension does not have five forms');
-    assert(count(map, /<dt>/g) === 5, name + ' performance dimension does not have five states');
+    const states = map.slice(map.indexOf('<dl class="capital-states">'), map.indexOf('</dl>', map.indexOf('<dl class="capital-states">')));
+    assert(count(states, /<dt>/g) === 5, name + ' performance dimension does not have five states');
     assert(count(map, /<aside class="capital-risk">/g) === 1, name + ' risk is not a separate overlay');
     assert(map.includes('capital-map__question'), name + ' owner-level CFO question missing');
   }
+  for (const phrase of ['Собственный капитал', 'Заёмный капитал', 'Операционное финансирование', 'не в активе, а в структуре его финансирования']) {
+    assert(ruHome.includes(phrase), 'RU source/structure logic missing: ' + phrase);
+  }
+  for (const phrase of ['Capital propriu', 'Capital împrumutat', 'Finanțare operațională', 'nu este activul, ci structura finanțării sale']) {
+    assert(roHome.includes(phrase), 'RO source/structure logic missing: ' + phrase);
+  }
 });
 
-check('Capital control preserves four CFO principles and one decision loop without a product CTA', () => {
+check('homepage Capital control keeps four principles, one complete flow and one material link', () => {
   for (const [name, html] of [['RU', ruHome], ['RO', roHome]]) {
     const section = capitalSection(html);
     assert(count(section, /class="capital-principle reveal"/g) === 4, name + ' does not keep four CFO principles');
     assert(count(section, /<div class="capital-flow/g) === 1, name + ' has more than one capital flow');
-    assert(section.includes('capital-logic__mechanisms') && section.includes('capital-logic__reserve') && section.includes('capital-logic__closing'), name + ' decision logic is incomplete');
-    assert(!/<a\b|class="btn/.test(section), name + ' capital thought-leadership section contains a CTA');
+    assert(count(section.slice(section.indexOf('<div class="capital-flow'), section.indexOf('</div>', section.indexOf('<div class="capital-flow'))), /<span>/g) === 7, name + ' flow does not contain seven decisions');
+    assert(section.includes('capital-logic__mechanisms'), name + ' cost-of-capital conclusion is incomplete');
+    assert(count(section, /<a\b/g) === 1 && section.includes('href="capital-preservation.html"'), name + ' material link is not singular and contextual');
+    assert(!/class="btn/.test(section), name + ' Capital section contains a product CTA');
+    assert(!section.includes('capital-preservation__grid'), name + ' homepage still carries the long-form preservation theory');
+    const words = (section.replace(/<[^>]+>/g, ' ').match(/[\p{L}\p{N}]+/gu) || []).length;
+    assert(words <= (name === 'RU' ? 500 : 540), name + ' Capital section exceeds the owner-readable density ceiling: ' + words);
   }
 });
 
 check('capital preservation distinguishes profit, loss, freezing, value erosion and capital consumption', () => {
   for (const [name, html, labels] of [
-    ['RU', ruHome, ['Прибыль ещё не означает сохранение капитала.', 'Потеря капитала', 'Замораживание капитала', 'Разрушение стоимости', 'Потребление капитала']],
-    ['RO', roHome, ['Profitul contabil nu înseamnă automat că valoarea capitalului este protejată.', 'Pierderea capitalului', 'Capital blocat', 'Erodarea valorii', 'Consumul capitalului']]
+    ['RU', ruCapital, ['Прибыль ещё не означает сохранение капитала.', 'Потеря капитала', 'Замораживание капитала', 'Разрушение стоимости', 'Потребление капитала']],
+    ['RO', roCapital, ['Profitul nu înseamnă automat că valoarea capitalului este protejată.', 'Pierderea capitalului', 'Capital blocat', 'Erodarea valorii', 'Consumul capitalului']]
   ]) {
-    const section = capitalSection(html);
-    assert(section.includes('capital-preservation'), name + ' preservation layer missing');
-    for (const label of labels) assert(section.includes(label), name + ' preservation concept missing: ' + label);
-    assert(count(section, /class="capital-preservation__grid"/g) === 1, name + ' has more than one preservation grid');
+    assert(html.includes('data-capital-preservation'), name + ' preservation article contract missing');
+    for (const label of labels) assert(html.includes(label), name + ' preservation concept missing: ' + label);
+    assert(count(html, /class="capital-preservation__grid"/g) === 1, name + ' has more than one preservation grid');
   }
 });
 
 check('capital preservation keeps return-on versus return-of capital, owner question and one seven-step control loop', () => {
-  const ru = capitalSection(ruHome), ro = capitalSection(roHome);
+  const ru = ruCapital, ro = roCapital;
   assert(ru.includes('Доход на капитал ≠ возврат самого капитала.'), 'RU return-on/return-of distinction missing');
   assert(ro.includes('Randamentul capitalului nu este același lucru cu restituirea capitalului însuși.'), 'RO return-on/return-of distinction missing');
   assert(ru.includes('Компания живёт на доход от капитала или постепенно расходует сам капитал?'), 'RU owner question missing');
@@ -336,18 +353,33 @@ check('capital preservation keeps return-on versus return-of capital, owner ques
   }
 });
 
-check('Romanian capital language is natural and retains liquidity, sustainable return and risk', () => {
-  for (const phrase of ['Harta capitalului', 'Numerar și lichiditate', 'Capital de lucru',
-    'Active operaționale și generatoare de venit', 'Capital subutilizat', 'Capital blocat',
-    'randament sustenabil', 'nivel de risc acceptabil']) {
-    assert(roHome.includes(phrase), 'RO capital terminology missing: ' + phrase);
+check('capital economics covers owner cost, conditional leverage and refinancing without formula overload', () => {
+  for (const phrase of ['экономически не является бесплатным', 'могут усиливать доходность собственного капитала', 'усиливает риск собственника', 'Иногда нужно рефинансировать, а не продавать актив']) {
+    assert(ruCapital.includes(phrase), 'RU capital economics missing: ' + phrase);
+  }
+  for (const phrase of ['nu este gratuit din punct de vedere economic', 'pot amplifica randamentul capitalului propriu', 'amplifică riscul proprietarului', 'Uneori trebuie refinanțată datoria, nu vândut activul']) {
+    assert(roCapital.includes(phrase), 'RO capital economics missing: ' + phrase);
+  }
+  for (const html of [ruHome, roHome, ruCapital, roCapital]) {
+    assert(!/WACC\s*=|ROIC\s*=|Cost of Equity\s*=/i.test(html), 'formula overload reached customer copy');
   }
 });
 
-check('Capital Map uses one restrained editorial surface and responsive two-to-one-column composition', () => {
+check('Romanian capital language is natural and retains liquidity, sustainable return, funding cost and risk', () => {
+  for (const phrase of ['Harta capitalului', 'Numerar și lichiditate', 'Capital de lucru',
+    'Active operaționale și generatoare de venit', 'Capital subutilizat', 'Capital blocat',
+    'randament sustenabil', 'nivel de risc acceptabil', 'costul capitalului', 'refinanțăm']) {
+    assert((roHome + roCapital).includes(phrase), 'RO capital terminology missing: ' + phrase);
+  }
+});
+
+check('Capital Map uses one restrained editorial surface and responsive source-over-map composition', () => {
   assert(/\.capital-map\s*\{[^}]*border-top:\s*1px solid var\(--gold-500\)[^}]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.025\)/s.test(css), 'restrained Capital Map surface missing');
+  assert(/\.capital-source__list\s*\{[^}]*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s.test(css), 'compact three-source editorial layer missing');
   assert(/\.capital-map__dimensions\s*\{[^}]*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s.test(css), 'desktop two-column map missing');
-  assert(/@media \(max-width:\s*820px\)[\s\S]*?\.capital-map__head,[\s\S]*?\.capital-map__dimensions\s*\{\s*grid-template-columns:\s*1fr/s.test(css), 'single-column map handoff missing');
+  assert(/@media \(max-width:\s*820px\)[\s\S]*?\.capital-source__head,[\s\S]*?\.capital-map__dimensions\s*\{\s*grid-template-columns:\s*1fr/s.test(css), 'single-column map handoff missing');
+  assert(/@media \(max-width:\s*820px\)[\s\S]*?\.capital-source__list\s*\{\s*grid-template-columns:\s*1fr/s.test(css), 'mobile source stack missing');
+  assert(/\.capital-map__material\s*\{[^}]*display:\s*inline-flex[^}]*border-bottom:/s.test(css), 'editorial material link treatment missing');
   assert(!/\.capital-(?:map|logic)[^{]*\{[^}]*animation:/s.test(css), 'decorative capital animation found');
 });
 

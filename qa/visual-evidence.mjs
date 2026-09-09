@@ -779,11 +779,13 @@ const MEASURE = `(() => {
       width: lr ? Math.round(lr.width) : 0
     };
   }
-  const capital = document.querySelector('#capital-logic');
+  const capital = document.querySelector('#capital-logic, [data-capital-preservation]');
   if (capital) {
     out.capital = {
       headline: [...capital.querySelectorAll('h2')].filter(visible).length,
       map: !![...capital.querySelectorAll('.capital-map')].find(visible),
+      source: !![...capital.querySelectorAll('.capital-source')].find(visible),
+      sourceTypes: [...capital.querySelectorAll('.capital-source__list dt')].filter(visible).length,
       dimensions: [...capital.querySelectorAll('.capital-dimension')].filter(visible).length,
       locations: [...capital.querySelectorAll('.capital-dimension ol > li')].filter(visible).length,
       states: [...capital.querySelectorAll('.capital-states dt')].filter(visible).length,
@@ -1102,10 +1104,10 @@ const SURFACES = [
   { id: 'ro-asset-logic', url: '/ro/index.html', widths: [390, 1440], anchor: '.industries__asset-callout' },
   { id: 'ru-capital-logic', url: '/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
   { id: 'ro-capital-logic', url: '/ro/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
-  { id: 'ru-capital-preservation', url: '/index.html', widths: [390, 1440], anchor: '.capital-preservation' },
-  { id: 'ro-capital-preservation', url: '/ro/index.html', widths: [390, 1440], anchor: '.capital-preservation' },
-  { id: 'ru-capital-control', url: '/index.html', widths: [390, 1440], anchor: '.capital-flow' },
-  { id: 'ro-capital-control', url: '/ro/index.html', widths: [390, 1440], anchor: '.capital-flow' },
+  { id: 'ru-capital-preservation', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
+  { id: 'ro-capital-preservation', url: '/ro/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
+  { id: 'ru-capital-control', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-flow' },
+  { id: 'ro-capital-control', url: '/ro/capital-preservation.html', widths: [390, 1440], anchor: '.capital-flow' },
   { id: 'ru-packages', url: '/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ro-packages', url: '/ro/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ru-ai-economics', url: '/ai-agent-economics.html', widths: RESPONSIVE_WIDTHS, anchor: '#implementation' },
@@ -1708,7 +1710,7 @@ const drawerProbes = {};
   check('ARTICLE HEADING / CONCLUSION INTEGRITY = PASS — leads, decision stages and reading columns render whole', () => {
     const bad = [];
     for (const [k, r] of site) {
-      if (!/(retail-article|additional-article|long-content)/.test(k)) { continue; }
+      if (!/(retail-article|additional-article|long-content|capital-preservation|capital-control)/.test(k)) { continue; }
       const a = r.editorial;
       if (!a) { bad.push(k + ': article metrics missing'); continue; }
       if (!a.lead || a.lead.lines < 1) { bad.push(k + ': lead missing'); }
@@ -1742,17 +1744,23 @@ const drawerProbes = {};
     assert(bad.length === 0, bad.length + ' legal integrity defect(s): ' + bad.slice(0, 8).join(' | '));
   });
 
-  check('CAPITAL MANAGEMENT INTEGRITY = PASS — map, preservation and control loop remain one restrained system', () => {
+  check('CAPITAL MANAGEMENT INTEGRITY = PASS — source, placement, performance and preservation remain one restrained system', () => {
     const bad = [];
     for (const [k, r] of site) {
       if (!/^(ru|ro)-capital-(logic|preservation|control)@/.test(k)) { continue; }
       const c2 = r.capital;
       if (!c2) { bad.push(k + ': capital metrics missing'); continue; }
-      if (c2.headline !== 1 || !c2.map || c2.dimensions !== 2 || c2.locations !== 5 || c2.states !== 5 || !c2.risk) {
-        bad.push(k + ': map h2=' + c2.headline + ', dimensions=' + c2.dimensions + ', locations=' + c2.locations + ', states=' + c2.states + ', risk=' + c2.risk);
-      }
-      if (!c2.preservation || c2.preservationKinds !== 4 || c2.flow !== 7 || c2.principles !== 4 || c2.actions !== 0) {
-        bad.push(k + ': preservation=' + c2.preservation + ', kinds=' + c2.preservationKinds + ', flow=' + c2.flow + ', principles=' + c2.principles + ', actions=' + c2.actions);
+      if (/capital-logic/.test(k)) {
+        if (c2.headline !== 1 || !c2.map || !c2.source || c2.sourceTypes !== 3 || c2.dimensions !== 2 || c2.locations !== 5 || c2.states !== 5 || !c2.risk) {
+          bad.push(k + ': map h2=' + c2.headline + ', source=' + c2.source + '/' + c2.sourceTypes + ', dimensions=' + c2.dimensions + ', locations=' + c2.locations + ', states=' + c2.states + ', risk=' + c2.risk);
+        }
+        if (c2.preservation || c2.flow !== 7 || c2.principles !== 4 || c2.actions !== 1) {
+          bad.push(k + ': homepage preservation=' + c2.preservation + ', flow=' + c2.flow + ', principles=' + c2.principles + ', actions=' + c2.actions);
+        }
+      } else {
+        if (c2.map || c2.source || !c2.preservation || c2.preservationKinds !== 4 || c2.flow !== 7 || !c2.risk || c2.actions !== 0) {
+          bad.push(k + ': article map=' + c2.map + ', source=' + c2.source + ', preservation=' + c2.preservation + ', kinds=' + c2.preservationKinds + ', flow=' + c2.flow + ', risk=' + c2.risk + ', actions=' + c2.actions);
+        }
       }
     }
     assert(bad.length === 0, bad.length + ' Capital Management defect(s): ' + bad.slice(0, 8).join(' | '));
