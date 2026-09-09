@@ -257,6 +257,176 @@
     .q-ai-notice { margin: var(--sp-4) 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; padding: var(--sp-3) var(--sp-4); border-left: 2px solid var(--gold-500); background: rgba(201,162,39,0.06); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
     .q__cards, .q__choices { min-width: 0; }
     .q__cards label, .q__choices label { overflow-wrap: anywhere; }
+    /* v15 — executive worksheet polish; presentation only */
+    .q-bar__row { padding-block: 14px; min-width: 0; }
+    .q-progress { height: 2px; background: rgba(255,255,255,0.055); }
+    .q-progress__fill {
+      background: linear-gradient(90deg, var(--gold-600), var(--gold-300));
+      transition: width var(--dur-ui) ease;
+    }
+    .q-hero { padding-block: clamp(64px, 8vw, 88px) var(--sp-7); }
+    .q-hero .container { max-width: 1120px; }
+    .q-hero__eyebrow {
+      color: var(--micro-label-gold);
+      font-size: 0.73rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .q-hero h1 {
+      max-width: 22ch;
+      font-size: clamp(2.05rem, 5vw, 3.25rem);
+      line-height: 1.08;
+      text-wrap: balance;
+    }
+    .q-hero p {
+      max-width: 61ch;
+      line-height: 1.7;
+      text-wrap: pretty;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
+    .q-hero p + p { margin-top: var(--sp-3); }
+    .q-hero__meta {
+      display: inline-flex;
+      max-width: 100%;
+      padding: 7px 12px;
+      color: var(--micro-label-gold);
+      font-size: 0.74rem;
+      line-height: 1.5;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;
+      text-wrap: pretty;
+      background: rgba(201,162,39,0.035);
+    }
+    .q-form { max-width: 820px; }
+    .q-block { margin-bottom: clamp(64px, 8vw, 80px); }
+    .q-block__head {
+      align-items: flex-start;
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-6);
+      padding-bottom: var(--sp-4);
+    }
+    .q-block__num {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-gold);
+      background: rgba(201,162,39,0.045);
+      color: var(--micro-label-gold);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .q-block__title {
+      min-width: 0;
+      padding-top: 2px;
+      font-size: clamp(1.23rem, 2.5vw, 1.45rem);
+      line-height: 1.25;
+      text-wrap: balance;
+    }
+    .q-block__count {
+      flex: 0 0 auto;
+      padding-top: 7px;
+      line-height: 1.4;
+    }
+    .q__label {
+      margin-bottom: 10px;
+      line-height: 1.5;
+      text-wrap: pretty;
+    }
+    .q input[type="text"], .q input[type="email"], .q input[type="tel"],
+    .q input[type="number"], .q select, .q textarea, .q-vf input {
+      min-height: 46px;
+      padding: 12px 15px;
+      border-color: rgba(255,255,255,0.13);
+      background: rgba(255,255,255,0.028);
+      line-height: 1.45;
+      transition: border-color var(--dur-ui) ease, background-color var(--dur-ui) ease,
+                  box-shadow var(--dur-ui) ease;
+    }
+    .q textarea { min-height: 96px; }
+    .q input::placeholder, .q textarea::placeholder { color: rgba(255,255,255,0.46); }
+    .q input:hover, .q select:hover, .q textarea:hover, .q-vf input:hover {
+      border-color: rgba(216,180,80,0.4);
+      background: rgba(255,255,255,0.04);
+    }
+    .q input:focus, .q select:focus, .q textarea:focus, .q-vf input:focus {
+      outline: none;
+      border-color: var(--micro-label-gold);
+      background: rgba(255,255,255,0.045);
+      box-shadow: 0 0 0 2px rgba(216,180,80,0.14);
+    }
+    .q input:not([type="radio"]):not([type="checkbox"]):not(:placeholder-shown),
+    .q textarea:not(:placeholder-shown) {
+      border-color: rgba(216,180,80,0.31);
+    }
+    .q input:disabled, .q select:disabled, .q textarea:disabled,
+    .q__cards label:has(input:disabled), .q__choices label:has(input:disabled) {
+      cursor: not-allowed;
+      opacity: 0.52;
+    }
+    .q__choices { gap: 9px; }
+    .q__choices label {
+      align-items: flex-start;
+      min-width: 0;
+      padding: 10px 13px;
+      border-radius: 10px;
+      line-height: 1.45;
+      word-break: normal;
+      overflow-wrap: normal;
+      text-wrap: pretty;
+      transition-duration: var(--dur-ui);
+    }
+    .q__choices input {
+      margin-top: 3px;
+      inline-size: 16px;
+      block-size: 16px;
+    }
+    .q__choices label:focus-within, .q__cards label:focus-within {
+      border-color: var(--micro-label-gold);
+      box-shadow: 0 0 0 2px rgba(216,180,80,0.16);
+    }
+    .q__cards { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+    .q__cards label {
+      align-items: flex-start;
+      min-width: 0;
+      min-height: 50px;
+      padding: 13px 15px;
+      line-height: 1.45;
+      word-break: normal;
+      overflow-wrap: normal;
+      text-wrap: pretty;
+      transition-duration: var(--dur-ui);
+    }
+    .q__cards label::before { margin-top: 2px; }
+    .q-xray {
+      padding: clamp(var(--sp-5), 4vw, var(--sp-7));
+      border-color: rgba(216,180,80,0.42);
+      background: linear-gradient(180deg, rgba(201,162,39,0.07), rgba(255,255,255,0.018));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.065), 0 18px 42px rgba(2,8,18,0.18);
+    }
+    .q-xray__intro { max-width: 66ch; }
+    .q-xray__intro h2 { line-height: 1.18; text-wrap: balance; }
+    .q-xray__intro p { text-wrap: pretty; word-break: normal; overflow-wrap: normal; }
+    .q-note, .q-ai-notice, .q-reassure { text-wrap: pretty; }
+    .q-actions {
+      align-items: stretch;
+      padding-top: var(--sp-6);
+      border-top: 1px solid var(--border-hairline);
+    }
+    .q-actions .form-consent { flex: 1 0 100%; margin: 0 0 var(--sp-2); }
+    .q-actions .btn { min-height: 48px; }
+    @media (max-width: 600px) {
+      .q-hero { padding-block: var(--sp-8) var(--sp-6); }
+      .q-hero__meta { border-radius: var(--r-md); }
+      .q-block__head { gap: var(--sp-3); }
+      .q-block__num { width: 32px; height: 32px; }
+      .q__choices label, .q__cards label { width: 100%; }
+      .q__cards { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 720px) {
       .q-xray { padding: var(--sp-5); }
       .q-result__score { width: 64px; height: 64px; font-size: 1.15rem; }
@@ -327,8 +497,8 @@
       <div class="container">
         <p class="q-hero__eyebrow">Финансовый рентген бизнеса</p>
         <h1>Финансовый рентген FINMENTOR</h1>
-        <p>Ответьте на несколько вопросов, чтобы FINMENTOR предварительно оценил уровень финансового контроля: денежный поток, прибыль, платежи, дебиторка, ключевые показатели, маржа, автоматизация и риски собственника.</p>
-        <p>Это структурированная самодиагностика. Финальные выводы и рекомендации формируются после анализа данных и экспертной проверки FINMENTOR.</p>
+        <p>Структурированная финансовая оценка помогает FINMENTOR увидеть контекст бизнеса: денежный поток, прибыль, платежи, дебиторку, ключевые показатели, маржу, автоматизацию и риски собственника.</p>
+        <p>На первом шаге достаточно ответов без документов. Финальные выводы и рекомендации формируются после анализа данных и профессиональной CFO-проверки FINMENTOR.</p>
         <span class="q-hero__meta">12 вопросов · ≈ 2–3 минуты · предварительный результат сразу · расширенная подготовка — по желанию</span>
       </div>
     </section>
@@ -388,7 +558,7 @@
           <fieldset class="q"><legend class="q__label">Q12. Масштаб бизнеса</legend><div class="q__cards"><label><input type="radio" name="dx_scale" value="До €0.5M / 1 объект-точка" /> До €0.5M / 1 объект</label><label><input type="radio" name="dx_scale" value="€0.5–2M / 2–5 объектов-точек" /> €0.5–2M / 2–5 объектов</label><label><input type="radio" name="dx_scale" value="€2M+ / 6+ объектов-точек" /> €2M+ / 6+ объектов</label><label><input type="radio" name="dx_scale" value="Не хочу указывать" /> Не хочу указывать</label></div></fieldset>
 
           <div class="q-xray__actions">
-            <button type="button" class="btn btn--primary btn--lg" id="dxCalculate" data-cta-id="diagnostic_calculate" data-cta-location="quick_diagnostic" data-destination="diagnostic_result">Показать предварительный результат</button>
+            <button type="button" class="btn btn--primary btn--lg" id="dxCalculate" data-cta-id="diagnostic_calculate" data-cta-location="quick_diagnostic" data-destination="diagnostic_result">Показать результат</button>
             <span class="q-xray__hint">Результат не отправляется отдельно и не содержит персональных данных.</span>
           </div>
 
@@ -657,7 +827,7 @@
 
         <div class="q-actions">
           <p class="form-consent">Отправляя форму, я подтверждаю, что ознакомился с <a href="privacy.html">Политикой конфиденциальности</a> и <a href="terms.html">Условиями использования материалов</a>, и согласен на обработку данных для связи со мной и рассмотрения моего запроса.</p>
-          <button type="submit" class="btn btn--primary btn--lg">Отправить финансовый рентген</button>
+          <button type="submit" class="btn btn--primary btn--lg">Передать на финансовую оценку</button>
           <button type="button" class="btn btn--ghost btn--lg" id="qCopy">Скопировать ответы</button>
         </div>
 
@@ -1647,7 +1817,7 @@
       submitBtn.setAttribute('data-label', submitBtn.textContent);
       submitBtn.textContent = 'Отправляем...';
     } else {
-      submitBtn.textContent = submitBtn.getAttribute('data-label') || 'Отправить финансовый рентген';
+      submitBtn.textContent = submitBtn.getAttribute('data-label') || 'Передать на финансовую оценку';
     }
   }
 

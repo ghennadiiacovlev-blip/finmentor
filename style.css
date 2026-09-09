@@ -40,6 +40,7 @@
   --accent: var(--gold-500);
   --accent-hover: var(--gold-400);
   --accent-bright: var(--gold-300);
+  --micro-label-gold: #D8BA63;
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-gold: rgba(201, 162, 39, 0.30);
   --focus-ring: var(--gold-300);
@@ -77,6 +78,7 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 200ms;
+  --dur-ui: 180ms;
   --dur-base: 350ms;
   --dur-slow: 600ms;
   --dur-reveal: 800ms;
@@ -3163,6 +3165,7 @@ body.menu-open .fa-panel {
   --border-gold: rgba(140, 106, 26, 0.5);
   --accent: #8C6A1A;
   --accent-bright: #6F5312;
+  --micro-label-gold: #765814;
   --gold-500: #8C6A1A;
   --focus-ring: #6F5312;
   --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
@@ -3205,3 +3208,294 @@ body.menu-open .fa-panel {
 /* drawer on doc pages: solid enough to avoid header ghosting; hide bar while open */
 .mobile-menu--doc { background: rgba(8, 15, 27, 0.97); }
 body.menu-open .doc-bar { visibility: hidden; }
+
+/* ============================================================================
+   v15 — Quiet premium typography, editorial rhythm and X-Ray-ready components
+   Presentation only: product economics, analytics and machine contracts untouched.
+   ========================================================================== */
+
+/* Semantic micro-label colour: luminous on navy, bronze on institutional ivory. */
+.overline,
+.package__label,
+.package__term span,
+.package__next-label,
+.working-contour__accent,
+.flagship__h,
+.sysmap__label,
+.ai-question-card > span,
+.ai-path__step::before {
+  color: var(--micro-label-gold);
+}
+
+/* Selected editorial text receives deliberate wrapping without forcing line breaks. */
+.section-title,
+.doc-hero h1,
+.working-contour__heading h3,
+.package__name,
+.ai-doc section > h2,
+.cta-band h2 {
+  text-wrap: balance;
+}
+.section-lead,
+.doc-hero__lead,
+.package__goal,
+.package__result,
+.working-contour__copy p,
+.industries__asset-callout p,
+.roi-note,
+.flagship__pain,
+.flagship__col p {
+  text-wrap: pretty;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* The asset-logic note is one editorial argument, not a product promotion. */
+.industries__asset-callout {
+  display: block;
+  padding: var(--sp-7) clamp(var(--sp-5), 6vw, var(--sp-8));
+  background: linear-gradient(135deg, rgba(201, 162, 39, 0.065), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 38px rgba(2, 8, 18, 0.16);
+}
+.industries__asset-callout > div {
+  max-width: 78ch;
+  margin-inline: auto;
+}
+.industries__asset-callout p { max-width: 68ch; }
+.industries__asset-label {
+  max-width: 28ch;
+  margin-bottom: var(--sp-3);
+  line-height: 1.22;
+  text-wrap: balance;
+}
+.industries__asset-note { max-width: 64ch; }
+
+/* Reusable offer metadata: label over value, never competing on one baseline. */
+.package__term {
+  display: grid;
+  justify-content: stretch;
+  align-items: start;
+  gap: 7px;
+}
+.package__term span {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.11em;
+}
+.package__term strong {
+  display: block;
+  max-width: 31ch;
+  font-weight: 600;
+  font-size: 0.94rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* Quiet depth: a precise edge, inner highlight and soft separation from the page. */
+.package,
+.packages__expert,
+.step-card,
+.process__step,
+.monthly-card,
+.remote-card,
+.result-card,
+.ai-question-card,
+.ai-mini-card,
+.ai-decision-grid article,
+.ai-path__step {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 12px 30px rgba(2, 8, 18, 0.14);
+}
+.sec--light .step-card,
+.sec--light .process__step,
+.sec--light .result-card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 12px 28px rgba(18, 28, 46, 0.07);
+}
+.package--flagship {
+  transform: translateY(-8px);
+  border-color: rgba(216, 180, 80, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 18px 42px rgba(2, 8, 18, 0.3);
+}
+
+/* Small, consistent interaction response. */
+.btn {
+  padding-inline: clamp(18px, 2vw, 26px);
+  line-height: 1.3;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-wrap: balance;
+  will-change: auto;
+  transition-duration: var(--dur-ui);
+}
+.btn--lg { --btn-py: 14px; --btn-px: 28px; }
+.btn--primary { box-shadow: 0 4px 14px rgba(2, 8, 18, 0.2); }
+.btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(2, 8, 18, 0.24);
+}
+.btn--ghost {
+  border-color: rgba(216, 180, 80, 0.38);
+  background: rgba(255, 255, 255, 0.018);
+}
+.btn--ghost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(216, 180, 80, 0.7);
+  background: rgba(201, 162, 39, 0.07);
+}
+.btn--primary:active,
+.btn--ghost:active { transform: translateY(0); }
+.nav__link,
+.doc-bar__nav a,
+.footer__col a,
+.hero__link,
+.sysmap__row,
+.sysmap__arrow,
+.package,
+.result-card,
+.monthly-card,
+.remote-card,
+.process__step,
+.industry-card,
+.kb-hub-card {
+  transition-duration: var(--dur-ui);
+}
+.package:hover,
+.result-card:hover,
+.monthly-card:hover,
+.remote-card:hover,
+.process__step:hover,
+.industry-card:hover,
+.kb-hub-card:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 16px 34px rgba(2, 8, 18, 0.2);
+}
+.package--flagship:hover {
+  transform: translateY(-10px);
+  border-color: rgba(232, 199, 102, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 21px 46px rgba(2, 8, 18, 0.34);
+}
+.sysmap__row:hover .sysmap__arrow { transform: translateX(2px); }
+
+/* Critical editorial/card structures: titles and descriptions are separate blocks. */
+.ai-path {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+}
+#implementation > h2 { max-width: 25ch; line-height: 1.16; }
+.ai-path__step {
+  display: grid;
+  align-content: start;
+  padding: clamp(var(--sp-5), 3vw, var(--sp-6));
+}
+.ai-path__step strong,
+.ai-path__step span,
+.ai-decision-grid article strong,
+.ai-decision-grid article span {
+  display: block;
+  min-width: 0;
+}
+.ai-path__step strong {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.38;
+  text-wrap: balance;
+}
+.ai-path__step span {
+  line-height: 1.62;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-wrap: pretty;
+}
+
+/* The working contour remains an editorial trust statement, not another feature card. */
+.working-contour {
+  grid-template-columns: minmax(230px, 0.38fr) minmax(0, 1fr);
+  gap: clamp(var(--sp-6), 6vw, var(--sp-8));
+  padding: var(--sp-7) 0;
+  background: transparent;
+  border-bottom-color: var(--border-hairline);
+}
+.working-contour__heading { min-width: 0; }
+.working-contour__heading h3 {
+  max-width: 13ch;
+  margin-top: var(--sp-3);
+  line-height: 1.18;
+}
+.working-contour__accent {
+  display: block;
+  max-width: 32ch;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.working-contour__copy {
+  max-width: 70ch;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+/* Normal language wraps at word boundaries; technical identifiers keep their own rules. */
+.doc-hero__lead,
+.section-lead,
+.module-note,
+.roi-note,
+.ai-teaser__lead,
+.ai-teaser__bridge,
+.ai-hero-list span,
+.ai-question-card p,
+.ai-mini-card p,
+.ai-decision-grid span,
+.ai-formula span,
+.ai-outcome-grid div,
+.ai-mandate-grid span,
+.ai-route span,
+.ai-equation__visual span {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.packages__grid > *,
+.package,
+.package__section,
+.ai-path > *,
+.ai-question-grid > *,
+.ai-three-grid > *,
+.working-contour > *,
+.sysmap__row > * { min-width: 0; }
+
+@media (max-width: 1220px) {
+  .package--flagship { transform: none; }
+  .package--flagship:hover { transform: translateY(-2px); }
+}
+@media (max-width: 720px) {
+  .industries__asset-callout { padding: var(--sp-6) var(--sp-5); }
+  .working-contour {
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
+    padding: var(--sp-6) 0;
+  }
+  .working-contour__heading h3 { max-width: 22ch; }
+}
+@media (max-width: 480px) {
+  .cta-band { padding: var(--sp-5); }
+}
+@media (max-width: 640px) {
+  .ai-path { grid-template-columns: 1fr; gap: var(--sp-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover,
+  .package:hover,
+  .package--flagship:hover,
+  .result-card:hover,
+  .monthly-card:hover,
+  .remote-card:hover,
+  .process__step:hover,
+  .industry-card:hover,
+  .kb-hub-card:hover,
+  .sysmap__row:hover .sysmap__arrow {
+    transform: none !important;
+  }
+}

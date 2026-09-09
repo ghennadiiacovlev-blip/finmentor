@@ -37,11 +37,12 @@
 // by a stub inside the page, and every endpoint points at `preview.invalid`.
 
 import { spawn, execSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, extname, normalize } from 'node:path';
+import { tmpdir } from 'node:os';
 import { RESULT_FIXTURES } from './fixtures/client-result-fixtures.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -408,12 +409,12 @@ const LANG_SNAPSHOT = `(() => {
 const MEASURE = `(() => {
   const vw = window.innerWidth;
   const TOL = 2;
-  const out = { width: vw, overflow: null, clipped: [], ctaOverflow: [], offscreen: [], textOutside: [],
+  const out = { width: vw, overflow: null, clipped: [], ctaOverflow: [], ctaWrap: [], offscreen: [], textOutside: [],
     textZeroBox: [], packageTitles: [], header: null, h1: null, lang: document.documentElement.lang,
-    textElements: 0, scrollContainers: [],
+    textElements: 0, scrollContainers: [], adjacentInline: [],
     // The Range-measured ink: how many line boxes were graded, and the ones that were cut or left
     // the frame. Counted, so a sweep that silently measured nothing cannot report PASS.
-    paintedTextLines: 0, paintedTextClipped: [], paintedTextOutside: [] };
+    paintedTextLines: 0, paintedTextElements: 0, paintedTextClipped: [], paintedTextOutside: [] };
   const de = document.documentElement;
   if (de.scrollWidth > vw + 1) { out.overflow = { scrollWidth: de.scrollWidth, viewport: vw }; }
 
@@ -442,7 +443,7 @@ const MEASURE = `(() => {
   //     children are measured against its SCROLL box, not its client box.
   //   * DELIBERATELY OFF-SCREEN — skip links and screen-reader-only text, which are supposed to
   //     be outside the viewport until focused.
-  const SCROLL_OK = '[data-qa-scroll], .mobile-menu, .fa-panel, .fa-body, .table-scroll, .scroller, .marquee, .sysmap__track';
+  const SCROLL_OK = '[data-qa-scroll], .mobile-menu, .fa-panel, .fa-body, .table-scroll, .art-table-wrap, .scroller, .marquee, .sysmap__track';
   const OFFSCREEN_OK = '.skip-link, .skip, .visually-hidden, .sr-only, [data-qa-offscreen]';
   const intentionalScroll = (el) => !!(el.closest && el.closest(SCROLL_OK));
   const intentionalOffscreen = (el) => !!(el.closest && el.closest(OFFSCREEN_OK));
@@ -533,7 +534,7 @@ const MEASURE = `(() => {
     // of this loop has to run on every element it can, or the count that proves the sweep did its
     // work drops whenever another finding fires and turns into a second alarm for one defect.
     let boxOutside = false;
-    if (r.left < -TOL || r.right > vw + TOL) {
+    if (!intentionalScroll(el) && (r.left < -TOL || r.right > vw + TOL)) {
       boxOutside = true;
       out.textOutside.push({ tag: el.tagName, cls: String(el.className || '').slice(0, 40), text: label(el),
         left: Math.round(r.left), right: Math.round(r.right), vw });
@@ -574,6 +575,7 @@ const MEASURE = `(() => {
     // was not cut. A declared truncation — text-overflow: ellipsis — is skipped, and an
     // intentional scroll container is skipped for the same reason it is skipped above.
     if (!intentionalScroll(el) && s.textOverflow !== 'ellipsis') {
+      out.paintedTextElements++;
       const hides2 = (a) => a === 'hidden' || a === 'clip';
       const bounds = [];
       if (hides2(s.overflowX) || hides2(s.overflowY)) { bounds.push(['its own box', clipEdges(el)]); }
@@ -598,12 +600,51 @@ const MEASURE = `(() => {
     }
   }
 
-  // CTA OVERFLOW. The button's own text wider than the button, or the button outside the viewport.
+  const renderedLineCount = (el) => {
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const tops = new Set();
+      for (const rr of range.getClientRects()) {
+        if (rr.width > 0.5 && rr.height > 0.5) { tops.add(Math.round(rr.top)); }
+      }
+      return tops.size || 1;
+    } catch (e) { return 1; }
+  };
+
+  // CTA OVERFLOW. The button's own text must fit, remain inside the viewport and avoid a
+  // three-line label that reads like a narrow form control rather than a composed action.
   for (const el of document.querySelectorAll('a.btn, button.btn, .btn, [data-ga^="click_"]')) {
     if (!visible(el)) { continue; }
     const r = el.getBoundingClientRect();
     if (r.left < -1 || r.right > vw + 1) { out.offscreen.push({ text: label(el), left: Math.round(r.left), right: Math.round(r.right) }); }
     if (el.scrollWidth > el.clientWidth + 2) { out.ctaOverflow.push({ text: label(el), sw: el.scrollWidth, cw: el.clientWidth }); }
+    if (el.matches('.btn')) {
+      const lines = renderedLineCount(el);
+      if (lines > 2) { out.ctaWrap.push({ text: label(el), lines, width: Math.round(r.width),
+        cls: String(el.className || ''), id: el.id || '', ctaId: el.dataset.ctaId || '' }); }
+    }
+  }
+
+  // Adjacent inline markup is only a defect when it can concatenate visible title/description
+  // text. These are the public components that intentionally render two separate concepts.
+  const criticalParents = '.ai-path__step, .ai-decision-grid article, .ai-pain, .retail-feature, .retail-action, .retail-path__step, .cb-factor, .package__term';
+  const inlineLike = (d) => d === 'inline' || d === 'inline-block' || d === 'inline-flex' || d === 'inline-grid';
+  for (const parent of document.querySelectorAll(criticalParents)) {
+    if (!visible(parent)) { continue; }
+    const parentDisplay = cs(parent).display;
+    if (parentDisplay === 'flex' || parentDisplay === 'inline-flex' || parentDisplay === 'grid' || parentDisplay === 'inline-grid') { continue; }
+    const children = [...parent.children].filter(visible);
+    for (let i = 1; i < children.length; i++) {
+      const a = children[i - 1], b = children[i];
+      const between = [];
+      let n = a.nextSibling;
+      while (n && n !== b) { between.push(n); n = n.nextSibling; }
+      const separatingText = between.some((x) => x.nodeType === 3 && /\s/.test(x.nodeValue || ''));
+      if (!separatingText && inlineLike(cs(a).display) && inlineLike(cs(b).display)) {
+        out.adjacentInline.push({ parent: String(parent.className || parent.tagName), left: label(a), right: label(b) });
+      }
+    }
   }
 
   // ── THE HEADER, measured as a customer meets it ────────────────────────────────────────────
@@ -995,17 +1036,28 @@ function miniappSeed(bootstrap) {
 //
 // `seed` is injected before the document; `after` runs once the app has settled. Together they
 // produce a POPULATED customer state rather than a shell.
+const RESPONSIVE_WIDTHS = [320, 390, 768, 1024, 1440];
 const SURFACES = [
-  { id: 'ru-homepage', url: '/index.html', widths: [390, 1440] },
-  { id: 'ro-homepage', url: '/ro/index.html', widths: [390, 1440] },
-  { id: 'ru-questionnaire', url: '/questionnaire.html', widths: [390, 1440] },
-  { id: 'ro-questionnaire', url: '/ro/questionnaire.html', widths: [390, 1440] },
+  { id: 'ru-homepage', url: '/index.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ro-homepage', url: '/ro/index.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ru-questionnaire', url: '/questionnaire.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ro-questionnaire', url: '/ro/questionnaire.html', widths: RESPONSIVE_WIDTHS },
+  { id: 'ru-questionnaire-mid', url: '/questionnaire.html', widths: [390, 1440], anchor: '.q-block:nth-of-type(6)' },
+  { id: 'ro-questionnaire-mid', url: '/ro/questionnaire.html', widths: [390, 1440], anchor: '.q-block:nth-of-type(6)' },
+  { id: 'ru-questionnaire-submit', url: '/questionnaire.html', widths: [390, 1440], anchor: '.q-actions' },
+  { id: 'ro-questionnaire-submit', url: '/ro/questionnaire.html', widths: [390, 1440], anchor: '.q-actions' },
   { id: 'ru-how-we-work', url: '/index.html', widths: [390, 1440], anchor: '.steps' },
   { id: 'ro-how-we-work', url: '/ro/index.html', widths: [390, 1440], anchor: '.steps' },
   { id: 'ru-working-contour', url: '/index.html', widths: [390, 1440], anchor: '#working-contour' },
   { id: 'ro-working-contour', url: '/ro/index.html', widths: [390, 1440], anchor: '#working-contour' },
+  { id: 'ru-asset-logic', url: '/index.html', widths: [1440], anchor: '.industries__asset-callout' },
+  { id: 'ro-asset-logic', url: '/ro/index.html', widths: [1440], anchor: '.industries__asset-callout' },
   { id: 'ru-packages', url: '/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ro-packages', url: '/ro/index.html', widths: [390, 1440], anchor: '.packages' },
+  { id: 'ru-ai-economics', url: '/ai-agent-economics.html', widths: RESPONSIVE_WIDTHS, anchor: '#implementation' },
+  { id: 'ro-ai-economics', url: '/ro/ai-agent-economics.html', widths: RESPONSIVE_WIDTHS, anchor: '#implementation' },
+  { id: 'ru-long-content', url: '/working-capital.html', widths: RESPONSIVE_WIDTHS, anchor: '.doc' },
+  { id: 'ro-long-content', url: '/ro/working-capital.html', widths: RESPONSIVE_WIDTHS, anchor: '.doc' },
   { id: 'ru-business-offer', url: '/index.html', widths: [390], anchor: '#business-control-offer' },
   { id: 'ro-business-offer', url: '/ro/index.html', widths: [390], anchor: '#business-control-offer' },
   { id: 'ru-partner-offer', url: '/index.html', widths: [390], anchor: '#control-partner-offer' },
@@ -1088,8 +1140,9 @@ const drawerProbes = {};
   console.log('  serving: ' + ROOT);
   console.log('');
 
-  const profile = join(ROOT, 'qa-artifacts', 'chrome-profile');
-  mkdirSync(profile, { recursive: true });
+  // A fresh profile prevents cookies, disk cache and prior hint state from making two otherwise
+  // identical release runs paint differently. It is created by this process and removed below.
+  const profile = mkdtempSync(join(tmpdir(), 'finmentor-visual-'));
   const chrome = spawn(CHROME, [
     '--headless=new', '--remote-debugging-port=9222', '--user-data-dir=' + profile,
     '--no-first-run', '--no-default-browser-check', '--disable-gpu', '--hide-scrollbars',
@@ -1234,17 +1287,32 @@ const drawerProbes = {};
       if (s.anchor) {
         // Scrolled AFTER the reveal pass: before it, the section is collapsed and the shot lands
         // on the hero instead of the surface under test.
-        const found = await evaluate(`(() => { const el = document.querySelector('${s.anchor}'); if (!el) { return false; } el.scrollIntoView({ block: 'start' }); return true; })()`);
+        const found = await evaluate(`(() => {
+          const el = document.querySelector('${s.anchor}');
+          if (!el) { return false; }
+          document.documentElement.style.scrollBehavior = 'auto';
+          el.scrollIntoView({ block: 'start', behavior: 'instant' });
+          return true;
+        })()`);
         if (!found) { throw new Error(s.id + ': the anchor ' + s.anchor + ' is not on the page'); }
+        // Let the real scroll listener settle the fixed header into its compact state before its
+        // measured height becomes screenshot headroom. The two header states differ by 12px.
+        await sleep(50);
         // PROVE THE SCROLL LANDED, and force it if it did not. `scroll-behavior: smooth` plus the
         // site's own scroll handling swallowed scrollIntoView on the Russian home page: the shot
         // came out byte-identical to the hero and looked like evidence while showing nothing.
         const jump = `(() => {
           const el = document.querySelector('${s.anchor}');
-          const y = el.getBoundingClientRect().top + window.scrollY;
+          const bars = [...document.querySelectorAll('header, .doc-bar')].filter((bar) => {
+            const bs = getComputedStyle(bar);
+            const br = bar.getBoundingClientRect();
+            return (bs.position === 'sticky' || bs.position === 'fixed') && br.height > 0;
+          });
+          const headroom = Math.max(0, ...bars.map((bar) => bar.getBoundingClientRect().height)) + 16;
+          const y = Math.max(0, el.getBoundingClientRect().top + window.scrollY - headroom);
           document.documentElement.style.scrollBehavior = 'auto';
           window.scrollTo(0, y);
-          return { y: Math.round(window.scrollY), top: Math.round(el.getBoundingClientRect().top) };
+          return { y: Math.round(window.scrollY), top: Math.round(el.getBoundingClientRect().top), headroom: Math.round(headroom) };
         })()`;
         let at = await evaluate(jump);
         if (Math.abs(at.top) > 120) { at = await evaluate(jump); }
@@ -1255,6 +1323,11 @@ const drawerProbes = {};
       // part of the page and has its own gate; here it would simply cover the surface under test,
       // so it is removed last, before the settle.
       await evaluate(`document.querySelectorAll('#cookieBar,.cookie-bar,[id*="cookie"],[class*="cookie"]').forEach((el) => el.remove())`);
+
+      // A pointer left over from the preceding drawer probe can otherwise land on a card or the
+      // floating assistant after a viewport resize, producing a valid hover state in only one
+      // cross-process run. Park it on empty chrome before every evidence pair.
+      await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 1, y: 1 });
 
       // ── DETERMINISM GATE. Fonts, then layout, then two painted frames, then a painted anchor.
       const settled = await evaluate(SETTLE, true);
@@ -1274,6 +1347,12 @@ const drawerProbes = {};
         c.querySelectorAll('script,style,template,noscript').forEach((n) => n.remove());
         return (c.textContent || '').replace(/\\s+/g, ' ').trim();
       })()`);
+
+      // The fixed assistant is measured above as part of the public UI. Remove it only from the
+      // section-focused pixels so it cannot cover owner evidence or make a crop depend on whether
+      // its script won the first-paint race in a fresh browser profile.
+      await evaluate(`document.querySelectorAll('.fa-launch,.fa-panel').forEach((el) => el.remove())`);
+      await sleep(20);
 
       // ── PHASE 4, RUN A / RUN B ──────────────────────────────────────────────────────────────
       //
@@ -1327,7 +1406,7 @@ const drawerProbes = {};
         // step(s)" — which said how hard the harness tried, not where it ended up.
         shotMeta[name].application_state = proof.state
           + (s.expect ? (proof.state === s.expect ? ' (as requested)' : ' (REQUESTED ' + s.expect + ')') : '');
-      } else if (w === 390) {
+      } else if (w < 1440) {
         drawerProbes[s.id + '@' + w] = await probeDrawer();
       }
 
@@ -1340,6 +1419,7 @@ const drawerProbes = {};
   c.close();
   chrome.kill();
   server.close();
+  try { rmSync(profile, { recursive: true, force: true }); } catch (e) { /* OS cleanup after exit */ }
 
   console.log('');
   writeFileSync(join(SHOT_DIR, 'measurements.json'), JSON.stringify(results, null, 2), 'utf8');
@@ -1396,7 +1476,7 @@ const drawerProbes = {};
     assert(bad.length === 0, bad.length + ' surface(s) captured without the determinism switches: ' + bad.slice(0, 6).join(' | '));
   });
 
-  check('DOCUMENT HORIZONTAL OVERFLOW = 0 — no page scrolls sideways at 390px or 1440px', () => {
+  check('DOCUMENT HORIZONTAL OVERFLOW = 0 — audited pages stay inside every responsive viewport', () => {
     const bad = all.filter(([, r]) => r.overflow).map(([k, r]) => k + ' (' + r.overflow.scrollWidth + ' > ' + r.overflow.viewport + ')');
     assert(bad.length === 0, bad.length + ' surface(s) overflow: ' + bad.join(', '));
   });
@@ -1457,8 +1537,8 @@ const drawerProbes = {};
     // box, so the ink count can never be lower than the element count. It holds with room to
     // spare on every surface here (1.05x on the densest, 1.77x on the airiest), and it collapses
     // the moment the Range measurement stops running.
-    const bad = all.filter(([, r]) => !(r.textElements > 0 && r.paintedTextLines >= r.textElements))
-      .map(([k, r]) => k + ' (' + r.paintedTextLines + ' line boxes for ' + r.textElements + ' text elements)');
+    const bad = all.filter(([, r]) => !(r.paintedTextElements > 0 && r.paintedTextLines >= r.paintedTextElements))
+      .map(([k, r]) => k + ' (' + r.paintedTextLines + ' line boxes for ' + r.paintedTextElements + ' eligible text elements)');
     assert(bad.length === 0, 'the painted-text measurement graded less ink than there is text on: ' + bad.join(', '));
   });
 
@@ -1482,6 +1562,26 @@ const drawerProbes = {};
       for (const c2 of r.offscreen) { bad.push(k + ': offscreen ' + c2.left + '..' + c2.right + ' — ' + c2.text); }
     }
     assert(bad.length === 0, bad.length + ' CTA problem(s): ' + bad.slice(0, 5).join(' | '));
+  });
+
+  check('CTA WRAPPING = PASS — no public action breaks into three or more lines', () => {
+    const bad = [];
+    for (const [k, r] of all) {
+      for (const c2 of (r.ctaWrap || [])) {
+        bad.push(k + ': ' + c2.lines + ' lines in ' + c2.width + 'px — ' + c2.text);
+      }
+    }
+    assert(bad.length === 0, bad.length + ' over-wrapped CTA(s): ' + bad.slice(0, 6).join(' | '));
+  });
+
+  check('CRITICAL INLINE ADJACENCY = 0 — card titles and descriptions cannot concatenate', () => {
+    const bad = [];
+    for (const [k, r] of all) {
+      for (const c2 of (r.adjacentInline || [])) {
+        bad.push(k + ': .' + c2.parent + ' joins “' + c2.left + '” + “' + c2.right + '”');
+      }
+    }
+    assert(bad.length === 0, bad.length + ' dangerous adjacent inline pair(s): ' + bad.slice(0, 6).join(' | '));
   });
 
   check('HEADER COLLISION = 0 — at 390px one navigation, nothing clipped, nothing overlapping', () => {
@@ -1626,7 +1726,7 @@ const drawerProbes = {};
       if (p.after.bodyLocked && !p.before.bodyLocked) { bad.push(k + ': the page scroll lock survived the drawer'); }
       if (!p.after.burger || !p.after.burger.actionable) { bad.push(k + ': the burger is no longer tappable once the drawer closed'); }
     }
-    assert(probed > 0, 'no surface exercised a burger at 390px — the drawer probe measured nothing');
+    assert(probed > 0, 'no responsive surface exercised a burger — the drawer probe measured nothing');
     assert(bad.length === 0, bad.length + ' mobile language-switch failure(s): ' + bad.slice(0, 6).join(' | '));
   });
 
@@ -1807,10 +1907,10 @@ const drawerProbes = {};
         'для управления: денежный поток', 'Прибыль есть, денег нет: отчёт о прибыли и убытках'],
       'ro-homepage@1440': ['La discuția financiară inițială discutăm', 'Contabilitatea există',
         'Există comenzi, dar marja', 'Banii „există”, dar sunt blocați',
-        'Inteligența artificială (AI) și automatizarea', 'inteligența artificială pe care o folosiți',
+        'Inteligența artificială (AI) și automatizarea', 'Verificați economia IA',
         'pentru management: flux de numerar', 'Există profit, dar nu sunt bani'],
-      'ru-questionnaire@1440': ['финансового контроля: денежный поток'],
-      'ro-questionnaire@1440': ['controlului financiar: flux de numerar', 'Există profit, dar nu sunt bani',
+      'ru-questionnaire@1440': ['Структурированная финансовая оценка'],
+      'ro-questionnaire@1440': ['evaluare financiară structurată', 'Există profit, dar nu sunt bani',
         'trebuie pusă ordine?', 'Planific pe termen lung', 'Fluxul de numerar nu este suficient'],
       'ru-how-we-work@1440': ['Сопровождение и контроль исполнения', 'Совместный рабочий контур',
         'Результат строится совместно', 'ограниченное количество проектов одновременно'],
@@ -1955,11 +2055,19 @@ const drawerProbes = {};
   if (KEEP_DIR) {
     // The full required release set at both widths.
     const RETAIN = ['ru-homepage-390', 'ro-homepage-390', 'ru-questionnaire-390', 'ro-questionnaire-390',
-      'ru-how-we-work-390', 'ro-how-we-work-390', 'ru-packages-390', 'ro-packages-390', 'ru-cfo-consultation-390', 'ro-cfo-consultation-390', 'ru-real-estate-390', 'thank-you-390',
+      'ru-questionnaire-mid-390', 'ro-questionnaire-mid-390', 'ru-questionnaire-submit-390', 'ro-questionnaire-submit-390',
+      'ru-how-we-work-390', 'ro-how-we-work-390', 'ru-working-contour-390', 'ro-working-contour-390',
+      'ru-packages-390', 'ro-packages-390', 'ru-ai-economics-390', 'ro-ai-economics-390',
+      'ru-long-content-390', 'ro-long-content-390', 'ru-cfo-consultation-390', 'ro-cfo-consultation-390',
+      'ru-real-estate-390', 'thank-you-390',
       'miniapp-populated-390', 'miniapp-review-390', 'miniapp-edit-390', 'miniapp-success-390',
       'xray-result-ru-390', 'xray-result-ro-390',
       'ru-homepage-1440', 'ro-homepage-1440', 'ru-questionnaire-1440', 'ro-questionnaire-1440',
-      'ru-how-we-work-1440', 'ro-how-we-work-1440', 'ru-packages-1440', 'ro-packages-1440', 'ru-cfo-consultation-1440', 'ro-cfo-consultation-1440',
+      'ru-questionnaire-mid-1440', 'ro-questionnaire-mid-1440', 'ru-questionnaire-submit-1440', 'ro-questionnaire-submit-1440',
+      'ru-how-we-work-1440', 'ro-how-we-work-1440', 'ru-working-contour-1440', 'ro-working-contour-1440',
+      'ru-asset-logic-1440', 'ro-asset-logic-1440', 'ru-packages-1440', 'ro-packages-1440',
+      'ru-ai-economics-1440', 'ro-ai-economics-1440', 'ru-long-content-1440', 'ro-long-content-1440',
+      'ru-cfo-consultation-1440', 'ro-cfo-consultation-1440',
       'miniapp-populated-1440', 'miniapp-review-1440', 'miniapp-edit-1440', 'miniapp-success-1440',
       'xray-result-ru-1440', 'xray-result-ro-1440'];
 
