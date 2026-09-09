@@ -2647,13 +2647,7 @@ body.menu-open .mobile-menu {
   border-bottom: 1px solid var(--border-hairline);
 }
 .capital-logic::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 50%;
-  width: min(920px, 72vw);
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 4%, rgba(201, 162, 39, 0.055), transparent 60%);
+  display: none;
 }
 .capital-logic > .container { position: relative; }
 .capital-logic__head {
@@ -2677,9 +2671,10 @@ body.menu-open .mobile-menu {
 .capital-logic__lead {
   max-width: 65ch;
   margin: 0;
-  color: #C4CCD7;
+  color: #E0E5EC;
+  font-weight: 500;
   font-size: clamp(1.02rem, 1.35vw, 1.16rem);
-  line-height: 1.72;
+  line-height: 1.68;
   text-wrap: pretty;
 }
 .capital-logic__definition {
