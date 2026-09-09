@@ -105,7 +105,7 @@
         <p class="doc-hero__eyebrow">Экспресс-диагностика · 3 минуты</p>
         <h1>Мини-скан оборотного капитала</h1>
         <p class="doc-hero__lead">Ответьте на несколько вопросов, чтобы понять, где в бизнесе могут застревать деньги: в дебиторке, запасах, авансах, условиях оплаты или платёжной дисциплине.</p>
-        <p class="doc-hero__context">Мини-скан — лёгкий вход. Полная диагностика — в финансовом рентгене и на Discovery Call.</p>
+        <p class="doc-hero__context">Мини-скан — быстрый способ локализовать зону внимания. Для более широкого разбора пройдите финансовый рентген или обсудите задачу.</p>
       </div>
     </section>
 
@@ -145,7 +145,7 @@
           <p class="scan__disclaimer" id="scanDisc">Вывод предварительный и требует подтверждения документами. Мини-скан не является финансовым заключением — это самодиагностика зон, требующих управленческого внимания.</p>
           <div class="scan__actions">
             <a href="questionnaire.html" class="btn btn--primary" id="scanQ">Пройти финансовый рентген бизнеса</a>
-            <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Открыть FINMENTOR Bot</a>
+            <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Обсудить задачу</a>
             <button type="button" class="btn btn--ghost" id="scanCopy">Скопировать результат</button>
             <button type="button" class="btn btn--ghost" id="scanSend">Отправить результат FINMENTOR</button>
           </div>
@@ -160,7 +160,7 @@
             <span class="consent__text">Я согласен на обработку данных для связи со мной и рассмотрения результата согласно <a href="privacy.html" target="_blank" rel="noopener">Политике конфиденциальности</a>.</span>
           </label>
           <p class="scan__send-status" id="scanSendStatus" hidden></p>
-          <p class="scan__note">Поля необязательны — мини-скан работает и без них. Для передачи результата FINMENTOR нужен consent; если webhook не подключён, используйте «Скопировать результат» или «Открыть FINMENTOR Bot».</p>
+          <p class="scan__note">Поля необязательны — мини-скан работает и без них. Для передачи результата FINMENTOR нужен consent; если webhook не подключён, используйте «Скопировать результат» или «Обсудить задачу».</p>
         </div>
       </section>
     </div>
@@ -185,7 +185,7 @@
         <a href="materials.html">Материалы</a>
         <a href="questionnaire.html">Финансовый рентген</a>
         <a href="privacy.html">Политика конфиденциальности</a>
-        <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">Обсудить задачу</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
       <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
@@ -481,7 +481,7 @@
       'Что проверить в первую очередь:'];
     L.documents_to_check.forEach(function (d) { lines.push('— ' + d); });
     lines.push('', 'Рекомендуемый маршрут: ' + L.recommended_route);
-    lines.push('Следующий шаг: пройти финансовый рентген или отправить этот результат в FINMENTOR Bot.');
+      lines.push('Следующий шаг: пройти финансовый рентген или отправить этот результат FINMENTOR в Telegram.');
     var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
     if (nm || co || ct || cm) { lines.push(''); if (nm) lines.push('Имя: ' + nm); if (co) lines.push('Компания: ' + co); if (ct) lines.push('Контакт: ' + ct); if (cm) lines.push('Комментарий: ' + cm); }
     lines.push('', 'https://www.finmentor.md/working-capital-scan.html');
@@ -506,7 +506,7 @@
       return;
     }
     if (!webhookUrl()) {
-      showSendStatus('Webhook пока не подключён. Скопируйте результат или отправьте его в FINMENTOR Bot.', true);
+        showSendStatus('Webhook пока не подключён. Скопируйте результат или отправьте его FINMENTOR в Telegram.', true);
       return;
     }
     sendBtn.disabled = true;
@@ -540,7 +540,7 @@
           'Начать новую заявку', function () { showSendStatus('', false); sendStatus.hidden = true; });
         return;
       }
-      showSendStatus('Не удалось автоматически отправить результат. Скопируйте результат или откройте FINMENTOR Bot.', true);
+      showSendStatus('Не удалось автоматически отправить результат. Скопируйте его или обсудите задачу в Telegram.', true);
     });
   });
 

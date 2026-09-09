@@ -160,7 +160,7 @@
         <p class="doc-hero__eyebrow">Diagnostic expres · 3 minute</p>
         <h1>Mini-scanarea capitalului de lucru</h1>
         <p class="doc-hero__lead">Răspundeți la câteva întrebări ca să înțelegeți unde pot rămâne blocați banii în afacere: în creanțe, stocuri, avansuri, condiții de plată sau disciplina de plată.</p>
-        <p class="doc-hero__context">Mini-scanarea este un start ușor. Diagnosticul complet — în Testul financiar FINMENTOR și la Discovery Call.</p>
+        <p class="doc-hero__context">Mini-scanarea localizează rapid zona de atenție. Pentru o analiză mai amplă, completați Testul financiar FINMENTOR sau discutați situația.</p>
       </div>
     </section>
 
@@ -200,7 +200,7 @@
           <p class="scan__disclaimer" id="scanDisc">Concluzia este preliminară și necesită confirmare prin documente. Mini-scanarea nu este o concluzie financiară — este o autodiagnoză a zonelor care necesită atenție managerială.</p>
           <div class="scan__actions">
             <a href="questionnaire.html" class="btn btn--primary" id="scanQ">Începeți Testul financiar FINMENTOR</a>
-            <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Deschideți FINMENTOR Bot</a>
+            <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer" class="btn btn--ghost" id="scanTg">Discutați situația</a>
             <button type="button" class="btn btn--ghost" id="scanCopy">Copiați rezultatul</button>
             <button type="button" class="btn btn--ghost" id="scanSend">Trimiteți rezultatul către FINMENTOR</button>
           </div>
@@ -215,7 +215,7 @@
             <span class="consent__text">Sunt de acord cu prelucrarea datelor pentru a fi contactat și pentru examinarea rezultatului conform <a href="privacy.html" target="_blank" rel="noopener">Politicii de confidențialitate</a>.</span>
           </label>
           <p class="scan__send-status" id="scanSendStatus" hidden></p>
-          <p class="scan__note">Câmpurile sunt opționale — mini-scanarea funcționează și fără ele. Pentru transmiterea rezultatului către FINMENTOR este necesar consimțământul; dacă webhook-ul nu este conectat, folosiți „Copiați rezultatul” sau „Deschideți FINMENTOR Bot”.</p>
+          <p class="scan__note">Câmpurile sunt opționale — mini-scanarea funcționează și fără ele. Pentru transmiterea rezultatului către FINMENTOR este necesar consimțământul; dacă webhook-ul nu este conectat, folosiți „Copiați rezultatul” sau „Discutați situația”.</p>
         </div>
       </section>
     </div>
@@ -240,7 +240,7 @@
         <a href="materials.html">Materiale</a>
         <a href="questionnaire.html">Test financiar FINMENTOR</a>
         <a href="privacy.html">Politica de confidențialitate</a>
-        <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a>
+        <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Discutați situația</a>
         <a href="mailto:cfo@finmentor.md">Email</a>
       </div>
       <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
@@ -539,7 +539,7 @@
       'Ce trebuie verificat în primul rând:'];
     L.documents_to_check.forEach(function (d) { lines.push('— ' + d); });
     lines.push('', 'Traseu recomandat: ' + L.recommended_route);
-    lines.push('Pasul următor: parcurgeți Testul financiar FINMENTOR sau trimiteți acest rezultat în FINMENTOR Bot.');
+      lines.push('Pasul următor: parcurgeți Testul financiar FINMENTOR sau trimiteți acest rezultat către FINMENTOR în Telegram.');
     var nm = val('scanName'), co = val('scanCompany'), ct = val('scanContact'), cm = val('scanComment');
     if (nm || co || ct || cm) { lines.push(''); if (nm) lines.push('Nume: ' + nm); if (co) lines.push('Companie: ' + co); if (ct) lines.push('Contact: ' + ct); if (cm) lines.push('Comentariu: ' + cm); }
     lines.push('', 'https://www.finmentor.md/working-capital-scan.html');
@@ -564,7 +564,7 @@
       return;
     }
     if (!webhookUrl()) {
-      showSendStatus('Webhook-ul nu este încă conectat. Copiați rezultatul sau trimiteți-l în FINMENTOR Bot.', true);
+        showSendStatus('Webhook-ul nu este încă conectat. Copiați rezultatul sau trimiteți-l către FINMENTOR în Telegram.', true);
       return;
     }
     sendBtn.disabled = true;
@@ -598,7 +598,7 @@
           'Începeți o solicitare nouă', function () { showSendStatus('', false); sendStatus.hidden = true; });
         return;
       }
-      showSendStatus('Rezultatul nu a putut fi trimis automat. Copiați rezultatul sau deschideți FINMENTOR Bot.', true);
+      showSendStatus('Rezultatul nu a putut fi trimis automat. Copiați-l sau discutați situația în Telegram.', true);
     });
   });
 

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  // Same Discovery Call target logic as assistant.js disco(): scripts run at end of body, DOM is parsed.
+  // Same generic task-discussion target logic as assistant.js disco(): scripts run after the DOM is parsed.
   var DISCO = document.getElementById('consult') ? '#consult' : 'index.html#consult';
 
   window.FM_I18N = {
@@ -27,7 +27,7 @@
       langLabel: 'Limbă · Язык',
       langAria: 'Selectarea limbii',
       ctaXray: 'Începeți Testul financiar FINMENTOR',
-      ctaBot: 'Mai bine scrieți direct → FINMENTOR Bot',
+      ctaBot: 'Discutați situația',
 
       /* ---- cases block ---- */
       caseKicker: 'Studiu de caz',
@@ -38,7 +38,7 @@
       caseCtaDefault: 'Discutați cazul dvs.',
 
       /* ---- forms / cookies ---- */
-      formFail: '<strong>Trimiterea automată a solicitării nu a reușit.</strong> Copiați textul solicitării și trimiteți-l în <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> sau la <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.',
+      formFail: '<strong>Trimiterea automată a solicitării nu a reușit.</strong> Copiați textul solicitării și trimiteți-l către FINMENTOR în <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Telegram</a> sau la <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.',
       formConflict: '<strong>Această solicitare a fost deja procesată.</strong> Datele s-au schimbat față de momentul trimiterii, așa că nu a fost acceptată din nou. Începeți o solicitare nouă.',
       formNewRequest: 'Începeți o solicitare nouă',
       scanConflict: 'Această solicitare a fost deja procesată. Datele s-au schimbat, așa că nu a fost acceptată din nou. Începeți o solicitare nouă.',
@@ -69,7 +69,7 @@
       faLaunchSm: 'Ajutor la alegerea pasului',
       faPanelTitle: 'Navigatorul financiar FINMENTOR',
       faCloseAria: 'Închideți navigatorul',
-      faIntro: 'Vă ajut să alegeți primul pas: mini-scanarea, diagnosticul, Discovery Call sau pagina potrivită. Nu este o concluzie financiară — pentru analiza datelor este necesar diagnosticul.',
+      faIntro: 'Vă ajut să alegeți formatul potrivit: consultație punctuală, mini-scanare, diagnostic, sistem financiar sau control CFO regulat. Nu este o concluzie financiară — pentru analiza datelor este necesar diagnosticul.',
       faQ: 'Ce vă îngrijorează acum cel mai mult?',
       faBackAria: 'Înapoi la selecție',
       faBack: 'Înapoi'
@@ -154,7 +154,7 @@
       high: {
         band: 'Risc ridicat · este necesar un diagnostic',
         title: 'Banii, probabil, sunt gestionați reactiv',
-        text: 'Este foarte probabil ca plățile să se decidă manual, cash gap-ul să se vadă târziu, iar profitul să nu se transforme în cash flow liber. Se recomandă Financial Health Check sau Discovery Call.'
+        text: 'Este foarte probabil ca plățile să se decidă manual, cash gap-ul să se vadă târziu, iar profitul să nu se transforme în cash flow liber. Se recomandă Financial Health Check sau o discuție despre situație.'
       }
     },
 
@@ -165,7 +165,7 @@
         ctas: [
           { l: 'Începeți mini-scanarea', h: 'working-capital-scan.html', e: 'assistant_click_mini_scan', p: true },
           { l: 'Pagina despre capitalul de lucru', h: 'working-capital.html' },
-          { l: 'Discovery Call', h: DISCO, e: 'assistant_click_discovery_call' }
+          { l: 'Discutați situația', h: DISCO, e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_treasury',
         opt: 'Plățile merg haotic',
@@ -173,14 +173,14 @@
         ctas: [
           { l: 'Deschideți trezoreria', h: 'kaznacheystvo.html', p: true },
           { l: 'Vedeți metodologia', h: 'methodology.html' },
-          { l: 'Discovery Call', h: DISCO, e: 'assistant_click_discovery_call' }
+          { l: 'Discutați situația', h: DISCO, e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_reporting',
         opt: 'Nu există un P&L / Cash Flow clar',
         a: 'Dacă proprietarul nu vede profitul, banii și riscurile într-o singură logică, primul pas este de regulă Financial Health Check.',
         ctas: [
           { l: 'Treceți diagnosticul complet', h: 'questionnaire.html', p: true },
-          { l: 'Discovery Call', h: DISCO, e: 'assistant_click_discovery_call' },
+          { l: 'Discutați situația', h: DISCO, e: 'assistant_click_discovery_call' },
           { l: 'Business Control System', h: 'business-control-system.html' }
         ] },
       { choose: 'assistant_choose_powerbi',
@@ -189,15 +189,15 @@
         ctas: [
           { l: 'Power BI pentru proprietar', h: 'power-bi-dlya-sobstvennika.html', p: true },
           { l: 'Integrarea 1C → Power BI', h: 'power-bi-dlya-sobstvennika.html' },
-          { l: 'Discovery Call', h: DISCO, e: 'assistant_click_discovery_call' }
+          { l: 'Discutați situația', h: DISCO, e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_fit',
         opt: 'Vreau să înțeleg dacă FINMENTOR mi se potrivește',
-        a: 'Cel mai bun prim pas este un Discovery Call de 20–30 de minute. Este o discuție scurtă de calificare, ca să înțelegem dacă diagnosticul are sens.',
+        a: 'Descrieți pe scurt situația. FINMENTOR vă ajută să stabiliți dacă se potrivește o consultație CFO punctuală, un diagnostic sau alt format de lucru.',
         ctas: [
-          { l: 'Programați un Discovery Call', h: DISCO, e: 'assistant_click_discovery_call', p: true },
+          { l: 'Discutați situația', h: DISCO, e: 'assistant_click_discovery_call', p: true },
           { l: 'Vedeți scenariile anonime', h: 'cases.html' },
-          { l: 'Lăsați un mesaj în FINMENTOR Bot', h: 'https://t.me/finmentor_md_bot?start=ro', e: 'assistant_click_bot', tg: true }
+          { l: 'Discutați situația', h: 'https://t.me/finmentor_md_bot?start=ro', e: 'assistant_click_bot', tg: true }
         ] }
     ]
   };

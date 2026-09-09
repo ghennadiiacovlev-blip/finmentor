@@ -1000,10 +1000,22 @@ const SURFACES = [
   { id: 'ro-homepage', url: '/ro/index.html', widths: [390, 1440] },
   { id: 'ru-questionnaire', url: '/questionnaire.html', widths: [390, 1440] },
   { id: 'ro-questionnaire', url: '/ro/questionnaire.html', widths: [390, 1440] },
+  { id: 'ru-how-we-work', url: '/index.html', widths: [390, 1440], anchor: '.steps' },
+  { id: 'ro-how-we-work', url: '/ro/index.html', widths: [390, 1440], anchor: '.steps' },
+  { id: 'ru-working-contour', url: '/index.html', widths: [390, 1440], anchor: '#working-contour' },
+  { id: 'ro-working-contour', url: '/ro/index.html', widths: [390, 1440], anchor: '#working-contour' },
   { id: 'ru-packages', url: '/index.html', widths: [390, 1440], anchor: '.packages' },
   { id: 'ro-packages', url: '/ro/index.html', widths: [390, 1440], anchor: '.packages' },
+  { id: 'ru-business-offer', url: '/index.html', widths: [390], anchor: '#business-control-offer' },
+  { id: 'ro-business-offer', url: '/ro/index.html', widths: [390], anchor: '#business-control-offer' },
+  { id: 'ru-partner-offer', url: '/index.html', widths: [390], anchor: '#control-partner-offer' },
+  { id: 'ro-partner-offer', url: '/ro/index.html', widths: [390], anchor: '#control-partner-offer' },
+  { id: 'ru-cfo-consultation', url: '/cfo-consultation.html', widths: [390, 1440] },
+  { id: 'ro-cfo-consultation', url: '/ro/cfo-consultation.html', widths: [390, 1440] },
   { id: 'ru-monthly-pricing', url: '/monthly-cfo-support.html', widths: [390, 1440] },
   { id: 'ro-monthly-pricing', url: '/ro/monthly-cfo-support.html', widths: [390, 1440] },
+  { id: 'ru-monthly-execution', url: '/monthly-cfo-support.html', widths: [390, 1440], anchor: '#decision-control' },
+  { id: 'ro-monthly-execution', url: '/ro/monthly-cfo-support.html', widths: [390, 1440], anchor: '#decision-control' },
   { id: 'ru-real-estate', url: '/real-estate-control-system.html', widths: [390, 1440] },
   { id: 'ro-real-estate', url: '/ro/real-estate-control-system.html', widths: [390, 1440] },
   { id: 'thank-you', url: '/thank-you.html', widths: [390, 1440] },
@@ -1800,18 +1812,31 @@ const drawerProbes = {};
       'ru-questionnaire@1440': ['финансового контроля: денежный поток'],
       'ro-questionnaire@1440': ['controlului financiar: flux de numerar', 'Există profit, dar nu sunt bani',
         'trebuie pusă ordine?', 'Planific pe termen lung', 'Fluxul de numerar nu este suficient'],
-      'ru-monthly-pricing@1440': ['Обзор 5–7 ключевых финансовых показателей', 'Дебиторка по срокам возникновения',
-        'Кассовый разрыв и покрытие', 'мониторинг в Power BI', 'Ежемесячная управленческая сводка',
-        'CFO Control Partner · Standard', 'CFO AI Control · Premium'],
-      'ro-monthly-pricing@1440': ['Revizuirea a 5–7 indicatori-cheie', 'Vechimea creanțelor', 'Golul de numerar',
-        'monitorizare în Power BI', 'Sinteză managerială lunară', 'CFO Control Partner · Standard']
+      'ru-how-we-work@1440': ['Сопровождение и контроль исполнения', 'Совместный рабочий контур',
+        'Результат строится совместно', 'ограниченное количество проектов одновременно'],
+      'ro-how-we-work@1440': ['Parteneriat și controlul execuției', 'Circuit comun de lucru',
+        'Rezultatul se construiește împreună', 'număr limitat de proiecte'],
+      'ru-cfo-consultation@1440': ['CFO Advisory Session', 'Стратегическая CFO-консультация', 'тему вопроса',
+        'какое решение нужно принять', 'не полный data room', 'одной подготовленной CFO-сессии'],
+      'ro-cfo-consultation@1440': ['CFO Advisory Session', 'Sesiune strategică de consultanță CFO', 'tema întrebării',
+        'ce decizie trebuie luată', 'nu un dosar complet', 'o singură sesiune CFO pregătită'],
+      'ru-monthly-pricing@1440': ['Сопровождение начинается с профессионального формата', 'Дебиторка по срокам возникновения',
+        'Кассовый разрыв и покрытие', 'Крупное внедрение Power BI', 'Управленческая сводка по итогам периода',
+        'CFO Control Partner · регулярный контроль', 'CFO AI Control · высокая вовлечённость',
+        'Контроль решений и исполнения', 'Срочные и внеплановые задачи согласовываются отдельно'],
+      'ro-monthly-pricing@1440': ['Colaborarea începe cu formatul profesional', 'Vechimea creanțelor', 'Golul de numerar',
+        'implementare majoră Power BI', 'Sinteză managerială', 'CFO Control Partner · control regulat',
+        'CFO AI Control · implicare ridicată', 'Controlul deciziilor și al execuției',
+        'Sarcinile urgente și neplanificate se convin separat']
     };
     // …and the defects themselves must be gone from the painted page, in either language.
     const BROKEN = ['На Первичный финансовый разбор', 'La Discuție financiară inițială',
       'Profit există, dar bani nu', 'Nu ajunge flux de numerar', 'pusă ordinea',
       'Planific pentru perspectivă', 'inteligența artificială dvs.', 'Contabilitate există',
       'Comenzi există', 'Bani „există”', 'Aging дебиторки', 'Cash gap', 'управленческий summary',
-      'Summary managerial', 'Aging-ul creanțelor'];
+      'Summary managerial', 'Aging-ul creanțelor', 'Control Light',
+      'CFO Control Partner · Standard', 'CFO AI Control · Premium', 'Разовая CFO-консультация',
+      'Consultație CFO punctuală', '24/7', 'apeluri nelimitate'];
     const bad = [];
     for (const [k, needles] of Object.entries(FIXED)) {
       const text = renderedText[k];
@@ -1826,7 +1851,9 @@ const drawerProbes = {};
 
   check('RU/RO VISUAL PARITY = PASS — the two editions render the same structure', () => {
     const pairs = [['ru-homepage', 'ro-homepage'], ['ru-questionnaire', 'ro-questionnaire'],
-      ['ru-packages', 'ro-packages'], ['ru-monthly-pricing', 'ro-monthly-pricing'],
+      ['ru-how-we-work', 'ro-how-we-work'], ['ru-working-contour', 'ro-working-contour'],
+      ['ru-packages', 'ro-packages'], ['ru-cfo-consultation', 'ro-cfo-consultation'], ['ru-monthly-pricing', 'ro-monthly-pricing'],
+      ['ru-monthly-execution', 'ro-monthly-execution'],
       ['ru-real-estate', 'ro-real-estate'], ['thank-you', 'ro-thank-you']];
     for (const [ru, ro] of pairs) {
       for (const w of [390, 1440]) {
@@ -1884,11 +1911,11 @@ const drawerProbes = {};
     // at both widths: a single-language X-Ray does not certify the Romanian customer's result,
     // and an empty shell does not stand in for a populated review or a success screen.
     const REQUIRED_390 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
-      'ru-packages', 'ro-packages', 'ru-real-estate', 'thank-you',
+      'ru-how-we-work', 'ro-how-we-work', 'ru-packages', 'ro-packages', 'ru-cfo-consultation', 'ro-cfo-consultation', 'ru-real-estate', 'thank-you',
       'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
       'xray-result-ru', 'xray-result-ro'];
     const REQUIRED_1440 = ['ru-homepage', 'ro-homepage', 'ru-questionnaire', 'ro-questionnaire',
-      'ru-packages', 'ro-packages',
+      'ru-how-we-work', 'ro-how-we-work', 'ru-packages', 'ro-packages', 'ru-cfo-consultation', 'ro-cfo-consultation',
       'miniapp-populated', 'miniapp-review', 'miniapp-edit', 'miniapp-success',
       'xray-result-ru', 'xray-result-ro'];
     for (const id of REQUIRED_390) { assert(results[id + '@390'], 'the required 390px surface ' + id + ' is missing'); }
@@ -1921,11 +1948,11 @@ const drawerProbes = {};
   if (KEEP_DIR) {
     // The full required release set at both widths.
     const RETAIN = ['ru-homepage-390', 'ro-homepage-390', 'ru-questionnaire-390', 'ro-questionnaire-390',
-      'ru-packages-390', 'ro-packages-390', 'ru-real-estate-390', 'thank-you-390',
+      'ru-how-we-work-390', 'ro-how-we-work-390', 'ru-packages-390', 'ro-packages-390', 'ru-cfo-consultation-390', 'ro-cfo-consultation-390', 'ru-real-estate-390', 'thank-you-390',
       'miniapp-populated-390', 'miniapp-review-390', 'miniapp-edit-390', 'miniapp-success-390',
       'xray-result-ru-390', 'xray-result-ro-390',
       'ru-homepage-1440', 'ro-homepage-1440', 'ru-questionnaire-1440', 'ro-questionnaire-1440',
-      'ru-packages-1440', 'ro-packages-1440',
+      'ru-how-we-work-1440', 'ro-how-we-work-1440', 'ru-packages-1440', 'ro-packages-1440', 'ru-cfo-consultation-1440', 'ro-cfo-consultation-1440',
       'miniapp-populated-1440', 'miniapp-review-1440', 'miniapp-edit-1440', 'miniapp-success-1440',
       'xray-result-ru-1440', 'xray-result-ro-1440'];
 

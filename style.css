@@ -1765,6 +1765,8 @@ body.menu-open .mobile-menu {
   margin-right: 4px;
 }
 .package--flagship .package__price { color: var(--gold-300); }
+.package__price--project { line-height: 1.15; }
+.package__price--project .package__price-from { display: block; margin: 0 0 var(--sp-2); line-height: 1.4; white-space: normal; }
 
 /* Results band (Проблема → Решение → Результат) */
 .results {
@@ -1945,6 +1947,38 @@ body.menu-open .mobile-menu {
    PROD2 — package goal/next, monthly support, pre-meeting teaser
    ========================================================================== */
 .package__goal { color: var(--text-secondary); font-size: 1rem; line-height: 1.5; margin-bottom: var(--sp-4); }
+.package__module {
+  margin-top: var(--sp-4); padding-top: var(--sp-4);
+  border-top: 1px solid var(--border-hairline);
+  color: var(--text-secondary); font-size: 0.86rem; line-height: 1.55;
+}
+.package__module strong { color: var(--gold-300); font-weight: 600; }
+.packages__expert {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.42fr); align-items: center;
+  gap: var(--sp-7); margin-bottom: var(--sp-8); padding: var(--sp-7) var(--sp-8);
+  border: 1px solid var(--glass-border-gold); border-radius: var(--r-xl);
+  background: linear-gradient(135deg, rgba(201,162,39,0.055), rgba(255,255,255,0.025));
+  box-shadow: var(--elev-1);
+}
+.packages__expert .package__goal { max-width: 72ch; margin-bottom: 0; }
+.package__descriptor { margin: -2px 0 var(--sp-3); color: var(--gold-300); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.02em; }
+.packages__expert-action { padding-left: var(--sp-7); border-left: 1px solid var(--border-hairline); }
+.packages__expert .package__price { margin-bottom: var(--sp-3); font-size: 1.35rem; color: var(--gold-300); }
+.packages__expert-duration { color: var(--text-secondary); font-size: 0.94rem; font-weight: 500; }
+.packages__expert-note { color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+.packages__expert .package__cta { display: inline-flex; margin-top: var(--sp-4); }
+.working-contour {
+  display: grid; grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr); gap: var(--sp-8);
+  margin-top: var(--sp-7); padding: var(--sp-6) var(--sp-7); border-top: 1px solid var(--glass-border-gold);
+  border-bottom: 1px solid var(--glass-border); background: linear-gradient(90deg, rgba(201,162,39,0.045), transparent 72%);
+}
+.working-contour__heading h3 { margin: var(--sp-2) 0 0; color: var(--text-primary); font-family: var(--font-display); font-size: clamp(1.35rem, 2.2vw, 1.75rem); }
+.working-contour__accent { color: var(--gold-300); font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.working-contour__copy { display: grid; gap: var(--sp-3); }
+.working-contour__copy p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.65; }
+.working-contour__copy .working-contour__remote { color: var(--text-primary); }
+.working-contour__copy .working-contour__capacity { padding-top: var(--sp-3); border-top: 1px solid var(--border-hairline); color: var(--text-muted); font-size: 0.84rem; }
+#working-contour, #business-control-offer, #control-partner-offer, #decision-control { scroll-margin-top: 88px; }
 .package__next {
   margin-top: var(--sp-4); padding-top: var(--sp-4);
   border-top: 1px solid var(--border-hairline);
@@ -1996,6 +2030,10 @@ body.menu-open .mobile-menu {
   .pre-meeting__card { flex-direction: column; align-items: flex-start; }
   .pre-meeting__action, .pre-meeting__action .btn { width: 100%; }
   .packages__cta .btn { width: 100%; }
+  .packages__expert { grid-template-columns: 1fr; padding: var(--sp-6); }
+  .packages__expert-action { padding-left: 0; padding-top: var(--sp-5); border-left: 0; border-top: 1px solid var(--border-hairline); }
+  .packages__expert .package__cta { width: 100%; }
+  .working-contour { grid-template-columns: 1fr; gap: var(--sp-5); padding: var(--sp-6) 0; background: transparent; }
 }
 
 /* ============================================================================
@@ -2052,7 +2090,7 @@ body.menu-open .mobile-menu {
 .doc ul, .doc ol { margin: 0 0 var(--sp-4) 0; display: flex; flex-direction: column; gap: 10px; }
 .doc li { position: relative; padding-left: var(--sp-6); color: var(--text-secondary); line-height: 1.6; }
 .doc ul li::before { content: ""; position: absolute; left: 0; top: 9px; width: 12px; height: 7px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
-.doc ol { counter-reset: docol; }
+.doc ol { counter-reset: docol; list-style: none; padding: 0; }
 .doc ol li { counter-increment: docol; }
 .doc ol li::before { content: counter(docol); position: absolute; left: 0; top: 0; font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 600; }
 

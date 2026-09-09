@@ -694,7 +694,7 @@
             tr('formNewRequest', 'Начать новую заявку'),
             function () { success.hidden = true; });
         } else {
-          success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его в <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">FINMENTOR Bot</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
+        success.innerHTML = tr('formFail', '<strong>Не удалось автоматически отправить запрос.</strong> Скопируйте текст заявки и отправьте его FINMENTOR в <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">Telegram</a> или на <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>.');
         }
         success.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
@@ -889,7 +889,7 @@
     var LEVELS = I18N.wcLevels || {
       low: { band: 'Низкий риск · базовый контроль есть', title: 'У вас уже есть часть контроля', text: 'Следующий шаг — связать оборотный капитал с Cash Flow, платёжным календарём и регулярной управленческой отчётностью.' },
       medium: { band: 'Средний риск · деньги могут застревать', title: 'Есть признаки, что деньги застревают', text: 'Похоже, деньги могут застревать в дебиторке, запасах, авансах или платёжной дисциплине. Стоит провести диагностику оборотного капитала и Cash Flow.' },
-      high: { band: 'Высокий риск · нужна диагностика', title: 'Деньгами, вероятно, управляют реактивно', text: 'Высокая вероятность, что платежи решаются вручную, cash gap виден поздно, а прибыль не превращается в свободный cash flow. Рекомендуется Financial Health Check или Discovery Call.' }
+      high: { band: 'Высокий риск · нужна диагностика', title: 'Деньгами, вероятно, управляют реактивно', text: 'Высокая вероятность, что платежи решаются вручную, cash gap виден поздно, а прибыль не превращается в свободный cash flow. Рекомендуется Financial Health Check или обсуждение задачи.' }
     };
     function levelFor(total) { var pct = total / (questions.length * 3); return pct < 0.34 ? 'low' : (pct < 0.67 ? 'medium' : 'high'); }
     function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }

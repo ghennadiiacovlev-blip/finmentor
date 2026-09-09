@@ -36,7 +36,7 @@
   // because this file is served on both.
   var TG = 'https://t.me/finmentor_md_bot?start='
     + (((document.documentElement.getAttribute('lang') || 'ru').toLowerCase().indexOf('ro') === 0) ? 'ro' : 'ru');
-  // Discovery Call target: same-page section on the homepage, otherwise the homepage section.
+  // Generic task-discussion target: same-page section on the homepage, otherwise the homepage section.
   function disco() { return document.getElementById('consult') ? '#consult' : 'index.html#consult'; }
 
 
@@ -88,7 +88,7 @@
       '</div>' +
       '<div class="mobile-menu__footer">' +
         '<a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="docbar_mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">' + tr('ctaXray', 'Пройти финансовый рентген') + '</a>' +
-        '<a href="' + TG + '" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">' + tr('ctaBot', 'Лучше сразу написать → FINMENTOR Bot') + '</a>' +
+        '<a href="' + TG + '" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="docbar_mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">' + tr('ctaBot', 'Обсудить задачу') + '</a>' +
       '</div>';
     document.body.appendChild(menu);
 
@@ -127,7 +127,7 @@
         ctas: [
           { l: 'Пройти mini-scan', h: 'working-capital-scan.html', e: 'assistant_click_mini_scan', p: true },
           { l: 'Страница про оборотный капитал', h: 'working-capital.html' },
-          { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' }
+          { l: 'Обсудить задачу', h: disco(), e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_treasury',
         opt: 'Платежи идут хаотично',
@@ -135,14 +135,14 @@
         ctas: [
           { l: 'Открыть казначейство', h: 'kaznacheystvo.html', p: true },
           { l: 'Смотреть методологию', h: 'methodology.html' },
-          { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' }
+          { l: 'Обсудить задачу', h: disco(), e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_reporting',
         opt: 'Нет понятного P&L / Cash Flow',
         a: 'Если собственник не видит прибыль, деньги и риски в одной логике, первым шагом обычно является Financial Health Check.',
         ctas: [
           { l: 'Пройти полную диагностику', h: 'questionnaire.html', p: true },
-          { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' },
+          { l: 'Обсудить задачу', h: disco(), e: 'assistant_click_discovery_call' },
           { l: 'Business Control System', h: 'business-control-system.html' }
         ] },
       { choose: 'assistant_choose_powerbi',
@@ -151,15 +151,15 @@
         ctas: [
           { l: 'Power BI для собственника', h: 'power-bi-dlya-sobstvennika.html', p: true },
           { l: '1C → Power BI интеграция', h: 'power-bi-dlya-sobstvennika.html' },
-          { l: 'Discovery Call', h: disco(), e: 'assistant_click_discovery_call' }
+          { l: 'Обсудить задачу', h: disco(), e: 'assistant_click_discovery_call' }
         ] },
       { choose: 'assistant_choose_fit',
         opt: 'Хочу понять, подходит ли FINMENTOR',
-        a: 'Лучший первый шаг — Discovery Call на 20–30 минут. Это короткий квалификационный разговор, чтобы понять, есть ли смысл в диагностике.',
+        a: 'Кратко опишите ситуацию. FINMENTOR поможет определить, подходит ли разовая CFO-консультация, диагностика или другой формат работы.',
         ctas: [
-          { l: 'Записаться на Discovery Call', h: disco(), e: 'assistant_click_discovery_call', p: true },
+          { l: 'Обсудить задачу', h: disco(), e: 'assistant_click_discovery_call', p: true },
           { l: 'Смотреть анонимные сценарии', h: 'cases.html' },
-          { l: 'Оставить сообщение в FINMENTOR Bot', h: TG, e: 'assistant_click_bot', tg: true }
+          { l: 'Обсудить задачу', h: TG, e: 'assistant_click_bot', tg: true }
         ] }
     ];
 
@@ -198,7 +198,7 @@
     var closeBtn = panel.querySelector('.fa-panel__close');
 
     function renderMenu() {
-      var h = '<p class="fa-intro">' + tr('faIntro', 'Я помогу выбрать первый шаг: mini-scan, диагностика, Discovery Call или нужную страницу. Это не финансовое заключение — для анализа данных нужна диагностика.') + '</p>' +
+      var h = '<p class="fa-intro">' + tr('faIntro', 'Я помогу выбрать подходящий формат: разовую консультацию, mini-scan, диагностику, финансовую систему или регулярный CFO-контроль. Это не финансовое заключение — для анализа данных нужна диагностика.') + '</p>' +
               '<p class="fa-q">' + tr('faQ', 'Что сейчас больше всего беспокоит?') + '</p>' +
               '<div class="fa-options">';
       SC.forEach(function (s, i) { h += '<button type="button" class="fa-opt" data-i="' + i + '">' + esc(s.opt) + '</button>'; });
