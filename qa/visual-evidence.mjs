@@ -1817,16 +1817,19 @@ const drawerProbes = {};
       'ro-how-we-work@1440': ['Parteneriat și controlul execuției', 'Circuit comun de lucru',
         'Rezultatul se construiește împreună', 'număr limitat de proiecte'],
       'ru-cfo-consultation@1440': ['CFO Advisory Session', 'Стратегическая CFO-консультация', 'тему вопроса',
-        'какое решение нужно принять', 'не полный data room', 'одной подготовленной CFO-сессии'],
+        'какое решение нужно принять', 'не полный data room', 'Когда нужен другой формат', 'сфокусирована на одном заранее определённом решении'],
       'ro-cfo-consultation@1440': ['CFO Advisory Session', 'Sesiune strategică de consultanță CFO', 'tema întrebării',
-        'ce decizie trebuie luată', 'nu un dosar complet', 'o singură sesiune CFO pregătită'],
+        'ce decizie trebuie luată', 'nu un dosar complet', 'Când este necesar un alt format', 'unei singure decizii definite în prealabil'],
       'ru-monthly-pricing@1440': ['Сопровождение начинается с профессионального формата', 'Дебиторка по срокам возникновения',
         'Кассовый разрыв и покрытие', 'Крупное внедрение Power BI', 'Управленческая сводка по итогам периода',
         'CFO Control Partner · регулярный контроль', 'CFO AI Control · высокая вовлечённость',
-        'Контроль решений и исполнения', 'Срочные и внеплановые задачи согласовываются отдельно'],
+        'Контроль решений и исполнения', 'Регулярные CFO-разборы и управленческие брифы в согласованном ритме',
+        'Более высокий уровень вовлечённости CFO в согласованном рабочем контуре', 'Срочные и внеплановые задачи согласовываются отдельно'],
       'ro-monthly-pricing@1440': ['Colaborarea începe cu formatul profesional', 'Vechimea creanțelor', 'Golul de numerar',
         'implementare majoră Power BI', 'Sinteză managerială', 'CFO Control Partner · control regulat',
         'CFO AI Control · implicare ridicată', 'Controlul deciziilor și al execuției',
+        'Analize CFO și sinteze manageriale regulate, într-un ritm convenit',
+        'Un nivel mai ridicat de implicare a CFO-ului în circuitul de lucru convenit',
         'Sarcinile urgente și neplanificate se convin separat']
     };
     // …and the defects themselves must be gone from the painted page, in either language.
@@ -1836,7 +1839,11 @@ const drawerProbes = {};
       'Comenzi există', 'Bani „există”', 'Aging дебиторки', 'Cash gap', 'управленческий summary',
       'Summary managerial', 'Aging-ul creanțelor', 'Control Light',
       'CFO Control Partner · Standard', 'CFO AI Control · Premium', 'Разовая CFO-консультация',
-      'Consultație CFO punctuală', '24/7', 'apeluri nelimitate'];
+      'Consultație CFO punctuală', 'Границы консультации', 'Граница диагностики',
+      'Limitele consultației', 'Limita diagnosticului', 'До 12–16 часов в месяц',
+      'Până la 12–16 ore pe lună', 'Еженедельный финансовый разбор',
+      'Еженедельный бизнес-бриф и стратегическая сессия', 'Analiză financiară săptămânală',
+      'Sinteză de business săptămânală și sesiune strategică', '24/7', 'apeluri nelimitate'];
     const bad = [];
     for (const [k, needles] of Object.entries(FIXED)) {
       const text = renderedText[k];
