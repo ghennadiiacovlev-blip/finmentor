@@ -29,7 +29,7 @@ for (let idx = 0; idx < errors.length; idx++) {
     analysis_row: {
       analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale || 'ru',
       company: String(inp.company || '').slice(0, 120),
-      created_at: now, analysis_version: inp.analysis_version || 'xray-v2', model: inp.ai_model || '',
+      created_at: now, analysis_version: inp.analysis_version || 'lead-intelligence-v1', model: inp.ai_model || '',
       score: inp.score === null || inp.score === undefined ? '' : inp.score, zone: inp.zone || 'UNKNOWN',
       maturity_score: '', primary_risk: '', analysis_json: '', plan_30d_json: '',
       review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '', confidence: '',

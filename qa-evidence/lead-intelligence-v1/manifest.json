@@ -1,0 +1,11 @@
+{
+  "fixture": "Niagara club",
+  "generated_at": "2026-09-10T00:00:00.000Z",
+  "sources": [
+    "niagara-owner-brief-desktop.html",
+    "niagara-owner-brief-mobile.html",
+    "niagara-client-result-editor.html",
+    "niagara-client-result-preview.html",
+    "niagara-telegram-alert.html"
+  ]
+}

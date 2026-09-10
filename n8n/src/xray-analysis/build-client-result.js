@@ -1,6 +1,6 @@
 // FINMENTOR X-Ray Analysis — "Build Curated Client Result".
 //
-// Runs ONLY on the promotion branch (PROMOTE, or ALREADY_READY as an idempotent repair). Emits
+// Runs ONLY on explicit approval (CLIENT_READY, or ALREADY_READY as an idempotent repair). Emits
 // exactly one row for the n8n Data Table `XRay_Client_Results`, which is the ONLY store the Mini
 // App Gateway reads for the customer result — upserted by lead_id, so a lead has one published
 // result and re-promotion replaces it.
@@ -13,8 +13,9 @@
 
 const v = $('Review POST Verdict').first().json || {};
 const row = v.source_row || {};
-if (v.proceed_update !== true || String(row.review_status || '') === 'ANALYSIS_FAILED' || String(row.lead_id || '') === '') return [];
-let a = null; try { a = JSON.parse(String(row.analysis_json || 'null')); } catch (e) { a = null; }
+if (v.publish_client !== true || String(row.review_status || '') === 'ANALYSIS_FAILED' || String(row.lead_id || '') === '') return [];
+let a = v.client_draft && typeof v.client_draft === 'object' ? v.client_draft : null;
+if (!a) { try { a = JSON.parse(String(row.client_result_draft_json || row.analysis_json || 'null')); } catch (e) { a = null; } }
 if (!a || typeof a !== 'object' || Array.isArray(a)) return [];
 
 const locale = row.locale === 'ro' ? 'ro' : 'ru';

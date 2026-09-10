@@ -28,12 +28,16 @@
 
 // __XRAY_OWNER_CARDS__ (inlined by the builder)
 
+// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)
+
+// __LEAD_INTELLIGENCE_ALERT__ (inlined by the builder)
+
 const crypto = require('crypto');
 // The Pipeline tab, for the «Карточка лида» deep link on the owner card (Google Sheets range anchor).
 const PIPELINE_GID = '1883973304';
-const ANALYSIS_VERSION = 'xray-v2';
+const ANALYSIS_VERSION = 'lead-intelligence-v1';
 const REVIEW_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const REQUIRED_TOP = ['executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
+const REQUIRED_TOP = ['owner_brief', 'executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
 const WEEKS = ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'];
 
 function str(v, max) { return String(v === undefined || v === null ? '' : (typeof v === 'object' ? JSON.stringify(v) : v)).trim().slice(0, max || 2000); }
@@ -60,6 +64,7 @@ function contractErrors(p) {
   for (const k of REQUIRED_TOP) { if (!(k in p)) errors.push('missing ' + k); }
   if (errors.length) return errors;
   if (str(p.executive_summary, 2500) === '') errors.push('executive_summary empty');
+  if (!plainObject(p.owner_brief)) errors.push('owner_brief not an object');
   if (!plainObject(p.financial_maturity)) errors.push('financial_maturity not an object');
   else {
     const m = parseInt(p.financial_maturity.score_1_to_5, 10);
@@ -90,7 +95,7 @@ function normalize(p, locale) {
   const fm = p.financial_maturity;
   const maturity = parseInt(fm.score_1_to_5, 10);
   const product = String((p.recommended_next_step || {}).product || '').toUpperCase();
-  const productCode = XRAY_PRODUCT_CODES.includes(product) ? product : 'DISCOVERY_CALL';
+  const productCode = XRAY_PRODUCT_CODES.includes(product) ? product : 'NEEDS_CLARIFICATION';
   return {
     executive_summary: str(p.executive_summary, 2500),
     financial_maturity: { score_1_to_5: maturity, label: str(fm.label, 120), rationale: str(fm.rationale, 800) },
@@ -143,26 +148,26 @@ function fabricationFlags(inputText, outputText) {
 // figure or the model itself reported LOW confidence. The product label is the RU owner label,
 // never the client-locale one. Telegram parse_mode HTML: every value is escaped in the renderer.
 function ownerAlert(inp, a, row, cfg) {
-  const text = XRAY_OWNER_CARDS.renderReview({
-    company: inp.company,
-    locale: row.locale,
-    context: inp.company_context || null,
-    score: row.score,
-    zone: XRAY_ZONES.includes(row.zone) ? row.zone : 'UNKNOWN',
-    maturity: row.maturity_score,
-    primary_risk: a.key_risks[0] ? a.key_risks[0].title : '',
-    priorities: a.management_priorities,
-    // canonical questionnaire risk-zone codes — the owner card's Russian rendering for RO clients
-    risk_zones: Array.isArray(inp.risk_zones) ? inp.risk_zones : [],
-    product: a.recommended_next_step.product,
-    needs_verification: row.fabrication_flags !== '' || a.confidence === 'LOW'
+  const brief = row.owner_brief_json ? JSON.parse(row.owner_brief_json) : {};
+  const firstFact = (brief.client_facts || []).find(f => f.id === 'main_problem') || (brief.client_facts || [])[0] || {};
+  const firstDiagnosis = (brief.diagnoses || [])[0] || {};
+  const text = LI_ALERT.renderLeadIntelligenceAlert({
+    company: (brief.header || {}).company || inp.company,
+    contact_name: (brief.header || {}).contact_name,
+    role: (brief.header || {}).role,
+    business: (brief.header || {}).business,
+    scale: (brief.header || {}).scale,
+    main_pain: firstFact.value,
+    observation: firstDiagnosis.conclusion,
+    contact: brief.contact,
+    next_action: (brief.next_action || {}).action
   });
   const reviewUrl = String(cfg.xray_review_base_url || '') + '?a=' + encodeURIComponent(row.analysis_id) + '&t=' + encodeURIComponent(row.review_token);
   // «Карточка лида»: the Pipeline row when the input knows it, the spreadsheet otherwise.
   const crmBase = String(cfg.crm_url || '');
   const crmRow = Number(inp.crm_row);
   const crmUrl = crmBase && Number.isInteger(crmRow) && crmRow > 1 ? crmBase + '#gid=' + PIPELINE_GID + '&range=A' + crmRow : crmBase;
-  return { text, review_url: reviewUrl, crm_url: crmUrl };
+  return { text, review_url: reviewUrl, contact_url: reviewUrl + '&view=contact', crm_url: crmUrl };
 }
 
 function newAnalysisId(leadId) {
@@ -205,13 +210,26 @@ for (let idx = 0; idx < responses.length; idx++) {
   let parsed = null;
   try { parsed = JSON.parse(extractText(ai)); } catch (e) { out.push({ json: failedOutput(inp, now, ['invalid JSON']) }); continue; }
   const errors = contractErrors(parsed);
+  const ownerBrief = LI.normalizeOwnerBrief(parsed && parsed.owner_brief, Object.assign({}, inp.owner_context || {}, { generated_at: now, intelligence_version: 1 }));
+  errors.push(...LI.briefErrors(ownerBrief));
   if (errors.length) { out.push({ json: failedOutput(inp, now, errors) }); continue; }
 
   const a = normalize(parsed, locale);
+  a.owner_brief = ownerBrief;
   const flags = fabricationFlags(inp.input_digest_text || '', factText(a));
   if (flags.length) { a.confidence = 'LOW'; a.limitations.push((locale === 'ro' ? 'Cifre neconfirmate de datele de intrare: ' : 'Цифры, не подтверждённые входными данными: ') + flags.join(', ')); }
 
   const analysisId = newAnalysisId(inp.lead_id);
+  const analysisJson = JSON.stringify(a);
+  const ownerBriefJson = JSON.stringify(ownerBrief);
+  const clientDraftJson = JSON.stringify(Object.assign({}, a, { owner_brief: undefined }));
+  const planJson = JSON.stringify(a.plan_30_days);
+  // Google Sheets cells have a finite size. Truncating JSON would create a successful-looking,
+  // unreadable record, so oversize derived content fails closed before an owner token is minted.
+  if ([analysisJson, ownerBriefJson, clientDraftJson, planJson].some((s) => s.length > 45000)) {
+    out.push({ json: failedOutput(inp, now, ['derived JSON exceeds storage contract']) });
+    continue;
+  }
   // 32 random bytes: the per-row review authority. Bounded in time so a leaked link expires.
   const reviewToken = crypto.randomBytes(32).toString('hex');
   const row = {
@@ -229,8 +247,13 @@ for (let idx = 0; idx < responses.length; idx++) {
     zone: XRAY_ZONES.includes(inp.zone) ? inp.zone : 'UNKNOWN',
     maturity_score: a.financial_maturity.score_1_to_5,
     primary_risk: a.key_risks[0].title,
-    analysis_json: JSON.stringify(a).slice(0, 45000),
-    plan_30d_json: JSON.stringify(a.plan_30_days).slice(0, 45000),
+    analysis_json: analysisJson,
+    owner_brief_json: ownerBriefJson,
+    client_result_draft_json: clientDraftJson,
+    client_result_eligible: ownerBrief.client_result_eligible,
+    brief_versions_json: '[]',
+    owner_notes_json: '{"confirmed":[],"notes":[]}',
+    plan_30d_json: planJson,
     review_status: 'AI_DRAFT',
     reviewed_at: '',
     review_token: reviewToken,

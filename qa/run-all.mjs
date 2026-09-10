@@ -104,6 +104,7 @@ const GATES = [
   ['Lead Intake NEW LEAD alert routing', 'lead-intake-new-lead-alert-routing.test.mjs'],
   ['GLOBAL NEW-EVENT identity (candidate)', 'lead-intake-request-identity.test.mjs'],
   ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
+  ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];

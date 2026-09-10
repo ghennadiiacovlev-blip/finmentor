@@ -132,7 +132,10 @@ function collectHtml(dir, acc = []) {
     const rel = dir ? `${dir}/${entry}` : entry;
     const st = statSync(join(ROOT, rel));
     if (st.isDirectory()) {
-      if (['.git', 'node_modules', 'qa', 'scripts', 'n8n', 'docs'].includes(entry)) continue;
+      // Repository/UAT evidence is not a deployed website surface. In particular, a local
+      // owner-owned export must not make the public-site contract inspect copied pages as if
+      // they were canonical routes.
+      if (['.git', 'node_modules', 'qa', 'scripts', 'n8n', 'docs', 'qa-evidence', 'qa-artifacts', 'FINMENTOR_GATE6_FINAL'].includes(entry)) continue;
       collectHtml(rel, acc);
     } else if (entry.endsWith('.html')) {
       acc.push(rel);

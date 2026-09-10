@@ -12,7 +12,9 @@
 const cfg = $('Settings to Object').first().json.settings || {};
 if (cfg.xray_analysis_enabled === false) return [];
 
-const analysisItems = $input.all().map(i => i.json);
+let analysisItems;
+try { analysisItems = $('Read XRay_Analysis').all().map(i => i.json); }
+catch (e) { analysisItems = $input.all().map(i => i.json); }
 if (analysisItems.some(r => r && r.error)) return [];
 const analysed = new Set(analysisItems.map(r => String(r.lead_id || '').trim()).filter(Boolean));
 

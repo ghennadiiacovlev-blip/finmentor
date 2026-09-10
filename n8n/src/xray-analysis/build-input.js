@@ -13,6 +13,8 @@
 // authoritative zone; the score is Leads."Diagnostic Score" or raw.diagnostic.score). They
 // are carried on the item, never asked of the model, and never overwritten downstream.
 
+// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)
+
 // ---- PII-safe projection core (mirror of n8n/src/lead-intake/ai-safe-projection.js) ------
 const FORBIDDEN_KEY = /(e?mail|phone|tel(?:egram|ephone)?$|telegram|whatsapp|viber|contact|first_?name|last_?name|full_?name|^name$|company$|company_name|lead_?id|request_?id|client_?id|session_?id|^sid$|^ga_|utm_|consent|referrer|url|href|link|ip_?addr|user_?agent|cookie|token|password|initdata|chat_?id|user_?id)/i;
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
@@ -87,9 +89,19 @@ function detectLocale(pipe, raw, leadRow) {
   return 'ru';
 }
 
-const ALLOWED_PRODUCTS = ['FINANCIAL_HEALTH_CHECK', 'BUSINESS_CONTROL_SYSTEM', 'MONTHLY_CFO_SUPPORT', 'DISCOVERY_CALL'];
+const ALLOWED_PRODUCTS = ['CFO_ADVISORY_SESSION', 'FINANCIAL_HEALTH_CHECK', 'BUSINESS_CONTROL_SYSTEM', 'CFO_CONTROL_PARTNER', 'CFO_AI_CONTROL', 'NEEDS_CLARIFICATION'];
 
 const CONTRACT = {
+  owner_brief: {
+    diagnoses: [{ conclusion: 'professional conclusion, not a repeated answer', evidence_fact_ids: ['ids from CLIENT FACT INDEX only'], hypothesis: 'explicit hypothesis', economic_implication: 'liquidity/profitability/working capital/cost of capital/control consequence without invented amount' }],
+    pain_map: [{ area: 'maximum 4 areas', attention: 'short attention state', observation: 'what FINMENTOR sees', consequence: 'why it matters economically', economic_category: 'liquidity|profitability|working capital|cost of capital|cash conversion|asset utilisation|management speed|risk|capital preservation', evidence_fact_ids: ['fact ids'] }],
+    unknowns: [{ item: 'what is missing/contradictory/unconfirmed', why: 'why it matters' }],
+    first_meeting_objective: 'ONE specific sentence',
+    conversation_opening: 'ONE client-specific, non-accusatory senior-CFO opening',
+    discovery_questions: [{ question: '5–7 questions in symptom→cause→process→money→capital/risk→decision→result order', why: 'the exact diagnostic purpose' }],
+    solution_hypothesis: { product: ALLOWED_PRODUCTS.join('|'), format: 'probable format or clarification first', rationale: 'evidence-based', confirmation_conditions: ['conditions before recommendation'], if_confirmed: 'logical route', do_not_offer_yet: 'optional' },
+    next_action: { action: 'owner action', purpose: 'why', success_condition: 'observable outcome', due_date: 'YYYY-MM-DD or empty' }
+  },
   executive_summary: 'string, 3-6 sentences',
   financial_maturity: { score_1_to_5: 'integer 1-5', label: 'string', rationale: 'string' },
   key_risks: [{ category: 'string', title: 'string', evidence: 'string — only facts from the input', potential_impact: 'string', priority: 'HIGH|MEDIUM|LOW' }],
@@ -101,7 +113,7 @@ const CONTRACT = {
   },
   tomorrow_actions: ['string (max 3)'],
   documents_required: ['string'],
-  recommended_next_step: { product: ALLOWED_PRODUCTS.join('|'), rationale: 'string' },
+  recommended_next_step: { product: ALLOWED_PRODUCTS.join('|'), label: 'customer-facing label', rationale: 'string' },
   confidence: 'HIGH|MEDIUM|LOW',
   limitations: ['string']
 };
@@ -120,7 +132,9 @@ function systemPrompt(locale) {
       '6. Scrie în limba română profesională, registru formal (dumneavoastră). Termenii englezești apar doar în paranteză la prima menționare, de ex. «Flux de numerar (Cash Flow)».',
       '7. Terminologie: Flux de numerar, Cont managerial de profit și pierdere (P&L), Capital circulant, Creanțe, Datorii către furnizori, Lichiditate, Rentabilitate, Raportare managerială, Panou de indicatori-cheie.',
       '8. Produse FINMENTOR permise pentru recommended_next_step.product: ' + ALLOWED_PRODUCTS.join(', ') + '.',
-      '9. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
+      '9. În owner_brief, CLIENT FACT INDEX este singura sursă de fapte. Folosește numai identificatori existenți în evidence_fact_ids. Ipotezele nu sunt fapte.',
+      '10. Soluția este o ipoteză de lucru. Dacă dovezile nu ajung, folosește NEEDS_CLARIFICATION. Nu alege automat produsul cel mai scump.',
+      '11. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
     ].join('\n');
   }
   return [
@@ -135,7 +149,10 @@ function systemPrompt(locale) {
     '6. Пиши на профессиональном экономическом русском языке. Английские термины — только в скобках при первом упоминании, например «Движение денежных средств (Cash Flow)».',
     '7. Терминология: Движение денежных средств, Управленческий отчёт о прибылях и убытках (P&L), Оборотный капитал, Дебиторская задолженность, Кредиторская задолженность, Ликвидность, Рентабельность, Управленческая отчётность, Панель ключевых показателей.',
     '8. Допустимые продукты FINMENTOR для recommended_next_step.product: ' + ALLOWED_PRODUCTS.join(', ') + '.',
-    '9. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
+    '9. В owner_brief ИНДЕКС ФАКТОВ КЛИЕНТА — единственный источник фактов. В evidence_fact_ids используй только существующие идентификаторы. Гипотеза не является фактом.',
+    '10. Решение — рабочая гипотеза. Если доказательств недостаточно, используй NEEDS_CLARIFICATION. Не выбирай автоматически самый дорогой продукт.',
+    '11. Выявляй материальные противоречия: инструменты могут быть заявлены, но не работать операционно. Не повторяй ответы вместо диагноза.',
+    '12. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
   ].join('\n');
 }
 
@@ -147,7 +164,55 @@ function userPrompt(locale, facts, projection) {
   const tail = locale === 'ro'
     ? 'CONTRACT JSON (respectă exact cheile; maxim 5 key_risks, maxim 3 management_priorities, maxim 3 tomorrow_actions; fiecare săptămână 2–4 acțiuni):'
     : 'JSON-КОНТРАКТ (соблюдай ключи точно; не более 5 key_risks, не более 3 management_priorities, не более 3 tomorrow_actions; в каждой неделе 2–4 действия):';
-  return [head, JSON.stringify(facts, null, 2), '', body, JSON.stringify(projection, null, 2), '', tail, JSON.stringify(CONTRACT, null, 2)].join('\n');
+  return [head, JSON.stringify(facts, null, 2), '', 'ИНДЕКС ФАКТОВ КЛИЕНТА / CLIENT FACT INDEX:', JSON.stringify(facts.client_fact_index || [], null, 2), '', body, JSON.stringify(projection, null, 2), '', tail, JSON.stringify(CONTRACT, null, 2)].join('\n');
+}
+
+function controlSummary(control) {
+  const c = control || {};
+  const labels = {
+    management_pl: 'Управленческий P&L', cash_flow: 'Cash Flow', payment_calendar: 'Платёжный календарь', budget_plan: 'Бюджет',
+    receivables_control: 'Дебиторская задолженность', payables_control: 'Кредиторская задолженность',
+    owner_report: 'Отчёт собственника', margin_control: 'Контроль маржи', payment_approval_rules: 'Правила согласования платежей'
+  };
+  return Object.keys(labels).map((k) => ({ key: k, label: labels[k], value: pick(c[k]) })).filter((x) => String(x.value).trim() !== '');
+}
+
+function preferredContact(client, raw, sourceChannel) {
+  const explicit = pick(client.preferred_contact_channel, client.preferred_contact, raw.preferred_contact_channel, raw.contact_channel);
+  if (explicit) return explicit;
+  if (client.email) return 'email';
+  if (client.phone_or_messenger || client.phone) return 'phone';
+  if (/telegram/.test(sourceChannel) && client.telegram) return 'telegram';
+  return '';
+}
+
+function namedRows(name) {
+  try { return $(name).all().map((i) => i.json || {}).filter((r) => !r.error && !r.errorMessage); }
+  catch (e) { return []; }
+}
+function humanHistory(leadId, createdAt) {
+  const out = [];
+  if (createdAt) out.push({ at: String(createdAt), label: 'Получена заявка' });
+  const actionLabels = {
+    lead_created: 'Заявка сохранена', qualification_completed: 'Завершена квалификация',
+    client_result_ready: 'Анализ утверждён', client_result_edited: 'Клиентская версия отредактирована',
+    client_notified_manual: 'Клиент уведомлён вручную', client_notified_telegram: 'Клиент уведомлён в Telegram',
+    conversation_captured: 'Разговор зафиксирован', outbound_contact: 'Клиенту отправлено сообщение'
+  };
+  for (const r of namedRows('Read Activities')) {
+    if (String(r.lead_id || r['Lead ID'] || '') !== leadId) continue;
+    const key = String(r.action || r.event_type || '').trim();
+    const label = actionLabels[key] || String(r.detail || r.description || '').trim();
+    if (label) out.push({ at: String(r.ts || r.created_at || r.timestamp || ''), label: label.slice(0, 240) });
+  }
+  for (const r of namedRows('Read Status_Log')) {
+    if (String(r.lead_id || r['Lead ID'] || '') !== leadId) continue;
+    const to = String(r.to_status || r.new_status || r.status || '').trim();
+    if (to) out.push({ at: String(r.ts || r.changed_at || r.created_at || ''), label: ('Статус изменён: ' + to).slice(0, 240) });
+  }
+  const seen = new Set();
+  return out.filter((x) => { const k = x.at + '|' + x.label; if (seen.has(k)) return false; seen.add(k); return true; })
+    .sort((a, b) => (Date.parse(a.at) || 0) - (Date.parse(b.at) || 0)).slice(-30);
 }
 
 // ---- pairing --------------------------------------------------------------------------
@@ -174,6 +239,31 @@ for (const pipe of pending) {
   const tool = String(pick(raw.tool, leadRow['Tool'], pipe.source_page && String(pipe.source_page).includes('questionnaire') ? 'xray_extended' : '')).toLowerCase();
   const sourceChannel = tool.includes('xray') ? 'website_xray' : tool.includes('mini_scan') ? 'website_mini_scan' : (raw.premium || raw.brief || /miniapp|concierge|telegram/.test(String(raw.source || ''))) ? 'telegram_premium' : 'other';
 
+  const client = raw.client || {};
+  const financialControl = (raw.intake && raw.intake.financial_control) || raw.financial_control || {};
+  const controls = controlSummary(financialControl);
+  const existingSetup = controls.filter((x) => /да|есть|регуляр|частич|yes|true/i.test(String(x.value))).map((x) => x.label + ': ' + x.value);
+  const systemStatus = controls.filter((x) => /receivables|payables|owner_report|margin_control|payment_approval_rules/.test(x.key)).map((x) => x.label + ': ' + x.value).join('; ');
+  const industrySpecific = (raw.intake && raw.intake.industry_specific) || raw.industry_specific || {};
+  const capitalContext = [pick(industrySpecific.loans_or_investors), pick(industrySpecific.capex_or_projects)].filter(Boolean).join('; ');
+  const desiredResult = pick(pipe.selected_goals, raw.selected_goals, raw.intake && raw.intake.goals && raw.intake.goals.selected_goals, raw.intake && raw.intake.business_pain && raw.intake.business_pain.desired_first_step);
+  const preferredChannel = preferredContact(client, raw, sourceChannel);
+  const contact = LI.buildReachability({
+    preferred_contact_channel: preferredChannel,
+    phone: pick(client.phone_or_messenger, client.phone, pipe.phone), email: pick(client.email, pipe.email),
+    telegram: pick(client.telegram, pipe.telegram), source_channel: sourceChannel,
+    telegram_route_verified: sourceChannel === 'telegram_premium'
+  });
+  const clientFacts = LI.buildClientFacts({
+    main_problem: pick(pipe.main_pain, diagnostic.main_pain, raw.main_pain && raw.main_pain.problem),
+    existing_setup: existingSetup,
+    desired_result: desiredResult,
+    urgency: pick(diagnostic.urgency, pipe.urgency, raw.main_pain && raw.main_pain.urgency),
+    financial_system: systemStatus,
+    documents: pick(pipe.selected_documents, raw.intake && raw.intake.documents_available && raw.intake.documents_available.selected_documents),
+    capital_context: capitalContext
+  });
+
   const facts = {
     deterministic_score_0_100: score === null ? 'INSUFFICIENT DATA' : score,
     deterministic_zone: zone,
@@ -194,7 +284,8 @@ for (const pipe of pending) {
     data_quality: pick(leadRow['Data Quality Hint'], raw.completion && raw.completion.data_quality_hint),
     completion_score_percent: (function (n) { return n !== null && n >= 0 && n <= 100 ? Math.round(n) : null; })(num(raw.completion && raw.completion.completion_score)),
     critical_flags: pick(pipe.critical_flags),
-    locale
+    locale,
+    client_fact_index: clientFacts.map((f) => ({ id: f.id, label: f.label, value: f.value }))
   };
 
   const projection = {};
@@ -216,11 +307,23 @@ for (const pipe of pending) {
       // Owner-card context (classified questionnaire labels, user-explicit, already scrubbed) and
       // the Pipeline row for the «Карточка лида» deep link. Presentation only: not in the prompt.
       company_context: { industry: String(factsClean.industry_category || ''), turnover: String(factsClean.turnover_range || ''), employees: String(factsClean.employees_range || '') },
+      // PII and contact routes never enter the AI prompt. They travel only to the owner surface.
+      owner_context: {
+        company: String(pipe.company || client.company || ''), contact_name: String(pipe.name || client.name || ''), role: String(pipe.role || client.role || ''),
+        business: String(factsClean.industry_category || factsClean.business_model || ''),
+        scale: [String(factsClean.turnover_range || ''), String(factsClean.employees_range || '')].filter(Boolean).join(' · '),
+        source: sourceChannel, lead_status: String(pipe.deal_stage || pipe.status || ''),
+        data_quality: String(factsClean.data_quality || 'Требует проверки'),
+        commercial_intent_confirmed: String(pipe.strong_commercial_intent || '').toLowerCase() === 'true',
+        commercial_intent: String(pipe.work_interest || ''), next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
+        diagnostic_score: score, financial_zone: zone, contact, client_facts: clientFacts,
+        client_result_eligible: sourceChannel === 'website_xray', history: humanHistory(leadId, pipe.created_at)
+      },
       crm_row: Number.isInteger(Number(pipe.row_number)) ? Number(pipe.row_number) : null,
       created_at_lead: String(pipe.created_at || ''),
       score: score,
       zone,
-      analysis_version: 'xray-v2',
+      analysis_version: 'lead-intelligence-v1',
       risk_zones: facts.risk_zones_from_questionnaire,
       input_digest_text: JSON.stringify({ facts: factsClean, projection }),
       ai_model: String(($('Settings to Object').first().json.settings || {}).xray_ai_model || 'gpt-4.1'),

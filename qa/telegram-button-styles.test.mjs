@@ -178,13 +178,11 @@ check('10. the owner keyboard is one keyboard — it never varies with the clien
 });
 
 // ── the X-Ray owner alert ─────────────────────────────────────────────────────────────────────
-check('X-Ray owner alert: review is success, CRM is primary, urls and labels unchanged', () => {
-  assert(/text: '✅ Проверить анализ', additionalFields: \{ url: [\s\S]{0,140}?style: 'success' \}/.test(XRAY_SDK), 'the review button is not success');
-  assert(/text: '📊 Карточка лида', additionalFields: \{ url: [\s\S]{0,140}?style: 'primary' \}/.test(XRAY_SDK), 'the CRM button is not primary');
-  assert(/owner_alert\.review_url/.test(XRAY_SDK) && /owner_alert\.crm_url/.test(XRAY_SDK), 'a url expression changed');
-  // the approved notice has no keyboard, and styling must not have invented one
-  const approved = XRAY_SDK.slice(XRAY_SDK.indexOf("name: 'Telegram Analysis Approved'"));
-  assert(!/inlineKeyboard/.test(approved.slice(0, 600)), 'the approved notice grew a keyboard');
+check('X-Ray Lead Intelligence alert: brief is primary and contact is success', () => {
+  assert(/text: 'Разбор клиента', additionalFields: \{ url: [\s\S]{0,140}?style: 'primary' \}/.test(XRAY_SDK), 'the brief button is not primary');
+  assert(/text: 'Связаться', additionalFields: \{ url: [\s\S]{0,140}?style: 'success' \}/.test(XRAY_SDK), 'the contact button is not success');
+  assert(/owner_alert\.review_url/.test(XRAY_SDK) && /owner_alert\.contact_url/.test(XRAY_SDK), 'a brief/contact url expression changed');
+  assert(!/Telegram Analysis Approved/.test(XRAY_SDK), 'the retired duplicate owner approval notice remains');
 });
 
 // ── the literal NEW LEAD keyboard candidate ───────────────────────────────────────────────────

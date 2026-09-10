@@ -8,7 +8,7 @@
 // tracked X-Ray candidate, and proves that the prepared change:
 //   * disables ONLY the Telegram node that sends the overlapping AI brief;
 //   * leaves NEW LEAD (HOT / WARM / INCOMPLETE) Telegram nodes enabled and byte-identical;
-//   * never touches the X-Ray workflow (review-required and approved notices live there);
+//   * never touches the X-Ray workflow (the short owner entry alert and client-ready transport live there);
 //   * changes no edge (lead creation, CRM writes, AI_Plans sheet write all keep their wiring);
 //   * changes no non-Telegram node, no credential, no setting, no name.
 
@@ -61,9 +61,10 @@ check('NEW LEAD alerts (HOT, WARM, INCOMPLETE) stay enabled and byte-identical',
   }
 });
 
-check('X-RAY REVIEW REQUIRED and X-RAY APPROVED live in the X-Ray workflow, which the script never touches', () => {
-  assert(/name: 'Telegram Owner Alert'/.test(xray) && /name: 'Telegram Analysis Approved'/.test(xray), 'the X-Ray notices are not where expected');
-  assert(!byName(live, 'Telegram Owner Alert') && !byName(live, 'Telegram Analysis Approved'), 'the X-Ray notices appear in Lead Intake');
+check('Lead Intelligence owner entry and client-ready notification live in X-Ray, which the script never touches', () => {
+  assert(/name: 'Telegram Owner Alert'/.test(xray) && /name: 'Send Client Ready Notification'/.test(xray), 'the Lead Intelligence notifications are not where expected');
+  assert(!/name: 'Telegram Analysis Approved'/.test(xray), 'the retired duplicate owner approval notice remains');
+  assert(!byName(live, 'Telegram Owner Alert') && !byName(live, 'Send Client Ready Notification'), 'the X-Ray notifications appear in Lead Intake');
   assert(!/QmIyEW2ZEqKregmN|Telegram AI Work Plan/.test(xray), 'the X-Ray candidate references the Lead Intake brief');
 });
 
