@@ -78,6 +78,29 @@ function projectionLeak(projection) {
 function pick(...values) { for (const v of values) { if (v !== undefined && v !== null && String(v).trim() !== '') return v; } return ''; }
 function num(v) { const n = Number(v); return (String(v ?? '').trim() !== '' && Number.isFinite(n)) ? n : null; }
 function asArray(x) { if (!x) return []; if (Array.isArray(x)) return x.map(String).filter(s => s.trim()); if (typeof x === 'string') return x.split(',').map(s => s.trim()).filter(Boolean); return [String(x)]; }
+function projectRiskZones(value) {
+  const rows = Array.isArray(value) ? value : value ? [value] : [];
+  const out = [];
+  for (const row of rows.slice(0, 5)) {
+    if (row && typeof row === 'object' && !Array.isArray(row)) {
+      const projected = {};
+      for (const key of ['key', 'label', 'answer']) {
+        const clean = sanitize(row[key], 1);
+        if (typeof clean === 'string') projected[key] = clean.slice(0, key === 'key' ? 80 : 240);
+      }
+      const score = num(row.score_percent);
+      if (score !== null && score >= 0 && score <= 100) projected.score_percent = Math.round(score);
+      if (Object.keys(projected).length) out.push(projected);
+      continue;
+    }
+    const clean = sanitize(row, 1);
+    if (typeof clean === 'string') out.push(clean.slice(0, 240));
+  }
+  return out;
+}
+function riskZoneKeys(rows) {
+  return rows.map((row) => typeof row === 'string' ? row : String(row.key || '')).filter(Boolean).slice(0, 5);
+}
 function parseRaw(value) {
   if (!String(value || '').trim()) return { ok: false, raw: {}, reason: 'RAW_JSON_EMPTY' };
   try {
@@ -221,6 +244,18 @@ function controlSummary(control) {
   return Object.keys(labels).map((k) => ({ key: k, label: labels[k], value: pick(c[k]) })).filter((x) => String(x.value).trim() !== '');
 }
 
+function quickControlSummary(raw, diagnostic) {
+  const answers = raw && raw.answers && Array.isArray(raw.answers.quick_diagnostic)
+    ? raw.answers.quick_diagnostic
+    : diagnostic && Array.isArray(diagnostic.answers_short) ? diagnostic.answers_short : [];
+  return answers.slice(0, 10).map((row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return '';
+    const label = sanitize(row.label !== undefined ? row.label : row.key, 1);
+    const answer = sanitize(row.answer !== undefined ? row.answer : row.value, 1);
+    return typeof label === 'string' && typeof answer === 'string' ? label.slice(0, 160) + ': ' + answer.slice(0, 240) : '';
+  }).filter(Boolean);
+}
+
 function preferredContact(client, raw, sourceChannel) {
   const explicit = pick(client.preferred_contact_channel, client.preferred_contact, raw.preferred_contact_channel, raw.contact_channel);
   if (explicit) return explicit;
@@ -309,7 +344,10 @@ for (const pipe of pending) {
   const client = raw.client || {};
   const financialControl = (raw.intake && raw.intake.financial_control) || raw.financial_control || {};
   const controls = controlSummary(financialControl);
-  const existingSetup = controls.filter((x) => /да|есть|регуляр|частич|yes|true/i.test(String(x.value))).map((x) => x.label + ': ' + x.value);
+  const quickControls = quickControlSummary(raw, diagnostic);
+  const expandedSetup = controls.filter((x) => /да|есть|регуляр|частич|yes|true/i.test(String(x.value))).map((x) => x.label + ': ' + x.value);
+  const existingSetup = quickControls.length ? quickControls : expandedSetup;
+  const existingSetupSource = quickControls.length ? 'Leads.Raw JSON.answers.quick_diagnostic' : 'Leads.Raw JSON.intake.financial_control';
   const systemStatus = controls.filter((x) => /receivables|payables|owner_report|margin_control|payment_approval_rules/.test(x.key)).map((x) => x.label + ': ' + x.value).join('; ');
   const industrySpecific = (raw.intake && raw.intake.industry_specific) || raw.industry_specific || {};
   const capitalContext = [pick(industrySpecific.loans_or_investors), pick(industrySpecific.capex_or_projects)].filter(Boolean).join('; ');
@@ -326,7 +364,7 @@ for (const pipe of pending) {
     main_problem: pick(pipe.main_pain, diagnostic.main_pain, raw.main_pain && raw.main_pain.problem),
     main_problem_source: pipe.main_pain ? 'Pipeline.main_pain' : diagnostic.main_pain ? 'Leads.Raw JSON.diagnostic.main_pain' : 'Leads.Raw JSON.main_pain.problem',
     existing_setup: existingSetup,
-    existing_setup_source: 'Leads.Raw JSON.intake.financial_control',
+    existing_setup_source: existingSetupSource,
     desired_result: desiredResult,
     desired_result_source: pipe.selected_goals ? 'Pipeline.selected_goals' : 'Leads.Raw JSON.intake.goals.selected_goals',
     desired_first_step: desiredFirstStep,
@@ -347,11 +385,12 @@ for (const pipe of pending) {
     : { value: '', path: '' };
   const resultEligibility = LI.clientResultEligibility({ source_channel: sourceChannel, explicit_request: eligibilitySignal.value, source_path: eligibilitySignal.path });
 
+  const projectedRiskZones = projectRiskZones(diagnostic.risk_zones);
   const facts = {
     deterministic_score_0_100: score === null ? 'INSUFFICIENT DATA' : score,
     deterministic_zone: zone,
     scored_by_xray_questionnaire: score !== null,
-    risk_zones_from_questionnaire: asArray(diagnostic.risk_zones).slice(0, 5),
+    risk_zones_from_questionnaire: projectedRiskZones,
     business_model: pick(pipe.business_model, diagnostic.business_model),
     industry_category: pick(pipe.industry_category),
     turnover_range: pick(pipe.turnover_range),
@@ -393,11 +432,11 @@ for (const pipe of pending) {
       company: String(pipe.company || ''),
       // Owner-card context (classified questionnaire labels, user-explicit, already scrubbed) and
       // the Pipeline row for the «Карточка лида» deep link. Presentation only: not in the prompt.
-      company_context: { industry: String(factsClean.industry_category || ''), turnover: String(factsClean.turnover_range || ''), employees: String(factsClean.employees_range || '') },
+      company_context: { industry: String(factsClean.business_model || factsClean.industry_category || ''), industry_category: String(factsClean.industry_category || ''), turnover: String(factsClean.turnover_range || ''), employees: String(factsClean.employees_range || '') },
       // PII and contact routes never enter the AI prompt. They travel only to the owner surface.
       owner_context: {
         company: String(pipe.company || client.company || ''), contact_name: String(pipe.name || client.name || ''), role: String(pipe.role || client.role || ''),
-        business: String(factsClean.industry_category || factsClean.business_model || ''),
+        business: String(factsClean.business_model || factsClean.industry_category || ''),
         scale: [String(factsClean.turnover_range || ''), String(factsClean.employees_range || '')].filter(Boolean).join(' · '),
         source: sourceChannel, lead_status: String(pipe.deal_stage || pipe.status || ''),
         data_quality: String(factsClean.data_quality || 'Требует проверки'),
@@ -413,7 +452,7 @@ for (const pipe of pending) {
       score: score,
       zone,
       analysis_version: 'lead-intelligence-v1',
-      risk_zones: facts.risk_zones_from_questionnaire,
+      risk_zones: riskZoneKeys(projectedRiskZones),
       input_digest_text: JSON.stringify({ facts: factsClean, projection }),
       ai_model: String(($('Settings to Object').first().json.settings || {}).xray_ai_model || 'gpt-4.1'),
       ai_system_prompt: systemPrompt(locale),

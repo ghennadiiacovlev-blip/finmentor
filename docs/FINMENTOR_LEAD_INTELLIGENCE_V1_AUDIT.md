@@ -83,3 +83,15 @@ Current stage semantics mix operational milestones with sales stages. In particu
 | P1-2 premium owner UX | The hero prioritises identity, pain, insight, reachability and next action. A restrained six-step executive path carries pain → insight → verify → conversation → solution → action. Mobile has two primary sticky actions plus bounded overflow for eligible journeys. | desktop 1440×1100 and mobile 390×844 PNG evidence |
 
 Repository correction only. The public website is unchanged. Production deployment and PR merge remain prohibited until separate owner approval.
+
+## PR #24 SECOND OWNER/CFO data-provenance audit remediation — 2026-09-10
+
+| Blocker | Resolution | Proof |
+|---|---|---|
+| P0-A intent versus requested first step | `diagnostic.wants_review = "Пока только самооценка"` remains publication authority only. `intake.business_pain.desired_first_step = "Построить систему контроля"` is independently rendered as the client-selected first step. | exact-value fixture and owner-brief assertions |
+| P0-B verbatim client facts | `Pipeline.main_pain` is preserved as `Платежи хаотично / кассовые разрывы`; no punctuation or editorial paraphrase enters the `CLIENT_FACT` layer. | Pipeline-to-brief exact equality assertion |
+| P0-C business descriptor | The specific Pipeline `business_model` is primary for owner context; `industry_category` is retained separately as secondary context and is only the fallback when no model exists. | Niagara resolves to `Fitness`, while `Услуги / консалтинг` remains secondary |
+| P0-D contradictory questionnaire layers | Quick diagnostic AR/AP=`Частично` and KPI=`Частично, разрозненно` remain a separate fact from expanded AR/AP=`Да`; blank owner-report, margin and payment-rule fields stay blank and are never fabricated. The disagreement is surfaced as a FINMENTOR interpretation plus `NEEDS_VERIFICATION`. | fact source paths, blank-value and diagnosis/unknown assertions |
+| P1-A structured risk evidence | Object-shaped `diagnostic.risk_zones` is projected to at most five sanitized records containing only `key`, `label`, `answer`, and valid `score_percent`. Downstream canonical risk-zone keys remain strings; `[object Object]` cannot reach the prompt. | structured-projection and no-stringification assertions |
+
+This is a fixture/input-provenance correction only. No public questionnaire, public website, scoring, qualification, pipeline design, deployment or merge is included.

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { NIAGARA_BRIEF, NIAGARA_CLIENT_DRAFT, NIAGARA_ROW } from '../qa/fixtures/lead-intelligence-fixtures.mjs';
+import { NIAGARA_BRIEF, NIAGARA_CLIENT_DRAFT, NIAGARA_LIVE_SANITIZED_SOURCE, NIAGARA_ROW } from '../qa/fixtures/lead-intelligence-fixtures.mjs';
 
 const require = createRequire(import.meta.url);
 const RENDER = require('../n8n/src/lead-intelligence/render.js');
@@ -13,6 +13,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const OUT = path.join(ROOT, 'qa-evidence', 'lead-intelligence-v1');
 fs.mkdirSync(OUT, { recursive: true });
+const sourceRaw = JSON.parse(NIAGARA_LIVE_SANITIZED_SOURCE.lead_row['Raw JSON']);
 
 const auth = { analysis_id: 'XA-NIAGARA-UAT', token: 'uat-not-a-production-token' };
 const row = { ...NIAGARA_ROW, review_status: 'OWNER_EDITED' };
@@ -50,6 +51,20 @@ fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({
   source_pairing: 'unique request_id fallback across intentionally mismatched synthetic Lead IDs',
   client_result_eligible: false,
   client_result_reason: 'self-assessment explicitly selected',
+  source_semantics: {
+    wants_review: sourceRaw.diagnostic.wants_review,
+    desired_first_step: sourceRaw.intake.business_pain.desired_first_step,
+    pipeline_main_pain: NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.main_pain,
+    primary_business_descriptor: NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.business_model,
+    secondary_industry_category: NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.industry_category,
+    quick_ar_ap: sourceRaw.answers.quick_diagnostic.find((row) => row.key === 'receivables_payables').answer,
+    quick_kpi: sourceRaw.answers.quick_diagnostic.find((row) => row.key === 'kpi_dashboard').answer,
+    expanded_receivables_control: sourceRaw.intake.financial_control.receivables_control,
+    expanded_payables_control: sourceRaw.intake.financial_control.payables_control,
+    expanded_owner_report: sourceRaw.intake.financial_control.owner_report,
+    expanded_margin_control: sourceRaw.intake.financial_control.margin_control,
+    expanded_payment_approval_rules: sourceRaw.intake.financial_control.payment_approval_rules
+  },
   generated_at: '2026-09-10T00:00:00.000Z',
   sources: Object.keys(files)
 }, null, 2) + '\n', 'utf8');

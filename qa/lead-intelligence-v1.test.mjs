@@ -37,8 +37,15 @@ check('no-contact case remains empty', LI.buildReachability({ preferred_contact_
 check('Niagara brief contract passes', LI.briefErrors(NIAGARA_BRIEF).length === 0, LI.briefErrors(NIAGARA_BRIEF).join('; '));
 check('every displayed client fact is source-derived', NIAGARA_BRIEF.client_facts.every((x) => x.kind === 'CLIENT_FACT' && x.source_path));
 check('Niagara live-derived source uses mismatched Lead IDs and one request_id', NIAGARA_LIVE_SANITIZED_SOURCE.lead_row['Lead ID'] !== NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.lead_id && NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.request_id === NIAGARA_LIVE_SANITIZED_SOURCE.request_id);
+const niagaraRaw = JSON.parse(NIAGARA_LIVE_SANITIZED_SOURCE.lead_row['Raw JSON']);
+check('Niagara keeps review preference separate from requested first step', niagaraRaw.diagnostic.wants_review === 'Пока только самооценка' && niagaraRaw.intake.business_pain.desired_first_step === 'Построить систему контроля');
+check('Niagara Pipeline main pain preserves exact source wording', NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.main_pain === 'Платежи хаотично / кассовые разрывы' && NIAGARA_BRIEF.client_facts.find((x) => x.id === 'main_problem').value === 'Платежи хаотично / кассовые разрывы');
+check('Niagara keeps the specific business model ahead of industry category', NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.business_model === 'Fitness' && NIAGARA_LIVE_SANITIZED_SOURCE.pipeline_row.industry_category === 'Услуги / консалтинг' && NIAGARA_BRIEF.header.business === 'Fitness');
+check('Niagara expanded controls preserve exact yes and blank values', niagaraRaw.intake.financial_control.receivables_control === 'Да' && niagaraRaw.intake.financial_control.payables_control === 'Да' && ['owner_report','margin_control','payment_approval_rules'].every((key) => niagaraRaw.intake.financial_control[key] === ''));
+check('Niagara quick and expanded control layers remain separate CLIENT_FACTs', NIAGARA_BRIEF.client_facts.some((x) => x.id === 'existing_setup' && x.source_path === 'Leads.Raw JSON.answers.quick_diagnostic' && /Дебиторка и кредиторка: Частично/.test(x.value) && /KPI, риски и отклонения: Частично, разрозненно/.test(x.value)) && NIAGARA_BRIEF.client_facts.some((x) => x.id === 'financial_system' && x.source_path === 'Leads.Raw JSON.intake.financial_control' && /Дебиторская задолженность: Да/.test(x.value) && /Кредиторская задолженность: Да/.test(x.value)));
+check('Niagara blank expanded controls are never fabricated as CLIENT_FACT values', !/Отч[её]т собственника:|Контроль маржи:|Правила согласования платежей:/.test(NIAGARA_BRIEF.client_facts.find((x) => x.id === 'financial_system').value));
 check('Niagara selected goals/documents stay empty instead of becoming facts', !NIAGARA_BRIEF.client_facts.some((x) => ['desired_result','documents'].includes(x.id)));
-check('desired_first_step is explicitly labelled as client-selected', NIAGARA_BRIEF.client_facts.some((x) => x.id === 'desired_first_step' && x.label === 'Первый шаг, выбранный клиентом' && /business_pain\.desired_first_step/.test(x.source_path)));
+check('desired_first_step is exact and explicitly labelled as client-selected', NIAGARA_BRIEF.client_facts.some((x) => x.id === 'desired_first_step' && x.value === 'Построить систему контроля' && x.label === 'Первый шаг, выбранный клиентом' && /business_pain\.desired_first_step/.test(x.source_path)));
 check('Niagara self-assessment is not customer-result eligible', NIAGARA_BRIEF.client_result_eligible === false && NIAGARA_BRIEF.client_result_eligibility_reason === 'EXPLICITLY_NOT_REQUESTED');
 check('website source alone never grants client result', LI.clientResultEligibility({ source_channel: 'website_xray', explicit_request: '' }).eligible === false);
 check('explicit supported journey request grants client result', LI.clientResultEligibility({ source_channel: 'website_xray', explicit_request: 'Да, нужен разбор' }).eligible === true);
@@ -46,13 +53,14 @@ check('every diagnosis is interpretation', NIAGARA_BRIEF.diagnoses.every((x) => 
 check('every unknown is explicitly needs-verification', NIAGARA_BRIEF.unknowns.every((x) => x.kind === 'NEEDS_VERIFICATION'));
 check('diagnosis evidence only references known facts', NIAGARA_BRIEF.diagnoses.every((x) => x.evidence_fact_ids.every((id) => NIAGARA_BRIEF.client_facts.some((f) => f.id === id))));
 check('unknown evidence id is dropped instead of invented', LI.normalizeOwnerBrief({ ...NIAGARA_AI, diagnoses: [{ conclusion: 'x', evidence_fact_ids: ['not-a-f-fact'] }, ...NIAGARA_AI.diagnoses.slice(1)] }, NIAGARA_CONTEXT).diagnoses[0].evidence_fact_ids.length === 0);
-check('Niagara core contradiction detected', /противоречие.*систем.*контрол.*ликвидност|противоречие.*систем.*контрол.*проблем/i.test(NIAGARA_BRIEF.diagnoses[0].conclusion));
+check('Niagara source-layer contradiction is a FINMENTOR diagnosis', /быстрая диагностика.*частичн.*расширенная анкета.*оба контроля есть/i.test(NIAGARA_BRIEF.diagnoses[0].conclusion) && NIAGARA_BRIEF.diagnoses[0].evidence_fact_ids.includes('existing_setup') && NIAGARA_BRIEF.diagnoses[0].evidence_fact_ids.includes('financial_system'));
+check('Niagara source-layer contradiction is explicitly NEEDS_VERIFICATION', NIAGARA_BRIEF.unknowns.some((x) => /быстрая диагностика.*частичн.*расширенная анкета.*«Да»/i.test(x.item)));
 check('Niagara does not conclude another reporting system is needed', !/нужна новая система отч[её]тности/i.test(JSON.stringify(NIAGARA_BRIEF)));
 for (const direction of ['прогноз', 'плат[её]ж', 'дебитор', 'CAPEX', 'финансирован', 'дисциплин']) {
   check('Niagara investigation direction: ' + direction, new RegExp(direction, 'i').test(JSON.stringify(NIAGARA_BRIEF)));
 }
-check('first-meeting objective is specific', /почему существующая система.*не предотвращает кассовые разрывы/i.test(NIAGARA_BRIEF.first_meeting_objective));
-check('opening uses Niagara contradiction', /Cash Flow.*бюджет.*плат[её]жный календарь.*кассовые разрывы/i.test(NIAGARA_BRIEF.conversation_opening));
+check('first-meeting objective is specific', /сверить противоречивые ответы.*источник хаотичных платежей/i.test(NIAGARA_BRIEF.first_meeting_objective));
+check('opening uses the exact Niagara source-layer contradiction', /Платежи хаотично \/ кассовые разрывы.*быстрая диагностика.*частичн.*расширенная анкета.*«Да»/i.test(NIAGARA_BRIEF.conversation_opening));
 check('opening never mentions AI', !/\bAI\b|искусственн/i.test(NIAGARA_BRIEF.conversation_opening));
 check('discovery has 5–7 questions', NIAGARA_BRIEF.discovery_questions.length >= 5 && NIAGARA_BRIEF.discovery_questions.length <= 7);
 check('every discovery question has a purpose', NIAGARA_BRIEF.discovery_questions.every((x) => x.question && x.why));

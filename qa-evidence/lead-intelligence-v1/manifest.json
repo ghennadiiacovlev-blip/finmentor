@@ -4,6 +4,20 @@
   "source_pairing": "unique request_id fallback across intentionally mismatched synthetic Lead IDs",
   "client_result_eligible": false,
   "client_result_reason": "self-assessment explicitly selected",
+  "source_semantics": {
+    "wants_review": "Пока только самооценка",
+    "desired_first_step": "Построить систему контроля",
+    "pipeline_main_pain": "Платежи хаотично / кассовые разрывы",
+    "primary_business_descriptor": "Fitness",
+    "secondary_industry_category": "Услуги / консалтинг",
+    "quick_ar_ap": "Частично",
+    "quick_kpi": "Частично, разрозненно",
+    "expanded_receivables_control": "Да",
+    "expanded_payables_control": "Да",
+    "expanded_owner_report": "",
+    "expanded_margin_control": "",
+    "expanded_payment_approval_rules": ""
+  },
   "generated_at": "2026-09-10T00:00:00.000Z",
   "sources": [
     "niagara-owner-brief-desktop.html",

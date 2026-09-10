@@ -10,7 +10,9 @@ These deterministic, local-only HTML renders use the live-derived, sanitized Nia
 - `niagara-client-result-editor.html` — direct-route proof that editing is blocked for self-assessment.
 - `niagara-client-result-preview.html` — direct-route proof that publication is blocked for self-assessment.
 
-Niagara intentionally has different synthetic Lead IDs in the Leads and Pipeline fixtures and one shared request ID. The generated brief is accepted only through the unique request-ID fallback. Its selected goals and documents remain empty, and `desired_first_step` is shown only as `Первый шаг, выбранный клиентом`.
+Niagara intentionally has different synthetic Lead IDs in the Leads and Pipeline fixtures and one shared request ID. The generated brief is accepted only through the unique request-ID fallback. Its selected goals and documents remain empty. `diagnostic.wants_review = "Пока только самооценка"` controls customer-result eligibility only; `intake.business_pain.desired_first_step = "Построить систему контроля"` is separately shown as `Первый шаг, выбранный клиентом`.
+
+The fact layer preserves exact sanitized source values: Pipeline pain `Платежи хаотично / кассовые разрывы`, primary model `Fitness`, secondary category `Услуги / консалтинг`, quick-diagnostic AR/AP `Частично`, quick KPI `Частично, разрозненно`, and expanded AR/AP `Да`. Blank expanded owner-report, margin and payment-rule answers remain absent from displayed facts. Their disagreement is presented as a FINMENTOR diagnosis and a verification item, never silently reconciled.
 
 Run `node scripts/build-lead-intelligence-evidence.mjs` to regenerate all pages from the deterministic fixture.
 Run `node scripts/capture-lead-intelligence-evidence.mjs` to recapture the two PNGs with local headless Chrome.

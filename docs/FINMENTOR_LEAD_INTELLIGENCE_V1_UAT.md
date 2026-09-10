@@ -17,12 +17,13 @@ Pass condition: the alert answers “should I open this client now?” and conta
 1. Open `niagara-owner-brief-desktop.html` at 1440 px.
 2. Read the executive path first: pain → FINMENTOR insight → verify → conversation → solution → next action. Then scan sections 01–09; do not expand source answers.
 3. Say aloud:
-   - client: Niagara club, Александр, CEO, fitness, 1–5M EUR, 100+ employees;
-   - client pain: cash gaps / chaotic payments;
-   - FINMENTOR view: control instruments exist, yet liquidity failures remain;
-   - unknowns: forecast horizon/quality, payment governance, AR/AP, CAPEX, debt cost and discipline;
+   - client: Niagara club, Александр, CEO, `Fitness`, 1–5M EUR, 100+ employees; `Услуги / консалтинг` is secondary source context, not the primary descriptor;
+   - client pain: exact Pipeline wording `Платежи хаотично / кассовые разрывы`;
+   - client-selected first step: `Построить систему контроля`;
+   - FINMENTOR view: quick diagnostic says AR/AP `Частично`, expanded intake says AR/AP `Да`; the disagreement must be verified;
+   - unknowns: the AR/AP source disagreement, forecast horizon/quality, payment governance, CAPEX, debt cost and discipline;
    - economic pain: liquidity, working capital and cost of capital;
-   - opening: use the Cash Flow/budget/payment-calendar contradiction;
+   - opening: use the quick-diagnostic versus expanded-intake contradiction;
    - solution: a hypothesis, conditional on diagnosis;
    - next action: contact Alexander and confirm the source of the gaps.
 4. Confirm `82 / 100` and GREEN are visible but visually secondary to the contradiction.
@@ -44,17 +45,18 @@ Pass condition: the factual, diagnostic and decision hierarchy remains intact on
 2. Confirm the direct route says `Клиентский результат не предусмотрен` and contains no edit form.
 3. Open `niagara-client-result-preview.html`.
 4. Confirm the direct route says `Предпросмотр недоступен` and contains no approval action.
-5. Confirm the owner memo shows no invented goal or document fact. The only journey-intent fact is explicitly labelled `Первый шаг, выбранный клиентом`.
+5. Confirm the owner memo shows no invented goal or document fact. `Пока только самооценка` is not displayed as a first step; `Построить систему контроля` is explicitly labelled `Первый шаг, выбранный клиентом`.
 
-Pass condition: Niagara selected `Пока только самооценка`; website origin alone never enables a customer result.
+Pass condition: Niagara selected `Пока только самооценка` for review intent and independently selected `Построить систему контроля` as the requested first step; website origin alone never enables a customer result.
 
 ## 04:05–04:40 — Pairing and state truth
 
 1. Run the deterministic source-pair test: Niagara must pair through exactly one `request_id`, never through its mismatched Lead IDs.
 2. Add a second sanitized Leads row with that request ID: expected `REQUEST_ID_COLLISION`, no AI prompt, and an owner audit finding.
 3. Replace Raw JSON with `{}`: expected `RAW_JSON_EMPTY`, no AI prompt, and an owner audit finding.
-4. Confirm the legacy-analysis upgrade keeps its `analysis_id`, review status, review token, client draft and version ledger.
-5. Confirm a successful upgrade is excluded on the next sweep, emits no duplicate alert and never republishes a customer result.
+4. Confirm object-shaped risk zones reach the AI input as bounded `key/label/answer/score_percent` records and no `[object Object]` text exists.
+5. Confirm the legacy-analysis upgrade keeps its `analysis_id`, review status, review token, client draft and version ledger.
+6. Confirm a successful upgrade is excluded on the next sweep, emits no duplicate alert and never republishes a customer result.
 
 Pass condition: unsafe source pairing and empty source facts always fail closed; backfill is bounded and idempotent.
 
