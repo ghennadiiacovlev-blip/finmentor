@@ -9,6 +9,7 @@
 //   xray_max_per_run       3                   cap per sweep, protects the OpenAI budget
 //   xray_backfill_enabled  true                controlled legacy-analysis upgrade switch
 //   xray_backfill_max_per_run 1                reserved idempotent upgrade slots per sweep
+//   xray_backfill_target_analysis_id            exact legacy analysis authorised for one upgrade
 //   xray_review_base_url   https://.../webhook/finmentor-xray-review   the owner review link
 
 const rows = $input.all().map(i => i.json);
@@ -30,6 +31,7 @@ const cfg = {
   xray_max_per_run: Math.min(num(s.xray_max_per_run, 3), 10),
   xray_backfill_enabled: bool(s.xray_backfill_enabled, true),
   xray_backfill_max_per_run: Math.min(num(s.xray_backfill_max_per_run, 1), 2),
+  xray_backfill_target_analysis_id: String(s.xray_backfill_target_analysis_id || '').trim().slice(0, 160),
   xray_review_base_url: s.xray_review_base_url || 'https://ghennadi.app.n8n.cloud/webhook/finmentor-xray-review',
   crm_url: 'https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit'
 };
