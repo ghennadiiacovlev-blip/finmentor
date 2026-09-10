@@ -16,12 +16,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-analysis-workflow.mjs';
+import { compileFile } from '../scripts/lib/compile-workflow-sdk.mjs';
 import { NIAGARA_AI, NIAGARA_LIVE_SANITIZED_SOURCE } from './fixtures/lead-intelligence-fixtures.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'n8n', 'src', 'xray-analysis');
+const GENERATOR = path.join(ROOT, 'scripts', 'build-xray-analysis-workflow.mjs');
+const CANDIDATE = path.join(ROOT, 'n8n', 'candidate', 'xray-analysis-workflow.sdk.js');
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8');
 const liContractBody = fs.readFileSync(path.join(ROOT, 'n8n', 'src', 'lead-intelligence', 'contract.js'), 'utf8')
   .replace(/['"]use strict['"];?\s*/, '').replace(/if \(typeof module[\s\S]*$/, '').trim();
@@ -48,6 +52,59 @@ let passed = 0; let failed = 0;
 function check(name, cond, detail) {
   if (cond) { passed++; console.log('PASS ' + name); }
   else { failed++; console.log('FAIL ' + name + (detail ? ' — ' + detail : '')); }
+}
+
+// The generated SDK is the deployment input. Rebuild it for real, reject a stale checked-in
+// artifact, parse it with Node, then load it through the same compiler used by the live deployer.
+// Connection assertions operate on that compiled graph rather than on regex fragments.
+let compiledWorkflow = null;
+{
+  const before = fs.readFileSync(CANDIDATE, 'utf8');
+  const build = spawnSync(process.execPath, [GENERATOR], { cwd: ROOT, encoding: 'utf8' });
+  check('workflow SDK: generator exits zero', build.status === 0, (build.stderr || build.stdout || '').trim());
+
+  const generated = fs.readFileSync(CANDIDATE, 'utf8');
+  check('workflow SDK: checked-in candidate is generated and not stale', generated === before && generated === sdk);
+
+  const syntax = spawnSync(process.execPath, ['--check', CANDIDATE], { cwd: ROOT, encoding: 'utf8' });
+  check('workflow SDK: generated candidate passes node --check', syntax.status === 0, (syntax.stderr || syntax.stdout || '').trim());
+
+  let loadError = '';
+  try { compiledWorkflow = compileFile(CANDIDATE, {}); } catch (error) { loadError = error.message; }
+  check('workflow SDK: normal deployment compiler loads the generated candidate', !!compiledWorkflow && compiledWorkflow.nodes.length > 0, loadError);
+}
+
+const edgeTargets = (name, output = 0) => ((((compiledWorkflow && compiledWorkflow.connections[name]) || {}).main || [])[output] || []).map((e) => e.node);
+const isEdge = (from, to, output = 0) => edgeTargets(from, output).includes(to);
+{
+  check('compiled graph: IF Persist true persists while false owns the outbound branch',
+    isEdge('IF Persist Owner Action', 'Promote Row', 0) && isEdge('IF Persist Owner Action', 'IF Send Customer Message', 1));
+  check('compiled graph: client publication true chain and false response are preserved',
+    isEdge('IF Publish Client Result', 'Build Curated Client Result', 0) &&
+    isEdge('Build Curated Client Result', 'Publish Curated Client Result') &&
+    isEdge('Publish Curated Client Result', 'Build Client Ready Notification') &&
+    isEdge('IF Publish Client Result', 'Respond Review Done', 1));
+  check('compiled graph: verified Telegram auto-notify chain and false response are preserved',
+    isEdge('IF Verified Telegram Route', 'Client Ready Transport Request', 0) &&
+    isEdge('Client Ready Transport Request', 'Send Client Ready Notification') &&
+    isEdge('Send Client Ready Notification', 'Complete Client Ready Notification') &&
+    isEdge('Complete Client Ready Notification', 'IF Client Notification Delivered') &&
+    isEdge('IF Verified Telegram Route', 'Respond Review Done', 1));
+  check('compiled graph: delivery alone enters CLIENT_NOTIFIED persistence and failure only responds',
+    isEdge('IF Client Notification Delivered', 'Notified Analysis Row', 0) &&
+    isEdge('Notified Analysis Row', 'Update Analysis Notified') &&
+    isEdge('Update Analysis Notified', 'Notified Pipeline Row') &&
+    isEdge('Notified Pipeline Row', 'Update Pipeline Notified') &&
+    isEdge('Update Pipeline Notified', 'Notified Activity Row') &&
+    isEdge('Notified Activity Row', 'Append Notified Activity') &&
+    isEdge('Append Notified Activity', 'Respond Client Notification Result') &&
+    isEdge('IF Client Notification Delivered', 'Respond Client Notification Result', 1));
+  check('compiled graph: explicit outbound path remains below IF Persist false',
+    isEdge('IF Send Customer Message', 'Outbound Transport Request', 0) &&
+    isEdge('Outbound Transport Request', 'Send Customer Message') &&
+    isEdge('Send Customer Message', 'Complete Outbound Contact') &&
+    isEdge('Complete Outbound Contact', 'IF Outbound Delivered') &&
+    isEdge('IF Send Customer Message', 'Respond Review Denied', 1));
 }
 
 // Sandbox: runs a Code node body with the given $input items and named node outputs.
