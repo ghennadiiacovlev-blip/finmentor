@@ -13,7 +13,8 @@ const token = String(q.t || '').trim().slice(0, 80);
 const view = ['brief','contact','edit','preview'].includes(String(q.view || '')) ? String(q.view) : 'brief';
 const all = $input.all().map((i) => i.json || {});
 const storeError = all.some((r) => r.error || r.errorMessage);
-const row = all.find((r) => !r.error && !r.errorMessage && String(r.analysis_id || '') === analysisId);
+const matches = all.filter((r) => !r.error && !r.errorMessage && String(r.analysis_id || '') === analysisId);
+const row = matches.length === 1 ? matches[0] : null;
 
 function same(a, b) {
   const x = Buffer.from(String(a)); const y = Buffer.from(String(b));
@@ -40,7 +41,7 @@ if (storeError) {
   const analysis = parse(row.analysis_json, {});
   const brief = parse(row.owner_brief_json, analysis.owner_brief || {});
   const clientDraft = parse(row.client_result_draft_json, analysis);
-  brief.client_result_eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true';
+  brief.client_result_eligible = row.client_result_eligible === true;
   const actualView = !brief.client_result_eligible && (view === 'edit' || view === 'preview') ? 'brief' : view;
   status = 200;
   html = LI_RENDER.renderOwnerBriefPage({

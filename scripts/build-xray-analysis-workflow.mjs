@@ -422,7 +422,7 @@ const ifPublishClient = ifElse({
 const buildClientResult = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Build Curated Client Result', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.clientResult)} } },
-  output: [{ analysis_id: '', lead_id: '', locale: 'ru', published_at: '', result_json: '{}', review_status: 'CLIENT_READY', score: '', zone: '' }]
+  output: [{ analysis_id: '', lead_id: '', locale: 'ru', published_at: '', result_json: '{}', review_status: 'CLIENT_READY', client_visible: true, score: '', zone: '' }]
 });
 
 const publishClientResult = node({
@@ -431,7 +431,7 @@ const publishClientResult = node({
     parameters: { resource: 'row', operation: 'upsert', dataTableId: { __rl: true, mode: 'name', value: ${J(CLIENT_RESULT_TABLE)} },
       matchType: 'allConditions', filters: { conditions: [{ keyName: 'lead_id', condition: 'eq', keyValue: expr('{{ $json.lead_id }}') }] },
       columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: {} } },
-  output: [{ lead_id: '', review_status: 'CLIENT_READY' }]
+  output: [{ lead_id: '', review_status: 'CLIENT_READY', client_visible: true }]
 });
 
 const buildReadyNotification = node({

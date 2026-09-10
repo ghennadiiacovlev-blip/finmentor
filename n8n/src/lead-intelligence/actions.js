@@ -156,7 +156,7 @@ function handleOwnerAction(input) {
   const clientDraft = parseJson(row.client_result_draft_json, parseJson(row.analysis_json, {}));
   // The ledger value is the fail-closed journey decision. A legacy/AI brief must never grant
   // publication authority when the explicit stored decision is false or absent.
-  const eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true';
+  const eligible = row.client_result_eligible === true;
 
   if (action === 'save_client_draft') {
     if (!eligible) return actionError('CLIENT_RESULT_NOT_ELIGIBLE', 'Для этого обращения клиентский результат не предусмотрен.');
@@ -231,6 +231,7 @@ function handleOwnerAction(input) {
   }
 
   if (action === 'manual_notify') {
+    if (!eligible) return actionError('CLIENT_RESULT_NOT_ELIGIBLE', 'Клиентский результат не был обещан в этом пути.');
     if (state !== 'CLIENT_READY') return actionError('STATE_CONFLICT', 'Сначала результат должен стать доступен клиенту.');
     const channel = LI.channelKey(body.notification_channel);
     if (!channel) return actionError('CHANNEL_REQUIRED', 'Укажите канал ручного уведомления.');

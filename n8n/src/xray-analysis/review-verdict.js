@@ -17,7 +17,8 @@ const token = String(body.t || '').trim().slice(0, 80);
 if (!body.action) body.action = 'approve';
 const all = $input.all().map((i) => i.json || {});
 const storeError = all.some((r) => r.error || r.errorMessage);
-const row = all.find((r) => !r.error && !r.errorMessage && String(r.analysis_id || '') === analysisId);
+const matches = all.filter((r) => !r.error && !r.errorMessage && String(r.analysis_id || '') === analysisId);
+const row = matches.length === 1 ? matches[0] : null;
 
 function same(a, b) {
   const x = Buffer.from(String(a)); const y = Buffer.from(String(b));
