@@ -108,6 +108,40 @@ function fact(id, label, value, sourcePath) {
   };
 }
 
+// Customer publication is a promise made by an originating journey, not an inference from its
+// channel. Only a small explicit allow-list can grant eligibility. Everything else (including
+// Niagara's «Пока только самооценка») is owner-only and fails closed.
+function explicitClientResultRequest(value) {
+  if (value === true || value === 1) return true;
+  const v = text(value, 180).toLowerCase().replace(/ё/g, 'е');
+  return [
+    'true', 'yes', 'да', '1',
+    'да, нужен разбор', 'хочу получить разбор', 'получить разбор', 'да, хочу получить разбор',
+    'vreau analiza', 'doresc analiza', 'da, vreau analiza'
+  ].includes(v);
+}
+
+function clientResultEligibility(input) {
+  const i = input || {};
+  const source = text(i.source_channel, 80).toLowerCase();
+  const sourcePath = text(i.source_path, 220);
+  if (!/^(website_xray|telegram_premium|telegram_miniapp)$/.test(source)) {
+    return { eligible: false, reason: 'JOURNEY_NOT_SUPPORTED', source_path: sourcePath };
+  }
+  if (!explicitClientResultRequest(i.explicit_request)) {
+    return {
+      eligible: false,
+      reason: presentValue(i.explicit_request) ? 'EXPLICITLY_NOT_REQUESTED' : 'NO_EXPLICIT_PROMISE',
+      source_path: sourcePath
+    };
+  }
+  return { eligible: true, reason: 'EXPLICITLY_REQUESTED', source_path: sourcePath };
+}
+
+function presentValue(value) {
+  return value !== undefined && value !== null && text(value, 180) !== '';
+}
+
 // Input values must already have been selected from Leads / Raw JSON / Pipeline. The function does
 // no inference: labels are presentation, values are passed through from the source snapshot.
 function buildClientFacts(source) {
@@ -116,6 +150,7 @@ function buildClientFacts(source) {
     fact('main_problem', 'Основная проблема', s.main_problem, s.main_problem_source || 'Pipeline.main_pain'),
     fact('existing_setup', 'Что уже есть', lines(s.existing_setup, 8, 160).join('; '), s.existing_setup_source || 'Leads.Raw JSON'),
     fact('desired_result', 'Какой результат хочет получить', s.desired_result, s.desired_result_source || 'Pipeline.selected_goals'),
+    fact('desired_first_step', 'Первый шаг, выбранный клиентом', s.desired_first_step, s.desired_first_step_source || 'Leads.Raw JSON.intake.business_pain.desired_first_step'),
     fact('urgency', 'Срочность', s.urgency, s.urgency_source || 'Leads.Raw JSON'),
     fact('financial_system', 'Что сообщил о финансовой системе', s.financial_system, s.financial_system_source || 'Leads.Raw JSON'),
     fact('documents', 'Какие материалы доступны', s.documents, s.documents_source || 'Pipeline.selected_documents'),
@@ -213,7 +248,8 @@ function normalizeOwnerBrief(raw, context) {
     owner_confirmed_facts: Array.isArray(c.owner_confirmed_facts) ? c.owner_confirmed_facts.slice(0, 20) : [],
     owner_notes: Array.isArray(c.owner_notes) ? c.owner_notes.slice(0, 20) : [],
     history: Array.isArray(c.history) ? c.history.slice(0, 30) : [],
-    client_result_eligible: c.client_result_eligible === true
+    client_result_eligible: c.client_result_eligible === true,
+    client_result_eligibility_reason: text(c.client_result_eligibility_reason, 80)
   };
 }
 
@@ -239,6 +275,7 @@ function briefErrors(brief) {
 const api = {
   INFORMATION_KIND, OUTCOME_CODES, PRODUCT_CODES, CONTACT_LABEL,
   text, lines, channelKey, validEmail, validPhone, telegramUsername, telegramNumeric,
+  explicitClientResultRequest, clientResultEligibility,
   buildReachability, buildClientFacts, normalizeOwnerBrief, briefErrors
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = api;

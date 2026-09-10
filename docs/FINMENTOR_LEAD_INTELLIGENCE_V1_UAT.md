@@ -1,6 +1,6 @@
 # FINMENTOR Lead Intelligence v1 — exact 5-minute owner UAT
 
-Fixture: Niagara club. Use the deterministic files in `qa-evidence/lead-intelligence-v1/`. Do not open Raw JSON during the test.
+Fixture: Niagara club, rebuilt from the live-derived sanitized semantics in `qa/fixtures/lead-intelligence-fixtures.mjs`. Identifiers and PII are synthetic. Leads and Pipeline intentionally have different synthetic Lead IDs and one shared request ID. Use the deterministic files in `qa-evidence/lead-intelligence-v1/`. Do not open Raw JSON during the test.
 
 ## 00:00–00:30 — Telegram entry point
 
@@ -15,7 +15,7 @@ Pass condition: the alert answers “should I open this client now?” and conta
 ## 00:30–02:45 — Owner Brief
 
 1. Open `niagara-owner-brief-desktop.html` at 1440 px.
-2. Read only the header and sections 01–09; do not expand source answers.
+2. Read the executive path first: pain → FINMENTOR insight → verify → conversation → solution → next action. Then scan sections 01–09; do not expand source answers.
 3. Say aloud:
    - client: Niagara club, Александр, CEO, fitness, 1–5M EUR, 100+ employees;
    - client pain: cash gaps / chaotic payments;
@@ -34,39 +34,36 @@ Pass condition: all ten owner acceptance questions can be answered within 2–3 
 
 1. Open `niagara-owner-brief-mobile.html` (the evidence page is constrained to 390 px).
 2. Scroll from header through section 09.
-3. Confirm single-column reading, no horizontal scrolling, no tiny text, and usable sticky actions.
+3. Confirm single-column reading, no horizontal scrolling, no tiny text, and exactly two sticky primary actions (`Разбор`, `Связаться`). Customer-result actions must not appear for Niagara.
 
 Pass condition: the factual, diagnostic and decision hierarchy remains intact on mobile.
 
-## 03:20–04:05 — Client edit and exact preview
+## 03:20–04:05 — Source and customer-promise boundary
 
 1. Open `niagara-client-result-editor.html`.
-2. Confirm editable fields are limited to summary, maturity explanation, risks, priorities, 30-day plan, immediate actions and recommendation label/rationale.
-3. Confirm score, zone, original answers and Lead ID cannot be edited.
-4. Open `niagara-client-result-preview.html`.
-5. Confirm the preview contains only client-safe content and exactly represents the saved client draft.
-6. Confirm approval says `Утвердить и сделать доступным`; it does not claim the client was notified.
+2. Confirm the direct route says `Клиентский результат не предусмотрен` and contains no edit form.
+3. Open `niagara-client-result-preview.html`.
+4. Confirm the direct route says `Предпросмотр недоступен` and contains no approval action.
+5. Confirm the owner memo shows no invented goal or document fact. The only journey-intent fact is explicitly labelled `Первый шаг, выбранный клиентом`.
 
-Pass condition: the owner can edit, preview and approve in 2–5 minutes, and owner-only sales intelligence never appears in the client result.
+Pass condition: Niagara selected `Пока только самооценка`; website origin alone never enables a customer result.
 
-## 04:05–04:40 — State and delivery truth
+## 04:05–04:40 — Pairing and state truth
 
-1. Save an edit: expected state `OWNER_EDITED`; no client publication.
-2. Approve from preview: expected state `CLIENT_READY`; curated Data Table upsert occurs.
-3. Niagara has no verified Telegram route: expected owner message says automated delivery is unavailable; state stays `CLIENT_READY`.
-4. Record manual notification with channel: expected `CLIENT_NOTIFIED` with timestamp and actor.
-5. For a verified Mini App Telegram fixture, simulate Client Transport failure: state must stay `CLIENT_READY` and no successful activity is written.
-6. Simulate `{ ok: true }`: expected `CLIENT_NOTIFIED` and one Activities row.
-7. Confirm nothing infers `CLIENT_VIEWED`.
+1. Run the deterministic source-pair test: Niagara must pair through exactly one `request_id`, never through its mismatched Lead IDs.
+2. Add a second sanitized Leads row with that request ID: expected `REQUEST_ID_COLLISION`, no AI prompt, and an owner audit finding.
+3. Replace Raw JSON with `{}`: expected `RAW_JSON_EMPTY`, no AI prompt, and an owner audit finding.
+4. Confirm the legacy-analysis upgrade keeps its `analysis_id`, review status, review token, client draft and version ledger.
+5. Confirm a successful upgrade is excluded on the next sweep, emits no duplicate alert and never republishes a customer result.
 
-Pass condition: AVAILABLE, NOTIFIED and VIEWED are never conflated.
+Pass condition: unsafe source pairing and empty source facts always fail closed; backfill is bounded and idempotent.
 
 ## 04:40–05:00 — After-call capture and audit
 
 1. Select one outcome.
 2. Enter exactly three fields: `Что подтвердилось?`, `Что оказалось иначе?`, and `Следующий шаг + дата` (for example, `Получить ageing дебиторки — 15.09.2026`).
 3. Save.
-4. Confirm the owner brief version increments, the prior version remains in audit history, next action/date project to Pipeline, and an Activities event is appended.
+4. Confirm the owner brief version increments, the prior version remains in audit history, CFO diagnosis/unknowns/discovery questions/solution hypothesis refresh, next action/date project to Pipeline, and an Activities event is appended.
 5. Confirm the original client fact list is byte-identical before and after save.
 
-Pass condition: capture takes under 60 seconds and changes only derived owner intelligence plus narrow operational fields.
+Pass condition: capture takes under 60 seconds, refreshes the derived intelligence layer, and changes only owner-derived intelligence plus narrow operational fields.

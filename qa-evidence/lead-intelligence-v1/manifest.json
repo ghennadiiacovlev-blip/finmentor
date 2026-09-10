@@ -1,5 +1,9 @@
 {
   "fixture": "Niagara club",
+  "semantics": "live-derived sanitized owner audit 2026-09-10; identifiers and PII synthetic",
+  "source_pairing": "unique request_id fallback across intentionally mismatched synthetic Lead IDs",
+  "client_result_eligible": false,
+  "client_result_reason": "self-assessment explicitly selected",
   "generated_at": "2026-09-10T00:00:00.000Z",
   "sources": [
     "niagara-owner-brief-desktop.html",
@@ -7,5 +11,17 @@
     "niagara-client-result-editor.html",
     "niagara-client-result-preview.html",
     "niagara-telegram-alert.html"
+  ],
+  "visual_evidence": [
+    {
+      "file": "niagara-owner-brief-desktop.png",
+      "viewport": "1440x1100",
+      "source": "niagara-owner-brief-desktop.html"
+    },
+    {
+      "file": "niagara-owner-brief-mobile-390.png",
+      "viewport": "390x844",
+      "source": "niagara-owner-brief-mobile.html"
+    }
   ]
 }

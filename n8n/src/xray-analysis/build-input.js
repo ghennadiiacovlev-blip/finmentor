@@ -1,9 +1,9 @@
 // FINMENTOR X-Ray Analysis — "Build Analysis Input".
 //
-// Input:  $input = Leads rows matched by "Lead ID" (0..N), $('Select Pending Leads') = the
-//         Pipeline rows being analysed.
-// Output: one item per pending lead carrying the deterministic facts, the PII-safe
-//         projection, the locale, the prompts and the JSON contract the model must return.
+// Input:  $input = the complete Leads snapshot, $('Select Pending Leads') = the Pipeline rows
+//         being analysed or upgraded.
+// Output: one item per pending lead. Safe source pairs carry the prompts; unsafe/missing pairs
+//         carry a fail-closed audit finding and never reach the model.
 //
 // The model NEVER sees identity. Three layers (allowlist, key denylist, value scrub) are the
 // same core as Lead Intake's ai-safe-projection.js, then the serialised projection is
@@ -78,6 +78,50 @@ function projectionLeak(projection) {
 function pick(...values) { for (const v of values) { if (v !== undefined && v !== null && String(v).trim() !== '') return v; } return ''; }
 function num(v) { const n = Number(v); return (String(v ?? '').trim() !== '' && Number.isFinite(n)) ? n : null; }
 function asArray(x) { if (!x) return []; if (Array.isArray(x)) return x.map(String).filter(s => s.trim()); if (typeof x === 'string') return x.split(',').map(s => s.trim()).filter(Boolean); return [String(x)]; }
+function parseRaw(value) {
+  if (!String(value || '').trim()) return { ok: false, raw: {}, reason: 'RAW_JSON_EMPTY' };
+  try {
+    const raw = JSON.parse(String(value));
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !Object.keys(raw).length) return { ok: false, raw: {}, reason: 'RAW_JSON_EMPTY' };
+    return { ok: true, raw };
+  } catch (e) { return { ok: false, raw: {}, reason: 'RAW_JSON_INVALID' }; }
+}
+function rowLeadId(row) { return String(pick(row && row['Lead ID'], row && row.lead_id)).trim(); }
+function rowRequestId(row) {
+  const direct = String(pick(row && row['Request ID'], row && row.request_id)).trim();
+  if (direct) return direct;
+  const parsed = parseRaw(row && row['Raw JSON']);
+  if (!parsed.ok) return '';
+  return String(pick(parsed.raw.request_id, parsed.raw.meta && parsed.raw.meta.request_id)).trim();
+}
+function addIndex(index, key, row) {
+  if (!key) return;
+  if (!index[key]) index[key] = [];
+  index[key].push(row);
+}
+function auditFinding(pipe, code, detail) {
+  const company = String(pipe.company || '').trim();
+  const labels = {
+    LEADS_READ_UNAVAILABLE: 'источник Leads недоступен',
+    LEAD_ID_COLLISION: 'несколько строк Leads имеют один Lead ID',
+    REQUEST_ID_MISSING: 'нет безопасного ключа request_id для резервной сверки',
+    REQUEST_ID_NOT_FOUND: 'по request_id не найдена строка Leads',
+    REQUEST_ID_COLLISION: 'по request_id найдено несколько строк Leads',
+    RAW_JSON_EMPTY: 'исходный Raw JSON пуст',
+    RAW_JSON_INVALID: 'исходный Raw JSON повреждён'
+  };
+  const subject = company ? ' · ' + company : '';
+  return {
+    analysis_ready: false,
+    analysis_mode: String(pipe.analysis_mode || 'NEW_ANALYSIS'),
+    lead_id: String(pipe.lead_id || ''), request_id: String(pipe.request_id || ''),
+    audit_finding: {
+      severity: 'P0', code,
+      detail: String(detail || ''),
+      owner_text: '⚠️ FINMENTOR · Анализ пропущен' + subject + '\n\nПричина: ' + (labels[code] || 'не удалось безопасно сопоставить источник') + '.\nДанные клиента не использованы. Требуется проверка источника.'
+    }
+  };
+}
 
 function detectLocale(pipe, raw, leadRow) {
   const meta = raw.meta || {};
@@ -216,19 +260,42 @@ function humanHistory(leadId, createdAt) {
 }
 
 // ---- pairing --------------------------------------------------------------------------
-const leadRows = $input.all().map(i => i.json).filter(r => r && !r.error);
-const byLeadId = {};
-for (const r of leadRows) { const id = String(r['Lead ID'] || r.lead_id || '').trim(); if (id && !byLeadId[id]) byLeadId[id] = r; }
+const rawLeadItems = $input.all().map(i => i.json).filter(Boolean);
+const leadsReadUnavailable = rawLeadItems.some((r) => r.error || r.errorMessage);
+const leadRows = rawLeadItems.filter((r) => !r.error && !r.errorMessage && (rowLeadId(r) || rowRequestId(r) || String(r['Raw JSON'] || '').trim()));
+const byLeadId = {}; const byRequestId = {};
+for (const r of leadRows) {
+  addIndex(byLeadId, rowLeadId(r), r);
+  addIndex(byRequestId, rowRequestId(r), r);
+}
 
 const pending = $('Select Pending Leads').all().map(i => i.json);
 const out = [];
 
 for (const pipe of pending) {
   const leadId = String(pipe.lead_id || '').trim();
-  const leadRow = byLeadId[leadId] || {};
-  let raw = {};
-  try { raw = leadRow['Raw JSON'] ? JSON.parse(leadRow['Raw JSON']) : {}; } catch (e) { raw = {}; }
-  if (!raw || typeof raw !== 'object') raw = {};
+  const requestId = String(pipe.request_id || '').trim();
+  if (leadsReadUnavailable) { out.push({ json: auditFinding(pipe, 'LEADS_READ_UNAVAILABLE') }); continue; }
+
+  const direct = byLeadId[leadId] || [];
+  let leadRow = null; let pairingMethod = '';
+  if (direct.length > 1) {
+    out.push({ json: auditFinding(pipe, 'LEAD_ID_COLLISION', 'matches=' + direct.length) }); continue;
+  }
+  if (direct.length === 1) {
+    leadRow = direct[0]; pairingMethod = 'lead_id';
+  } else {
+    if (!requestId) { out.push({ json: auditFinding(pipe, 'REQUEST_ID_MISSING') }); continue; }
+    const fallback = byRequestId[requestId] || [];
+    if (!fallback.length) { out.push({ json: auditFinding(pipe, 'REQUEST_ID_NOT_FOUND') }); continue; }
+    if (fallback.length !== 1) {
+      out.push({ json: auditFinding(pipe, 'REQUEST_ID_COLLISION', 'matches=' + fallback.length) }); continue;
+    }
+    leadRow = fallback[0]; pairingMethod = 'request_id';
+  }
+  const source = parseRaw(leadRow['Raw JSON']);
+  if (!source.ok) { out.push({ json: auditFinding(pipe, source.reason) }); continue; }
+  const raw = source.raw;
 
   const locale = detectLocale(pipe, raw, leadRow);
   const diagnostic = raw.diagnostic || {};
@@ -246,7 +313,8 @@ for (const pipe of pending) {
   const systemStatus = controls.filter((x) => /receivables|payables|owner_report|margin_control|payment_approval_rules/.test(x.key)).map((x) => x.label + ': ' + x.value).join('; ');
   const industrySpecific = (raw.intake && raw.intake.industry_specific) || raw.industry_specific || {};
   const capitalContext = [pick(industrySpecific.loans_or_investors), pick(industrySpecific.capex_or_projects)].filter(Boolean).join('; ');
-  const desiredResult = pick(pipe.selected_goals, raw.selected_goals, raw.intake && raw.intake.goals && raw.intake.goals.selected_goals, raw.intake && raw.intake.business_pain && raw.intake.business_pain.desired_first_step);
+  const desiredResult = pick(pipe.selected_goals, raw.selected_goals, raw.intake && raw.intake.goals && raw.intake.goals.selected_goals);
+  const desiredFirstStep = pick(raw.intake && raw.intake.business_pain && raw.intake.business_pain.desired_first_step, raw.desired_first_step);
   const preferredChannel = preferredContact(client, raw, sourceChannel);
   const contact = LI.buildReachability({
     preferred_contact_channel: preferredChannel,
@@ -256,13 +324,28 @@ for (const pipe of pending) {
   });
   const clientFacts = LI.buildClientFacts({
     main_problem: pick(pipe.main_pain, diagnostic.main_pain, raw.main_pain && raw.main_pain.problem),
+    main_problem_source: pipe.main_pain ? 'Pipeline.main_pain' : diagnostic.main_pain ? 'Leads.Raw JSON.diagnostic.main_pain' : 'Leads.Raw JSON.main_pain.problem',
     existing_setup: existingSetup,
+    existing_setup_source: 'Leads.Raw JSON.intake.financial_control',
     desired_result: desiredResult,
+    desired_result_source: pipe.selected_goals ? 'Pipeline.selected_goals' : 'Leads.Raw JSON.intake.goals.selected_goals',
+    desired_first_step: desiredFirstStep,
+    desired_first_step_source: 'Leads.Raw JSON.intake.business_pain.desired_first_step',
     urgency: pick(diagnostic.urgency, pipe.urgency, raw.main_pain && raw.main_pain.urgency),
     financial_system: systemStatus,
+    financial_system_source: 'Leads.Raw JSON.intake.financial_control',
     documents: pick(pipe.selected_documents, raw.intake && raw.intake.documents_available && raw.intake.documents_available.selected_documents),
-    capital_context: capitalContext
+    documents_source: pipe.selected_documents ? 'Pipeline.selected_documents' : 'Leads.Raw JSON.intake.documents_available.selected_documents',
+    capital_context: capitalContext,
+    capital_context_source: 'Leads.Raw JSON.intake.industry_specific'
   });
+
+  const eligibilitySignal = diagnostic.wants_review !== undefined ? { value: diagnostic.wants_review, path: 'Leads.Raw JSON.diagnostic.wants_review' }
+    : diagnostic.client_result_requested !== undefined ? { value: diagnostic.client_result_requested, path: 'Leads.Raw JSON.diagnostic.client_result_requested' }
+    : raw.client_result_requested !== undefined ? { value: raw.client_result_requested, path: 'Leads.Raw JSON.client_result_requested' }
+    : raw.premium && raw.premium.client_result_requested !== undefined ? { value: raw.premium.client_result_requested, path: 'Leads.Raw JSON.premium.client_result_requested' }
+    : { value: '', path: '' };
+  const resultEligibility = LI.clientResultEligibility({ source_channel: sourceChannel, explicit_request: eligibilitySignal.value, source_path: eligibilitySignal.path });
 
   const facts = {
     deterministic_score_0_100: score === null ? 'INSUFFICIENT DATA' : score,
@@ -299,8 +382,12 @@ for (const pipe of pending) {
 
   out.push({
     json: {
+      analysis_ready: true,
+      analysis_mode: String(pipe.analysis_mode || 'NEW_ANALYSIS'),
+      existing_analysis: pipe.existing_analysis && typeof pipe.existing_analysis === 'object' ? pipe.existing_analysis : null,
+      source_pairing: { method: pairingMethod, pipeline_lead_id: leadId, leads_lead_id: rowLeadId(leadRow), request_id: requestId },
       lead_id: leadId,
-      request_id: String(pipe.request_id || ''),
+      request_id: requestId,
       locale,
       source_channel: sourceChannel,
       company: String(pipe.company || ''),
@@ -317,7 +404,9 @@ for (const pipe of pending) {
         commercial_intent_confirmed: String(pipe.strong_commercial_intent || '').toLowerCase() === 'true',
         commercial_intent: String(pipe.work_interest || ''), next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
         diagnostic_score: score, financial_zone: zone, contact, client_facts: clientFacts,
-        client_result_eligible: sourceChannel === 'website_xray', history: humanHistory(leadId, pipe.created_at)
+        client_result_eligible: resultEligibility.eligible,
+        client_result_eligibility_reason: resultEligibility.reason,
+        history: humanHistory(leadId, pipe.created_at)
       },
       crm_row: Number.isInteger(Number(pipe.row_number)) ? Number(pipe.row_number) : null,
       created_at_lead: String(pipe.created_at || ''),

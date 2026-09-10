@@ -2,6 +2,62 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const LI = require('../../n8n/src/lead-intelligence/contract.js');
 
+// Sanitized projection of the live Niagara source semantics observed during the owner audit.
+// Identifiers and PII are synthetic; business answers preserve the source meaning and emptiness.
+// The deliberately different Lead IDs prove that request_id is the only valid correlation path.
+export const NIAGARA_LIVE_SANITIZED_SOURCE = {
+  request_id: 'REQ-NIAGARA-SYNTHETIC',
+  lead_row: {
+    'Lead ID': 'FIN-NIAGARA-LEADS-SYNTHETIC',
+    'Diagnostic Score': '82',
+    'Tool': 'xray_extended',
+    'Raw JSON': JSON.stringify({
+      tool: 'xray_extended',
+      meta: { request_id: 'REQ-NIAGARA-SYNTHETIC', site_language: 'ru' },
+      client: {
+        name: 'Александр', company: 'Niagara club', role: 'CEO',
+        preferred_contact_channel: 'Telegram',
+        phone_or_messenger: '+373 60 123 456', email: 'alexander@niagara.example'
+      },
+      diagnostic: {
+        score: 82, traffic_light: 'GREEN',
+        main_pain: 'Кассовые разрывы и хаотичные платежи.',
+        wants_review: 'Пока только самооценка'
+      },
+      intake: {
+        company_profile: { industry_category: 'Фитнес', turnover_range: '1–5 млн EUR', employees_range: '100+ сотрудников' },
+        financial_control: {
+          management_pl: 'Есть', cash_flow: 'Есть', payment_calendar: 'Есть', budget_plan: 'Есть',
+          receivables_control: 'Частично', payables_control: 'Частично', owner_report: 'Есть',
+          margin_control: 'Частично', payment_approval_rules: 'Частично'
+        },
+        industry_specific: {
+          loans_or_investors: 'Несколько источников финансирования',
+          capex_or_projects: 'Есть капитальные вложения и отдельные проекты'
+        },
+        business_pain: { desired_first_step: 'Пока только самооценка' },
+        goals: { selected_goals: '' },
+        documents_available: { selected_documents: '' }
+      }
+    })
+  },
+  pipeline_row: {
+    lead_id: 'FIN-NIAGARA-PIPELINE-SYNTHETIC', request_id: 'REQ-NIAGARA-SYNTHETIC',
+    company: 'Niagara club', name: 'Александр', role: 'CEO',
+    business_model: 'Фитнес', industry_category: 'Фитнес', turnover_range: '1–5 млн EUR', employees_range: '100+ сотрудников',
+    main_pain: 'Кассовые разрывы и хаотичные платежи.', selected_goals: '', selected_documents: '',
+    financial_zone: 'GREEN', source_page: 'questionnaire.html', created_at: '2026-09-09T16:31:00.000Z'
+  }
+};
+
+const NIAGARA_RAW = JSON.parse(NIAGARA_LIVE_SANITIZED_SOURCE.lead_row['Raw JSON']);
+const FC = NIAGARA_RAW.intake.financial_control;
+const NIAGARA_ELIGIBILITY = LI.clientResultEligibility({
+  source_channel: 'website_xray',
+  explicit_request: NIAGARA_RAW.diagnostic.wants_review,
+  source_path: 'Leads.Raw JSON.diagnostic.wants_review'
+});
+
 export const NIAGARA_CONTEXT = {
   generated_at: '2026-09-09T16:31:00.000Z', intelligence_version: 1,
   company: 'Niagara club', contact_name: 'Александр', role: 'CEO',
@@ -13,14 +69,30 @@ export const NIAGARA_CONTEXT = {
   preferred_contact_channel: 'Telegram', telegram_username: '', telegram_chat_id: '',
   telegram_route_verified: false, source_channel: 'website_xray',
   phone: '+373 60 123 456', email: 'alexander@niagara.example',
-  client_result_eligible: true,
+  client_result_eligible: NIAGARA_ELIGIBILITY.eligible,
+  client_result_eligibility_reason: NIAGARA_ELIGIBILITY.reason,
   client_facts: LI.buildClientFacts({
-    main_problem: 'Кассовые разрывы и хаотичные платежи.',
-    existing_setup: ['Движение денежных средств (Cash Flow)', 'Управленческий P&L', 'Платёжный календарь', 'Бюджет'],
-    desired_result: 'Повысить предсказуемость денег и качество управленческих решений.',
-    financial_system: 'Дебиторская и кредиторская задолженность контролируются частично; KPI и контроль — частично.',
-    documents: 'Cash Flow, управленческий P&L, платёжный календарь, бюджет.',
-    capital_context: 'Несколько источников финансирования; есть капитальные вложения и отдельные проекты.'
+    main_problem: NIAGARA_RAW.diagnostic.main_pain,
+    main_problem_source: 'Pipeline.main_pain',
+    existing_setup: [
+      'Управленческий P&L: ' + FC.management_pl,
+      'Cash Flow: ' + FC.cash_flow,
+      'Платёжный календарь: ' + FC.payment_calendar,
+      'Бюджет: ' + FC.budget_plan
+    ],
+    existing_setup_source: 'Leads.Raw JSON.intake.financial_control',
+    desired_first_step: NIAGARA_RAW.intake.business_pain.desired_first_step,
+    desired_first_step_source: 'Leads.Raw JSON.intake.business_pain.desired_first_step',
+    financial_system: [
+      'Дебиторская задолженность: ' + FC.receivables_control,
+      'Кредиторская задолженность: ' + FC.payables_control,
+      'Отчёт собственника: ' + FC.owner_report,
+      'Контроль маржи: ' + FC.margin_control,
+      'Правила согласования платежей: ' + FC.payment_approval_rules
+    ].join('; '),
+    financial_system_source: 'Leads.Raw JSON.intake.financial_control',
+    capital_context: NIAGARA_RAW.intake.industry_specific.loans_or_investors + '; ' + NIAGARA_RAW.intake.industry_specific.capex_or_projects,
+    capital_context_source: 'Leads.Raw JSON.intake.industry_specific'
   }),
   history: [
     { at: '09.09 19:30', label: 'Получена заявка' },
@@ -112,8 +184,8 @@ export const NIAGARA_CLIENT_DRAFT = {
 };
 
 export const NIAGARA_ROW = {
-  analysis_id: 'XA-NIAGARA-UAT', lead_id: 'FIN-NIAGARA-UAT', locale: 'ru', review_status: 'OWNER_EDITED',
-  score: '82', zone: 'GREEN', client_result_eligible: true,
+  analysis_id: 'XA-NIAGARA-UAT', lead_id: 'FIN-NIAGARA-PIPELINE-SYNTHETIC', locale: 'ru', review_status: 'OWNER_EDITED',
+  score: '82', zone: 'GREEN', client_result_eligible: false,
   owner_brief_json: JSON.stringify(NIAGARA_BRIEF), client_result_draft_json: JSON.stringify(NIAGARA_CLIENT_DRAFT),
   created_at: '2026-09-09T16:31:00.000Z'
 };

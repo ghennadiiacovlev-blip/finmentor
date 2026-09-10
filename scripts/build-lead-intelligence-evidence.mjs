@@ -18,7 +18,9 @@ const auth = { analysis_id: 'XA-NIAGARA-UAT', token: 'uat-not-a-production-token
 const row = { ...NIAGARA_ROW, review_status: 'OWNER_EDITED' };
 const page = (mode) => RENDER.renderOwnerBriefPage({ brief: NIAGARA_BRIEF, client_draft: NIAGARA_CLIENT_DRAFT, row, auth, mode });
 const desktopBrief = page('brief');
-const mobileBrief = desktopBrief.replace('</head>', '<style>html{max-width:390px;margin:0 auto;background:#d9d6cf}body{width:390px;max-width:100%}</style></head>');
+// Headless Chrome has a wider minimum layout viewport on Windows. Pinning the document to the
+// left edge keeps the deterministic 390px capture exact instead of centring and clipping it.
+const mobileBrief = desktopBrief.replace('</head>', '<style>html{width:390px;max-width:390px;margin:0;background:#d9d6cf}body{width:390px;max-width:390px;margin:0}.actionsbar{width:390px!important;right:auto!important}</style></head>');
 const files = {
   'niagara-owner-brief-desktop.html': desktopBrief,
   'niagara-owner-brief-mobile.html': mobileBrief,
@@ -42,5 +44,13 @@ files['niagara-telegram-alert.html'] = `<!doctype html><html lang="ru"><head><me
 </style></head><body><main class="stage"><div class="bubble">${alert.replace(/\n/g, '<br>')}<div class="time">19:31</div></div><div class="buttons"><div>Разбор клиента</div><div>Связаться</div></div></main></body></html>`;
 
 for (const [name, html] of Object.entries(files)) fs.writeFileSync(path.join(OUT, name), html, 'utf8');
-fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({ fixture: 'Niagara club', generated_at: '2026-09-10T00:00:00.000Z', sources: Object.keys(files) }, null, 2) + '\n', 'utf8');
+fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({
+  fixture: 'Niagara club',
+  semantics: 'live-derived sanitized owner audit 2026-09-10; identifiers and PII synthetic',
+  source_pairing: 'unique request_id fallback across intentionally mismatched synthetic Lead IDs',
+  client_result_eligible: false,
+  client_result_reason: 'self-assessment explicitly selected',
+  generated_at: '2026-09-10T00:00:00.000Z',
+  sources: Object.keys(files)
+}, null, 2) + '\n', 'utf8');
 console.log('wrote ' + Object.keys(files).length + ' UAT pages to ' + path.relative(ROOT, OUT));

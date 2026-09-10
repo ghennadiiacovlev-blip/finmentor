@@ -70,3 +70,16 @@ Current stage semantics mix operational milestones with sales stages. In particu
 - Lead identity: unchanged.
 - Public website and public questionnaire: unchanged.
 - No production deployment or live write was performed.
+
+## PR #24 OWNER/CFO/CRM/Sales audit remediation — 2026-09-10
+
+| Blocker | Resolution | Proof |
+|---|---|---|
+| P0-1 source pairing | Leads is read as one snapshot. A unique canonical Lead ID wins; otherwise exactly one shared request ID is required. Lead-ID collisions, request-ID collisions/misses, read errors, invalid JSON and empty JSON bypass AI and emit an owner audit finding. | `qa/xray-analysis.test.mjs` pairing and audit-finding cases |
+| P0-2 Niagara facts | The deterministic case is rebuilt from a live-derived sanitized source snapshot with synthetic identifiers/PII. Selected goals and documents remain empty. `desired_first_step` is a separate `Первый шаг, выбранный клиентом` fact. | `qa/fixtures/lead-intelligence-fixtures.mjs`; regenerated HTML and PNG evidence |
+| P0-3 customer eligibility | Source channel never grants publication. Only an explicit allow-listed journey response grants the ledger flag; false/missing ledger authority overrides any legacy brief claim. Niagara self-assessment is false. | eligibility, GET, POST and notification gates |
+| P0-4 existing analyses | One bounded legacy row is reserved per sweep by default. It is upserted by existing `analysis_id`, preserves review/customer state, suppresses duplicate success alerts and is sealed COMPLETE/FAILED against reruns. | select/validate/upstream-failure idempotency cases |
+| P1-1 after-call refresh | Owner-confirmed facts and notes retain separate provenance. Each capture versions the prior brief and refreshes diagnosis, unknowns, discovery questions and solution hypothesis without changing `client_facts`. | after-call reconciliation assertions |
+| P1-2 premium owner UX | The hero prioritises identity, pain, insight, reachability and next action. A restrained six-step executive path carries pain → insight → verify → conversation → solution → action. Mobile has two primary sticky actions plus bounded overflow for eligible journeys. | desktop 1440×1100 and mobile 390×844 PNG evidence |
+
+Repository correction only. The public website is unchanged. Production deployment and PR merge remain prohibited until separate owner approval.

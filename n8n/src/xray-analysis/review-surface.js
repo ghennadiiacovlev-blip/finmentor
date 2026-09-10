@@ -40,7 +40,7 @@ if (storeError) {
   const analysis = parse(row.analysis_json, {});
   const brief = parse(row.owner_brief_json, analysis.owner_brief || {});
   const clientDraft = parse(row.client_result_draft_json, analysis);
-  brief.client_result_eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true' || brief.client_result_eligible === true;
+  brief.client_result_eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true';
   const actualView = !brief.client_result_eligible && (view === 'edit' || view === 'preview') ? 'brief' : view;
   status = 200;
   html = LI_RENDER.renderOwnerBriefPage({

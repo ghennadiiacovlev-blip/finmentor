@@ -45,6 +45,84 @@ function normalAction(value) {
   return { action: LI.text(v.action || value, 400), owner_role: LI.text(v.owner_role, 100), expected_output: LI.text(v.expected_output, 400), control_or_kpi: LI.text(v.control_or_kpi, 250), priority: ['HIGH','MEDIUM','LOW'].includes(String(v.priority).toUpperCase()) ? String(v.priority).toUpperCase() : 'MEDIUM' };
 }
 
+function reconcileDerivedIntelligence(brief, input) {
+  const b = brief; const i = input || {};
+  const outcome = String(i.outcome || '').toUpperCase();
+  const confirmed = LI.text(i.confirmed, 1200);
+  const changed = LI.text(i.changed, 1200);
+  const nextStep = LI.text(i.nextStep, 600);
+  const ownerFactIds = i.ownerFactId ? [i.ownerFactId] : [];
+  const ownerNoteIds = i.ownerNoteId ? [i.ownerNoteId] : [];
+  const outcomeLabels = {
+    PROBLEM_CONFIRMED: 'основная проблема подтверждена',
+    HYPOTHESIS_CHANGED: 'рабочая гипотеза изменилась',
+    MORE_DATA_NEEDED: 'для вывода нужны дополнительные данные',
+    NO_TASK_NOW: 'активной задачи сейчас нет',
+    READY_TO_DISCUSS: 'клиент готов обсуждать работу'
+  };
+  const sourceText = [confirmed ? 'Подтверждено: ' + confirmed : '', changed ? 'Уточнено: ' + changed : ''].filter(Boolean).join(' ')
+    || 'Владелец зафиксировал результат разговора: ' + (outcomeLabels[outcome] || outcome) + '.';
+
+  const diagnosis = {
+    kind: LI.INFORMATION_KIND.FINMENTOR_INTERPRETATION,
+    conclusion: LI.text('После разговора ' + sourceText, 700),
+    evidence_fact_ids: [],
+    owner_evidence_ids: ownerFactIds,
+    owner_note_ids: ownerNoteIds,
+    hypothesis: LI.text(outcome === 'HYPOTHESIS_CHANGED'
+      ? 'Предыдущую рабочую гипотезу нельзя использовать без повторной проверки причин.'
+      : 'Следующий вывод должен опираться на подтверждённые в разговоре данные и запрошенные документы.', 700),
+    economic_implication: LI.text(outcome === 'NO_TASK_NOW'
+      ? 'Экономический эффект и срочность не подтверждены; активные рекомендации приостановлены.'
+      : 'До документальной сверки нельзя надёжно оценить влияние на ликвидность, оборотный капитал и стоимость капитала.', 500)
+  };
+  b.diagnoses = [diagnosis].concat(Array.isArray(b.diagnoses) ? b.diagnoses : []).slice(0, 4);
+
+  const verifyText = changed || confirmed || (outcomeLabels[outcome] || outcome);
+  const refreshedUnknown = {
+    kind: LI.INFORMATION_KIND.NEEDS_VERIFICATION,
+    item: LI.text('Проверить после разговора: ' + verifyText, 400),
+    why: LI.text(nextStep
+      ? 'Это должно быть подтверждено данными до шага «' + nextStep + '».'
+      : 'Это отделяет подтверждённый факт владельца от рабочей гипотезы FINMENTOR.', 500),
+    owner_evidence_ids: ownerFactIds,
+    owner_note_ids: ownerNoteIds
+  };
+  b.unknowns = [refreshedUnknown].concat(Array.isArray(b.unknowns) ? b.unknowns : []).slice(0, 7);
+
+  const refreshedQuestion = {
+    kind: LI.INFORMATION_KIND.FINMENTOR_INTERPRETATION,
+    question: LI.text('Какие данные и процесс подтверждают уточнение «' + verifyText + '»?', 500),
+    why: 'Сверить результат разговора с финансовыми данными и обновить причинно-следственную гипотезу.',
+    owner_evidence_ids: ownerFactIds,
+    owner_note_ids: ownerNoteIds
+  };
+  b.discovery_questions = [refreshedQuestion].concat(Array.isArray(b.discovery_questions) ? b.discovery_questions : []).slice(0, 7);
+
+  b.solution_hypothesis = b.solution_hypothesis && typeof b.solution_hypothesis === 'object' ? b.solution_hypothesis : {};
+  if (['HYPOTHESIS_CHANGED', 'MORE_DATA_NEEDED'].includes(outcome)) {
+    b.solution_hypothesis.product = 'NEEDS_CLARIFICATION';
+    b.solution_hypothesis.format = 'Сначала повторная проверка гипотезы и данных';
+  }
+  b.solution_hypothesis.rationale = LI.text(
+    'Обновлено после разговора: ' + sourceText + ' ' + (b.solution_hypothesis.rationale || ''), 700
+  );
+  const condition = LI.text('Документально подтвердить: ' + verifyText, 400);
+  b.solution_hypothesis.confirmation_conditions = [condition]
+    .concat(Array.isArray(b.solution_hypothesis.confirmation_conditions) ? b.solution_hypothesis.confirmation_conditions : [])
+    .filter((x, index, all) => x && all.indexOf(x) === index).slice(0, 6);
+  b.solution_hypothesis.reconciled_from = {
+    outcome,
+    owner_evidence_ids: ownerFactIds,
+    owner_note_ids: ownerNoteIds,
+    at: i.now
+  };
+
+  b.first_meeting_objective = LI.text('Продолжить диагностику с учётом результата разговора: ' + verifyText + '.', 700);
+  b.conversation_opening = LI.text('После нашего разговора я зафиксировал: ' + verifyText + '. Давайте сверим это с данными и определим следующий управленческий шаг.', 900);
+  return b;
+}
+
 function editClientDraft(current, body) {
   const c = JSON.parse(JSON.stringify(current || {})); const b = body || {};
   c.executive_summary = LI.text(b.executive_summary, 2500);
@@ -76,7 +154,9 @@ function handleOwnerAction(input) {
   const state = String(row.review_status || '');
   const brief = parseJson(row.owner_brief_json, parseJson(row.analysis_json, {}).owner_brief || {});
   const clientDraft = parseJson(row.client_result_draft_json, parseJson(row.analysis_json, {}));
-  const eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true' || brief.client_result_eligible === true;
+  // The ledger value is the fail-closed journey decision. A legacy/AI brief must never grant
+  // publication authority when the explicit stored decision is false or absent.
+  const eligible = row.client_result_eligible === true || String(row.client_result_eligible).toLowerCase() === 'true';
 
   if (action === 'save_client_draft') {
     if (!eligible) return actionError('CLIENT_RESULT_NOT_ELIGIBLE', 'Для этого обращения клиентский результат не предусмотрен.');
@@ -125,8 +205,11 @@ function handleOwnerAction(input) {
     nextBrief.generated_at = now;
     nextBrief.owner_confirmed_facts = Array.isArray(nextBrief.owner_confirmed_facts) ? nextBrief.owner_confirmed_facts : [];
     nextBrief.owner_notes = Array.isArray(nextBrief.owner_notes) ? nextBrief.owner_notes : [];
-    if (confirmed) nextBrief.owner_confirmed_facts.push({ kind: LI.INFORMATION_KIND.OWNER_CONFIRMED_FACT, text: confirmed, at: now, actor: 'owner:review' });
-    if (changed) nextBrief.owner_notes.push({ kind: LI.INFORMATION_KIND.OWNER_NOTE, text: changed, at: now, actor: 'owner:review' });
+    const ownerFactId = confirmed ? 'owner-fact-v' + version : '';
+    const ownerNoteId = changed ? 'owner-note-v' + version : '';
+    if (confirmed) nextBrief.owner_confirmed_facts.push({ id: ownerFactId, kind: LI.INFORMATION_KIND.OWNER_CONFIRMED_FACT, text: confirmed, at: now, actor: 'owner:review' });
+    if (changed) nextBrief.owner_notes.push({ id: ownerNoteId, kind: LI.INFORMATION_KIND.OWNER_NOTE, text: changed, at: now, actor: 'owner:review' });
+    reconcileDerivedIntelligence(nextBrief, { outcome, confirmed, changed, nextStep, nextDate, ownerFactId, ownerNoteId, now });
     nextBrief.header = nextBrief.header || {};
     nextBrief.next_action = nextBrief.next_action || {};
     if (nextStep) { nextBrief.header.next_action = nextStep; nextBrief.next_action.action = nextStep; }
@@ -188,4 +271,4 @@ function handleOwnerAction(input) {
   return actionError('UNKNOWN_ACTION', 'Действие не распознано.');
 }
 
-if (typeof module !== 'undefined' && module.exports) module.exports = { parseJson, safeDate, editClientDraft, handleOwnerAction };
+if (typeof module !== 'undefined' && module.exports) module.exports = { parseJson, safeDate, editClientDraft, reconcileDerivedIntelligence, handleOwnerAction };

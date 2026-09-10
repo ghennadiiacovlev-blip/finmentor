@@ -24,18 +24,28 @@ for (let idx = 0; idx < errors.length; idx++) {
   const inp = inputs[idx];
   if (!inp) continue;
   const klass = errorClass(errors[idx]);
-  const analysisId = 'XA-' + String(inp.lead_id).replace(/[^A-Za-z0-9_-]/g, '') + '-' + Date.now().toString(36).toUpperCase() + '-F';
+  const upgrading = inp.analysis_mode === 'UPGRADE_EXISTING' && inp.existing_analysis && typeof inp.existing_analysis === 'object';
+  const existing = upgrading ? inp.existing_analysis : {};
+  const analysisId = upgrading ? String(existing.analysis_id || '') : 'XA-' + String(inp.lead_id).replace(/[^A-Za-z0-9_-]/g, '') + '-' + Date.now().toString(36).toUpperCase() + '-F';
+  const failureRow = {
+    analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale || 'ru',
+    company: String(inp.company || '').slice(0, 120),
+    created_at: now, analysis_version: inp.analysis_version || 'lead-intelligence-v1', model: inp.ai_model || '',
+    score: inp.score === null || inp.score === undefined ? '' : inp.score, zone: inp.zone || 'UNKNOWN',
+    maturity_score: '', primary_risk: '', analysis_json: '', plan_30d_json: '',
+    review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '', confidence: '',
+    fabrication_flags: '', validation_errors: 'UPSTREAM_' + klass, source_channel: inp.source_channel || '', executive_summary: 'ANALYSIS_FAILED: ' + klass,
+    recommended_next_step: '', next_step_label: '', customer_notified_at: ''
+  };
+  const analysisRow = upgrading ? Object.assign({}, existing, {
+    analysis_id: analysisId,
+    lead_intelligence_upgrade_status: 'FAILED',
+    lead_intelligence_upgrade_attempted_at: now,
+    lead_intelligence_upgrade_errors: 'UPSTREAM_' + klass
+  }) : failureRow;
   out.push({ json: {
-    analysis_row: {
-      analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale || 'ru',
-      company: String(inp.company || '').slice(0, 120),
-      created_at: now, analysis_version: inp.analysis_version || 'lead-intelligence-v1', model: inp.ai_model || '',
-      score: inp.score === null || inp.score === undefined ? '' : inp.score, zone: inp.zone || 'UNKNOWN',
-      maturity_score: '', primary_risk: '', analysis_json: '', plan_30d_json: '',
-      review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '', confidence: '',
-      fabrication_flags: '', validation_errors: 'UPSTREAM_' + klass, source_channel: inp.source_channel || '', executive_summary: 'ANALYSIS_FAILED: ' + klass,
-      recommended_next_step: '', next_step_label: '', customer_notified_at: ''
-    },
+    analysis_row: analysisRow,
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : 'NEW_ANALYSIS',
     is_valid: false,
     // ❌ Анализ не сформирован — the class renders as Russian; no Lead ID, no payload, no prompt.
     owner_text: XRAY_OWNER_CARDS.renderFailed({ company: inp.company, locale: inp.locale, cause: klass }),
