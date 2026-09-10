@@ -600,7 +600,7 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
         .onTrue(readyTransportRequest.to(sendReadyNotification.to(completeReadyNotification.to(ifReadyDelivered
           .onTrue(notifiedAnalysisRow.to(updateNotifiedAnalysis.to(notifiedPipelineRow.to(updateNotifiedPipeline.to(notifiedActivityRow.to(appendNotifiedActivity.to(respondReadyNotification)))))))
           .onFalse(respondReadyNotification)))))
-        .onFalse(respondPromoted))))
+        .onFalse(respondPromoted)))))
       .onFalse(respondPromoted))))))))
     .onFalse(ifSendCustomer
       .onTrue(outboundTransportRequest.to(sendCustomerMessage.to(completeOutbound.to(ifOutboundDelivered
