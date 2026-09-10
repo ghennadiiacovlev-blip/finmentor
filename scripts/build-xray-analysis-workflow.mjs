@@ -112,7 +112,7 @@ const readSettings = node({
 const settingsToObject = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Settings to Object', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.settings)} } },
-  output: [{ settings: { owner_chat_id: '', xray_ai_model: 'gpt-4.1', xray_backfill_enabled: true, xray_backfill_max_per_run: 1 } }]
+  output: [{ settings: { owner_chat_id: '', xray_ai_model: 'gpt-4.1', xray_backfill_enabled: true, xray_backfill_max_per_run: 1, xray_backfill_target_analysis_id: '' } }]
 });
 
 const readPipeline = node({

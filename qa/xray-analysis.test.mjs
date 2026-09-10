@@ -120,17 +120,20 @@ function runNode(body, { input = [], nodes = {} } = {}) {
   return fn($input, $, req, Buffer);
 }
 
-const settings = { owner_chat_id: '1', xray_analysis_enabled: true, xray_ai_model: 'gpt-4.1', xray_analysis_since: '2026-09-01T00:00:00.000Z', xray_max_per_run: 3, xray_backfill_enabled: true, xray_backfill_max_per_run: 1, xray_review_base_url: 'https://n8n.test/webhook/finmentor-xray-review', crm_url: 'https://crm.test' };
+const settings = { owner_chat_id: '1', xray_analysis_enabled: true, xray_ai_model: 'gpt-4.1', xray_analysis_since: '2026-09-01T00:00:00.000Z', xray_max_per_run: 3, xray_backfill_enabled: true, xray_backfill_max_per_run: 1, xray_backfill_target_analysis_id: '', xray_review_base_url: 'https://n8n.test/webhook/finmentor-xray-review', crm_url: 'https://crm.test' };
 
 // ---------- settings ----------
 {
-  const out = runNode(read('settings.js'), { input: [{ key: 'owner_chat_id', value: '42' }, { key: 'xray_max_per_run', value: '50' }, { key: 'xray_analysis_since', value: 'garbage' }] });
+  const out = runNode(read('settings.js'), { input: [{ key: 'owner_chat_id', value: '42' }, { key: 'xray_max_per_run', value: '50' }, { key: 'xray_analysis_since', value: 'garbage' }, { key: 'xray_backfill_target_analysis_id', value: ' XA-TARGET-1 ' }] });
   const s = out[0].json.settings;
   check('settings: owner chat id read from Settings', s.owner_chat_id === '42');
   check('settings: per-run cap clamped to 10', s.xray_max_per_run === 10);
   check('settings: invalid since falls back to program start', s.xray_analysis_since === '2026-09-03T00:00:00.000Z');
   check('settings: default model gpt-4.1', s.xray_ai_model === 'gpt-4.1');
   check('settings: controlled backfill defaults to one row per sweep', s.xray_backfill_enabled === true && s.xray_backfill_max_per_run === 1);
+  check('settings: exact backfill analysis id is trimmed and retained', s.xray_backfill_target_analysis_id === 'XA-TARGET-1');
+  const defaults = runNode(read('settings.js'), { input: [] })[0].json.settings;
+  check('settings: backfill target defaults empty', defaults.xray_backfill_target_analysis_id === '');
 }
 
 // ---------- select pending ----------
@@ -153,16 +156,41 @@ const pipeline = [
   check('pending: an ANALYSIS_FAILED row stops the sweep from looping on the lead', !failedLedger.map(i => i.json.lead_id).includes('L-1'));
 }
 {
-  const legacy = { analysis_id: 'XA-LEGACY-L1', lead_id: 'L-1', review_status: 'OWNER_EDITED', analysis_version: 'c3', owner_brief_json: '', review_token: 'a'.repeat(64), client_result_draft_json: '{"preserve":true}' };
-  const out = runNode(read('select-pending.js'), { input: [legacy], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
-  check('backfill: one legacy analysis is selected ahead of fresh work', out[0].json.lead_id === 'L-1' && out[0].json.analysis_mode === 'UPGRADE_EXISTING' && out[0].json.existing_analysis.analysis_id === 'XA-LEGACY-L1');
-  check('backfill: total model work remains capped', out.length === 3);
-  const afterUpgrade = runNode(read('select-pending.js'), { input: [{ ...legacy, analysis_version: 'lead-intelligence-v1', owner_brief_json: '{"schema_version":"lead-intelligence-v1"}', lead_intelligence_upgrade_status: 'COMPLETE' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
-  check('backfill: completed upgrade is idempotently excluded on the next sweep', !afterUpgrade.map((i) => i.json).some((r) => r.lead_id === 'L-1'));
-  const collision = runNode(read('select-pending.js'), { input: [legacy, { ...legacy, analysis_id: 'XA-DUP' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
-  check('backfill: duplicate analysis ledger collision fails closed', !collision.map((i) => i.json).some((r) => r.lead_id === 'L-1'));
-  const off = runNode(read('select-pending.js'), { input: [legacy], nodes: { 'Settings to Object': [{ settings: { ...settings, xray_backfill_enabled: false } }], 'Read Pipeline': pipeline } });
-  check('backfill: explicit switch disables upgrades', !off.map((i) => i.json).some((r) => r.lead_id === 'L-1'));
+  const legacy = (analysisId, leadId, extra = {}) => ({ analysis_id: analysisId, lead_id: leadId, review_status: 'OWNER_EDITED', analysis_version: 'c3', owner_brief_json: '', review_token: 'a'.repeat(64), client_result_draft_json: '{"preserve":true}', ...extra });
+  const synthetic = legacy('XA-SYNTHETIC', 'L-SYNTHETIC');
+  const niagara = legacy('XA-NIAGARA', 'L-NIAGARA');
+  const freshLead = { lead_id: 'L-FRESH', priority: 'HOT', status: 'New', created_at: '2026-09-05T10:00:00Z' };
+  const targetedPipeline = [
+    { lead_id: 'L-SYNTHETIC', priority: 'HOT', status: 'Qualified', created_at: '2026-09-02T10:00:00Z' },
+    { lead_id: 'L-NIAGARA', priority: 'HOT', status: 'Qualified', created_at: '2026-09-04T10:00:00Z' },
+    freshLead
+  ];
+  const select = (rows, target = '', pipelineRows = targetedPipeline, enabled = true) => runNode(read('select-pending.js'), {
+    input: rows,
+    nodes: { 'Settings to Object': [{ settings: { ...settings, xray_backfill_enabled: enabled, xray_backfill_target_analysis_id: target } }], 'Read Pipeline': pipelineRows }
+  });
+
+  const noTarget = select([synthetic, niagara]);
+  check('backfill target A: enabled with no target performs no legacy upgrade', !noTarget.some((i) => i.json.analysis_mode === 'UPGRADE_EXISTING'));
+
+  const niagaraTarget = select([synthetic, niagara], 'XA-NIAGARA');
+  check('backfill target B: exact Niagara id selects only Niagara despite older synthetic data', niagaraTarget.length === 1 && niagaraTarget[0].json.lead_id === 'L-NIAGARA' && niagaraTarget[0].json.analysis_mode === 'UPGRADE_EXISTING' && niagaraTarget[0].json.existing_analysis === niagara);
+
+  const syntheticTarget = select([synthetic, niagara], 'XA-SYNTHETIC');
+  check('backfill target C: exact synthetic id selects only the synthetic row', syntheticTarget.length === 1 && syntheticTarget[0].json.lead_id === 'L-SYNTHETIC' && syntheticTarget[0].json.existing_analysis === synthetic);
+  check('backfill target D: unknown exact id fails closed', select([synthetic, niagara], 'XA-MISSING').length === 0);
+  check('backfill target E: duplicate exact analysis id fails closed', select([synthetic, niagara, legacy('XA-NIAGARA', 'L-OTHER')], 'XA-NIAGARA').length === 0);
+  check('backfill target F: missing eligible Pipeline match fails closed', select([synthetic, niagara], 'XA-NIAGARA', [targetedPipeline[0], freshLead]).length === 0);
+  check('backfill target G: multiple eligible Pipeline matches fail closed', select([synthetic, niagara], 'XA-NIAGARA', targetedPipeline.concat({ ...targetedPipeline[1] })).length === 0);
+  check('backfill target H: COMPLETE target is not selected', select([synthetic, { ...niagara, lead_intelligence_upgrade_status: 'COMPLETE' }], 'XA-NIAGARA').length === 0);
+  check('backfill target I: FAILED target is not selected', select([synthetic, { ...niagara, lead_intelligence_upgrade_status: 'FAILED' }], 'XA-NIAGARA').length === 0);
+  check('backfill target J: active target mode excludes otherwise fresh work', niagaraTarget.length === 1 && !niagaraTarget.some((i) => i.json.analysis_mode === 'NEW_ANALYSIS'));
+  check('backfill target K: empty target preserves normal fresh analysis', noTarget.length === 1 && noTarget[0].json.lead_id === 'L-FRESH' && noTarget[0].json.analysis_mode === 'NEW_ANALYSIS');
+
+  const disabled = select([synthetic, niagara], 'XA-NIAGARA', targetedPipeline, false);
+  check('backfill target L: disabled backfill makes target inert and preserves fresh analysis', disabled.length === 1 && disabled[0].json.lead_id === 'L-FRESH' && disabled[0].json.analysis_mode === 'NEW_ANALYSIS');
+  check('backfill target: a second ledger row for the target lead fails closed', select([synthetic, niagara, legacy('XA-NIAGARA-SECOND', 'L-NIAGARA')], 'XA-NIAGARA').length === 0);
+  check('backfill target: target row with empty lead id fails closed', select([synthetic, legacy('XA-NO-LEAD', '')], 'XA-NO-LEAD').length === 0);
 }
 {
   const out = runNode(read('select-pending.js'), { input: [{ error: 'read failed' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
