@@ -162,13 +162,17 @@ const tgBrief = { ...ELIGIBLE_BRIEF, contact: LI.buildReachability({ preferred_c
 const nreq = NOTIFY.clientNotification({ row: { ...ELIGIBLE_ROW, review_status: 'CLIENT_READY' }, brief: tgBrief, client_result_url: 'https://app.finmentor.test/result' });
 check('verified Telegram route builds transport request', nreq.eligible === true && nreq.request.chat_id === '551662084' && nreq.request.keyboard_layout_id === 'L1_W');
 check('Niagara self-assessment cannot auto-notify', NOTIFY.clientNotification({ row: { ...NIAGARA_ROW, review_status: 'CLIENT_READY' }, brief: NIAGARA_BRIEF, client_result_url: 'https://app.finmentor.test/result' }).reason === 'RESULT_NOT_READY_OR_NOT_ELIGIBLE');
+check('stringified ledger eligibility cannot auto-notify', NOTIFY.clientNotification({ row: { ...ELIGIBLE_ROW, review_status: 'CLIENT_READY', client_result_eligible: 'true' }, brief: tgBrief, client_result_url: 'https://app.finmentor.test/result' }).reason === 'RESULT_NOT_READY_OR_NOT_ELIGIBLE');
 check('failed Telegram send does not mark notified', NOTIFY.notificationState(NIAGARA_ROW, { ok: false }).updated === false);
-const delivered = NOTIFY.notificationState(NIAGARA_ROW, { ok: true, message_id: '10' }, '2026-09-10T07:20:00.000Z');
+check('stringified ledger eligibility cannot mark a delivery', NOTIFY.notificationState({ ...ELIGIBLE_ROW, client_result_eligible: 'true' }, { ok: true, message_id: '10' }).updated === false);
+const delivered = NOTIFY.notificationState(ELIGIBLE_ROW, { ok: true, message_id: '10' }, '2026-09-10T07:20:00.000Z');
 check('successful send marks CLIENT_NOTIFIED', delivered.updated && delivered.update_row.review_status === 'CLIENT_NOTIFIED' && delivered.update_row.customer_notified_at);
 check('successful send logs outbound activity', delivered.activity_row.action === 'client_notified');
 const manual = ACTIONS.handleOwnerAction({ row: { ...ELIGIBLE_ROW, review_status: 'CLIENT_READY' }, body: { action: 'manual_notify', notification_channel: 'email' }, now: '2026-09-10T07:30:00.000Z' });
 check('manual notification records channel/timestamp/actor', manual.ok && manual.update_row.customer_notification_channel === 'email' && manual.update_row.customer_notified_at && manual.update_row.customer_notification_actor === 'owner:review');
 check('manual notification logs activity', manual.activity_row.action === 'client_notified_manual');
+check('ineligible CLIENT_READY cannot fabricate a manual notification', ACTIONS.handleOwnerAction({ row: { ...NIAGARA_ROW, review_status: 'CLIENT_READY' }, body: { action: 'manual_notify', notification_channel: 'email' } }).code === 'CLIENT_RESULT_NOT_ELIGIBLE');
+check('stringified eligibility cannot fabricate a manual notification', ACTIONS.handleOwnerAction({ row: { ...ELIGIBLE_ROW, client_result_eligible: 'true', review_status: 'CLIENT_READY' }, body: { action: 'manual_notify', notification_channel: 'email' } }).code === 'CLIENT_RESULT_NOT_ELIGIBLE');
 check('no code path infers CLIENT_VIEWED', !/CLIENT_VIEWED/.test(JSON.stringify([saved, approved, called, nreq, delivered, manual])));
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -3,7 +3,7 @@
 
 function clientNotification(input) {
   const i = input || {}; const row = i.row || {}; const brief = i.brief || {}; const contact = brief.contact || {};
-  if (String(row.review_status) !== 'CLIENT_READY' || brief.client_result_eligible !== true) return { eligible: false, reason: 'RESULT_NOT_READY_OR_NOT_ELIGIBLE' };
+  if (String(row.review_status) !== 'CLIENT_READY' || row.client_result_eligible !== true || brief.client_result_eligible !== true) return { eligible: false, reason: 'RESULT_NOT_READY_OR_NOT_ELIGIBLE' };
   const route = contact.telegram && contact.telegram.verified ? String(contact.telegram.route || '') : '';
   if (!/^\d{5,20}$/.test(route)) return { eligible: false, reason: 'VERIFIED_TELEGRAM_ROUTE_UNAVAILABLE' };
   const url = String(i.client_result_url || '').trim();
@@ -24,7 +24,7 @@ function clientNotification(input) {
 }
 
 function notificationState(row, result, now) {
-  if (!result || result.ok !== true) return { updated: false, update_row: null, activity_row: null };
+  if (!row || row.client_result_eligible !== true || !result || result.ok !== true) return { updated: false, update_row: null, activity_row: null };
   const at = now || new Date().toISOString();
   return {
     updated: true,

@@ -414,46 +414,50 @@ const surfaceSrc = withReviewIntelligence(read('review-surface.js'));
 const TOKEN = 'a'.repeat(64);
 const FUTURE = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString();
 const PAST = new Date(Date.now() - 1000).toISOString();
-const ledgerRow = { ...draftRow, analysis_id: 'XA-1', lead_id: 'L-2', locale: 'ru', review_status: 'AI_DRAFT', review_token: TOKEN, review_token_expires_at: FUTURE, reviewed_at: '' };
+const ledgerRow = { ...draftRow, analysis_id: 'XA-L-2-1', lead_id: 'L-2', locale: 'ru', review_status: 'AI_DRAFT', review_token: TOKEN, review_token_expires_at: FUTURE, reviewed_at: '' };
 function surface(q, rows) { return runNode(surfaceSrc, { input: rows, nodes: { 'Review GET Webhook': [{ query: q }] } })[0].json; }
 {
   const before = JSON.stringify(ledgerRow);
-  const page = surface({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  const page = surface({ a: 'XA-L-2-1', t: TOKEN }, [ledgerRow]);
   check('review GET: renders the owner brief and an explicit after-call POST form (200)', page.http_status === 200 && /method="post"/.test(page.html) && /name="t"/.test(page.html) && /Диагноз FINMENTOR/.test(page.html));
   check('review GET: mutates nothing and emits no update row', JSON.stringify(ledgerRow) === before && !('update_row' in page) && !('pipeline_row' in page));
   check('review GET: the page never states CLIENT_READY for a draft', !/CLIENT_READY/.test(page.html));
-  check('review GET: wrong token 403', surface({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow]).http_status === 403);
-  check('review GET: token prefix 403', surface({ a: 'XA-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).http_status === 403);
-  check('review GET: expired token 403', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).http_status === 403);
-  check('review GET: a row with no expiry (pre-v2) is refused, not trusted', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).http_status === 403);
+  check('review GET: wrong token 403', surface({ a: 'XA-L-2-1', t: 'b'.repeat(64) }, [ledgerRow]).http_status === 403);
+  check('review GET: token prefix 403', surface({ a: 'XA-L-2-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).http_status === 403);
+  check('review GET: expired token 403', surface({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).http_status === 403);
+  check('review GET: a row with no expiry (pre-v2) is refused, not trusted', surface({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).http_status === 403);
   check('review GET: unknown analysis 403', surface({ a: 'XA-9', t: TOKEN }, [{}]).http_status === 403);
-  check('review GET: a failed analysis is not rendered', surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).http_status === 403);
-  check('review GET: CLIENT_READY remains a readable brief and exposes no second approval', (() => { const p = surface({ a: 'XA-1', t: TOKEN, view: 'preview' }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }]); return p.http_status === 200 && /ТОЧНО ТАК УВИДИТ КЛИЕНТ/.test(p.html) && !/Утвердить и сделать доступным/.test(p.html); })());
-  check('review GET: false ledger eligibility overrides a legacy true brief', (() => { const p = surface({ a: 'XA-1', t: TOKEN, view: 'edit' }, [{ ...ledgerRow, client_result_eligible: false, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), client_result_eligible: true }) }]); return p.http_status === 200 && !/save_client_draft/.test(p.html); })());
-  check('review GET: an unreadable store is 503, not 403', surface({ a: 'XA-1', t: TOKEN }, [{ error: 'store down' }]).http_status === 503);
-  check('review GET: HTML escapes owner brief content', /&lt;script&gt;/.test(surface({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), first_meeting_objective: '<script>x</script>' }) }]).html));
+  check('review GET: a failed analysis is not rendered', surface({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).http_status === 403);
+  check('review GET: CLIENT_READY remains a readable brief and exposes no second approval', (() => { const p = surface({ a: 'XA-L-2-1', t: TOKEN, view: 'preview' }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }]); return p.http_status === 200 && /ТОЧНО ТАК УВИДИТ КЛИЕНТ/.test(p.html) && !/Утвердить и сделать доступным/.test(p.html); })());
+  check('review GET: false ledger eligibility overrides a legacy true brief', (() => { const p = surface({ a: 'XA-L-2-1', t: TOKEN, view: 'edit' }, [{ ...ledgerRow, client_result_eligible: false, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), client_result_eligible: true }) }]); return p.http_status === 200 && !/save_client_draft/.test(p.html); })());
+  check('review GET: stringified eligibility is not authority', (() => { const p = surface({ a: 'XA-L-2-1', t: TOKEN, view: 'edit' }, [{ ...ledgerRow, client_result_eligible: 'true' }]); return p.http_status === 200 && !/save_client_draft/.test(p.html); })());
+  check('review GET: duplicate exact analysis rows are denied as ambiguous', surface({ a: 'XA-L-2-1', t: TOKEN }, [ledgerRow, { ...ledgerRow }]).http_status === 403);
+  check('review GET: an unreadable store is 503, not 403', surface({ a: 'XA-L-2-1', t: TOKEN }, [{ error: 'store down' }]).http_status === 503);
+  check('review GET: HTML escapes owner brief content', /&lt;script&gt;/.test(surface({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), first_meeting_objective: '<script>x</script>' }) }]).html));
 }
 
 // ---------- review: POST promotes ----------
 const reviewSrc = withReviewIntelligence(read('review-verdict.js'));
 function review(body, rows) { return runNode(reviewSrc, { input: rows, nodes: { 'Review POST Webhook': [{ body }] } })[0].json; }
 {
-  const ok = review({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  const ok = review({ a: 'XA-L-2-1', t: TOKEN }, [ledgerRow]);
   check('review POST: correct token approves to CLIENT_READY', ok.verdict === 'CLIENT_READY' && ok.proceed_update === true && ok.publish_client === true && ok.update_row.review_status === 'CLIENT_READY' && ok.http_status === 200);
-  check('review POST: false ledger eligibility blocks approval even if legacy brief says true', review({ a: 'XA-1', t: TOKEN, action: 'approve' }, [{ ...ledgerRow, client_result_eligible: false, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), client_result_eligible: true }) }]).verdict === 'CLIENT_RESULT_NOT_ELIGIBLE');
+  check('review POST: false ledger eligibility blocks approval even if legacy brief says true', review({ a: 'XA-L-2-1', t: TOKEN, action: 'approve' }, [{ ...ledgerRow, client_result_eligible: false, owner_brief_json: JSON.stringify({ ...JSON.parse(ledgerRow.owner_brief_json), client_result_eligible: true }) }]).verdict === 'CLIENT_RESULT_NOT_ELIGIBLE');
+  check('review POST: stringified eligibility cannot grant approval', review({ a: 'XA-L-2-1', t: TOKEN, action: 'approve' }, [{ ...ledgerRow, client_result_eligible: 'true' }]).verdict === 'CLIENT_RESULT_NOT_ELIGIBLE');
+  check('review POST: duplicate exact analysis rows are denied as ambiguous', review({ a: 'XA-L-2-1', t: TOKEN }, [ledgerRow, { ...ledgerRow }]).verdict === 'DENIED');
   check('review POST: pipeline projection updated on promote', ok.pipeline_row.xray_analysis_status === 'CLIENT_READY' && ok.pipeline_row.lead_id === 'L-2');
-  check('review POST: the source row travels to the publisher only on promotion', ok.source_row && ok.source_row.analysis_id === 'XA-1');
-  const bad = review({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow]);
+  check('review POST: the source row travels to the publisher only on promotion', ok.source_row && ok.source_row.analysis_id === 'XA-L-2-1');
+  const bad = review({ a: 'XA-L-2-1', t: 'b'.repeat(64) }, [ledgerRow]);
   check('review POST: wrong token denied (403), nothing written', bad.verdict === 'DENIED' && bad.proceed_update === false && !bad.update_row && bad.source_row === null && bad.http_status === 403);
-  check('review POST: prefix of the token denied', review({ a: 'XA-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).verdict === 'DENIED');
-  check('review POST: expired token denied', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).verdict === 'DENIED');
-  check('review POST: a row with no expiry is denied', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).verdict === 'DENIED');
+  check('review POST: prefix of the token denied', review({ a: 'XA-L-2-1', t: TOKEN.slice(0, 40) }, [ledgerRow]).verdict === 'DENIED');
+  check('review POST: expired token denied', review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: PAST }]).verdict === 'DENIED');
+  check('review POST: a row with no expiry is denied', review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_token_expires_at: '' }]).verdict === 'DENIED');
   check('review POST: unknown analysis denied', review({ a: 'XA-9', t: TOKEN }, []).verdict === 'DENIED');
-  check('review POST: query-string parameters are ignored (no body -> denied)', runNode(reviewSrc, { input: [ledgerRow], nodes: { 'Review POST Webhook': [{ query: { a: 'XA-1', t: TOKEN } }] } })[0].json.verdict === 'DENIED');
-  const again = review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY', reviewed_at: '2026-09-03T10:00:00.000Z' }]);
+  check('review POST: query-string parameters are ignored (no body -> denied)', runNode(reviewSrc, { input: [ledgerRow], nodes: { 'Review POST Webhook': [{ query: { a: 'XA-L-2-1', t: TOKEN } }] } })[0].json.verdict === 'DENIED');
+  const again = review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY', reviewed_at: '2026-09-03T10:00:00.000Z' }]);
   check('review POST: second confirmation is idempotent (ALREADY_READY, original reviewed_at kept, publication repaired)', again.verdict === 'ALREADY_READY' && again.proceed_update === true && again.update_row.reviewed_at === '2026-09-03T10:00:00.000Z' && again.http_status === 200);
-  check('review POST: a failed analysis can never be promoted', review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).verdict === 'DENIED');
-  const down = review({ a: 'XA-1', t: TOKEN }, [{ error: 'store down' }]);
+  check('review POST: a failed analysis can never be promoted', review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'ANALYSIS_FAILED' }]).verdict === 'DENIED');
+  const down = review({ a: 'XA-L-2-1', t: TOKEN }, [{ error: 'store down' }]);
   check('review POST: an unreadable store is STORE_UNAVAILABLE 503, never a promotion', down.verdict === 'STORE_UNAVAILABLE' && down.http_status === 503 && down.proceed_update === false);
   check('review POST: response is HTML without technical labels for denied', /Доступ отклонён/.test(bad.html) && !/AI_DRAFT/.test(bad.html));
 }
@@ -462,12 +466,12 @@ function review(body, rows) { return runNode(reviewSrc, { input: rows, nodes: { 
 const clientSrc = read('build-client-result.js');
 const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict': [verdict] } });
 {
-  const ok = review({ a: 'XA-1', t: TOKEN }, [ledgerRow]);
+  const ok = review({ a: 'XA-L-2-1', t: TOKEN }, [ledgerRow]);
   const rows = publish(ok);
   check('client result: exactly one row on promotion', rows.length === 1);
   const row = rows[0].json;
-  check('client result: the row is exactly the live XRay_Client_Results columns', Object.keys(row).sort().join(',') === 'analysis_id,lead_id,locale,published_at,result_json,review_status,score,zone');
-  check('client result: keyed by lead, CLIENT_READY, deterministic score and zone', row.lead_id === 'L-2' && row.review_status === 'CLIENT_READY' && row.score === '47' && row.zone === 'ORANGE');
+  check('client result: the row is exactly the target XRay_Client_Results columns', Object.keys(row).sort().join(',') === 'analysis_id,client_visible,lead_id,locale,published_at,result_json,review_status,score,zone');
+  check('client result: keyed by lead, explicitly visible, CLIENT_READY, deterministic score and zone', row.lead_id === 'L-2' && row.client_visible === true && row.review_status === 'CLIENT_READY' && row.score === '47' && row.zone === 'ORANGE');
   const result = JSON.parse(row.result_json);
   check('client result: RU product name', result.labels.product === 'Финансовый рентген бизнеса');
   check('client result: carries condition/score, risk zone, maturity, key risks, priorities, 30-day plan, next action, recommendation',
@@ -476,13 +480,16 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   for (const k of ['review_token', 'request_id', 'lead_id', 'analysis_id', 'model', 'confidence', 'fabrication', 'prompt', 'raw', 'notes', 'AI_DRAFT', 'ANALYSIS_FAILED', 'validation_errors', 'source_channel', TOKEN]) {
     check('client result: never exposes ' + k, !text.includes(k));
   }
-  const ro = publish(review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, locale: 'ro' }]));
+  const ro = publish(review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, locale: 'ro' }]));
   check('client result: the canonical RO product name, never the retired one', JSON.parse(ro[0].json.result_json).labels.product === 'Test financiar FINMENTOR' && !JSON.stringify(ro).includes('Test de sănătate financiară'));
-  check('client result: nothing is published for a denied verdict', publish(review({ a: 'XA-1', t: 'b'.repeat(64) }, [ledgerRow])).length === 0);
+  check('client result: nothing is published for a denied verdict', publish(review({ a: 'XA-L-2-1', t: 'b'.repeat(64) }, [ledgerRow])).length === 0);
   check('client result: nothing is published for a failed analysis even if forced', publish({ publish_client: true, source_row: { ...ledgerRow, review_status: 'ANALYSIS_FAILED' } }).length === 0);
+  check('client result: missing, false or stringified eligibility never publishes', [undefined, false, 'true'].every((client_result_eligible) => publish({ publish_client: true, source_row: { ...ledgerRow, client_result_eligible } }).length === 0));
+  check('client result: a mismatched analysis/lead binding never publishes', publish({ publish_client: true, source_row: { ...ledgerRow, analysis_id: 'XA-OTHER-1' } }).length === 0);
+  check('client result: a delivery state cannot be used as fresh publication authority', publish({ publish_client: true, source_row: { ...ledgerRow, review_status: 'CLIENT_NOTIFIED' } }).length === 0);
   check('client result: nothing is published for a row without a lead', publish({ publish_client: true, source_row: { ...ledgerRow, lead_id: '' } }).length === 0);
   check('client result: unparseable client draft publishes nothing', publish({ publish_client: true, source_row: { ...ledgerRow, client_result_draft_json: '{oops', analysis_json: '{oops' } }).length === 0);
-  check('client result: ALREADY_READY re-publishes (idempotent repair)', publish(review({ a: 'XA-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }])).length === 1);
+  check('client result: ALREADY_READY re-publishes (idempotent repair)', publish(review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }])).length === 1);
 }
 
 // ---------- the built workflow (STATIC) ----------

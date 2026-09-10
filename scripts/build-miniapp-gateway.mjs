@@ -85,10 +85,11 @@ export const CONFIGURED_BOT_ID = '8917808598';
 export const G5_TABLE = 'telegram_initdata_replays';
 export const APP_SESSION_TABLE = 'MiniApp_App_Sessions';
 // C3.1 — the Concierge-written cycle projection (two business columns, one row per user) and the
-// X-Ray-written customer result projection (CLIENT_READY rows only). Both are n8n Data Tables:
-// no credential, no Sheets authority, point reads only.
+// X-Ray-written customer result projection (explicitly visible rows only). Both are n8n Data
+// Tables: no credential, no Sheets authority, point reads only.
 export const CYCLE_PROJECTION_TABLE = 'MiniApp_Cycle_Projection';
 export const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
+export const CLIENT_RESULT_VISIBILITY_FIELD = 'client_visible';
 export const CYCLE_ID_RE = /^C-[0-9]+-[0-9]+$/;
 export const SUPABASE_CREDENTIAL = { id: 'B6wRirWfjqoASXU3', name: 'FINMENTOR Supabase G5' };
 export const NEON_CREDENTIAL_ID = 'LWefMXHbpCWhvobq';
@@ -371,9 +372,11 @@ const BUILD_SESSION_ROW_CODE = [
 ].join('\n');
 
 // C3.4 — the customer result, attached to a COMMITTED session only. The X-Ray workflow writes
-// `XRay_Client_Results` exclusively on CLIENT_READY promotion, so a row here is by construction
-// human-reviewed. Anything else — no row, a row for another lead, a non-CLIENT_READY row, an
-// unparseable JSON — yields result: null and result_state PENDING, never a partial analysis.
+// `XRay_Client_Results` only after an eligible owner promotion. Customer visibility is authorized
+// by a separate strict boolean on that curated row, never inferred from review/delivery history.
+// Exactly one row with the canonical (lead_id, analysis_id) binding is required. Missing, null,
+// stringified, duplicate or inconsistent authority fails closed without rewriting review_status or
+// result_json.
 //
 // THE CURATED CLIENT CONTRACT — one list, three holders. The X-Ray publisher
 // (n8n/src/xray-analysis/build-client-result.js) writes exactly these keys into result_json; the
@@ -389,13 +392,18 @@ const ATTACH_CLIENT_RESULT_CODE = [
   "const leadId = String(s.lead_id || '');",
   "const allRows = $input.all().map(i => i.json);",
   "if (allRows.some(r => r && (r.error || r.errorMessage))) return [{ json: { result_store_error: 1 } }];",
+  "const leadKey = leadId.replace(/[^A-Za-z0-9_-]/g, '');",
+  "const expectedAnalysisPrefix = leadKey ? 'XA-' + leadKey + '-' : '';",
+  "const visibleStates = ['CLIENT_READY', 'CLIENT_NOTIFIED', 'CLIENT_VIEWED'];",
   "const rows = allRows",
   "  .filter(r => r && !r.error && !r.errorMessage)",
   "  .filter(r => leadId !== '' && String(r.lead_id || '') === leadId)",
-  "  .filter(r => String(r.review_status || '') === 'CLIENT_READY');",
-  "rows.sort((a, b) => String(b.published_at || '') < String(a.published_at || '') ? -1 : 1);",
+  "  .filter(r => r.client_visible === true)",
+  "  .filter(r => visibleStates.includes(String(r.review_status || '')))",
+  "  .filter(r => expectedAnalysisPrefix !== '' && String(r.analysis_id || '').startsWith(expectedAnalysisPrefix));",
+  "if (rows.length > 1) return [{ json: { result_store_error: 1 } }];",
   "let result = null;",
-  "if (rows[0]) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }",
+  "if (rows.length === 1) { try { result = JSON.parse(String(rows[0].result_json || 'null')); } catch (e) { result = null; } }",
   "if (!result || typeof result !== 'object' || Array.isArray(result)) { result = null; }",
   "if (result) { const allowed = " + JSON.stringify(CLIENT_RESULT_KEYS) + "; result = Object.fromEntries(Object.entries(result).filter(([k]) => allowed.includes(k))); }",
   "const out = Object.assign({}, s);",
@@ -662,7 +670,8 @@ export function buildGateway(options) {
           dataTableId: { __rl: true, mode: 'name', value: CLIENT_RESULT_TABLE },
           matchType: 'allConditions',
           filters: { conditions: [{ keyName: 'lead_id', condition: 'eq',
-            keyValue: '={{ $json.lead_id }}' }] },
+            keyValue: '={{ $json.lead_id }}' },
+          { keyName: CLIENT_RESULT_VISIBILITY_FIELD, condition: 'eq', keyValue: true }] },
           returnAll: true },
         id: 'gw-09d-readresult', name: 'Read Client Result', type: 'n8n-nodes-base.dataTable',
         typeVersion: 1, position: [1460, -240],
@@ -808,6 +817,26 @@ export function verifyGateway(wf) {
     failures.push('execution data retention is on; raw initData would be persisted');
   }
   if (wf.settings.availableInMCP !== false) { failures.push('availableInMCP is not false'); }
+
+  // Customer visibility is independent from review/delivery history. The point read narrows to
+  // explicit boolean visibility, and the code node repeats that check, validates the canonical
+  // lead/analysis binding and refuses ambiguous visible rows.
+  const resultRead = byName('Read Client Result');
+  const resultFilters = (((resultRead || {}).parameters || {}).filters || {}).conditions || [];
+  if (!resultFilters.some((c) => c.keyName === 'lead_id' && c.condition === 'eq')) {
+    failures.push('Read Client Result is not scoped to lead_id');
+  }
+  if (!resultFilters.some((c) => c.keyName === CLIENT_RESULT_VISIBILITY_FIELD && c.condition === 'eq' && c.keyValue === true)) {
+    failures.push('Read Client Result does not require boolean ' + CLIENT_RESULT_VISIBILITY_FIELD);
+  }
+  const attachResult = byName('Attach Client Result');
+  const attachCode = String((((attachResult || {}).parameters || {}).jsCode) || '');
+  if (!/client_visible === true/.test(attachCode)) failures.push('Attach Client Result does not re-check strict client visibility');
+  if (!/rows\.length > 1/.test(attachCode)) failures.push('Attach Client Result does not fail closed on ambiguity');
+  if (!/expectedAnalysisPrefix/.test(attachCode)) failures.push('Attach Client Result does not bind analysis_id to lead_id');
+  for (const state of ['CLIENT_READY', 'CLIENT_NOTIFIED', 'CLIENT_VIEWED']) {
+    if (!attachCode.includes("'" + state + "'")) failures.push('Attach Client Result lost visible state ' + state);
+  }
   // P9-R1. Every response code must reach the HTTP layer as a NUMBER. An '=' value with no
   // {{ }} evaluates to a string, and the caller gets 500 after the graph has already run.
   wf.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook').forEach((n) => {

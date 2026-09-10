@@ -13,7 +13,21 @@
 
 const v = $('Review POST Verdict').first().json || {};
 const row = v.source_row || {};
-if (v.publish_client !== true || String(row.review_status || '') === 'ANALYSIS_FAILED' || String(row.lead_id || '') === '') return [];
+const leadId = String(row.lead_id || '').trim();
+const analysisId = String(row.analysis_id || '').trim();
+const leadKey = leadId.replace(/[^A-Za-z0-9_-]/g, '');
+const sourceState = String(row.review_status || '');
+const publishableSourceStates = ['AI_DRAFT', 'OWNER_REVIEW', 'OWNER_EDITED', 'CLIENT_READY'];
+
+// Defence in depth. Review POST is the primary authority, but the publisher independently requires
+// strict stored eligibility, a publishable source state and the canonical analysis/lead binding.
+// Missing, stringified or malformed eligibility is not authority. The separate client_visible bit
+// is the customer access grant; review/delivery history remains in review_status.
+if (v.publish_client !== true
+  || row.client_result_eligible !== true
+  || !publishableSourceStates.includes(sourceState)
+  || !leadId || !analysisId || !leadKey
+  || !analysisId.startsWith('XA-' + leadKey + '-')) return [];
 let a = v.client_draft && typeof v.client_draft === 'object' ? v.client_draft : null;
 if (!a) { try { a = JSON.parse(String(row.client_result_draft_json || row.analysis_json || 'null')); } catch (e) { a = null; } }
 if (!a || typeof a !== 'object' || Array.isArray(a)) return [];
@@ -52,14 +66,16 @@ const result = {
     : null
 };
 
-// The Data Table row: exactly the live columns of XRay_Client_Results.
+// The Data Table row: exactly the target XRay_Client_Results schema. client_visible is a boolean
+// access authority, not a review/delivery status; legacy missing values therefore remain hidden.
 return [{ json: {
-  analysis_id: String(row.analysis_id || ''),
-  lead_id: String(row.lead_id || ''),
+  analysis_id: analysisId,
+  lead_id: leadId,
   locale,
   published_at: new Date().toISOString(),
   result_json: JSON.stringify(result),
   review_status: 'CLIENT_READY',
+  client_visible: true,
   score: result.score === null ? '' : String(result.score),
   zone
 } }];

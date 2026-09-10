@@ -208,7 +208,7 @@ check('CASE E2 — TERMINAL IS TERMINAL beyond the TTL: a committed session outl
   eq(resolve([Object.assign({}, aged, { state: 'draft', lead_id: '' })]).create, 1, 'an aged draft was revived');
 });
 
-check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row for the committed lead', () => {
+check('EXECUTED: the customer result requires one explicitly visible reviewed row bound to the committed lead', () => {
   const done = row('AS-' + 'a'.repeat(64), { state: 'submitted', lead_id: 'FIN-1' });
   const resolved = resolve([done]);
   const attach = (rows) => {
@@ -218,17 +218,26 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
     return fn((n) => handle(outputs[n]), handle(rows), () => { throw new Error('require()'); })[0].json;
   };
   const result = { score: 47, zone: 'ORANGE', key_risks: [{ title: 'x' }], plan_30_days: {} };
-  const ready = { id: 1, lead_id: 'FIN-1', analysis_id: 'XA-1', locale: 'ru', review_status: 'CLIENT_READY', score: '47', zone: 'ORANGE', result_json: JSON.stringify(result), published_at: iso(-HOUR) };
+  const ready = { id: 1, lead_id: 'FIN-1', analysis_id: 'XA-FIN-1-1700000000000', locale: 'ru', review_status: 'CLIENT_READY', client_visible: true, score: '47', zone: 'ORANGE', result_json: JSON.stringify(result), published_at: iso(-HOUR) };
   const a = attach([ready]);
   eq(JSON.stringify(a.__response.result), JSON.stringify(result), 'the CLIENT_READY result did not come back');
   eq(a.__response.result_state, 'CLIENT_READY', 'result_state');
   eq(a.__response.app_session_id, resolved.__response.app_session_id, 'the session answer was lost');
   eq(a.__response.state, 'submitted', 'state');
-  // never anything that is not human-reviewed, never another lead's, never a broken row
-  for (const bad of [[], [{}],
+  for (const deliveredState of ['CLIENT_NOTIFIED', 'CLIENT_VIEWED']) {
+    eq(attach([{ ...ready, review_status: deliveredState }]).__response.result.score, 47, deliveredState + ' lost visibility');
+  }
+  const missingVisibility = { ...ready }; delete missingVisibility.client_visible;
+  // Never infer access from review history, stringified data or a row that is not canonically bound.
+  for (const bad of [[], [{}], [missingVisibility],
+    [Object.assign({}, ready, { client_visible: null })],
+    [Object.assign({}, ready, { client_visible: false })],
+    [Object.assign({}, ready, { client_visible: 'true' })],
     [Object.assign({}, ready, { review_status: 'AI_DRAFT' })],
     [Object.assign({}, ready, { review_status: 'OWNER_REVIEW' })],
     [Object.assign({}, ready, { lead_id: 'FIN-2' })],
+    [Object.assign({}, ready, { analysis_id: 'XA-FIN-2-1700000000000' })],
+    [Object.assign({}, ready, { analysis_id: 'XA-1' })],
     [Object.assign({}, ready, { result_json: '{' })],
     [Object.assign({}, ready, { result_json: '[]' })]]) {
     const r = attach(bad);
@@ -236,10 +245,10 @@ check('EXECUTED: the customer result is attached ONLY from a CLIENT_READY row fo
     eq(r.__response.result_state, 'PENDING', 'result_state for ' + JSON.stringify(bad).slice(0, 80));
   }
   eq(attach([{ error: 'x' }]).result_store_error, 1, 'an unreadable result store did not fail closed');
-  // several CLIENT_READY rows: the most recently published wins
+  // More than one authoritative-looking row is an integrity error, not a newest-row election.
   const older = Object.assign({}, ready, { id: 2, result_json: JSON.stringify({ v: 'old' }), published_at: iso(-3 * HOUR) });
-  eq(attach([older, ready]).__response.result.score, 47, 'older, newer');
-  eq(attach([ready, older]).__response.result.score, 47, 'newer, older');
+  eq(attach([older, ready]).result_store_error, 1, 'older, newer ambiguity');
+  eq(attach([ready, older]).result_store_error, 1, 'newer, older ambiguity');
 });
 
 check('the result lookup sits on the COMMITTED resume branch only, credential-free, and a draft answers as before', () => {
@@ -254,9 +263,12 @@ check('the result lookup sits on the COMMITTED resume branch only, credential-fr
   const node = WF.nodes.find((x) => x.name === 'Read Client Result');
   eq(node.parameters.operation, 'get', 'not a read');
   eq(node.parameters.filters.conditions[0].keyName, 'lead_id', 'not keyed by the committed lead');
+  eq(node.parameters.filters.conditions[1].keyName, 'client_visible', 'visibility filter missing');
+  eq(node.parameters.filters.conditions[1].keyValue, true, 'visibility filter is not strict boolean true');
   eq(node.alwaysOutputData, true, 'no result must still answer the bootstrap');
   eq(node.onError, 'continueRegularOutput', 'an unreadable result store must still answer the bootstrap');
   assert(!node.credentials, 'the result read carries a credential');
+  assert(!WF.nodes.some((x) => x.type === 'n8n-nodes-base.googleSheets'), 'the Gateway gained Google Sheets authority');
   const gate = WF.nodes.find((x) => x.name === 'IF Session Committed').parameters.conditions.conditions[0];
   eq(gate.leftValue, '={{ $json.state }}', 'the fork reads something other than the stored state');
   eq(gate.rightValue, 'submitted', 'the fork is not on submitted');

@@ -29,7 +29,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import crypto from 'node:crypto';
-import { CLIENT_RESULT_KEYS } from '../scripts/build-miniapp-gateway.mjs';
+import { CLIENT_RESULT_KEYS, CLIENT_RESULT_VISIBILITY_FIELD } from '../scripts/build-miniapp-gateway.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -85,7 +85,7 @@ const LEDGER_ROW = {
   analysis_version: 'xray-v2', model: 'gpt-4.1', score: 47, zone: 'ORANGE', maturity_score: 2, primary_risk: 'Кассовые разрывы',
   analysis_json: JSON.stringify(ANALYSIS), plan_30d_json: JSON.stringify(ANALYSIS.plan_30_days), review_status: 'AI_DRAFT', reviewed_at: '',
   review_token: TOKEN, review_token_expires_at: '2026-10-04T04:31:12.048Z', confidence: 'LOW', fabrication_flags: '12mil', validation_errors: '',
-  source_channel: 'website_xray', executive_summary: ANALYSIS.executive_summary, recommended_next_step: 'FINANCIAL_HEALTH_CHECK', next_step_label: 'Финансовый health-check', customer_notified_at: ''
+  source_channel: 'website_xray', client_result_eligible: true, executive_summary: ANALYSIS.executive_summary, recommended_next_step: 'FINANCIAL_HEALTH_CHECK', next_step_label: 'Финансовый health-check', customer_notified_at: ''
 };
 const published = runNode(publisherSrc, { nodes: { 'Review POST Verdict': [{ proceed_update: true, publish_client: true, client_draft: ANALYSIS, source_row: LEDGER_ROW }] } });
 const PUBLISHED_ROW = published[0] ? published[0].json : {};
@@ -126,7 +126,11 @@ check('builder constant order is the Mini App order (one list, copied verbatim)'
 
 // 4. what is published is exactly what is let through
 check('publisher result_json keys == Gateway allow-list', () => eq(sorted(PUBLISHER_KEYS), sorted(GATEWAY_KEYS), 'publisher and gateway disagree'));
-check('publisher row columns are the live XRay_Client_Results columns', () => eq(sorted(Object.keys(PUBLISHED_ROW)), 'analysis_id,lead_id,locale,published_at,result_json,review_status,score,zone', 'columns'));
+check('publisher row columns are the target XRay_Client_Results columns', () => eq(sorted(Object.keys(PUBLISHED_ROW)), 'analysis_id,client_visible,lead_id,locale,published_at,result_json,review_status,score,zone', 'columns'));
+check('publisher grants visibility as a strict boolean outside result_json', () => {
+  eq(PUBLISHED_ROW[CLIENT_RESULT_VISIBILITY_FIELD], true, 'client visibility');
+  assert(!(CLIENT_RESULT_VISIBILITY_FIELD in PUBLISHED_RESULT), 'client visibility leaked into result_json');
+});
 check('publisher writes zone_label and summary by value', () => {
   eq(PUBLISHED_RESULT.zone_label, 'Оранжевая зона', 'zone_label'); eq(PUBLISHED_RESULT.summary, ANALYSIS.executive_summary, 'summary');
 });
