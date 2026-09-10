@@ -87,7 +87,7 @@ const LEDGER_ROW = {
   review_token: TOKEN, review_token_expires_at: '2026-10-04T04:31:12.048Z', confidence: 'LOW', fabrication_flags: '12mil', validation_errors: '',
   source_channel: 'website_xray', executive_summary: ANALYSIS.executive_summary, recommended_next_step: 'FINANCIAL_HEALTH_CHECK', next_step_label: 'Финансовый health-check', customer_notified_at: ''
 };
-const published = runNode(publisherSrc, { nodes: { 'Review POST Verdict': [{ proceed_update: true, source_row: LEDGER_ROW }] } });
+const published = runNode(publisherSrc, { nodes: { 'Review POST Verdict': [{ proceed_update: true, publish_client: true, client_draft: ANALYSIS, source_row: LEDGER_ROW }] } });
 const PUBLISHED_ROW = published[0] ? published[0].json : {};
 const PUBLISHED_RESULT = (() => { try { return JSON.parse(String(PUBLISHED_ROW.result_json || 'null')); } catch (e) { return null; } })() || {};
 const PUBLISHER_KEYS = Object.keys(PUBLISHED_RESULT);

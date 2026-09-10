@@ -9,7 +9,8 @@
 //
 // Design (C1, corrected in C3 — see docs/C3_CODEX_CORRECTION_REVIEW.md):
 //   sweep  : every 10 min -> Settings -> Pipeline -> XRay_Analysis -> pending leads (fail-closed,
-//            consent-gated, capped) -> Leads raw row -> PII-safe input -> OpenAI (json) ->
+//            consent-gated, capped) -> complete Leads snapshot -> unique source pairing ->
+//            PII-safe input -> OpenAI (json) ->
 //            validate (score/zone deterministic; a broken contract is ANALYSIS_FAILED, never a
 //            draft; fabrication guard flags) -> XRay_Analysis row -> narrow Pipeline projection ->
 //            IF valid: owner Telegram alert, else: owner failure notice.
@@ -31,9 +32,23 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'n8n', 'src', 'xray-analysis');
+const LI_SRC = path.join(ROOT, 'n8n', 'src', 'lead-intelligence');
 const OUT = path.join(ROOT, 'n8n', 'candidate', 'xray-analysis-workflow.sdk.js');
 
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8').replace(/\r\n/g, '\n');
+const readLi = (f) => fs.readFileSync(path.join(LI_SRC, f), 'utf8').replace(/\r\n/g, '\n');
+const moduleBody = (f) => readLi(f)
+  .replace(/^\/\/[^\n]*\n(?:\/\/[^\n]*\n)*/m, '')
+  .replace(/['"]use strict['"];?\s*/, '')
+  .replace(/^const LI = require\([^\n]+\);\s*/m, '')
+  .replace(/if \(typeof module[\s\S]*$/, '')
+  .trim();
+const liContract = `const LI = (function () {\n${moduleBody('contract.js')}\nreturn api;\n})();`;
+const liAlert = `const LI_ALERT = (function () {\n${moduleBody('alert.js')}\nreturn { renderLeadIntelligenceAlert, contactLines, esc, tidy };\n})();`;
+const liRenderBody = `const LI_RENDER = (function () {\n${moduleBody('render.js')}\nreturn { renderOwnerBriefPage, renderMessagePage, renderOutboundConfirm };\n})();`;
+const liRender = `${liContract}\n${liRenderBody}`;
+const liActions = `${liContract}\nconst LI_ACTIONS = (function () {\n${moduleBody('actions.js')}\nreturn { parseJson, safeDate, editClientDraft, handleOwnerAction };\n})();`;
+const liNotify = `const LI_NOTIFY = (function () {\n${moduleBody('notification.js')}\nreturn { clientNotification, notificationState };\n})();`;
 const labels = read('labels.js').replace(/if \(typeof module[\s\S]*$/, '').trim();
 // The owner cards (presentation only), inlined wherever an owner message is rendered.
 const ownerCards = read('owner-cards.js').replace(/if \(typeof module[\s\S]*$/, '').trim();
@@ -41,22 +56,32 @@ const CARDS_MARKER = '// __XRAY_OWNER_CARDS__ (inlined by the builder)';
 const code = {
   settings: read('settings.js'),
   selectPending: read('select-pending.js'),
-  buildInput: read('build-input.js'),
-  validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels).replace(CARDS_MARKER, ownerCards),
+  buildInput: read('build-input.js').replace('// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)', liContract),
+  validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels).replace(CARDS_MARKER, ownerCards)
+    .replace('// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)', liContract)
+    .replace('// __LEAD_INTELLIGENCE_ALERT__ (inlined by the builder)', liAlert),
   failed: read('analysis-failed.js').replace(CARDS_MARKER, ownerCards),
-  reviewSurface: read('review-surface.js'),
-  review: read('review-verdict.js').replace(CARDS_MARKER, ownerCards),
-  clientResult: read('build-client-result.js')
+  reviewSurface: read('review-surface.js').replace('// __LEAD_INTELLIGENCE_RENDER__ (inlined by the builder)', liRender),
+  review: read('review-verdict.js')
+    .replace('// __LEAD_INTELLIGENCE_ACTIONS__ (inlined by the builder)', liActions)
+    .replace('// __LEAD_INTELLIGENCE_RENDER__ (inlined by the builder)', liRenderBody),
+  clientResult: read('build-client-result.js'),
+  completeOutbound: read('complete-outbound.js').replace('// __LEAD_INTELLIGENCE_RENDER__ (inlined by the builder)', liRender),
+  buildReadyNotification: read('build-ready-notification.js').replace('// __LEAD_INTELLIGENCE_NOTIFICATION__ (inlined by the builder)', liNotify),
+  completeReadyNotification: read('complete-ready-notification.js')
+    .replace('// __LEAD_INTELLIGENCE_NOTIFICATION__ (inlined by the builder)', liNotify)
+    .replace('// __LEAD_INTELLIGENCE_RENDER__ (inlined by the builder)', liRender)
 };
 for (const [k, v] of Object.entries(code)) {
-  if (/__XRAY_LABELS__|__XRAY_OWNER_CARDS__/.test(v)) throw new Error('marker not replaced in ' + k);
+  if (/__XRAY_LABELS__|__XRAY_OWNER_CARDS__|__LEAD_INTELLIGENCE_(?:CONTRACT|ALERT|RENDER|ACTIONS)__/.test(v)) throw new Error('marker not replaced in ' + k);
 }
-for (const k of ['validate', 'failed', 'review']) {
+for (const k of ['validate', 'failed']) {
   if (!/const XRAY_OWNER_CARDS = /.test(code[k])) throw new Error('owner cards not inlined in ' + k);
 }
 
 export const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
 export const REVIEW_PATH = 'finmentor-xray-review';
+export const CLIENT_TRANSPORT_WORKFLOW_ID = 'ShcmmJeLSE8LYVBk';
 
 const DOC = { __rl: true, value: '1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A', mode: 'list', cachedResultName: 'FINMENTOR_LEADS_CRM_PREMIUM_FINAL' };
 const SHEET = (name, gid) => gid ? ({ __rl: true, value: gid, mode: 'list', cachedResultName: name }) : ({ __rl: true, value: name, mode: 'name' });
@@ -87,7 +112,7 @@ const readSettings = node({
 const settingsToObject = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Settings to Object', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.settings)} } },
-  output: [{ settings: { owner_chat_id: '', xray_ai_model: 'gpt-4.1' } }]
+  output: [{ settings: { owner_chat_id: '', xray_ai_model: 'gpt-4.1', xray_backfill_enabled: true, xray_backfill_max_per_run: 1 } }]
 });
 
 const readPipeline = node({
@@ -106,6 +131,24 @@ const readAnalysis = node({
   output: [{ analysis_id: '', lead_id: '', review_status: '' }]
 });
 
+// History is derived from the existing CRM ledgers. Both reads are fail-soft: an unavailable
+// history must not duplicate or block the analytical draft, and it never becomes a new authority.
+const readActivities = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Read Activities', executeOnce: true, alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
+    parameters: { resource: 'sheet', operation: 'read', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Activities', 623316892))}, options: {} },
+    credentials: ${SHEETS_CRED} },
+  output: [{ activity_id: '', ts: '', lead_id: '', action: '', detail: '' }]
+});
+
+const readStatusLog = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Read Status_Log', executeOnce: true, alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
+    parameters: { resource: 'sheet', operation: 'read', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Status_Log', 1810362432))}, options: {} },
+    credentials: ${SHEETS_CRED} },
+  output: [{ ts: '', lead_id: '', from_status: '', to_status: '' }]
+});
+
 const selectPending = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Select Pending Leads', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.selectPending)} } },
@@ -114,9 +157,9 @@ const selectPending = node({
 
 const readLeadRaw = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
-  config: { name: 'Read Lead Raw', alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
+  config: { name: 'Read Lead Raw', executeOnce: true, alwaysOutputData: true, onError: 'continueRegularOutput', retryOnFail: true,
     parameters: { resource: 'sheet', operation: 'read', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Leads', 409890193))},
-      filtersUI: { values: [{ lookupColumn: 'Lead ID', lookupValue: expr('{{ $json.lead_id }}') }] }, combineFilters: 'AND', options: {} },
+      options: {} },
     credentials: ${SHEETS_CRED} },
   output: [{ 'Lead ID': '', 'Raw JSON': '{}', 'Diagnostic Score': '' }]
 });
@@ -125,6 +168,23 @@ const buildInput = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Build Analysis Input', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.buildInput)} } },
   output: [{ lead_id: '', locale: 'ru', score: 47, zone: 'ORANGE', ai_model: 'gpt-4.1', ai_system_prompt: '', ai_user_prompt: '' }]
+});
+
+const ifInputReady = ifElse({
+  version: 2.2,
+  config: { name: 'IF Source Pair Safe', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.analysis_ready }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const sourceAuditNotice = node({
+  type: 'n8n-nodes-base.telegram', version: 1.2,
+  config: { name: 'Telegram Source Audit Finding', onError: 'continueRegularOutput',
+    parameters: { resource: 'message', operation: 'sendMessage',
+      chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
+      text: expr('{{ $json.audit_finding.owner_text }}'),
+      additionalFields: { appendAttribution: false, disable_web_page_preview: true } },
+    credentials: ${TG_CRED} },
+  output: [{ ok: true }]
 });
 
 const aiAnalysis = node({
@@ -154,8 +214,8 @@ const analysisRow = node({
 const saveAnalysis = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
   config: { name: 'Save XRay_Analysis', retryOnFail: true,
-    parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
-      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } },
+    parameters: { resource: 'sheet', operation: 'appendOrUpdate', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['analysis_id'], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '', lead_id: '' }]
 });
@@ -183,6 +243,12 @@ const ifAnalysisValid = ifElse({
     conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.is_valid }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
+const ifNotifyOwner = ifElse({
+  version: 2.2,
+  config: { name: 'IF New Owner Alert Required', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
 const ownerAlert = node({
   type: 'n8n-nodes-base.telegram', version: 1.2,
   config: { name: 'Telegram Owner Alert', onError: 'continueRegularOutput',
@@ -191,11 +257,8 @@ const ownerAlert = node({
       text: expr("{{ $('Validate + Store Rows').item.json.owner_alert.text }}"),
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
-        // style (Bot API): success = the affirmative review action, primary = the forward navigation.
-        // The n8n Telegram node copies additionalFields onto the button verbatim, so the key reaches
-        // Telegram unchanged; callback-less URL buttons keep their url exactly as before.
-        { row: { buttons: [ { text: '✅ Проверить анализ', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}"), style: 'success' } } ] } },
-        { row: { buttons: [ { text: '📊 Карточка лида', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.crm_url }}"), style: 'primary' } } ] } }
+        { row: { buttons: [ { text: 'Разбор клиента', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}"), style: 'primary' } } ] } },
+        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}"), style: 'success' } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: ${TG_CRED} },
@@ -228,8 +291,8 @@ const failedRow = node({
 const saveFailed = node({
   type: 'n8n-nodes-base.googleSheets', version: 4.7,
   config: { name: 'Save Failed Analysis', retryOnFail: true, onError: 'continueRegularOutput',
-    parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
-      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } },
+    parameters: { resource: 'sheet', operation: 'appendOrUpdate', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))},
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['analysis_id'], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '' }]
 });
@@ -298,10 +361,10 @@ const reviewVerdict = node({
   output: [{ verdict: 'PROMOTE', proceed_update: true, update_row: { analysis_id: '' }, pipeline_row: { lead_id: '' }, http_status: 200, html: '' }]
 });
 
-const ifPromote = ifElse({
+const ifPersist = ifElse({
   version: 2.2,
-  config: { name: 'IF Promote', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr('{{ $json.proceed_update }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+  config: { name: 'IF Persist Owner Action', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.persist_analysis }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const promoteRow = node({
@@ -334,6 +397,27 @@ const updatePipelineStatus = node({
   output: [{ lead_id: '' }]
 });
 
+const reviewActivityRow = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Review Activity Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Review POST Verdict').item.json.activity_row) }}"), options: {} } },
+  output: [{ activity_id: '', ts: '', lead_id: '', actor: '', channel: '', action: '', detail: '' }]
+});
+
+const appendReviewActivity = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Append Review Activity', retryOnFail: true, onError: 'continueRegularOutput',
+    parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Activities', 623316892))},
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } },
+    credentials: ${SHEETS_CRED} },
+  output: [{ activity_id: '', lead_id: '' }]
+});
+
+const ifPublishClient = ifElse({
+  version: 2.2,
+  config: { name: 'IF Publish Client Result', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Review POST Verdict').item.json.publish_client }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
 // The customer result: one curated row per lead in the Data Table the Gateway reads. No credential.
 const buildClientResult = node({
   type: 'n8n-nodes-base.code', version: 2,
@@ -350,33 +434,71 @@ const publishClientResult = node({
   output: [{ lead_id: '', review_status: 'CLIENT_READY' }]
 });
 
+const buildReadyNotification = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Build Client Ready Notification', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.buildReadyNotification)} } },
+  output: [{ auto_send: false, reason: '', transport_request: null }]
+});
+
+const ifAutoNotify = ifElse({
+  version: 2.2,
+  config: { name: 'IF Verified Telegram Route', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.auto_send }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const readyTransportRequest = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Client Ready Transport Request', parameters: { mode: 'raw', jsonOutput: expr('{{ JSON.stringify($json.transport_request) }}'), options: {} } },
+  output: [{ chat_id: '', text: '', keyboard_layout_id: 'L1_W', keyboard_data: { rows: [] }, parse_mode: '', disable_preview: true, correlation_id: '' }]
+});
+
+const sendReadyNotification = node({
+  type: 'n8n-nodes-base.executeWorkflow', version: 1.2,
+  config: { name: 'Send Client Ready Notification', onError: 'continueRegularOutput', retryOnFail: false,
+    parameters: { mode: 'each', options: { waitForSubWorkflow: true }, workflowId: { __rl: true, mode: 'id', value: ${J(CLIENT_TRANSPORT_WORKFLOW_ID)} },
+      workflowInputs: { mappingMode: 'defineBelow', matchingColumns: [], schema: [], value: {
+        chat_id: expr('{{ $json.chat_id }}'), correlation_id: expr('{{ $json.correlation_id }}'), disable_preview: expr('{{ $json.disable_preview }}'),
+        keyboard_data: expr('{{ $json.keyboard_data }}'), keyboard_layout_id: expr('{{ $json.keyboard_layout_id }}'), parse_mode: expr('{{ $json.parse_mode }}'), text: expr('{{ $json.text }}')
+      } } } },
+  output: [{ ok: true, chat_id: '', message_id: '', correlation_id: '', error_code: '', retryable: false }]
+});
+
+const completeReadyNotification = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Complete Client Ready Notification', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.completeReadyNotification)} } },
+  output: [{ delivered: true, update_row: {}, pipeline_row: {}, activity_row: {}, http_status: 200, html: '' }]
+});
+
+const ifReadyDelivered = ifElse({
+  version: 2.2,
+  config: { name: 'IF Client Notification Delivered', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.delivered }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const notifiedAnalysisRow = node({ type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Notified Analysis Row', parameters: { mode: 'raw', jsonOutput: expr('{{ JSON.stringify($json.update_row) }}'), options: {} } }, output: [{ analysis_id: '', review_status: 'CLIENT_NOTIFIED' }] });
+const updateNotifiedAnalysis = node({ type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Update Analysis Notified', retryOnFail: true, parameters: { resource: 'sheet', operation: 'update', documentId: ${J(DOC)}, sheetName: ${J(SHEET('XRay_Analysis'))}, columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['analysis_id'], schema: [] }, options: { cellFormat: 'RAW' } }, credentials: ${SHEETS_CRED} }, output: [{ analysis_id: '' }] });
+const notifiedPipelineRow = node({ type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Notified Pipeline Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Complete Client Ready Notification').item.json.pipeline_row) }}"), options: {} } }, output: [{ lead_id: '', xray_analysis_status: 'CLIENT_NOTIFIED' }] });
+const updateNotifiedPipeline = node({ type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Update Pipeline Notified', retryOnFail: true, onError: 'continueRegularOutput', parameters: { resource: 'sheet', operation: 'update', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Pipeline', 1883973304))}, columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['lead_id'], schema: [] }, options: { cellFormat: 'RAW' } }, credentials: ${SHEETS_CRED} }, output: [{ lead_id: '' }] });
+const notifiedActivityRow = node({ type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Notified Activity Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Complete Client Ready Notification').item.json.activity_row) }}"), options: {} } }, output: [{ activity_id: '', lead_id: '', action: 'client_notified' }] });
+const appendNotifiedActivity = node({ type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Append Notified Activity', retryOnFail: true, onError: 'continueRegularOutput', parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Activities', 623316892))}, columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } }, credentials: ${SHEETS_CRED} }, output: [{ activity_id: '', lead_id: '' }] });
+
+const respondReadyNotification = node({
+  type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
+  config: { name: 'Respond Client Notification Result', parameters: { respondWith: 'text', responseBody: expr("{{ $('Complete Client Ready Notification').item.json.html }}"),
+    options: { responseCode: expr("{{ $('Complete Client Ready Notification').item.json.http_status }}"), responseHeaders: ${HTML_HEADERS} } } }, output: [{}]
+});
+
 const respondPromoted = node({
   type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
   config: { name: 'Respond Review Done', parameters: { respondWith: 'text', responseBody: expr("{{ $('Review POST Verdict').item.json.html }}"),
     options: { responseCode: 200, responseHeaders: ${HTML_HEADERS} } } },
   output: [{}]
-});
-
-// ✅ Анализ подтверждён — ONE owner message on the FIRST promotion only (OWNER DECISION 2026-09-04,
-// A5: a second notification only for a real state transition). Placed AFTER the HTTP response so
-// the owner's browser is never kept waiting on Telegram; a repeated confirmation (ALREADY_READY)
-// carries notify_owner false and reaches no Telegram node. Same chat, same credential as the
-// review card; nothing else in the promotion chain moves.
-const ifFirstPromotion = ifElse({
-  version: 2.2,
-  config: { name: 'IF First Promotion', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr("{{ $('Review POST Verdict').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
-});
-
-const ownerApprovedNotice = node({
-  type: 'n8n-nodes-base.telegram', version: 1.2,
-  config: { name: 'Telegram Analysis Approved', onError: 'continueRegularOutput',
-    parameters: { resource: 'message', operation: 'sendMessage',
-      chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
-      text: expr("{{ $('Review POST Verdict').item.json.owner_approved_text }}"),
-      additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
-    credentials: ${TG_CRED} },
-  output: [{ ok: true }]
 });
 
 const respondDenied = node({
@@ -386,25 +508,85 @@ const respondDenied = node({
   output: [{}]
 });
 
+const ifSendCustomer = ifElse({
+  version: 2.2,
+  config: { name: 'IF Send Customer Message', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.send_customer }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const outboundTransportRequest = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Outbound Transport Request', parameters: { mode: 'raw', jsonOutput: expr('{{ JSON.stringify($json.transport_request) }}'), options: {} } },
+  output: [{ chat_id: '', text: '', keyboard_layout_id: 'L0_NONE', keyboard_data: { rows: [] }, parse_mode: '', disable_preview: true, correlation_id: '' }]
+});
+
+const sendCustomerMessage = node({
+  type: 'n8n-nodes-base.executeWorkflow', version: 1.2,
+  config: { name: 'Send Customer Message', onError: 'continueRegularOutput', retryOnFail: false,
+    parameters: { mode: 'each', options: { waitForSubWorkflow: true }, workflowId: { __rl: true, mode: 'id', value: ${J(CLIENT_TRANSPORT_WORKFLOW_ID)} },
+      workflowInputs: { mappingMode: 'defineBelow', matchingColumns: [], schema: [], value: {
+        chat_id: expr('{{ $json.chat_id }}'), correlation_id: expr('{{ $json.correlation_id }}'), disable_preview: expr('{{ $json.disable_preview }}'),
+        keyboard_data: expr('{{ $json.keyboard_data }}'), keyboard_layout_id: expr('{{ $json.keyboard_layout_id }}'), parse_mode: expr('{{ $json.parse_mode }}'), text: expr('{{ $json.text }}')
+      } } } },
+  output: [{ ok: true, chat_id: '', message_id: '', correlation_id: '', error_code: '', retryable: false }]
+});
+
+const completeOutbound = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Complete Outbound Contact', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.completeOutbound)} } },
+  output: [{ delivered: true, http_status: 200, activity_row: {}, html: '' }]
+});
+
+const ifOutboundDelivered = ifElse({
+  version: 2.2,
+  config: { name: 'IF Outbound Delivered', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.delivered }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const outboundActivityRow = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Outbound Activity Row', parameters: { mode: 'raw', jsonOutput: expr('{{ JSON.stringify($json.activity_row) }}'), options: {} } },
+  output: [{ activity_id: '', ts: '', lead_id: '', actor: '', channel: 'telegram', action: 'outbound_contact', detail: '' }]
+});
+
+const appendOutboundActivity = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Append Outbound Activity', retryOnFail: true, onError: 'continueRegularOutput',
+    parameters: { resource: 'sheet', operation: 'append', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Activities', 623316892))},
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: [], schema: [] }, options: { cellFormat: 'RAW' } }, credentials: ${SHEETS_CRED} },
+  output: [{ activity_id: '', lead_id: '' }]
+});
+
+const respondOutbound = node({
+  type: 'n8n-nodes-base.respondToWebhook', version: 1.5,
+  config: { name: 'Respond Outbound Result', parameters: { respondWith: 'text', responseBody: expr("{{ $('Complete Outbound Contact').item.json.html }}"),
+    options: { responseCode: expr("{{ $('Complete Outbound Contact').item.json.http_status }}"), responseHeaders: ${HTML_HEADERS} } } },
+  output: [{}]
+});
+
 export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .add(sweepTrigger)
   .to(readSettings)
   .to(settingsToObject)
   .to(readPipeline)
   .to(readAnalysis)
+  .to(readActivities)
+  .to(readStatusLog)
   .to(selectPending)
   .to(readLeadRaw)
   .to(buildInput)
-  .to(aiAnalysis
-    .onError(failedRowBuild.to(failedRow.to(saveFailed.to(ownerFailureNotice)))))
-  .to(validateRows)
-  .to(analysisRow)
-  .to(saveAnalysis)
-  .to(pipelineRow)
-  .to(updatePipeline)
-  .to(ifAnalysisValid
-    .onTrue(ownerAlert)
-    .onFalse(validationFailureNotice))
+  .to(ifInputReady
+    .onTrue(aiAnalysis
+      .onError(failedRowBuild.to(failedRow.to(saveFailed.to(ownerFailureNotice))))
+      .to(validateRows)
+      .to(analysisRow)
+      .to(saveAnalysis)
+      .to(pipelineRow)
+      .to(updatePipeline)
+      .to(ifAnalysisValid
+        .onTrue(ifNotifyOwner.onTrue(ownerAlert))
+        .onFalse(validationFailureNotice)))
+    .onFalse(sourceAuditNotice))
   .add(reviewGetWebhook)
   .to(readForReviewGet)
   .to(reviewSurface)
@@ -412,9 +594,19 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .add(reviewPostWebhook)
   .to(readForReviewPost)
   .to(reviewVerdict)
-  .to(ifPromote
-    .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(buildClientResult.to(publishClientResult.to(respondPromoted.to(ifFirstPromotion.onTrue(ownerApprovedNotice)))))))))
-    .onFalse(respondDenied));
+  .to(ifPersist
+    .onTrue(promoteRow.to(promoteAnalysis.to(pipelineStatusRow.to(updatePipelineStatus.to(reviewActivityRow.to(appendReviewActivity.to(ifPublishClient
+      .onTrue(buildClientResult.to(publishClientResult.to(buildReadyNotification.to(ifAutoNotify
+        .onTrue(readyTransportRequest.to(sendReadyNotification.to(completeReadyNotification.to(ifReadyDelivered
+          .onTrue(notifiedAnalysisRow.to(updateNotifiedAnalysis.to(notifiedPipelineRow.to(updateNotifiedPipeline.to(notifiedActivityRow.to(appendNotifiedActivity.to(respondReadyNotification)))))))
+          .onFalse(respondReadyNotification)))))
+        .onFalse(respondPromoted))))
+      .onFalse(respondPromoted))))))))
+    .onFalse(ifSendCustomer
+      .onTrue(outboundTransportRequest.to(sendCustomerMessage.to(completeOutbound.to(ifOutboundDelivered
+        .onTrue(outboundActivityRow.to(appendOutboundActivity.to(respondOutbound)))
+        .onFalse(respondOutbound)))))
+      .onFalse(respondDenied)));
 `;
 
 const isMain = process.argv[1] && process.argv[1].endsWith('build-xray-analysis-workflow.mjs');

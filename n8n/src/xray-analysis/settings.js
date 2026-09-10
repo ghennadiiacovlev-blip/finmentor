@@ -7,6 +7,8 @@
 //   xray_ai_model          gpt-4.1             model id for the analysis
 //   xray_analysis_since    ISO timestamp       leads created before it are never analysed
 //   xray_max_per_run       3                   cap per sweep, protects the OpenAI budget
+//   xray_backfill_enabled  true                controlled legacy-analysis upgrade switch
+//   xray_backfill_max_per_run 1                reserved idempotent upgrade slots per sweep
 //   xray_review_base_url   https://.../webhook/finmentor-xray-review   the owner review link
 
 const rows = $input.all().map(i => i.json);
@@ -26,6 +28,8 @@ const cfg = {
   xray_ai_model: s.xray_ai_model || 'gpt-4.1',
   xray_analysis_since: iso(s.xray_analysis_since, '2026-09-03T00:00:00.000Z'),
   xray_max_per_run: Math.min(num(s.xray_max_per_run, 3), 10),
+  xray_backfill_enabled: bool(s.xray_backfill_enabled, true),
+  xray_backfill_max_per_run: Math.min(num(s.xray_backfill_max_per_run, 1), 2),
   xray_review_base_url: s.xray_review_base_url || 'https://ghennadi.app.n8n.cloud/webhook/finmentor-xray-review',
   crm_url: 'https://docs.google.com/spreadsheets/d/1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A/edit'
 };

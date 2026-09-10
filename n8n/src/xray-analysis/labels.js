@@ -14,15 +14,22 @@ const XRAY_LABELS = {
       UNKNOWN: { name: 'ЗОНА НЕ ОПРЕДЕЛЕНА', line: 'Недостаточно данных для оценки' }
     },
     product: {
+      CFO_ADVISORY_SESSION:     'CFO Advisory Session — разбор одного решения',
       FINANCIAL_HEALTH_CHECK:  'Комплексная финансовая диагностика (Financial Health Check)',
       BUSINESS_CONTROL_SYSTEM: 'Business Control System — система финансового контроля',
+      CFO_CONTROL_PARTNER:      'CFO Control Partner — регулярный контроль собственника',
+      CFO_AI_CONTROL:           'CFO AI Control — расширенный контур контроля',
+      NEEDS_CLARIFICATION:      'Сначала требуется уточнение',
       MONTHLY_CFO_SUPPORT:     'Monthly CFO Support — ежемесячное сопровождение CFO',
       DISCOVERY_CALL:          'Диагностическая встреча (Discovery Call)'
     },
     review: {
       AI_DRAFT:        'Предварительный анализ ИИ',
       OWNER_REVIEW:    'Экспертная проверка FINMENTOR',
+      OWNER_EDITED:    'Отредактировано владельцем',
       CLIENT_READY:    'Готово для клиента',
+      CLIENT_NOTIFIED: 'Клиент уведомлён',
+      CLIENT_VIEWED:   'Клиент открыл результат',
       ANALYSIS_FAILED: 'Анализ не выполнен'
     },
     insufficient: 'НЕДОСТАТОЧНО ДАННЫХ',
@@ -37,15 +44,22 @@ const XRAY_LABELS = {
       UNKNOWN: { name: 'ZONĂ NEDETERMINATĂ', line: 'Date insuficiente pentru evaluare' }
     },
     product: {
+      CFO_ADVISORY_SESSION:     'CFO Advisory Session — analiza unei decizii',
       FINANCIAL_HEALTH_CHECK:  'Diagnostic financiar complet (Financial Health Check)',
       BUSINESS_CONTROL_SYSTEM: 'Business Control System — sistem de control financiar',
+      CFO_CONTROL_PARTNER:      'CFO Control Partner — control financiar recurent',
+      CFO_AI_CONTROL:           'CFO AI Control — sistem avansat de control',
+      NEEDS_CLARIFICATION:      'Mai întâi sunt necesare clarificări',
       MONTHLY_CFO_SUPPORT:     'Monthly CFO Support — asistență CFO lunară',
       DISCOVERY_CALL:          'Întâlnire de diagnostic (Discovery Call)'
     },
     review: {
       AI_DRAFT:        'Analiză preliminară AI',
       OWNER_REVIEW:    'Verificare de specialist FINMENTOR',
+      OWNER_EDITED:    'Editat de proprietar',
       CLIENT_READY:    'Pregătit pentru client',
+      CLIENT_NOTIFIED: 'Client notificat',
+      CLIENT_VIEWED:   'Clientul a deschis rezultatul',
       ANALYSIS_FAILED: 'Analiza nu a fost realizată'
     },
     insufficient: 'DATE INSUFICIENTE',
@@ -53,9 +67,9 @@ const XRAY_LABELS = {
   }
 };
 
-const XRAY_PRODUCT_CODES = ['FINANCIAL_HEALTH_CHECK', 'BUSINESS_CONTROL_SYSTEM', 'MONTHLY_CFO_SUPPORT', 'DISCOVERY_CALL'];
+const XRAY_PRODUCT_CODES = ['CFO_ADVISORY_SESSION', 'FINANCIAL_HEALTH_CHECK', 'BUSINESS_CONTROL_SYSTEM', 'CFO_CONTROL_PARTNER', 'CFO_AI_CONTROL', 'NEEDS_CLARIFICATION', 'MONTHLY_CFO_SUPPORT', 'DISCOVERY_CALL'];
 const XRAY_ZONES = ['GREEN', 'YELLOW', 'ORANGE', 'RED', 'UNKNOWN'];
-const XRAY_REVIEW_STATES = ['AI_DRAFT', 'OWNER_REVIEW', 'CLIENT_READY', 'ANALYSIS_FAILED'];
+const XRAY_REVIEW_STATES = ['AI_DRAFT', 'OWNER_REVIEW', 'OWNER_EDITED', 'CLIENT_READY', 'CLIENT_NOTIFIED', 'CLIENT_VIEWED', 'ANALYSIS_FAILED'];
 
 function xrayLocale(value) {
   return String(value || '').toLowerCase().slice(0, 2) === 'ro' ? 'ro' : 'ru';

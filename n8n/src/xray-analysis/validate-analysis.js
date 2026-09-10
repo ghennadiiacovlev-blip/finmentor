@@ -28,18 +28,23 @@
 
 // __XRAY_OWNER_CARDS__ (inlined by the builder)
 
+// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)
+
+// __LEAD_INTELLIGENCE_ALERT__ (inlined by the builder)
+
 const crypto = require('crypto');
 // The Pipeline tab, for the «Карточка лида» deep link on the owner card (Google Sheets range anchor).
 const PIPELINE_GID = '1883973304';
-const ANALYSIS_VERSION = 'xray-v2';
+const ANALYSIS_VERSION = 'lead-intelligence-v1';
 const REVIEW_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const REQUIRED_TOP = ['executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
+const REQUIRED_TOP = ['owner_brief', 'executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
 const WEEKS = ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'];
 
 function str(v, max) { return String(v === undefined || v === null ? '' : (typeof v === 'object' ? JSON.stringify(v) : v)).trim().slice(0, max || 2000); }
 function arrStr(v, max, each) { if (!Array.isArray(v)) return []; return v.map(x => str(x, each || 400)).filter(Boolean).slice(0, max); }
 function level(v) { const s = String(v || '').toUpperCase(); return ['HIGH', 'MEDIUM', 'LOW'].includes(s) ? s : 'MEDIUM'; }
 function plainObject(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+function jsonObject(value, fallback) { try { const x = JSON.parse(String(value || '')); return plainObject(x) ? x : fallback; } catch (e) { return fallback; } }
 
 function extractText(ai) {
   let c = ai.output?.[0]?.content?.[0]?.text ?? ai.output_text ?? ai.text ?? ai.response ?? ai.message?.content ?? ai.choices?.[0]?.message?.content ?? ai.content ?? '';
@@ -60,6 +65,7 @@ function contractErrors(p) {
   for (const k of REQUIRED_TOP) { if (!(k in p)) errors.push('missing ' + k); }
   if (errors.length) return errors;
   if (str(p.executive_summary, 2500) === '') errors.push('executive_summary empty');
+  if (!plainObject(p.owner_brief)) errors.push('owner_brief not an object');
   if (!plainObject(p.financial_maturity)) errors.push('financial_maturity not an object');
   else {
     const m = parseInt(p.financial_maturity.score_1_to_5, 10);
@@ -90,7 +96,7 @@ function normalize(p, locale) {
   const fm = p.financial_maturity;
   const maturity = parseInt(fm.score_1_to_5, 10);
   const product = String((p.recommended_next_step || {}).product || '').toUpperCase();
-  const productCode = XRAY_PRODUCT_CODES.includes(product) ? product : 'DISCOVERY_CALL';
+  const productCode = XRAY_PRODUCT_CODES.includes(product) ? product : 'NEEDS_CLARIFICATION';
   return {
     executive_summary: str(p.executive_summary, 2500),
     financial_maturity: { score_1_to_5: maturity, label: str(fm.label, 120), rationale: str(fm.rationale, 800) },
@@ -143,26 +149,26 @@ function fabricationFlags(inputText, outputText) {
 // figure or the model itself reported LOW confidence. The product label is the RU owner label,
 // never the client-locale one. Telegram parse_mode HTML: every value is escaped in the renderer.
 function ownerAlert(inp, a, row, cfg) {
-  const text = XRAY_OWNER_CARDS.renderReview({
-    company: inp.company,
-    locale: row.locale,
-    context: inp.company_context || null,
-    score: row.score,
-    zone: XRAY_ZONES.includes(row.zone) ? row.zone : 'UNKNOWN',
-    maturity: row.maturity_score,
-    primary_risk: a.key_risks[0] ? a.key_risks[0].title : '',
-    priorities: a.management_priorities,
-    // canonical questionnaire risk-zone codes — the owner card's Russian rendering for RO clients
-    risk_zones: Array.isArray(inp.risk_zones) ? inp.risk_zones : [],
-    product: a.recommended_next_step.product,
-    needs_verification: row.fabrication_flags !== '' || a.confidence === 'LOW'
+  const brief = row.owner_brief_json ? JSON.parse(row.owner_brief_json) : {};
+  const firstFact = (brief.client_facts || []).find(f => f.id === 'main_problem') || (brief.client_facts || [])[0] || {};
+  const firstDiagnosis = (brief.diagnoses || [])[0] || {};
+  const text = LI_ALERT.renderLeadIntelligenceAlert({
+    company: (brief.header || {}).company || inp.company,
+    contact_name: (brief.header || {}).contact_name,
+    role: (brief.header || {}).role,
+    business: (brief.header || {}).business,
+    scale: (brief.header || {}).scale,
+    main_pain: firstFact.value,
+    observation: firstDiagnosis.conclusion,
+    contact: brief.contact,
+    next_action: (brief.next_action || {}).action
   });
   const reviewUrl = String(cfg.xray_review_base_url || '') + '?a=' + encodeURIComponent(row.analysis_id) + '&t=' + encodeURIComponent(row.review_token);
   // «Карточка лида»: the Pipeline row when the input knows it, the spreadsheet otherwise.
   const crmBase = String(cfg.crm_url || '');
   const crmRow = Number(inp.crm_row);
   const crmUrl = crmBase && Number.isInteger(crmRow) && crmRow > 1 ? crmBase + '#gid=' + PIPELINE_GID + '&range=A' + crmRow : crmBase;
-  return { text, review_url: reviewUrl, crm_url: crmUrl };
+  return { text, review_url: reviewUrl, contact_url: reviewUrl + '&view=contact', crm_url: crmUrl };
 }
 
 function newAnalysisId(leadId) {
@@ -170,20 +176,33 @@ function newAnalysisId(leadId) {
 }
 
 function failedOutput(inp, now, errors) {
-  const analysisId = newAnalysisId(inp.lead_id) + '-F';
-  const row = {
+  const upgrading = inp.analysis_mode === 'UPGRADE_EXISTING' && plainObject(inp.existing_analysis);
+  const existing = upgrading ? inp.existing_analysis : {};
+  const analysisId = upgrading ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id) + '-F';
+  const failureFields = {
     analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale === 'ro' ? 'ro' : 'ru',
     company: str(inp.company, 120),
-    created_at: now, analysis_version: inp.analysis_version || ANALYSIS_VERSION, model: inp.ai_model || '',
+    created_at: upgrading ? existing.created_at || now : now,
+    analysis_version: upgrading ? existing.analysis_version || '' : inp.analysis_version || ANALYSIS_VERSION,
+    model: upgrading ? existing.model || '' : inp.ai_model || '',
     score: inp.score === null || inp.score === undefined ? '' : inp.score,
     zone: XRAY_ZONES.includes(inp.zone) ? inp.zone : 'UNKNOWN', maturity_score: '', primary_risk: '',
     analysis_json: '', plan_30d_json: '', review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '',
     confidence: '', fabrication_flags: '', validation_errors: errors.join('; ').slice(0, 1200), source_channel: inp.source_channel || '',
     executive_summary: 'ANALYSIS_FAILED: MODEL_OUTPUT_INVALID', recommended_next_step: '', next_step_label: '', customer_notified_at: ''
   };
+  const row = upgrading ? Object.assign({}, existing, {
+    analysis_id: analysisId,
+    lead_intelligence_upgrade_status: 'FAILED',
+    lead_intelligence_upgrade_attempted_at: now,
+    lead_intelligence_upgrade_errors: errors.join('; ').slice(0, 1200)
+  }) : failureFields;
   return {
     is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
-    pipeline_row: { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED', updated_at: now, last_activity_at: now },
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : 'NEW_ANALYSIS', notify_owner: true,
+    pipeline_row: upgrading
+      ? { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: String(existing.review_status || 'AI_DRAFT'), updated_at: now }
+      : { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED', updated_at: now, last_activity_at: now },
     owner_alert: null,
     // ❌ Анализ не сформирован — the error class renders as Russian; the raw validation errors stay
     // on the ledger row (validation_errors) for the engineer, never in the owner's chat.
@@ -205,16 +224,42 @@ for (let idx = 0; idx < responses.length; idx++) {
   let parsed = null;
   try { parsed = JSON.parse(extractText(ai)); } catch (e) { out.push({ json: failedOutput(inp, now, ['invalid JSON']) }); continue; }
   const errors = contractErrors(parsed);
+  const existing = inp.analysis_mode === 'UPGRADE_EXISTING' && plainObject(inp.existing_analysis) ? inp.existing_analysis : null;
+  const priorBrief = existing ? jsonObject(existing.owner_brief_json, {}) : {};
+  const ownerBrief = LI.normalizeOwnerBrief(parsed && parsed.owner_brief, Object.assign({}, inp.owner_context || {}, {
+    generated_at: now,
+    intelligence_version: Number(priorBrief.intelligence_version || 0) + 1,
+    owner_confirmed_facts: priorBrief.owner_confirmed_facts || [],
+    owner_notes: priorBrief.owner_notes || []
+  }));
+  errors.push(...LI.briefErrors(ownerBrief));
   if (errors.length) { out.push({ json: failedOutput(inp, now, errors) }); continue; }
 
   const a = normalize(parsed, locale);
+  a.owner_brief = ownerBrief;
   const flags = fabricationFlags(inp.input_digest_text || '', factText(a));
   if (flags.length) { a.confidence = 'LOW'; a.limitations.push((locale === 'ro' ? 'Cifre neconfirmate de datele de intrare: ' : 'Цифры, не подтверждённые входными данными: ') + flags.join(', ')); }
 
-  const analysisId = newAnalysisId(inp.lead_id);
+  const upgrading = !!existing;
+  const analysisId = upgrading ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id);
+  const analysisJson = JSON.stringify(a);
+  const ownerBriefJson = JSON.stringify(ownerBrief);
+  const generatedClientDraftJson = JSON.stringify(Object.assign({}, a, { owner_brief: undefined }));
+  // Never silently replace a customer-facing draft during an internal owner-intelligence
+  // backfill. Existing publication state and content remain untouched.
+  const clientDraftJson = upgrading && str(existing.client_result_draft_json, 45000)
+    ? String(existing.client_result_draft_json) : generatedClientDraftJson;
+  const planJson = JSON.stringify(a.plan_30_days);
+  // Google Sheets cells have a finite size. Truncating JSON would create a successful-looking,
+  // unreadable record, so oversize derived content fails closed before an owner token is minted.
+  if ([analysisJson, ownerBriefJson, clientDraftJson, planJson].some((s) => s.length > 45000)) {
+    out.push({ json: failedOutput(inp, now, ['derived JSON exceeds storage contract']) });
+    continue;
+  }
   // 32 random bytes: the per-row review authority. Bounded in time so a leaked link expires.
-  const reviewToken = crypto.randomBytes(32).toString('hex');
-  const row = {
+  const reviewToken = upgrading && str(existing.review_token, 100) ? String(existing.review_token) : crypto.randomBytes(32).toString('hex');
+  const reviewStatus = upgrading ? String(existing.review_status || 'AI_DRAFT') : 'AI_DRAFT';
+  const fields = {
     analysis_id: analysisId,
     lead_id: inp.lead_id,
     request_id: inp.request_id || '',
@@ -222,19 +267,24 @@ for (let idx = 0; idx < responses.length; idx++) {
     // Carried on the ledger row so the promotion notice can name the company without a second
     // Pipeline read (autoMap appends the column on first write).
     company: str(inp.company, 120),
-    created_at: now,
+    created_at: upgrading ? existing.created_at || now : now,
     analysis_version: inp.analysis_version || ANALYSIS_VERSION,
     model: inp.ai_model || '',
     score: inp.score === null || inp.score === undefined ? '' : inp.score,
     zone: XRAY_ZONES.includes(inp.zone) ? inp.zone : 'UNKNOWN',
     maturity_score: a.financial_maturity.score_1_to_5,
     primary_risk: a.key_risks[0].title,
-    analysis_json: JSON.stringify(a).slice(0, 45000),
-    plan_30d_json: JSON.stringify(a.plan_30_days).slice(0, 45000),
-    review_status: 'AI_DRAFT',
-    reviewed_at: '',
+    analysis_json: analysisJson,
+    owner_brief_json: ownerBriefJson,
+    client_result_draft_json: clientDraftJson,
+    client_result_eligible: ownerBrief.client_result_eligible,
+    brief_versions_json: upgrading ? String(existing.brief_versions_json || '[]') : '[]',
+    owner_notes_json: upgrading ? String(existing.owner_notes_json || '{"confirmed":[],"notes":[]}') : '{"confirmed":[],"notes":[]}',
+    plan_30d_json: planJson,
+    review_status: reviewStatus,
+    reviewed_at: upgrading ? String(existing.reviewed_at || '') : '',
     review_token: reviewToken,
-    review_token_expires_at: new Date(Date.now() + REVIEW_TOKEN_TTL_MS).toISOString(),
+    review_token_expires_at: upgrading && str(existing.review_token_expires_at, 60) ? String(existing.review_token_expires_at) : new Date(Date.now() + REVIEW_TOKEN_TTL_MS).toISOString(),
     confidence: a.confidence,
     fabrication_flags: flags.join(', '),
     validation_errors: '',
@@ -242,20 +292,30 @@ for (let idx = 0; idx < responses.length; idx++) {
     executive_summary: a.executive_summary.slice(0, 2500),
     recommended_next_step: a.recommended_next_step.product,
     next_step_label: a.recommended_next_step.label,
-    customer_notified_at: ''
+    customer_notified_at: upgrading ? String(existing.customer_notified_at || '') : '',
+    lead_intelligence_upgrade_status: upgrading ? 'COMPLETE' : '',
+    lead_intelligence_upgraded_at: upgrading ? now : ''
   };
+  const row = upgrading ? Object.assign({}, existing, fields) : fields;
   const pipelineRow = {
     lead_id: inp.lead_id,
     xray_analysis_id: analysisId,
     xray_score: row.score,
     xray_maturity: row.maturity_score,
     xray_primary_risk: row.primary_risk,
-    xray_analysis_status: 'AI_DRAFT',
+    xray_analysis_status: reviewStatus,
     xray_next_step: row.next_step_label,
     updated_at: now,
     last_activity_at: now
   };
-  out.push({ json: { is_valid: true, analysis_row: row, pipeline_row: pipelineRow, owner_alert: ownerAlert(inp, a, row, cfg), owner_text: '', lead_id: inp.lead_id, analysis_id: analysisId } });
+  out.push({ json: {
+    is_valid: true,
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : 'NEW_ANALYSIS',
+    notify_owner: !upgrading,
+    analysis_row: row, pipeline_row: pipelineRow,
+    owner_alert: upgrading ? null : ownerAlert(inp, a, row, cfg),
+    owner_text: '', lead_id: inp.lead_id, analysis_id: analysisId
+  } });
 }
 
 return out;
