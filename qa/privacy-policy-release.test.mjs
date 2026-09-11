@@ -53,8 +53,7 @@ const POLICIES = [
     whoDeletes: /ежемесячная due-list проверка, затем удаление/,
     notAutomated: /еженедельной проверке владельцем/,
     basis: /ст\. 6\(1\)\(b\)/,
-    pending: /pre_contractual_request/,
-    notCounsel: /действия по инициативе субъекта до заключения договора/,
+    notCounsel: /обработка необходима для действий, предпринимаемых по запросу субъекта данных до заключения договора/,
     separateConsent: /Google Analytics 4:<\/strong> только ваше согласие/,
     humanReview: /проверяется человеком до публикации клиенту/,
     supabase: /AI-поставщик/,
@@ -70,8 +69,7 @@ const POLICIES = [
     whoDeletes: /verificare lunară a listei scadente, apoi ștergerea/,
     notAutomated: /verificarea săptămânală a responsabilului/,
     basis: /art\. 6 alin\. \(1\) lit\. b\)/,
-    pending: /pre_contractual_request/,
-    notCounsel: /demersuri la inițiativa persoanei vizate înainte de încheierea contractului/,
+    notCounsel: /prelucrarea este necesară pentru demersuri efectuate la cererea persoanei vizate înainte de încheierea unui contract/,
     separateConsent: /Google Analytics 4:<\/strong> numai consimțământul/,
     humanReview: /verificat de o persoană înainte de publicarea către client/,
     supabase: /furnizorul AI/,
@@ -126,10 +124,10 @@ for (const p of POLICIES) {
     assert(!/удаляется автоматически через 72|se șterge automat după 72/.test(html), 'claims automatic deletion at 72h');
   });
 
-  check(p.lang + ': the customer-request basis is purpose-specific and matches the stored enum', () => {
+  check(p.lang + ': the customer-request basis is purpose-specific human legal language', () => {
     assert(p.basis.test(html), 'the statutory basis is not cited');
-    assert(p.pending.test(html), 'the stored purpose-specific enum is missing');
     assert(p.notCounsel.test(html), 'the pre-contractual substance is missing');
+    assert(!/pre_contractual_request|legitimate_interest_security/.test(html), 'an internal legal-basis enum is public');
     assert(!/PENDING_LEGAL_REVIEW/.test(html), 'the retired pending sentinel is public');
   });
 
@@ -225,7 +223,7 @@ check('the RO privacy page carries the canonical product name and no superseded 
 check('the Gate 1 legal meaning survived the terminology fix', () => {
   const h = read('ro/privacy.html');
   assert(/art\. 6 alin\. \(1\) lit\. b\)/.test(h), 'the legal basis citation was lost');
-  assert(/pre_contractual_request/.test(h), 'the purpose-specific enum was lost');
+  assert(!/pre_contractual_request|legitimate_interest_security/.test(h), 'an internal basis enum is exposed');
   assert(/Iacovlev Ghennadi/.test(h), 'the controller was lost');
   assert(/12 luni de la ultima interacțiune semnificativă/.test(h), 'the retention period was lost');
 });

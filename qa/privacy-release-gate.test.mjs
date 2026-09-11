@@ -251,7 +251,7 @@ for (const p of POLICIES) {
 
   check(p.lang + ' policy records the final purpose-specific pre-contractual basis', () => {
     assert(/ст\. 6\(1\)\(b\)|art\. 6 alin\. \(1\) lit\. b\)/.test(html), 'the statutory basis is not recorded');
-    assert(/pre_contractual_request/.test(html), 'the stored basis enum is not recorded');
+    assert(!/pre_contractual_request|legitimate_interest_security/.test(html), 'an internal legal-basis enum is public');
     assert(!/PENDING_LEGAL_REVIEW/.test(html), 'the retired pending sentinel survives');
   });
 
