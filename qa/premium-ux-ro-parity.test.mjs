@@ -29,6 +29,7 @@ const require = createRequire(import.meta.url);
 
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
 const L = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'locale.js'));
+const N = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 const { RO_LABELS, SHELL_RO } = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'ro-labels.js'));
 
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
@@ -109,8 +110,15 @@ check('the emitted bundle carries the resolved Romanian table', () => {
   // eslint-disable-next-line no-new-func
   new Function('window', CONTENT)(w);
   const n = Object.keys(w.FM_RO).length;
-  assert(n === L.collectVisibleStrings(B).length + Object.keys(SHELL_RO).length,
-    'FM_RO carries ' + n + ' entries, which is not contract + shell');
+  const expected = new Set(Object.keys(L.roTable(Object.assign({}, B, { PRIVACY: {} }))));
+  const walkPrivacy = (value) => {
+    if (typeof value === 'string') { expected.add(value); return; }
+    if (Array.isArray(value)) { value.forEach(walkPrivacy); return; }
+    if (value && typeof value === 'object') Object.values(value).forEach(walkPrivacy);
+  };
+  walkPrivacy(N.MINI_APP.ru);
+  assert(n === expected.size, 'FM_RO carries ' + n + ' entries, expected ' + expected.size);
+  for (const legacy of B.PRIVACY.lines) assert(!Object.hasOwn(w.FM_RO, legacy), 'stale privacy label emitted');
   return true;
 });
 

@@ -37,6 +37,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
+const NOTICE = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 const M = await import('../scripts/build-premium-endpoints.mjs');
 
 let pass = 0;
@@ -52,7 +53,7 @@ const WF = loadResolvedSubmit(M, {});
 const SID = 'AS-' + 'a'.repeat(64);
 const OWNER = '551662084';
 const ACK = {
-  notice_version: 'pn-2026-08', locale: 'ru',
+  notice_version: NOTICE.NOTICE_VERSION, locale: 'ru',
   shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z'
 };
 const bodyFor = (id) => ({ app_session_id: id, privacy_ack: ACK });

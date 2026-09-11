@@ -3,8 +3,8 @@
 //
 //   node qa/premium-ux-brief.test.mjs
 //
-// Offline. No tenant, no network, no credentials, and NO privacy store — the store is designed but
-// not created (owner decision B), so everything here runs against the record builder alone.
+// Offline. No tenant, no network, no credentials, and no connection to the live privacy store;
+// everything here runs against the record builder alone.
 //
 // WHAT THIS GATE IS FOR. Two separations that a reader cannot check by eye once the brief is
 // rendered:
@@ -25,6 +25,7 @@ const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
 const MB = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'meeting-brief.js'));
 const PR = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-record.js'));
+const NOTICE = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
 
 let pass = 0;
@@ -147,7 +148,7 @@ check('the brief contains no free-form generated prose — only client values an
 
 // ---------------------------------------------------------------- privacy record
 
-const ack = (over) => Object.assign({ notice_version: 'pn-2026-08', locale: 'ru', shown_at: NOW, acknowledged_at: NOW }, over || {});
+const ack = (over) => Object.assign({ notice_version: NOTICE.NOTICE_VERSION, locale: 'ru', shown_at: NOW, acknowledged_at: NOW }, over || {});
 
 check('a valid acknowledgement builds one immutable record with both timestamps', () => {
   const r = PR.buildPrivacyRecord({ submissionKey: KEY, cycleId: 'C-1', ack: ack() });
@@ -158,22 +159,17 @@ check('a valid acknowledgement builds one immutable record with both timestamps'
   eq(JSON.stringify(Object.keys(r.record).sort()), JSON.stringify(PR.RECORD_KEYS.slice().sort()), 'record keys');
 });
 
-check('legal basis defaults to PENDING_LEGAL_REVIEW and is never invented', () => {
+check('legal basis is the final purpose-specific pre-contractual basis', () => {
   const r = PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack() });
-  eq(r.record.privacy_legal_basis, 'PENDING_LEGAL_REVIEW', 'default legal basis');
-  eq(PR.PENDING_LEGAL_BASIS, 'PENDING_LEGAL_REVIEW', 'constant');
+  eq(r.record.privacy_legal_basis, 'pre_contractual_request', 'legal basis');
+  eq(r.record.privacy_legal_basis, NOTICE.LEGAL_BASIS, 'notice/record basis drift');
 });
 
-check('marketing consent is optional, separate, and null when never asked', () => {
-  const never = PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack() });
-  eq(never.record.marketing_consent, null, 'never-asked is not null');
-  eq(never.record.marketing_consent_at, null, 'timestamp set');
-  const declined = PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack(), marketingConsent: false });
-  eq(declined.record.marketing_consent, false, 'declined');
-  eq(declined.record.marketing_consent_at, null, 'declined should carry no timestamp');
-  const given = PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack(), marketingConsent: true, marketingConsentAt: NOW });
-  eq(given.record.marketing_consent, true, 'given');
-  eq(given.record.marketing_consent_at, NOW, 'given timestamp');
+check('marketing is not collected in v1 and cannot widen the acknowledgement row', () => {
+  const built = PR.buildPrivacyRecord({ submissionKey: KEY, ack: ack(), marketingConsent: true, marketingConsentAt: NOW });
+  assert(built.ok, 'unused marketing input broke acknowledgement');
+  assert(!Object.hasOwn(built.record, 'marketing_consent'), 'marketing consent leaked into the record');
+  assert(!Object.hasOwn(built.record, 'marketing_consent_at'), 'marketing timestamp leaked into the record');
 });
 
 check('marketing consent is NEVER required to submit', () => {

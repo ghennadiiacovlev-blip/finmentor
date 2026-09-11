@@ -1,5 +1,5 @@
 /* GENERATED — do not edit.
- * Source: n8n/src/premium-ux/branches.js (machine values) + n8n/src/premium-ux/ro-labels.js (RO presentation)
+ * Source: n8n/src/premium-ux/branches.js + privacy-notice.js + ro-labels.js
  * Rebuild: node scripts/build-premium-app-content.mjs
  * Held against docs/PREMIUM_UX_FINAL_RU_SPEC.md by qa/premium-ux-content.test.mjs. */
 window.FM_CONTENT = {
@@ -651,13 +651,13 @@ window.FM_CONTENT = {
   "FOCUS_DISCLAIMER": "Финальный объём анализа консультант определит после изучения материалов.",
   "PRIVACY": {
     "lines": [
-      "FINMENTOR использует указанные вами данные для рассмотрения обращения, подготовки консультанта и связи с вами.",
-      "Передавая brief, вы подтверждаете, что ознакомились с информацией об обработке персональных данных.",
-      "Результаты Финансового рентгена бизнеса (Financial X-Ray) и план действий на 30 дней готовятся автоматизированно с участием искусственного интеллекта на основе обезличенных ответов и являются предварительным управленческим анализом, а не аудитом и не индивидуальной финансовой консультацией. Итоговые экспертные рекомендации FINMENTOR формируются после проверки человеком. Технические записи об обработке (без персональных данных) хранятся в Supabase (ЕС)."
+      "Используем данные брифа, чтобы рассмотреть ваш запрос, подготовить консультанта и связаться с вами.",
+      "В Intake и Financial X-Ray искусственный интеллект получает минимизированные, псевдонимизированные данные без прямых идентификаторов; результат проверяет человек до публикации. Юридически значимых полностью автоматических решений нет.",
+      "Полная информация доступна по ссылке ниже. Отправка подтверждает ознакомление с ней, но не является согласием на маркетинг.",
+      "Не указывайте пароли, PIN/CVV, полные данные банковских карт и другую информацию, которая не нужна для финансового анализа."
     ],
     "links": [
-      "Как мы обрабатываем данные",
-      "Политика конфиденциальности"
+      "Полная политика конфиденциальности"
     ],
     "entryLink": "Конфиденциальность и данные",
     "primary": "Передать консультанту"
@@ -774,6 +774,7 @@ window.FM_CONTENT = {
     "Проверка"
   ]
 };
+window.FM_NOTICE_VERSION = "pn-2026-09-11.v1";
 /* Machine value -> Romanian label. Display only: the app renders through FM_T() and submits
  * the untranslated key, so the Pipeline stores the same value in both languages. */
 window.FM_RO = {
@@ -985,7 +986,7 @@ window.FM_RO = {
   "Бриф для консультанта": "Sinteză pentru consultant",
   "Проверьте, правильно ли FINMENTOR понял ситуацию.": "Verificați dacă FINMENTOR a înțeles corect situația.",
   "Этого достаточно, чтобы консультант подготовился к первому разговору.": "Este suficient pentru ca consultantul să se pregătească pentru prima discuție.",
-  "Передать консультанту": "Trimiteți consultantului",
+  "Передать консультанту": "Trimite consultantului",
   "Изменить": "Modificați",
   "Добавить важное": "Adăugați ce este important",
   "Материалы — указаны": "Materiale — indicate",
@@ -1015,12 +1016,6 @@ window.FM_RO = {
   "Решение, которое требуется принять": "Decizia care trebuie luată",
   "Каких данных не хватает для следующего шага": "Ce date lipsesc pentru pasul următor",
   "Финальный объём анализа консультант определит после изучения материалов.": "Volumul final al analizei va fi stabilit de consultant după studierea materialelor.",
-  "FINMENTOR использует указанные вами данные для рассмотрения обращения, подготовки консультанта и связи с вами.": "FINMENTOR folosește datele indicate de dumneavoastră pentru analiza solicitării, pregătirea consultantului și pentru a vă contacta.",
-  "Передавая brief, вы подтверждаете, что ознакомились с информацией об обработке персональных данных.": "Prin trimiterea sintezei confirmați că ați luat cunoștință de informațiile privind prelucrarea datelor cu caracter personal.",
-  "Результаты Финансового рентгена бизнеса (Financial X-Ray) и план действий на 30 дней готовятся автоматизированно с участием искусственного интеллекта на основе обезличенных ответов и являются предварительным управленческим анализом, а не аудитом и не индивидуальной финансовой консультацией. Итоговые экспертные рекомендации FINMENTOR формируются после проверки человеком. Технические записи об обработке (без персональных данных) хранятся в Supabase (ЕС).": "Rezultatele Testului financiar FINMENTOR și planul de acțiune pentru 30 de zile sunt pregătite automatizat, cu ajutorul inteligenței artificiale (AI), pe baza răspunsurilor anonimizate, și reprezintă o analiză managerială preliminară, nu un audit și nici o consultanță financiară individuală. Recomandările finale ale experților FINMENTOR se formulează după verificarea de către o persoană. Înregistrările tehnice privind prelucrarea (fără date cu caracter personal) sunt păstrate în Supabase (UE).",
-  "Как мы обрабатываем данные": "Cum prelucrăm datele",
-  "Политика конфиденциальности": "Politica de confidențialitate",
-  "Конфиденциальность и данные": "Confidențialitate și date",
   "Что хотите изменить?": "Ce doriți să modificați?",
   "Поправим один пункт и вернёмся к брифу.": "Corectăm un singur punct și revenim la sinteză.",
   "Вернуться к брифу": "Înapoi la sinteză",
@@ -1160,5 +1155,11 @@ window.FM_RO = {
   "ответ по контакту": "răspuns prin datele de contact",
   "Передаём бриф…": "Se trimite sinteza…",
   "Не закрывайте окно.": "Nu închideți fereastra.",
-  "Статус:": "Stare:"
+  "Статус:": "Stare:",
+  "Используем данные брифа, чтобы рассмотреть ваш запрос, подготовить консультанта и связаться с вами.": "Folosim datele din brief pentru a examina solicitarea, a pregăti consultantul și a vă contacta.",
+  "В Intake и Financial X-Ray искусственный интеллект получает минимизированные, псевдонимизированные данные без прямых идентификаторов; результат проверяет человек до публикации. Юридически значимых полностью автоматических решений нет.": "În Intake și Financial X-Ray, inteligența artificială primește date minimizate și pseudonimizate, fără identificatori direcți; rezultatul este verificat de o persoană înainte de publicare. Nu există decizii exclusiv automate cu efecte juridice sau similare semnificative.",
+  "Полная информация доступна по ссылке ниже. Отправка подтверждает ознакомление с ней, но не является согласием на маркетинг.": "Informația completă este disponibilă prin linkul de mai jos. Trimiterea confirmă că ați luat cunoștință de ea, dar nu reprezintă consimțământ pentru marketing.",
+  "Не указывайте пароли, PIN/CVV, полные данные банковских карт и другую информацию, которая не нужна для финансового анализа.": "Nu indicați parole, PIN/CVV, datele complete ale cardurilor bancare sau alte informații care nu sunt necesare pentru analiza financiară.",
+  "Полная политика конфиденциальности": "Politica de confidențialitate completă",
+  "Конфиденциальность и данные": "Confidențialitate și date"
 };

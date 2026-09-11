@@ -429,10 +429,13 @@ function visitor() {
   };
 }
 
-check('a campaign landing is captured on page load, before any submit', () => {
+check('a campaign landing is captured only after analytics consent', () => {
   const v = visitor();
   const win = v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=brand');
-  const a = win.FMAnalytics.getAttribution();
+  let a = win.FMAnalytics.getAttribution();
+  assert(a.first_touch === null && a.last_touch === null, 'attribution persisted before consent');
+  win.FMAnalytics.consent('accept');
+  a = win.FMAnalytics.getAttribution();
   assert(a.first_touch, 'no first touch captured');
   assert(a.first_touch.utm_source === 'google', 'wrong first touch source: ' + JSON.stringify(a.first_touch));
   assert(a.first_touch.captured_at, 'first touch has no timestamp');
@@ -442,7 +445,7 @@ check('attribution survives navigation to a page with no UTM', () => {
   // This is the defect: capture used to happen only at submit, from the submitted page's
   // own URL, so navigating away before converting lost the campaign entirely.
   const v = visitor();
-  v.visit('/index.html', '?utm_source=facebook&utm_medium=paid&utm_campaign=q3');
+  v.visit('/index.html', '?utm_source=facebook&utm_medium=paid&utm_campaign=q3').FMAnalytics.consent('accept');
   const win = v.visit('/questionnaire.html', '');
   const a = win.FMAnalytics.getAttribution();
   assert(a.first_touch && a.first_touch.utm_source === 'facebook', 'attribution lost on navigation');
@@ -451,7 +454,7 @@ check('attribution survives navigation to a page with no UTM', () => {
 
 check('first touch is never overwritten by a later campaign', () => {
   const v = visitor();
-  v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=first');
+  v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=first').FMAnalytics.consent('accept');
   const win = v.visit('/cases.html', '?utm_source=newsletter&utm_medium=email&utm_campaign=second');
   const a = win.FMAnalytics.getAttribution();
   assert(a.first_touch.utm_campaign === 'first', 'first touch was overwritten: ' + a.first_touch.utm_campaign);
@@ -468,13 +471,14 @@ check('a direct visit with no campaign records no attribution', () => {
 check('a single-visit lead reports the same touch as first and last', () => {
   const v = visitor();
   const win = v.visit('/index.html', '?utm_source=google&utm_medium=cpc&utm_campaign=solo');
+  win.FMAnalytics.consent('accept');
   const a = win.FMAnalytics.getAttribution();
   assert(a.first_touch.utm_campaign === 'solo' && a.last_touch.utm_campaign === 'solo', 'single touch not mirrored');
 });
 
 check('attribution capture stores campaign metadata only, never PII', () => {
   const v = visitor();
-  v.visit('/index.html', '?utm_source=google&email=someone%40example.com&name=Ion&phone=%2B37360123456');
+  v.visit('/index.html', '?utm_source=google&email=someone%40example.com&name=Ion&phone=%2B37360123456').FMAnalytics.consent('accept');
   const dumped = JSON.stringify([...v.store.entries()]);
   for (const token of ['someone@example.com', 'Ion', '37360123456', 'email', 'phone']) {
     assert(!dumped.includes(token), 'stored attribution contains ' + token + ': ' + dumped);
@@ -1490,12 +1494,12 @@ check('CSP is not shipped as an enforcing meta tag', () => {
   assert(offenders.length === 0, 'enforcing meta CSP on: ' + offenders.slice(0, 5).join(', '));
 });
 
-check('privacy policy describes the live processors, not future ones', () => {
+check('privacy policy describes live processor categories without implying a complete vendor list', () => {
   for (const f of ['privacy.html', 'ro/privacy.html']) {
     const s = read(f);
-    assert(s.includes('OpenAI'), f + ' does not disclose OpenAI');
-    assert(s.includes('n8n'), f + ' does not disclose n8n');
-    assert(s.includes('Google Sheets'), f + ' does not disclose Google Sheets');
+    assert(/AI-(?:поставщик|furnizor)|furnizorul AI/.test(s), f + ' does not disclose the AI processor category');
+    assert(/платформа автоматизации|platforma de automatizare/.test(s), f + ' does not disclose the automation category');
+    assert(/рабочие таблицы\/CRM|foile de calcul\/CRM/.test(s), f + ' does not disclose the working-table category');
     // Cloudflare is not in the serving path; claiming it would be inaccurate.
     assert(!s.includes('Cloudflare'), f + ' still names Cloudflare, which is not in the path');
   }

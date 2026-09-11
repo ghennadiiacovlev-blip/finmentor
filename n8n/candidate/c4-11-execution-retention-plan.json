@@ -1,0 +1,67 @@
+{
+  "control": "FINMENTOR_C4_11_EXECUTION_RETENTION",
+  "base_sha": "a1e6667a8245d25b349b0f35571655916d449aaa",
+  "generated_from": "scripts/deploy-c4-11-retention-settings.mjs",
+  "deployment_authorised": false,
+  "mutation_scope": "workflow.settings only",
+  "retention_settings": {
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false,
+    "saveExecutionProgress": false
+  },
+  "targets": [
+    {
+      "id": "QmIyEW2ZEqKregmN",
+      "name": "FINMENTOR Lead Intake PREMIUM FINAL"
+    },
+    {
+      "id": "mppzthlkSJFr6Kle",
+      "name": "FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED"
+    },
+    {
+      "id": "ShcmmJeLSE8LYVBk",
+      "name": "FINMENTOR Telegram Client Transport"
+    },
+    {
+      "id": "LZ2mvKXbBikmeVTn",
+      "name": "FINMENTOR SLA Lead Watch PREMIUM FINAL"
+    },
+    {
+      "id": "imeJIDeNyaWDyXzh",
+      "name": "FINMENTOR Daily Lead Digest PREMIUM FINAL"
+    },
+    {
+      "id": "zeLOCuf0K1bkaKl2",
+      "name": "FINMENTOR Followup Sequence PREMIUM v2"
+    },
+    {
+      "id": "qF9tonlHHIxc8MDd",
+      "name": "FINMENTOR Lead Command Center SECURE CANDIDATE"
+    },
+    {
+      "id": "tNSMRoKlFB52vjge",
+      "name": "FINMENTOR X-Ray Analysis"
+    }
+  ],
+  "deployment_protocol": {
+    "all_target_precheck_before_write": true,
+    "timestamped_backups_before_write": ".uat/c4-11-retention-backups/<UTC timestamp>/",
+    "readback_after_each_write": true,
+    "automatic_rollback": true,
+    "rollback_order": "reverse",
+    "rollback_readback_required": true,
+    "partial_success_allowed": false
+  },
+  "invariants": [
+    "workflow id and name match the approved target",
+    "active state is preserved",
+    "nodes and connections are byte-equivalent JSON",
+    "credentials remain inside unchanged nodes",
+    "unrelated settings and staticData are preserved",
+    "post-write readback must match all four retention settings",
+    "all eight workflows pass precheck and local backup before the first PUT",
+    "each workflow still matches its precheck snapshot immediately before its PUT",
+    "a failed write or readback rolls back every attempted workflow and exits non-zero"
+  ]
+}
