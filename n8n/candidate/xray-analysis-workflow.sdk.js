@@ -483,14 +483,14 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .to(ifInputReady
     .onTrue(aiAnalysis
       .onError(failedRowBuild.to(failedRow.to(saveFailed.to(ownerFailureNotice))))
-      .to(validateRows)
-      .to(analysisRow)
-      .to(saveAnalysis)
-      .to(pipelineRow)
-      .to(updatePipeline)
-      .to(ifAnalysisValid
-        .onTrue(ifNotifyOwner.onTrue(ownerAlert))
-        .onFalse(validationFailureNotice)))
+      .to(validateRows
+        .to(analysisRow
+          .to(saveAnalysis
+            .to(pipelineRow
+              .to(updatePipeline
+                .to(ifAnalysisValid
+                  .onTrue(ifNotifyOwner.onTrue(ownerAlert))
+                  .onFalse(validationFailureNotice))))))))
     .onFalse(sourceAuditNotice))
   .add(reviewGetWebhook)
   .to(readForReviewGet)

@@ -77,6 +77,26 @@ let compiledWorkflow = null;
 const edgeTargets = (name, output = 0) => ((((compiledWorkflow && compiledWorkflow.connections[name]) || {}).main || [])[output] || []).map((e) => e.node);
 const isEdge = (from, to, output = 0) => edgeTargets(from, output).includes(to);
 {
+  check('compiled graph: AI success has exactly one edge to Validate + Store Rows',
+    JSON.stringify(edgeTargets('AI X-Ray Analysis')) === JSON.stringify(['Validate + Store Rows']));
+  check('compiled graph: Validate + Store Rows has exactly one edge to Analysis Row',
+    JSON.stringify(edgeTargets('Validate + Store Rows')) === JSON.stringify(['Analysis Row']));
+  check('compiled graph: Analysis Row has exactly one edge to Save XRay_Analysis',
+    JSON.stringify(edgeTargets('Analysis Row')) === JSON.stringify(['Save XRay_Analysis']));
+  check('compiled graph: Save XRay_Analysis has exactly one edge to Pipeline Row',
+    JSON.stringify(edgeTargets('Save XRay_Analysis')) === JSON.stringify(['Pipeline Row']));
+  check('compiled graph: Pipeline Row has exactly one edge to Update Pipeline X-Ray',
+    JSON.stringify(edgeTargets('Pipeline Row')) === JSON.stringify(['Update Pipeline X-Ray']));
+  check('compiled graph: Update Pipeline X-Ray has exactly one edge to IF Analysis Valid',
+    JSON.stringify(edgeTargets('Update Pipeline X-Ray')) === JSON.stringify(['IF Analysis Valid']));
+  check('compiled graph: AI has no sibling success edge that bypasses validation',
+    ['Analysis Row', 'Save XRay_Analysis', 'Pipeline Row', 'Update Pipeline X-Ray', 'IF Analysis Valid']
+      .every((name) => !isEdge('AI X-Ray Analysis', name)));
+  check('compiled graph: AI error route is unchanged and sequential',
+    JSON.stringify(edgeTargets('AI X-Ray Analysis', 1)) === JSON.stringify(['Analysis Failed Row']) &&
+    JSON.stringify(edgeTargets('Analysis Failed Row')) === JSON.stringify(['Failed Row']) &&
+    JSON.stringify(edgeTargets('Failed Row')) === JSON.stringify(['Save Failed Analysis']) &&
+    JSON.stringify(edgeTargets('Save Failed Analysis')) === JSON.stringify(['Telegram Failure Notice']));
   check('compiled graph: IF Persist true persists while false owns the outbound branch',
     isEdge('IF Persist Owner Action', 'Promote Row', 0) && isEdge('IF Persist Owner Action', 'IF Send Customer Message', 1));
   check('compiled graph: client publication true chain and false response are preserved',
@@ -391,6 +411,14 @@ let draftRow;
   }
   check('validate FAIL CLOSED: the failed row still carries the deterministic score and zone', validate({ output_text: 'x' }).analysis_row.score === 47 && validate({ output_text: 'x' }).analysis_row.zone === 'ORANGE');
   check('validate FAIL CLOSED: the failure notice names no prompt, payload, token, Lead ID or raw error class', !/ai_user_prompt|projection|review_token|Lead ID|L-2|MODEL_OUTPUT_INVALID|not json/.test(validate({ output_text: 'x' }).owner_text) && /Модель вернула ответ вне контракта анализа/.test(validate({ output_text: 'x' }).owner_text));
+  const invalidValidated = validate({ output_text: 'not json at all' });
+  let analysisRowValue = null; let analysisRowError = '';
+  try { analysisRowValue = JSON.parse(JSON.stringify(invalidValidated.analysis_row)); }
+  catch (error) { analysisRowError = error.message; }
+  check('validate FAIL CLOSED: Analysis Row receives the validated ANALYSIS_FAILED structure, never the raw AI item',
+    analysisRowError === '' && analysisRowValue && analysisRowValue.review_status === 'ANALYSIS_FAILED' &&
+    analysisRowValue.analysis_id === invalidValidated.analysis_id && !Object.prototype.hasOwnProperty.call(analysisRowValue, 'output'),
+    analysisRowError);
 }
 {
   const roInput = { ...inputItem, locale: 'ro' };

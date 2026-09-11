@@ -16,6 +16,8 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { prepareConcierge, verifyPremiumStarts, CONCIERGE_ID } from '../scripts/deploy-final-p1.mjs';
+import { splicePremiumSession } from '../scripts/deploy-c3-concierge-cycle.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -63,6 +65,43 @@ const A = {
 const QUALIFICATION = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF', 'TG_RESUME_DRAFT'];
 const labels = (r) => (r.reply_markup.inline_keyboard || []).map((row) => row[0].text);
 
+function finalCutoverFixture() {
+  const live = JSON.parse(JSON.stringify(wf));
+  live.id = CONCIERGE_ID;
+  live.name = 'FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED';
+  live.active = true;
+  live.versionId = 'fixture-version';
+  live.staticData = { node: { keep: true } };
+  const canonicalSession = live.nodes.find((n) => n.name === 'Get Bot Session');
+  const canonicalResponse = live.nodes.find((n) => n.name === 'Build Bot Response');
+  const premiumSession = JSON.parse(JSON.stringify(canonicalSession));
+  premiumSession.id = 'fixture-premium-session';
+  premiumSession.name = 'Get Bot Session (Premium)';
+  premiumSession.parameters.jsCode = splicePremiumSession(canonicalSession.parameters.jsCode);
+  const premiumResponse = JSON.parse(JSON.stringify(canonicalResponse));
+  premiumResponse.id = 'fixture-premium-response';
+  premiumResponse.name = 'Build Bot Response (Premium)';
+  premiumResponse.parameters.jsCode = premiumResponse.parameters.jsCode
+    .split('__PREMIUM_MINIAPP_URL__').join('https://app.finmentor.test/brief');
+  live.nodes.push(
+    { id: 'fixture-gate', name: 'Premium Owner Gate', type: 'n8n-nodes-base.if', typeVersion: 2, position: [0, 0], parameters: {} },
+    { id: 'fixture-read', name: 'Read Cycle Commit', type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [0, 0], parameters: {} },
+    { id: 'fixture-adopt', name: 'Adopt Cycle Commit', type: 'n8n-nodes-base.code', typeVersion: 2, position: [0, 0], parameters: { jsCode: 'return $input.all();' } },
+    premiumSession,
+    premiumResponse
+  );
+  live.connections['Find Session'] = { main: [[{ node: 'Premium Owner Gate', type: 'main', index: 0 }]] };
+  live.connections['Premium Owner Gate'] = { main: [
+    [{ node: 'Read Cycle Commit', type: 'main', index: 0 }],
+    [{ node: 'Get Bot Session', type: 'main', index: 0 }]
+  ] };
+  live.connections['Read Cycle Commit'] = { main: [[{ node: 'Adopt Cycle Commit', type: 'main', index: 0 }]] };
+  live.connections['Adopt Cycle Commit'] = { main: [[{ node: 'Get Bot Session (Premium)', type: 'main', index: 0 }]] };
+  live.connections['Get Bot Session (Premium)'] = { main: [[{ node: 'Build Bot Response (Premium)', type: 'main', index: 0 }]] };
+  live.connections['Build Bot Response (Premium)'] = { main: [[{ node: 'Build Transport Request', type: 'main', index: 0 }]] };
+  return live;
+}
+
 console.log('Premium Concierge candidate — executed');
 console.log('');
 
@@ -85,6 +124,49 @@ check('/start on a fresh session shows the entry screen', () => {
   const r = run({ session: fresh(), message_text: '/start' });
   eq(r.debug.state_after, 'TG_ENTRY', 'state');
   eq(labels(r).join(' | '), 'Описать задачу | Подготовить бриф', 'entry actions');
+});
+
+check('/start, /start ru and /start ro all reach the locale-correct premium TG_ENTRY', () => {
+  const cases = [
+    ['/start', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Подготовить бриф']],
+    ['/start ru', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Подготовить бриф']],
+    ['/start ro', 'ro', 'Pregătirea primei întâlniri', ['Descrieți solicitarea', 'Pregătiți sinteza']]
+  ];
+  for (const [command, locale, subtitle, buttons] of cases) {
+    const r = run({ session: fresh({ language: '' }), message_text: command });
+    eq(r.debug.state_after, 'TG_ENTRY', command + ' state');
+    eq(r.session.language, locale, command + ' locale');
+    assert(r.reply_text.includes('<b>FINMENTOR</b>') && r.reply_text.includes(subtitle), command + ' premium entry copy');
+    eq(JSON.stringify(labels(r)), JSON.stringify(buttons), command + ' entry actions');
+    const visible = r.reply_text + '\n' + labels(r).join('\n');
+    for (const legacy of ['Free Text Request', 'Продолжить диагностику', 'Оставить контакт']) {
+      assert(!visible.includes(legacy), command + ' exposed legacy entry text: ' + legacy);
+    }
+  }
+});
+
+check('final P1 cutover promotes the accepted premium implementation and bypasses only the obsolete owner split', () => {
+  const live = finalCutoverFixture();
+  const before = JSON.stringify(live);
+  const prepared = prepareConcierge(live, wf);
+  eq(JSON.stringify(live), before, 'the live input was mutated');
+  eq(JSON.stringify(prepared.changedNodes), JSON.stringify(['Build Bot Response', 'Get Bot Session']), 'changed nodes');
+  eq(JSON.stringify(prepared.changedConnections), JSON.stringify(['Adopt Cycle Commit', 'Find Session']), 'changed connections');
+  eq(prepared.candidate.connections['Find Session'].main[0][0].node, 'Read Cycle Commit', 'public entry skips the owner gate');
+  eq(prepared.candidate.connections['Adopt Cycle Commit'].main[0][0].node, 'Get Bot Session', 'C3 adoption reaches the canonical session');
+  eq(prepared.candidate.connections['Get Bot Session'].main[0][0].node, 'Build Bot Response', 'canonical premium response');
+  eq(prepared.candidate.connections['Build Bot Response'].main[0][0].node, 'Build Transport Request', 'transport rejoin');
+  eq(JSON.stringify(prepared.candidate.settings), JSON.stringify(live.settings), 'settings');
+  eq(JSON.stringify(prepared.candidate.staticData), JSON.stringify(live.staticData), 'staticData');
+  eq(verifyPremiumStarts(prepared.candidate).length, 3, 'start variants');
+});
+
+check('final P1 cutover refuses an unrecognised live route instead of splicing blindly', () => {
+  const live = finalCutoverFixture();
+  live.connections['Premium Owner Gate'].main[1] = [{ node: 'Build Bot Response', type: 'main', index: 0 }];
+  let error = null;
+  try { prepareConcierge(live, wf); } catch (caught) { error = caught; }
+  assert(error && /expected/.test(error.message), 'unexpected live graph was accepted');
 });
 
 check('/start on an unfinished draft offers RESUME, not a fresh start', () => {
