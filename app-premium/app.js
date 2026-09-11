@@ -1062,7 +1062,10 @@
 
     if (!submitAck) {
       submitAck = {
-        notice_version: (window.FM_NOTICE_VERSION || 'pn-2026-08'),
+        // Fail closed if the generated legal-content bundle is missing. The server accepts only
+        // the exact canonical version, so a stale or hand-edited client cannot acknowledge a
+        // notice other than the one it was shown.
+        notice_version: String(window.FM_NOTICE_VERSION || ''),
         locale: get('locale') || 'ru',
         shown_at: privacyShownAt || nowIso(),
         acknowledged_at: nowIso()

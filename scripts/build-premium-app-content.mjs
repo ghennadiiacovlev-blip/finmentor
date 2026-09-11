@@ -3,7 +3,8 @@
 //
 //   node scripts/build-premium-app-content.mjs
 //
-// REPO-ONLY. Reads n8n/src/premium-ux/branches.js and writes app-premium/content.js.
+// REPO-ONLY. Reads the gated UX contract plus the controlled privacy notice and writes
+// app-premium/content.js.
 //
 // WHY GENERATE RATHER THAN TYPE. branches.js is the single source of truth and is held against
 // docs/PREMIUM_UX_FINAL_RU_SPEC.md by qa/premium-ux-content.test.mjs, string by string. A browser
@@ -24,6 +25,7 @@ const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
 const L = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'locale.js'));
+const N = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 
 export const OUT = join(ROOT, 'app-premium', 'content.js');
 
@@ -47,7 +49,9 @@ export function buildContent() {
     REVIEW: B.REVIEW,
     FOCUS_MAP: B.FOCUS_MAP,
     FOCUS_DISCLAIMER: B.FOCUS_DISCLAIMER,
-    PRIVACY: B.PRIVACY,
+    // Privacy copy is not a general questionnaire label. It comes from the legal-content
+    // authority, so changing branches.js cannot silently change the notice a client sees.
+    PRIVACY: N.MINI_APP.ru,
     EDIT: B.EDIT,
     SUCCESS: B.SUCCESS,
     CLOSE_HINT: B.CLOSE_HINT,
@@ -61,13 +65,31 @@ export function buildContent() {
   // Romanian label, so an incomplete translation fails THE BUILD rather than reaching a Romanian
   // customer as Russian. The structures above are emitted unchanged and remain the machine values
   // in both languages; this table is display-only and is never submitted or compared.
-  const RO = L.roTable(B);
+  // branches.js still carries the pre-C4.11 privacy block for its historical UX-spec tests.
+  // Do not emit those now-unreachable labels into the browser dictionary: the controlled notice
+  // is the only privacy source used by the built Mini App.
+  const RO = L.roTable(Object.assign({}, B, { PRIVACY: {} }));
+  const addPrivacyTranslations = (ru, ro, path) => {
+    if (typeof ru === 'string') {
+      if (typeof ro !== 'string' || !ro) throw new Error('privacy RO copy missing at ' + path);
+      RO[ru] = ro;
+      return;
+    }
+    if (Array.isArray(ru)) {
+      if (!Array.isArray(ro) || ru.length !== ro.length) throw new Error('privacy RU/RO shape mismatch at ' + path);
+      ru.forEach((value, index) => addPrivacyTranslations(value, ro[index], path + '[' + index + ']'));
+      return;
+    }
+    for (const key of Object.keys(ru || {})) addPrivacyTranslations(ru[key], ro && ro[key], path + '.' + key);
+  };
+  addPrivacyTranslations(N.MINI_APP.ru, N.MINI_APP.ro, 'MINI_APP');
   return [
     '/* GENERATED — do not edit.',
-    ' * Source: n8n/src/premium-ux/branches.js (machine values) + n8n/src/premium-ux/ro-labels.js (RO presentation)',
+    ' * Source: n8n/src/premium-ux/branches.js + privacy-notice.js + ro-labels.js',
     ' * Rebuild: node scripts/build-premium-app-content.mjs',
     ' * Held against docs/PREMIUM_UX_FINAL_RU_SPEC.md by qa/premium-ux-content.test.mjs. */',
     'window.FM_CONTENT = ' + JSON.stringify(payload, null, 2) + ';',
+    'window.FM_NOTICE_VERSION = ' + JSON.stringify(N.NOTICE_VERSION) + ';',
     '/* Machine value -> Romanian label. Display only: the app renders through FM_T() and submits',
     ' * the untranslated key, so the Pipeline stores the same value in both languages. */',
     'window.FM_RO = ' + JSON.stringify(RO, null, 2) + ';',

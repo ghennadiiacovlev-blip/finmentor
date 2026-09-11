@@ -8,12 +8,15 @@ function present(v) { return String(v == null ? '' : v).trim() !== ''; }
 function contactLines(contact) {
   const c = contact || {}; const out = [];
   out.push('Предпочтительно: ' + esc(c.preferred_label || 'Не указано'));
-  if (c.preferred_contact_channel === 'telegram' && !(c.telegram && c.telegram.reachable)) out.push('⚠️ Telegram-контакт не подключён');
   const reachable = Array.isArray(c.reachable_channels) ? c.reachable_channels : [];
-  if (reachable.length) {
-    out.push('Доступно:');
-    for (const x of reachable.slice(0, 3)) out.push(esc(x.label) + ': ' + esc(tidy(x.value, 72)));
-  } else out.push('Доступных каналов нет');
+  // Owner alerts are high-frequency operational messages, not a contact directory. Show the
+  // client's preferred reachable channel when possible; otherwise one fallback. Never print
+  // phone + email + Telegram together.
+  const selected = reachable.find((x) => x && x.key === c.preferred_contact_channel && present(x.value))
+    || reachable.find((x) => x && present(x.value));
+  if (selected) out.push(esc(selected.label || 'Контакт') + ': ' + esc(tidy(selected.value, 72)));
+  else if (c.preferred_contact_channel === 'telegram') out.push('⚠️ Telegram-контакт не подключён');
+  else out.push('Доступных каналов нет');
   return out.join('\n');
 }
 

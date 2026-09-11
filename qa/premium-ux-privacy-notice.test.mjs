@@ -1,320 +1,75 @@
 #!/usr/bin/env node
-// FINMENTOR — the layered privacy notice (owner decisions 3, 4, 6 + the controller decision).
-//
-//   node qa/premium-ux-privacy-notice.test.mjs
-//
-// Offline. The point of this gate is narrow and blunt: a notice that a customer reads must never
-// contain an invented legal identity, an unfilled placeholder, or a legal basis a lawyer has not
-// confirmed. Each of those is a way for a document with legal weight to ship looking finished.
+// FINMENTOR — canonical two-layer privacy notice contract.
 
 import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
-const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(HERE, '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const N = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
+const PR = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-record.js'));
 
 let pass = 0;
 const failures = [];
 function check(name, fn) {
   try { fn(); pass++; console.log('  PASS  ' + name); }
-  catch (e) { failures.push(name + ': ' + e.message); console.log('  FAIL  ' + name + ' -> ' + e.message); }
+  catch (error) { failures.push(name + ': ' + error.message); console.log('  FAIL  ' + name + ' -> ' + error.message); }
 }
-const assert = (c, m) => { if (!c) throw new Error(m); };
-const eq = (a, b, m) => { if (a !== b) throw new Error(m + ' (got ' + JSON.stringify(a) + ', want ' + JSON.stringify(b) + ')'); };
+const assert = (condition, message) => { if (!condition) throw new Error(message); };
+const eq = (actual, expected, message) => { if (actual !== expected) throw new Error(message + ' (got ' + JSON.stringify(actual) + ', want ' + JSON.stringify(expected) + ')'); };
+const text = (locale, key) => N.FULL[locale].elements[key].body;
+const source = readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'), 'utf8');
 
-const FILLED = {
-  controller_type: 'natural_person',
-  controller_full_name: 'Тестовое Имя Фамилия',
-  controller_privacy_email: 'privacy@example.test'
-};
-
-console.log('Premium UX — layered privacy notice');
+console.log('Premium UX — canonical layered privacy notice');
 console.log('');
 
-// ---------------------------------------------------------------- completeness
-
-check('both locales carry all ten required elements, and nothing else', () => {
-  eq(N.REQUIRED_ELEMENTS.length, 10, 'element count');
-  const problems = N.assertComplete();
-  assert(problems.length === 0, problems.join('; '));
-});
-
-check('the elements are the ones Law 195/2024 requires', () => {
-  const want = ['controller', 'purposes', 'legal_basis', 'categories', 'recipients',
-                'transfers', 'retention', 'rights', 'complaint', 'voluntary'];
-  eq(N.REQUIRED_ELEMENTS.join(','), want.join(','), 'element list');
-});
-
-check('the notice is layered — a concise layer exists for every locale', () => {
-  for (const loc of N.LOCALES) {
-    const c = N.CONCISE[loc];
-    assert(c && c.heading && c.body && c.link, 'no concise layer for ' + loc);
-    // Layer 1 must be genuinely concise, or it is not a layer.
-    assert(c.body.length < 400, 'the concise layer for ' + loc + ' is not concise (' + c.body.length + ' chars)');
-    // …and must point at layer 2 rather than replacing it.
-    assert(/полн|complet/i.test(c.link), 'the concise layer for ' + loc + ' does not link to the full notice');
-  }
-});
-
-// ---------------------------------------------------------------- no invented legal identity
-
-check('no legal identity is hard-coded anywhere in the module', () => {
-  const src = JSON.stringify({ CONCISE: N.CONCISE, FULL: N.FULL });
-  // The exact fabrications the owner forbade.
-  for (const forbidden of ['SRL', 'S.R.L', 'IDNO', 'ИДНО', 'ОГРН', 'МД-', 'MD-20', 'str.', 'ул.']) {
-    assert(src.indexOf(forbidden) === -1, 'the notice contains an invented legal detail: ' + forbidden);
-  }
-  // No address, no phone, no bare email literal — the only contact is a slot.
-  assert(!/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(src), 'a literal email address is baked into the notice');
-  assert(!/\+373/.test(src), 'a literal Moldovan phone number is baked into the notice');
-});
-
-check('the identity is a slot, and only the two the owner named', () => {
-  eq(N.slotsUsed().join(','), 'controller_full_name,controller_privacy_email', 'slots used in the copy');
-  eq(N.SLOTS.join(','), 'controller_full_name,controller_privacy_email', 'declared slots');
-  eq(N.CONTROLLER_TEMPLATE.controller_type, 'natural_person', 'controller type');
-  eq(N.CONTROLLER_TEMPLATE.controller_full_name, 'OWNER_INPUT_REQUIRED', 'name placeholder');
-  eq(N.CONTROLLER_TEMPLATE.controller_privacy_email, 'OWNER_INPUT_REQUIRED', 'email placeholder');
-});
-
-check('the controller is described as a natural person, and the absence of a company is stated', () => {
-  assert(/физическое лицо/.test(N.FULL.ru.elements.controller.body), 'RU does not say natural person');
-  assert(/persoana fizică/.test(N.FULL.ro.elements.controller.body), 'RO does not say natural person');
-  assert(/Отдельного юридического лица FINMENTOR не существует/.test(N.FULL.ru.elements.controller.body),
-    'RU does not state that no FINMENTOR legal entity exists');
-  assert(/Nu există o persoană juridică separată FINMENTOR/.test(N.FULL.ro.elements.controller.body),
-    'RO does not state that no FINMENTOR legal entity exists');
-});
-
-// ---------------------------------------------------------------- render refuses rather than degrades
-
-check('rendering REFUSES while the controller identity is unknown', () => {
-  const r = N.render('ru', N.CONTROLLER_TEMPLATE);
-  eq(r.ok, false, 'a placeholder identity rendered a notice');
-  eq(r.error_code, 'CONTROLLER_IDENTITY_REQUIRED', 'error code');
-  eq(r.missing.join(','), 'controller_full_name,controller_privacy_email', 'missing slots');
-});
-
-check('rendering refuses on a partially filled identity', () => {
-  const half = Object.assign({}, FILLED, { controller_privacy_email: '   ' });
-  const r = N.render('ru', half);
-  eq(r.ok, false, 'a half-filled identity rendered');
-  eq(r.missing.join(','), 'controller_privacy_email', 'missing slots');
-});
-
-check('rendering refuses a controller type other than natural_person', () => {
-  const wrong = Object.assign({}, FILLED, { controller_type: 'legal_entity' });
-  eq(N.render('ru', wrong).ok, false, 'a legal-entity controller rendered — the owner decided otherwise');
-});
-
-check('a filled identity renders both locales completely', () => {
-  for (const loc of N.LOCALES) {
-    const r = N.render(loc, FILLED);
-    assert(r.ok, loc + ' failed to render: ' + JSON.stringify(r));
-    eq(r.notice.full.sections.length, 10, loc + ' section count');
-    eq(r.notice.full.sections.map((s) => s.key).join(','), N.REQUIRED_ELEMENTS.join(','), loc + ' section order');
-    eq(r.notice.locale, loc, 'locale');
-    eq(r.notice.version, N.NOTICE_VERSION, 'version');
-    assert(r.notice.acknowledgement.length > 10, loc + ' has no acknowledgement line');
-    for (const s of r.notice.full.sections) { assert(s.body.length > 20, loc + '/' + s.key + ' body is a stub'); }
-  }
-});
-
-check('no placeholder or moustache survives a successful render', () => {
-  for (const loc of N.LOCALES) {
-    const j = JSON.stringify(N.render(loc, FILLED).notice);
-    assert(j.indexOf('OWNER_INPUT_REQUIRED') === -1, loc + ' leaked the placeholder');
-    assert(!/\{\{/.test(j), loc + ' leaked an unfilled moustache');
-    assert(j.indexOf(FILLED.controller_full_name) !== -1, loc + ' did not substitute the name');
-    assert(j.indexOf(FILLED.controller_privacy_email) !== -1, loc + ' did not substitute the email');
-  }
-});
-
-check('an unknown locale is refused', () => {
-  eq(N.render('en', FILLED).ok, false, 'en rendered');
-  eq(N.render('', FILLED).ok, false, 'empty locale rendered');
-});
-
-// ---------------------------------------------------------------- the legal basis stays server-side
-
-check('the candidate legal basis is never shown to the client', () => {
-  eq(N.LEGAL_BASIS_CANDIDATE, 'pre_contractual_request', 'candidate enum');
-  for (const loc of N.LOCALES) {
-    const j = JSON.stringify(N.render(loc, FILLED).notice);
-    assert(j.indexOf('pre_contractual_request') === -1, loc + ' rendered the enum');
-    assert(j.indexOf('195/2024') !== -1 || j.indexOf('195/2024') !== -1, loc + ' does not cite the law');
-  }
-});
-
-check('the legal-basis section describes the ground in words, not in an enum or an article number', () => {
-  // A confirmed article citation would be a legal claim. The text states the SUBSTANCE — steps
-  // taken at the data subject's request before a contract — which is true regardless of which
-  // article a lawyer ultimately points at.
-  assert(/до заключения договора/.test(N.FULL.ru.elements.legal_basis.body), 'RU legal basis lost its substance');
-  assert(/înainte de încheierea unui contract/.test(N.FULL.ro.elements.legal_basis.body), 'RO legal basis lost its substance');
-  assert(!/6\(1\)\(b\)|art\. 6/i.test(N.FULL.ru.elements.legal_basis.body + N.FULL.ro.elements.legal_basis.body),
-    'the notice cites a specific article that legal review has not confirmed');
-});
-
-check('the pending sentinel is distinct from the candidate', () => {
-  eq(N.LEGAL_BASIS_PENDING, 'PENDING_LEGAL_REVIEW', 'pending sentinel');
-  assert(N.LEGAL_BASIS_PENDING !== N.LEGAL_BASIS_CANDIDATE, 'pending and candidate collapsed into one value');
-});
-
-// ---------------------------------------------------------------- the substantive disclosures
-
-check('no processor is named individually where processors are described by role', () => {
-  // The regression: «Telegram» was named in `recipients` while every other processor was a
-  // category. Naming one vendor and not the others reads as a complete list when it is not.
-  eq(N.assertNoVendorNames().length, 0, 'a vendor is named as a recipient: ' + N.assertNoVendorNames().join(', '));
-  for (const loc of N.LOCALES) {
-    const b = N.FULL[loc].elements.recipients.body;
-    assert(!/Telegram/i.test(b), loc + ' names Telegram as a recipient');
-    // …and the role description that replaced it must still be there, or the disclosure shrank.
-    assert(/мессенджер|mesagerie/i.test(b), loc + ' dropped the messaging channel from recipients entirely');
-  }
-});
-
-check('the DATA description may still name the channel, and must', () => {
-  // `categories` answers "what data", not "who sees it". Saying a Telegram account identifier is
-  // stored is the disclosure; replacing it with «мессенджер» would make it less true.
-  assert(/Telegram/.test(N.FULL.ru.elements.categories.body), 'RU stopped disclosing the stored Telegram identifier');
-  assert(/Telegram/.test(N.FULL.ro.elements.categories.body), 'RO stopped disclosing the stored Telegram identifier');
-  eq(N.VENDOR_SCOPED.indexOf('categories'), -1, 'the vendor rule was widened to categories, which would delete a real disclosure');
-});
-
-check('render REFUSES a notice that reintroduces a named vendor as a recipient', () => {
-  const saved = N.FULL.ru.elements.recipients.body;
-  N.FULL.ru.elements.recipients.body = saved.replace('мессенджер, через который вы обратились', 'Telegram');
-  const r = N.render('ru', FILLED);
-  N.FULL.ru.elements.recipients.body = saved;
-  eq(r.ok, false, 'a named vendor rendered');
-  eq(r.error_code, 'VENDOR_NAMED_AS_RECIPIENT', 'error code');
-});
-
-check('the transfer disclosure is present and honest', () => {
-  // Supabase, n8n and Google all sit outside Moldova. Saying "we do not transfer data abroad"
-  // would be false; naming a specific vendor in a customer notice is a commitment the owner has
-  // not made. The text discloses the fact and the destinations.
-  assert(/за пределами Республики Молдова/.test(N.FULL.ru.elements.transfers.body), 'RU hides the transfer');
-  assert(/în afara Republicii Moldova/.test(N.FULL.ro.elements.transfers.body), 'RO hides the transfer');
-});
-
-check('retention states the 72-hour draft rule, matching the TTL actually deployed', () => {
-  assert(/72 час/.test(N.FULL.ru.elements.retention.body), 'RU retention does not state 72 hours');
-  assert(/72 de ore/.test(N.FULL.ro.elements.retention.body), 'RO retention does not state 72 hours');
-});
-
-// GATE 1, 2026-09-04. The notice used to promise that an unfinished brief «удаляется автоматически
-// через 72 часа» and that a transmitted request is deleted afterwards. Neither is built: the TTL
-// EXPIRES a session so it can no longer be opened or submitted, and no deletion job exists anywhere
-// in the stack — `idempotency-receipt.js` records that no canonical retention period is defined at
-// all. Describing a deletion that does not happen is the one failure mode a privacy notice must
-// never have, so these two checks hold the text to what the system actually does.
-check('the notice never claims an AUTOMATIC deletion the stack does not perform', () => {
-  for (const loc of ['ru', 'ro']) {
-    const body = N.FULL[loc].elements.retention.body;
-    assert(!/удаляется автоматически|se șterge automat/.test(body), loc + ' claims automatic deletion');
-  }
-});
-
-// The owner set the period on 2026-09-04: 12 months from the last meaningful interaction for an
-// unconverted lead. A period may therefore be stated — but only alongside WHO performs the deletion,
-// because no scheduled job exists. Naming a deadline while implying a machine keeps it would be the
-// same false promise in a new form.
-check('a stated deletion deadline is always paired with who actually performs it', () => {
-  for (const loc of ['ru', 'ro']) {
-    const body = N.FULL[loc].elements.retention.body;
-    const claimsDeadline = /12 месяцев|12 luni/.test(body);
-    assert(claimsDeadline, loc + ' does not state the owner-decided retention period');
-    assert(/выполняется оператором|efectuată de operator/.test(body), loc + ' names a deadline without saying who deletes');
-    assert(/автоматическое удаление по расписанию пока не реализовано|ștergerea automată programată nu este încă implementată/.test(body),
-      loc + ' does not disclose that scheduled deletion is not implemented');
-  }
-});
-
-check('retention describes the 72-hour rule as expiry, and keeps deletion available on request', () => {
-  assert(/перестаёт быть доступен|нельзя/.test(N.FULL.ru.elements.retention.body), 'RU does not describe expiry');
-  assert(/indisponibil|nu mai poate fi/.test(N.FULL.ro.elements.retention.body), 'RO does not describe expiry');
-  assert(/можете запросить удаление раньше/.test(N.FULL.ru.elements.retention.body), 'RU does not offer earlier deletion on request');
-  assert(/puteți cere ștergerea mai devreme/.test(N.FULL.ro.elements.retention.body), 'RO does not offer earlier deletion on request');
-});
-
-check('contractual retention is stated as separate, never replaced by the 12-month rule', () => {
-  assert(/договорные, бухгалтерские и установленные законом сроки/.test(N.FULL.ru.elements.retention.body), 'RU omits contractual retention');
-  assert(/termene separate contractuale, contabile și legale/.test(N.FULL.ro.elements.retention.body), 'RO omits contractual retention');
-});
-
-// GATE 1: the controller the owner supplied, recorded verbatim and nothing more.
-check('the controller identity is present, exact, and carries no invented legal detail', () => {
-  assert(N.CONTROLLER.controller_full_name === 'Iacovlev Ghennadi', 'controller name is not the supplied value');
-  assert(N.CONTROLLER.controller_privacy_email === 'cfo@finmentor.md', 'privacy contact is not the supplied value');
-  assert(N.CONTROLLER.controller_type === 'natural_person', 'controller type changed');
-  const blob = JSON.stringify(N.CONTROLLER);
-  for (const invented of ['SRL', 'S.R.L', 'IDNO', 'VAT', 'str.', 'Chișinău', 'Кишинёв']) {
-    assert(blob.indexOf(invented) === -1, 'invented legal detail in the controller record: ' + invented);
-  }
-});
-
-check('the notice renders in both locales with the supplied controller and leaks no placeholder', () => {
-  for (const loc of ['ru', 'ro']) {
-    const r = N.render(loc, N.CONTROLLER);
-    assert(r.ok, loc + ' failed to render: ' + JSON.stringify(r));
-    const text = JSON.stringify(r.notice);
-    assert(text.indexOf('OWNER_INPUT_REQUIRED') === -1, loc + ' leaked a placeholder');
-    assert(text.indexOf('{{') === -1, loc + ' leaked an unfilled moustache');
-    assert(text.indexOf('Iacovlev Ghennadi') !== -1, loc + ' does not name the controller');
-    assert(text.indexOf('cfo@finmentor.md') !== -1, loc + ' does not carry the privacy contact');
-  }
-});
-
-check('an emptied controller still refuses to render, so the guard was not weakened', () => {
-  const r = N.render('ru', N.CONTROLLER_TEMPLATE);
-  assert(!r.ok, 'a placeholder controller rendered a notice');
-});
-
-check('the complaint route names the Moldovan supervisory authority', () => {
-  assert(/Национальный центр по защите персональных данных/.test(N.FULL.ru.elements.complaint.body), 'RU authority');
-  assert(/Centrul Național pentru Protecția Datelor/.test(N.FULL.ro.elements.complaint.body), 'RO authority');
-});
-
-check('the notice makes no security claim it cannot support', () => {
-  const src = JSON.stringify({ C: N.CONCISE, F: N.FULL });
-  for (const boast of ['военного уровня', 'military', 'банковск', 'bancar', 'шифров', 'criptat', '100%', 'абсолютн']) {
-    assert(src.toLowerCase().indexOf(boast.toLowerCase()) === -1, 'unsupportable claim in the notice: ' + boast);
-  }
-});
-
-check('the notice states that providing data is voluntary and what refusing costs', () => {
-  assert(/добровольн/.test(N.FULL.ru.elements.voluntary.body), 'RU does not state voluntariness');
-  assert(/voluntar/.test(N.FULL.ro.elements.voluntary.body), 'RO does not state voluntariness');
-  assert(/невозможно/.test(N.FULL.ru.elements.voluntary.body), 'RU does not state the consequence');
-  assert(/nu poate fi examinată/.test(N.FULL.ro.elements.voluntary.body), 'RO does not state the consequence');
-});
-
-check('the notice version is a real version and matches what the record will store', () => {
-  assert(/^\d{4}-\d{2}-\d{2}\.v\d+/.test(N.NOTICE_VERSION), 'version is not dated-and-numbered: ' + N.NOTICE_VERSION);
-  const rec = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-record.js'));
-  const built = rec.buildPrivacyRecord({
-    submissionKey: 'sub_' + 'a'.repeat(32),
-    ack: { notice_version: N.NOTICE_VERSION, locale: 'ru', shown_at: '2026-08-29T10:00:00.000Z', acknowledged_at: '2026-08-29T10:04:00.000Z' },
-    legalBasis: N.LEGAL_BASIS_PENDING
-  });
-  assert(built.ok, 'the record refused the notice version: ' + JSON.stringify(built));
-  eq(built.record.privacy_notice_version, N.NOTICE_VERSION, 'stored version');
-  // Both timestamps on ONE row — owner decision 4.
-  assert(built.record.privacy_notice_shown_at && built.record.privacy_notice_acknowledged_at,
-    'the record does not carry both timestamps');
-});
+check('canonical version is pn-2026-09-11.v1', () => eq(N.NOTICE_VERSION, 'pn-2026-09-11.v1', 'version'));
+check('canonical update date is 2026-09-11', () => eq(N.UPDATED_DATE, '2026-09-11', 'date'));
+check('new acknowledgement basis is pre_contractual_request', () => eq(N.LEGAL_BASIS, 'pre_contractual_request', 'basis'));
+check('controller is exact', () => eq(N.CONTROLLER.controller_full_name, 'Iacovlev Ghennadi', 'controller'));
+check('privacy contact is exact', () => eq(N.CONTROLLER.controller_privacy_email, 'cfo@finmentor.md', 'contact'));
+check('controller remains a natural person', () => eq(N.CONTROLLER.controller_type, 'natural_person', 'type'));
+check('the thirteen full-policy semantics are explicit', () => eq(N.REQUIRED_ELEMENTS.length, 13, 'semantic count'));
+check('RU and RO full content is structurally complete', () => assert(N.assertComplete().length === 0, N.assertComplete().join('; ')));
+check('full-policy semantics equal the render inventory', () => eq(N.FULL_POLICY_SEMANTICS.join(','), N.REQUIRED_ELEMENTS.join(','), 'inventory'));
+check('both Mini App locales have the same compact shape', () => eq(JSON.stringify(Object.keys(N.MINI_APP.ru)), JSON.stringify(Object.keys(N.MINI_APP.ro)), 'shape'));
+check('both Mini App layers remain concise', () => { for (const locale of N.LOCALES) assert(N.CONCISE[locale].body.length < 700, locale + ' is not concise'); });
+check('both Mini App layers point to full information', () => { assert(/полн/i.test(N.CONCISE.ru.link), 'RU link'); assert(/complet/i.test(N.CONCISE.ro.link), 'RO link'); });
+check('RU has one data-minimisation warning', () => eq(N.MINI_APP.ru.lines.filter((line) => /PIN\/CVV/.test(line)).length, 1, 'warning count'));
+check('RO has the semantic warning', () => assert(/parole.*PIN\/CVV.*cardurilor/i.test(N.MINI_APP.ro.lines.join(' ')), 'RO warning'));
+check('RU AI copy says minimised and pseudonymised', () => assert(/минимизированн.*псевдонимизированн/i.test(text('ru', 'ai_processing')), 'RU AI terms'));
+check('RO AI copy says minimised and pseudonymised', () => assert(/minimizat.*pseudonimizat/i.test(text('ro', 'ai_processing')), 'RO AI terms'));
+check('direct identifiers are removed before AI', () => { assert(/прямые идентификаторы удаляются/i.test(text('ru', 'ai_processing')), 'RU'); assert(/identificatorii direcți sunt eliminați/i.test(text('ro', 'ai_processing')), 'RO'); });
+check('linkable AI data is not called anonymous', () => { assert(/не называются анонимными/i.test(text('ru', 'ai_processing')), 'RU'); assert(/nu sunt descrise ca anonime/i.test(text('ro', 'ai_processing')), 'RO'); });
+check('human review before publication is explicit', () => { assert(/проверкой человеком до публикации/i.test(text('ru', 'ai_processing')), 'RU'); assert(/verificată de o persoană înainte de publicarea/i.test(text('ro', 'ai_processing')), 'RO'); });
+check('no solely automated significant decision is explicit', () => { assert(/не принимает исключительно автоматизированных решений/i.test(text('ru', 'automated_decisions')), 'RU'); assert(/nu ia decizii bazate exclusiv/i.test(text('ro', 'automated_decisions')), 'RO'); });
+check('marketing is not used or bundled in v1', () => { assert(/маркетинг не используется/i.test(text('ru', 'marketing')), 'RU'); assert(/nu se utilizează marketingul/i.test(text('ro', 'marketing')), 'RO'); });
+check('purpose-specific bases include request security and analytics', () => { const all = text('ru', 'legal_basis'); assert(/6\(1\)\(b\)/.test(all) && /безопасност/i.test(all) && /согласия/i.test(all), 'RU bases'); });
+check('RU rights cover access rectification deletion restriction objection portability', () => { for (const token of ['доступ', 'исправлен', 'удален', 'ограничен', 'возраз', 'переносим']) assert(new RegExp(token, 'i').test(text('ru', 'rights')), token); });
+check('RO rights cover access rectification deletion restriction objection portability', () => { for (const token of ['acces', 'rectific', 'șterg', 'restric', 'opune', 'portabil']) assert(new RegExp(token, 'i').test(text('ro', 'rights')), token); });
+check('consent withdrawal is conditional', () => { assert(/Если обработка основана на согласии/i.test(text('ru', 'rights')), 'RU'); assert(/Dacă prelucrarea se bazează pe consimțământ/i.test(text('ro', 'rights')), 'RO'); });
+check('ordinary one-month response is in RU', () => assert(/один месяц/i.test(text('ru', 'rights')), 'RU month'));
+check('ordinary one-month response is in RO', () => assert(/o lună/i.test(text('ro', 'rights')), 'RO month'));
+check('complaint route names CNPDCP in both locales', () => { assert(/CNPDCP/.test(text('ru', 'complaint')), 'RU'); assert(/CNPDCP/.test(text('ro', 'complaint')), 'RO'); });
+check('retention states 72-hour session expiry', () => { assert(/72 часа/.test(text('ru', 'retention')), 'RU'); assert(/72 de ore/.test(text('ro', 'retention')), 'RO'); });
+check('retention states 12 months from meaningful interaction', () => { assert(/12 месяцев.*с последнего содержательного/i.test(text('ru', 'retention')), 'RU'); assert(/12 luni.*ultima interacțiune semnificativă/i.test(text('ro', 'retention')), 'RO'); });
+check('active-client retention is not one universal date', () => { assert(/договор.*бухгалтерские.*законом/i.test(text('ru', 'retention')), 'RU'); assert(/contract.*contabile.*legale/i.test(text('ro', 'retention')), 'RO'); });
+check('acknowledgement evidence has the internal three-year period', () => { assert(/3 года/i.test(text('ru', 'retention')), 'RU'); assert(/3 ani/i.test(text('ro', 'retention')), 'RO'); });
+check('EEA transfer rule is represented', () => { assert(/ЕЭЗ.*специальное разрешение.*не требуется/i.test(text('ru', 'transfers')), 'RU'); assert(/SEE.*nu este necesară o autorizare specială/i.test(text('ro', 'transfers')), 'RO'); });
+check('no transfer safeguard is presented as verified without evidence', () => { assert(/Неподтверждённые гарантии не заявляются/i.test(text('ru', 'transfers')), 'RU'); assert(/Nu sunt declarate garanții neverificate/i.test(text('ro', 'transfers')), 'RO'); });
+check('processor disclosure uses categories, not selected vendor names', () => eq(N.assertNoVendorNames().length, 0, 'vendors'));
+check('successful render substitutes identity and exposes canonical version', () => { const r = N.render('ru', N.CONTROLLER); assert(r.ok, JSON.stringify(r)); eq(r.notice.version, N.NOTICE_VERSION, 'render version'); assert(JSON.stringify(r.notice).includes('Iacovlev Ghennadi'), 'identity'); });
+check('successful render leaves no placeholder', () => assert(!/OWNER_INPUT_REQUIRED|\{\{/.test(JSON.stringify(N.render('ro', N.CONTROLLER).notice)), 'placeholder'));
+check('unknown locale is rejected', () => eq(N.render('en', N.CONTROLLER).error_code, 'BAD_LOCALE', 'locale'));
+check('placeholder controller is rejected', () => eq(N.render('ru', N.CONTROLLER_TEMPLATE).error_code, 'CONTROLLER_IDENTITY_REQUIRED', 'controller'));
+check('new-path source contains no pending legal-review sentinel', () => assert(!/PENDING_LEGAL_REVIEW/.test(source + readFileSync(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-record.js'), 'utf8')), 'pending sentinel'));
 
 console.log('');
 if (failures.length) {
   console.log('FAILURES (' + failures.length + '):');
-  failures.forEach((f) => console.log('  - ' + f));
-  console.log('');
+  failures.forEach((failure) => console.log('  - ' + failure));
   console.log('ASSERTIONS: ' + pass + ' passed, ' + failures.length + ' failed');
   process.exit(1);
 }

@@ -25,9 +25,12 @@
 import { writeFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+const require = createRequire(import.meta.url);
+const PRIVACY_NOTICE = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 
 export const SESSION_PATH = 'finmentor-miniapp-session';
 export const SUBMIT_PATH = 'finmentor-miniapp-submit';
@@ -313,18 +316,23 @@ const SUBMIT_GUARD = [
   'const body = req.body || {};',
   'if (req.query && req.query.app_session_id) { return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: "BAD_REQUEST", retryable: false } } }]; }',
   'const id = String(body.app_session_id || "").trim();',
-  'const ack = body.privacy_ack || {};',
-  'const iso = v => typeof v === "string" && /^\\d{4}-\\d{2}-\\d{2}T/.test(v);',
+  'const ack = body.privacy_ack;',
+  'const NOTICE_VERSION = ' + JSON.stringify(PRIVACY_NOTICE.NOTICE_VERSION) + ';',
+  'const ACK_KEYS = ["acknowledged_at", "locale", "notice_version", "shown_at"];',
+  'const iso = v => typeof v === "string" && /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$/.test(v) && Number.isFinite(Date.parse(v));',
   '// EVERY REFUSAL CARRIES ITS OWN RESPONSE. The shape branch used to end at a responder that',
   '// answered a hard-coded BAD_REQUEST 400 to everything, so a client that had not acknowledged',
   '// the privacy notice was told its REQUEST was malformed. The live probe confirmed it.',
   'if (!/^AS-[0-9a-f]{64}$/.test(id)) {',
   '  return [{ json: { ok: 0, __status: 400, __response: { ok: false, error_code: "BAD_REQUEST", retryable: false } } }];',
   '}',
-  'if (!String(ack.notice_version || "").trim() || !iso(ack.shown_at) || !iso(ack.acknowledged_at)) {',
+  'if (!ack || typeof ack !== "object" || Array.isArray(ack) || Object.keys(ack).sort().join(",") !== ACK_KEYS.join(",")) {',
   '  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: "CONSENT_REQUIRED", retryable: false } } }];',
   '}',
-  'return [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: String(ack.notice_version), locale: String(ack.locale || "ru"), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];'
+  'if (String(ack.notice_version || "").trim() !== NOTICE_VERSION || !["ru", "ro"].includes(String(ack.locale || "").trim()) || !iso(ack.shown_at) || !iso(ack.acknowledged_at) || Date.parse(ack.acknowledged_at) < Date.parse(ack.shown_at)) {',
+  '  return [{ json: { ok: 0, __status: 409, __response: { ok: false, error_code: "CONSENT_REQUIRED", retryable: false } } }];',
+  '}',
+  'return [{ json: { ok: 1, app_session_id: id, privacy_ack: { notice_version: NOTICE_VERSION, locale: String(ack.locale), shown_at: ack.shown_at, acknowledged_at: ack.acknowledged_at } } }];'
 ].join('\n');
 
 // ── THE SUBMISSION IDENTITY, AND WHY IT IS ONE MECHANISM RATHER THAN FIVE PATCHES ─────────────
@@ -412,8 +420,8 @@ const SUBMIT_PRIVACY = [
   '  privacy_locale: ack.locale,',
   '  privacy_notice_shown_at: ack.shown_at,',
   '  privacy_notice_acknowledged_at: ack.acknowledged_at,',
-  '  // Owner decision B: no final Moldovan legal-basis value until legal review.',
-  '  privacy_legal_basis: "PENDING_LEGAL_REVIEW"',
+  '  // C4.11: final purpose-specific basis for a customer-initiated pre-contractual request.',
+  '  privacy_legal_basis: ' + JSON.stringify(PRIVACY_NOTICE.LEGAL_BASIS),
   '} }];'
 ].join('\n');
 

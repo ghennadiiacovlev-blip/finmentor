@@ -90,8 +90,8 @@ const alert = ALERT.renderLeadIntelligenceAlert({
 check('alert has required short header', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert));
 for (const heading of ['ГЛАВНАЯ БОЛЬ','ЧТО ЗАМЕТИЛ FINMENTOR','КОНТАКТ','СЕЙЧАС']) check('alert section ' + heading, alert.includes('<b>' + heading + '</b>'));
 check('alert shows preferred Telegram separately', /Предпочтительно: Telegram/.test(alert));
-check('alert shows Telegram not connected', /Telegram-контакт не подключён/.test(alert));
-check('alert keeps phone and email available', /Телефон: \+373 60 123 456/.test(alert) && /Email: alexander@niagara\.example/.test(alert));
+check('alert falls back to one reachable contact when preferred Telegram is unavailable', /Телефон: \+373 60 123 456/.test(alert));
+check('alert never expands into a phone, email and Telegram contact directory', !/alexander@niagara\.example/.test(alert) && !/Telegram-контакт не подключён/.test(alert));
 check('alert contains no Lead ID or raw enum', !/FIN-NIAGARA|AI_DRAFT|CLIENT_READY|\bGREEN\b/.test(alert));
 check('alert remains below Telegram limit', alert.length < 1200);
 check('alert escapes client values', /A &lt; B/.test(ALERT.renderLeadIntelligenceAlert({ company: 'A < B', contact: {}, main_pain: 'x', observation: 'y', next_action: 'z' })));

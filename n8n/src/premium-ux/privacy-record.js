@@ -1,7 +1,8 @@
 // FINMENTOR Premium UX — the privacy acknowledgement record.
 //
 // Builds the row that proves WHICH notice was presented and acknowledged for a consultation
-// request. Pure logic; the store itself is designed but NOT created (owner decision B).
+// request. Pure logic: the live store is accessed only by the endpoint; this module performs no
+// network or database I/O.
 // qa/premium-ux-brief.test.mjs drives this alongside the meeting brief.
 //
 // ONE IMMUTABLE RECORD, NOT AN EVENT STREAM. Owner decision B asked for the smaller defensible
@@ -19,18 +20,19 @@
 //     answer the only question that is ever asked.
 //
 // WHAT IT MUST NEVER CARRY. The record is deliberately almost empty. It links to the request by an
-// opaque `submission_key` — the identity the cycle issuer already mints — and carries no personal
-// data at all. `FORBIDDEN` below is refused rather than stripped, so reintroducing any of it fails
-// loudly instead of quietly widening a legal record into a second CRM.
+// opaque, linkable `submission_key` — pseudonymous compliance evidence, not anonymous data — and
+// carries no direct client identifiers or request content. `FORBIDDEN` below is refused rather
+// than stripped, so reintroducing any of it fails loudly instead of widening this into a CRM.
 
 'use strict';
+
+const NOTICE = require('./privacy-notice.js');
 
 const RECORD_KEYS = [
   'submission_key', 'cycle_id',
   'privacy_notice_version', 'privacy_locale',
   'privacy_notice_shown_at', 'privacy_notice_acknowledged_at',
-  'privacy_legal_basis',
-  'marketing_consent', 'marketing_consent_at'
+  'privacy_legal_basis'
 ];
 
 // Refused at any depth. Not "omitted" — refused, so a future edit cannot leak them by accident.
@@ -42,12 +44,12 @@ const FORBIDDEN = [
   'current_setup', 'documents', 'raw_json', 'lead_id', 'payload'
 ];
 
-// Until legal review lands, fixtures and candidates use this and nothing else. Owner decision B:
-// do not hard-code a final Moldovan legal-basis value yet.
-const PENDING_LEGAL_BASIS = 'PENDING_LEGAL_REVIEW';
+const ACK_KEYS = ['notice_version', 'locale', 'shown_at', 'acknowledged_at'];
 
 const str = (v) => String(v === null || v === undefined ? '' : v).trim();
-const isIso = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(v);
+const isIso = (v) => typeof v === 'string'
+  && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(v)
+  && Number.isFinite(Date.parse(v));
 function fail(code, detail) { return { ok: false, error_code: code, detail: detail || '' }; }
 
 function leaks(obj) {
@@ -76,24 +78,14 @@ function buildPrivacyRecord(opts) {
 
   const version = str(ack.notice_version);
   const locale = str(ack.locale);
-  if (!version) { return fail('BAD_REQUEST', 'MISSING_NOTICE_VERSION'); }
+  if (version !== NOTICE.NOTICE_VERSION) { return fail('BAD_REQUEST', 'NOTICE_VERSION_UNSUPPORTED'); }
   if (['ru', 'ro'].indexOf(locale) === -1) { return fail('BAD_REQUEST', 'BAD_LOCALE'); }
+  const ackKeys = Object.keys(ack).sort();
+  const expectedKeys = ACK_KEYS.slice().sort();
+  if (ackKeys.join(',') !== expectedKeys.join(',')) { return fail('BAD_REQUEST', 'BAD_ACK_SHAPE'); }
   if (!isIso(str(ack.shown_at))) { return fail('BAD_REQUEST', 'BAD_SHOWN_AT'); }
   if (!isIso(str(ack.acknowledged_at))) { return fail('BAD_REQUEST', 'BAD_ACKNOWLEDGED_AT'); }
   if (Date.parse(ack.acknowledged_at) < Date.parse(ack.shown_at)) { return fail('BAD_REQUEST', 'ACK_BEFORE_SHOWN'); }
-
-  // Marketing consent is separate and optional, and is NEVER required to submit. `null` means
-  // never asked — structurally distinct from `false`, which means asked and declined.
-  let marketing = null;
-  let marketingAt = null;
-  if (o.marketingConsent !== undefined && o.marketingConsent !== null) {
-    if (typeof o.marketingConsent !== 'boolean') { return fail('BAD_REQUEST', 'BAD_MARKETING_CONSENT'); }
-    marketing = o.marketingConsent;
-    if (marketing === true) {
-      if (!isIso(str(o.marketingConsentAt))) { return fail('BAD_REQUEST', 'BAD_MARKETING_CONSENT_AT'); }
-      marketingAt = str(o.marketingConsentAt);
-    }
-  }
 
   const record = {
     submission_key: submissionKey,
@@ -102,9 +94,7 @@ function buildPrivacyRecord(opts) {
     privacy_locale: locale,
     privacy_notice_shown_at: str(ack.shown_at),
     privacy_notice_acknowledged_at: str(ack.acknowledged_at),
-    privacy_legal_basis: str(o.legalBasis) || PENDING_LEGAL_BASIS,
-    marketing_consent: marketing,
-    marketing_consent_at: marketingAt
+    privacy_legal_basis: NOTICE.LEGAL_BASIS
   };
 
   for (const k of Object.keys(record)) { if (RECORD_KEYS.indexOf(k) === -1) { return fail('BAD_REQUEST', 'UNEXPECTED_KEY:' + k); } }
@@ -163,6 +153,6 @@ function insertParams(record) {
 }
 
 module.exports = {
-  RECORD_KEYS, FORBIDDEN, PENDING_LEGAL_BASIS, buildPrivacyRecord, leaks,
+  RECORD_KEYS, ACK_KEYS, FORBIDDEN, buildPrivacyRecord, leaks,
   INSERT_SQL, ALREADY_RECORDED_SQLSTATE, isAlreadyRecorded, insertParams
 };

@@ -364,7 +364,9 @@ let draftRow;
   const kpi = { ...goodPlan, plan_30_days: { ...goodPlan.plan_30_days, days_15_21: [{ action: 'Маржа по категориям', owner_role: 'Аналитик', expected_output: 'Отчёт по 12 000 SKU', control_or_kpi: 'Маржа посчитана для >80% продаж', priority: 'MEDIUM' }] } };
   const o3 = validate(aiResp(kpi));
   check('validate: KPI targets and expected outputs are never flagged as fabricated (live RO finding)', o3.analysis_row.fabrication_flags === '' && o3.analysis_row.confidence === 'HIGH', o3.analysis_row.fabrication_flags);
-  check('owner alert: contact preference and reachability are rendered separately', /Предпочтительно:/.test(o3.owner_alert.text) && /Доступно:/.test(o3.owner_alert.text));
+  check('owner alert: preference is shown with at most one reachable contact', /Предпочтительно:/.test(o3.owner_alert.text)
+    && !/Доступно:/.test(o3.owner_alert.text)
+    && ((o3.owner_alert.text.match(/\n(?:Telegram|Телефон|Email):/g) || []).length <= 1));
 }
 {
   // FAIL CLOSED: a broken contract is ANALYSIS_FAILED, never a draft

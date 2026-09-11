@@ -221,7 +221,7 @@ check('the policy pages the Mini App points at exist in the repository', () => {
 
 const POLICIES = [
   { file: 'privacy.html', lang: 'RU', controllerRe: /Оператор персональных данных: <strong>Iacovlev Ghennadi<\/strong>/ },
-  { file: 'ro/privacy.html', lang: 'RO', controllerRe: /Operator de date cu caracter personal: <strong>Iacovlev Ghennadi<\/strong>/ }
+  { file: 'ro/privacy.html', lang: 'RO', controllerRe: /Operatorul de date cu caracter personal este <strong>Iacovlev Ghennadi<\/strong>/ }
 ];
 
 for (const p of POLICIES) {
@@ -246,26 +246,26 @@ for (const p of POLICIES) {
   });
 
   check(p.lang + ' policy keeps contractual retention separate from the 12-month rule', () => {
-    assert(/договорные отношения|relații contractuale/.test(html), 'contractual retention is not carved out');
+    assert(/Активный\/преобразованный клиент|Client activ\/convertit/.test(html), 'contractual retention is not carved out');
   });
 
-  check(p.lang + ' policy records the legal basis as proposed, never as counsel-approved', () => {
-    assert(/6\(1\)\(b\)/.test(html), 'the proposed basis is not recorded');
-    assert(/подлежит окончательному подтверждению|urmează să fie confirmat definitiv/.test(html), 'no pending-confirmation caveat');
-    assert(!/одобрен(о|а) юрист|aprobat de (un )?avocat|legal counsel approved/i.test(html), 'claims counsel approval');
+  check(p.lang + ' policy records the final purpose-specific pre-contractual basis', () => {
+    assert(/ст\. 6\(1\)\(b\)|art\. 6 alin\. \(1\) lit\. b\)/.test(html), 'the statutory basis is not recorded');
+    assert(/pre_contractual_request/.test(html), 'the stored basis enum is not recorded');
+    assert(!/PENDING_LEGAL_REVIEW/.test(html), 'the retired pending sentinel survives');
   });
 
   check(p.lang + ' policy keeps analytics and optional marketing on consent, separately', () => {
     assert(/согласия|consimțământ/.test(html), 'consent basis not mentioned for the optional purposes');
   });
 
-  check(p.lang + ' policy carries the owner-approved AI and processor paragraph', () => {
-    assert(/Supabase \(ЕС\)|Supabase \(UE\)/.test(html), 'the approved paragraph is missing');
-    assert(/проверки человеком|verificare umană/.test(html), 'the human-review sentence is missing');
+  check(p.lang + ' policy carries AI minimisation, human review and processor categories', () => {
+    assert(/AI-поставщик|furnizorul AI/.test(html), 'the AI processor category is missing');
+    assert(/проверяется человеком до публикации|verificat de o persoană înainte de publicarea/.test(html), 'the human-review sentence is missing');
   });
 
   check(p.lang + ' policy does not present FINMENTOR itself as the controller', () => {
-    assert(/торговая марка, а не оператор|marca comercială, nu operatorul/.test(html), 'brand/controller distinction missing');
+    assert(/название проекта, а не отдельное юридическое лицо|denumirea proiectului, nu o persoană juridică separată/.test(html), 'brand/controller distinction missing');
   });
 }
 

@@ -61,8 +61,8 @@
   //   first_touch - what introduced this lead (never overwritten once set)
   //   last_touch  - what converted it (overwritten by each new campaign arrival)
   //
-  // Only campaign metadata is stored. No personal data and no GA identifier is written here,
-  // and GA client/session ids are still attached only after analytics consent.
+  // Only constrained campaign metadata is stored, and only after analytics consent. GA
+  // client/session ids are likewise attached only after consent.
   var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
   var FIRST_TOUCH_KEY = 'finmentor_attr_first';
   var LAST_TOUCH_KEY = 'finmentor_attr_last';
@@ -73,8 +73,8 @@
     try {
       var params = new URLSearchParams(location.search || '');
       UTM_KEYS.forEach(function (key) {
-        var value = (params.get(key) || '').trim().slice(0, 120);
-        if (value) { out[key] = value; any = true; }
+        var value = scrubbedParamValue(params.get(key) || '');
+        if (/^[A-Za-z0-9_.-]{1,64}$/.test(value)) { out[key] = value; any = true; }
       });
     } catch (e) {
       return null;
@@ -98,8 +98,9 @@
   }
 
   function captureAttribution() {
+    if (getChoice() !== 'accept') return false;
     var current = readUtmFromUrl();
-    if (!current) return;
+    if (!current) return false;
     var stamped = {};
     UTM_KEYS.forEach(function (k) { if (current[k]) stamped[k] = current[k]; });
     stamped.captured_at = new Date().toISOString();
@@ -107,6 +108,14 @@
     // First touch is written once and never overwritten.
     if (!readTouch(FIRST_TOUCH_KEY)) writeTouch(FIRST_TOUCH_KEY, stamped);
     writeTouch(LAST_TOUCH_KEY, stamped);
+    return true;
+  }
+
+  function clearAttribution() {
+    try {
+      localStorage.removeItem(FIRST_TOUCH_KEY);
+      localStorage.removeItem(LAST_TOUCH_KEY);
+    } catch (e) {}
   }
 
   function getAttribution() {
@@ -406,9 +415,11 @@
     setChoice(choice);
 
     if (choice === 'accept') {
+      captureAttribution();
       loadAnalytics();
     } else {
       // No Google Analytics script is loaded for denied consent.
+      clearAttribution();
       window.gtag = noopGtag;
     }
 
@@ -456,9 +467,8 @@
     payload = (payload && typeof payload === 'object') ? payload : {};
     payload.meta = (payload.meta && typeof payload.meta === 'object') ? payload.meta : {};
 
-    // Campaign attribution does not depend on analytics consent and is attached either way.
-    // GA client/session identifiers do depend on it and are attached only below.
-    var attribution = getAttribution();
+    // Persistent attribution and GA identifiers share the same analytics-consent boundary.
+    var attribution = getChoice() === 'accept' ? getAttribution() : { first_touch: null, last_touch: null };
     payload.meta.attribution_first_touch = attribution.first_touch;
     payload.meta.attribution_last_touch = attribution.last_touch;
 
@@ -497,7 +507,7 @@
     banner.setAttribute('aria-label', ro ? 'Setările cookies FINMENTOR' : 'Настройки cookies FINMENTOR');
     banner.innerHTML =
       '<div class="fm-cookie__text"><strong>' + (ro ? 'Cookies și analitică' : 'Cookies и аналитика') + '</strong><span>' +
-      (ro ? 'FINMENTOR folosește cookies tehnice și Google Analytics numai cu acordul dvs. Datele personale nu se trimit în GA4.' : 'FINMENTOR использует технические cookies и Google Analytics только с вашего согласия. Персональные данные в GA4 не отправляются.') +
+      (ro ? 'FINMENTOR folosește cookies tehnice și Google Analytics numai cu acordul dvs. Datele de contact și textele libere nu se trimit în GA4.' : 'FINMENTOR использует технические cookies и Google Analytics только с вашего согласия. Контактные данные и свободный текст в GA4 не отправляются.') +
       '</span></div>' +
       '<div class="fm-cookie__actions">' +
       '<button type="button" class="btn btn--ghost btn--sm" data-cookie-choice="deny">' + (ro ? 'Doar cele necesare' : 'Только необходимые') + '</button>' +
@@ -514,9 +524,9 @@
     bannerMounted = true;
   }
 
-  // Runs on every page load, before any consent decision, because campaign metadata is not
-  // analytics storage and losing it is unrecoverable once the visitor navigates away.
-  captureAttribution();
+  // A returning visitor who already accepted may refresh attribution. Before the first consent
+  // decision nothing persistent is written and no event is queued for later transmission.
+  if (getChoice() === 'accept') captureAttribution();
 
   initBusinessTracking();
 

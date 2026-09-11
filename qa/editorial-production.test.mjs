@@ -208,10 +208,10 @@ check('legal pages keep working email and same-language Privacy/Terms footer acc
   }
 });
 
-check('Privacy factual copy matches the current mini-scan submit control in RU and RO', () => {
+check('Privacy factual copy covers the current Financial X-Ray journey without stale mini-scan labels', () => {
   const ru = read('privacy.html'), ro = read('ro/privacy.html');
-  assert(ru.includes('«Отправить результат FINMENTOR»') && !ru.includes('«Отправить результат в FINMENTOR Bot»'), 'RU stale mini-scan label remains');
-  assert(ro.includes('„Trimiteți rezultatul către FINMENTOR”') && !ro.includes('„Trimiteți rezultatul în FINMENTOR Bot”'), 'RO stale mini-scan label remains');
+  assert(ru.includes('Financial X-Ray') && !ru.includes('«Отправить результат в FINMENTOR Bot»'), 'RU Financial X-Ray scope or stale label');
+  assert(ro.includes('Financial X-Ray') && !ro.includes('„Trimiteți rezultatul în FINMENTOR Bot”'), 'RO Financial X-Ray scope or stale label');
   assert(read('working-capital-scan.html').includes('id="scanSend">Отправить результат FINMENTOR</button>'), 'RU live control differs');
   assert(read('ro/working-capital-scan.html').includes('id="scanSend">Trimiteți rezultatul către FINMENTOR</button>'), 'RO live control differs');
 });

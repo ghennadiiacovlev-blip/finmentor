@@ -32,6 +32,7 @@ const ROOT = join(HERE, '..');
 const require = createRequire(import.meta.url);
 const B = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'branches.js'));
 const PR = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-record.js'));
+const NOTICE = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 const M = await import('../scripts/build-premium-endpoints.mjs');
 
 let pass = 0;
@@ -49,7 +50,7 @@ const SID2 = 'AS-' + 'b'.repeat(64);
 const OWNER = '551662084';
 
 const ACK = {
-  notice_version: 'pn-2026-08', locale: 'ru',
+  notice_version: NOTICE.NOTICE_VERSION, locale: 'ru',
   shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z'
 };
 // A missing acknowledgement must reach the endpoint AS missing. Defaulting it inside the helper
@@ -161,7 +162,7 @@ check('D4 — the privacy row carries the derived key, not an empty string', () 
   run(w);
   eq(w.privacy.length, 1, 'privacy rows');
   assert(/^sub_[0-9a-f]{32}$/.test(w.privacy[0].submission_key), 'the privacy row key is ' + JSON.stringify(w.privacy[0].submission_key));
-  eq(w.privacy[0].privacy_legal_basis, 'PENDING_LEGAL_REVIEW', 'the legal basis moved');
+  eq(w.privacy[0].privacy_legal_basis, NOTICE.LEGAL_BASIS, 'the legal basis moved');
   eq(w.privacy[0].privacy_notice_acknowledged_at, ACK.acknowledged_at, 'the acknowledgement instant');
 });
 
@@ -422,8 +423,8 @@ check('an expired, uncommitted session is refused before any side effect', () =>
 });
 
 check('a missing or malformed acknowledgement never reaches the privacy store', () => {
-  for (const ack of [NO_ACK, {}, { notice_version: 'pn-2026-08' },
-    { notice_version: 'pn-2026-08', shown_at: 'nope', acknowledged_at: 'nope' }]) {
+  for (const ack of [NO_ACK, {}, { notice_version: NOTICE.NOTICE_VERSION },
+    { notice_version: NOTICE.NOTICE_VERSION, locale: 'ru', shown_at: 'nope', acknowledged_at: 'nope' }]) {
     const w = world();
     const r = run(w, bodyFor(SID, ack));
     eq(r.response.body.ok, false, 'accepted ' + JSON.stringify(ack));
