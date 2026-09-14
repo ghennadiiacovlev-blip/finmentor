@@ -25,6 +25,12 @@ export const CONCIERGE_ID = 'mppzthlkSJFr6Kle';
 export const XRAY_ID = 'tNSMRoKlFB52vjge';
 export const CONCIERGE_NAME = 'FINMENTOR Telegram Client Concierge PREMIUM AI GUARDED';
 export const XRAY_NAME = 'FINMENTOR X-Ray Analysis';
+export const XRAY_VOLATILE_WEBHOOK_ID_NODES = Object.freeze([
+  'Telegram Failure Notice',
+  'Telegram Owner Alert',
+  'Telegram Source Audit Finding',
+  'Telegram Validation Failure Notice'
+]);
 
 const N = {
   trigger: 'Telegram Client Trigger',
@@ -59,11 +65,144 @@ function nodeCredentialSignature(w) {
   return w.nodes.filter((node) => node.credentials).map((node) => [node.name, node.credentials]).sort((a, b) => a[0].localeCompare(b[0]));
 }
 
+// Strict legacy signature. It remains the pre-write rule for Concierge, whose trigger webhookId
+// is historically pinned. X-Ray readback has a narrower, proven exception below.
 function webhookSignature(w) {
   return w.nodes.filter((node) => node.webhookId || /Webhook|Trigger/.test(node.name)).map((node) => [
     node.name, node.type, node.webhookId || '', node.parameters && node.parameters.path || '',
     node.parameters && node.parameters.httpMethod || ''
   ]).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function isWebhookRelevant(node) {
+  return Boolean(node && (
+    node.webhookId || /webhook|trigger/i.test(String(node.type || '')) || /Webhook|Trigger/.test(String(node.name || ''))
+  ));
+}
+
+function webhookRelevantNames(...workflows) {
+  const names = new Set();
+  for (const workflow of workflows) {
+    for (const node of (workflow && workflow.nodes) || []) if (isWebhookRelevant(node)) names.add(node.name);
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
+
+// The stable contract is the complete relevant node, byte-for-byte, except webhookId. This
+// includes name/type/typeVersion, path, HTTP method, authentication and response configuration,
+// credentials, and every other functional parameter or flag. Node removal/addition is represented
+// by a null entry when callers pass the union of relevant names from both workflows.
+export function stableWebhookSignature(workflow, names = webhookRelevantNames(workflow)) {
+  return [...names].sort((a, b) => a.localeCompare(b)).map((name) => {
+    const node = byName(workflow, name);
+    if (!node) return [name, null];
+    const stable = clone(node);
+    delete stable.webhookId;
+    return [name, stable];
+  });
+}
+
+function assertStableWebhookContract(before, other, label) {
+  const names = webhookRelevantNames(before, other);
+  if (j(stableWebhookSignature(other, names)) !== j(stableWebhookSignature(before, names))) {
+    throw new Error(label + ': stable webhook contract changed');
+  }
+  return names;
+}
+
+const uuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+const metadataId = (node) => node && node.webhookId || '';
+const isProvenVolatileXrayNode = (node) => Boolean(node && node.type === 'n8n-nodes-base.telegram' && node.parameters && node.parameters.operation === 'sendMessage');
+
+export function verifyXrayWebhookCandidate(before, candidate) {
+  const names = assertStableWebhookContract(before, candidate, XRAY_ID + ' candidate');
+  const allowed = new Set(XRAY_VOLATILE_WEBHOOK_ID_NODES);
+  for (const name of names) {
+    const oldNode = byName(before, name);
+    const nextNode = byName(candidate, name);
+    const oldId = metadataId(oldNode);
+    const nextId = metadataId(nextNode);
+    if (oldId === nextId) continue;
+    if (!allowed.has(name) || !oldId || nextId || !isProvenVolatileXrayNode(oldNode) || !isProvenVolatileXrayNode(nextNode)) {
+      throw new Error(XRAY_ID + ': unproved webhookId candidate change at ' + name);
+    }
+  }
+  return names;
+}
+
+export function verifyXrayWebhookReadback(before, candidate, after) {
+  const candidateNames = verifyXrayWebhookCandidate(before, candidate);
+  const names = webhookRelevantNames(before, candidate, after);
+  if (j(names) !== j(candidateNames)) throw new Error(XRAY_ID + ': webhook node set changed after PUT');
+  assertStableWebhookContract(before, after, XRAY_ID + ' readback');
+  const allowed = new Set(XRAY_VOLATILE_WEBHOOK_ID_NODES);
+  for (const name of names) {
+    const oldNode = byName(before, name);
+    const nextNode = byName(candidate, name);
+    const readNode = byName(after, name);
+    const oldId = metadataId(oldNode);
+    const nextId = metadataId(nextNode);
+    const readId = metadataId(readNode);
+    if (oldId === nextId) {
+      if (readId !== oldId) throw new Error(XRAY_ID + ': historically stable webhookId changed at ' + name);
+      continue;
+    }
+    if (!allowed.has(name) || nextId || !uuid(readId) || readId === oldId || !isProvenVolatileXrayNode(readNode)) {
+      throw new Error(XRAY_ID + ': expected n8n webhookId regeneration was not proven at ' + name);
+    }
+  }
+  return names;
+}
+
+function webhookForensicNode(node) {
+  return node ? {
+    name: node.name,
+    type: node.type,
+    webhookId: node.webhookId || null,
+    path: node.parameters && node.parameters.path || null,
+    httpMethod: node.parameters && node.parameters.httpMethod || null,
+    parameters: node.parameters || {}
+  } : null;
+}
+
+function webhookDeltaClass(before, after) {
+  if (!before || !after) return 'C';
+  if ((before.parameters && before.parameters.path || null) !== (after.parameters && after.parameters.path || null) ||
+      (before.parameters && before.parameters.httpMethod || null) !== (after.parameters && after.parameters.httpMethod || null)) return 'B';
+  if (before.name !== after.name || before.type !== after.type || j(before.parameters || {}) !== j(after.parameters || {})) return 'C';
+  const oldStable = clone(before); const newStable = clone(after);
+  delete oldStable.webhookId; delete newStable.webhookId;
+  if (j(oldStable) !== j(newStable)) return 'D';
+  return metadataId(before) === metadataId(after) ? 'UNCHANGED' : 'A';
+}
+
+export function xrayWebhookForensic(before, candidate, after) {
+  const nodes = webhookRelevantNames(before, candidate, after).map((name) => {
+    const oldNode = byName(before, name);
+    const candidateNode = byName(candidate, name);
+    const readNode = byName(after, name);
+    return {
+      name,
+      delta_class: webhookDeltaClass(oldNode, readNode),
+      before: webhookForensicNode(oldNode),
+      candidate: webhookForensicNode(candidateNode),
+      readback: webhookForensicNode(readNode)
+    };
+  });
+  const changed = nodes.filter((node) => node.delta_class !== 'UNCHANGED');
+  const deltaClass = changed.length && changed.every((node) => node.delta_class === 'A') ? 'A'
+    : changed.some((node) => node.delta_class === 'B') ? 'B'
+      : changed.some((node) => node.delta_class === 'C') ? 'C'
+        : changed.some((node) => node.delta_class === 'D') ? 'D' : 'NONE';
+  const names = webhookRelevantNames(before, candidate, after);
+  return {
+    captured_at: new Date().toISOString(),
+    workflow_id: before.id,
+    delta_class: deltaClass,
+    strict_signature_equal: j(webhookSignature(before)) === j(webhookSignature(after)),
+    stable_contract_equal: j(stableWebhookSignature(before, names)) === j(stableWebhookSignature(after, names)),
+    nodes
+  };
 }
 
 function reachable(w, root) {
@@ -206,13 +345,13 @@ function verifyCommon(before, candidate, after, id) {
   if (j(after.settings || {}) !== j(before.settings || {})) throw new Error(id + ': settings changed');
   if (j(after.staticData || null) !== j(before.staticData || null)) throw new Error(id + ': staticData changed');
   if (j(nodeCredentialSignature(after)) !== j(nodeCredentialSignature(before))) throw new Error(id + ': credentials changed');
-  if (j(webhookSignature(after)) !== j(webhookSignature(before))) throw new Error(id + ': webhooks changed');
   if (j(after.connections) !== j(candidate.connections)) throw new Error(id + ': deployed connections differ from candidate');
   if (after.nodes.length !== candidate.nodes.length) throw new Error(id + ': deployed node count differs from candidate');
 }
 
 function verifyConciergeReadback(before, candidate, after) {
   verifyCommon(before, candidate, after, CONCIERGE_ID);
+  if (j(webhookSignature(after)) !== j(webhookSignature(before))) throw new Error(CONCIERGE_ID + ': webhooks changed');
   for (const name of [N.session, N.response, N.transport]) {
     if (j(byName(after, name)) !== j(byName(candidate, name))) throw new Error('Concierge readback differs at ' + name);
   }
@@ -221,13 +360,17 @@ function verifyConciergeReadback(before, candidate, after) {
   verifyPremiumStarts(after);
 }
 
-function verifyXrayReadback(before, candidate, after) {
+export function verifyXrayReadback(before, candidate, after) {
   verifyCommon(before, candidate, after, XRAY_ID);
+  verifyXrayWebhookReadback(before, candidate, after);
+  const candidateStableNodes = candidate.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });
+  const readbackStableNodes = after.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });
+  if (j(readbackStableNodes) !== j(candidateStableNodes)) throw new Error(XRAY_ID + ': deployed node configuration differs from candidate');
   verifyXrayGraph(after);
   const analysis = byName(after, 'Analysis Row');
   if (!analysis || analysis.parameters.jsonOutput !== '={{ JSON.stringify($json.analysis_row) }}') throw new Error('Analysis Row contract changed');
   const validator = byName(after, 'Validate + Store Rows');
-  if (!validator || !String(validator.parameters.jsCode).includes("ANALYSIS_VERSION = 'xray-v2'")) throw new Error('accepted validator is absent');
+  if (!validator || !String(validator.parameters.jsCode).includes("ANALYSIS_VERSION = 'lead-intelligence-v1'")) throw new Error('accepted validator is absent');
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -261,10 +404,11 @@ async function restore(base, readKey, writeKey, before) {
   return restored;
 }
 
-async function deployOne(base, readKey, writeKey, before, candidate, verify) {
+async function deployOne(base, readKey, writeKey, before, candidate, verify, evidencePath) {
   try {
     await api(base, readKey, writeKey, 'PUT', '/workflows/' + before.id, importable(candidate));
     const after = await api(base, readKey, writeKey, 'GET', '/workflows/' + before.id);
+    if (evidencePath) writeFileSync(evidencePath, JSON.stringify(xrayWebhookForensic(before, candidate, after), null, 2) + '\n', 'utf8');
     verify(before, candidate, after);
     return after;
   } catch (error) {
@@ -274,11 +418,22 @@ async function deployOne(base, readKey, writeKey, before, candidate, verify) {
   }
 }
 
+export function verifyRestoredXrayBaseline(live, baseline) {
+  if (!live || !baseline || live.id !== XRAY_ID || baseline.id !== XRAY_ID) throw new Error('X-Ray restored baseline identity mismatch');
+  for (const key of ['name', 'active']) if (live[key] !== baseline[key]) throw new Error('X-Ray restored baseline differs at ' + key);
+  for (const key of ['nodes', 'connections', 'settings', 'staticData']) {
+    const fallback = key === 'staticData' ? null : {};
+    if (j(live[key] ?? fallback) !== j(baseline[key] ?? fallback)) throw new Error('X-Ray restored baseline differs at ' + key);
+  }
+  return true;
+}
+
 const isMain = process.argv[1] && process.argv[1].endsWith('deploy-final-p1.mjs');
 if (isMain) {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
   const confirm = args.includes('--confirm');
+  const xrayOnly = args.includes('--xray-only');
   const base = String(process.env.N8N_BASE_URL || '').replace(/\/+$/, '');
   const readKey = process.env.N8N_API_KEY;
   const writeKey = process.env.N8N_FIX_API_KEY || process.env.N8N_API_KEY;
@@ -292,17 +447,23 @@ if (isMain) {
   try {
     say('\nFINMENTOR FINAL P1 — ' + (dryRun ? 'DRY RUN' : 'CONTROLLED PRODUCTION CUTOVER'));
     say('='.repeat(78));
-    const conciergeBefore = await api(base, readKey, writeKey, 'GET', '/workflows/' + CONCIERGE_ID);
+    const conciergeBefore = xrayOnly ? null : await api(base, readKey, writeKey, 'GET', '/workflows/' + CONCIERGE_ID);
     const xrayBefore = await api(base, readKey, writeKey, 'GET', '/workflows/' + XRAY_ID);
-    const conciergePrepared = prepareConcierge(conciergeBefore);
+    const baselinePath = join(OUT_ROOT, 'final-p1-backups', '2026-09-11T14-32-34-850Z', XRAY_ID + '.full.json');
+    if (xrayOnly) verifyRestoredXrayBaseline(xrayBefore, JSON.parse(readFileSync(baselinePath, 'utf8')));
+    const conciergePrepared = xrayOnly ? null : prepareConcierge(conciergeBefore);
     const xrayPrepared = prepareXray(xrayBefore);
     if (xrayPrepared.failures.length) fail('X-Ray candidate refused: ' + xrayPrepared.failures.join(' | '));
+    verifyXrayWebhookCandidate(xrayBefore, xrayPrepared.cand);
     verifyXrayGraph(xrayPrepared.cand);
 
-    pass('Concierge delta: nodes ' + conciergePrepared.changedNodes.join(', ') + '; connections ' + conciergePrepared.changedConnections.join(', '));
-    for (const item of conciergePrepared.starts) pass(item.command + ' -> ' + item.locale.toUpperCase() + ' / ' + item.state);
+    if (!xrayOnly) {
+      pass('Concierge delta: nodes ' + conciergePrepared.changedNodes.join(', ') + '; connections ' + conciergePrepared.changedConnections.join(', '));
+      for (const item of conciergePrepared.starts) pass(item.command + ' -> ' + item.locale.toUpperCase() + ' / ' + item.state);
+    } else pass('Concierge excluded: no read, backup, or deployment');
+    if (xrayOnly) pass('current live X-Ray exactly equals the restored 2026-09-11 baseline');
     pass('X-Ray candidate: ' + xrayPrepared.cand.nodes.length + ' nodes; exact sequential success graph; AI error graph preserved');
-    pass('settings/staticData/webhooks/credentials are preserved by candidate guards');
+    pass('settings/staticData/stable webhook contract/credentials are preserved by candidate guards');
 
     if (dryRun) {
       say('\nDRY RUN — no production write, no retention deployment, no customer message.');
@@ -312,25 +473,30 @@ if (isMain) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = join(OUT_ROOT, 'final-p1-backups', stamp);
     mkdirSync(backupDir, { recursive: true });
-    const conciergeBackup = join(backupDir, CONCIERGE_ID + '.full.json');
     const xrayBackup = join(backupDir, XRAY_ID + '.full.json');
-    writeFileSync(conciergeBackup, JSON.stringify(conciergeBefore, null, 2) + '\n', 'utf8');
+    if (!xrayOnly) writeFileSync(join(backupDir, CONCIERGE_ID + '.full.json'), JSON.stringify(conciergeBefore, null, 2) + '\n', 'utf8');
     writeFileSync(xrayBackup, JSON.stringify(xrayBefore, null, 2) + '\n', 'utf8');
+    const backedUp = xrayOnly ? [xrayBefore] : [conciergeBefore, xrayBefore];
     writeFileSync(join(backupDir, 'manifest.json'), JSON.stringify({
       captured_at: new Date().toISOString(),
-      workflows: [conciergeBefore, xrayBefore].map((workflow) => ({
+      workflows: backedUp.map((workflow) => ({
         id: workflow.id, name: workflow.name, active: workflow.active, versionId: workflow.versionId,
         nodes: workflow.nodes.length, connection_sources: Object.keys(workflow.connections || {}).length,
         credentials_sha256: sha(nodeCredentialSignature(workflow)), settings_sha256: sha(workflow.settings || {}),
-        staticData_sha256: sha(workflow.staticData || null), webhooks_sha256: sha(webhookSignature(workflow))
+        staticData_sha256: sha(workflow.staticData || null), webhooks_sha256: sha(webhookSignature(workflow)),
+        stable_webhook_contract_sha256: sha(stableWebhookSignature(workflow))
       }))
     }, null, 2) + '\n', 'utf8');
     pass('full backups: ' + backupDir.replace(ROOT, '.'));
 
-    const conciergeAfter = await deployOne(base, readKey, writeKey, conciergeBefore, conciergePrepared.candidate, verifyConciergeReadback);
-    pass('Concierge deployed and read back: active=' + conciergeAfter.active + ', version=' + conciergeAfter.versionId);
-    const xrayAfter = await deployOne(base, readKey, writeKey, xrayBefore, xrayPrepared.cand, verifyXrayReadback);
+    if (!xrayOnly) {
+      const conciergeAfter = await deployOne(base, readKey, writeKey, conciergeBefore, conciergePrepared.candidate, verifyConciergeReadback);
+      pass('Concierge deployed and read back: active=' + conciergeAfter.active + ', version=' + conciergeAfter.versionId);
+    }
+    const webhookEvidence = join(backupDir, XRAY_ID + '.webhook-readback.json');
+    const xrayAfter = await deployOne(base, readKey, writeKey, xrayBefore, xrayPrepared.cand, verifyXrayReadback, webhookEvidence);
     pass('X-Ray deployed and read back: active=' + xrayAfter.active + ', version=' + xrayAfter.versionId);
+    pass('X-Ray webhook forensic readback: ' + webhookEvidence.replace(ROOT, '.'));
     say('\nFINAL P1 PRODUCTION CUTOVER = PASS');
     say('BACKUP_DIR=' + backupDir);
   } catch (error) { fail(error.message); }

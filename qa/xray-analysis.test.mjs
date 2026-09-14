@@ -19,6 +19,10 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-analysis-workflow.mjs';
 import { compileFile } from '../scripts/lib/compile-workflow-sdk.mjs';
+import {
+  XRAY_ID, XRAY_NAME, XRAY_VOLATILE_WEBHOOK_ID_NODES, stableWebhookSignature,
+  verifyXrayWebhookReadback, verifyXrayReadback
+} from '../scripts/deploy-final-p1.mjs';
 import { NIAGARA_AI, NIAGARA_LIVE_SANITIZED_SOURCE } from './fixtures/lead-intelligence-fixtures.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -520,6 +524,69 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   check('client result: nothing is published for a row without a lead', publish({ publish_client: true, source_row: { ...ledgerRow, lead_id: '' } }).length === 0);
   check('client result: unparseable client draft publishes nothing', publish({ publish_client: true, source_row: { ...ledgerRow, client_result_draft_json: '{oops', analysis_json: '{oops' } }).length === 0);
   check('client result: ALREADY_READY re-publishes (idempotent repair)', publish(review({ a: 'XA-L-2-1', t: TOKEN }, [{ ...ledgerRow, review_status: 'CLIENT_READY' }])).length === 1);
+}
+
+// ---------- final X-Ray webhook deploy guard ----------
+{
+  const before = structuredClone(compiledWorkflow);
+  before.id = XRAY_ID;
+  before.name = XRAY_NAME;
+  before.active = true;
+  before.staticData = { node: { proof: 'preserved' } };
+  const getHook = before.nodes.find((node) => node.name === 'Review GET Webhook');
+  const postHook = before.nodes.find((node) => node.name === 'Review POST Webhook');
+  getHook.webhookId = '30000000-0000-4000-8000-000000000001';
+  postHook.webhookId = '30000000-0000-4000-8000-000000000002';
+  XRAY_VOLATILE_WEBHOOK_ID_NODES.forEach((name, index) => {
+    before.nodes.find((node) => node.name === name).webhookId = `10000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`;
+  });
+
+  const candidate = structuredClone(before);
+  delete candidate.staticData;
+  XRAY_VOLATILE_WEBHOOK_ID_NODES.forEach((name) => { delete candidate.nodes.find((node) => node.name === name).webhookId; });
+  const after = structuredClone(candidate);
+  after.id = XRAY_ID;
+  after.name = XRAY_NAME;
+  after.active = true;
+  after.staticData = structuredClone(before.staticData);
+  XRAY_VOLATILE_WEBHOOK_ID_NODES.forEach((name, index) => {
+    after.nodes.find((node) => node.name === name).webhookId = `20000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`;
+  });
+
+  const accepts = (fn) => { try { fn(); return true; } catch { return false; } };
+  const rejects = (mutate, verifier = verifyXrayWebhookReadback) => {
+    const changed = structuredClone(after);
+    mutate(changed);
+    return !accepts(() => verifier(before, candidate, changed));
+  };
+
+  check('deploy guard: webhookId-only runtime regeneration is accepted only with a byte-equivalent stable contract',
+    JSON.stringify(stableWebhookSignature(before)) === JSON.stringify(stableWebhookSignature(after)) &&
+    accepts(() => verifyXrayWebhookReadback(before, candidate, after)));
+  check('deploy guard: production webhook path change is rejected',
+    rejects((changed) => { changed.nodes.find((node) => node.name === 'Review GET Webhook').parameters.path += '-changed'; }));
+  check('deploy guard: webhook HTTP method change is rejected',
+    rejects((changed) => { changed.nodes.find((node) => node.name === 'Review GET Webhook').parameters.httpMethod = 'POST'; }));
+  check('deploy guard: webhook authentication/config change is rejected',
+    rejects((changed) => { changed.nodes.find((node) => node.name === 'Review GET Webhook').parameters.authentication = 'headerAuth'; }));
+  check('deploy guard: webhook node removal and addition are both rejected',
+    rejects((changed) => { changed.nodes = changed.nodes.filter((node) => node.name !== 'Review POST Webhook'); }) &&
+    rejects((changed) => { const added = structuredClone(getHook); added.name = 'Unexpected Review Webhook'; added.id = 'unexpected-webhook-node'; changed.nodes.push(added); }));
+  check('deploy guard: unrelated webhook parameter change is rejected',
+    rejects((changed) => { changed.nodes.find((node) => node.name === 'Review GET Webhook').parameters.options = { rawBody: true }; }));
+  check('deploy guard: a historically stable webhookId change is rejected',
+    rejects((changed) => { changed.nodes.find((node) => node.name === 'Review POST Webhook').webhookId = '40000000-0000-4000-8000-000000000001'; }));
+  check('deploy guard: X-Ray success graph is exactly sequential and the AI sibling edge is absent',
+    accepts(() => verifyXrayReadback(before, candidate, after)) &&
+    rejects((changed) => { changed.connections['AI X-Ray Analysis'].main[0].push({ node: 'Analysis Row', type: 'main', index: 0 }); }, verifyXrayReadback));
+  check('deploy guard: Client Visibility remains fail-closed with no notification-state publication authority',
+    [undefined, false, 'true'].every((client_result_eligible) => publish({ publish_client: true, source_row: { ...ledgerRow, client_result_eligible } }).length === 0) &&
+    publish({ publish_client: true, source_row: { ...ledgerRow, review_status: 'CLIENT_NOTIFIED' } }).length === 0);
+  check('deploy guard: AI error path remains byte-exact and sequential',
+    JSON.stringify(after.connections['AI X-Ray Analysis'].main[1]) === JSON.stringify([{ node: 'Analysis Failed Row', type: 'main', index: 0 }]) &&
+    JSON.stringify(after.connections['Analysis Failed Row'].main[0]) === JSON.stringify([{ node: 'Failed Row', type: 'main', index: 0 }]) &&
+    JSON.stringify(after.connections['Failed Row'].main[0]) === JSON.stringify([{ node: 'Save Failed Analysis', type: 'main', index: 0 }]) &&
+    JSON.stringify(after.connections['Save Failed Analysis'].main[0]) === JSON.stringify([{ node: 'Telegram Failure Notice', type: 'main', index: 0 }]));
 }
 
 // ---------- the built workflow (STATIC) ----------
