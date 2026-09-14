@@ -2,7 +2,7 @@ import { workflow, node, trigger, ifElse, expr } from '@n8n/workflow-sdk';
 
 const sweepTrigger = trigger({
   type: 'n8n-nodes-base.scheduleTrigger', version: 1.4,
-  config: { name: 'Every 10 Minutes', parameters: { rule: { interval: [{ field: 'minutes', minutesInterval: 10 }] } } },
+  config: { name: 'Every 10 Minutes', parameters: {"rule":{"interval":[{"field":"cronExpression","expression":"0,30 8-19 * * 1-5"}]}} },
   output: [{}]
 });
 

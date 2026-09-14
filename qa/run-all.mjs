@@ -104,6 +104,7 @@ const GATES = [
   ['Lead Intake premium projection SOURCE (executed)', 'lead-intake-premium-source.test.mjs'],
   ['Lead Intake NEW LEAD alert routing', 'lead-intake-new-lead-alert-routing.test.mjs'],
   ['GLOBAL NEW-EVENT identity (candidate)', 'lead-intake-request-identity.test.mjs'],
+  ['Starter execution-budget schedule policy', 'starter-schedule-budget.test.mjs'],
   ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
   ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
