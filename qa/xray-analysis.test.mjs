@@ -21,7 +21,7 @@ import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-ana
 import { compileFile } from '../scripts/lib/compile-workflow-sdk.mjs';
 import {
   XRAY_ID, XRAY_NAME, XRAY_VOLATILE_WEBHOOK_ID_NODES, stableWebhookSignature,
-  verifyXrayWebhookReadback, verifyXrayReadback
+  reconcileWorkflowActivity, verifyXrayWebhookReadback, verifyXrayReadback
 } from '../scripts/deploy-final-p1.mjs';
 import { NIAGARA_AI, NIAGARA_LIVE_SANITIZED_SOURCE } from './fixtures/lead-intelligence-fixtures.mjs';
 
@@ -587,6 +587,35 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
     JSON.stringify(after.connections['Analysis Failed Row'].main[0]) === JSON.stringify([{ node: 'Failed Row', type: 'main', index: 0 }]) &&
     JSON.stringify(after.connections['Failed Row'].main[0]) === JSON.stringify([{ node: 'Save Failed Analysis', type: 'main', index: 0 }]) &&
     JSON.stringify(after.connections['Save Failed Analysis'].main[0]) === JSON.stringify([{ node: 'Telegram Failure Notice', type: 'main', index: 0 }]));
+
+  const activityCalls = [];
+  const reconciledActive = await reconcileWorkflowActivity(
+    { id: XRAY_ID, active: true }, { id: XRAY_ID, active: false },
+    async (method, path, body) => {
+      activityCalls.push({ method, path, body });
+      return method === 'GET' ? { id: XRAY_ID, active: true } : { active: true };
+    });
+  check('deploy guard: a PUT-deactivated workflow is reactivated before final verification',
+    reconciledActive.active === true &&
+    JSON.stringify(activityCalls) === JSON.stringify([
+      { method: 'POST', path: '/workflows/' + XRAY_ID + '/activate', body: {} },
+      { method: 'GET', path: '/workflows/' + XRAY_ID, body: undefined }
+    ]));
+
+  const alreadyActiveCalls = [];
+  const unchangedActive = await reconcileWorkflowActivity(
+    { id: XRAY_ID, active: true }, { id: XRAY_ID, active: true },
+    async (...call) => { alreadyActiveCalls.push(call); });
+  check('deploy guard: matching activity performs no control-plane write',
+    unchangedActive.active === true && alreadyActiveCalls.length === 0);
+
+  let failedClosed = false;
+  try {
+    await reconcileWorkflowActivity(
+      { id: XRAY_ID, active: true }, { id: XRAY_ID, active: false },
+      async (method) => method === 'GET' ? { id: XRAY_ID, active: false } : { active: true });
+  } catch (error) { failedClosed = /activity reconciliation failed/.test(error.message); }
+  check('deploy guard: activity reconciliation fails closed when activation does not stick', failedClosed);
 }
 
 // ---------- the built workflow (STATIC) ----------
