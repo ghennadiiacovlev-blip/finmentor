@@ -8,7 +8,7 @@
 // recorded in docs/C1_XRAY_ANALYSIS_DEPLOYMENT.md after creation.
 //
 // Design (C1, corrected in C3 — see docs/C3_CODEX_CORRECTION_REVIEW.md):
-//   sweep  : every 10 min -> Settings -> Pipeline -> XRay_Analysis -> pending leads (fail-closed,
+//   sweep  : business days, 08:00-19:30 every 30 min -> Settings -> Pipeline -> XRay_Analysis -> pending leads (fail-closed,
 //            consent-gated, capped) -> complete Leads snapshot -> unique source pairing ->
 //            PII-safe input -> OpenAI (json) ->
 //            validate (score/zone deterministic; a broken contract is ANALYSIS_FAILED, never a
@@ -22,18 +22,21 @@
 //
 // No Postgres, no new credential, no new store: the claim/CAS tables proposed by the Codex
 // correction were REJECTED (new infrastructure, a widened credential, no retry path). The sweep
-// is idempotent by the ledger row; an overlapping sweep is bounded by the 10-minute cadence and
+// is idempotent by the ledger row; an overlapping sweep is bounded by the business-hours cadence and
 // the per-run cap, and a duplicate draft is caught by the owner at review.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SCHEDULE_TARGETS } from './lib/starter-schedule-policy.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, 'n8n', 'src', 'xray-analysis');
 const LI_SRC = path.join(ROOT, 'n8n', 'src', 'lead-intelligence');
 const OUT = path.join(ROOT, 'n8n', 'candidate', 'xray-analysis-workflow.sdk.js');
+const XRAY_SCHEDULE = SCHEDULE_TARGETS.find((target) => target.key === 'XRAY');
+if (!XRAY_SCHEDULE) throw new Error('Starter schedule policy has no X-Ray target');
 
 const read = (f) => fs.readFileSync(path.join(SRC, f), 'utf8').replace(/\r\n/g, '\n');
 const readLi = (f) => fs.readFileSync(path.join(LI_SRC, f), 'utf8').replace(/\r\n/g, '\n');
@@ -97,7 +100,7 @@ const sdk = `import { workflow, node, trigger, ifElse, expr } from '@n8n/workflo
 
 const sweepTrigger = trigger({
   type: 'n8n-nodes-base.scheduleTrigger', version: 1.4,
-  config: { name: 'Every 10 Minutes', parameters: { rule: { interval: [{ field: 'minutes', minutesInterval: 10 }] } } },
+  config: { name: 'Every 10 Minutes', parameters: ${J(XRAY_SCHEDULE.newParameters)} },
   output: [{}]
 });
 
