@@ -391,13 +391,31 @@ async function api(base, readKey, writeKey, method, path, body, tries = 4) {
   throw last;
 }
 
+// n8n may leave a workflow inactive after a successful PUT even when it was active before the
+// update. Activity is part of the deployment contract, so reconcile it before validating the
+// final readback. The injected request keeps this control-plane transition independently
+// testable without production access.
+export async function reconcileWorkflowActivity(before, current, request) {
+  if (!before || !current || !before.id || current.id !== before.id) {
+    throw new Error('workflow activity reconciliation identity mismatch');
+  }
+  const desired = before.active === true;
+  if (current.active === desired) return current;
+
+  const action = desired ? 'activate' : 'deactivate';
+  await request('POST', '/workflows/' + before.id + '/' + action, {});
+  const reconciled = await request('GET', '/workflows/' + before.id);
+  if (!reconciled || reconciled.id !== before.id || reconciled.active !== desired) {
+    throw new Error(before.id + ': workflow activity reconciliation failed after ' + action);
+  }
+  return reconciled;
+}
+
 async function restore(base, readKey, writeKey, before) {
   await api(base, readKey, writeKey, 'PUT', '/workflows/' + before.id, importable(before));
   let restored = await api(base, readKey, writeKey, 'GET', '/workflows/' + before.id);
-  if (restored.active !== before.active) {
-    await api(base, readKey, writeKey, 'POST', '/workflows/' + before.id + (before.active ? '/activate' : '/deactivate'));
-    restored = await api(base, readKey, writeKey, 'GET', '/workflows/' + before.id);
-  }
+  restored = await reconcileWorkflowActivity(before, restored,
+    (method, path, body) => api(base, readKey, writeKey, method, path, body));
   if (restored.active !== before.active || j(restored.connections) !== j(before.connections) || restored.nodes.length !== before.nodes.length) {
     throw new Error('rollback readback failed for ' + before.id);
   }
@@ -407,7 +425,9 @@ async function restore(base, readKey, writeKey, before) {
 async function deployOne(base, readKey, writeKey, before, candidate, verify, evidencePath) {
   try {
     await api(base, readKey, writeKey, 'PUT', '/workflows/' + before.id, importable(candidate));
-    const after = await api(base, readKey, writeKey, 'GET', '/workflows/' + before.id);
+    let after = await api(base, readKey, writeKey, 'GET', '/workflows/' + before.id);
+    after = await reconcileWorkflowActivity(before, after,
+      (method, path, body) => api(base, readKey, writeKey, method, path, body));
     if (evidencePath) writeFileSync(evidencePath, JSON.stringify(xrayWebhookForensic(before, candidate, after), null, 2) + '\n', 'utf8');
     verify(before, candidate, after);
     return after;
