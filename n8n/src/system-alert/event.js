@@ -149,6 +149,35 @@ var SAE = (function () {
   var SILENT_CODES = ['BAD_REQUEST', 'INVALID_PAYLOAD', 'CONSENT_REQUIRED', 'SESSION_INVALID',
     'SESSION_EXPIRED', 'DRAFT_EMPTY', 'NOT_AUTHORISED', 'REPLAY_REFUSED', 'IDEMPOTENCY_CONFLICT'];
 
+  // C2 monitors one existing operational condition without polling: Lead Intake's deterministic
+  // CRM-unavailable verdict opens the incident, and the already-scheduled Daily Digest can close
+  // it only after both Settings and Pipeline reads have completed successfully. The probe key is
+  // fixed here, so a caller cannot supply its own recovery wording or redefine what "healthy"
+  // means.
+  var RECOVERY_PROBES = {
+    'daily-digest:crm-read': {
+      condition_key: 'crm-settings-and-pipeline',
+      failure_route: 'lead-intake:CRM Unavailable',
+      problem: 'Доступ к CRM восстановлен.',
+      evidence: 'Настройки и Pipeline успешно прочитаны текущим Daily Lead Digest.',
+      owner_action_required: true,
+      owner_action: 'Проверьте обращения, отклонённые во время сбоя.'
+    }
+  };
+
+  // C2's data warning reuses the three deterministic data-quality sets already calculated by the
+  // Daily Digest. Labels and action are fixed here; only non-negative counts and a digest of the
+  // affected lead ids cross the workflow boundary.
+  var DATA_WARNING = {
+    check_key: 'daily-digest:required-lead-data',
+    labels: {
+      missing_required_contact_count: 'Активные лиды без контакта',
+      missing_next_action_count: 'Активные лиды без следующего шага',
+      expired_snooze_count: 'Лиды с истёкшим сроком отложения'
+    },
+    owner_action: 'Откройте Pipeline и заполните отмеченные обязательные данные.'
+  };
+
   function isSilentCode(code) { return SILENT_CODES.indexOf(String(code || '')) !== -1; }
   function routeOf(workflowKey, verdictNode) { return ROUTES[String(workflowKey) + ':' + String(verdictNode)] || null; }
 
@@ -266,6 +295,132 @@ var SAE = (function () {
     return { emit: true, reason: '', event: event };
   }
 
+  function iso(value) {
+    var s = String(value || '');
+    return Number.isFinite(Date.parse(s)) ? new Date(s).toISOString() : new Date().toISOString();
+  }
+
+  function stateRoot(store) {
+    var s = store && typeof store === 'object' ? store : {};
+    if (!s.finmentor_c2_owner_control || typeof s.finmentor_c2_owner_control !== 'object') {
+      s.finmentor_c2_owner_control = {};
+    }
+    var root = s.finmentor_c2_owner_control;
+    if (!root.incidents || typeof root.incidents !== 'object') { root.incidents = {}; }
+    if (!root.warnings || typeof root.warnings !== 'object') { root.warnings = {}; }
+    return root;
+  }
+
+  function monitoredConditionForRoute(routeKey) {
+    var keys = Object.keys(RECOVERY_PROBES);
+    for (var i = 0; i < keys.length; i++) {
+      var spec = RECOVERY_PROBES[keys[i]];
+      if (spec.failure_route === routeKey) { return spec.condition_key; }
+    }
+    return '';
+  }
+
+  function transitionFailure(raw, store) {
+    var verdict = normalise(raw);
+    if (!verdict.emit) { return { emit: false, reason: verdict.reason, kind: 'failure', event: null }; }
+    var routeKey = String(raw.workflow_key || '') + ':' + String(raw.verdict_node || '');
+    var condition = monitoredConditionForRoute(routeKey);
+    if (condition) {
+      var root = stateRoot(store);
+      var old = root.incidents[condition] || {};
+      root.incidents[condition] = {
+        failed_at: old.failed_at || verdict.event.occurred_at,
+        last_failed_at: verdict.event.occurred_at,
+        failure_route: routeKey
+      };
+    }
+    return { emit: true, reason: '', kind: 'failure', event: verdict.event };
+  }
+
+  function transitionRecovery(raw, store) {
+    if (hasForbidden(raw, 0)) { return { emit: false, reason: 'FORBIDDEN_FIELD', kind: 'recovered', event: null }; }
+    var proofKey = String(raw.proof_key || '');
+    var spec = RECOVERY_PROBES[proofKey];
+    if (!spec) { return { emit: false, reason: 'UNKNOWN_RECOVERY_PROOF', kind: 'recovered', event: null }; }
+    var root = stateRoot(store);
+    var incident = root.incidents[spec.condition_key];
+    if (!incident || incident.failure_route !== spec.failure_route) {
+      return { emit: false, reason: 'NO_OPEN_INCIDENT', kind: 'recovered', event: null };
+    }
+    var when = iso(raw.occurred_at);
+    delete root.incidents[spec.condition_key];
+    return {
+      emit: true,
+      reason: '',
+      kind: 'recovered',
+      event: {
+        alert_key: 'sr_' + crypto.createHash('sha256').update(spec.condition_key + '\u001f' + incident.failed_at).digest('hex').slice(0, 32),
+        occurred_at: when,
+        failed_at: String(incident.failed_at || ''),
+        condition_key: spec.condition_key,
+        problem: spec.problem,
+        evidence: spec.evidence,
+        owner_action_required: spec.owner_action_required === true,
+        owner_action: spec.owner_action
+      }
+    };
+  }
+
+  function count(value) {
+    var n = Number(value);
+    return Number.isInteger(n) && n >= 0 && n <= 100000 ? n : null;
+  }
+
+  function transitionDataWarning(raw, store) {
+    if (hasForbidden(raw, 0)) { return { emit: false, reason: 'FORBIDDEN_FIELD', kind: 'data_warning', event: null }; }
+    if (String(raw.check_key || '') !== DATA_WARNING.check_key) {
+      return { emit: false, reason: 'UNKNOWN_DATA_CHECK', kind: 'data_warning', event: null };
+    }
+    var keys = Object.keys(DATA_WARNING.labels);
+    var counts = {};
+    for (var i = 0; i < keys.length; i++) {
+      var n = count(raw[keys[i]]);
+      if (n === null) { return { emit: false, reason: 'BAD_WARNING_COUNT', kind: 'data_warning', event: null }; }
+      counts[keys[i]] = n;
+    }
+    var root = stateRoot(store);
+    var total = keys.reduce(function (sum, key) { return sum + counts[key]; }, 0);
+    if (total === 0) {
+      delete root.warnings[DATA_WARNING.check_key];
+      return { emit: false, reason: 'DATA_CHECK_CLEAR', kind: 'data_warning', event: null };
+    }
+    var fingerprint = String(raw.fingerprint || '').toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(fingerprint)) {
+      return { emit: false, reason: 'BAD_WARNING_FINGERPRINT', kind: 'data_warning', event: null };
+    }
+    if (root.warnings[DATA_WARNING.check_key] === fingerprint) {
+      return { emit: false, reason: 'UNCHANGED_DATA_WARNING', kind: 'data_warning', event: null };
+    }
+    root.warnings[DATA_WARNING.check_key] = fingerprint;
+    return {
+      emit: true,
+      reason: '',
+      kind: 'data_warning',
+      event: {
+        alert_key: 'dw_' + fingerprint.slice(0, 32),
+        checked_at: iso(raw.occurred_at),
+        items: keys.map(function (key) { return { label: DATA_WARNING.labels[key], count: counts[key] }; }),
+        owner_action: DATA_WARNING.owner_action
+      }
+    };
+  }
+
+  // Stateful boundary for the live workflow. Ordinary failure inputs preserve the C1 normaliser
+  // byte-for-byte in behaviour; only the two explicit C2 event types take the new routes.
+  function transition(raw, store) {
+    var r = raw && typeof raw === 'object' ? raw : {};
+    var type = String(r.event_type || 'failure');
+    if (type === 'failure') { return transitionFailure(r, store); }
+    if (type === 'recovery_probe') { return transitionRecovery(r, store); }
+    if (type === 'data_warning') { return transitionDataWarning(r, store); }
+    return { emit: false, reason: 'UNKNOWN_EVENT_TYPE', kind: '', event: null };
+  }
+
   // The shipped event may carry ONLY the allowlisted keys. Asserted at the boundary as well as
   // built that way, so a later edit that adds a field has to fail this rather than slip past.
   function isClean(event) {
@@ -279,6 +434,8 @@ var SAE = (function () {
 
   return {
     ROUTES: ROUTES,
+    RECOVERY_PROBES: RECOVERY_PROBES,
+    DATA_WARNING: DATA_WARNING,
     SILENT_CODES: SILENT_CODES,
     ALLOWED: ALLOWED,
     FORBIDDEN_KEYS: FORBIDDEN_KEYS,
@@ -288,6 +445,8 @@ var SAE = (function () {
     hasForbidden: hasForbidden,
     alertKey: alertKey,
     normalise: normalise,
+    transition: transition,
+    stateRoot: stateRoot,
     isClean: isClean
   };
 })();

@@ -101,7 +101,12 @@ export const EVENT_DRIVEN_MONTHLY_ESTIMATE = Object.freeze([
 export const OLD_FIXED_SCHEDULED_MONTHLY = SCHEDULE_TARGETS.reduce((sum, item) => sum + item.oldMonthlyExecutions, 0);
 export const NEW_FIXED_SCHEDULED_MONTHLY = SCHEDULE_TARGETS.reduce((sum, item) => sum + item.newMonthlyExecutions, 0);
 export const ESTIMATED_EVENT_DRIVEN_MONTHLY = EVENT_DRIVEN_MONTHLY_ESTIMATE.reduce((sum, item) => sum + item.executions, 0);
-export const ESTIMATED_TOTAL_MONTHLY = NEW_FIXED_SCHEDULED_MONTHLY + ESTIMATED_EVENT_DRIVEN_MONTHLY;
+// C2 recovery proof is invoked by the existing weekday Digest after its two CRM reads succeed.
+// It is not a fifth scheduled workflow and does not change the 748 trigger budget, but n8n bills
+// the sub-workflow as an integrated execution, so it must be present in the total forecast.
+export const C2_INTERNAL_WORKFLOW_MONTHLY_ESTIMATE = BUSINESS_DAYS_PER_MONTH;
+export const ESTIMATED_TOTAL_MONTHLY = NEW_FIXED_SCHEDULED_MONTHLY
+  + ESTIMATED_EVENT_DRIVEN_MONTHLY + C2_INTERNAL_WORKFLOW_MONTHLY_ESTIMATE;
 export const SAFETY_RESERVE = STARTER_LIMIT - ESTIMATED_TOTAL_MONTHLY;
 
 function credentialsSignature(workflow) {

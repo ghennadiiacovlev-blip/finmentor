@@ -737,36 +737,31 @@ function renderSystemAlert(model) {
 
 // ── B9. SYSTEM RECOVERED ───────────────────────────────────────────────────────────────────────
 //
-// The copy exists. THE TRIGGER DOES NOT, AND IS NOT CREATED BY THIS PASS.
+// C2 wires this only from a persisted known-failed condition followed by a deterministic healthy
+// proof. A successful execution on its own is not sufficient. The model also states whether the
+// earlier failed business operation still needs an owner check.
 //
-// n8n's error trigger fires on failure and has no counterpart that fires when a workflow starts
-// succeeding again. Closing an alert would need an open-incident store plus a scheduled poller
-// that reads /executions for the workflows currently marked open — new state and a new trigger,
-// which is a business-rule change this pass is explicitly not making. Rendered here so the copy is
-// reviewed with the rest, and left unwired so nothing can send it on a signal that does not exist.
-//
-// model = { problem, evidence }
+// model = { problem, evidence, recoveredAt, offsetMinutes, ownerActionRequired, ownerAction }
 function renderSystemRecovered(model) {
   const m = model || {};
+  const actionRequired = m.ownerActionRequired === true;
   return join([
-    typeHeader('SYSTEM_RECOVERED'),
+    typeHeader('SYSTEM_RECOVERED', dateTime(m.recoveredAt, m.offsetMinutes)),
     '<b>' + esc(tidy(m.problem, 120) || 'Сбой устранён.') + '</b>',
     'Работа восстановлена.',
     card('Проверено', esc(tidy(m.evidence, 200))),
-    '<i>Действий не требуется.</i>'
+    card('Действие владельца', actionRequired
+      ? ['<b>Требуется</b>', esc(tidy(m.ownerAction, 200))]
+      : '<b>Не требуется</b>')
   ]);
 }
 
 // ── B1 type 8. DATA / INTEGRITY WARNING ────────────────────────────────────────────────────────
 //
-// Also unwired. Nothing in the tenant fires on data quality today: the counters exist only as five
-// lines buried in the daily digest, which is precisely the noise B11 asks to remove. Giving them
-// their own message needs a trigger, and a trigger is a rule change.
+// C2 wires the existing Daily Digest data-quality sets without adding a schedule. Only non-zero
+// required-data conditions are sent, and the stateful source suppresses an unchanged fingerprint.
 //
-// This is the ONE message where a zero may be rendered — a data-quality report that hides its
-// zeroes cannot tell the owner the data is clean.
-//
-// model = { items: [{ label, count }], checkedAt, offsetMinutes }
+// model = { items: [{ label, count }], checkedAt, offsetMinutes, ownerAction }
 function renderDataIntegrity(model) {
   const m = model || {};
   const items = (m.items || []).filter((x) => x && present(x.label));
@@ -776,7 +771,8 @@ function renderDataIntegrity(model) {
     nonZero.length
       ? card('Требует исправления', nonZero.map((x) => '• ' + esc(x.label) + ': <b>' + Number(x.count) + '</b>'))
       : '<b>Данные в порядке.</b>',
-    nonZero.length ? card('Статус', '<b>Требует проверки</b>') : ''
+    nonZero.length ? card('Статус', '<b>Требует проверки</b>') : '',
+    nonZero.length ? card('Действие владельца', esc(tidy(m.ownerAction, 200))) : ''
   ]);
 }
 
@@ -792,7 +788,7 @@ function renderDataIntegrity(model) {
 const HEADINGS = ['Сегодня', 'Приоритет', 'Что требует решения', 'Задача', 'Ситуация',
   'Следующий шаг', 'Следующее действие', 'Почему требует внимания', 'Срок', 'Чего не хватает',
   'Причина', 'Влияние', 'Данные', 'Статус', 'Проверено', 'Требует исправления', 'Связь',
-  'Запрос', 'Контекст'];
+  'Запрос', 'Контекст', 'Действие владельца'];
 
 const SECRET_PATTERNS = [
   [/\b\d{6,}:[A-Za-z0-9_-]{30,}\b/, 'a Telegram bot token'],

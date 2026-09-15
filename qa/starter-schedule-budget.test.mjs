@@ -8,7 +8,8 @@ import {
   SCHEDULE_TARGETS, ERROR_MONITOR, EVENT_DRIVEN_MONTHLY_ESTIMATE,
   STARTER_LIMIT, INTERNAL_TARGET, WARNING_LEVEL, SCHEDULE_TIMEZONE,
   OLD_FIXED_SCHEDULED_MONTHLY, NEW_FIXED_SCHEDULED_MONTHLY,
-  ESTIMATED_EVENT_DRIVEN_MONTHLY, ESTIMATED_TOTAL_MONTHLY, SAFETY_RESERVE,
+  ESTIMATED_EVENT_DRIVEN_MONTHLY, C2_INTERNAL_WORKFLOW_MONTHLY_ESTIMATE,
+  ESTIMATED_TOTAL_MONTHLY, SAFETY_RESERVE,
   prepareScheduleCandidate, assertScheduleOnlyDelta, assertScheduleReadback,
   assertErrorMonitorContract, importableWorkflow, __test
 } from '../scripts/lib/starter-schedule-policy.mjs';
@@ -72,9 +73,11 @@ check('new fixed scheduled total is 748 and below 900', NEW_FIXED_SCHEDULED_MONT
 check('event-driven planning envelope is 950', ESTIMATED_EVENT_DRIVEN_MONTHLY === 950);
 check('event-driven category estimate sums exactly',
   EVENT_DRIVEN_MONTHLY_ESTIMATE.reduce((sum, item) => sum + item.executions, 0) === ESTIMATED_EVENT_DRIVEN_MONTHLY);
-check('projected normal total is 1,698 and within internal target',
-  ESTIMATED_TOTAL_MONTHLY === 1698 && ESTIMATED_TOTAL_MONTHLY <= INTERNAL_TARGET);
-check('Starter safety reserve is 802 and at least 700', SAFETY_RESERVE === 802 && SAFETY_RESERVE >= 700);
+check('C2 state-aware recovery proof adds exactly one internal execution per business day',
+  C2_INTERNAL_WORKFLOW_MONTHLY_ESTIMATE === 22);
+check('projected normal total is 1,720 and within internal target',
+  ESTIMATED_TOTAL_MONTHLY === 1720 && ESTIMATED_TOTAL_MONTHLY <= INTERNAL_TARGET);
+check('Starter safety reserve is 780 and at least 700', SAFETY_RESERVE === 780 && SAFETY_RESERVE >= 700);
 check('warning threshold is exactly 80% of Starter quota', WARNING_LEVEL === STARTER_LIMIT * 0.8 && WARNING_LEVEL === 2000);
 
 for (const target of SCHEDULE_TARGETS) {

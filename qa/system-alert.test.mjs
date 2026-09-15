@@ -57,10 +57,16 @@ const codeOnly = (src) => String(src)
 
 // The candidate's OWN normalise node, executed. `$input.first().json` is shimmed; everything
 // else is the shipped source.
-function runNormalise(raw) {
+function runNormalise(raw, state = {}) {
   const src = nodeOf('Normalise Alert Event').parameters.jsCode;
   const $input = { first: () => ({ json: raw }) };
-  return new Function('$input', 'require', src)($input, sandboxRequire)[0].json;
+  const $getWorkflowStaticData = (scope) => {
+    eq(scope, 'global', 'the alert state is not workflow-global');
+    return state;
+  };
+  return new Function('$input', 'require', '$getWorkflowStaticData', src)(
+    $input, sandboxRequire, $getWorkflowStaticData
+  )[0].json;
 }
 
 console.log('');

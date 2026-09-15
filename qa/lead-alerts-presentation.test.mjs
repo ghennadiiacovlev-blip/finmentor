@@ -530,14 +530,20 @@ check('deadlines are stated as decisions, not as timestamps', () => {
   eq(P.plural(21, 'день', 'дня', 'дней'), 'день', 'plural 21');
 });
 
-// ── 9. the two unwired types ───────────────────────────────────────────────────────────────────
+// ── 9. the two C2 operational types ────────────────────────────────────────────────────────────
 
-check('SYSTEM RECOVERED and DATA / INTEGRITY render, and are documented as unwired', () => {
-  clean(P.renderSystemRecovered({ problem: 'x', evidence: 'y' }), 'SYSTEM RECOVERED');
-  clean(P.renderDataIntegrity({ checkedAt: NOW, offsetMinutes: OFF, items: [{ label: 'a', count: 1 }] }), 'DATA / INTEGRITY');
+check('SYSTEM RECOVERED and DATA / INTEGRITY render actionable C2 messages', () => {
+  const recovered = P.renderSystemRecovered({ problem: 'x', evidence: 'y', recoveredAt: NOW,
+    ownerActionRequired: true, ownerAction: 'Проверить отклонённые обращения.' });
+  const warning = P.renderDataIntegrity({ checkedAt: NOW, offsetMinutes: OFF,
+    items: [{ label: 'a', count: 1 }], ownerAction: 'Заполнить Pipeline.' });
+  clean(recovered, 'SYSTEM RECOVERED');
+  clean(warning, 'DATA / INTEGRITY');
+  assert(/Действие владельца/.test(recovered), 'recovery omits the owner-action verdict');
+  assert(/Действие владельца/.test(warning), 'warning omits the owner action');
   const src = readFileSync(join(ROOT, 'n8n', 'src', 'lead-alerts', 'presenter.js'), 'utf8');
-  assert(/THE TRIGGER DOES NOT/.test(src), 'the recovery renderer no longer says it is unwired');
-  assert(/Also unwired/.test(src), 'the data-integrity renderer no longer says it is unwired');
+  assert(/persisted known-failed condition/.test(src), 'the recovery renderer lost its truthful source contract');
+  assert(/existing Daily Digest data-quality sets/.test(src), 'the warning renderer lost its existing-check contract');
 });
 
 check('data quality is the ONE message where a zero is information', () => {
