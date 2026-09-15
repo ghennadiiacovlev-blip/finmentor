@@ -331,6 +331,16 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     'app-premium', 'n8n/src/xray-analysis', 'n8n/src/lead-intelligence', 'n8n/src/lead-intake',
     'n8n/src/premium-ux', 'n8n/src/miniapp-submit', 'n8n/src/miniapp-readmodel', 'n8n/src/crm'
   ];
+  // C3 is a later, separately-gated closure. Exclude only its six explicitly authorised source
+  // files; the remaining C1/C2 surface keeps its original byte-level regression seal.
+  const c3Authorised = new Set([
+    'n8n/src/xray-analysis/c3-target.js',
+    'n8n/src/xray-analysis/select-pending.js',
+    'n8n/src/xray-analysis/build-input.js',
+    'n8n/src/xray-analysis/validate-analysis.js',
+    'n8n/src/lead-intelligence/alert.js',
+    'n8n/src/lead-intake/c3-intelligence-request.js'
+  ]);
   const rows = [];
   const walk = (absolutePath) => {
     for (const entry of readdirSync(absolutePath, { withFileTypes: true })
@@ -339,17 +349,18 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
       if (entry.isDirectory()) walk(itemPath);
       else {
         const itemRelative = relative(ROOT, itemPath).split(sep).join('/');
+        if (c3Authorised.has(itemRelative)) continue;
         const digest = createHash('sha256').update(readFileSync(itemPath)).digest('hex');
         rows.push(`${itemRelative}\0${digest}`);
       }
     }
   };
   for (const protectedPath of protectedPaths) walk(join(ROOT, protectedPath));
-  eq(rows.length, 48, 'protected C1 source file count');
+  eq(rows.length, 44, 'protected C1/C2 source file count outside C3 allowlist');
   eq(
     createHash('sha256').update(rows.join('\n')).digest('hex'),
-    '0d4b5a13305730b1f04191669ab3938b42b3eb01dc66f58450fccbc92b97f53e',
-    'protected C1 source tree hash'
+    '5269b439065923e1ea546a4e9de666752dc878ef4707ecc6879ee083c7371edf',
+    'protected C1/C2 source tree hash outside C3 allowlist'
   );
 });
 

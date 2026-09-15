@@ -153,13 +153,22 @@ function ownerAlert(inp, a, row, cfg) {
   const firstFact = (brief.client_facts || []).find(f => f.id === 'main_problem') || (brief.client_facts || [])[0] || {};
   const firstDiagnosis = (brief.diagnoses || [])[0] || {};
   const text = LI_ALERT.renderLeadIntelligenceAlert({
+    lead_id: inp.lead_id,
     company: (brief.header || {}).company || inp.company,
     contact_name: (brief.header || {}).contact_name,
     role: (brief.header || {}).role,
     business: (brief.header || {}).business,
     scale: (brief.header || {}).scale,
+    qualification: (inp.owner_context || {}).qualification,
+    financial_zone: inp.zone,
+    priority_reason: (inp.owner_context || {}).priority_reason,
     main_pain: firstFact.value,
     observation: firstDiagnosis.conclusion,
+    maturity: a.financial_maturity,
+    risks: a.key_risks,
+    needs_verification: (brief.unknowns || [])[0],
+    economic_impact: firstDiagnosis.economic_implication,
+    discovery_questions: (brief.discovery_questions || []).slice(0, 3),
     contact: brief.contact,
     next_action: (brief.next_action || {}).action
   });

@@ -8,7 +8,8 @@
 // tracked X-Ray candidate, and proves that the prepared change:
 //   * disables ONLY the Telegram node that sends the overlapping AI brief;
 //   * leaves NEW LEAD (HOT / WARM / INCOMPLETE) Telegram nodes enabled and byte-identical;
-//   * never touches the X-Ray workflow (the short owner entry alert and client-ready transport live there);
+//   * never touches the X-Ray workflow (the short owner entry alert and client-ready transport live there;
+//     C3 may name Lead Intake only as the authenticated internal caller);
 //   * changes no edge (lead creation, CRM writes, AI_Plans sheet write all keep their wiring);
 //   * changes no non-Telegram node, no credential, no setting, no name.
 
@@ -61,11 +62,15 @@ check('NEW LEAD alerts (HOT, WARM, INCOMPLETE) stay enabled and byte-identical',
   }
 });
 
-check('Lead Intelligence owner entry and client-ready notification live in X-Ray, which the script never touches', () => {
+check('Lead Intelligence notifications stay in X-Ray; C3 adds only the authenticated Lead Intake caller binding', () => {
   assert(/name: 'Telegram Owner Alert'/.test(xray) && /name: 'Send Client Ready Notification'/.test(xray), 'the Lead Intelligence notifications are not where expected');
   assert(!/name: 'Telegram Analysis Approved'/.test(xray), 'the retired duplicate owner approval notice remains');
   assert(!byName(live, 'Telegram Owner Alert') && !byName(live, 'Send Client Ready Notification'), 'the X-Ray notifications appear in Lead Intake');
-  assert(!/QmIyEW2ZEqKregmN|Telegram AI Work Plan/.test(xray), 'the X-Ray candidate references the Lead Intake brief');
+  assert(!/Telegram AI Work Plan/.test(xray), 'the X-Ray candidate references the retired Lead Intake brief');
+  const intakeBindings = xray.match(/QmIyEW2ZEqKregmN/g) || [];
+  eq(intakeBindings.length, 2, 'unexpected Lead Intake/X-Ray binding count');
+  assert(/source_workflow_id: 'QmIyEW2ZEqKregmN'/.test(xray), 'C3 trigger schema lost the authenticated caller');
+  assert(/request\.source_workflow_id !== 'QmIyEW2ZEqKregmN'/.test(xray), 'C3 target validator lost its exact caller check');
 });
 
 check('no edge moves: lead creation, CRM writes, the AI_Plans write and the alert routing keep their wiring', () => {

@@ -20,22 +20,69 @@ function contactLines(contact) {
   return out.join('\n');
 }
 
+function importanceLines(model) {
+  const out = [];
+  if (present(model.qualification)) out.push('Квалификация: <b>' + esc(tidy(model.qualification, 24)) + '</b>');
+  if (present(model.financial_zone)) out.push('Финансовая зона: <b>' + esc(tidy(model.financial_zone, 24)) + '</b>');
+  if (present(model.priority_reason)) out.push('Почему важно: ' + esc(tidy(model.priority_reason, 240)));
+  return out;
+}
+
+function finmentorViewLines(model) {
+  const out = [];
+  if (present(model.observation)) out.push('Противоречие / вывод: ' + esc(tidy(model.observation, 260)));
+  const maturity = model.maturity || {};
+  if (present(maturity.label) || present(maturity.score_1_to_5)) {
+    const value = [present(maturity.score_1_to_5) ? String(maturity.score_1_to_5) + '/5' : '', tidy(maturity.label, 90)].filter(present).join(' · ');
+    out.push('Зрелость: ' + esc(value));
+  }
+  const risks = Array.isArray(model.risks) ? model.risks : [];
+  risks.slice(0, 2).forEach((risk) => {
+    const value = risk && typeof risk === 'object' ? risk.title : risk;
+    if (present(value)) out.push('Риск: ' + esc(tidy(value, 150)));
+  });
+  const unknown = model.needs_verification || {};
+  const unknownText = unknown && typeof unknown === 'object' ? unknown.item : unknown;
+  if (present(unknownText)) out.push('Нужно проверить: ' + esc(tidy(unknownText, 220)));
+  if (present(model.economic_impact)) out.push('Влияние: ' + esc(tidy(model.economic_impact, 220)));
+  return out;
+}
+
+function discoveryLines(value) {
+  const rows = Array.isArray(value) ? value : [];
+  return rows.slice(0, 3).map((row, index) => {
+    const question = row && typeof row === 'object' ? row.question : row;
+    return present(question) ? (index + 1) + '. ' + esc(tidy(question, 180)) : '';
+  }).filter(Boolean);
+}
+
 function renderLeadIntelligenceAlert(model) {
   const m = model || {};
   const meta = [tidy(m.contact_name, 60), tidy(m.role, 50)].filter(present).map(esc).join(' · ');
   const scale = [tidy(m.business, 70), tidy(m.scale, 80)].filter(present).map(esc).join(' · ');
+  const importance = importanceLines(m);
+  const view = finmentorViewLines(m);
+  const discovery = discoveryLines(m.discovery_questions);
   return [
     '🔔 <b>FINMENTOR · Новый лид</b>',
     '',
+    present(m.lead_id) ? 'Lead ID: <code>' + esc(tidy(m.lead_id, 80)) + '</code>' : '',
     '<b>' + esc(tidy(m.company, 80) || 'Компания не указана') + '</b>',
     meta,
     scale,
     '',
+    importance.length ? '<b>ВАЖНОСТЬ</b>' : '',
+    ...importance,
+    importance.length ? '' : '',
     '<b>КЛЮЧЕВАЯ ПРОБЛЕМА</b>',
     esc(tidy(m.main_pain, 240) || 'Нужно уточнить на первом контакте'),
     '',
     '<b>ЧТО ЗАМЕТИЛ FINMENTOR</b>',
-    esc(tidy(m.observation, 300) || 'Недостаточно данных для вывода'),
+    ...(view.length ? view : ['Недостаточно данных для вывода']),
+    '',
+    discovery.length ? '<b>ЧТО ПРОВЕРИТЬ НА ПЕРВОМ РАЗГОВОРЕ</b>' : '',
+    ...discovery,
+    discovery.length ? '' : '',
     '',
     '<b>КОНТАКТ</b>',
     contactLines(m.contact),
@@ -45,4 +92,6 @@ function renderLeadIntelligenceAlert(model) {
   ].filter((line, idx, all) => line !== '' || (idx > 0 && all[idx - 1] !== '')).join('\n').trim();
 }
 
-if (typeof module !== 'undefined' && module.exports) module.exports = { renderLeadIntelligenceAlert, contactLines, esc, tidy };
+if (typeof module !== 'undefined' && module.exports) module.exports = {
+  renderLeadIntelligenceAlert, contactLines, importanceLines, finmentorViewLines, discoveryLines, esc, tidy
+};

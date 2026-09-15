@@ -58,6 +58,7 @@ const ownerCards = read('owner-cards.js').replace(/if \(typeof module[\s\S]*$/, 
 const CARDS_MARKER = '// __XRAY_OWNER_CARDS__ (inlined by the builder)';
 const code = {
   settings: read('settings.js'),
+  c3Target: read('c3-target.js'),
   selectPending: read('select-pending.js'),
   buildInput: read('build-input.js').replace('// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)', liContract),
   validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels).replace(CARDS_MARKER, ownerCards)
@@ -102,6 +103,18 @@ const sweepTrigger = trigger({
   type: 'n8n-nodes-base.scheduleTrigger', version: 1.4,
   config: { name: 'Every 10 Minutes', parameters: ${J(XRAY_SCHEDULE.newParameters)} },
   output: [{}]
+});
+
+const c3LeadTrigger = trigger({
+  type: 'n8n-nodes-base.executeWorkflowTrigger', version: 1.2,
+  config: { name: 'C3 Lead Intelligence Trigger', parameters: { inputSource: 'passthrough' } },
+  output: [{ event: 'AUTHENTICATED_NEW_COMMITTED', lead_id: '', request_id: '', source_workflow_id: 'QmIyEW2ZEqKregmN' }]
+});
+
+const validateC3Target = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Validate C3 Lead Target', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.c3Target)} } },
+  output: [{ c3_targeted: true, c3_target_lead_id: '', c3_request_id: '' }]
 });
 
 const readSettings = node({
@@ -590,6 +603,9 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
                   .onTrue(ifNotifyOwner.onTrue(ownerAlert))
                   .onFalse(validationFailureNotice))))))))
     .onFalse(sourceAuditNotice))
+  .add(c3LeadTrigger)
+  .to(validateC3Target)
+  .to(readSettings)
   .add(reviewGetWebhook)
   .to(readForReviewGet)
   .to(reviewSurface)

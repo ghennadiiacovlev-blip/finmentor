@@ -34,10 +34,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { patchLeadIntake, readC3Sources } from '../scripts/lib/c3-final-closure.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-const WF = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'lead-intake-premium-source-candidate.json'), 'utf8'));
+const BASE = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'lead-intake-premium-source-candidate.json'), 'utf8'));
+const WF = patchLeadIntake(BASE, readC3Sources(ROOT));
 
 let pass = 0;
 const failures = [];
@@ -76,37 +78,33 @@ console.log('');
 
 // ── the alert chain, as it is ─────────────────────────────────────────────────────────────────
 
-check('every owner alert hangs off ONE switch, fed from ONE context restorer', () => {
+check('legacy short alerts remain on the existing priority switch', () => {
   eq(JSON.stringify(feedersOf('Telegram Lead Alert')), JSON.stringify(['Build Premium Telegram Brief']), 'premium alert feeder');
   eq(JSON.stringify(feedersOf('Build Premium Telegram Brief')), JSON.stringify(['Route by Lead Priority']), 'premium builder feeder');
   eq(JSON.stringify(feedersOf('Route by Lead Priority').sort()), JSON.stringify(['IF Escalated', 'Restore Lead Context']), 'switch feeders');
-  eq(JSON.stringify(feedersOf('Restore Lead Context')), JSON.stringify(['Respond New Lead']), 'restorer feeder');
+  eq(JSON.stringify(feedersOf('Restore Lead Context').sort()), JSON.stringify(['IF Committed (New)', 'Respond New Lead'].sort()), 'restorer feeders');
 });
 
-check('OPEN DEFECT — alert authority is the HTTP responder, not canonical settlement', () => {
-  // `Respond New Lead` is on the FALSE branch of IF Internal (New): the public webhook path.
-  // So "did the owner hear about this lead" is decided by which responder ran.
+check('C3 — authenticated NEW settlement resumes the existing post-intake path', () => {
   eq(JSON.stringify(targetsOf('IF Internal (New)')),
     JSON.stringify([['Receipt Commit (New)'], ['Respond New Lead']]),
     'the internal/public split');
   assert(reach('Respond New Lead').has('Telegram Lead Alert'), 'the public path no longer alerts');
+  assert(reach('IF Committed (New)').has('Restore Lead Context'), 'canonical settlement does not resume context');
 });
 
-check('OPEN DEFECT — the internal committed path reaches no alert at all', () => {
-  // Mini App and Concierge both arrive here. When this is fixed, this assertion inverts.
+check('C3 — the committed path reaches one owner-intelligence dispatcher then the narrow result', () => {
   const downstream = reach('Receipt Commit (New)');
-  for (const t of TELEGRAM) {
-    assert(!downstream.has(t), 'the internal path now reaches ' + t + ' — if that is the fix, invert this assertion');
-  }
+  assert(downstream.has('Build C3 Intelligence Request'), 'C3 request missing');
+  assert(downstream.has('Run Owner Intelligence (C3)'), 'owner intelligence call missing');
+  assert(downstream.has('Internal Result (New)'), 'narrow internal result missing');
   eq(JSON.stringify(targetsOf('Internal Result (New)')), JSON.stringify([]), 'Internal Result (New) is terminal');
 });
 
-check('OPEN DEFECT — and it reaches none of the other five post-response side effects', () => {
-  // The alert is the reported defect, but it is not alone: the internal route skips the whole
-  // post-response fan-out. Recorded so a fix that restores only the alert is a deliberate choice.
+check('C3 — the internal committed path restores all existing post-intake side effects', () => {
   const downstream = reach('Receipt Commit (New)');
   for (const n of ['Save Lead to CRM', 'Explode Answers', 'Build Intake Activity', 'Build Dashboard Row', 'AI Gate']) {
-    assert(!downstream.has(n), 'the internal path now reaches ' + n + ' — update this gate deliberately');
+    assert(downstream.has(n), 'the internal path does not reach ' + n);
   }
 });
 
@@ -116,6 +114,7 @@ check('CONSTRAINT — the alert builders read $json only, so any feeder can driv
   for (const n of ['Build Premium Telegram Brief', 'Build Warm Telegram Alert', 'Build Incomplete Telegram Alert']) {
     const refs = code(n).match(/\$\('[^']+'\)/g) || [];
     eq(refs.length, 0, n + ' grew a hard node reference: ' + refs.join(', '));
+    assert(code(n).includes('provenance_trusted === true'), n + ' does not suppress the duplicate internal short alert');
   }
 });
 
@@ -127,10 +126,7 @@ check('CONSTRAINT — the restorer is pure context, and reads a node BOTH routes
   assert(reach('Dedup Guard').has('IF Internal (New)'), 'Dedup Guard no longer precedes the split');
 });
 
-check('CONSTRAINT — reusing Restore Lead Context would restore FIVE other side effects too', () => {
-  // It fans out to six consumers. A fix that feeds the internal route into it does not add an
-  // alert; it adds a CRM write, a Lead_Answers explode, an activity row, a dashboard row and an
-  // AI plan. That may be desirable, but it is not "the minimum routing change".
+check('C3 — Restore Lead Context retains its exact six-consumer fan-out', () => {
   const t = targetsOf('Restore Lead Context')[0] || [];
   eq(t.length, 6, 'the restorer fan-out changed; re-read before reusing it');
   assert(t.indexOf('Route by Lead Priority') !== -1, 'the alert route left the fan-out');
@@ -145,12 +141,11 @@ check('CONSTRAINT — Internal Result (New) ignores its input, so it is safe to 
   }
 });
 
-check('CONSTRAINT — the COLD output of the alert switch goes nowhere', () => {
-  // Any convergence design has to answer for it: a COLD lead routed through the switch would
-  // never reach a convergence point, and the caller would get nothing back.
+check('C3 — internal completion does not depend on the COLD priority-switch output', () => {
   const outs = targetsOf('Route by Lead Priority');
   eq(outs.length, 4, 'the switch output count changed');
   eq(JSON.stringify(outs[2]), JSON.stringify([]), 'the COLD output is no longer empty');
+  assert(feedersOf('Internal Result (New)').includes('Run Owner Intelligence (C3)'), 'result incorrectly depends on the priority switch');
 });
 
 // ── what must stay true whatever the fix is ───────────────────────────────────────────────────

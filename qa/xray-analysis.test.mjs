@@ -355,7 +355,9 @@ let draftRow;
   const alert = o.owner_alert;
   check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /КЛЮЧЕВАЯ ПРОБЛЕМА/.test(alert.text) && /ЧТО ЗАМЕТИЛ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
-  check('owner alert: no Lead ID, no raw enum, no confidence, no token in the visible body', !/Lead ID|L-2|ORANGE|AI_DRAFT|HIGH|Достоверность|[0-9a-f]{64}/.test(alert.text));
+  check('owner alert: C3 renders Lead ID, qualification and zone but no workflow status, confidence or token',
+    /Lead ID:.*L-2/.test(alert.text) && /Квалификация:.*HOT/.test(alert.text) && /Финансовая зона:.*ORANGE/.test(alert.text)
+    && !/AI_DRAFT|Достоверность|[0-9a-f]{64}/.test(alert.text));
   check('owner alert: prioritises one client pain and one FINMENTOR observation', /Кассовые разрывы/.test(alert.text) && /быстрая диагностика.*расширенная анкета/i.test(alert.text));
   check('owner alert: no verification line on a clean HIGH-confidence analysis', !/Требуется проверка/.test(alert.text));
   check('owner alert: review link carries analysis id and token', alert.review_url.includes('a=' + encodeURIComponent(r.analysis_id)) && alert.review_url.includes('t=' + r.review_token));

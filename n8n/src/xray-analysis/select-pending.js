@@ -48,6 +48,21 @@ function needsUpgrade(row) {
   return String(row.owner_brief_json || '').trim() === '' || String(row.analysis_version || '').trim() !== 'lead-intelligence-v1';
 }
 
+// C3 targeted mode is the same approved NEW_ANALYSIS path with a cardinality of one. It may select
+// only the exact committed lead named by the internal trigger. The ordinary schedule path never
+// executes Validate C3 Lead Target and therefore remains byte-for-byte equivalent below.
+let c3TargetLeadId = '';
+try {
+  const target = $('Validate C3 Lead Target').first().json || {};
+  if (target.c3_targeted === true) c3TargetLeadId = String(target.c3_target_lead_id || '').trim();
+} catch (e) {}
+if (c3TargetLeadId) {
+  const pipelineMatches = eligiblePipeline.filter((row) => String(row.lead_id || '').trim() === c3TargetLeadId);
+  if (pipelineMatches.length !== 1) return [];
+  if ((analysesByLead[c3TargetLeadId] || []).length !== 0) return [];
+  return [{ json: { ...pipelineMatches[0], analysis_mode: 'NEW_ANALYSIS', c3_targeted: true } }];
+}
+
 // Explicit target mode is surgical: resolve exactly one ledger row and exactly one eligible
 // Pipeline row, reject every ambiguity, and return no fresh work during that sweep. There is no
 // ordering, fuzzy identity, request-id or company fallback. A populated target is inert while

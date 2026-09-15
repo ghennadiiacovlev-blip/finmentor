@@ -99,6 +99,7 @@ const GATES = [
   ['Lead Alert edit no-op classification', 'lead-alerts-edit-noop.test.mjs'],
   ['SYSTEM ALERT coverage', 'system-alert.test.mjs'],
   ['C2 final closure — owner control and release integrity', 'c2-final-closure.test.mjs'],
+  ['C3 final closure — owner intelligence and callback integrity', 'c3-final-closure.test.mjs'],
   ['Lead Alerts candidates (executed)', 'lead-alerts-candidates.test.mjs'],
   ['Premium Concierge candidate (executed)', 'premium-ux-concierge-candidate.test.mjs'],
   ['Lead Intake projection candidate (executed)', 'premium-ux-projection-candidate.test.mjs'],

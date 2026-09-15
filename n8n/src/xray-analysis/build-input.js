@@ -439,6 +439,7 @@ for (const pipe of pending) {
         business: String(factsClean.business_model || factsClean.industry_category || ''),
         scale: [String(factsClean.turnover_range || ''), String(factsClean.employees_range || '')].filter(Boolean).join(' · '),
         source: sourceChannel, lead_status: String(pipe.deal_stage || pipe.status || ''),
+        qualification: String(pipe.priority || ''), priority_reason: String(pipe.priority_reason || ''),
         data_quality: String(factsClean.data_quality || 'Требует проверки'),
         commercial_intent_confirmed: String(pipe.strong_commercial_intent || '').toLowerCase() === 'true',
         commercial_intent: String(pipe.work_interest || ''), next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
