@@ -103,7 +103,9 @@ const COPY = {
     '<b>Выберите удобный формат:</b>',
     '',
     '<b>Описать задачу</b> — расскажите ситуацию своими словами.',
+    '<b>Финансовая диагностика</b> — пройдите существующий анализ FINMENTOR.',
     '<b>Подготовить бриф</b> — структурируйте ключевой контекст за несколько минут.',
+    '<b>Запросить встречу</b> — передайте запрос консультанту.',
     '',
     '<i>Перед отправкой всё можно проверить и изменить.</i>'
   ].join('\n'),
@@ -112,7 +114,7 @@ const COPY = {
     '',
     'Представьте, что первый разговор с консультантом уже начался.',
     '',
-    'Что происходит в бизнесе, какое решение вам нужно принять и что сейчас мешает сделать это уверенно?',
+    'Какую финансовую или управленческую задачу нужно решить?',
     '',
     '<i>Можно писать свободно — FINMENTOR сам выделит ключевой контекст.</i>'
   ].join('\n'),
@@ -278,7 +280,8 @@ check('a failure screen never reads as a success', () => {
 // A button label is the client's entire understanding of what happens next, and callback_data is
 // what actually happens. Pinning both together is what stops a copy pass from silently rewiring.
 const BUTTONS = {
-  TG_ENTRY: [['Описать задачу', 'p|describe'], ['Подготовить бриф', 'p|brief']],
+  TG_ENTRY: [['Описать задачу', 'p|describe'], ['Финансовая диагностика', 'p|diagnosis'],
+    ['Подготовить бриф', 'p|brief'], ['Запросить встречу', 'p|meeting']],
   TG_FREEFORM_PROBLEM: [],
   TG_CONFIRM_CONTEXT: [['Всё верно', 'p|ctx_ok'], ['Исправить', 'p|ctx_fix']],
   TG_OPEN_BRIEF: [['Открыть бриф', 'WEB_APP']],
@@ -332,13 +335,16 @@ check('«Открыть бриф» is the only web_app button, and it stays one'
 // The transport picks a renderer from the keyboard's shape-and-type signature plus the parse mode.
 // A screen whose combination has no registered layout fails closed at the transport — correctly,
 // but silently from the client's side. So the authorised set is pinned here.
-const AUTHORISED_LAYOUTS = ['L0_NONE_HTML', 'L1_W_HTML', 'L2_C_HTML'];
+const AUTHORISED_LAYOUTS = ['L0_NONE_HTML', 'L1_W_HTML', 'L2_C_HTML', 'L4_C_HTML'];
 
 check('every screen maps to an authorised HTML layout', () => {
   for (const key of Object.keys(SCREENS)) {
     const rows = SCREENS[key].reply_markup.inline_keyboard || [];
     const sig = rows.map((r) => (r[0].web_app ? 'W' : (r[0].url ? 'U' : 'C'))).join('|');
-    const layout = sig === '' ? 'L0_NONE_HTML' : (sig === 'W' ? 'L1_W_HTML' : (sig === 'C|C' ? 'L2_C_HTML' : 'UNKNOWN(' + sig + ')'));
+    const layout = sig === '' ? 'L0_NONE_HTML'
+      : (sig === 'W' ? 'L1_W_HTML'
+        : (sig === 'C|C' ? 'L2_C_HTML'
+          : (sig === 'C|C|C|C' ? 'L4_C_HTML' : 'UNKNOWN(' + sig + ')')));
     assert(AUTHORISED_LAYOUTS.indexOf(layout) !== -1, key + ' needs an unauthorised layout: ' + layout);
   }
 });

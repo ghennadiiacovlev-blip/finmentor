@@ -399,7 +399,14 @@ check('EXECUTED: TTL, binding and terminal state are as specified', () => {
   eq(ttl, APP_SESSION_TTL_SECONDS, 'the server-side TTL is not the declared one');
   eq(s.state, 'draft', 'a new session does not start as draft');
   eq(s.telegram_user_id, '551662084', 'the session is not bound to the Telegram user');
-  eq(s.draft_json, '', 'a new session carries draft data');
+  const draft = JSON.parse(s.draft_json);
+  eq(draft.v, 1, 'the seeded draft contract version');
+  eq(draft.cycle_id, PROJ.cycle_id, 'the seeded draft is not bound to the session cycle');
+  eq(draft.step, 'APP_BOOTSTRAP', 'the seeded draft starts after qualification');
+  for (const field of Object.values(draft.fields)) {
+    eq(JSON.stringify(field), JSON.stringify({ value: null, source: null, confirmed: false, at: null }),
+      'a bare cycle projection invented draft data');
+  }
   // one user, one binding; consent is NOT recorded here
   const keys = Object.keys(s).sort();
   eq(JSON.stringify(keys), JSON.stringify(['app_session_id', 'chat_id', 'created_at', 'cycle_id',

@@ -167,9 +167,9 @@ check('a confirmed discard rotates but archives no lead (there is none)', () => 
 
 // ---------------------------------------------------------------- entry / qualification
 
-check('entry offers exactly the two approved actions', () => {
+check('entry offers exactly the four C1 actions', () => {
   const r = M.decide(FRESH, cmd('/start'));
-  eq(JSON.stringify(r.copy.actions), JSON.stringify(['Описать задачу', 'Подготовить бриф']), 'actions');
+  eq(JSON.stringify(r.copy.actions), JSON.stringify(['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу']), 'actions');
 });
 
 check('«Описать задачу» collects free text and moves to confirmation', () => {

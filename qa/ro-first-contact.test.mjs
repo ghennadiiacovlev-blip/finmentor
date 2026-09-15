@@ -174,10 +174,10 @@ check('CASE 1 — journey ro + Telegram ru + NON-owner customer = Romanian Conci
   eq(t.session.language, 'ro', 'the journey origin did not become the session locale');
   assert(RO_MARK.test(t.reply.reply_text), 'the reply carries no Romanian: ' + t.reply.reply_text.slice(0, 80));
   assert(!CYRILLIC.test(t.reply.reply_text), 'Cyrillic reached the Romanian customer: ' + t.reply.reply_text.slice(0, 80));
-  // …and it is the CONCIERGE, not an acknowledgement: the entry screen with its two actions.
+  // …and it is the CONCIERGE, not an acknowledgement: the entry screen with its four actions.
   eq(t.reply.debug.state_after, 'TG_ENTRY', 'the customer did not reach the entry screen');
   const cbs = (t.reply.reply_markup.inline_keyboard || []).map((r) => r[0].callback_data);
-  eq(cbs, ['p|describe', 'p|brief'], 'the Romanian customer was not offered the conversation');
+  eq(cbs, ['p|describe', 'p|diagnosis', 'p|brief', 'p|meeting'], 'the Romanian customer was not offered the conversation');
 });
 
 check('CASE 1b — the Romanian locale SURVIVES the deep link, turn after turn', () => {
@@ -226,7 +226,7 @@ check('CASE 6 — a NON-owner customer cannot reach an owner or admin action', (
   // The conversation became available to customers. It must hand them nothing that belongs to the
   // owner. Swept over every screen, every input and both locales: the only callbacks a customer
   // can be shown are the approved conversation actions.
-  const APPROVED = ['p|describe', 'p|brief', 'p|ctx_ok', 'p|ctx_fix', 'p|open', 'p|resume',
+  const APPROVED = ['p|describe', 'p|diagnosis', 'p|brief', 'p|meeting', 'p|meeting_y', 'p|ctx_ok', 'p|ctx_fix', 'p|open', 'p|resume',
     'p|restart', 'p|restart_y', 'p|append', 'p|new', 'p|new_y', 'p|back', 'p|retry'];
   const rows = [
     cold({ chat_id: CUSTOMER, telegramLanguage: 'ro' }),
@@ -244,7 +244,12 @@ check('CASE 6 — a NON-owner customer cannot reach an owner or admin action', (
         for (const r of t.reply.reply_markup.inline_keyboard || []) {
           for (const b of r) { if (!b.web_app) { seen.add(b.callback_data); } }
         }
-        assert(t.reply.lead_ready === false, 'a customer turn claimed a lead is ready');
+        if (t.reply.lead_ready === true) {
+          assert(i.callbackData === 'p|meeting_y', 'a non-meeting customer action claimed a lead is ready');
+          assert(t.reply.lead_payload && t.reply.lead_payload.meta.request_type === 'meeting_request',
+            'the explicit meeting action produced another lead type');
+          assert(t.reply.lead_payload.meta.consent === true, 'a meeting handoff was produced without explicit consent');
+        }
       }
     }
   }

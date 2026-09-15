@@ -246,7 +246,7 @@ await check('the declared materials still reach the brief, unchanged and un-rein
 await check('«brief» is written in Russian on every customer-facing screen', () => {
   eq(B.SUCCESS.next[0], 'FINMENTOR изучит бриф.', 'the next-steps wording');
   eq(JSON.stringify(B.SUCCESS.next), JSON.stringify([
-    'FINMENTOR изучит бриф.', 'При необходимости уточним детали.', 'Согласуем следующий контакт.'
+    'FINMENTOR изучит бриф.', 'При необходимости уточним детали.', 'Мы свяжемся с вами в течение 1 рабочего дня.'
   ]), 'the three next steps');
   assert(!/\bbrief\b/i.test(JSON.stringify(B.SUCCESS)), 'the Latin word is back on the success screen');
   assert(!/\bbrief\b/i.test(JSON.stringify(B.REVIEW)), 'the Latin word reached the review screen');

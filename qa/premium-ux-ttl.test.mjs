@@ -175,15 +175,17 @@ check('the replay claim query and the freshness window are unchanged', () => {
 
 // ---------------------------------------------------------------- privacy consequence
 
-check('the longer window is bounded, and the draft still carries no signed material', () => {
+check('the longer window is bounded, and the seeded draft carries no signed material', () => {
   const gw = buildGateway();
   const build = gw.nodes.find((n) => n.name === 'Build App Session').parameters.jsCode;
   // The session row is what now lives for 72h instead of 30m. It must still contain no initData,
-  // no signature and no free-text business content at mint time.
+  // no signature. C1 may seed explicitly carried business context from the server-side cycle
+  // projection, but that draft is still data, never authentication material.
   for (const forbidden of ['init_data', 'signature', 'hash', 'auth_date']) {
     assert(build.indexOf(forbidden) === -1, 'the app session row carries ' + forbidden);
   }
-  assert(/draft_json: ''/.test(build), 'the session is minted with a non-empty draft');
+  assert(/function c1Draft\(/.test(build) && /draft_json: JSON\.stringify\(c1Draft\(/.test(build),
+    'the session is not minted from the bounded C1 draft contract');
   assert(APP_SESSION_TTL_SECONDS < 7 * 24 * 3600, 'the TTL is no longer meaningfully bounded');
 });
 

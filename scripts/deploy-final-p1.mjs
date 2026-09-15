@@ -252,9 +252,9 @@ export function verifyPremiumStarts(workflow) {
   const body = String(byName(workflow, N.response).parameters.jsCode);
   const run = new Function('$input', body);
   const cases = [
-    ['/start', 'ru', ['Описать задачу', 'Подготовить бриф'], 'Подготовка к первой встрече'],
-    ['/start ru', 'ru', ['Описать задачу', 'Подготовить бриф'], 'Подготовка к первой встрече'],
-    ['/start ro', 'ro', ['Descrieți solicitarea', 'Pregătiți sinteza'], 'Pregătirea primei întâlniri']
+    ['/start', 'ru', ['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу'], 'Подготовка к первой встрече'],
+    ['/start ru', 'ru', ['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу'], 'Подготовка к первой встрече'],
+    ['/start ro', 'ro', ['Descrieți solicitarea', 'Diagnostic financiar', 'Pregătiți sinteza', 'Solicitați o întâlnire'], 'Pregătirea primei întâlniri']
   ];
   const evidence = [];
   for (const [command, locale, labels, subtitle] of cases) {

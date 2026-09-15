@@ -11,7 +11,7 @@
 // length and wrapping are part of what the preview is for.
 
 export const LABELS_RU = {
-  product: 'Финансовый рентген бизнеса', condition: 'Финансовое состояние', score: 'Оценка', zone: 'Зона риска',
+  product: 'Финансовая диагностика', condition: 'Финансовое состояние', score: 'Оценка', zone: 'Зона риска',
   maturity: 'Зрелость финансового управления', risks: 'Ключевые риски', priorities: 'Приоритеты управления',
   plan: 'План финансовых действий на 30 дней', tomorrow: 'Следующее действие', next: 'Рекомендация FINMENTOR'
 };

@@ -72,7 +72,7 @@ if (!livePath || livePath.startsWith('--')) {
   console.error('usage: node scripts/build-premium-concierge.mjs --live <live-export.json>');
   process.exit(1);
 }
-const live = JSON.parse(readFileSync(livePath, 'utf8'));
+const live = JSON.parse(readFileSync(livePath, 'utf8').replace(/^\uFEFF/, ''));
 
 // Display caches carry the production spreadsheet URL. Stripped from the BASE as well, so the
 // drift check compares like with like.
@@ -239,11 +239,21 @@ const ADAPTER_TAIL = [
   '  return t;',
   '}',
   '',
+  'function readC1Note(value) {',
+  '  try {',
+  '    const n = JSON.parse(String(value || "{}"));',
+  '    return n && n.v === 1 && n.kind === "premium_context" ? n : { v: 1, kind: "premium_context" };',
+  '  } catch (e) { return { v: 1, kind: "premium_context" }; }',
+  '}',
+  '',
   '// Which callback each approved action label carries. Built from ACTIONS so a label can never be',
   '// wired to an action that does not exist.',
   'const LABEL_ACTION = {',
   '  "Описать задачу": ACTIONS.DESCRIBE,',
+  '  "Финансовая диагностика": ACTIONS.DIAGNOSIS,',
   '  "Подготовить бриф": ACTIONS.BRIEF,',
+  '  "Запросить встречу": ACTIONS.MEETING,',
+  '  "Подтвердить запрос": ACTIONS.MEETING_CONFIRM,',
   '  "Всё верно": ACTIONS.CONFIRM_OK,',
   '  "Исправить": ACTIONS.CONFIRM_FIX,',
   '  "Открыть бриф": ACTIONS.OPEN,',
@@ -257,7 +267,8 @@ const ADAPTER_TAIL = [
   '  "Повторить": ACTIONS.RETRY',
   '};',
   '',
-  '// «Открыть бриф» is the ONLY web_app button. Everything else is a callback, so a stale message',
+  '// The two open actions target the SAME approved Mini App; diagnosis reuses the existing X-Ray',
+  '// journey and does not create a second engine or endpoint. Everything else is a callback.',
   '// can never launch the Mini App with an identity the server has not re-resolved.',
   '// A label carries a different action on a CONFIRMATION screen than on the screen that opened it.',
   '// «Начать новый вопрос» appears on three screens: on TG_SUBMITTED and on the append confirmation',
@@ -280,7 +291,7 @@ const ADAPTER_TAIL = [
   // key on both lookups (LABEL_ACTION and the web_app test), so the callback contract and the
   // routing that reads it are byte-identical in Romanian. Only `text` changes.
   '  for (const label of labels || []) {',
-  '    if (label === "Открыть бриф") {',
+  '    if (label === "Открыть бриф" || label === "Открыть диагностику") {',
   '      rows.push([{ text: TR(label), web_app: { url: MINIAPP_URL } }]);',
   '      continue;',
   '    }',
@@ -327,6 +338,15 @@ const ADAPTER_TAIL = [
   'const chat_id = String(session.chat_id || src.chat_id || p.chat_id || "");',
   'const text = String(p.message_text || src.message_text || src.text || "");',
   'const data = String(p.callback_data || src.callback_data || src.data || "");',
+  'const telegramFirstName = p.first_name || src.first_name || "";',
+  'const telegramLastName = p.last_name || src.last_name || "";',
+  'const telegramUsername = p.username || src.username || "";',
+  'if (String(telegramFirstName).trim()) { session.first_name = safeText(telegramFirstName, 100); }',
+  'if (String(telegramLastName).trim()) { session.last_name = safeText(telegramLastName, 100); }',
+  'if (String(telegramUsername).trim()) { session.username = safeText(telegramUsername, 100); }',
+  'const telegramFullName = [session.first_name, session.last_name].map(v => String(v || "").trim()).filter(Boolean).join(" ");',
+  'if (!String(session.contact_name || "").trim() && telegramFullName) { session.contact_name = telegramFullName; }',
+  'const c1Note = readC1Note(session.notes);',
   '',
   // ── the locale for THIS reply, decided once, by the module ──────────────────────────────────
   //
@@ -360,7 +380,10 @@ const ADAPTER_TAIL = [
   '  has_draft: String(session.draft_state || "") === "draft",',
   '  draft_step: String(session.draft_step || ""),',
   '  context_extracted: (function () {',
-  '    try { return JSON.parse(session.context_extracted_json || "{}"); } catch (e) { return {}; }',
+  '    try {',
+  '      const direct = JSON.parse(session.context_extracted_json || "{}");',
+  '      return Object.keys(direct).length ? direct : (c1Note.extracted || {});',
+  '    } catch (e) { return c1Note.extracted || {}; }',
   '  })(),',
   '  awaiting_problem: String(session.state || "") === "TG_FREEFORM_PROBLEM",',
   '  awaiting_append: String(session.state || "") === "TG_APPEND_MESSAGE"',
@@ -418,9 +441,18 @@ const ADAPTER_TAIL = [
   '  session.cycle_id = "";   // minted by the issuer downstream, never here',
   '}',
   '',
-  'if (writes.indexOf("free_text") !== -1) { session.free_text_request = safeText(outcome.free_text, 500); }',
-  'if (writes.indexOf("confirm_context") !== -1) { session.context_confirmed = "true"; }',
+  'if (writes.indexOf("free_text") !== -1) {',
+  '  session.free_text_request = safeText(outcome.free_text, 500);',
+  '  c1Note.original_text = session.free_text_request;',
+  '  c1Note.context_confirmed = false;',
+  '}',
+  'if (writes.indexOf("confirm_context") !== -1) { session.context_confirmed = "true"; c1Note.context_confirmed = true; }',
   'if (writes.indexOf("activity_append") !== -1) { session.append_text = safeText(outcome.append_text, 500); }',
+  'if (writes.indexOf("meeting_request") !== -1) {',
+  '  session.selected_service = "Запрос на встречу";',
+  '  c1Note.meeting_requested_at = new Date().toISOString();',
+  '}',
+  'if (writes.indexOf("consent_yes") !== -1) { session.consent = "yes"; }',
   '',
   '// ---------------------------------------------------------------- output',
   '',
@@ -433,6 +465,7 @@ const ADAPTER_TAIL = [
   '  const proposal = normalise(extractDeterministic(outcome.free_text || text));',
   '  auth.context_extracted = {',
   '    company_name: proposal.fields.company_name || "",',
+  '    business_activity: proposal.fields.business_activity || "",',
   '    role: proposal.fields.role || "",',
   '  // The client\'s OWN answer always wins. Extraction only fills a band the client has not',
   '  // given, and only from a stated turnover — never from prose. «Предпочитаю не указывать»',
@@ -445,6 +478,8 @@ const ADAPTER_TAIL = [
   '  // something to promote. The draft itself is written by the endpoint, not here.',
   '  session.context_extracted_json = JSON.stringify(auth.context_extracted);',
   '  session.context_confirmed = "false";',
+  '  c1Note.extracted = auth.context_extracted;',
+  '  c1Note.context_confirmed = false;',
   '}',
   '',
   '// «Исправить» must not leave the rejected guess in place — a later screen would prefill from a',
@@ -452,7 +487,10 @@ const ADAPTER_TAIL = [
   'if (input.kind === "callback" && input.value === ACTIONS.CONFIRM_FIX) {',
   '  session.context_extracted_json = "";',
   '  session.context_confirmed = "false";',
+  '  c1Note.extracted = {};',
+  '  c1Note.context_confirmed = false;',
   '}',
+  'session.notes = JSON.stringify(c1Note).slice(0, 4000);',
   '',
   '// The confirmation screen has to EARN its place. «Проверьте, правильно ли FINMENTOR понял ваш',
   '// контекст» is worth asking when extraction found structure — a company, a role, an objective.',
@@ -478,9 +516,42 @@ const ADAPTER_TAIL = [
   'const reply_text = safeText(rendered.text, 3800, parse_mode === "HTML");',
   'const reply_markup = buildMarkup(rendered.actions, session.app_session_id, outcome.state);',
   '',
-  '// lead_ready is FALSE on every premium screen. The premium brief is submitted through',
-  '// POST /miniapp/submit, which owns the projection and the privacy record; a second path from',
-  '// here would be a second authority for the same lead.',
+  '// Only the explicit meeting action uses the existing authenticated Lead Intake handoff.',
+  '// Every brief/diagnosis submission still goes exclusively through POST /miniapp/submit.',
+  'const meetingRequested = writes.indexOf("meeting_request") !== -1;',
+  'const confirmed = c1Note.context_confirmed === true ? (c1Note.extracted || {}) : {};',
+  'const originalText = String(c1Note.original_text || session.free_text_request || "").slice(0, 500);',
+  'const telegramIdentity = String(session.username || p.username || "").trim()',
+  '  ? "@" + String(session.username || p.username).replace(/^@/, "").trim()',
+  '  : String(session.user_id || p.user_id || chat_id);',
+  'const meetingLeadPayload = meetingRequested ? {',
+  '  tool: "telegram_client_concierge",',
+  '  client: {',
+  '    name: String(session.contact_name || telegramFullName || ""),',
+  '    company: String(confirmed.company_name || session.company || ""),',
+  '    role: String(confirmed.role || ""),',
+  '    telegram: telegramIdentity,',
+  '    language: LOCALE',
+  '  },',
+  '  answers: { business_model: String(confirmed.business_activity || ""), main_pain: originalText || "Запрос на встречу" },',
+  '  main_pain: { problem: originalText || "Запрос на встречу", desired_first_step: "Согласовать встречу" },',
+  '  intake: {',
+  '    goals: { expected_meeting_outcomes: ["Согласовать встречу"] },',
+  '    business_pain: { preferred_meeting_format: "Согласовать с клиентом" },',
+  '    commercial_intent: { work_interest: ["консультация"] }',
+  '  },',
+  '  automation: { recommended_next_step: "Согласовать встречу" },',
+  '  premium: { important_context: originalText },',
+  '  meta: {',
+  '    consent: String(session.consent || "").toLowerCase() === "yes",',
+  '    request_type: "meeting_request",',
+  '    preferred_contact_channel: "telegram",',
+  '    telegram_username: String(session.username || p.username || ""),',
+  '    telegram_user_id: String(session.user_id || p.user_id || ""),',
+  '    original_telegram_text: originalText,',
+  '    context_provenance: c1Note.context_confirmed === true ? "client_confirmed" : (originalText ? "original_client_fact" : "")',
+  '  }',
+  '} : null;',
   'return [{',
   '  json: {',
   '    chat_id: chat_id,',
@@ -488,8 +559,8 @@ const ADAPTER_TAIL = [
   '    reply_markup: reply_markup,',
   '    tg_body: { chat_id: chat_id, text: reply_text, reply_markup: reply_markup, parse_mode: parse_mode },',
   '    session: session,',
-  '    lead_ready: false,',
-  '    lead_payload: null,',
+  '    lead_ready: meetingRequested,',
+  '    lead_payload: meetingLeadPayload,',
   '    ai_guarded: { enabled: false, model: "", used: false, fallback_used: false },',
   '    debug: {',
   '      state_before: stateBefore,',
@@ -911,7 +982,8 @@ for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session'
 {
   const HTML_STATES = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
     'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',
-    'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM'];
+    'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM', 'TG_OPEN_DIAGNOSIS', 'TG_MEETING_CONFIRM', 'TG_MEETING_REQUEST',
+    'TG_UNKNOWN'];
   const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
   if (withMode.slice().sort().join(',') !== HTML_STATES.slice().sort().join(',')) {
     fail.push('HTML is declared on: ' + (withMode.join(', ') || '(none)') + ' — expected exactly the approved ten');
@@ -958,9 +1030,9 @@ for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session'
   }
 }
 
-// All nine states, and no tenth.
+// The original nine states plus the four bounded C1 presentation/routing states.
 for (const s of SM.STATES) { if (NODE_BODY.indexOf("'" + s + "'") === -1 && NODE_BODY.indexOf('"' + s + '"') === -1) { fail.push('state missing from the node: ' + s); } }
-if (SM.STATES.length !== 9) { fail.push('the machine no longer has nine states'); }
+if (SM.STATES.length !== 13) { fail.push('the machine no longer has the thirteen approved states'); }
 
 // EXACTLY two rotate branches. A third is a product decision, not a refactor, and must fail here.
 // Comments are stripped for every check below that asks "does this node DO X". The module comment
@@ -979,7 +1051,9 @@ if (/isStart\s*=/.test(CODE_ONLY) || /reset\s*=\s*['"]start['"]/.test(CODE_ONLY)
 
 // The Mini App URL is a placeholder, and «Открыть бриф» is the only web_app button.
 if (NODE_BODY.indexOf(MINIAPP_URL_PLACEHOLDER) === -1) { fail.push('the Mini App URL placeholder is missing'); }
-if (/https?:\/\//.test(CODE_ONLY.replace(new RegExp(MINIAPP_URL_PLACEHOLDER, 'g'), ''))) {
+if (/https?:\/\//.test(CODE_ONLY
+  .replace(new RegExp(MINIAPP_URL_PLACEHOLDER, 'g'), '')
+  .replace(/https:\/\/finmentor\.md\/privacy\.html/g, ''))) {
   fail.push('a literal URL is baked into the premium node');
 }
 if ((CODE_ONLY.match(/web_app:/g) || []).length !== 1) { fail.push('there must be exactly one web_app button'); }
@@ -1074,7 +1148,7 @@ console.log('                       (replaces ' + legacyLines + ' lines of the l
 console.log('  /start reset       : removed — a committed lead survives /start');
 console.log('  spine              : UNTOUCHED (issuance gate, receipts, authority verdicts, transport, handoff)');
 console.log('  states             : ' + SM.STATES.length + '   rotate branches: ' + rotates + ' (both confirmed)');
-console.log('  web_app buttons    : 1  (Открыть бриф, URL = ' + MINIAPP_URL_PLACEHOLDER + ')');
+console.log('  web_app actions    : 2  (brief + existing diagnosis journey, one URL = ' + MINIAPP_URL_PLACEHOLDER + ')');
 console.log('  P9-R2 flag pair    : ABSENT across all ' + candidate.nodes.length + ' nodes');
 console.log('');
 console.log('  structural sha256  : ' + structural(baseNodes, live.connections) + '   (before)');

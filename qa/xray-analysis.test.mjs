@@ -353,7 +353,7 @@ let draftRow;
   check('validate: no fabrication flags on clean plan', r.fabrication_flags === '' && r.confidence === 'HIGH');
   check('validate: pipeline projection is narrow (no JSON)', !('analysis_json' in o.pipeline_row) && o.pipeline_row.xray_analysis_status === 'AI_DRAFT');
   const alert = o.owner_alert;
-  check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /ГЛАВНАЯ БОЛЬ/.test(alert.text) && /ЧТО ЗАМЕТИЛ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
+  check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /КЛЮЧЕВАЯ ПРОБЛЕМА/.test(alert.text) && /ЧТО ЗАМЕТИЛ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
   check('owner alert: no Lead ID, no raw enum, no confidence, no token in the visible body', !/Lead ID|L-2|ORANGE|AI_DRAFT|HIGH|Достоверность|[0-9a-f]{64}/.test(alert.text));
   check('owner alert: prioritises one client pain and one FINMENTOR observation', /Кассовые разрывы/.test(alert.text) && /быстрая диагностика.*расширенная анкета/i.test(alert.text));
@@ -428,7 +428,7 @@ let draftRow;
   const roInput = { ...inputItem, locale: 'ro' };
   const o = validate(aiResp({ ...goodPlan, recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', rationale: 'r' } }), roInput);
   check('validate: RO next-step label is Romanian', /Diagnostic financiar complet/.test(o.analysis_row.next_step_label) && o.analysis_row.locale === 'ro');
-  check('owner alert: stays RU for the owner even when the client result locale is RO', /ГЛАВНАЯ БОЛЬ|СЕЙЧАС/.test(o.owner_alert.text) && !/Diagnostic financiar|Următoarea/.test(o.owner_alert.text));
+  check('owner alert: stays RU for the owner even when the client result locale is RO', /КЛЮЧЕВАЯ ПРОБЛЕМА|СЕЙЧАС/.test(o.owner_alert.text) && !/Diagnostic financiar|Următoarea/.test(o.owner_alert.text));
 }
 
 // ---------- analysis failed (OpenAI error output) ----------
@@ -507,7 +507,7 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   check('client result: the row is exactly the target XRay_Client_Results columns', Object.keys(row).sort().join(',') === 'analysis_id,client_visible,lead_id,locale,published_at,result_json,review_status,score,zone');
   check('client result: keyed by lead, explicitly visible, CLIENT_READY, deterministic score and zone', row.lead_id === 'L-2' && row.client_visible === true && row.review_status === 'CLIENT_READY' && row.score === '47' && row.zone === 'ORANGE');
   const result = JSON.parse(row.result_json);
-  check('client result: RU product name', result.labels.product === 'Финансовый рентген бизнеса');
+  check('client result: RU product name', result.labels.product === 'Финансовая диагностика');
   check('client result: carries condition/score, risk zone, maturity, key risks, priorities, 30-day plan, next action, recommendation',
     result.score === 47 && result.zone === 'ORANGE' && result.zone_label && result.maturity && result.maturity.score_1_to_5 === 2 && result.key_risks.length === 5 && result.management_priorities.length === 3 && Object.keys(result.plan_30_days).length === 4 && result.tomorrow_actions.length === 3 && result.recommended_next_step && result.recommended_next_step.label && result.summary);
   const text = row.result_json;

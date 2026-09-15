@@ -120,8 +120,8 @@ const ZONE_LABEL = {
 // is omitted, because inventing "Низкий приоритет" for a value nobody recognises is worse than
 // saying nothing: the owner would act on a label the data never carried.
 const SOURCE_LABEL = [
-  [/xrayextended/, 'Финансовый рентген — расширенная анкета'],
-  [/xrayquick/, 'Финансовый рентген — быстрый рентген'],
+  [/xrayextended/, 'Финансовая диагностика — расширенная анкета'],
+  [/xrayquick/, 'Финансовая диагностика — краткая анкета'],
   [/miniscan/, 'Мини-скан оборотного капитала'],
   [/miniapp|telegram/, 'Telegram Mini App'],
   [/contact/, 'Контактная форма сайта']

@@ -31,7 +31,7 @@ function renderLeadIntelligenceAlert(model) {
     meta,
     scale,
     '',
-    '<b>ГЛАВНАЯ БОЛЬ</b>',
+    '<b>КЛЮЧЕВАЯ ПРОБЛЕМА</b>',
     esc(tidy(m.main_pain, 240) || 'Нужно уточнить на первом контакте'),
     '',
     '<b>ЧТО ЗАМЕТИЛ FINMENTOR</b>',

@@ -55,7 +55,7 @@ const LEAD = {
   priority: 'HOT', zone: 'ORANGE',
   objective: 'Навести порядок в деньгах', situation: 'Розничная сеть, оборот 5–10 млн EUR.',
   nextAction: 'Назначить Discovery Call', dueAt: '2026-08-30T09:00:00.000Z',
-  source: 'Финансовый рентген', contactChannel: 'Telegram', leadId: 'FIN-20260830-0412'
+  source: 'Финансовая диагностика', contactChannel: 'Telegram', leadId: 'FIN-20260830-0412'
 };
 
 const FULL_BRIEF = {
@@ -267,8 +267,8 @@ check('Markdown written into a template is caught, and Markdown in data is rende
 });
 
 check('the lead source is a label, never the internal slug', () => {
-  eq(P.sourceLabel('xray_extended'), 'Финансовый рентген — расширенная анкета', 'extended xray');
-  eq(P.sourceLabel('xray_quick'), 'Финансовый рентген — быстрый рентген', 'quick xray');
+  eq(P.sourceLabel('xray_extended'), 'Финансовая диагностика — расширенная анкета', 'extended xray');
+  eq(P.sourceLabel('xray_quick'), 'Финансовая диагностика — краткая анкета', 'quick xray');
   eq(P.sourceLabel('mini_scan'), 'Мини-скан оборотного капитала', 'mini scan');
   eq(P.sourceLabel('contact_form'), 'Контактная форма сайта', 'contact form');
   eq(P.sourceLabel('telegram_miniapp'), 'Telegram Mini App', 'mini app');
@@ -676,7 +676,7 @@ check('NEW LEAD: company falls back to the contact name, then to a dash; RO is s
 
   const ro = P.renderNewLead(Object.assign({}, LEAD, { language: 'ro', source: 'xray_quick' }));
   clean(ro, 'RO lead');
-  eq(ro.split('\n')[3], 'Финансовый директор · Источник: Финансовый рентген — быстрый рентген · Клиент: RO', 'the RO meta line');
+  eq(ro.split('\n')[3], 'Финансовый директор · Источник: Финансовая диагностика — краткая анкета · Клиент: RO', 'the RO meta line');
   for (const lang of ['ru', 'RU', '', undefined, null, 'en', 'ro-RO']) {
     const html = P.renderNewLead(Object.assign({}, LEAD, { language: lang }));
     assert(html.indexOf('Клиент:') === -1, 'a language marker was rendered for ' + JSON.stringify(lang));

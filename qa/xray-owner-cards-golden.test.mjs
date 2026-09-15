@@ -49,7 +49,7 @@ console.log('\nFINMENTOR — X-Ray owner cards, golden renders\n');
 
 check('GOLDEN review card — RU client, score 47, ORANGE, clean data', () => {
   eq(C.renderReview(RU), [
-    '📊 <b>FINMENTOR · Финансовый рентген</b>',
+    '📊 <b>FINMENTOR · Финансовая диагностика</b>',
     '',
     '<b>ООО Пример</b>',
     'Торговля / Retail · 1–5 млн EUR · 50–100 сотрудников · Клиент: RU',
@@ -83,7 +83,7 @@ check('GOLDEN review card — RO client (OWNER CORRECTION): Russian owner wordin
   });
   const t = C.renderReview(m);
   eq(t, [
-    '📊 <b>FINMENTOR · Финансовый рентген</b>',
+    '📊 <b>FINMENTOR · Финансовая диагностика</b>',
     '',
     '<b>UAT SRL Sintetic Retail</b>',
     '1–5 млн EUR · 50–100 сотрудников · Клиент: RO',
@@ -167,7 +167,7 @@ check('malicious HTML in company, risk and priorities is escaped, never interpre
 check('missing optional fields: no context, no risk, no priorities, unknown product, no maturity — sections omitted, no empty headings', () => {
   const t = C.renderReview({ company: '', locale: 'ru', context: null, score: 61, zone: 'YELLOW', maturity: '', primary_risk: '', priorities: [], product: 'SOMETHING', needs_verification: false });
   eq(t, [
-    '📊 <b>FINMENTOR · Финансовый рентген</b>',
+    '📊 <b>FINMENTOR · Финансовая диагностика</b>',
     '',
     '<b>Компания не указана</b>',
     'Клиент: RU',
@@ -230,7 +230,7 @@ check('every card is well-formed Telegram HTML, carries no forbidden token, and 
 
 check('the client language is metadata only: the card never switches its own language', () => {
   const t = C.renderReview(Object.assign({}, RU, { locale: 'ro' }));
-  assert(/Клиент: RO/.test(t) && /Финансовый рентген/.test(t) && /Зрелость финансового управления/.test(t) && /ожидает проверки консультанта/.test(t), 'card language drifted');
+  assert(/Клиент: RO/.test(t) && /Финансовая диагностика/.test(t) && /Зрелость финансового управления/.test(t) && /ожидает проверки консультанта/.test(t), 'card language drifted');
 });
 
 check('company scale renders in the owner format: «1–5 млн EUR», «500 тыс. – 2 млн EUR», unknown shapes untouched', () => {

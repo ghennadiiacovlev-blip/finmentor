@@ -260,11 +260,11 @@ check('ai_inferred still never smart-skips — including the new turnover_band',
 
 check('a richer extraction cannot promote itself — only what was SHOWN is promoted', () => {
   const f = X.normalise(X.extractDeterministic(UAT));
-  // business_activity is extracted but is NOT one of the five fields the approved confirmation
-  // screen renders, so «Всё верно» must not promote it.
+  // business_activity is extracted and the approved confirmation screen now renders it. Its
+  // presence in the label map alone is insufficient: shownSections must carry the actual value.
   assert(f.fields.business_activity, 'business_activity was not extracted');
-  const shownKeys = Object.keys(B.TG_COPY.TG_CONFIRM_CONTEXT.labels);
-  assert(shownKeys.indexOf('business_activity') === -1, 'this test is stale: the screen now shows business_activity');
+  const shownKeys = X.shownSections(f, '').map((section) => section.key);
+  assert(shownKeys.indexOf('business_activity') !== -1, 'the extracted activity was not shown for explicit confirmation');
 });
 
 console.log('');

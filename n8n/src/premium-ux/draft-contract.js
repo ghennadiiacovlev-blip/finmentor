@@ -99,7 +99,8 @@ function canSkip(field, name) {
 
 // The first state whose field is not settled — what a resume lands on.
 const ASK_ORDER = [
-  ['APP_COMPANY', ['company_name', 'business_activity']],
+  ['APP_COMPANY', ['company_name']],
+  ['APP_BUSINESS_ACTIVITY', ['business_activity']],
   ['APP_ROLE', ['role']],
   ['APP_SCALE', ['turnover_band']],
   ['APP_OBJECTIVE', ['objective']],

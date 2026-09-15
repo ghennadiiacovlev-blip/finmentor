@@ -184,15 +184,19 @@ export const PROJECTION_INPUT_CODE = [
   '// the exact cycle shape), and the guard aborts only if this turn claims to have ROTATED.',
   "const row = $('" + BUILD_ROW + "').first().json || {};",
   "const g = ($('" + PREMIUM_SESSION + "').isExecuted ? $('" + PREMIUM_SESSION + "') : $('Get Bot Session')).first().json || {};",
+  "const b = ($('Build Bot Response (Premium)').isExecuted ? $('Build Bot Response (Premium)') : $('Build Bot Response')).first().json || {};",
+  "const session = b.session || row;",
+  "function contextProjection(reset, s) { let note = {}; try { note = JSON.parse(String(s.notes || '{}')); } catch (e) { note = {}; } if (!note || note.v !== 1 || note.kind !== 'premium_context') note = {}; return 'C1:' + JSON.stringify({ v: 1, reset: String(reset || ''), original_text: String(note.original_text || s.free_text_request || '').slice(0, 500), extracted: note.extracted && typeof note.extracted === 'object' ? note.extracted : {}, context_confirmed: note.context_confirmed === true, first_name: String(s.first_name || '').trim().slice(0, 100), last_name: String(s.last_name || '').trim().slice(0, 100), contact_name: String(s.contact_name || '').trim().slice(0, 200) }); }",
   "const user = String(row.user_id || row.chat_id || '').trim();",
   "const cycle = String(row.cycle_id || g.cycle_id || '').trim();",
   "const match = cycle.match(/^C-([0-9]+)-([0-9]+)$/);",
   "const now = new Date().toISOString();",
+  "const projectionValue = contextProjection(g.cycle_reset, session);",
   "if (!user) { throw new Error('CYCLE_PROJECTION_INVALID: no Telegram user on the session row'); }",
   "if (!match || match[1] !== user) {",
-  "  return [{ json: { authority_key: user + '|LEGACY', telegram_user_id: user, cycle_id: '', cycle_sequence: '', cycle_reset: String(g.cycle_reset || ''), projected_at: now, projection_invalid: 1 } }];",
+  "  return [{ json: { authority_key: user + '|LEGACY', telegram_user_id: user, cycle_id: '', cycle_sequence: '', cycle_reset: projectionValue, projected_at: now, projection_invalid: 1 } }];",
   '}',
-  "return [{ json: { authority_key: user + '|' + cycle, telegram_user_id: user, cycle_id: cycle, cycle_sequence: match[2], cycle_reset: String(g.cycle_reset || ''), projected_at: now, projection_invalid: 0 } }];"
+  "return [{ json: { authority_key: user + '|' + cycle, telegram_user_id: user, cycle_id: cycle, cycle_sequence: match[2], cycle_reset: projectionValue, projected_at: now, projection_invalid: 0 } }];"
 ].join('\n');
 
 export function projectionInputNode(position) {

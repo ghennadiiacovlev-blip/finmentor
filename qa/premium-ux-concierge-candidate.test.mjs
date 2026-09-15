@@ -57,7 +57,8 @@ const drafting = (extra) => Object.assign({
 const fresh = (extra) => Object.assign({ chat_id: CHAT, cycle_id: CYCLE, state: 'TG_ENTRY' }, extra || {});
 
 const A = {
-  DESCRIBE: 'p|describe', BRIEF: 'p|brief', CONFIRM_OK: 'p|ctx_ok', CONFIRM_FIX: 'p|ctx_fix',
+  DESCRIBE: 'p|describe', DIAGNOSIS: 'p|diagnosis', BRIEF: 'p|brief', MEETING: 'p|meeting',
+  MEETING_CONFIRM: 'p|meeting_y', CONFIRM_OK: 'p|ctx_ok', CONFIRM_FIX: 'p|ctx_fix',
   OPEN: 'p|open', RESUME: 'p|resume', RESTART: 'p|restart', RESTART_CONFIRM: 'p|restart_y',
   APPEND: 'p|append', NEW: 'p|new', NEW_CONFIRM: 'p|new_y', BACK: 'p|back', RETRY: 'p|retry'
 };
@@ -123,14 +124,14 @@ check('the generated node executes and returns the full output contract', () => 
 check('/start on a fresh session shows the entry screen', () => {
   const r = run({ session: fresh(), message_text: '/start' });
   eq(r.debug.state_after, 'TG_ENTRY', 'state');
-  eq(labels(r).join(' | '), 'Описать задачу | Подготовить бриф', 'entry actions');
+  eq(labels(r).join(' | '), 'Описать задачу | Финансовая диагностика | Подготовить бриф | Запросить встречу', 'entry actions');
 });
 
 check('/start, /start ru and /start ro all reach the locale-correct premium TG_ENTRY', () => {
   const cases = [
-    ['/start', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Подготовить бриф']],
-    ['/start ru', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Подготовить бриф']],
-    ['/start ro', 'ro', 'Pregătirea primei întâlniri', ['Descrieți solicitarea', 'Pregătiți sinteza']]
+    ['/start', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу']],
+    ['/start ru', 'ru', 'Подготовка к первой встрече', ['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу']],
+    ['/start ro', 'ro', 'Pregătirea primei întâlniri', ['Descrieți solicitarea', 'Diagnostic financiar', 'Pregătiți sinteza', 'Solicitați o întâlnire']]
   ];
   for (const [command, locale, subtitle, buttons] of cases) {
     const r = run({ session: fresh({ language: '' }), message_text: command });
@@ -281,7 +282,7 @@ check('a rotate archives a lead only when one exists in the CURRENT cycle', () =
 
 // ---------------------------------------------------------------- the Mini App button
 
-check('«Открыть бриф» is a web_app button and the only one', () => {
+check('brief and diagnosis reuse the one Mini App URL', () => {
   const r = run({ session: fresh(), callback_data: A.BRIEF });
   eq(r.debug.state_after, 'TG_OPEN_BRIEF', 'state');
   const rows = r.reply_markup.inline_keyboard;
@@ -289,6 +290,11 @@ check('«Открыть бриф» is a web_app button and the only one', () => 
   eq(webApps.length, 1, 'web_app button count');
   eq(webApps[0].text, 'Открыть бриф', 'web_app label');
   eq(webApps[0].web_app.url, '__PREMIUM_MINIAPP_URL__', 'the URL must stay a deploy-time placeholder');
+  const d = run({ session: fresh(), callback_data: A.DIAGNOSIS });
+  const diagnosisApps = d.reply_markup.inline_keyboard.flat().filter((b) => b.web_app);
+  eq(d.debug.state_after, 'TG_OPEN_DIAGNOSIS', 'diagnosis state');
+  eq(diagnosisApps.length, 1, 'diagnosis web_app button count');
+  eq(diagnosisApps[0].web_app.url, webApps[0].web_app.url, 'diagnosis created a second journey URL');
 });
 
 check('no other screen carries a web_app button', () => {
@@ -297,7 +303,8 @@ check('no other screen carries a web_app button', () => {
     { session: committed(), message_text: '/start' },
     { session: drafting(), message_text: '/start' },
     { session: committed(), callback_data: A.NEW },
-    { session: fresh(), callback_data: A.DESCRIBE }
+    { session: fresh(), callback_data: A.DESCRIBE },
+    { session: fresh(), callback_data: A.MEETING }
   ];
   for (const s of screens) {
     const r = run(s);

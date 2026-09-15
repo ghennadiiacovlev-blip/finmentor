@@ -345,7 +345,7 @@ check('the three Lead Intake builders run and render their types', () => {
   assert(brief.length < 900, 'the NEW LEAD alert is ' + brief.length + ' characters — it is a dump again');
   // The source must survive the workflow's own sourceLabel() and the renderer's. The fixture
   // carries tool: 'xray_extended'; anything else means a translation ate the real source.
-  assert(brief.indexOf('Источник: Финансовый рентген — расширенная анкета') !== -1,
+  assert(brief.indexOf('Источник: Финансовая диагностика — расширенная анкета') !== -1,
     'the NEW LEAD source was lost to a double translation');
   // OWNER DECISION, 2026-08-30: ONE channel with its value. The fixture states Telegram as the
   // preferred contact, so the handle appears and the phone and email do not.

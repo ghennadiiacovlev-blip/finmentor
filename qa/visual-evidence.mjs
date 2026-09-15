@@ -2038,7 +2038,7 @@ const drawerProbes = {};
 
   check('X-RAY POPULATED RESULT = PASS — the promoted analysis renders for the customer', () => {
     const bad = [];
-    for (const [id, needles] of [['xray-result-ru', ['Финансовый рентген бизнеса', 'Ключевые риски', 'Оранжевая зона']],
+    for (const [id, needles] of [['xray-result-ru', ['Финансовая диагностика', 'Ключевые риски', 'Оранжевая зона']],
       ['xray-result-ro', ['Test financiar FINMENTOR', 'Riscuri-cheie']]]) {
       for (const w of [390, 1440]) {
         const rv = renderedText[id + '@' + w];

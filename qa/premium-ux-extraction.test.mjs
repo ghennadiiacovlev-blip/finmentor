@@ -218,9 +218,8 @@ check('a value that was NOT shown is not promoted by the tap', () => {
 
 check('user_confirmed DOES smart-skip — the whole point of asking', () => {
   // The state must be one whose ONLY requirement is a field the confirmation screen shows.
-  // APP_COMPANY is not that state: it also requires `business_activity`, which extraction may
-  // prefill but which TG_CONFIRM_CONTEXT does not display — so rule 5 rightly refuses to promote
-  // it, and the screen cannot settle it. APP_ROLE is the honest test.
+  // Company and business activity are separate Mini App states. Both may be shown and explicitly
+  // confirmed in Telegram before the app opens; an unshown inference can never skip either state.
   const d = draftWith(GOOD);
   const withCompany = D.setField(
     D.setField(d, 'company_name', 'ООО Ромашка', 'user_explicit', true, NOW).draft,
@@ -234,18 +233,15 @@ check('user_confirmed DOES smart-skip — the whole point of asking', () => {
   eq(D.nextState(res.draft), 'APP_SCALE', 'confirmation did not advance past the confirmed question');
 });
 
-check('a field extraction prefills but never SHOWS can be neither confirmed nor skipped', () => {
-  // `business_activity` is the case. Owner rule 1 allows extracting it "where supported"; the
-  // approved confirmation screen does not show it, so it stays a prefill. That is the correct
-  // outcome, not a gap: the client sees it on the app screen and answers there.
+check('business activity skips only after it was shown and explicitly confirmed', () => {
   const d = draftWith(GOOD);
   eq(d.fields.business_activity.source, 'ai_inferred', 'source');
   const shownKeys = X.shownSections(pipeline(GOOD), '').map((x) => x.key);
-  assert(shownKeys.indexOf('business_activity') === -1, 'business_activity reached the confirmation screen');
+  assert(shownKeys.indexOf('business_activity') !== -1, 'business_activity was not shown for confirmation');
   const res = X.promoteShown(d, X.shownSections(pipeline(GOOD), ''), NOW);
-  eq(res.draft.fields.business_activity.source, 'ai_inferred', 'an unshown field was promoted');
-  eq(D.canSkip(res.draft.fields.business_activity, 'business_activity'), false, 'an unshown guess would skip a question');
-  eq(D.nextState(res.draft), 'APP_COMPANY', 'the company question was skipped on a guess');
+  eq(res.draft.fields.business_activity.source, 'user_confirmed', 'the shown field was not promoted');
+  eq(D.canSkip(res.draft.fields.business_activity, 'business_activity'), true, 'the confirmed activity does not skip its screen');
+  eq(D.nextState(res.draft), 'APP_SCALE', 'the confirmed Telegram context was asked again');
 });
 
 check('«Исправить» discards the guess rather than keeping it around', () => {

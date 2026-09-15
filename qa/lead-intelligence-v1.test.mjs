@@ -88,7 +88,7 @@ const alert = ALERT.renderLeadIntelligenceAlert({
   contact: niagaraContact, next_action: NIAGARA_BRIEF.next_action.action
 });
 check('alert has required short header', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert));
-for (const heading of ['ГЛАВНАЯ БОЛЬ','ЧТО ЗАМЕТИЛ FINMENTOR','КОНТАКТ','СЕЙЧАС']) check('alert section ' + heading, alert.includes('<b>' + heading + '</b>'));
+for (const heading of ['КЛЮЧЕВАЯ ПРОБЛЕМА','ЧТО ЗАМЕТИЛ FINMENTOR','КОНТАКТ','СЕЙЧАС']) check('alert section ' + heading, alert.includes('<b>' + heading + '</b>'));
 check('alert shows preferred Telegram separately', /Предпочтительно: Telegram/.test(alert));
 check('alert falls back to one reachable contact when preferred Telegram is unavailable', /Телефон: \+373 60 123 456/.test(alert));
 check('alert never expands into a phone, email and Telegram contact directory', !/alexander@niagara\.example/.test(alert) && !/Telegram-контакт не подключён/.test(alert));
@@ -108,7 +108,7 @@ check('brief uses progressive-disclosure drawers', ['Исходные ответ
 check('after-call form has five outcomes and exactly three capture fields', (html.match(/name="conversation_outcome"/g) || []).length === 5 && (html.match(/<textarea/g) || []).length === 3 && html.includes('name="next_step_and_date"') && !html.includes('name="next_step_date"'));
 check('mobile CSS is present', /@media\(max-width:760px\)/.test(html));
 check('executive path is visibly ordered pain to next action', ['pain','insight','verify','conversation','solution','next-action'].every((stage, i, all) => html.indexOf('data-stage="' + stage + '"') > (i ? html.indexOf('data-stage="' + all[i - 1] + '"') : -1)));
-check('hero prioritises pain insight contact and next action', /hero-priority/.test(html) && /Главная боль/.test(html) && /Вывод FINMENTOR/.test(html) && /Контакт сейчас/.test(html) && /Следующее действие/.test(html));
+check('hero prioritises problem insight contact and next action', /hero-priority/.test(html) && /Ключевая проблема/.test(html) && /Вывод FINMENTOR/.test(html) && /Контакт сейчас/.test(html) && /Следующее действие/.test(html));
 check('Niagara owner-only navigation exposes exactly two primary actions', (html.match(/data-primary-action/g) || []).length === 2 && !/<details class="action-overflow">/.test(html));
 check('long hostile text is escaped and bounded', (() => { const hostile = LI.normalizeOwnerBrief({ ...NIAGARA_AI, conversation_opening: '<script>' + 'x'.repeat(5000) }, NIAGARA_CONTEXT); const out = RENDER.renderOwnerBriefPage({ brief: hostile, row: NIAGARA_ROW, client_draft: NIAGARA_CLIENT_DRAFT, auth }); return !out.includes('<script>') && hostile.conversation_opening.length <= 900; })());
 const blockedEditHtml = RENDER.renderOwnerBriefPage({ brief: NIAGARA_BRIEF, row: NIAGARA_ROW, client_draft: NIAGARA_CLIENT_DRAFT, auth, mode: 'edit' });

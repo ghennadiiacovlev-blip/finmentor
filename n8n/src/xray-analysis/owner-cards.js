@@ -138,7 +138,7 @@ const XRAY_OWNER_CARDS = (function () {
     const recommendation = product ? '<b>Рекомендация FINMENTOR</b>\n' + esc(product) : '';
     const warning = m.needs_verification === true ? '⚠️ <b>Требуется проверка исходных данных</b>' : '';
     return join([
-      header('📊', 'Финансовый рентген'),
+      header('📊', 'Финансовая диагностика'),
       identity(m),
       [scoreLine, maturity].filter(present).join('\n'),
       risk, priorities, recommendation, warning,

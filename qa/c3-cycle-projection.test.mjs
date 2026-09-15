@@ -211,10 +211,12 @@ check('an UNPROJECTABLE cycle aborts a rotation turn and is tolerated on an ordi
 
 check('the projection input creates one immutable user+cycle authority key', () => {
   const n = projectionInputNode([0, 0]);
-  const row = { chat_id: CHAT, user_id: CHAT, cycle_id: 'C-' + CHAT + '-42' };
+  const row = { chat_id: CHAT, user_id: CHAT, cycle_id: 'C-' + CHAT + '-42', first_name: 'Анна', last_name: 'Петрова' };
+  const response = { session: row };
   const $ = (name) => {
     if (name === BUILD_ROW) return { first: () => ({ json: row }) };
     if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: { cycle_id: row.cycle_id, cycle_reset: 'restart' } }) };
+    if (name === 'Build Bot Response (Premium)') return { isExecuted: true, first: () => ({ json: response }) };
     throw new Error("$('" + name + "') not provided");
   };
   const out = new Function('$', n.parameters.jsCode)($)[0].json;
@@ -223,10 +225,20 @@ check('the projection input creates one immutable user+cycle authority key', () 
   eq(out.telegram_user_id, CHAT, 'user binding');
   eq(out.cycle_id, row.cycle_id, 'cycle binding');
   eq(out.projection_invalid, 0, 'a valid cycle marked invalid');
-  eq(out.cycle_reset, 'restart', 'the rotation marker is not carried');
+  assert(String(out.cycle_reset).startsWith('C1:'), 'the C1 projection envelope is absent');
+  const context = JSON.parse(String(out.cycle_reset).slice(3));
+  eq(context.reset, 'restart', 'the rotation marker is not carried');
+  eq(context.first_name, 'Анна', 'the Telegram first name is not carried');
+  eq(context.last_name, 'Петрова', 'the Telegram last name is not carried');
   // a cycle minted for ANOTHER user, or a legacy shape, never becomes an authority row
   const bad = (cycle) => {
-    const $$ = (name) => name === BUILD_ROW ? { first: () => ({ json: { chat_id: CHAT, user_id: CHAT, cycle_id: cycle } }) } : { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+    const badRow = { chat_id: CHAT, user_id: CHAT, cycle_id: cycle };
+    const $$ = (name) => {
+      if (name === BUILD_ROW) return { first: () => ({ json: badRow }) };
+      if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+      if (name === 'Build Bot Response (Premium)') return { isExecuted: true, first: () => ({ json: { session: badRow } }) };
+      throw new Error("$('" + name + "') not provided");
+    };
     return new Function('$', n.parameters.jsCode)($$)[0].json;
   };
   for (const cycle of ['C-999-42', 'garbage', '', 'C-' + CHAT + '-x', "C-" + CHAT + "-1' or 1=1"]) {
@@ -237,14 +249,27 @@ check('the projection input creates one immutable user+cycle authority key', () 
   }
   // and a session row with no user is an exception: nothing can be keyed
   let err = null;
-  try { new Function('$', n.parameters.jsCode)((name) => name === BUILD_ROW ? { first: () => ({ json: { cycle_id: row.cycle_id } }) } : { isExecuted: true, first: () => ({ json: {} }) }); } catch (e) { err = e; }
+  try {
+    new Function('$', n.parameters.jsCode)((name) => {
+      if (name === BUILD_ROW) return { first: () => ({ json: { cycle_id: row.cycle_id } }) };
+      if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: {} }) };
+      if (name === 'Build Bot Response (Premium)') return { isExecuted: true, first: () => ({ json: { session: {} } }) };
+      throw new Error("$('" + name + "') not provided");
+    });
+  } catch (e) { err = e; }
   assert(err && /CYCLE_PROJECTION_INVALID/.test(err.message), 'a user-less row was projected');
 });
 
 check('MONOTONIC — a stale turn can only touch its own row: two cycles project to two keys, and the older key never carries the newer cycle', () => {
   const n = projectionInputNode([0, 0]);
   const run = (cycle) => {
-    const $$ = (name) => name === BUILD_ROW ? { first: () => ({ json: { chat_id: CHAT, user_id: CHAT, cycle_id: cycle } }) } : { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+    const runRow = { chat_id: CHAT, user_id: CHAT, cycle_id: cycle };
+    const $$ = (name) => {
+      if (name === BUILD_ROW) return { first: () => ({ json: runRow }) };
+      if (name === PREMIUM_SESSION) return { isExecuted: true, first: () => ({ json: { cycle_id: cycle, cycle_reset: '' } }) };
+      if (name === 'Build Bot Response (Premium)') return { isExecuted: true, first: () => ({ json: { session: runRow } }) };
+      throw new Error("$('" + name + "') not provided");
+    };
     return new Function('$', n.parameters.jsCode)($$)[0].json;
   };
   const older = run('C-' + CHAT + '-1756900000000');

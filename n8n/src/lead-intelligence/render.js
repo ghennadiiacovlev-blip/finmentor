@@ -22,9 +22,9 @@ function statusLabel(value) {
 }
 function sourceLabel(value) {
   const s = String(value || '');
-  if (/website_xray|xray/i.test(s)) return 'Financial X-Ray';
+  if (/website_xray|xray/i.test(s)) return 'Финансовая диагностика';
   if (/telegram_premium|miniapp/i.test(s)) return 'Mini App';
-  if (/both/i.test(s)) return 'Financial X-Ray + Mini App';
+  if (/both/i.test(s)) return 'Финансовая диагностика + Mini App';
   return s || 'Источник не определён';
 }
 function zoneLabel(value) {
@@ -156,11 +156,11 @@ function renderBriefBody(brief, row, auth) {
     + '<div class="contact-card"><span class="micro">Контакт сейчас</span><strong>' + esc(c.preferred_label || 'Не указано') + '</strong>'
     + (c.preferred_contact_channel === 'telegram' && !(c.telegram && c.telegram.reachable) ? '<p class="warn">Telegram-контакт не подключён</p>' : '')
     + '<p>Доступно: ' + esc(reachableSummary) + '</p></div></div>'
-    + '<div class="hero-priority"><div class="hero-signal"><span class="micro">Главная боль</span><strong>' + esc(pain.value || 'Нужно уточнить') + '</strong></div>'
+    + '<div class="hero-priority"><div class="hero-signal"><span class="micro">Ключевая проблема</span><strong>' + esc(pain.value || 'Нужно уточнить') + '</strong></div>'
     + '<div class="hero-signal"><span class="micro">Вывод FINMENTOR</span><strong>' + esc(insight.conclusion || 'Формируется') + '</strong></div>'
     + '<div class="hero-signal"><span class="micro">Следующее действие</span><strong>' + esc(next.action || h.next_action || 'Нужно определить') + '</strong></div></div></header>'
     + '<section class="executive-path" aria-label="Логика решения">'
-    + '<article class="path-card" data-stage="pain"><div class="path-step">01 · Боль</div><h2>Что происходит</h2><p>' + esc(pain.value || 'Нужно уточнить') + '</p></article>'
+    + '<article class="path-card" data-stage="pain"><div class="path-step">01 · Проблема</div><h2>Что происходит</h2><p>' + esc(pain.value || 'Нужно уточнить') + '</p></article>'
     + '<article class="path-card" data-stage="insight"><div class="path-step">02 · FINMENTOR</div><h2>Что это значит</h2><p>' + esc(insight.conclusion || 'Формируется') + '</p></article>'
     + '<article class="path-card" data-stage="verify"><div class="path-step">03 · Проверить</div><h2>Чего не хватает</h2><p>' + esc(verify.item || 'Нужно определить') + '</p></article>'
     + '<article class="path-card" data-stage="conversation"><div class="path-step">04 · Разговор</div><h2>Как открыть</h2><p>' + esc(b.conversation_opening || 'Нужно подготовить') + '</p></article>'

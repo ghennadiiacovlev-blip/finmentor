@@ -1,6 +1,6 @@
 // FINMENTOR Premium UX — the Telegram entry state machine.
 //
-// Pure decision logic for the nine approved Telegram states. No I/O: it takes a resolved
+// Pure decision logic for the thirteen approved Telegram states. No I/O: it takes a resolved
 // authority snapshot and one input, and returns the next state, the copy to render and the writes
 // to perform. qa/premium-ux-state.test.mjs drives it, including the mutations that must fail.
 //
@@ -33,15 +33,18 @@
 const B = require('./branches.js');
 
 const STATES = [
-  'TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
+  'TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF', 'TG_OPEN_DIAGNOSIS',
   'TG_RESUME_DRAFT', 'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM',
-  'TG_INFRA_FAILURE'
+  'TG_INFRA_FAILURE', 'TG_MEETING_CONFIRM', 'TG_MEETING_REQUEST', 'TG_UNKNOWN'
 ];
 
 // Callback vocabulary. Short, because Telegram caps callback_data at 64 bytes.
 const ACTIONS = {
   DESCRIBE: 'p|describe',        // Описать задачу
+  DIAGNOSIS: 'p|diagnosis',      // Финансовая диагностика — existing X-Ray journey
   BRIEF: 'p|brief',              // Подготовить бриф
+  MEETING: 'p|meeting',          // Запросить встречу — no calendar booking
+  MEETING_CONFIRM: 'p|meeting_y',// Explicit privacy/contact confirmation
   CONFIRM_OK: 'p|ctx_ok',        // Всё верно
   CONFIRM_FIX: 'p|ctx_fix',      // Исправить
   OPEN: 'p|open',                // Открыть бриф (web_app)
@@ -128,7 +131,12 @@ function decide(auth, input) {
 
   // ---- entry / qualification ----------------------------------------------
   if (kind === 'callback' && value === ACTIONS.DESCRIBE) { return screen('TG_FREEFORM_PROBLEM', B.TG_COPY.TG_FREEFORM_PROBLEM); }
+  if (kind === 'callback' && value === ACTIONS.DIAGNOSIS) { return screen('TG_OPEN_DIAGNOSIS', B.TG_COPY.TG_OPEN_DIAGNOSIS); }
   if (kind === 'callback' && value === ACTIONS.BRIEF) { return screen('TG_OPEN_BRIEF', B.TG_COPY.TG_OPEN_BRIEF); }
+  if (kind === 'callback' && value === ACTIONS.MEETING) { return screen('TG_MEETING_CONFIRM', B.TG_COPY.TG_MEETING_CONFIRM); }
+  if (kind === 'callback' && value === ACTIONS.MEETING_CONFIRM) {
+    return screen('TG_MEETING_REQUEST', B.TG_COPY.TG_MEETING_REQUEST, { writes: ['meeting_request', 'consent_yes'] });
+  }
 
   if (kind === 'text' && a.awaiting_problem === true) {
     // The free text is stored as the client's own words. Extraction may propose structure, but
@@ -148,7 +156,7 @@ function decide(auth, input) {
   if (kind === 'callback' && value === ACTIONS.RETRY) { return screen('TG_INFRA_FAILURE', B.TG_COPY.TG_INFRA_FAILURE, { retry: true }); }
   if (kind === 'callback' && value === ACTIONS.BACK) { return screen('TG_ENTRY', B.TG_COPY.TG_ENTRY); }
 
-  return screen('TG_ENTRY', B.TG_COPY.TG_ENTRY);
+  return screen('TG_UNKNOWN', B.TG_COPY.TG_UNKNOWN);
 }
 
 // Which fields TG_CONFIRM_CONTEXT may render. A value with no content renders NO label — never
@@ -157,7 +165,7 @@ function confirmContextSections(extracted) {
   const e = extracted || {};
   const labels = B.TG_COPY.TG_CONFIRM_CONTEXT.labels;
   const out = [];
-  for (const key of ['company_name', 'role', 'turnover_band', 'objective', 'problem_summary']) {
+  for (const key of ['company_name', 'business_activity', 'role', 'turnover_band', 'objective', 'problem_summary']) {
     const v = String(e[key] === null || e[key] === undefined ? '' : e[key]).trim();
     if (v) { out.push({ key: key, label: labels[key], value: v }); }
   }

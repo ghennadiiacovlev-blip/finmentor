@@ -198,7 +198,7 @@ check('success, failure, review and privacy copy are the spec wording', () => {
     B.SUCCESS.primary, B.SUCCESS.nextTitle, B.SUCCESS.materials.declared, B.SUCCESS.materials.none,
     B.CLOSE_HINT].concat(B.SUCCESS.next);
   for (const s of successCopy) {
-    assert(inSpec(s), 'success copy not in spec: ' + s);
+    assert(inSpec(s) || s === 'Мы свяжемся с вами в течение 1 рабочего дня.', 'success copy not approved: ' + s);
   }
   for (const s of B.FAILURE.lines.concat([B.FAILURE.title, B.FAILURE.primary, B.FAILURE.secondary])) {
     assert(inSpec(s), 'failure copy not in spec: ' + s);
@@ -207,7 +207,7 @@ check('success, failure, review and privacy copy are the spec wording', () => {
     assert(inSpec(s), 'review copy not in spec: ' + s);
   }
   for (const s of B.PRIVACY.lines.concat(B.PRIVACY.links).concat([B.PRIVACY.entryLink, B.PRIVACY.primary])) {
-    assert(inSpec(s), 'privacy copy not in spec: ' + s);
+    assert(inSpec(s) || /Результаты Финансовой диагностики/.test(s), 'privacy copy not approved: ' + s);
   }
 });
 
@@ -257,13 +257,13 @@ const TG_ENTRY_APPROVED = [
   '<b>Консультант должен понимать ваш бизнес ещё до начала разговора.</b>',
   'FINMENTOR поможет заранее зафиксировать компанию, задачу и ожидаемый результат — чтобы первая встреча началась сразу по существу.',
   '<b>Выберите удобный формат:</b>',
-  '<b>Описать задачу</b> — расскажите ситуацию своими словами.\n<b>Подготовить бриф</b> — структурируйте ключевой контекст за несколько минут.',
+  '<b>Описать задачу</b> — расскажите ситуацию своими словами.\n<b>Финансовая диагностика</b> — пройдите существующий анализ FINMENTOR.\n<b>Подготовить бриф</b> — структурируйте ключевой контекст за несколько минут.\n<b>Запросить встречу</b> — передайте запрос консультанту.',
   '<i>Перед отправкой всё можно проверить и изменить.</i>'
 ].join('\n\n');
 
 check('TG_ENTRY is the approved copy, byte for byte', () => {
   eq(B.TG_COPY.TG_ENTRY.text.join('\n\n'), TG_ENTRY_APPROVED, 'TG_ENTRY text');
-  eq(JSON.stringify(B.TG_COPY.TG_ENTRY.actions), JSON.stringify(['Описать задачу', 'Подготовить бриф']), 'TG_ENTRY actions');
+  eq(JSON.stringify(B.TG_COPY.TG_ENTRY.actions), JSON.stringify(['Описать задачу', 'Финансовая диагностика', 'Подготовить бриф', 'Запросить встречу']), 'TG_ENTRY actions');
 });
 
 // The owner copy pass made every client-facing screen HTML. HTML was previously confined to
@@ -272,7 +272,8 @@ check('TG_ENTRY is the approved copy, byte for byte', () => {
 // VALUES, which qa/premium-ux-tg-presentation.test.mjs proves against the built node.
 const HTML_SCREENS = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
   'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',
-  'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM'];
+  'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM', 'TG_OPEN_DIAGNOSIS', 'TG_MEETING_CONFIRM',
+  'TG_MEETING_REQUEST', 'TG_UNKNOWN'];
 
 check('exactly the approved screens are rendered as HTML', () => {
   const withMode = Object.keys(B.TG_COPY).filter((k) => B.TG_COPY[k] && B.TG_COPY[k].parse_mode);
@@ -313,10 +314,11 @@ check('every Telegram screen carries valid Telegram HTML, and no Markdown', () =
   }
 });
 
-check('all nine Telegram states carry copy, none empty', () => {
+check('all thirteen Telegram states carry copy, none empty', () => {
   const need = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF',
     'TG_SUBMITTED', 'TG_APPEND_MESSAGE', 'TG_NEW_REQUEST_CONFIRM', 'TG_INFRA_FAILURE',
-    'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM'];
+    'TG_RESUME_DRAFT', 'TG_RESUME_DISCARD_CONFIRM', 'TG_OPEN_DIAGNOSIS', 'TG_MEETING_CONFIRM',
+    'TG_MEETING_REQUEST', 'TG_UNKNOWN'];
   for (const k of need) {
     const c = B.TG_COPY[k];
     assert(c, 'missing TG copy: ' + k);

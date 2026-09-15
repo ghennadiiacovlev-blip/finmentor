@@ -469,8 +469,9 @@ function shownSections(normalised, turnoverBand) {
   const f = (normalised && normalised.fields) || {};
   const objective = f.objective ? (B.objectiveById(f.objective) || {}).label : '';
   return B.TG_COPY && B.TG_COPY.TG_CONFIRM_CONTEXT
-    ? require('./tg-state-machine.js').confirmContextSections({
+      ? require('./tg-state-machine.js').confirmContextSections({
         company_name: f.company_name || '',
+        business_activity: f.business_activity || '',
         role: f.role || '',
         // Never inferred (see the header). Carried only if the client already answered it.
         turnover_band: str(turnoverBand),

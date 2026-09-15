@@ -118,24 +118,27 @@
   // bootstrap, never the authority.
   function carryFromTelegram() {
     var u = tgUser();
-    if (u && u.first_name) { set('contact_name', u.first_name, 'telegram_carried', true); }
+    if (!u || settled('contact_name')) { return; }
+    var full = [u.first_name, u.last_name].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+    if (full) { set('contact_name', full, 'telegram_carried', true); }
   }
 
   // ---------------------------------------------------------------- flow
-  var FLOW = ['APP_COMPANY', 'APP_ROLE', 'APP_SCALE', 'APP_OBJECTIVE', 'APP_PROBLEM',
+  var FLOW = ['APP_COMPANY', 'APP_BUSINESS_ACTIVITY', 'APP_ROLE', 'APP_SCALE', 'APP_OBJECTIVE', 'APP_PROBLEM',
     'APP_DESIRED_OUTCOME', 'APP_CURRENT_SETUP', 'APP_DECISION_HORIZON', 'APP_DOCUMENTS',
     'APP_CONTACT', 'APP_IMPORTANT_CONTEXT', 'APP_REVIEW'];
   var STAGE_OF = {
     // Three states outside the ladder, and outside the stage strip.
     APP_STARTING: -1, APP_BOOT_FAILURE: -1, APP_SESSION_EXPIRED: -1, APP_RESUME: -1,
-    APP_BOOTSTRAP: -1, APP_COMPANY: 0, APP_ROLE: 0, APP_SCALE: 0,
+    APP_BOOTSTRAP: -1, APP_COMPANY: 0, APP_BUSINESS_ACTIVITY: 0, APP_ROLE: 0, APP_SCALE: 0,
     APP_OBJECTIVE: 1, APP_PROBLEM: 1, APP_DESIRED_OUTCOME: 1,
     APP_CURRENT_SETUP: 2, APP_DECISION_HORIZON: 2, APP_DOCUMENTS: 2, APP_CONTACT: 2, APP_IMPORTANT_CONTEXT: 2,
     APP_REVIEW: 3, APP_EDIT_SELECTOR: 3, APP_EDIT_FIELD: 3, APP_PRIVACY: 3, APP_SUBMITTING: 3,
     APP_SUCCESS: -1, APP_FAILURE: -1, APP_RESULT: -1
   };
   function requiredFor(state) {
-    if (state === 'APP_COMPANY') { return ['company_name', 'business_activity']; }
+    if (state === 'APP_COMPANY') { return ['company_name']; }
+    if (state === 'APP_BUSINESS_ACTIVITY') { return ['business_activity']; }
     if (state === 'APP_ROLE') { return ['role']; }
     if (state === 'APP_SCALE') { return ['turnover_band']; }
     if (state === 'APP_OBJECTIVE') { return ['objective']; }
@@ -479,7 +482,7 @@
     if (u && u.first_name) {
       carryFromTelegram();
       var sp = el('div'); sp.style.height = '34px'; s.appendChild(sp);
-      s.appendChild(knownRow('Из Telegram', u.first_name, 'спрашивать не будем', null));
+      s.appendChild(knownRow('Из Telegram', [u.first_name, u.last_name].filter(Boolean).join(' '), 'спрашивать не будем', null));
     }
     s.appendChild(grow());
     // «Начать» is reachable only with an authoritative session behind it. There is no UI path
@@ -506,15 +509,29 @@
 
     var wrap = el('div');
     wrap.appendChild(fieldInput('Название', 'company_name', ''));
-    wrap.appendChild(fieldInput('Чем занимается', 'business_activity', 'Например: сеть продуктовых магазинов'));
     s.appendChild(wrap);
 
     s.appendChild(grow());
-    var next = btn('Продолжить', function () { advance(); }, null, !(settled('company_name') && settled('business_activity')));
+    var next = btn('Продолжить', function () { advance(); }, null, !settled('company_name'));
     s.appendChild(actions(next));
     wrap.addEventListener('input', function () {
-      next.disabled = !(settled('company_name') && settled('business_activity'));
+      next.disabled = !settled('company_name');
     });
+    return s;
+  }
+
+  function scrBusinessActivity() {
+    var s = screen();
+    s.appendChild(title(C.COMPANY_ACTIVITY_SCREEN.title));
+    s.appendChild(lead(C.COMPANY_ACTIVITY_SCREEN.lead));
+    var sp = el('div'); sp.style.height = '32px'; s.appendChild(sp);
+    var wrap = el('div');
+    wrap.appendChild(fieldInput('Чем занимается', 'business_activity', 'Например: сеть продуктовых магазинов'));
+    s.appendChild(wrap);
+    s.appendChild(grow());
+    var next = btn('Продолжить', function () { advance(); }, null, !settled('business_activity'));
+    s.appendChild(actions(next));
+    wrap.addEventListener('input', function () { next.disabled = !settled('business_activity'); });
     return s;
   }
 
@@ -923,7 +940,7 @@
   }
 
   var EDIT_TARGET = {
-    company_name: 'APP_COMPANY', role: 'APP_ROLE', turnover_band: 'APP_SCALE',
+    company_name: 'APP_COMPANY', business_activity: 'APP_BUSINESS_ACTIVITY', role: 'APP_ROLE', turnover_band: 'APP_SCALE',
     objective: 'APP_OBJECTIVE', problem: 'APP_PROBLEM', desired_outcome: 'APP_DESIRED_OUTCOME',
     current_setup: 'APP_CURRENT_SETUP', decision_horizon: 'APP_DECISION_HORIZON',
     documents: 'APP_DOCUMENTS', contact_channel: 'APP_CONTACT', important_context: 'APP_IMPORTANT_CONTEXT'
@@ -1397,7 +1414,7 @@
   var SCREENS = {
     APP_STARTING: scrStarting, APP_BOOT_FAILURE: scrBootFailure, APP_SESSION_EXPIRED: scrSessionExpired,
     APP_RESUME: scrResume,
-    APP_BOOTSTRAP: scrEntry, APP_COMPANY: scrCompany, APP_ROLE: scrRole, APP_SCALE: scrScale,
+    APP_BOOTSTRAP: scrEntry, APP_COMPANY: scrCompany, APP_BUSINESS_ACTIVITY: scrBusinessActivity, APP_ROLE: scrRole, APP_SCALE: scrScale,
     APP_OBJECTIVE: scrObjective, APP_PROBLEM: scrProblem, APP_DESIRED_OUTCOME: scrOutcome,
     APP_CURRENT_SETUP: scrSetup, APP_DECISION_HORIZON: scrHorizon, APP_DOCUMENTS: scrDocuments,
     APP_CONTACT: scrContact, APP_IMPORTANT_CONTEXT: scrImportant, APP_REVIEW: scrReview,

@@ -67,7 +67,7 @@ await check('RU_SCORE — kicker, title, hero «47 / 100», zone once, maturity 
   const h = await render(RESULT_RU_SCORE);
   const t = screenText(h);
   const ks = kickers(h);
-  eq(ks[0], 'Финансовый рентген бизнеса', 'the first kicker is the server product label');
+  eq(ks[0], 'Финансовая диагностика', 'the first kicker is the server product label');
   assert(nodes(h, 'xr-heading').length === 1 && nodes(h, 'xr-heading')[0].textContent === 'Результат анализа', 'the title');
   eq(nodes(h, 'xr-hero').length, 1, 'one hero');
   eq(nodeTexts(h, 'xr-score-num')[0], '47', 'the score numeral');
@@ -197,7 +197,7 @@ await check('OPTIONAL_SECTIONS — no tomorrow, no recommendation, no maturity: 
   eq(metrics.join(' | '), 'Финансовое состояние: Оранжевая зона', 'the maturity metric rendered without maturity');
   assert(!all(h.main).some((n) => n.className && /xr-|kicker|quiet|xr-para/.test(n.className) && n.textContent === '' && n.children.length === 0), 'an empty text node rendered');
   // Labels the server did not send leave the content unlabelled rather than printing a blank.
-  const noLabels = await render(Object.assign({}, RESULT_RU_SCORE, { labels: { product: 'Финансовый рентген бизнеса' } }));
+  const noLabels = await render(Object.assign({}, RESULT_RU_SCORE, { labels: { product: 'Финансовая диагностика' } }));
   assert(kickers(noLabels).every((k) => k && k.trim()), 'a missing server label rendered as an empty kicker');
   eq(nodes(noLabels, 'xr-risks').length, 1, 'the risks still render without a label');
 });

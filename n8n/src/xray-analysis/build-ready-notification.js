@@ -13,7 +13,7 @@ brief.client_result_eligible = row.client_result_eligible === true;
 const prepared = LI_NOTIFY.clientNotification({
   row: Object.assign({}, row, { review_status: 'CLIENT_READY' }),
   brief,
-  client_result_url: '__PREMIUM_MINIAPP_URL__'
+  client_result_url: 'https://ghennadi.app.n8n.cloud/webhook/finmentor-premium-miniapp'
 });
 return [{ json: {
   auto_send: prepared.eligible === true,
