@@ -184,7 +184,7 @@ check('failed analysis retry is due once, in place, and stops after attempt thre
   const pipeline = [{ lead_id: 'FIN-RETRY', priority: 'HOT', status: 'Qualified', created_at: '2020-01-01T00:00:00Z' }];
   const select = (attempt) => runCode(sources.selectPending, {
     'Settings to Object': [{ settings }], 'Read Pipeline': pipeline,
-    'Read XRay_Analysis': [{ analysis_id: 'XA-RETRY', lead_id: 'FIN-RETRY', review_status: 'ANALYSIS_FAILED',
+    'Read XRay_Analysis': [{ analysis_id: 'XA-RETRY', lead_id: 'FIN-RETRY', review_status: 'ANALYSIS_FAILED', model: 'gpt-4.1',
       validation_errors: 'UPSTREAM_RATE_LIMIT|ATTEMPT=' + attempt + '|MAX=3|NEXT=2020-01-01T00:00:00Z' }]
   });
   assert(select(2).length === 1 && select(2)[0].json.analysis_mode === 'RETRY_FAILED', 'attempt two not retried');

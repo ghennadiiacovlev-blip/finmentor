@@ -180,7 +180,7 @@ const pipeline = [
   check('pending: INCOMPLETE (no consent) never analysed', !ids.includes('L-3'));
   check('pending: leads before xray_analysis_since excluded', !ids.includes('L-old'));
   check('pending: capped at xray_max_per_run, oldest first', ids.join(',') === 'L-2,L-4,L-5', ids.join(','));
-  const failedRow = { analysis_id: 'XA-L1-F', lead_id: 'L-1', review_status: 'ANALYSIS_FAILED',
+  const failedRow = { analysis_id: 'XA-L1-F', lead_id: 'L-1', review_status: 'ANALYSIS_FAILED', model: 'gpt-4.1',
     validation_errors: 'UPSTREAM_RATE_LIMIT|ATTEMPT=1|MAX=3|NEXT=2026-09-02T10:05:00.000Z' };
   const failedLedger = runNode(read('select-pending.js'), { input: [failedRow], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
   const retry = failedLedger.find(i => i.json.lead_id === 'L-1');

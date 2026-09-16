@@ -11,6 +11,7 @@ Repair agent: Claude (sole authority for the pass, continuing the accepted foren
 | Lead Intake `QmIyEW2ZEqKregmN` | `82f2e933` (re-stamped `33817470` by the rolled-back first attempt) → **`108640f1-654e-4258-8e47-678398a12f77`** at 16:16 local | 4 nodes: `Save Lead to CRM`, `Build C3 Intelligence Request`, `Run Owner Intelligence (C3)`, `Route C3 Result Mode` moved from y 688 to y 1424 (below the bottom-most sibling y 1248); `Run Owner Intelligence (C3)` `waitForSubWorkflow:false`, `onError:continueRegularOutput`. **0 connection changes**, credentials/webhooks/settings unchanged. | `scripts/deploy-v1-submit-return-contract.mjs --verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-submit-return-contract/deploy-2026-09-16T13-16-40-466Z/` |
 | X-Ray Analysis `tNSMRoKlFB52vjge` | `8d1bdc66` → **`bd40bf86-cc0d-4efc-b0a3-b48c6c0e2f58`** at 16:31 local | `parameters.jsCode` of `Select Pending Leads`, `Analysis Failed Row`, `Validate + Store Rows` replaced from tracked sources. Graph, credentials, schedule (`0,30 8-19 * * 1-5`), OpenAI node (model expression, `maxTries 2`, `waitBetweenTries 3000`), Sheets nodes unchanged. | `scripts/deploy-v1-xray-retry-contract.mjs --verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-xray-retry-contract/deploy-2026-09-16T13-31-13-656Z/` |
 | X-Ray Analysis `tNSMRoKlFB52vjge` (second pass) | `bd40bf86` → **`33358ab5-aa92-4112-a8b5-ac157c035562`** at 17:13 local | `parameters.jsCode` of `Analysis Failed Row`, `Validate + Store Rows`, `Build Analysis Input` (see §3a: output↔input pairing and legacy-retry pairing). Everything else identical to the accepted baseline. | `--verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-xray-retry-contract/deploy-2026-09-16T14-13-36-784Z/` |
+| X-Ray Analysis `tNSMRoKlFB52vjge` (third pass) | `33358ab5` → **`f4cdcd52-2513-4ef0-ba77-dc2540f2c50f`** at 17:35 local | `parameters.jsCode` of `Select Pending Leads` only: a failed ledger row with an empty `model` (never a model attempt — the misattributed rows, or a lead with no Leads archive row) is inert and never retried, so a legacy lead cannot produce an owner audit message on every sweep (§3a). | `--verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-xray-retry-contract/deploy-2026-09-16T14-35-32-938Z/` |
 | Concierge `mppzthlkSJFr6Kle` | `5cfe9515` (14:12 local, earlier Codex pass) | free text → `company_name` P0 correction; unchanged in this pass | live == `.uat/p0-new-request-context/deploy-…/…post.json`; now reconciled into the repository |
 
 Note on the first Lead Intake attempt (16:13 local): the PUT succeeded, but the byte-exact read-back
@@ -91,10 +92,19 @@ Correction (X-Ray version `33358ab5`, three Code bodies, no graph change):
   always did, so it is analysed (and bounded at three attempts) instead of producing an owner audit
   message on every sweep for ever.
 
-Gate: `qa/v1-xray-retry-contract.test.mjs` now 19 checks (misattribution reproduced and refused,
-pairedItem honoured on split batches, legacy vs submission retry pairing). The misattributed rows
-`XA-TG-…-MU3MTQ8J-F` / `-MU46477P-F` are left in place as evidence; they are ANALYSIS_FAILED rows of
-a lead whose newest row will be retried and bounded like any other.
+Gate: `qa/v1-xray-retry-contract.test.mjs` now 20 checks (misattribution reproduced and refused,
+pairedItem honoured on split batches, legacy vs submission retry pairing, inert model-less rows).
+
+Verified on the 17:30 local sweep (first on the corrected pairing): the 15:26 request's own row
+`XA-FIN-1789469658573-427-MU42RKBD-F` advanced **in place** to ATTEMPT=2 (429 again, NEXT 18:00:19
+local), history preserved; zero new ledger rows; no error-monitor or System-Alert execution.
+
+Residual found on that sweep and closed at 17:35 local (X-Ray `f4cdcd52`): the legacy concierge
+lead `TG-1636472252-1789130138995` has **no Leads archive row at all**, so any retry of it can only
+end as an owner audit message («Анализ пропущен»), on every tick, for ever. Its ledger rows never
+reached the model (empty `model`); such rows are now inert in `Select Pending Leads` and are left in
+place as evidence. A lead without an archived source cannot be analysed by design; the owner holds
+its original WARM alert.
 
 ## 4. QA
 
@@ -104,7 +114,7 @@ a lead whose newest row will be retried and bounded like any other.
 | `qa/v1-xray-retry-contract.test.mjs` (new) | 19 — legacy rule reproduced; output↔input pairing (§3a) reproduced and refused; legacy vs submission retry pairing; multi-row lead retries the exact newest failed request with its own `request_id`; exhausted/published rows never selected; same-request success ends retries; newest success wins; bounded at attempt 3; NEXT respected; ambiguity fails closed; unrelated historic request never selected; single-row behaviour unchanged; retry does not re-alert; copy ↔ `retry_possible`/`retry_exhausted` truth; validation path carries the same truth; patcher exact and idempotent |
 | existing | Concierge free-text→company gates (Codex pass) green; RO/RU presentation, X-Ray engine (219), owner cards golden (27), launch-blocker (19), RO UAT (11), System Alert (44) unchanged and green |
 
-Full suite: **98/98 gates, 3,565 assertions, floors PASS** (baseline raised 3524 → 3565).
+Full suite: **98/98 gates, 3,566 assertions, floors PASS** (baseline raised 3524 → 3566).
 Generated artifacts rebuilt and reproduced byte-for-byte: `n8n/candidate/xray-analysis-workflow.sdk.js`,
 `n8n/candidate/premium-concierge-candidate.json`. `git diff --check` PASS; secret scan of changed and
 untracked files PASS.

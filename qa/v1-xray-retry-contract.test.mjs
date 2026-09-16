@@ -48,7 +48,7 @@ const PAST = '2020-01-01T00:00:00.000Z';
 const pipeline = [{ lead_id: 'FIN-CANON', request_id: 'fmr_' + 'a'.repeat(32), priority: 'HOT', status: 'Qualified', created_at: '2026-09-15T10:54:14.685Z', xray_analysis_id: 'XA-OLD-F', xray_analysis_status: 'ANALYSIS_FAILED' }];
 const failedRow = (analysisId, requestId, createdAt, attempt, extra = {}) => ({
   analysis_id: analysisId, lead_id: 'FIN-CANON', request_id: requestId, created_at: createdAt,
-  review_status: 'ANALYSIS_FAILED', analysis_json: '', owner_brief_json: '',
+  review_status: 'ANALYSIS_FAILED', analysis_json: '', owner_brief_json: '', model: 'gpt-4.1',
   validation_errors: 'UPSTREAM_RATE_LIMIT|ATTEMPT=' + attempt + '|MAX=3|NEXT=' + PAST + '|ERROR=The service is receiving too many requests from you',
   ...extra
 });
@@ -119,6 +119,15 @@ check('retry waits for NEXT and fails closed on an ambiguous newest row', () => 
 check('the schedule sweep cannot select an unrelated historic request of the same lead', () => {
   const out = select([OLD_EXHAUSTED, successRow('XA-PUB', 'fmr_' + 'c'.repeat(32), '2026-09-04T05:11:08.465Z'), NEW_FAILED]);
   eq(out.map((item) => item.json.request_id), ['sub_' + 'b'.repeat(32)], 'request identities selected');
+});
+
+check('a failed row that never reached the model (empty model) is inert: no per-sweep audit loop', () => {
+  const ghost = failedRow('XA-TG-GHOST-F', 'C-1-2', '2026-09-16T14:00:18.565Z', 1, { lead_id: 'TG-LEGACY', model: '' });
+  const tgPipeline = [{ lead_id: 'TG-LEGACY', request_id: '', priority: 'WARM', status: 'New', created_at: '2026-09-11T12:35:38.994Z' }];
+  eq(select([ghost], tgPipeline), [], 'ghost row retried');
+  eq(select([ghost, { ...ghost, analysis_id: 'XA-TG-GHOST-2-F', created_at: '2026-09-16T05:00:17.297Z' }], tgPipeline), [], 'ghost rows retried');
+  const real = { ...ghost, analysis_id: 'XA-TG-REAL-F', created_at: '2026-09-16T15:00:00.000Z', model: 'gpt-4.1' };
+  eq(select([ghost, real], tgPipeline).length, 1, 'a real newest failure is still retried');
 });
 
 check('single-row leads keep the exact previous behaviour (identity of the ledger row preserved)', () => {
