@@ -9,11 +9,45 @@ import {
 } from '../scripts/lib/v1-ro-uat-correction.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const load = (relative) => JSON.parse(readFileSync(join(ROOT, relative), 'utf8'));
 const sources = readCorrectionSources(ROOT);
-const intakeBase = load('.uat/v1-ro-uat-p0p1/pre/QmIyEW2ZEqKregmN.json');
-const xrayBase = load('.uat/v1-ro-uat-p0p1/pre/tNSMRoKlFB52vjge.json');
-const commandBase = load('.uat/v1-ro-uat-p0p1/pre/qF9tonlHHIxc8MDd.json');
+const link = (name) => ({ node: name, type: 'main', index: 0 });
+const codeNode = (name, position = [0, 0]) => ({ name, type: 'n8n-nodes-base.code', position, parameters: { jsCode: '// fixture' } });
+
+// These deliberately small, tracked fixtures exercise the correction's exact graph anchors and
+// protected surfaces. Production snapshots remain untracked because they can contain live data.
+const intakeBase = {
+  name: 'Lead Intake correction fixture',
+  nodes: [
+    { name: 'Internal Ingress', type: 'n8n-nodes-base.webhook', parameters: { path: 'fixture-intake' }, credentials: { headerAuth: { id: 'fixture', name: 'fixture' } } },
+    codeNode('IF Committed (Merge)'), codeNode('Internal Result (Merge)'), codeNode('Internal Result (Unresolved)'),
+    codeNode('Restore Lead Context (Merged)'), codeNode('Save Lead to CRM'), codeNode('Build C3 Intelligence Request'),
+    codeNode('Run Owner Intelligence (C3)', [100, 200]), codeNode('Internal Result (New)')
+  ],
+  connections: {
+    'IF Committed (Merge)': { main: [[link('Internal Result (Merge)')], [link('Internal Result (Unresolved)')]] },
+    'Restore Lead Context (Merged)': { main: [[link('Save Lead to CRM')]] },
+    'Save Lead to CRM': { main: [[link('Build C3 Intelligence Request')]] },
+    'Run Owner Intelligence (C3)': { main: [[link('Internal Result (New)')]] }
+  }
+};
+const xrayBase = {
+  name: 'X-Ray correction fixture',
+  nodes: [
+    { name: 'Scheduled Analysis', type: 'n8n-nodes-base.scheduleTrigger', parameters: { rule: { interval: [{ field: 'minutes', minutesInterval: 30 }] } } },
+    codeNode('Validate C3 Lead Target'), codeNode('Select Pending Leads'), codeNode('Build Analysis Input'),
+    codeNode('Validate + Store Rows'), codeNode('Analysis Failed Row'),
+    { name: 'Telegram Owner Alert', type: 'n8n-nodes-base.telegram', parameters: {}, credentials: { telegramApi: { id: 'fixture', name: 'fixture' } } }
+  ],
+  connections: {}
+};
+const commandBase = {
+  name: 'Command Center correction fixture',
+  nodes: [
+    { name: 'Owner Commands', type: 'n8n-nodes-base.telegramTrigger', parameters: { updates: ['callback_query'] }, credentials: { telegramApi: { id: 'fixture', name: 'fixture' } } },
+    codeNode('Render Pre-Call Brief')
+  ],
+  connections: {}
+};
 const intake = patchIntake(intakeBase, sources);
 const xray = patchXray(xrayBase, sources);
 const command = patchCommand(commandBase, sources);
