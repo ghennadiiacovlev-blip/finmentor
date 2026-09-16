@@ -8,6 +8,10 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CONTEXT_PROJECTION_WITH_LOCALE } from './deploy-c3-concierge-cycle.mjs';
+import {
+  buildIntakeTransportCode,
+  buildRecoveryRequestCode
+} from './lib/customer-terminal-presentation.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 function argValue(name, fallback) {
@@ -29,7 +33,7 @@ const IDS = {
 };
 
 const ALLOWED = {
-  [IDS.concierge]: ['Build Bot Response', 'Build Bot Response (Premium)', 'Prepare Cycle Projection', 'Build Intake Transport Request'],
+  [IDS.concierge]: ['Build Bot Response', 'Build Bot Response (Premium)', 'Prepare Cycle Projection', 'Build Intake Transport Request', 'Build Recovery Request'],
   [IDS.host]: ['Serve Page'],
   [IDS.gateway]: ['Build App Session'],
   [IDS.intake]: ['Build Premium Telegram Brief', 'Build Warm Telegram Alert', 'Build Incomplete Telegram Alert', 'Build Short AI Telegram'],
@@ -90,19 +94,8 @@ function buildConcierge(workflow) {
   projection = projection.split(resetExpr).join('cycle_reset: projectionValue');
   setCode(workflow, 'Prepare Cycle Projection', projection);
 
-  let confirmation = node(workflow, 'Build Intake Transport Request').parameters.jsCode;
-  confirmation = replaceOnce(confirmation,
-    "const ok = intake ? intake.intake_ok === true : String(persisted.lead_id || '') !== '';",
-    "const ok = intake ? intake.intake_ok === true : String(persisted.lead_id || '') !== '';\n" +
-    "const isMeeting = !!(b.lead_payload && b.lead_payload.meta && b.lead_payload.meta.request_type === 'meeting_request');",
-    'Meeting confirmation discriminator');
-  const oldSuccess = "const successText = 'Спасибо. Я передал ваш запрос эксперту FINMENTOR.\\n\\n' + 'Мы посмотрим контекст и вернёмся с подходящим первым шагом: Financial X-Ray, встреча или список данных для первичного анализа.\\n\\n' + 'Ничего дополнительно делать сейчас не нужно.';";
-  const newSuccess = "const successText = isMeeting\n  ? 'Запрос на встречу принят.\\n\\nМы свяжемся с вами, чтобы согласовать удобное время.\\n\\nМы свяжемся с вами в течение 1 рабочего дня.'\n  : 'Спасибо. Ваш запрос передан эксперту FINMENTOR.\\n\\nМы свяжемся с вами в течение 1 рабочего дня.';";
-  confirmation = replaceOnce(confirmation, oldSuccess, newSuccess, 'Meeting success copy');
-  const oldFail = "const failText = 'Спасибо. Я зафиксировал ваш запрос.\\n\\n' + 'Мы проверим детали и вернёмся к вам в этом чате или по указанному контакту.';";
-  const newFail = "const failText = isMeeting\n  ? 'Не удалось зарегистрировать запрос на встречу.\\n\\nЗапрос не считается принятым. Вернитесь в главное меню и повторите действие.'\n  : 'Не удалось передать запрос консультанту.\\n\\nОбращение не считается принятым. Вернитесь в главное меню и повторите действие.';";
-  confirmation = replaceOnce(confirmation, oldFail, newFail, 'Meeting failure copy');
-  setCode(workflow, 'Build Intake Transport Request', confirmation);
+  setCode(workflow, 'Build Intake Transport Request', buildIntakeTransportCode({ premiumAware: true }));
+  setCode(workflow, 'Build Recovery Request', buildRecoveryRequestCode({ premiumAware: true }));
 }
 
 function buildHost(workflow) {

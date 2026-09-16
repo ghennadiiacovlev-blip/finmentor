@@ -23,7 +23,7 @@ const IDS = {
   systemAlert: 'ID700kTo6EXffwry', errorMonitor: 'RBiFLhVjizMkAzrK'
 };
 const ALLOWED = {
-  [IDS.concierge]: ['Build Bot Response', 'Build Bot Response (Premium)', 'Prepare Cycle Projection', 'Build Intake Transport Request'],
+  [IDS.concierge]: ['Build Bot Response', 'Build Bot Response (Premium)', 'Prepare Cycle Projection', 'Build Intake Transport Request', 'Build Recovery Request'],
   [IDS.host]: ['Serve Page'], [IDS.gateway]: ['Build App Session'],
   [IDS.intake]: ['Build Premium Telegram Brief', 'Build Warm Telegram Alert', 'Build Incomplete Telegram Alert', 'Build Short AI Telegram'],
   [IDS.xray]: ['Analysis Failed Row', 'Validate + Store Rows', 'Render Review Surface', 'Review POST Verdict', 'Build Curated Client Result', 'Build Client Ready Notification', 'Complete Client Ready Notification', 'Complete Outbound Contact'],

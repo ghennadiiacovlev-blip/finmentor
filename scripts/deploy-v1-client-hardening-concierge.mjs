@@ -4,10 +4,11 @@
 //   node scripts/deploy-v1-client-hardening-concierge.mjs --dry-run
 //   node scripts/deploy-v1-client-hardening-concierge.mjs --confirm
 //
-// Exactly five existing Code-node bodies may change:
+// Exactly seven existing Code-node bodies may change:
 //   - both session resolvers receive the one-time explicit language selector;
 //   - both response builders receive the tracked bilingual customer renderer;
 //   - the cycle projection carries the persisted locale into the Mini App seed.
+//   - the two terminal/recovery renderers preserve that locale after a customer action.
 // Nodes, edges, settings, credentials, webhook identity and workflow activation are preserved.
 
 import { createHash } from 'node:crypto';
@@ -19,6 +20,10 @@ import {
   CONTEXT_PROJECTION_LEGACY,
   CONTEXT_PROJECTION_WITH_LOCALE
 } from './deploy-c3-concierge-cycle.mjs';
+import {
+  buildIntakeTransportCode,
+  buildRecoveryRequestCode
+} from './lib/customer-terminal-presentation.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = process.env.UAT_ARTIFACT_DIR || join(ROOT, '.uat', 'v1-client-hardening');
@@ -27,7 +32,9 @@ const SOURCE = join(ROOT, 'n8n', 'candidate', 'premium-concierge-candidate.json'
 const SESSION_NODES = ['Get Bot Session', 'Get Bot Session (Premium)'];
 const RESPONSE_NODES = ['Build Bot Response', 'Build Bot Response (Premium)'];
 const PROJECTION_NODE = 'Prepare Cycle Projection';
-export const ALLOWED_NODES = [...SESSION_NODES, ...RESPONSE_NODES, PROJECTION_NODE];
+const TERMINAL_NODE = 'Build Intake Transport Request';
+const RECOVERY_NODE = 'Build Recovery Request';
+export const ALLOWED_NODES = [...SESSION_NODES, ...RESPONSE_NODES, PROJECTION_NODE, TERMINAL_NODE, RECOVERY_NODE];
 const START_MARKER = '// ============ P1-01';
 const END_MARKER = '// ============ end P1-01 ============';
 
@@ -119,6 +126,12 @@ export function prepareConcierge(live, tracked) {
         projection.parameters.jsCode = code.replace(CONTEXT_PROJECTION_LEGACY, CONTEXT_PROJECTION_WITH_LOCALE);
       } else failures.push(PROJECTION_NODE + ': contextProjection anchor is not exactly one known version');
     }
+    const terminal = node(out, TERMINAL_NODE);
+    const recovery = node(out, RECOVERY_NODE);
+    if (!terminal) failures.push('missing live node: ' + TERMINAL_NODE);
+    else terminal.parameters.jsCode = buildIntakeTransportCode({ premiumAware: true });
+    if (!recovery) failures.push('missing live node: ' + RECOVERY_NODE);
+    else recovery.parameters.jsCode = buildRecoveryRequestCode({ premiumAware: true });
   }
 
   if (!failures.length) {
@@ -145,6 +158,11 @@ export function prepareConcierge(live, tracked) {
       if (!blob.includes(token)) failures.push('prepared workflow lacks ' + token);
     }
     if (blob.includes('callback_data: "p|lang"')) failures.push('unmapped five-button language control returned');
+    for (const token of ['Solicitarea pentru întâlnire a fost înregistrată', 'Meniul principal', 'normalizeLocale(b.session && b.session.language)']) {
+      if (!blob.includes(token)) failures.push('prepared terminal surface lacks ' + token);
+    }
+    const terminalBlob = [TERMINAL_NODE, RECOVERY_NODE].map((name) => String(node(out, name).parameters.jsCode || '')).join('\n');
+    if (/telegramLanguageCode|p\.language/.test(terminalBlob)) failures.push('terminal surface re-detects locale from Telegram');
   }
   return { out, failures };
 }

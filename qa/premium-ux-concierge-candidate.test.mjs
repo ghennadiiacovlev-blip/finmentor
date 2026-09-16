@@ -490,11 +490,11 @@ check('the P9-R2 flag pair is absent from every node', () => {
 
 check('the conversation is SPLICED — no node added, none removed, no edge moved', () => {
   // P1-01. The premium conversation used to be three ADDED nodes behind an owner gate. It is now
-  // the two live nodes themselves, because thirteen downstream nodes read `$('Build Bot Response')`
+  // the existing live nodes themselves, because thirteen downstream nodes read `$('Build Bot Response')`
   // and thirteen read `$('Get Bot Session')` BY NAME: a customer sent down a parallel branch would
   // reach a node whose `$('Build Bot Response')` never ran.
   const live = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
-  const spliced = ['Get Bot Session', 'Build Bot Response'];
+  const spliced = ['Get Bot Session', 'Build Bot Response', 'Build Intake Transport Request', 'Build Recovery Request'];
   eq(wf.nodes.length, live.nodes.length, 'node count');
   for (const n of wf.nodes) {
     const was = live.nodes.find((x) => x.name === n.name);
@@ -562,8 +562,8 @@ check('the /start clean-cycle boundary is executable for EVERY customer', () => 
 check('no owner identity decides anything on the customer path', () => {
   // Making the conversation reachable by customers must not hand a customer one byte of owner
   // authority. The Concierge holds no owner control at all — `Hot Path Config` deliberately stops
-  // emitting owner_chat_id — and the two spliced nodes must not reintroduce one.
-  for (const name of ['Get Bot Session', 'Build Bot Response']) {
+  // emitting owner_chat_id — and the four spliced nodes must not reintroduce one.
+  for (const name of ['Get Bot Session', 'Build Bot Response', 'Build Intake Transport Request', 'Build Recovery Request']) {
     const n = wf.nodes.find((x) => x.name === name);
     const exec = n.parameters.jsCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
     assert(!/owner_chat_id|owner_id|is_owner|isOwner/.test(exec), name + ' reads an owner identity');
@@ -617,10 +617,10 @@ check('the set of workflows the Concierge calls is unchanged', () => {
   eq(now.join(','), was.join(','), 'the set of called workflows changed');
 });
 
-check('the two spliced nodes embed no Telegram id', () => {
+check('the four spliced nodes embed no Telegram id', () => {
   // Scoped to what this delta introduced. The rest of the artifact is the live workflow verbatim,
   // and the long numbers in it are spreadsheet gids and timestamps that were already there.
-  for (const name of ['Get Bot Session', 'Build Bot Response']) {
+  for (const name of ['Get Bot Session', 'Build Bot Response', 'Build Intake Transport Request', 'Build Recovery Request']) {
     const n = wf.nodes.find((x) => x.name === name);
     const hits = (JSON.stringify(n).match(/\b\d{7,}\b/g) || []);
     eq(hits.length, 0, name + ' embeds a long numeric id: ' + hits.slice(0, 3).join(', '));

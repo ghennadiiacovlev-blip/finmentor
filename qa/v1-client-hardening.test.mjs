@@ -13,6 +13,7 @@ import {
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const tracked = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-concierge-candidate.json'), 'utf8'));
+const historical = JSON.parse(readFileSync(join(ROOT, 'n8n', 'history', 'mppzthlkSJFr6Kle.pre-premium-ux.json'), 'utf8'));
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const stable = (value) => JSON.stringify(value);
 const node = (workflow, name) => workflow.nodes.find((item) => item.name === name);
@@ -69,13 +70,51 @@ function liveFixture() {
   const projection = projectionInputNode([0, 0]);
   projection.parameters.jsCode = projection.parameters.jsCode.replace(CONTEXT_PROJECTION_WITH_LOCALE, CONTEXT_PROJECTION_LEGACY);
   live.nodes.push(projection);
+  for (const name of ['Build Intake Transport Request', 'Build Recovery Request']) {
+    node(live, name).parameters.jsCode = node(historical, name).parameters.jsCode;
+  }
   return live;
+}
+
+function runCode(code, nodes) {
+  const $ = (name) => {
+    const spec = nodes[name] || {};
+    return {
+      isExecuted: spec.executed === true,
+      first: () => ({ json: spec.value || {} })
+    };
+  };
+  return new Function('$', code)($);
+}
+
+function terminalNodes(locale, { ok = true, meeting = true } = {}) {
+  const response = {
+    chat_id: '900000001',
+    session: { language: locale },
+    lead_payload: {
+      client: { language: locale },
+      meta: { request_type: meeting ? 'meeting_request' : 'miniapp_submission' }
+    }
+  };
+  return {
+    'Build Bot Response (Premium)': { executed: true, value: response },
+    'Build Bot Response': { executed: false, value: {} },
+    'Parse Telegram Update': { value: { chat_id: '900000001', is_callback: true, callback_query_id: 'cb-uat', language: locale === 'ro' ? 'ru' : 'ro' } },
+    'Settings to Object': { value: { settings: { website_url: 'https://finmentor.md' } } },
+    'Parse Intake Response': { value: { intake_ok: ok } },
+    'Get Bot Session (Premium)': { executed: true, value: { language: locale, lead_id: ok ? 'L-UAT' : '' } },
+    'Get Bot Session': { executed: false, value: {} }
+  };
+}
+
+function flatButtons(output) {
+  return output.keyboard_data.rows.flat();
 }
 
 console.log('V1 client hardening — bounded Concierge cutover');
 console.log('');
 
-check('the prepared workflow changes exactly the five authorised Code-node bodies', () => {
+check('the prepared workflow changes exactly the seven authorised Code-node bodies', () => {
   const live = liveFixture();
   const result = prepareConcierge(live, tracked);
   eq(result.failures, [], 'preflight failures');
@@ -124,6 +163,58 @@ check('the cycle projection carries only the normalised persisted locale', () =>
   const code = node(out, 'Prepare Cycle Projection').parameters.jsCode;
   assert(code.includes(CONTEXT_PROJECTION_WITH_LOCALE), 'locale projection not installed');
   assert(!code.includes(CONTEXT_PROJECTION_LEGACY), 'locale-blind projection remains');
+});
+
+check('RO meeting acknowledgement and every post-commit button use the current-cycle locale', () => {
+  const out = prepareConcierge(liveFixture(), tracked).out;
+  const code = node(out, 'Build Intake Transport Request').parameters.jsCode;
+  const result = runCode(code, terminalNodes('ro'))[0].json;
+  eq(result.text, '✅ Solicitarea pentru întâlnire a fost înregistrată.\n\nVă vom contacta pentru a stabili o oră convenabilă.\n\nVom reveni în cel mult 1 zi lucrătoare.', 'RO meeting acknowledgement');
+  eq(flatButtons(result).map((button) => button.text), [
+    '📊 Ce să pregătiți pentru analiză',
+    '💼 Serviciile FINMENTOR',
+    '🌐 Deschideți site-ul',
+    '🏠 Meniul principal'
+  ], 'RO terminal labels');
+  eq(flatButtons(result).map((button) => button.callback_data || ('url:' + button.url)), [
+    'm|xray', 'm|services', 'url:https://finmentor.md', 'n|menu'
+  ], 'terminal callback/url contract');
+  assert(!/[\u0400-\u04ff]/.test(result.text + flatButtons(result).map((button) => button.text).join('')), 'RO terminal contains Cyrillic');
+  assert(!/telegramLanguageCode|p\.language/.test(code), 'terminal re-detects language from Telegram');
+});
+
+check('RU meeting acknowledgement remains Russian with the same transport contract', () => {
+  const out = prepareConcierge(liveFixture(), tracked).out;
+  const result = runCode(node(out, 'Build Intake Transport Request').parameters.jsCode, terminalNodes('ru'))[0].json;
+  assert(result.text.includes('Запрос на встречу принят.'), 'RU meeting acknowledgement missing');
+  assert(result.text.includes('в течение 1 рабочего дня'), 'RU response window missing');
+  eq(flatButtons(result).map((button) => button.text), [
+    '📊 Что подготовить к разбору',
+    '💼 Услуги FINMENTOR',
+    '🌐 Открыть сайт',
+    '🏠 Главное меню'
+  ], 'RU terminal labels');
+  eq(result.keyboard_layout_id, 'L4_CCUC', 'success layout');
+});
+
+check('RO generic, failure and controlled-recovery terminal surfaces contain no Cyrillic', () => {
+  const out = prepareConcierge(liveFixture(), tracked).out;
+  const terminalCode = node(out, 'Build Intake Transport Request').parameters.jsCode;
+  for (const options of [{ ok: true, meeting: false }, { ok: false, meeting: true }, { ok: false, meeting: false }]) {
+    const result = runCode(terminalCode, terminalNodes('ro', options))[0].json;
+    const visible = result.text + flatButtons(result).map((button) => button.text).join('');
+    assert(!/[\u0400-\u04ff]/.test(visible), 'RO terminal variant contains Cyrillic: ' + stable(options));
+  }
+  const recoveryCode = node(out, 'Build Recovery Request').parameters.jsCode;
+  const recoveryNodes = terminalNodes('ro');
+  recoveryNodes['Build Transport Request'] = { value: { chat_id: '900000001', correlation_id: 'cb:uat' } };
+  const recovery = runCode(recoveryCode, recoveryNodes)[0].json;
+  assert(!/[\u0400-\u04ff]/.test(recovery.text + flatButtons(recovery).map((button) => button.text).join('')), 'RO recovery contains Cyrillic');
+  eq(flatButtons(recovery).map((button) => button.callback_data), ['n|menu'], 'recovery callback contract');
+  const ruNodes = terminalNodes('ru');
+  ruNodes['Build Transport Request'] = recoveryNodes['Build Transport Request'];
+  const ruRecovery = runCode(recoveryCode, ruNodes)[0].json;
+  assert(ruRecovery.text.includes('Не удалось корректно отобразить этот шаг.'), 'RU recovery changed meaning');
 });
 
 check('an unknown session-locale block is refused instead of spliced blindly', () => {

@@ -6,7 +6,7 @@
 // REPO-ONLY. Emits n8n/candidate/premium-concierge-candidate.json and never contacts n8n.
 // It is a CANDIDATE, not a deployment.
 //
-// IT SPLICES TWO NODE BODIES. It adds no node, removes none, and moves no edge.
+// IT SPLICES FOUR NODE BODIES. It adds no node, removes none, and moves no edge.
 //
 // The live Concierge is 51 nodes and serves real customers. Almost all of those nodes are the
 // SPINE: session read, the issuance gate, receipt preallocation and readback, the authority re-read
@@ -48,6 +48,10 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import {
+  buildIntakeTransportCode,
+  buildRecoveryRequestCode
+} from './lib/customer-terminal-presentation.mjs';
 import crypto from 'node:crypto';
 
 const require = createRequire(import.meta.url);
@@ -669,11 +673,13 @@ const fail = [];
 
 const CUSTOMER_SESSION = 'Get Bot Session';
 const CUSTOMER_RESPONSE = RESPONSE_NODE;
+const CUSTOMER_TERMINAL = 'Build Intake Transport Request';
+const CUSTOMER_RECOVERY = 'Build Recovery Request';
 const ANCHOR_IN = 'Find Session';
 const ANCHOR_OUT = 'Build Transport Request';
 const RETIRED_NODES = ['Premium Owner Gate', 'Get Bot Session (Premium)', 'Build Bot Response (Premium)'];
 
-for (const n of [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, ANCHOR_OUT]) {
+for (const n of [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, CUSTOMER_TERMINAL, CUSTOMER_RECOVERY, ANCHOR_OUT]) {
   if (!candidate.nodes.find((x) => x.name === n)) { fail.push('missing anchor node: ' + n); }
 }
 
@@ -774,22 +780,26 @@ if (legacySession) {
 
 // ------------------------------------------------------------------ splice
 //
-// TWO NODE BODIES CHANGE. Nothing else in the workflow does: no node is added, no node is removed,
+// FOUR NODE BODIES CHANGE. Nothing else in the workflow does: no node is added, no node is removed,
 // no edge moves, and no other node's parameters differ by a byte from the live export.
 if (!fail.length) {
   const sessionNode = candidate.nodes.find((n) => n.name === CUSTOMER_SESSION);
   const responseNode = candidate.nodes.find((n) => n.name === CUSTOMER_RESPONSE);
+  const terminalNode = candidate.nodes.find((n) => n.name === CUSTOMER_TERMINAL);
+  const recoveryNode = candidate.nodes.find((n) => n.name === CUSTOMER_RECOVERY);
   sessionNode.parameters = Object.assign({}, sessionNode.parameters, { jsCode: premiumSessionCode });
   responseNode.parameters = Object.assign({}, responseNode.parameters, { jsCode: NODE_BODY });
+  terminalNode.parameters = Object.assign({}, terminalNode.parameters, { jsCode: buildIntakeTransportCode() });
+  recoveryNode.parameters = Object.assign({}, recoveryNode.parameters, { jsCode: buildRecoveryRequestCode() });
   candidate.name = '[CANDIDATE] FINMENTOR Telegram Client Concierge PREMIUM UX (customer, bilingual)';
 }
 
 // ------------------------------------------------------------------ invariants
 
-// EXACTLY TWO NODE BODIES CHANGE, AND NOTHING ELSE DOES. That is the strongest statement available
+// EXACTLY FOUR NODE BODIES CHANGE, AND NOTHING ELSE DOES. That is the strongest statement available
 // about a workflow that serves real customers: every other node is not 'equivalent', it is the
 // same object.
-const SPLICED = [CUSTOMER_SESSION, CUSTOMER_RESPONSE];
+const SPLICED = [CUSTOMER_SESSION, CUSTOMER_RESPONSE, CUSTOMER_TERMINAL, CUSTOMER_RECOVERY];
 
 if (candidate.nodes.length !== baseNodes.length) {
   fail.push('node count moved: ' + baseNodes.length + ' -> ' + candidate.nodes.length + ' (expected no change)');
@@ -821,7 +831,7 @@ for (const n of candidate.nodes) {
 }
 if (drift.length) { fail.push('UNRELATED DRIFT in ' + drift.length + ' node(s): ' + drift.slice(0, 8).join(', ')); }
 
-// Both spliced nodes must ACTUALLY have changed. A splice that silently no-opped would emit a
+// All four spliced nodes must ACTUALLY have changed. A splice that silently no-opped would emit a
 // candidate identical to the live workflow and every gate below would still pass.
 for (const name of SPLICED) {
   const now = candidate.nodes.find((x) => x.name === name);
@@ -1093,7 +1103,12 @@ for (const leak of ['cachedResultUrl', 'activeVersion', 'versionId', 'pinData'])
 // EVERY generated node body must parse. The response body was checked here from the start; the
 // SESSION body was not, and that omission is precisely what reached production: a spliced
 // if/else chain that no test executed and no gate parsed, discovered by the owner typing /start.
-for (const [label, body] of [[CUSTOMER_RESPONSE, NODE_BODY], [CUSTOMER_SESSION, premiumSessionCode]]) {
+for (const [label, body] of [
+  [CUSTOMER_RESPONSE, NODE_BODY],
+  [CUSTOMER_SESSION, premiumSessionCode],
+  [CUSTOMER_TERMINAL, buildIntakeTransportCode()],
+  [CUSTOMER_RECOVERY, buildRecoveryRequestCode()]
+]) {
   if (!body) { continue; }
   // A parse failure names a line number in a body that exists nowhere on disk. BUILD_DUMP_DIR
   // writes it out so that number means something.
@@ -1134,7 +1149,7 @@ console.log('');
 console.log('  nodes ADDED        : NONE');
 console.log('  nodes REMOVED      : NONE');
 console.log('  edges rewired      : NONE — the connection graph is byte-identical to the live export');
-console.log('  nodes MODIFIED (2) : ' + [CUSTOMER_SESSION, CUSTOMER_RESPONSE].join(', ') + '  (parameters.jsCode only)');
+console.log('  nodes MODIFIED (4) : ' + SPLICED.join(', ') + '  (parameters.jsCode only)');
 console.log('');
 console.log('  customer path      : ' + [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, ANCHOR_OUT].join(' -> '));
 console.log('  owner gate         : REMOVED from the customer conversation. Owner authority stays');
@@ -1157,7 +1172,7 @@ console.log('  P9-R2 flag pair    : ABSENT across all ' + candidate.nodes.length
 console.log('');
 console.log('  structural sha256  : ' + structural(baseNodes, live.connections) + '   (before)');
 console.log('                       ' + structural(candidate.nodes, candidate.connections) + '   (after)');
-console.log('    These MATCH, and must: no node was added, removed, retyped or rewired. Only two');
+console.log('    These MATCH, and must: no node was added, removed, retyped or rewired. Only four');
 console.log('    node BODIES changed, which a structural hash deliberately does not see.');
 console.log('  candidate sha256   : ' + crypto.createHash('sha256').update(json).digest('hex'));
 console.log('');
