@@ -1,8 +1,9 @@
 // FINMENTOR X-Ray Analysis — "Select Pending Leads".
 //
 // Input: the XRay_Analysis rows ($input), plus Pipeline rows and settings read by name.
-// Output: at most xray_max_per_run Pipeline rows. New leads are marked NEW_ANALYSIS. A legacy
-//         row is upgraded only when its exact analysis_id is explicitly authorised in Settings.
+// Output: at most xray_max_per_run Pipeline rows. New leads are marked NEW_ANALYSIS. A failed
+//         row is retried in place under the bounded ledger contract below. A legacy row is
+//         upgraded only when its exact analysis_id is explicitly authorised in Settings.
 //
 // FAIL CLOSED. If the XRay_Analysis read errored, nothing is pending: analysing on top of an
 // unreadable ledger would re-run the model and re-alert the owner for every lead.
@@ -34,6 +35,26 @@ const backfillEnabled = cfg.xray_backfill_enabled === true;
 const backfillTargetAnalysisId = String(cfg.xray_backfill_target_analysis_id || '').trim();
 
 function ts(v) { const t = Date.parse(String(v || '')); return Number.isFinite(t) ? t : 0; }
+const now = Date.now();
+const RETRY_MAX = 3;
+const SCHEDULE_NEW_GRACE_MS = 15 * 60 * 1000;
+
+function retryMeta(row) {
+  const raw = String((row || {}).validation_errors || '');
+  const attemptMatch = /(?:^|[|;])ATTEMPT=(\d+)/i.exec(raw);
+  const nextMatch = /(?:^|[|;])NEXT=([^|;]+)/i.exec(raw);
+  const attempt = attemptMatch ? Number(attemptMatch[1]) : 1;
+  const fallbackNext = ts((row || {}).created_at) + 5 * 60 * 1000;
+  const nextAt = nextMatch && ts(nextMatch[1]) ? ts(nextMatch[1]) : fallbackNext;
+  return { attempt: Number.isInteger(attempt) && attempt > 0 ? attempt : 1, nextAt };
+}
+
+function retryableFailed(row) {
+  if (!row || String(row.review_status || '').toUpperCase() !== 'ANALYSIS_FAILED') return false;
+  if (String(row.owner_brief_json || '').trim() !== '' || String(row.analysis_json || '').trim() !== '') return false;
+  const meta = retryMeta(row);
+  return meta.attempt < RETRY_MAX && now >= meta.nextAt;
+}
 
 const eligiblePipeline = pipelineItems
   .filter(r => r && String(r.lead_id || '').trim() !== '')
@@ -54,7 +75,12 @@ function needsUpgrade(row) {
 let c3TargetLeadId = '';
 try {
   const target = $('Validate C3 Lead Target').first().json || {};
-  if (target.c3_targeted === true) c3TargetLeadId = String(target.c3_target_lead_id || '').trim();
+  if (target.c3_targeted === true) {
+    // An ineligible targeted invocation is not a schedule tick. It must finish empty instead of
+    // falling through and unexpectedly consuming unrelated backlog work.
+    if (target.c3_target_eligible !== true) return [];
+    c3TargetLeadId = String(target.c3_target_lead_id || '').trim();
+  }
 } catch (e) {}
 if (c3TargetLeadId) {
   const pipelineMatches = eligiblePipeline.filter((row) => String(row.lead_id || '').trim() === c3TargetLeadId);
@@ -89,11 +115,27 @@ if (backfillEnabled && backfillTargetAnalysisId) {
   } }];
 }
 
-// No explicit target means no legacy migration authority. Fresh leads remain eligible under the
-// normal cap; any lead that already has a ledger row is excluded exactly as before.
+// Failed attempts are retried against the SAME analysis_id. Exactly one failed row and one
+// Pipeline row are required; ambiguity fails closed. A successful row is never selected again.
+const retries = eligiblePipeline.filter((pipe) => {
+  const id = String(pipe.lead_id).trim();
+  const rows = analysesByLead[id] || [];
+  return rows.length === 1 && retryableFailed(rows[0]);
+}).map((pipe) => ({
+  ...pipe,
+  analysis_mode: 'RETRY_FAILED',
+  existing_analysis: analysesByLead[String(pipe.lead_id).trim()][0]
+}));
+
+// The schedule gives a just-committed lead fifteen minutes for the immediate intake dispatch to
+// finish. This removes the only normal race in which the schedule and the immediate trigger could
+// both start the model before either had written its ledger row. Older unanalysed leads remain a
+// deterministic fallback. C3 targeted mode above is immediate and has no grace.
 const fresh = eligiblePipeline.filter((pipe) => {
   const id = String(pipe.lead_id).trim();
-  return (analysesByLead[id] || []).length === 0;
-}).slice(0, cap).map((pipe) => ({ ...pipe, analysis_mode: 'NEW_ANALYSIS' }));
+  return (analysesByLead[id] || []).length === 0 && now - ts(pipe.created_at) >= SCHEDULE_NEW_GRACE_MS;
+}).map((pipe) => ({ ...pipe, analysis_mode: 'NEW_ANALYSIS' }));
 
-return fresh.map(r => ({ json: r }));
+const selected = retries.concat(fresh).slice(0, cap);
+
+return selected.map(r => ({ json: r }));

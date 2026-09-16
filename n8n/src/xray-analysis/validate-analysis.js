@@ -13,8 +13,8 @@
 //   * the model returned a parseable JSON object carrying every REQUIRED section, with at least
 //     one key risk and one action in every week of the plan  -> AI_DRAFT (human review required)
 //   * anything else — no JSON, not an object, a required section missing or empty, an empty
-//     week — -> ANALYSIS_FAILED. A broken contract never becomes a draft with LOW confidence:
-//     the owner is told, the row stops the sweep from looping, and deleting the row retries.
+//     week — -> ANALYSIS_FAILED. A broken contract never becomes a draft with LOW confidence.
+//     The same ledger row is eligible for at most two scheduled retries; no sheet surgery.
 //
 // Within a valid contract the content is NORMALISED, not rejected: lists are capped, unknown keys
 // dropped, priority levels defaulted, an unknown product becomes DISCOVERY_CALL. The
@@ -37,6 +37,7 @@ const crypto = require('crypto');
 const PIPELINE_GID = '1883973304';
 const ANALYSIS_VERSION = 'lead-intelligence-v1';
 const REVIEW_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const RETRY_MAX = 3;
 const REQUIRED_TOP = ['owner_brief', 'executive_summary', 'financial_maturity', 'key_risks', 'plan_30_days', 'recommended_next_step'];
 const WEEKS = ['days_1_7', 'days_8_14', 'days_15_21', 'days_22_30'];
 
@@ -45,6 +46,28 @@ function arrStr(v, max, each) { if (!Array.isArray(v)) return []; return v.map(x
 function level(v) { const s = String(v || '').toUpperCase(); return ['HIGH', 'MEDIUM', 'LOW'].includes(s) ? s : 'MEDIUM'; }
 function plainObject(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
 function jsonObject(value, fallback) { try { const x = JSON.parse(String(value || '')); return plainObject(x) ? x : fallback; } catch (e) { return fallback; } }
+function retryAttempt(row) {
+  const m = /(?:^|[|;])ATTEMPT=(\d+)/i.exec(String((row || {}).validation_errors || ''));
+  const n = m ? Number(m[1]) : 1;
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}
+function retryDelayMs(attempt) { return attempt <= 1 ? 5 * 60 * 1000 : 30 * 60 * 1000; }
+function safeErrorText(value) {
+  return str(value, 500)
+    .replace(/(?:[a-z][a-z0-9+.-]*:)?\/\/\S+/gi, '[url]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[contact]')
+    .replace(/\b\d{6,}:[A-Za-z0-9_-]{20,}\b/g, '[token]')
+    .replace(/\b(?:sk|rk|sess)-[A-Za-z0-9_-]{12,}\b/gi, '[token]')
+    .replace(/((?:api[_ -]?key|authorization|token|secret)\s*[:=]\s*)\S+/gi, '$1[redacted]')
+    .replace(/(?<![\w-])\+?\d[\d\s().-]{8,13}\d(?![\w-])/g, '[contact]');
+}
+function contactText(inp) {
+  const c = ((inp || {}).owner_context || {}).contact || {};
+  const channels = Array.isArray(c.reachable_channels) ? c.reachable_channels : [];
+  const chosen = channels.find((x) => x && x.key === c.preferred_contact_channel && str(x.value, 120))
+    || channels.find((x) => x && str(x.value, 120));
+  return chosen ? str(chosen.label || 'Контакт', 40) + ': ' + str(chosen.value, 120) : '';
+}
 
 function extractText(ai) {
   let c = ai.output?.[0]?.content?.[0]?.text ?? ai.output_text ?? ai.text ?? ai.response ?? ai.message?.content ?? ai.choices?.[0]?.message?.content ?? ai.content ?? '';
@@ -186,36 +209,51 @@ function newAnalysisId(leadId) {
 
 function failedOutput(inp, now, errors) {
   const upgrading = inp.analysis_mode === 'UPGRADE_EXISTING' && plainObject(inp.existing_analysis);
-  const existing = upgrading ? inp.existing_analysis : {};
-  const analysisId = upgrading ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id) + '-F';
+  const retrying = inp.analysis_mode === 'RETRY_FAILED' && plainObject(inp.existing_analysis);
+  const existing = upgrading || retrying ? inp.existing_analysis : {};
+  const analysisId = upgrading || retrying ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id) + '-F';
+  const attempt = retrying ? retryAttempt(existing) + 1 : 1;
+  const exhausted = !upgrading && attempt >= RETRY_MAX;
+  const next = exhausted || upgrading ? '' : new Date(Date.parse(now) + retryDelayMs(attempt)).toISOString();
+  const detail = safeErrorText(errors.join('; '));
+  const ledgerError = ['MODEL_OUTPUT_INVALID', 'ATTEMPT=' + attempt, 'MAX=' + RETRY_MAX]
+    .concat(next ? ['NEXT=' + next] : [], detail ? ['ERROR=' + detail] : []).join('|').slice(0, 1200);
+  const priorEvidence = str(existing.lead_intelligence_upgrade_errors || existing.validation_errors, 1200);
+  const retryHistory = [priorEvidence, ledgerError].filter(Boolean).join(' || ').slice(-1200);
   const failureFields = {
     analysis_id: analysisId, lead_id: inp.lead_id, request_id: inp.request_id || '', locale: inp.locale === 'ro' ? 'ro' : 'ru',
     company: str(inp.company, 120),
-    created_at: upgrading ? existing.created_at || now : now,
+    created_at: upgrading || retrying ? existing.created_at || now : now,
     analysis_version: upgrading ? existing.analysis_version || '' : inp.analysis_version || ANALYSIS_VERSION,
     model: upgrading ? existing.model || '' : inp.ai_model || '',
     score: inp.score === null || inp.score === undefined ? '' : inp.score,
     zone: XRAY_ZONES.includes(inp.zone) ? inp.zone : 'UNKNOWN', maturity_score: '', primary_risk: '',
     analysis_json: '', plan_30d_json: '', review_status: 'ANALYSIS_FAILED', reviewed_at: '', review_token: '', review_token_expires_at: '',
-    confidence: '', fabrication_flags: '', validation_errors: errors.join('; ').slice(0, 1200), source_channel: inp.source_channel || '',
-    executive_summary: 'ANALYSIS_FAILED: MODEL_OUTPUT_INVALID', recommended_next_step: '', next_step_label: '', customer_notified_at: ''
+    confidence: '', fabrication_flags: '', validation_errors: ledgerError, source_channel: inp.source_channel || '',
+    executive_summary: 'ANALYSIS_FAILED: MODEL_OUTPUT_INVALID', recommended_next_step: '', next_step_label: '', customer_notified_at: '',
+    lead_intelligence_upgrade_errors: retryHistory
   };
   const row = upgrading ? Object.assign({}, existing, {
-    analysis_id: analysisId,
-    lead_intelligence_upgrade_status: 'FAILED',
-    lead_intelligence_upgrade_attempted_at: now,
-    lead_intelligence_upgrade_errors: errors.join('; ').slice(0, 1200)
-  }) : failureFields;
+      analysis_id: analysisId,
+      lead_intelligence_upgrade_status: 'FAILED',
+      lead_intelligence_upgrade_attempted_at: now,
+      lead_intelligence_upgrade_errors: detail
+    }) : Object.assign({}, existing, failureFields);
   return {
     is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
-    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : 'NEW_ANALYSIS', notify_owner: true,
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : 'NEW_ANALYSIS'),
+    notify_owner: !retrying, retry_attempt: attempt, retry_exhausted: exhausted,
     pipeline_row: upgrading
       ? { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: String(existing.review_status || 'AI_DRAFT'), updated_at: now }
       : { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED', updated_at: now, last_activity_at: now },
     owner_alert: null,
     // ❌ Анализ не сформирован — the error class renders as Russian; the raw validation errors stay
     // on the ledger row (validation_errors) for the engineer, never in the owner's chat.
-    owner_text: XRAY_OWNER_CARDS.renderFailed({ company: inp.company, locale: inp.locale, cause: 'MODEL_OUTPUT_INVALID' })
+    owner_text: XRAY_OWNER_CARDS.renderFailed({
+      company: inp.company, locale: inp.locale, lead_id: inp.lead_id,
+      contact_text: contactText(inp), next_action: ((inp.owner_context || {}).next_action || ''),
+      retry_exhausted: exhausted
+    })
   };
 }
 
@@ -233,7 +271,9 @@ for (let idx = 0; idx < responses.length; idx++) {
   let parsed = null;
   try { parsed = JSON.parse(extractText(ai)); } catch (e) { out.push({ json: failedOutput(inp, now, ['invalid JSON']) }); continue; }
   const errors = contractErrors(parsed);
-  const existing = inp.analysis_mode === 'UPGRADE_EXISTING' && plainObject(inp.existing_analysis) ? inp.existing_analysis : null;
+  const upgrading = inp.analysis_mode === 'UPGRADE_EXISTING' && plainObject(inp.existing_analysis);
+  const retrying = inp.analysis_mode === 'RETRY_FAILED' && plainObject(inp.existing_analysis);
+  const existing = upgrading || retrying ? inp.existing_analysis : null;
   const priorBrief = existing ? jsonObject(existing.owner_brief_json, {}) : {};
   const ownerBrief = LI.normalizeOwnerBrief(parsed && parsed.owner_brief, Object.assign({}, inp.owner_context || {}, {
     generated_at: now,
@@ -249,8 +289,7 @@ for (let idx = 0; idx < responses.length; idx++) {
   const flags = fabricationFlags(inp.input_digest_text || '', factText(a));
   if (flags.length) { a.confidence = 'LOW'; a.limitations.push((locale === 'ro' ? 'Cifre neconfirmate de datele de intrare: ' : 'Цифры, не подтверждённые входными данными: ') + flags.join(', ')); }
 
-  const upgrading = !!existing;
-  const analysisId = upgrading ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id);
+  const analysisId = existing ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id);
   const analysisJson = JSON.stringify(a);
   const ownerBriefJson = JSON.stringify(ownerBrief);
   const generatedClientDraftJson = JSON.stringify(Object.assign({}, a, { owner_brief: undefined }));
@@ -276,7 +315,7 @@ for (let idx = 0; idx < responses.length; idx++) {
     // Carried on the ledger row so the promotion notice can name the company without a second
     // Pipeline read (autoMap appends the column on first write).
     company: str(inp.company, 120),
-    created_at: upgrading ? existing.created_at || now : now,
+    created_at: existing ? existing.created_at || now : now,
     analysis_version: inp.analysis_version || ANALYSIS_VERSION,
     model: inp.ai_model || '',
     score: inp.score === null || inp.score === undefined ? '' : inp.score,
@@ -303,9 +342,12 @@ for (let idx = 0; idx < responses.length; idx++) {
     next_step_label: a.recommended_next_step.label,
     customer_notified_at: upgrading ? String(existing.customer_notified_at || '') : '',
     lead_intelligence_upgrade_status: upgrading ? 'COMPLETE' : '',
-    lead_intelligence_upgraded_at: upgrading ? now : ''
+    lead_intelligence_upgraded_at: upgrading ? now : '',
+    lead_intelligence_upgrade_errors: retrying
+      ? String(existing.lead_intelligence_upgrade_errors || existing.validation_errors || '')
+      : (upgrading ? String(existing.lead_intelligence_upgrade_errors || '') : '')
   };
-  const row = upgrading ? Object.assign({}, existing, fields) : fields;
+  const row = existing ? Object.assign({}, existing, fields) : fields;
   const pipelineRow = {
     lead_id: inp.lead_id,
     xray_analysis_id: analysisId,
@@ -319,7 +361,7 @@ for (let idx = 0; idx < responses.length; idx++) {
   };
   out.push({ json: {
     is_valid: true,
-    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : 'NEW_ANALYSIS',
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : 'NEW_ANALYSIS'),
     notify_owner: !upgrading,
     analysis_row: row, pipeline_row: pipelineRow,
     owner_alert: upgrading ? null : ownerAlert(inp, a, row, cfg),

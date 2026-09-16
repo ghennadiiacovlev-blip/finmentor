@@ -86,6 +86,7 @@ for (const k of ['validate', 'failed']) {
 export const CLIENT_RESULT_TABLE = 'XRay_Client_Results';
 export const REVIEW_PATH = 'finmentor-xray-review';
 export const CLIENT_TRANSPORT_WORKFLOW_ID = 'ShcmmJeLSE8LYVBk';
+export const SYSTEM_ALERT_WORKFLOW_ID = 'ID700kTo6EXffwry';
 
 const DOC = { __rl: true, value: '1CyZJPhCAvhnJjQOOoAF4COqU2wAFNqKu2Gw7ngjpN5A', mode: 'list', cachedResultName: 'FINMENTOR_LEADS_CRM_PREMIUM_FINAL' };
 const SHEET = (name, gid) => gid ? ({ __rl: true, value: gid, mode: 'list', cachedResultName: name }) : ({ __rl: true, value: name, mode: 'name' });
@@ -108,13 +109,13 @@ const sweepTrigger = trigger({
 const c3LeadTrigger = trigger({
   type: 'n8n-nodes-base.executeWorkflowTrigger', version: 1.2,
   config: { name: 'C3 Lead Intelligence Trigger', parameters: { inputSource: 'passthrough' } },
-  output: [{ event: 'AUTHENTICATED_NEW_COMMITTED', lead_id: '', request_id: '', source_workflow_id: 'QmIyEW2ZEqKregmN' }]
+  output: [{ event: 'ELIGIBLE_NEW_COMMITTED', lead_id: '', request_id: '', eligible: true, source_workflow_id: 'QmIyEW2ZEqKregmN' }]
 });
 
 const validateC3Target = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Validate C3 Lead Target', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.c3Target)} } },
-  output: [{ c3_targeted: true, c3_target_lead_id: '', c3_request_id: '' }]
+  output: [{ c3_targeted: true, c3_target_eligible: true, c3_target_lead_id: '', c3_request_id: '' }]
 });
 
 const readSettings = node({
@@ -273,8 +274,10 @@ const ownerAlert = node({
       text: expr("{{ $('Validate + Store Rows').item.json.owner_alert.text }}"),
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
-        { row: { buttons: [ { text: 'Разбор клиента', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}"), style: 'primary' } } ] } },
-        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}"), style: 'success' } } ] } }
+        { row: { buttons: [ { text: 'Бриф к встрече', additionalFields: { callback_data: expr("{{ 'brief|' + $('Validate + Store Rows').item.json.lead_id }}"), style: 'primary' } } ] } },
+        { row: { buttons: [ { text: 'Discovery', additionalFields: { callback_data: expr("{{ 'stage|' + $('Validate + Store Rows').item.json.lead_id + '|Discovery Scheduled' }}"), style: 'success' } } ] } },
+        { row: { buttons: [ { text: 'Разбор клиента', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } },
+        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}") } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: ${TG_CRED} },
@@ -295,7 +298,7 @@ const validationFailureNotice = node({
 const failedRowBuild = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Analysis Failed Row', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.failed)} } },
-  output: [{ analysis_row: { analysis_id: '', review_status: 'ANALYSIS_FAILED' }, owner_text: '' }]
+  output: [{ analysis_row: { analysis_id: '', review_status: 'ANALYSIS_FAILED' }, pipeline_row: { lead_id: '', xray_analysis_status: 'ANALYSIS_FAILED' }, notify_owner: true, retry_exhausted: false, owner_text: '' }]
 });
 
 const failedRow = node({
@@ -311,6 +314,58 @@ const saveFailed = node({
       columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['analysis_id'], schema: [] }, options: { cellFormat: 'RAW' } },
     credentials: ${SHEETS_CRED} },
   output: [{ analysis_id: '' }]
+});
+
+const failedPipelineRow = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Failed Pipeline Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Analysis Failed Row').item.json.pipeline_row) }}"), options: {} } },
+  output: [{ lead_id: '', xray_analysis_status: 'ANALYSIS_FAILED' }]
+});
+
+const updateFailedPipeline = node({
+  type: 'n8n-nodes-base.googleSheets', version: 4.7,
+  config: { name: 'Update Pipeline X-Ray Failure', retryOnFail: true, onError: 'continueRegularOutput',
+    parameters: { resource: 'sheet', operation: 'update', documentId: ${J(DOC)}, sheetName: ${J(SHEET('Pipeline', 1883973304))},
+      columns: { mappingMode: 'autoMapInputData', value: {}, matchingColumns: ['lead_id'], schema: [] }, options: { cellFormat: 'RAW' } },
+    credentials: ${SHEETS_CRED} },
+  output: [{ lead_id: '' }]
+});
+
+const ifUpstreamFailureNotice = ifElse({
+  version: 2.2,
+  config: { name: 'IF Upstream Failure Owner Notice', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Analysis Failed Row').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ifUpstreamRetryExhausted = ifElse({
+  version: 2.2,
+  config: { name: 'IF Upstream Retry Exhausted', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Analysis Failed Row').item.json.retry_exhausted }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ifValidationFailureNotice = ifElse({
+  version: 2.2,
+  config: { name: 'IF Validation Failure Owner Notice', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ifValidationRetryExhausted = ifElse({
+  version: 2.2,
+  config: { name: 'IF Validation Retry Exhausted', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.retry_exhausted }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const emitRetryExhausted = node({
+  type: 'n8n-nodes-base.executeWorkflow', version: 1.2,
+  config: { name: 'Emit System Alert (X-Ray Retry Exhausted)', onError: 'continueRegularOutput',
+    parameters: { workflowId: { __rl: true, value: ${J(SYSTEM_ALERT_WORKFLOW_ID)}, mode: 'list', cachedResultName: 'FINMENTOR SYSTEM ALERT' },
+      workflowInputs: { mappingMode: 'defineBelow', value: {
+        workflow_key: 'xray-analysis', verdict_node: 'Retry Exhausted', error_code: 'XRAY_RETRY_EXHAUSTED', retryable: 'false',
+        route_identity: expr("{{ String(($('Analysis Failed Row').isExecuted ? $('Analysis Failed Row').first().json.lead_id : $('Validate + Store Rows').first().json.lead_id) || '') }}"),
+        occurred_at: expr('{{ $now.toISO() }}')
+      }, matchingColumns: [], schema: [], attemptToConvertTypes: false, convertFieldsToString: true },
+      mode: 'once', options: { waitForSubWorkflow: false } } },
+  output: [{}]
 });
 
 const ownerFailureNotice = node({
@@ -593,7 +648,10 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
   .to(buildInput)
   .to(ifInputReady
     .onTrue(aiAnalysis
-      .onError(failedRowBuild.to(failedRow.to(saveFailed.to(ownerFailureNotice))))
+      .onError(failedRowBuild.to(failedRow.to(saveFailed.to(failedPipelineRow.to(updateFailedPipeline
+        .to(ifUpstreamFailureNotice
+          .onTrue(ownerFailureNotice)
+          .onFalse(ifUpstreamRetryExhausted.onTrue(emitRetryExhausted))))))))
       .to(validateRows
         .to(analysisRow
           .to(saveAnalysis
@@ -601,7 +659,9 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
               .to(updatePipeline
                 .to(ifAnalysisValid
                   .onTrue(ifNotifyOwner.onTrue(ownerAlert))
-                  .onFalse(validationFailureNotice))))))))
+                  .onFalse(ifValidationFailureNotice
+                    .onTrue(validationFailureNotice)
+                    .onFalse(ifValidationRetryExhausted.onTrue(emitRetryExhausted))))))))))
     .onFalse(sourceAuditNotice))
   .add(c3LeadTrigger)
   .to(validateC3Target)

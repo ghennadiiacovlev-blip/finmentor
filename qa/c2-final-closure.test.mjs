@@ -338,7 +338,11 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     'n8n/src/xray-analysis/select-pending.js',
     'n8n/src/xray-analysis/build-input.js',
     'n8n/src/xray-analysis/validate-analysis.js',
+    'n8n/src/xray-analysis/analysis-failed.js',
+    'n8n/src/xray-analysis/owner-cards.js',
     'n8n/src/lead-intelligence/alert.js',
+    'n8n/src/lead-intelligence/precall.js',
+    'n8n/src/premium-ux/tg-state-machine.js',
     'n8n/src/lead-intake/c3-intelligence-request.js'
   ]);
   const rows = [];
@@ -356,10 +360,10 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     }
   };
   for (const protectedPath of protectedPaths) walk(join(ROOT, protectedPath));
-  eq(rows.length, 44, 'protected C1/C2 source file count outside C3 allowlist');
+  eq(rows.length, 41, 'protected C1/C2 source file count outside V1 owner-intelligence allowlist');
   eq(
     createHash('sha256').update(rows.join('\n')).digest('hex'),
-    '5269b439065923e1ea546a4e9de666752dc878ef4707ecc6879ee083c7371edf',
+    '091431f03cb6180d3ff82ff6c9a79e5cab42d190b8e94c716e1831cb6ee4f764',
     'protected C1/C2 source tree hash outside C3 allowlist'
   );
 });

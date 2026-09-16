@@ -88,7 +88,7 @@ const alert = ALERT.renderLeadIntelligenceAlert({
   contact: niagaraContact, next_action: NIAGARA_BRIEF.next_action.action
 });
 check('alert has required short header', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert));
-for (const heading of ['КЛЮЧЕВАЯ ПРОБЛЕМА','ЧТО ЗАМЕТИЛ FINMENTOR','КОНТАКТ','СЕЙЧАС']) check('alert section ' + heading, alert.includes('<b>' + heading + '</b>'));
+for (const heading of ['КЛЮЧЕВАЯ ПРОБЛЕМА','ЧТО ВИДИТ FINMENTOR','КОНТАКТ','СЕЙЧАС']) check('alert section ' + heading, alert.includes('<b>' + heading + '</b>'));
 check('alert shows preferred Telegram separately', /Предпочтительно: Telegram/.test(alert));
 check('alert falls back to one reachable contact when preferred Telegram is unavailable', /Телефон: \+373 60 123 456/.test(alert));
 check('alert never expands into a phone, email and Telegram contact directory', !/alexander@niagara\.example/.test(alert) && !/Telegram-контакт не подключён/.test(alert));

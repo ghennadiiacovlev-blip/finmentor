@@ -329,7 +329,16 @@ export function verifyXrayGraph(workflow) {
     ['AI X-Ray Analysis', ['Analysis Failed Row'], 1],
     ['Analysis Failed Row', ['Failed Row'], 0],
     ['Failed Row', ['Save Failed Analysis'], 0],
-    ['Save Failed Analysis', ['Telegram Failure Notice'], 0]
+    ['Save Failed Analysis', ['Failed Pipeline Row'], 0],
+    ['Failed Pipeline Row', ['Update Pipeline X-Ray Failure'], 0],
+    ['Update Pipeline X-Ray Failure', ['IF Upstream Failure Owner Notice'], 0],
+    ['IF Upstream Failure Owner Notice', ['Telegram Failure Notice'], 0],
+    ['IF Upstream Failure Owner Notice', ['IF Upstream Retry Exhausted'], 1],
+    ['IF Upstream Retry Exhausted', ['Emit System Alert (X-Ray Retry Exhausted)'], 0],
+    ['IF Analysis Valid', ['IF Validation Failure Owner Notice'], 1],
+    ['IF Validation Failure Owner Notice', ['Telegram Validation Failure Notice'], 0],
+    ['IF Validation Failure Owner Notice', ['IF Validation Retry Exhausted'], 1],
+    ['IF Validation Retry Exhausted', ['Emit System Alert (X-Ray Retry Exhausted)'], 0]
   ];
   for (const [from, to, output] of expected) exactly(workflow, from, to, output);
   for (const forbidden of ['Analysis Row', 'Save XRay_Analysis', 'Pipeline Row', 'Update Pipeline X-Ray', 'IF Analysis Valid']) {

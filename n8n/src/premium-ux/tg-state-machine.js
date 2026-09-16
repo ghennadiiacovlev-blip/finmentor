@@ -4,20 +4,21 @@
 // authority snapshot and one input, and returns the next state, the copy to render and the writes
 // to perform. qa/premium-ux-state.test.mjs drives it, including the mutations that must fail.
 //
-// THE DEFECT THIS REPLACES. `Get Bot Session` in the deployed Concierge does, unconditionally:
+// `/start` is a cycle boundary. `Get Bot Session` performs the reset before this pure decision
+// function runs: it archives an existing lead reference, clears only current-cycle fields, keeps
+// historical CRM/client facts, and mints a fresh cycle/submission key. Therefore `/start` always
+// renders TG_ENTRY here, including after an incompatible stale UI state.
 //
 //     const isStart = text === '/start';
 //     if (isStart) reset = 'start';
 //
-// so a `/start` after a committed lead archives lead_id, clears consent, wipes every qualification
-// answer and shows the menu — silently. Phase 1 proved it; owner decision 3 forbids it.
-//
-// THE RULE, stated once and enforced by `decide()` alone:
+// `/menu` is navigation, not a reset. The terminal rule still protects a committed current cycle
+// from every input except the explicit new-request confirmation.
 //
 //     After a successful committed submission, NO input may return the user to qualification
 //     without an explicit new-request action.
 //
-// Exactly TWO branches in this file rotate the cycle, and both require an explicit confirmed
+// Exactly TWO callback branches in this file rotate the cycle, and both require an explicit confirmed
 // action:
 //
 //   ACTIONS.NEW_CONFIRM      «Начать новый вопрос», confirmed, on a COMMITTED cycle
@@ -88,8 +89,13 @@ function decide(auth, input) {
   const committed = isCommitted(a);
   const draft = hasDraft(a);
 
-  // ---- /start: the three-way branch. Never rotates. -------------------------
-  if (kind === 'command' && (value === '/start' || value === '/menu')) {
+  // ---- /start: Get Bot Session already established a clean current cycle. ---
+  if (kind === 'command' && value === '/start') {
+    return screen('TG_ENTRY', B.TG_COPY.TG_ENTRY);
+  }
+
+  // ---- /menu: navigation within the current cycle. --------------------------
+  if (kind === 'command' && value === '/menu') {
     if (committed) { return screen('TG_SUBMITTED', B.TG_COPY.TG_SUBMITTED); }
     if (draft) { return screen('TG_RESUME_DRAFT', B.TG_COPY.TG_RESUME_DRAFT); }
     return screen('TG_ENTRY', B.TG_COPY.TG_ENTRY);
@@ -175,6 +181,10 @@ function confirmContextSections(extracted) {
 // The invariant, expressed so a test can call it rather than re-implement it.
 function violatesTerminalRule(auth, input, outcome) {
   if (!isCommitted(auth)) { return false; }
+  // The live caller resolves /start through the reset gate before decide(). A committed snapshot
+  // supplied directly to this pure helper is therefore a pre-gate test fixture, not a reachable
+  // production authority state.
+  if (input && input.kind === 'command' && input.value === '/start') { return false; }
   const qualification = ['TG_ENTRY', 'TG_FREEFORM_PROBLEM', 'TG_CONFIRM_CONTEXT', 'TG_OPEN_BRIEF', 'TG_RESUME_DRAFT'];
   const explicitNewRequest = input && input.kind === 'callback' && input.value === ACTIONS.NEW_CONFIRM;
   if (explicitNewRequest) { return false; }

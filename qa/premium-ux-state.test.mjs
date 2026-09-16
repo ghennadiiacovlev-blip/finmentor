@@ -57,20 +57,20 @@ check('/start with no cycle → TG_ENTRY, no rotate', () => {
   eq(JSON.stringify(r.copy), JSON.stringify(B.TG_COPY.TG_ENTRY), 'copy');
 });
 
-check('/start with an unfinished draft → TG_RESUME_DRAFT, no rotate, no data touched', () => {
+check('/start after the session reset gate always renders a clean TG_ENTRY', () => {
   const r = M.decide(DRAFT, cmd('/start'));
-  eq(r.state, 'TG_RESUME_DRAFT', 'state');
+  eq(r.state, 'TG_ENTRY', 'state');
   eq(r.rotate, false, 'rotated');
   eq(JSON.stringify(r.writes), '[]', 'wrote something');
-  eq(JSON.stringify(r.copy.actions), JSON.stringify(['Продолжить', 'Начать заново']), 'actions');
+  eq(JSON.stringify(r.copy), JSON.stringify(B.TG_COPY.TG_ENTRY), 'copy');
 });
 
-check('/start after a committed lead → TG_SUBMITTED, no rotate, no reset', () => {
+check('/start cannot inherit a pre-reset committed screen', () => {
   const r = M.decide(DONE, cmd('/start'));
-  eq(r.state, 'TG_SUBMITTED', 'state');
-  eq(r.rotate, false, 'SILENTLY ROTATED THE CYCLE — the defect this gate exists for');
+  eq(r.state, 'TG_ENTRY', 'state');
+  eq(r.rotate, false, 'the session gate, not decide(), owns cycle rotation');
   eq(JSON.stringify(r.writes), '[]', 'wrote something');
-  assert(/уже передано FINMENTOR/.test(r.copy.text.join(' ')), 'wrong copy');
+  eq(JSON.stringify(r.copy), JSON.stringify(B.TG_COPY.TG_ENTRY), 'copy');
 });
 
 check('a lead from a PREVIOUS cycle does not make this cycle terminal', () => {

@@ -30,21 +30,25 @@ function importanceLines(model) {
 
 function finmentorViewLines(model) {
   const out = [];
-  if (present(model.observation)) out.push('Противоречие / вывод: ' + esc(tidy(model.observation, 260)));
+  if (present(model.observation)) out.push(esc(tidy(model.observation, 300)));
   const maturity = model.maturity || {};
   if (present(maturity.label) || present(maturity.score_1_to_5)) {
     const value = [present(maturity.score_1_to_5) ? String(maturity.score_1_to_5) + '/5' : '', tidy(maturity.label, 90)].filter(present).join(' · ');
     out.push('Зрелость: ' + esc(value));
   }
+  return out;
+}
+
+function riskLines(model) {
+  const out = [];
   const risks = Array.isArray(model.risks) ? model.risks : [];
   risks.slice(0, 2).forEach((risk) => {
     const value = risk && typeof risk === 'object' ? risk.title : risk;
-    if (present(value)) out.push('Риск: ' + esc(tidy(value, 150)));
+    if (present(value)) out.push('• ' + esc(tidy(value, 170)));
   });
   const unknown = model.needs_verification || {};
   const unknownText = unknown && typeof unknown === 'object' ? unknown.item : unknown;
-  if (present(unknownText)) out.push('Нужно проверить: ' + esc(tidy(unknownText, 220)));
-  if (present(model.economic_impact)) out.push('Влияние: ' + esc(tidy(model.economic_impact, 220)));
+  if (present(unknownText)) out.push('• Проверить: ' + esc(tidy(unknownText, 220)));
   return out;
 }
 
@@ -62,14 +66,15 @@ function renderLeadIntelligenceAlert(model) {
   const scale = [tidy(m.business, 70), tidy(m.scale, 80)].filter(present).map(esc).join(' · ');
   const importance = importanceLines(m);
   const view = finmentorViewLines(m);
+  const risks = riskLines(m);
   const discovery = discoveryLines(m.discovery_questions);
   return [
     '🔔 <b>FINMENTOR · Новый лид</b>',
     '',
-    present(m.lead_id) ? 'Lead ID: <code>' + esc(tidy(m.lead_id, 80)) + '</code>' : '',
     '<b>' + esc(tidy(m.company, 80) || 'Компания не указана') + '</b>',
     meta,
     scale,
+    present(m.lead_id) ? 'Lead ID: <code>' + esc(tidy(m.lead_id, 80)) + '</code>' : '',
     '',
     importance.length ? '<b>ВАЖНОСТЬ</b>' : '',
     ...importance,
@@ -77,10 +82,13 @@ function renderLeadIntelligenceAlert(model) {
     '<b>КЛЮЧЕВАЯ ПРОБЛЕМА</b>',
     esc(tidy(m.main_pain, 240) || 'Нужно уточнить на первом контакте'),
     '',
-    '<b>ЧТО ЗАМЕТИЛ FINMENTOR</b>',
+    '<b>ЧТО ВИДИТ FINMENTOR</b>',
     ...(view.length ? view : ['Недостаточно данных для вывода']),
     '',
-    discovery.length ? '<b>ЧТО ПРОВЕРИТЬ НА ПЕРВОМ РАЗГОВОРЕ</b>' : '',
+    risks.length ? '<b>РИСКИ / ЧТО НУЖНО ПРОВЕРИТЬ</b>' : '',
+    ...risks,
+    risks.length ? '' : '',
+    discovery.length ? '<b>ПЕРВЫЙ РАЗГОВОР</b>' : '',
     ...discovery,
     discovery.length ? '' : '',
     '',
@@ -93,5 +101,5 @@ function renderLeadIntelligenceAlert(model) {
 }
 
 if (typeof module !== 'undefined' && module.exports) module.exports = {
-  renderLeadIntelligenceAlert, contactLines, importanceLines, finmentorViewLines, discoveryLines, esc, tidy
+  renderLeadIntelligenceAlert, contactLines, importanceLines, finmentorViewLines, riskLines, discoveryLines, esc, tidy
 };

@@ -96,11 +96,15 @@ const isEdge = (from, to, output = 0) => edgeTargets(from, output).includes(to);
   check('compiled graph: AI has no sibling success edge that bypasses validation',
     ['Analysis Row', 'Save XRay_Analysis', 'Pipeline Row', 'Update Pipeline X-Ray', 'IF Analysis Valid']
       .every((name) => !isEdge('AI X-Ray Analysis', name)));
-  check('compiled graph: AI error route is unchanged and sequential',
+  check('compiled graph: AI error route persists ledger and Pipeline before bounded notification routing',
     JSON.stringify(edgeTargets('AI X-Ray Analysis', 1)) === JSON.stringify(['Analysis Failed Row']) &&
     JSON.stringify(edgeTargets('Analysis Failed Row')) === JSON.stringify(['Failed Row']) &&
     JSON.stringify(edgeTargets('Failed Row')) === JSON.stringify(['Save Failed Analysis']) &&
-    JSON.stringify(edgeTargets('Save Failed Analysis')) === JSON.stringify(['Telegram Failure Notice']));
+    JSON.stringify(edgeTargets('Save Failed Analysis')) === JSON.stringify(['Failed Pipeline Row']) &&
+    JSON.stringify(edgeTargets('Failed Pipeline Row')) === JSON.stringify(['Update Pipeline X-Ray Failure']) &&
+    JSON.stringify(edgeTargets('Update Pipeline X-Ray Failure')) === JSON.stringify(['IF Upstream Failure Owner Notice']) &&
+    JSON.stringify(edgeTargets('IF Upstream Failure Owner Notice')) === JSON.stringify(['Telegram Failure Notice']) &&
+    JSON.stringify(edgeTargets('IF Upstream Failure Owner Notice', 1)) === JSON.stringify(['IF Upstream Retry Exhausted']));
   check('compiled graph: IF Persist true persists while false owns the outbound branch',
     isEdge('IF Persist Owner Action', 'Promote Row', 0) && isEdge('IF Persist Owner Action', 'IF Send Customer Message', 1));
   check('compiled graph: client publication true chain and false response are preserved',
@@ -176,8 +180,12 @@ const pipeline = [
   check('pending: INCOMPLETE (no consent) never analysed', !ids.includes('L-3'));
   check('pending: leads before xray_analysis_since excluded', !ids.includes('L-old'));
   check('pending: capped at xray_max_per_run, oldest first', ids.join(',') === 'L-2,L-4,L-5', ids.join(','));
-  const failedLedger = runNode(read('select-pending.js'), { input: [{ lead_id: 'L-1', review_status: 'ANALYSIS_FAILED' }], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
-  check('pending: an ANALYSIS_FAILED row stops the sweep from looping on the lead', !failedLedger.map(i => i.json.lead_id).includes('L-1'));
+  const failedRow = { analysis_id: 'XA-L1-F', lead_id: 'L-1', review_status: 'ANALYSIS_FAILED',
+    validation_errors: 'UPSTREAM_RATE_LIMIT|ATTEMPT=1|MAX=3|NEXT=2026-09-02T10:05:00.000Z' };
+  const failedLedger = runNode(read('select-pending.js'), { input: [failedRow], nodes: { 'Settings to Object': [{ settings }], 'Read Pipeline': pipeline } });
+  const retry = failedLedger.find(i => i.json.lead_id === 'L-1');
+  check('pending: a due ANALYSIS_FAILED row retries in place under the bounded contract',
+    !!retry && retry.json.analysis_mode === 'RETRY_FAILED' && retry.json.existing_analysis === failedRow);
 }
 {
   const legacy = (analysisId, leadId, extra = {}) => ({ analysis_id: analysisId, lead_id: leadId, review_status: 'OWNER_EDITED', analysis_version: 'c3', owner_brief_json: '', review_token: 'a'.repeat(64), client_result_draft_json: '{"preserve":true}', ...extra });
@@ -353,7 +361,7 @@ let draftRow;
   check('validate: no fabrication flags on clean plan', r.fabrication_flags === '' && r.confidence === 'HIGH');
   check('validate: pipeline projection is narrow (no JSON)', !('analysis_json' in o.pipeline_row) && o.pipeline_row.xray_analysis_status === 'AI_DRAFT');
   const alert = o.owner_alert;
-  check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /КЛЮЧЕВАЯ ПРОБЛЕМА/.test(alert.text) && /ЧТО ЗАМЕТИЛ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
+  check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /КЛЮЧЕВАЯ ПРОБЛЕМА/.test(alert.text) && /ЧТО ВИДИТ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
   check('owner alert: C3 renders Lead ID, qualification and zone but no workflow status, confidence or token',
     /Lead ID:.*L-2/.test(alert.text) && /Квалификация:.*HOT/.test(alert.text) && /Финансовая зона:.*ORANGE/.test(alert.text)
@@ -412,11 +420,11 @@ let draftRow;
     const o = validate(resp);
     const r = o.analysis_row;
     check('validate FAIL CLOSED: ' + name + ' -> ANALYSIS_FAILED, no token, no draft JSON, pipeline says FAILED',
-      o.is_valid === false && r.review_status === 'ANALYSIS_FAILED' && r.review_token === '' && r.review_token_expires_at === '' && r.analysis_json === '' && r.validation_errors !== '' && o.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED' && o.owner_alert === null && /^❌ <b>FINMENTOR · Анализ не сформирован<\/b>/.test(o.owner_text) && /Удалить строку этого анализа/.test(o.owner_text),
+      o.is_valid === false && r.review_status === 'ANALYSIS_FAILED' && r.review_token === '' && r.review_token_expires_at === '' && r.analysis_json === '' && /^MODEL_OUTPUT_INVALID\|ATTEMPT=1\|MAX=3\|NEXT=/.test(r.validation_errors) && o.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED' && o.owner_alert === null && /^❌ <b>FINMENTOR · Анализ временно не сформирован<\/b>/.test(o.owner_text) && /Будет безопасно повторён/i.test(o.owner_text),
       JSON.stringify({ v: o.is_valid, s: r.review_status, e: r.validation_errors }));
   }
   check('validate FAIL CLOSED: the failed row still carries the deterministic score and zone', validate({ output_text: 'x' }).analysis_row.score === 47 && validate({ output_text: 'x' }).analysis_row.zone === 'ORANGE');
-  check('validate FAIL CLOSED: the failure notice names no prompt, payload, token, Lead ID or raw error class', !/ai_user_prompt|projection|review_token|Lead ID|L-2|MODEL_OUTPUT_INVALID|not json/.test(validate({ output_text: 'x' }).owner_text) && /Модель вернула ответ вне контракта анализа/.test(validate({ output_text: 'x' }).owner_text));
+  check('validate FAIL CLOSED: the failure notice exposes only recovery-safe business context', !/ai_user_prompt|projection|review_token|MODEL_OUTPUT_INVALID|not json/.test(validate({ output_text: 'x' }).owner_text) && /Lead ID:.*L-2/.test(validate({ output_text: 'x' }).owner_text) && /Лид сохранён/.test(validate({ output_text: 'x' }).owner_text));
   const invalidValidated = validate({ output_text: 'not json at all' });
   let analysisRowValue = null; let analysisRowError = '';
   try { analysisRowValue = JSON.parse(JSON.stringify(invalidValidated.analysis_row)); }
@@ -437,9 +445,9 @@ let draftRow;
 {
   const out = runNode(withCards(read('analysis-failed.js')), { input: [{ error: { message: 'Rate limit reached (429)' } }], nodes: { 'Build Analysis Input': [inputItem] } });
   const r = out[0].json.analysis_row;
-  check('failed: ANALYSIS_FAILED row written with error class only', r.review_status === 'ANALYSIS_FAILED' && r.executive_summary === 'ANALYSIS_FAILED: RATE_LIMIT' && r.analysis_json === '' && r.validation_errors === 'UPSTREAM_RATE_LIMIT');
+  check('failed: ANALYSIS_FAILED row carries bounded retry evidence', r.review_status === 'ANALYSIS_FAILED' && r.executive_summary === 'ANALYSIS_FAILED: RATE_LIMIT' && r.analysis_json === '' && /^UPSTREAM_RATE_LIMIT\|ATTEMPT=1\|MAX=3\|NEXT=/.test(r.validation_errors));
   check('failed: no token, no expiry, version lead-intelligence-v1', r.review_token === '' && r.review_token_expires_at === '' && r.analysis_version === 'lead-intelligence-v1');
-  check('failed: owner notice carries no prompt, payload, Lead ID or raw class, names the cause in Russian and says how to retry', !/ai_user_prompt|projection|Lead ID|L-2|RATE_LIMIT/.test(out[0].json.owner_text) && /Превышен лимит запросов к модели/.test(out[0].json.owner_text) && /Удалить строку этого анализа/.test(out[0].json.owner_text));
+  check('failed: owner notice carries no prompt, payload or raw class and gives a usable fallback', !/ai_user_prompt|projection|RATE_LIMIT/.test(out[0].json.owner_text) && /Lead ID:.*L-2/.test(out[0].json.owner_text) && /Лид сохранён/.test(out[0].json.owner_text) && /будет безопасно повторён/.test(out[0].json.owner_text));
   const legacy = { analysis_id: 'XA-UPSTREAM-UPGRADE', lead_id: 'L-2', review_status: 'OWNER_EDITED', analysis_json: '{"preserve":true}', review_token: 'c'.repeat(64) };
   const upgradeFailure = runNode(withCards(read('analysis-failed.js')), { input: [{ error: { message: 'timeout' } }], nodes: { 'Build Analysis Input': [{ ...inputItem, analysis_mode: 'UPGRADE_EXISTING', existing_analysis: legacy }] } })[0].json.analysis_row;
   check('failed: upstream error during backfill preserves legacy row and seals retry', upgradeFailure.analysis_id === legacy.analysis_id && upgradeFailure.review_status === legacy.review_status && upgradeFailure.analysis_json === legacy.analysis_json && upgradeFailure.lead_intelligence_upgrade_status === 'FAILED');
@@ -588,7 +596,8 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
     JSON.stringify(after.connections['AI X-Ray Analysis'].main[1]) === JSON.stringify([{ node: 'Analysis Failed Row', type: 'main', index: 0 }]) &&
     JSON.stringify(after.connections['Analysis Failed Row'].main[0]) === JSON.stringify([{ node: 'Failed Row', type: 'main', index: 0 }]) &&
     JSON.stringify(after.connections['Failed Row'].main[0]) === JSON.stringify([{ node: 'Save Failed Analysis', type: 'main', index: 0 }]) &&
-    JSON.stringify(after.connections['Save Failed Analysis'].main[0]) === JSON.stringify([{ node: 'Telegram Failure Notice', type: 'main', index: 0 }]));
+    JSON.stringify(after.connections['Save Failed Analysis'].main[0]) === JSON.stringify([{ node: 'Failed Pipeline Row', type: 'main', index: 0 }]) &&
+    JSON.stringify(after.connections['Failed Pipeline Row'].main[0]) === JSON.stringify([{ node: 'Update Pipeline X-Ray Failure', type: 'main', index: 0 }]));
 
   const activityCalls = [];
   const reconciledActive = await reconcileWorkflowActivity(
@@ -633,9 +642,9 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   check('workflow: unsafe source pairs bypass AI and surface an owner audit finding', /name: 'IF Source Pair Safe'/.test(sdk) && /name: 'Telegram Source Audit Finding'/.test(sdk) && /\.onFalse\(sourceAuditNotice\)/.test(sdk));
   check('workflow: analysis ledger is upserted by analysis_id for idempotent backfill', /name: 'Save XRay_Analysis'[\s\S]*?operation: 'appendOrUpdate'[\s\S]*?matchingColumns: \['analysis_id'\]/.test(sdk));
   check('workflow: upstream failures also upsert by analysis_id', /name: 'Save Failed Analysis'[\s\S]*?operation: 'appendOrUpdate'[\s\S]*?matchingColumns: \['analysis_id'\]/.test(sdk));
-  check('workflow: valid backfills suppress duplicate owner alerts while new drafts alert', /name: 'IF New Owner Alert Required'/.test(sdk) && /\.onTrue\(ifNotifyOwner\.onTrue\(ownerAlert\)\)/.test(sdk) && /\.onFalse\(validationFailureNotice\)/.test(sdk));
+  check('workflow: valid backfills suppress duplicate owner alerts while failed retries route by notice/exhaustion state', /name: 'IF New Owner Alert Required'/.test(sdk) && /\.onTrue\(ifNotifyOwner\.onTrue\(ownerAlert\)\)/.test(sdk) && /\.onFalse\(ifValidationFailureNotice/.test(sdk) && /ifValidationRetryExhausted\.onTrue\(emitRetryExhausted\)/.test(sdk));
   check('workflow: no Postgres, no claim table, no new credential', !/n8n-nodes-base\.postgres/.test(sdk) && !/finmentor_xray_analysis_claims/.test(sdk) && (sdk.match(/credentials: \{ (googleSheetsOAuth2Api|telegramApi|openAiApi)/g) || []).every(Boolean) && !/postgres:/.test(sdk));
-  check('workflow: the failure path still records ANALYSIS_FAILED and notifies', /aiAnalysis\s+\.onError\(failedRowBuild\.to\(failedRow\.to\(saveFailed\.to\(ownerFailureNotice\)\)\)\)/.test(sdk));
+  check('workflow: the failure path records ANALYSIS_FAILED, projects Pipeline status, and bounds notifications', /aiAnalysis\s+\.onError\(failedRowBuild\.to\(failedRow\.to\(saveFailed\.to\(failedPipelineRow\.to\(updateFailedPipeline/.test(sdk) && /ifUpstreamFailureNotice[\s\S]*?ifUpstreamRetryExhausted\.onTrue\(emitRetryExhausted\)/.test(sdk));
   check('workflow: every HTML responder is no-store, noindex, no-referrer', (sdk.match(/text\/html; charset=utf-8/g) || []).length === 5 && (sdk.match(/Referrer-Policy/g) || []).length === 5);
 }
 

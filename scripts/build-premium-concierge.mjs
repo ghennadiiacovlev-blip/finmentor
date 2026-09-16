@@ -34,15 +34,15 @@
 // qa/premium-ux-state.test.mjs and qa/premium-ux-content.test.mjs drive those modules, so the
 // deployed node and the tested logic cannot drift apart — there is only one copy of the decision.
 //
-// THE DEFECT THIS FIXES. The deployed `Get Bot Session` does, unconditionally:
+// THE CYCLE BOUNDARY. `Get Bot Session` deliberately does:
 //
 //     const isStart = text === '/start';
 //     if (isStart) reset = 'start';
 //
-// so `/start` after a committed submission silently archives lead_id, clears consent and wipes
-// every qualification answer. `decide()` forbids it: after a committed submission, no input
-// returns the user to qualification without an explicit CONFIRMED new-request action, and exactly
-// two branches in the whole machine rotate a cycle. The gate below counts them.
+// so `/start` cannot inherit stale UI authority. The session gate archives the current lead
+// reference, clears current-cycle consent/draft fields, preserves durable identity/history, and
+// mints the fresh cycle and submission key before `decide()` renders TG_ENTRY. Confirmed in-flow
+// new/discard actions remain the only two rotations owned by the response state machine.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -643,16 +643,14 @@ const fail = [];
 // nodes may emit only the approved CUSTOMER callback vocabulary, and may not read an owner
 // identity at all.
 //
-// WHY THE /start RESET STILL GOES. `Get Bot Session` does, unconditionally:
+// WHY THE /start RESET IS REQUIRED. `Get Bot Session` is the current-cycle authority:
 //
 //     const isStart = text === '/start';
 //     if (isStart) reset = 'start';
 //
-// so `/start` after a committed submission archives lead_id, clears consent and wipes every
-// qualification answer. That is a customer-facing data-loss defect, not an owner convenience, and
-// it matters more once the deep link makes `/start ro` the ordinary way a Romanian customer
-// arrives. The premium machine's terminal rule replaces it: after a committed submission no input
-// returns the customer to qualification without an explicit CONFIRMED action.
+// so `/start` archives only the current lead reference into the session history, clears the
+// current-cycle consent/draft fields, preserves identity/contact and all durable CRM facts, and
+// mints a clean cycle/submission key. This is what makes stale UI state unable to poison entry.
 
 const CUSTOMER_SESSION = 'Get Bot Session';
 const CUSTOMER_RESPONSE = RESPONSE_NODE;
@@ -664,34 +662,18 @@ for (const n of [ANCHOR_IN, CUSTOMER_SESSION, CUSTOMER_RESPONSE, ANCHOR_OUT]) {
   if (!candidate.nodes.find((x) => x.name === n)) { fail.push('missing anchor node: ' + n); }
 }
 
-// The customer session node: the live code with the /start reset removed and the journey origin
-// added, and nothing else changed. Generated from the live node so it cannot drift from the spine
-// it mirrors.
+// The customer session node: the live code with /start reset explicit and the journey origin added.
 const legacySession = baseNodes.find((n) => n.name === CUSTOMER_SESSION);
+const START_DETECT_LINE = "const isStart = text === '/start';";
+const PREMIUM_START_DETECT = "const isStart = /^\\/start(?:@[A-Za-z0-9_]+)?(?:\\s+\\S+)?\\s*$/.test(text);";
 const RESET_LINE = "if (isStart) reset = 'start';";
 const RETURN_ANCHOR = 'return [{ json: s }];';
 
-// THE RESET LINE IS NEUTERED, NOT COMMENTED OUT.
-//
-// It is the HEAD of an if/else chain in the live node:
-//
-//     if (isStart) reset = 'start';
-//     else if (isRestart) reset = 'restart';
-//     else if (hasNoCycle) reset = 'bootstrap';
-//
-// Commenting the head out orphans the first `else`, and the node dies with
-// `SyntaxError: Unexpected token 'else'`. That is not hypothetical: the owner's first two real
-// /start messages reached n8n and routed correctly, and then this node threw — so the bot answered
-// nothing at all, with no error visible to the person typing.
-//
-// `if (false)` keeps the chain syntactically intact and keeps the removal legible in the deployed
-// source. The `isStart` binding above stays — unused and harmless — rather than being deleted,
-// because every other byte of this node is the live code verbatim and each extra edit is another
-// chance to break something that was working.
+// Keep the head of the live if/else chain explicit. The braces make the mutation anchor stable
+// without changing the cycle semantics.
 const PREMIUM_RESET_REPLACEMENT = [
-  '// [premium] REMOVED: /start no longer resets the cycle. `if (false)` rather than a comment,',
-  '// because this line heads an if/else chain and commenting it out orphans the `else` below.',
-  "if (false) { reset = 'start'; }"
+  '// [V1 launch blocker] /start always starts a clean current cycle; archiveLead preserves history.',
+  "if (isStart) { reset = 'start'; }"
 ].join('\n');
 
 // P1-01 — the journey origin, captured on the turn it arrives.
@@ -736,7 +718,9 @@ const JOURNEY_ORIGIN_SPLICE = [
 let premiumSessionCode = '';
 if (legacySession) {
   const orig = legacySession.parameters.jsCode;
-  if (orig.indexOf(RESET_LINE) === -1) {
+  if (orig.indexOf(START_DETECT_LINE) === -1) {
+    fail.push(CUSTOMER_SESSION + ': the /start detector was not found -- do not splice blindly');
+  } else if (orig.indexOf(RESET_LINE) === -1) {
     fail.push(CUSTOMER_SESSION + ': the /start reset line was not found -- do not splice blindly');
   } else if (orig.indexOf(RETURN_ANCHOR) === -1) {
     fail.push(CUSTOMER_SESSION + ': the return anchor was not found -- do not splice blindly');
@@ -744,26 +728,26 @@ if (legacySession) {
     fail.push(CUSTOMER_SESSION + ': the return anchor is not unique -- do not splice blindly');
   } else {
     premiumSessionCode = [
-      '// Get Bot Session — the live cycle-semantics gate, with ONE line removed and the',
+      '// Get Bot Session — the live cycle-semantics gate with explicit /start reset and the',
       '// journey-origin locale added.',
       '//',
       '// GENERATED by scripts/build-premium-concierge.mjs from the live Get Bot Session node.',
       '// DO NOT EDIT IN THE n8n UI: the next build overwrites it, and an edit here would not be',
       '// covered by qa/ro-first-contact.test.mjs.',
       '//',
-      '// REMOVED:  ' + RESET_LINE,
+      '// PRESERVED:  the /start reset; EXTENDED: Telegram deep-link payload variants.',
       '// ADDED:    the journey-origin locale capture (P1-01), lifted from',
       '//           n8n/src/premium-ux/locale.js.',
       '//',
-      '// /start after a committed submission must land on the terminal screen with the lead intact.',
-      '// Minting a new cycle here would destroy the lead before the state machine ever saw it, and',
-      '// the terminal rule would be enforcing nothing.',
+      '// /start archives the current lead reference, clears current-cycle state and mints a new',
+      '// cycle/submission key while durable historical lead/client facts remain intact.',
       '//',
       '// isRestart and hasNoCycle are UNCHANGED: a session with no cycle still bootstraps one, and',
       '// the legacy m|diag restart stays as it is.',
       ''
     ].join('\n')
-      + orig.replace(RESET_LINE, PREMIUM_RESET_REPLACEMENT)
+      + orig.replace(START_DETECT_LINE, PREMIUM_START_DETECT)
+            .replace(RESET_LINE, PREMIUM_RESET_REPLACEMENT)
             .replace(RETURN_ANCHOR, JOURNEY_ORIGIN_SPLICE + RETURN_ANCHOR);
   }
 }
@@ -951,15 +935,14 @@ if (edgeDiff.length) {
   }
 }
 
-// The customer session node must be the live code MINUS the reset PLUS the journey origin, and
-// nothing else.
+// The customer session node must preserve the explicit reset and add the journey origin.
 if (legacySession && premiumSessionCode) {
-  if (premiumSessionCode.indexOf('[premium] REMOVED') === -1) {
-    fail.push(CUSTOMER_SESSION + ': the removal of the /start reset is not recorded in the node');
+  if (premiumSessionCode.indexOf('[V1 launch blocker]') === -1) {
+    fail.push(CUSTOMER_SESSION + ': the /start cycle-boundary marker is missing');
   }
   const strippedPremium = premiumSessionCode.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
-  if (/if \(isStart\) reset = /.test(strippedPremium)) {
-    fail.push(CUSTOMER_SESSION + ': the /start reset is still executable on the customer path');
+  if (!/if \(isStart\) \{ reset = 'start'; \}/.test(strippedPremium)) {
+    fail.push(CUSTOMER_SESSION + ': the /start reset is not executable on the customer path');
   }
   // Everything else must survive: the cycle-semantics gate and the submission-key issuance are
   // what make the spine trustworthy, and removing either by accident would be invisible here
@@ -1145,7 +1128,7 @@ console.log('  RO labels          : ' + Object.keys(L.roTable(B)).length + ' cus
 console.log('');
 console.log('  response body      : ' + premiumLines + ' lines, generated from the gated modules');
 console.log('                       (replaces ' + legacyLines + ' lines of the live Russian-only builder)');
-console.log('  /start reset       : removed — a committed lead survives /start');
+console.log('  /start reset       : current cycle reset; historical lead/client facts preserved');
 console.log('  spine              : UNTOUCHED (issuance gate, receipts, authority verdicts, transport, handoff)');
 console.log('  states             : ' + SM.STATES.length + '   rotate branches: ' + rotates + ' (both confirmed)');
 console.log('  web_app actions    : 2  (brief + existing diagnosis journey, one URL = ' + MINIAPP_URL_PLACEHOLDER + ')');

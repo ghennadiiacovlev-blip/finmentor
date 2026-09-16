@@ -65,6 +65,7 @@ const HELP =
 /hot — горячие лиды
 /pipeline — сводка воронки
 /lead <ID> — карточка лида
+/brief <ID> — бриф к первой встрече
 
 Действия (<ID> = FIN-/fm-/FM-...):
 done <ID> — закрыть SLA
@@ -93,6 +94,12 @@ if (cmd === 'lead') {
   const id = rest[0] || '';
   if (!id) return [base({ mode: 'help', reply_text: 'Укажи Lead ID: /lead FIN-...' })];
   return [base({ mode: 'query', query_type: 'lead', lead_id: id })];
+}
+
+if (cmd === 'brief') {
+  const id = rest[0] || '';
+  if (!id) return [base({ mode: 'help', reply_text: 'Укажи Lead ID: /brief FIN-...' })];
+  return [base({ mode: 'precall', query_type: 'precall', lead_id: id })];
 }
 
 if (updateCmds.includes(cmd)) {

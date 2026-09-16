@@ -433,16 +433,17 @@ check('`language` stays an EXISTING Bot_Sessions column — no column is added',
   eq(cols[1], liveCols[1], 'the persisted Bot_Sessions column list changed');
 });
 
-check('the /start reset no longer destroys a committed lead — in either language', () => {
+check('the /start reset opens a clean cycle and preserves the historical lead — in either language', () => {
   for (const [text, lang] of [['/start', 'ru'], ['/start ro', 'ro'], ['/start ru', 'ru']]) {
     const row = Object.assign(cold({ chat_id: CUSTOMER }), {
       cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1',
       consent: 'yes', consent_cycle_id: 'CY-1', submission_key: 'sub_' + '0'.repeat(32)
     });
     const t = turn({ chat_id: CUSTOMER, telegramLanguage: 'ru', messageText: text, row: row });
-    eq(t.session.cycle_id, 'CY-1', text + ': the cycle was rotated');
-    eq(t.session.lead_id, 'LEAD-1', text + ': the committed lead was archived');
-    eq(t.session.consent, 'yes', text + ': consent was cleared');
+    assert(/^C-/.test(t.session.cycle_id) && t.session.cycle_id !== 'CY-1', text + ': a clean cycle was not minted');
+    eq(t.session.lead_id, '', text + ': the current-cycle lead was not cleared');
+    assert(String(t.session.previous_lead_id || '').split(/;\s*/).includes('LEAD-1'), text + ': the historical lead reference was lost');
+    eq(t.session.consent, '', text + ': current-cycle consent was not cleared');
     eq(t.session.language, lang, text + ': locale');
   }
 });

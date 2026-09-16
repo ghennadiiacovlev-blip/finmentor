@@ -118,6 +118,14 @@ var SAE = (function () {
       sideEffectClass: 'A',
       identity: 'request_id'
     },
+    // ── X-Ray / Owner Intelligence ─────────────────────────────────────────────────────────
+    'xray-analysis:Retry Exhausted': {
+      operation: 'Расширенный анализ лида не завершён после безопасных повторов.',
+      stage: 'Анализ FINMENTOR',
+      // The committed lead and one ANALYSIS_FAILED ledger row both exist before this event.
+      sideEffectClass: 'C',
+      identity: 'lead_id'
+    },
     // ── Concierge ────────────────────────────────────────────────────────────────────────────
     'concierge:Parse Intake Response': {
       operation: 'Обращение из Telegram не принято.',
@@ -136,6 +144,7 @@ var SAE = (function () {
     'miniapp-session': 'Mini App Session',
     'miniapp-gateway': 'Mini App Gateway',
     'lead-intake': 'Lead Intake',
+    'xray-analysis': 'X-Ray / Owner Intelligence',
     'concierge': 'Telegram Concierge'
   };
 

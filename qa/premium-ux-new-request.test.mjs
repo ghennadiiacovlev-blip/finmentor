@@ -69,7 +69,7 @@ check('the confirmation screen\'s primary button invokes the CONFIRM action', ()
 });
 
 check('the same label on the screens that OPEN the confirmation still opens it', () => {
-  const submitted = run({ session: committed(), message_text: '/start' });
+  const submitted = run({ session: committed(), message_text: '/menu' });
   const appendDone = run({ session: committed({ state: 'TG_APPEND_MESSAGE' }), message_text: 'Ещё деталь.' });
   for (const [name, r] of [['TG_SUBMITTED', submitted], ['TG_APPEND_MESSAGE.done', appendDone]]) {
     const b = buttons(r).find((x) => x[0] === 'Начать новый вопрос');
@@ -89,11 +89,11 @@ check('the discard confirmation is untouched — it reuses the state id but not 
 
 // ---------------------------------------------------------------- rotation invariants
 
-check('committed + /start: no rotation', () => {
+check('committed snapshot + /start: response trusts the upstream clean-cycle gate', () => {
   const r = run({ session: committed(), message_text: '/start' });
-  eq(r.debug.state_after, 'TG_SUBMITTED', 'state');
-  assert(!rotated(r), 'a cycle was rotated by /start');
-  eq(r.session.lead_id, LEAD, 'the committed lead was disturbed');
+  eq(r.debug.state_after, 'TG_ENTRY', 'state');
+  assert(!rotated(r), 'the response node duplicated the session gate rotation');
+  eq(r.session.lead_id, LEAD, 'the response node mutated the pre-gate fixture');
 });
 
 check('committed + opening the confirmation: no rotation', () => {

@@ -156,15 +156,21 @@ const XRAY_OWNER_CARDS = (function () {
     ]).slice(0, MAX_TEXT);
   }
 
-  // model = { company, locale, cause: MODEL_OUTPUT_INVALID|RATE_LIMIT|AUTH|MODEL|UPSTREAM_TRANSIENT|UNKNOWN }
+  // model = { company, locale, lead_id, contact_text, next_action, retry_exhausted }
+  // Technical cause and retry counters stay in the ledger/System Alert. The ordinary owner
+  // message states only the durable business truth and the safe recovery behaviour.
   function renderFailed(model) {
     const m = model || {};
-    const cause = CAUSE_RU[String(m.cause || '').toUpperCase()] || CAUSE_RU.UNKNOWN;
     return join([
-      header('❌', 'Анализ не сформирован'),
+      header('❌', 'Анализ временно не сформирован'),
       identity(Object.assign({}, m, { context: null })),
-      '<b>Причина</b>\n' + esc(cause),
-      '<b>Что сделать</b>\nУдалить строку этого анализа в XRay_Analysis — на следующем цикле анализ будет выполнен повторно.'
+      present(m.lead_id) ? 'Lead ID: <code>' + esc(tidy(m.lead_id, 80)) + '</code>' : '',
+      'Лид сохранён.',
+      m.retry_exhausted === true
+        ? 'Безопасные повторы завершены. Команда получила техническое уведомление.'
+        : 'Анализ не завершён и будет безопасно повторён.',
+      present(m.contact_text) ? '<b>КОНТАКТ</b>\n' + esc(tidy(m.contact_text, 160)) : '',
+      '<b>СЕЙЧАС</b>\n' + esc(tidy(m.next_action, 220) || 'Открыть карточку лида и продолжить работу по сохранённым данным.')
     ]).slice(0, MAX_TEXT);
   }
 

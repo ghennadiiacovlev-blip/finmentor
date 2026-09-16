@@ -170,23 +170,21 @@ check('final P1 cutover refuses an unrecognised live route instead of splicing b
   assert(error && /expected/.test(error.message), 'unexpected live graph was accepted');
 });
 
-check('/start on an unfinished draft offers RESUME, not a fresh start', () => {
+check('/start snapshot enters cleanly and leaves cycle mutation to the session gate', () => {
   const r = run({ session: drafting(), message_text: '/start' });
-  eq(r.debug.state_after, 'TG_RESUME_DRAFT', 'state');
-  eq(r.debug.rotate, false, 'a resume must not rotate');
-  assert(/Продолжить/.test(r.reply_text) || labels(r).indexOf('Продолжить') !== -1,
-    'the resume screen does not offer «Продолжить»');
+  eq(r.debug.state_after, 'TG_ENTRY', 'state');
+  eq(r.debug.rotate, false, 'the response node duplicated the session gate rotation');
 });
 
-check('/start on a COMMITTED cycle lands on the terminal screen — the defect this replaces', () => {
+check('/start on a committed snapshot trusts the upstream clean-cycle boundary', () => {
   const r = run({ session: committed(), message_text: '/start' });
-  eq(r.debug.state_after, 'TG_SUBMITTED', 'state');
-  eq(r.debug.rotate, false, 'the /start reset rotated a committed cycle');
-  eq(r.session.lead_id, LEAD, 'the committed lead_id was destroyed by /start');
-  eq(r.session.cycle_id, CYCLE, 'the cycle was rotated by /start');
+  eq(r.debug.state_after, 'TG_ENTRY', 'state');
+  eq(r.debug.rotate, false, 'the response node duplicated the session gate rotation');
+  eq(r.session.lead_id, LEAD, 'the response node mutated the pre-gate fixture');
+  eq(r.session.cycle_id, CYCLE, 'the response node minted a cycle instead of the session gate');
 });
 
-check('/menu behaves exactly like /start', () => {
+check('/menu navigates within the current cycle while /start is handled as a new boundary', () => {
   const a = run({ session: committed(), message_text: '/menu' });
   eq(a.debug.state_after, 'TG_SUBMITTED', '/menu on committed');
   const b = run({ session: fresh(), message_text: '/menu' });
@@ -195,9 +193,9 @@ check('/menu behaves exactly like /start', () => {
 
 // ---------------------------------------------------------------- the terminal rule
 
-check('NO input returns a committed cycle to qualification', () => {
+check('NO non-start input returns a committed cycle to qualification', () => {
   const inputs = [
-    { message_text: '/start' }, { message_text: '/menu' }, { message_text: 'здравствуйте' },
+    { message_text: '/menu' }, { message_text: 'здравствуйте' },
     { message_text: 'хочу новый бриф' },
     ...Object.keys(A).filter((k) => k !== 'NEW_CONFIRM').map((k) => ({ callback_data: A[k] }))
   ];
@@ -546,15 +544,14 @@ check('every downstream $(...) reference names a node the candidate still contai
   }
 });
 
-check('the /start reset is gone for EVERY customer, not just the owner', () => {
-  // The reset archived lead_id, cleared consent and wiped every qualification answer. It is a
-  // customer-facing data-loss defect, and it matters more now that `/start ro` is the ordinary way
-  // a Romanian customer arrives.
+check('the /start clean-cycle boundary is executable for EVERY customer', () => {
+  // The session gate archives the current lead reference, clears only current-cycle authority and
+  // mints a fresh cycle/key before the response node sees the turn.
   const session = wf.nodes.find((n) => n.name === 'Get Bot Session');
   const code = session.parameters.jsCode;
   const exec = code.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
-  assert(!/if \(isStart\) reset = /.test(exec), 'the /start reset is still executable');
-  assert(/\[premium\] REMOVED/.test(code), 'the removal is not recorded in the node');
+  assert(/if \(isStart\) \{ reset = 'start'; \}/.test(exec), 'the /start cycle boundary is not executable');
+  assert(/\[V1 launch blocker\]/.test(code), 'the cycle-boundary marker is missing');
   for (const keep of ['SUBMISSION_KEY_RE', 'hasNoCycle', 'cycle_reset', '__submission_key_action']) {
     assert(code.indexOf(keep) !== -1, 'the session node lost ' + keep);
   }

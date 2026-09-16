@@ -73,8 +73,8 @@ console.log('');
 console.log('FINMENTOR SYSTEM ALERT coverage');
 console.log('');
 
-// ── the ten alertable operational paths (owner correction D4: TEN, not nine) ───────────────────
-console.log('ALERTABLE OPERATIONAL PATHS — all ten');
+// ── the eleven alertable operational paths ─────────────────────────────────────────────
+console.log('ALERTABLE OPERATIONAL PATHS — all eleven');
 
 const ALERTABLE = [
   ['1  PRIVACY_UNRESOLVED', 'miniapp-submit', 'Privacy Verdict', 'PRIVACY_UNRESOLVED', 'sub_' + 'a'.repeat(32), 'B'],
@@ -86,10 +86,11 @@ const ALERTABLE = [
   ['7  PIPELINE_WRITE_FAILED', 'lead-intake', 'Pipeline Write Failed', 'PIPELINE_WRITE_FAILED', 'fmr_' + '1'.repeat(32), 'B'],
   ['8  PIPELINE_MERGE_FAILED', 'lead-intake', 'Pipeline Merge Failed', 'PIPELINE_MERGE_FAILED', 'fmr_' + '2'.repeat(32), 'C'],
   ['9  CRM_UNAVAILABLE', 'lead-intake', 'CRM Unavailable', 'CRM_UNAVAILABLE', 'fmr_' + '3'.repeat(32), 'A'],
-  ['10 Concierge intake failure', 'concierge', 'Parse Intake Response', 'INTAKE_NOT_OK', 'cycle-2026-08-31', 'C']
+  ['10 X-Ray retry exhausted', 'xray-analysis', 'Retry Exhausted', 'XRAY_RETRY_EXHAUSTED', 'FIN-XRAY-1', 'C'],
+  ['11 Concierge intake failure', 'concierge', 'Parse Intake Response', 'INTAKE_NOT_OK', 'cycle-2026-08-31', 'C']
 ];
 
-eq(ALERTABLE.length, 10, 'the alertable set must hold TEN paths (owner correction D4)');
+eq(ALERTABLE.length, 11, 'the alertable set must hold ELEVEN paths');
 
 for (const [label, wfKey, node, code, ident, cls] of ALERTABLE) {
   check(label + ' -> ALERT', () => {
@@ -358,8 +359,8 @@ check('the candidate BUILD node actually runs and renders the alert', () => {
   eq(out.alert_key, event.alert_key, 'the alert key was not carried through');
 });
 
-check('the route table covers exactly the ten alertable paths and nothing else', () => {
-  eq(Object.keys(SAE.ROUTES).length, 10, 'the route table is not ten routes');
+check('the route table covers exactly the eleven alertable paths and nothing else', () => {
+  eq(Object.keys(SAE.ROUTES).length, 11, 'the route table is not eleven routes');
   for (const [, wfKey, node] of ALERTABLE) {
     assert(SAE.routeOf(wfKey, node), 'a required route is missing: ' + wfKey + ':' + node);
   }

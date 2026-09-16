@@ -92,14 +92,11 @@ check('C3.1 public input emits no internal intelligence request', () => {
 });
 
 check('C3.1 authenticated request requires proven one-row commit', () => {
-  let error = '';
-  try {
-    runCode(sources.intakeRequest, {
-      'Restore Lead Context': [{ provenance_trusted: true, lead_id: 'FIN-C3', request_id: 'req-c3' }],
-      'Commit Verdict (New)': [{ __commit_updated_rows: 0, __commit_ok: 0 }]
-    }, [{}]);
-  } catch (caught) { error = caught.message; }
-  eq(error, 'C3_COMMIT_NOT_VERIFIED', 'commit failure');
+  const out = runCode(sources.intakeRequest, {
+    'Restore Lead Context': [{ provenance_trusted: true, lead_id: 'FIN-C3', request_id: 'req-c3' }],
+    'Commit Verdict (New)': [{ __commit_updated_rows: 0, __commit_ok: 0 }]
+  }, [{}]);
+  eq(out, [], 'uncommitted request was dispatched');
 });
 
 check('C3.1 authenticated committed request is a one-item closed envelope', () => {
@@ -107,8 +104,8 @@ check('C3.1 authenticated committed request is a one-item closed envelope', () =
     'Restore Lead Context': [{ provenance_trusted: true, lead_id: 'FIN-C3-ONE', request_id: 'req-c3-one' }],
     'Commit Verdict (New)': [{ __commit_updated_rows: 1, __commit_ok: 1 }]
   }, [{}]);
-  eq(out, [{ json: { event: 'AUTHENTICATED_NEW_COMMITTED', lead_id: 'FIN-C3-ONE', request_id: 'req-c3-one',
-    source_workflow_id: IDS.intake } }], 'C3 envelope');
+  eq(out, [{ json: { event: 'ELIGIBLE_NEW_COMMITTED', lead_id: 'FIN-C3-ONE', request_id: 'req-c3-one',
+    eligible: true, commit_authority: 'RECEIPT_COMMIT', source_workflow_id: IDS.intake } }], 'C3 envelope');
 });
 
 check('C3.4 legacy short-alert builders are unchanged after the internal-only guard', () => {
@@ -214,7 +211,7 @@ check('C3.1 exact target selects one eligible unanalysed lead only', () => {
   ];
   const out = runCode(sources.selectPending, {
     'Settings to Object': [settings], 'Read XRay_Analysis': [{}], 'Read Pipeline': pipeline,
-    'Validate C3 Lead Target': [{ c3_targeted: true, c3_target_lead_id: 'FIN-C3-B' }]
+    'Validate C3 Lead Target': [{ c3_targeted: true, c3_target_eligible: true, c3_target_lead_id: 'FIN-C3-B' }]
   }, [{}]);
   eq(out.length, 1, 'targeted count');
   assert(out[0].json.lead_id === 'FIN-C3-B' && out[0].json.analysis_mode === 'NEW_ANALYSIS' && out[0].json.c3_targeted === true, 'wrong target');
@@ -239,13 +236,13 @@ check('C3.3 rendered brief contains identity, importance, problem and contact', 
 
 check('C3.3 rendered brief contains existing FINMENTOR uncertainty and impact', () => {
   const text = renderBrief();
-  for (const value of ['ЧТО ЗАМЕТИЛ FINMENTOR', 'Противоречие / вывод:', 'Быстрый тест', 'Зрелость:',
-    '2/5', 'Риск:', 'Нужно проверить:', 'Влияние:', 'оборотного капитала']) assert(text.includes(value), 'missing ' + value);
+  for (const value of ['ЧТО ВИДИТ FINMENTOR', 'Быстрый тест', 'Зрелость:', '2/5',
+    'РИСКИ / ЧТО НУЖНО ПРОВЕРИТЬ', '• Проверить:']) assert(text.includes(value), 'missing ' + value);
 });
 
 check('C3.3 rendered brief contains owner action and at most three existing discovery points', () => {
   const text = renderBrief();
-  assert(text.includes('ЧТО ПРОВЕРИТЬ НА ПЕРВОМ РАЗГОВОРЕ'), 'guidance section missing');
+  assert(text.includes('ПЕРВЫЙ РАЗГОВОР'), 'guidance section missing');
   for (const question of ['Как формируется прогноз', 'Кто утверждает платежи', 'Каков цикл дебиторки']) assert(text.includes(question), 'missing question');
   assert(!text.includes('Четвёртый вопрос'), 'fourth question leaked into compact alert');
   assert(text.includes('СЕЙЧАС') && text.includes('Назначить discovery call'), 'owner next action missing');

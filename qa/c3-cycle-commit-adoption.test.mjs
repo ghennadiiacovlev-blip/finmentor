@@ -190,10 +190,13 @@ check('CONTROL — the SAME row WITHOUT adoption does not rotate on p|new_y (thi
   eq(s.cycle_id, CYCLE, 'the cycle moved');
 });
 
-check('END TO END — adopted row → decide(): /start, a free text and «Открыть бриф» all land on TG_SUBMITTED with «Начать новый вопрос»', () => {
+check('END TO END — /start is a clean-cycle boundary while other inputs keep an adopted cycle terminal', () => {
   const auth = authOf(runAdopt(liveRow(), appRows()));
   assert(SM.isCommitted(auth), 'the adopted snapshot is not committed');
-  for (const input of [{ kind: 'command', value: '/start' }, { kind: 'text', value: 'ещё одна проблема' }, { kind: 'callback', value: 'p|open' }, { kind: 'callback', value: 'p|describe' }]) {
+  const start = SM.decide(auth, { kind: 'command', value: '/start' });
+  eq(start.state, 'TG_ENTRY', '/start inherited the terminal screen');
+  eq(start.rotate, false, 'decide() rotated instead of the session gate');
+  for (const input of [{ kind: 'text', value: 'ещё одна проблема' }, { kind: 'callback', value: 'p|open' }, { kind: 'callback', value: 'p|describe' }]) {
     const out = SM.decide(auth, input);
     eq(out.state, 'TG_SUBMITTED', JSON.stringify(input) + ' did not land on the terminal screen');
     assert((out.copy.actions || []).indexOf('Начать новый вопрос') !== -1, JSON.stringify(input) + ' does not offer «Начать новый вопрос»');

@@ -60,11 +60,11 @@ const SCREENS = {
   TG_CONFIRM_CONTEXT: run({ session: fresh({ state: 'TG_FREEFORM_PROBLEM' }),
     message_text: 'Я собственник Demo Retail. Регулярно возникают кассовые разрывы и нет прогноза движения денежных средств.' }),
   TG_OPEN_BRIEF: run({ session: fresh({ state: 'TG_CONFIRM_CONTEXT', context_extracted_json: CTX }), callback_data: 'p|ctx_ok' }),
-  TG_SUBMITTED: run({ session: committed(), message_text: '/start' }),
+  TG_SUBMITTED: run({ session: committed(), message_text: '/menu' }),
   TG_APPEND_MESSAGE: run({ session: committed(), callback_data: 'p|append' }),
   TG_APPEND_DONE: run({ session: committed({ state: 'TG_APPEND_MESSAGE' }), message_text: 'Ещё одна деталь для консультанта.' }),
   TG_NEW_REQUEST_CONFIRM: run({ session: committed(), callback_data: 'p|new' }),
-  TG_RESUME_DRAFT: run({ session: drafting(), message_text: '/start' }),
+  TG_RESUME_DRAFT: run({ session: drafting(), message_text: '/menu' }),
   TG_RESUME_DISCARD_CONFIRM: run({ session: drafting(), callback_data: 'p|restart' })
 };
 

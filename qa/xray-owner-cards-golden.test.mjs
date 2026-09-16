@@ -28,14 +28,17 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 const eq = (a, b, m) => { if (a !== b) throw new Error(m + '\n--- got ---\n' + a + '\n--- want ---\n' + b); };
 
 // Tokens that must never appear in an owner card body.
-const FORBIDDEN = /Lead ID|review_token|[0-9a-f]{64}|\{"|AI_DRAFT|CLIENT_READY|ANALYSIS_FAILED|\b(ORANGE|RED|YELLOW|GREEN|UNKNOWN|LOW|MEDIUM|HIGH|PARTIAL)\b|Достоверность|Проверить цифры|confidence|prompt|MODEL_OUTPUT_INVALID|RATE_LIMIT|UPSTREAM/;
+const FORBIDDEN = /review_token|[0-9a-f]{64}|\{"|AI_DRAFT|CLIENT_READY|ANALYSIS_FAILED|\b(ORANGE|RED|YELLOW|GREEN|UNKNOWN|LOW|MEDIUM|HIGH|PARTIAL)\b|Достоверность|Проверить цифры|confidence|prompt|MODEL_OUTPUT_INVALID|RATE_LIMIT|UPSTREAM/;
 // Telegram HTML: only <b>, balanced, and no stray angle brackets in the text.
 function wellFormed(html) {
   const tags = html.match(/<\/?[^>]*>/g) || [];
   let open = 0;
-  for (const t of tags) { assert(/^<\/?b>$/.test(t), 'unexpected tag ' + t); open += t === '<b>' ? 1 : -1; assert(open >= 0, 'closing before opening'); }
+  for (const t of tags) {
+    assert(/^<\/?(?:b|code)>$/.test(t), 'unexpected tag ' + t);
+    if (/^<\/?b>$/.test(t)) { open += t === '<b>' ? 1 : -1; assert(open >= 0, 'closing before opening'); }
+  }
   assert(open === 0, 'unbalanced <b>');
-  assert(!/[<>]/.test(html.replace(/<\/?b>/g, '')), 'unescaped angle bracket in text');
+  assert(!/[<>]/.test(html.replace(/<\/?(?:b|code)>/g, '')), 'unescaped angle bracket in text');
 }
 
 const RU = {
@@ -198,27 +201,38 @@ check('GOLDEN approved card', () => {
 });
 
 check('GOLDEN failure card — model contract broken', () => {
-  eq(C.renderFailed({ company: 'ООО Пример', locale: 'ru', cause: 'MODEL_OUTPUT_INVALID' }), [
-    '❌ <b>FINMENTOR · Анализ не сформирован</b>',
+  eq(C.renderFailed({ company: 'ООО Пример', locale: 'ru', lead_id: 'FIN-FAIL-1',
+    contact_text: 'Email: owner@example.test', next_action: 'Связаться сегодня' }), [
+    '❌ <b>FINMENTOR · Анализ временно не сформирован</b>',
     '',
     '<b>ООО Пример</b>',
     'Клиент: RU',
     '',
-    '<b>Причина</b>',
-    'Модель вернула ответ вне контракта анализа',
+    'Lead ID: <code>FIN-FAIL-1</code>',
     '',
-    '<b>Что сделать</b>',
-    'Удалить строку этого анализа в XRay_Analysis — на следующем цикле анализ будет выполнен повторно.'
+    'Лид сохранён.',
+    '',
+    'Анализ не завершён и будет безопасно повторён.',
+    '',
+    '<b>КОНТАКТ</b>',
+    'Email: owner@example.test',
+    '',
+    '<b>СЕЙЧАС</b>',
+    'Связаться сегодня'
   ].join('\n'), 'failure card');
 });
-for (const [cause, want] of [['RATE_LIMIT', 'Превышен лимит запросов к модели'], ['AUTH', 'Ошибка доступа к модели'], ['MODEL', 'Модель недоступна'], ['UPSTREAM_TRANSIENT', 'Временный сбой на стороне модели'], ['UNKNOWN', 'Неизвестная ошибка'], ['weird', 'Неизвестная ошибка']]) {
-  check('failure cause ' + cause + ' renders as Russian', () => { const t = C.renderFailed({ company: 'X', locale: 'ru', cause }); assert(t.indexOf(want) !== -1 && !new RegExp('\\b' + cause + '\\b').test(t), 'cause text'); });
+for (const cause of ['RATE_LIMIT', 'AUTH', 'MODEL', 'UPSTREAM_TRANSIENT', 'UNKNOWN', 'weird']) {
+  check('failure cause ' + cause + ' remains technical-only', () => {
+    const t = C.renderFailed({ company: 'X', locale: 'ru', cause });
+    assert(!new RegExp('\\b' + cause + '\\b').test(t) && !/Причина/.test(t), 'technical cause leaked');
+    assert(/Лид сохранён/.test(t) && /безопасно повторён/.test(t), 'recovery truth missing');
+  });
 }
 
 check('every card is well-formed Telegram HTML, carries no forbidden token, and is 100–1000 characters', () => {
   const cards = [
     C.renderReview(RU), C.renderReview(Object.assign({}, RU, { score: '', zone: 'UNKNOWN', needs_verification: true })),
-    C.renderApproved({ company: 'X', locale: 'ru' }), C.renderFailed({ company: 'X', locale: 'ru', cause: 'AUTH' })
+    C.renderApproved({ company: 'X', locale: 'ru' }), C.renderFailed({ company: 'X', locale: 'ru', lead_id: 'FIN-FAIL-1' })
   ];
   for (const t of cards) {
     wellFormed(t);
