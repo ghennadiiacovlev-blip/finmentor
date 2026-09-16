@@ -111,6 +111,28 @@ check('«Начать новый вопрос» CONFIRMED on a committed cycle: 
   }
 });
 
+check('new-request rotation isolates request context and preserves only stable identity/contact', () => {
+  const oldRequest = committed({
+    selected_service: 'OLD_SERVICE', business_model: 'OLD_MODEL', turnover_range: 'OLD_SCALE',
+    main_pain: 'OLD_PROBLEM', urgency: 'OLD_URGENCY', has_cfo: 'OLD_SETUP',
+    documents_status: 'OLD_DOCUMENTS', free_text_request: 'OLD FREE TEXT', raw_json: '{"old":true}',
+    notes: JSON.stringify({ v: 1, kind: 'premium_context', original_text: 'OLD FREE TEXT',
+      extracted: { objective: 'OLD_OBJECTIVE', problem_summary: 'OLD_PROBLEM' }, context_confirmed: true }),
+    company: 'Confirmed Company SRL', contact_name: 'Confirmed Person',
+    contact_phone: '+37360000000', contact_email: 'confirmed@example.test'
+  });
+  const s = runSession(oldRequest, { callback_data: 'p|new_y' });
+  for (const key of ['selected_service', 'business_model', 'turnover_range', 'main_pain', 'urgency',
+    'has_cfo', 'documents_status', 'free_text_request', 'raw_json', 'notes', 'draft_state',
+    'draft_step', 'context_extracted_json', 'context_confirmed', 'append_text']) {
+    eq(String(s[key] || ''), '', key + ' contaminated the new request cycle');
+  }
+  eq(s.company, 'Confirmed Company SRL', 'approved stable company was not carried');
+  eq(s.contact_name, 'Confirmed Person', 'approved stable contact name was not carried');
+  eq(s.contact_phone, '+37360000000', 'approved stable phone was not carried');
+  eq(s.contact_email, 'confirmed@example.test', 'approved stable email was not carried');
+});
+
 check('the confirmed discard of an UNCOMMITTED cycle rotates and archives nothing', () => {
   const s = runSession(drafting(), { callback_data: 'p|restart_y' });
   eq(s.cycle_reset, 'restart', 'not a reset');

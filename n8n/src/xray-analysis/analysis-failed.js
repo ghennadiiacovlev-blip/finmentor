@@ -87,12 +87,15 @@ for (let idx = 0; idx < errors.length; idx++) {
     notify_owner: !retrying,
     retry_attempt: attempt,
     retry_exhausted: exhausted,
+    // Truth for the owner copy: this row is now the lead's newest ledger row, so the sweep's
+    // request-scoped retry authority WILL pick it up while attempts remain (Select Pending Leads).
+    retry_possible: !exhausted,
     error_class: klass,
     // The cause stays in the ledger/System Alert. The owner receives business-safe recovery copy.
     owner_text: XRAY_OWNER_CARDS.renderFailed({
       company: inp.company, locale: inp.locale, lead_id: inp.lead_id,
       contact_text: contactText(inp), next_action: ((inp.owner_context || {}).next_action || ''),
-      retry_exhausted: exhausted
+      retry_exhausted: exhausted, retry_possible: !exhausted
     }),
     pipeline_row: requestScoped ? {
       lead_id: inp.lead_id,

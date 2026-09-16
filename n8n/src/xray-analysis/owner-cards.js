@@ -156,7 +156,9 @@ const XRAY_OWNER_CARDS = (function () {
     ]).slice(0, MAX_TEXT);
   }
 
-  // model = { company, locale, lead_id, contact_text, next_action, retry_exhausted }
+  // model = { company, locale, lead_id, contact_text, next_action, retry_exhausted, retry_possible }
+  // The recovery line derives from the retry TRUTH the ledger writer computed: an automatic retry
+  // is promised only while one is actually possible (retry_possible !== false and not exhausted).
   // Technical cause and retry counters stay in the ledger/System Alert. The ordinary owner
   // message states only the durable business truth and the safe recovery behaviour.
   function renderFailed(model) {
@@ -166,7 +168,7 @@ const XRAY_OWNER_CARDS = (function () {
       identity(Object.assign({}, m, { context: null })),
       present(m.lead_id) ? 'Lead ID: <code>' + esc(tidy(m.lead_id, 80)) + '</code>' : '',
       'Лид сохранён.',
-      m.retry_exhausted === true
+      m.retry_exhausted === true || m.retry_possible === false
         ? 'Безопасные повторы завершены. Команда получила техническое уведомление.'
         : 'Анализ не завершён и будет безопасно повторён.',
       present(m.contact_text) ? '<b>КОНТАКТ</b>\n' + esc(tidy(m.contact_text, 160)) : '',

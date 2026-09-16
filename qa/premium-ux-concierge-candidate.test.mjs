@@ -347,8 +347,8 @@ check('the confirmation screen is built from EXTRACTION, and omits what was not 
   });
   eq(r.debug.state_after, 'TG_CONFIRM_CONTEXT', 'state');
   // Owner decision 1: label and value on separate lines, the value in bold.
-  assert(r.reply_text.indexOf('Компания\n<b>Ромашка</b>') !== -1, 'the extracted company is missing: ' + r.reply_text);
-  assert(r.reply_text.indexOf('Ваша роль\n<b>Собственник</b>') !== -1, 'the extracted role is missing');
+  assert(r.reply_text.indexOf('Компания\n') === -1, 'request text was rendered as company: ' + r.reply_text);
+  assert(r.reply_text.indexOf('Ваша роль\n') === -1, 'request text was rendered as role');
   assert(r.reply_text.indexOf('Задача\n<b>Денежный поток</b>') !== -1, 'the extracted objective is missing');
   // Scale was never asked and is never inferred, so it renders no label at all.
   assert(r.reply_text.indexOf('Масштаб') === -1, 'an uninferred scale rendered a label');
@@ -365,8 +365,26 @@ check('the extracted context is stored for the Mini App, and never marked confir
     message_text: 'Я собственник, у нас ООО «Ромашка». Постоянные кассовые разрывы и нехватка денег.'
   });
   const ctx = JSON.parse(r.session.context_extracted_json);
-  eq(ctx.company_name, 'Ромашка', 'stored company');
+  eq(ctx.company_name, undefined, 'free text stored company_name');
+  eq(ctx.role, undefined, 'free text stored role');
   eq(r.session.context_confirmed, 'false', 'extraction marked itself confirmed');
+});
+
+check('REAL RO new request maps only objective and problem context', () => {
+  const input = 'Cash Flow / \u00ABprofit este, dar lipsesc bani\u00BB';
+  const r = run({
+    session: drafting({ state: 'TG_FREEFORM_PROBLEM', language: 'ro' }),
+    message_text: input
+  });
+  eq(r.debug.state_after, 'TG_CONFIRM_CONTEXT', 'state');
+  const ctx = JSON.parse(r.session.context_extracted_json || '{}');
+  eq(ctx.company_name, undefined, 'quoted problem became company_name');
+  eq(ctx.role, undefined, 'request became role');
+  eq(ctx.objective, 'Денежный поток', 'stored objective');
+  eq(ctx.problem_summary, input, 'problem was not preserved verbatim');
+  assert(r.reply_text.indexOf('Compania\n') === -1, 'unknown company block was rendered');
+  assert(r.reply_text.indexOf('Obiectiv\n<b>Flux de numerar</b>') !== -1, 'Romanian cash-flow objective missing');
+  assert(r.reply_text.indexOf('Situația principală\n<b>' + input + '</b>') !== -1, 'Romanian problem missing');
 });
 
 check('with no STRUCTURE found, the confirm screen is skipped rather than echoing the client', () => {
@@ -395,16 +413,17 @@ check('an objective outside the approved taxonomy never reaches the screen', () 
     session: drafting({ state: 'TG_FREEFORM_PROBLEM' }),
     message_text: 'Я собственник. Нужно оптимизировать налоги и наладить работу с юристами.'
   });
-  // Role is found, so the screen renders. The client's own words legitimately appear under
-  // «Основная ситуация» — that is their summary, not a claim by the product. What must NOT appear
-  // is a «Задача:» line, because no approved objective was established.
-  assert(r.reply_text.indexOf('Задача:') === -1, 'an objective was shown without one being established');
+  // Identity-like wording has no authority and the objective is unsupported, so no structured
+  // confirmation is shown. The client's original request is still retained for the brief.
+  eq(r.debug.state_after, 'TG_OPEN_BRIEF', 'unsupported request rendered a confirmation screen');
+  assert(r.reply_text.indexOf('Задача') === -1, 'an objective was shown without one being established');
   for (const label of ['Финансовое управление', 'Денежный поток', 'Прибыль и эффективность',
                        'Нужен независимый взгляд', 'Другая задача']) {
     assert(r.reply_text.indexOf(label) === -1, 'an objective label was invented: ' + label);
   }
   const ctx = JSON.parse(r.session.context_extracted_json || '{}');
   eq(String(ctx.objective || ''), '', 'an off-taxonomy objective was stored');
+  eq(String(ctx.role || ''), '', 'identity-like request text was stored as role');
 });
 
 check('«Всё верно» is the only promotion of extracted context, and it opens the brief', () => {

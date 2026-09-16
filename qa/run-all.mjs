@@ -110,6 +110,8 @@ const GATES = [
   ['V1 launch blockers — entry, intelligence, retries and pre-call brief', 'v1-launch-blocker-fix.test.mjs'],
   ['V1 RO UAT — placeholder locale and committed-merge owner alert', 'v1-ro-uat-correction.test.mjs'],
   ['V1 client hardening — locale, acknowledgement and bounded cutover', 'v1-client-hardening.test.mjs'],
+  ['V1 submit return contract — committed answer is the last node (v1 order)', 'v1-submit-return-contract.test.mjs'],
+  ['V1 X-Ray retry contract — newest failed request retried, bounded, truthful copy', 'v1-xray-retry-contract.test.mjs'],
   ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
   ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],

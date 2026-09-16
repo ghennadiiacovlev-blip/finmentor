@@ -15,7 +15,8 @@
 //
 // ── THE RULES, AND WHERE EACH IS ENFORCED ──────────────────────────────────────────────────────
 //
-//   1. Only the six supported fields survive. Anything else is DROPPED — `EXTRACTABLE`.
+//   1. Only request/context fields survive. Identity fields are never sourced from this message —
+//      `EXTRACTABLE` deliberately excludes company_name, contact_name, role and contact details.
 //   2. Everything emitted is `source: 'ai_inferred'`, `confirmed: false` — `toDraftFields()`.
 //   3. `ai_inferred` never skips a question. Enforced in draft-contract.js `canSkip()`, which
 //      returns false for it; this module never sets `confirmed: true`, so it cannot bypass that.
@@ -53,13 +54,16 @@
 
 const B = require('./branches.js');
 
-// Rule 1. The only fields extraction may propose. `problem_summary` is display-only: it is shown on
-// the confirmation screen but is NOT a draft field — the client's own words are stored verbatim as
-// free text, and the branch `problem` remains a question with approved options.
-const EXTRACTABLE = ['company_name', 'business_activity', 'role', 'objective', 'turnover_band', 'problem_summary'];
+// Rule 1. The only fields a request/problem message may propose. Identity is a separate authority:
+// even an explicit-looking name or role in free text cannot populate company_name, contact_name,
+// role or any contact field. A confirmed identity may be carried by the caller from its approved
+// stable source, but it never passes through this extractor. `problem_summary` is display-only: it
+// is shown on the confirmation screen but is NOT a draft field — the client's own words are stored
+// verbatim as free text, and the branch `problem` remains a question with approved options.
+const EXTRACTABLE = ['business_activity', 'objective', 'turnover_band', 'problem_summary'];
 
 // Which of those actually become draft fields on confirmation.
-const DRAFT_BACKED = ['company_name', 'business_activity', 'role', 'objective', 'turnover_band'];
+const DRAFT_BACKED = ['business_activity', 'objective', 'turnover_band'];
 
 const MAX_LEN = { company_name: 200, business_activity: 200, role: 200, problem_summary: 300 };
 
@@ -372,9 +376,7 @@ function extractDeterministic(text) {
   const raw = str(text);
   if (!raw) { return {}; }
   return {
-    company_name: extractCompany(raw),
     business_activity: extractActivity(raw),
-    role: extractRole(raw),
     objective: classifyObjective(raw),
     turnover_band: extractTurnoverBand(raw),
     problem_summary: summarise(raw)

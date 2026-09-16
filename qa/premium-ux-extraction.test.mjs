@@ -49,12 +49,22 @@ console.log('');
 const GOOD = 'Я собственник, у нас ООО «Ромашка», мы занимаемся оптовой торговлей. ' +
              'Постоянно возникают кассовые разрывы, платежный календарь никто не ведет, ликвидность непредсказуема.';
 
-check('good structured free text yields company, role and objective', () => {
+check('structured free text yields request context but never identity', () => {
   const r = pipeline(GOOD);
-  eq(r.fields.company_name, 'Ромашка', 'company');
-  eq(r.fields.role, 'Собственник', 'role');
+  eq(r.fields.company_name, undefined, 'free text populated company');
+  eq(r.fields.role, undefined, 'free text populated role');
+  eq(r.fields.business_activity, 'Оптовая торговля', 'business activity');
   eq(r.fields.objective, 'cash_flow', 'objective');
   assert(r.fields.problem_summary && r.fields.problem_summary.length > 20, 'no problem summary');
+});
+
+check('REAL RO request keeps the problem, infers cash flow and cannot become company_name', () => {
+  const input = 'Cash Flow / \u00ABprofit este, dar lipsesc bani\u00BB';
+  const r = pipeline(input);
+  eq(r.fields.company_name, undefined, 'quoted problem became company_name');
+  eq(r.fields.role, undefined, 'request text became role');
+  eq(r.fields.objective, 'cash_flow', 'objective');
+  eq(r.fields.problem_summary, input, 'problem text changed');
 });
 
 check('partial free text yields only what is actually stated', () => {
@@ -106,7 +116,8 @@ check('a model proposal outside the taxonomy is REFUSED, not coerced', () => {
   const r = X.normalise({ objective: 'Оптимизация налогов', company_name: 'ООО Тест' });
   eq(r.fields.objective, undefined, 'an off-taxonomy objective survived');
   assert(r.dropped.some((d) => d.indexOf('objective') === 0), 'the refusal was not reported');
-  eq(r.fields.company_name, 'ООО Тест', 'a legitimate field was lost');
+  eq(r.fields.company_name, undefined, 'a free-text proposal populated company_name');
+  assert(r.dropped.indexOf('company_name') !== -1, 'company_name was not rejected explicitly');
 });
 
 check('independent_view and other are never inferable', () => {
@@ -125,17 +136,17 @@ check('a proposal may only touch the supported fields', () => {
     turnover_band: '€2–10 млн', contact_value: 'x@example.test', problem: 'что-то',
     diagnosis: 'компания в кризисе', important_context: 'секрет'
   });
-  eq(Object.keys(r.fields).sort().join(','), 'business_activity,company_name,objective,problem_summary,role,turnover_band', 'surviving fields');
+  eq(Object.keys(r.fields).sort().join(','), 'business_activity,objective,problem_summary,turnover_band', 'surviving fields');
   // turnover_band is now supported, and its own gate proves it accepts only approved bands.
-  for (const forbidden of ['contact_value', 'problem', 'diagnosis', 'important_context']) {
+  for (const forbidden of ['company_name', 'role', 'contact_value', 'problem', 'diagnosis', 'important_context']) {
     assert(r.dropped.indexOf(forbidden) !== -1, forbidden + ' was dropped silently rather than reported');
   }
 });
 
-check('a role stated as a REQUIREMENT is not read as the client\'s role', () => {
+check('request free text never has role authority, even for first-person wording', () => {
   eq(pipeline('Нам нужен финансовый директор на аутсорсе.').fields.role, undefined,
     'a requirement was read as the role');
-  eq(pipeline('Я финансовый директор, ищу помощь с отчетностью.').fields.role, 'Финансовый директор', 'first-person role');
+  eq(pipeline('Я финансовый директор, ищу помощь с отчетностью.').fields.role, undefined, 'first-person role leaked from request text');
 });
 
 // ---------------------------------------------------------------- rules 2 and 3
@@ -200,26 +211,24 @@ check('«Всё верно» promotes exactly the values that were SHOWN', () =>
     eq(res.draft.fields[name].source, 'user_confirmed', name + ' source after confirmation');
     eq(res.draft.fields[name].confirmed, true, name + ' confirmed after confirmation');
   }
-  assert(res.promoted.indexOf('company_name') !== -1, 'a shown value was not promoted');
+  assert(res.promoted.indexOf('company_name') === -1, 'request confirmation promoted identity');
+  assert(res.promoted.indexOf('role') === -1, 'request confirmation promoted role');
   assert(res.promoted.indexOf('objective') !== -1, 'a shown objective was not promoted');
 });
 
 check('a value that was NOT shown is not promoted by the tap', () => {
   const r = pipeline(GOOD);
   const d = draftWith(GOOD);
-  // Simulate a screen that showed only the company — the objective must stay a guess.
-  const partial = X.shownSections(r, '').filter((s) => s.key === 'company_name');
+  // Simulate a screen that showed only the business activity — the objective must stay a guess.
+  const partial = X.shownSections(r, '').filter((s) => s.key === 'business_activity');
   const res = X.promoteShown(d, partial, NOW);
   assert(res.ok, 'promotion failed');
-  eq(res.draft.fields.company_name.source, 'user_confirmed', 'shown value');
+  eq(res.draft.fields.business_activity.source, 'user_confirmed', 'shown value');
   eq(res.draft.fields.objective.source, 'ai_inferred', 'an unshown value was promoted by a tap the client never saw');
   eq(res.draft.fields.objective.confirmed, false, 'unshown value confirmed');
 });
 
-check('user_confirmed DOES smart-skip — the whole point of asking', () => {
-  // The state must be one whose ONLY requirement is a field the confirmation screen shows.
-  // Company and business activity are separate Mini App states. Both may be shown and explicitly
-  // confirmed in Telegram before the app opens; an unshown inference can never skip either state.
+check('request confirmation never skips the identity questions', () => {
   const d = draftWith(GOOD);
   const withCompany = D.setField(
     D.setField(d, 'company_name', 'ООО Ромашка', 'user_explicit', true, NOW).draft,
@@ -228,9 +237,9 @@ check('user_confirmed DOES smart-skip — the whole point of asking', () => {
 
   const res = X.promoteShown(withCompany, X.shownSections(pipeline(GOOD), ''), NOW);
   assert(res.ok, 'promotion failed: ' + JSON.stringify(res));
-  assert(res.promoted.indexOf('role') !== -1, 'role was not promoted');
-  eq(D.canSkip(res.draft.fields.role, 'role'), true, 'a confirmed role still does not skip');
-  eq(D.nextState(res.draft), 'APP_SCALE', 'confirmation did not advance past the confirmed question');
+  assert(res.promoted.indexOf('role') === -1, 'role was promoted from request text');
+  eq(D.canSkip(res.draft.fields.role, 'role'), false, 'role unexpectedly became skippable');
+  eq(D.nextState(res.draft), 'APP_ROLE', 'request text skipped the role question');
 });
 
 check('business activity skips only after it was shown and explicitly confirmed', () => {
@@ -241,12 +250,12 @@ check('business activity skips only after it was shown and explicitly confirmed'
   const res = X.promoteShown(d, X.shownSections(pipeline(GOOD), ''), NOW);
   eq(res.draft.fields.business_activity.source, 'user_confirmed', 'the shown field was not promoted');
   eq(D.canSkip(res.draft.fields.business_activity, 'business_activity'), true, 'the confirmed activity does not skip its screen');
-  eq(D.nextState(res.draft), 'APP_SCALE', 'the confirmed Telegram context was asked again');
+  eq(D.nextState(res.draft), 'APP_COMPANY', 'request context skipped the company screen');
 });
 
 check('«Исправить» discards the guess rather than keeping it around', () => {
   const d = draftWith(GOOD);
-  assert(d.fields.company_name.value, 'nothing to discard');
+  assert(d.fields.objective.value, 'nothing to discard');
   const cleared = X.discard(d);
   for (const name of X.DRAFT_BACKED) {
     eq(cleared.fields[name].value, null, name + ' survived the correction');
@@ -265,10 +274,9 @@ check('«Исправить» does NOT discard anything the client stated themse
   eq(cleared.fields.company_name.value, null, 'the AI guess was not discarded');
 });
 
-check('a wrong AI guess corrected by the user ends as the user\'s value', () => {
-  // Extraction proposes «Ромашка»; the client corrects it to something else.
+check('company can still be supplied explicitly in its own Mini App field', () => {
   const d = draftWith(GOOD);
-  eq(d.fields.company_name.value, 'Ромашка', 'setup');
+  eq(d.fields.company_name.value, null, 'request text populated company before the company screen');
   const cleared = X.discard(d);
   const set = D.setField(cleared, 'company_name', 'ООО Василёк', 'user_explicit', true, NOW);
   assert(set.ok, 'the corrected value was refused: ' + JSON.stringify(set));
@@ -306,8 +314,10 @@ check('long free text is bounded, and the summary never exceeds its cap', () => 
   const r = pipeline('кассовые разрывы. '.repeat(200));
   assert(r.fields.problem_summary.length <= X.MAX_LEN.problem_summary + 1, 'summary over cap: ' + r.fields.problem_summary.length);
   const long = X.normalise({ company_name: 'Я'.repeat(500), role: 'Р'.repeat(500) });
-  assert(long.fields.company_name.length <= 200, 'company over cap');
-  assert(long.fields.role.length <= 200, 'role over cap');
+  eq(long.fields.company_name, undefined, 'long company leaked from request proposal');
+  eq(long.fields.role, undefined, 'long role leaked from request proposal');
+  assert(long.dropped.indexOf('company_name') !== -1 && long.dropped.indexOf('role') !== -1,
+    'identity rejection was not reported');
 });
 
 check('malformed proposals do not throw', () => {

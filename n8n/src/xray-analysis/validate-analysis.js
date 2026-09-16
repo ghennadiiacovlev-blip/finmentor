@@ -244,7 +244,7 @@ function failedOutput(inp, now, errors) {
   return {
     is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
     analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
-    notify_owner: !retrying, retry_attempt: attempt, retry_exhausted: exhausted,
+    notify_owner: !retrying, retry_attempt: attempt, retry_exhausted: exhausted, retry_possible: !exhausted,
     pipeline_row: upgrading
       ? { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: String(existing.review_status || 'AI_DRAFT'), updated_at: now }
       : requestScoped
@@ -266,7 +266,7 @@ function failedOutput(inp, now, errors) {
     owner_text: XRAY_OWNER_CARDS.renderFailed({
       company: inp.company, locale: inp.locale, lead_id: inp.lead_id,
       contact_text: contactText(inp), next_action: ((inp.owner_context || {}).next_action || ''),
-      retry_exhausted: exhausted
+      retry_exhausted: exhausted, retry_possible: !exhausted
     })
   };
 }

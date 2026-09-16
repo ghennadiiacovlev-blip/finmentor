@@ -44,8 +44,8 @@ const UAT = 'Я собственник Demo Retail. У нас сеть из 6 м
 
 check('the real Demo Retail text yields every explicitly stated fact', () => {
   const f = fields(UAT);
-  eq(f.company_name, 'Demo Retail', 'company');
-  eq(f.role, 'Собственник', 'role');
+  eq(f.company_name, undefined, 'request text populated company');
+  eq(f.role, undefined, 'request text populated role');
   eq(f.turnover_band, '€2–10 млн', 'scale');
   eq(f.business_activity, 'Розничная торговля', 'activity');
   eq(f.objective, 'cash_flow', 'objective');
@@ -94,7 +94,7 @@ check('an ordinary noun phrase is never read as a company name', () => {
   }
 });
 
-check('an explicit naming construction IS read as a company name', () => {
+check('even an explicit-looking naming construction has no identity authority here', () => {
   const positives = [
     ['Я собственник Demo Retail.', 'Demo Retail'],
     ['Я владелец Alfa Group, у нас производство.', 'Alfa Group'],
@@ -103,13 +103,13 @@ check('an explicit naming construction IS read as a company name', () => {
     ['Мы ООО «Ромашка», занимаемся розницей.', 'Ромашка'],
     ['У нас компания Barza SRL.', 'Barza SRL']
   ];
-  for (const [text, want] of positives) {
-    eq(fields(text).company_name, want, JSON.stringify(text));
+  for (const [text] of positives) {
+    eq(fields(text).company_name, undefined, JSON.stringify(text));
   }
 });
 
-check('a quoted or legal-form name still wins, and is not validated away', () => {
-  eq(fields('Мы ООО «Северный ветер», у нас производство.').company_name, 'Северный ветер', 'quoted name');
+check('quoted or legal-form text still cannot populate company_name from a request', () => {
+  eq(fields('Мы ООО «Северный ветер», у нас производство.').company_name, undefined, 'quoted name');
 });
 
 // ---------------------------------------------------------------- scale
@@ -241,7 +241,9 @@ check('every extracted value is ai_inferred and unconfirmed, however rich', () =
   const f = X.normalise(X.extractDeterministic(UAT));
   const draft = X.toDraftFields(f, '2026-08-30T00:00:00.000Z');
   const names = Object.keys(draft);
-  assert(names.length >= 4, 'the richer extraction produced fewer draft fields than expected');
+  assert(names.length >= 3, 'the richer extraction produced fewer request fields than expected');
+  assert(names.indexOf('company_name') === -1 && names.indexOf('role') === -1,
+    'request extraction produced identity draft fields');
   for (const n of names) {
     eq(draft[n].source, 'ai_inferred', n + ' source');
     eq(draft[n].confirmed, false, n + ' confirmed');

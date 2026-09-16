@@ -188,7 +188,9 @@ check('TG_INFRA_FAILURE holds the approved RU copy', () => {
 check('TG_CONFIRM_CONTEXT uses the two-line label/value form', () => {
   const t = SCREENS.TG_CONFIRM_CONTEXT.reply_text;
   assert(t.indexOf('<b>Проверьте, правильно ли FINMENTOR понял контекст.</b>') === 0, 'the header is not first');
-  assert(t.indexOf('Ваша роль\n<b>Собственник</b>') !== -1, 'label and value are not on separate lines');
+  assert(t.indexOf('Задача\n<b>Денежный поток</b>') !== -1, 'label and value are not on separate lines');
+  assert(t.indexOf('Компания\n') === -1, 'free-text company block was rendered');
+  assert(t.indexOf('Ваша роль\n') === -1, 'free-text role block was rendered');
   assert(t.indexOf('Ваша роль: ') === -1, 'the retired inline "label: value" form is still in use');
   assert(t.indexOf('<i>Если всё верно, этот контекст перейдёт в бриф — повторно отвечать на эти вопросы не потребуется.</i>') !== -1,
     'the approved closing line is missing');

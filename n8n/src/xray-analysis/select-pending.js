@@ -126,17 +126,41 @@ if (backfillEnabled && backfillTargetAnalysisId) {
   } }];
 }
 
-// Failed attempts are retried against the SAME analysis_id. Exactly one failed row and one
-// Pipeline row are required; ambiguity fails closed. A successful row is never selected again.
-const retries = eligiblePipeline.filter((pipe) => {
+// Failed attempts are retried against the SAME analysis_id and the SAME request authority.
+//
+// RETRY AUTHORITY (V1 correction 2026-09-16). The lead's NEWEST ledger row is the current
+// request. It is retried when it is a due, bounded ANALYSIS_FAILED row and no successful row
+// already exists for that exact request_id. Older ledger rows — earlier requests, published
+// successes, exhausted failures — never block the newest request and are never themselves
+// reprocessed. The previous rule ("exactly one ledger row") silently made every failed merged
+// request of a lead with history unretryable while the owner card promised a retry. Two rows
+// sharing the newest created_at are ambiguous and fail closed. The retry carries the failed
+// row's request_id so Build Analysis Input pairs the exact archived Raw JSON, never the canonical
+// lead's older answers.
+function newestLedgerRow(rows) {
+  const sorted = rows.slice().sort((a, b) => ts(b.created_at) - ts(a.created_at));
+  if (sorted.length > 1 && ts(sorted[0].created_at) === ts(sorted[1].created_at)) return null;
+  return sorted[0];
+}
+const retries = [];
+for (const pipe of eligiblePipeline) {
   const id = String(pipe.lead_id).trim();
   const rows = analysesByLead[id] || [];
-  return rows.length === 1 && retryableFailed(rows[0]);
-}).map((pipe) => ({
-  ...pipe,
-  analysis_mode: 'RETRY_FAILED',
-  existing_analysis: analysesByLead[String(pipe.lead_id).trim()][0]
-}));
+  if (!rows.length) continue;
+  const newest = newestLedgerRow(rows);
+  if (!newest || !retryableFailed(newest)) continue;
+  const requestId = String(newest.request_id || '').trim();
+  const alreadySucceeded = rows.some((row) => row !== newest
+    && requestId && String(row.request_id || '').trim() === requestId
+    && String(row.review_status || '').toUpperCase() !== 'ANALYSIS_FAILED');
+  if (alreadySucceeded) continue;
+  retries.push({
+    ...pipe,
+    request_id: requestId || String(pipe.request_id || ''),
+    analysis_mode: 'RETRY_FAILED',
+    existing_analysis: newest
+  });
+}
 
 // The schedule gives a just-committed lead fifteen minutes for the immediate intake dispatch to
 // finish. This removes the only normal race in which the schedule and the immediate trigger could
