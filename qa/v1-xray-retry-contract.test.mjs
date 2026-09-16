@@ -31,8 +31,9 @@ const eq = (actual, expected, message) => {
   if (JSON.stringify(actual) !== JSON.stringify(expected))
     throw new Error(message + ' (got ' + JSON.stringify(actual) + ', expected ' + JSON.stringify(expected) + ')');
 };
-function runNode(body, { input = [], nodes = {} } = {}) {
-  const $input = { all: () => input.map((j) => ({ json: j })), first: () => ({ json: input[0] }) };
+function runNode(body, { input = [], nodes = {}, paired = null } = {}) {
+  const items = input.map((j, i) => paired ? { json: j, pairedItem: { item: paired[i] } } : { json: j });
+  const $input = { all: () => items, first: () => items[0] };
   const $ = (name) => {
     if (!(name in nodes)) throw new Error('no node ' + name);
     const items = nodes[name].map((j) => ({ json: j }));
@@ -182,12 +183,77 @@ check('the patcher replaces exactly the three Code nodes and refuses double appl
       { name: 'Every 10 Minutes', type: 'n8n-nodes-base.scheduleTrigger', parameters: { rule: {} } }]) };
   const out = patchXrayRetryContract(fixture, sources);
   assert(isApplied(out, sources), 'not applied');
-  for (const name of PATCHED_NODES) assert(out.nodes.find((n) => n.name === name).parameters.jsCode.includes(MARKERS[NODE_SOURCE[name]]), name + ' marker missing');
+  for (const name of PATCHED_NODES) for (const marker of MARKERS[NODE_SOURCE[name]]) assert(out.nodes.find((n) => n.name === name).parameters.jsCode.includes(marker), name + ' marker missing: ' + marker);
   eq(protectedShape(out), protectedShape(fixture), 'protected shape');
   eq(out.nodes.length, fixture.nodes.length, 'node count');
   let twice = '';
   try { patchXrayRetryContract(out, sources); } catch (error) { twice = error.message; }
   assert(twice.includes('already applied'), 'double application accepted: ' + twice);
+  // a partially corrected live shape (one node still old) is completed, not refused
+  const partial = JSON.parse(JSON.stringify(out));
+  partial.nodes.find((n) => n.name === 'Analysis Failed Row').parameters.jsCode = '// stale';
+  const completed = patchXrayRetryContract(partial, sources);
+  assert(isApplied(completed, sources), 'partial shape not completed');
+});
+
+// ── output ↔ input pairing (the 14:00Z misattribution) ─────────────────────────────────────────
+
+const SAFE_TG = { lead_id: 'TG-LEGACY', request_id: 'C-1-2', company: '', locale: 'ru', analysis_mode: 'RETRY_FAILED',
+  existing_analysis: failedRow('XA-TG-F', 'C-1-2', '2026-09-16T05:00:17.297Z', 1, { lead_id: 'TG-LEGACY' }), xray_analysis_id: '' };
+const AUDIT_TG = { analysis_ready: false, analysis_mode: 'RETRY_FAILED', lead_id: 'TG-LEGACY', request_id: 'C-1-2',
+  audit_finding: { severity: 'P0', code: 'REQUEST_ID_NOT_FOUND', detail: '', owner_text: 'x' } };
+const SAFE_FIN = { analysis_ready: true, lead_id: 'FIN-CANON', request_id: 'sub_' + 'b'.repeat(32), company: 'IMC', locale: 'ro',
+  analysis_mode: 'RETRY_FAILED', existing_analysis: NEW_FAILED, xray_analysis_id: 'XA-OLD-F', ai_model: 'gpt-4.1', source_channel: 'telegram_premium' };
+
+check('INCIDENT — an audit finding ahead of a safe item no longer steals the failure of the next lead', () => {
+  const out = runNode(sources.analysisFailed, {
+    input: [{ error: 'The service is receiving too many requests from you' }], paired: [0],
+    nodes: { 'Build Analysis Input': [AUDIT_TG, SAFE_FIN] }
+  });
+  eq(out.length, 1, 'one failure row');
+  eq(out[0].json.lead_id, 'FIN-CANON', 'failure attributed to the wrong lead');
+  eq(out[0].json.analysis_id, 'XA-NEW-F', 'failure did not update the failed row in place');
+  eq(out[0].json.retry_attempt, 2, 'attempt did not advance');
+});
+
+check('pairing follows pairedItem, not position, when a batch splits between success and error', () => {
+  const secondFailed = { ...SAFE_FIN, lead_id: 'FIN-SECOND', request_id: 'sub_' + 'c'.repeat(32), analysis_mode: 'NEW_REQUEST_ANALYSIS', existing_analysis: null };
+  const out = runNode(sources.analysisFailed, {
+    input: [{ error: 'boom' }], paired: [1],
+    nodes: { 'Build Analysis Input': [SAFE_FIN, secondFailed] }
+  });
+  eq(out[0].json.lead_id, 'FIN-SECOND', 'error item paired by position instead of pairedItem');
+  const valid = runNode(sources.validateAnalysis, {
+    input: [{ output: 'not json' }], paired: [1],
+    nodes: { 'Build Analysis Input': [SAFE_FIN, secondFailed], 'Settings to Object': [{ settings }] }
+  });
+  eq(valid[0].json.lead_id, 'FIN-SECOND', 'validation output paired by position instead of pairedItem');
+  eq(valid[0].json.retry_possible, true, 'validation failure retry truth');
+});
+
+check('without pairedItem (offline harness) the safe-only index pairing still skips audit findings', () => {
+  const out = runNode(sources.analysisFailed, {
+    input: [{ error: 'The service is receiving too many requests from you' }],
+    nodes: { 'Build Analysis Input': [AUDIT_TG, SAFE_FIN] }
+  });
+  eq(out[0].json.lead_id, 'FIN-CANON', 'audit finding was paired');
+});
+
+check('a legacy failed row (concierge C-… request) retries by lead_id instead of an audit finding every sweep', () => {
+  const leads = [
+    { 'Lead ID': 'TG-LEGACY', 'Request ID': '', 'Raw JSON': JSON.stringify({ source: 'telegram_concierge', client: { company: 'Legacy SRL' }, premium: {} }) },
+    { 'Lead ID': 'FIN-SUB', 'Request ID': 'sub_' + 'b'.repeat(32), 'Raw JSON': JSON.stringify({ source: 'telegram_miniapp', client: { company: 'IMC' }, premium: {}, request_id: 'sub_' + 'b'.repeat(32) }) }
+  ];
+  const run = (pipe) => runNode(sources.buildInput, { input: leads, nodes: { 'Select Pending Leads': [pipe], 'Settings to Object': [{ settings }] } })[0].json;
+  const legacy = run({ lead_id: 'TG-LEGACY', request_id: 'C-1-2', analysis_mode: 'RETRY_FAILED', priority: 'WARM', status: 'New', created_at: '2026-09-11T00:00:00Z', existing_analysis: SAFE_TG.existing_analysis });
+  eq(legacy.analysis_ready, true, 'legacy retry became an audit finding: ' + JSON.stringify(legacy.audit_finding || {}));
+  eq(legacy.source_pairing.method, 'lead_id', 'legacy retry pairing method');
+  const merged = run({ lead_id: 'FIN-CANON', request_id: 'sub_' + 'b'.repeat(32), analysis_mode: 'RETRY_FAILED', priority: 'HOT', status: 'Qualified', created_at: '2026-09-15T00:00:00Z', existing_analysis: NEW_FAILED });
+  eq(merged.analysis_ready, true, 'merged retry not built');
+  eq(merged.source_pairing.method, 'request_id', 'merged retry must keep its request authority');
+  const missing = run({ lead_id: 'FIN-CANON', request_id: 'sub_' + 'f'.repeat(32), analysis_mode: 'RETRY_FAILED', priority: 'HOT', status: 'Qualified', created_at: '2026-09-15T00:00:00Z', existing_analysis: NEW_FAILED });
+  eq(missing.analysis_ready, false, 'a submission retry whose archived request is missing must fail closed');
+  eq(missing.audit_finding.code, 'REQUEST_ID_NOT_FOUND', 'fail-closed code');
 });
 
 console.log('\nV1 X-Ray retry contract: ' + passed + ' passed, ' + failures.length + ' failed');

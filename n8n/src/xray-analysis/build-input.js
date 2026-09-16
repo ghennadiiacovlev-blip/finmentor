@@ -317,7 +317,14 @@ for (const pipe of pending) {
   // A committed merge is archived under its submission lead id while the Pipeline keeps the
   // canonical lead id. Bind that new request to its exact archived Raw JSON; never reuse the old
   // canonical lead's answers. Retries keep the same request authority.
-  const requestScoped = pipe.analysis_mode === 'NEW_REQUEST_ANALYSIS' || pipe.analysis_mode === 'RETRY_FAILED';
+  // A retry keeps its request authority when that request is a Mini App submission (sub_…, always
+  // archived under its own request_id) or when the request_id resolves in Leads. A legacy lead's
+  // failed row (concierge C-… cycle id, website fmr_… before request archiving) has exactly one
+  // Leads row and pairs by lead_id as it always did — otherwise it would be an audit finding on
+  // every sweep for ever (V1 correction 2026-09-16).
+  const submissionRequest = /^sub_[0-9a-f]{32}$/.test(requestId);
+  const retryByRequest = pipe.analysis_mode === 'RETRY_FAILED' && (submissionRequest || (byRequestId[requestId] || []).length === 1);
+  const requestScoped = pipe.analysis_mode === 'NEW_REQUEST_ANALYSIS' || retryByRequest;
   if (!requestScoped && direct.length > 1) {
     out.push({ json: auditFinding(pipe, 'LEAD_ID_COLLISION', 'matches=' + direct.length) }); continue;
   }

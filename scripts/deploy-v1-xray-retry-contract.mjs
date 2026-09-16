@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// FINMENTOR V1 — guarded X-Ray retry-contract correction (one workflow, three Code nodes).
+// FINMENTOR V1 — guarded X-Ray retry-contract correction (one workflow, four Code node bodies).
+// Re-runnable: it deploys whichever of the four bodies differ from the tracked sources and refuses
+// any drift outside them since the accepted baseline.
 //
 //   node scripts/deploy-v1-xray-retry-contract.mjs --dry-run    # zero writes; artifacts + delta proof
 //   node scripts/deploy-v1-xray-retry-contract.mjs --confirm    # controlled cutover + read-back
@@ -11,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  IDS, PATCHED_NODES, importable, isApplied, patchXrayRetryContract, protectedShape, readRetrySources
+  IDS, PATCHED_NODES, importable, isApplied, patchXrayRetryContract, pendingNodes, protectedShape, readRetrySources, untouchedShape
 } from './lib/v1-xray-retry-contract.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,7 +23,8 @@ const WRITE_KEY = String(process.env.N8N_FIX_API_KEY || '');
 const DRY = process.argv.includes('--dry-run');
 const CONFIRM = process.argv.includes('--confirm');
 const VERIFY = process.argv.includes('--verify');
-// Accepted production shape: read-back of the 2026-09-16 10:22Z RO UAT correction cutover.
+// Accepted production shape: read-back of the 2026-09-16 10:22Z RO UAT correction cutover. Only
+// the four patched Code bodies may differ from it (successive corrections re-run this script).
 const ACCEPTED_PRE = join(ROOT, '.uat', 'v1-ro-uat-p0p1', 'deploy-2026-09-16T10-22-11-716Z', IDS.xray + '.post.json');
 const ACCEPTED_VERSION = '8d1bdc66-60e1-48ac-a2fc-636a564cd0eb';
 
@@ -36,16 +39,18 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const same = (a, b) => json(a) === json(b);
 const byName = (workflow) => new Map(workflow.nodes.map((item) => [item.name, item]));
 
-function assertBoundedDelta(before, after) {
+function assertBoundedDelta(before, after, expectedChanged) {
   const a = byName(before); const b = byName(after);
   const added = [...b.keys()].filter((name) => !a.has(name));
   const removed = [...a.keys()].filter((name) => !b.has(name));
   const changed = [...a.keys()].filter((name) => b.has(name) && json(a.get(name)) !== json(b.get(name))).sort();
   if (added.length || removed.length) fail('node set changed: +' + added.join(',') + ' -' + removed.join(','));
-  if (!same(changed, PATCHED_NODES.slice().sort())) fail('changed nodes: [' + changed.join(', ') + '], expected [' + PATCHED_NODES.join(', ') + ']');
+  if (!changed.length) fail('no node changed');
+  if (!same(changed, expectedChanged.slice().sort())) fail('changed nodes: [' + changed.join(', ') + '], expected [' + expectedChanged.join(', ') + ']');
+  if (changed.some((name) => !PATCHED_NODES.includes(name))) fail('a node outside the contract changed: ' + changed.join(', '));
   if (!same(before.connections, after.connections)) fail('connections changed');
   if (!same(protectedShape(before), protectedShape(after))) fail('credential/schedule/trigger/model/sheets/settings authority drift');
-  for (const name of PATCHED_NODES) {
+  for (const name of changed) {
     const x = JSON.parse(json(a.get(name))); const y = JSON.parse(json(b.get(name)));
     delete x.parameters.jsCode; delete y.parameters.jsCode;
     if (!same(x, y)) fail(name + ': a field beyond parameters.jsCode changed');
@@ -99,13 +104,14 @@ async function main() {
   if (!existsSync(ACCEPTED_PRE)) fail('accepted production snapshot missing: ' + ACCEPTED_PRE);
   const accepted = JSON.parse(readFileSync(ACCEPTED_PRE, 'utf8'));
   if (accepted.versionId !== ACCEPTED_VERSION) fail('accepted snapshot is not version ' + ACCEPTED_VERSION);
-  if (!same(importable(live), importable(accepted)))
-    fail('production drift after the accepted forensic read (live ' + live.versionId + ')');
-  pass('X-Ray live ' + live.versionId.slice(0, 8) + ' is content-identical to accepted baseline ' + ACCEPTED_VERSION.slice(0, 8));
+  if (!same(untouchedShape(live), untouchedShape(accepted)))
+    fail('production drift outside the four patched Code bodies since the accepted baseline (live ' + live.versionId + ')');
+  pass('X-Ray live ' + live.versionId.slice(0, 8) + ': everything outside the four patched Code bodies is identical to accepted baseline ' + ACCEPTED_VERSION.slice(0, 8));
 
+  const pending = pendingNodes(live, sources);
   const candidate = patchXrayRetryContract(live, sources);
-  assertBoundedDelta(live, candidate);
-  pass('delta is exactly parameters.jsCode of ' + PATCHED_NODES.join(', ') + '; graph, credentials, schedule, model and sheets unchanged');
+  assertBoundedDelta(live, candidate, pending);
+  pass('delta is exactly parameters.jsCode of ' + pending.join(', ') + '; graph, credentials, schedule, model and sheets unchanged');
 
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const artifactDir = join(ROOT, '.uat', 'v1-xray-retry-contract', (DRY ? 'dry-' : 'deploy-') + stamp);
@@ -127,7 +133,7 @@ async function main() {
     const after = await api('GET', '/workflows/' + IDS.xray);
     if (!same(importable(after), importable(candidate))) fail('immediate read-back mismatch');
     if (after.active !== live.active) fail('active state changed');
-    assertBoundedDelta(live, after);
+    assertBoundedDelta(live, after, pending);
     if (!isApplied(after, sources)) fail('read-back does not carry the tracked sources');
     writeFileSync(join(artifactDir, IDS.xray + '.post.json'), JSON.stringify(after, null, 2) + '\n', 'utf8');
     pass('deployed ' + after.versionId + ' and read back canonically equal to the candidate');

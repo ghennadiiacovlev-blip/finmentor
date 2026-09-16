@@ -5,8 +5,24 @@
 
 // __XRAY_OWNER_CARDS__ (inlined by the builder)
 
-const inputs = $('Build Analysis Input').all().map(i => i.json);
-const errors = $input.all().map(i => i.json);
+// PAIRING (V1 correction 2026-09-16). The model node receives ONLY the items that passed
+// "IF Source Pair Safe" (analysis_ready === true); an audit finding never reaches it. Pairing an
+// error output by raw index against ALL Build Analysis Input items therefore wrote a lead's failure
+// under the preceding audit-finding lead as a fresh row (observed 2026-09-16 05:00Z and 14:00Z:
+// XA-TG-…-MU3MTQ8J-F / -MU46477P-F carried FIN-1789469658573-427's 429), and the real row never
+// advanced its attempt. Each error item is resolved through n8n's pairedItem into the model node's
+// own input list; the index is only a fallback when pairedItem is absent (offline harnesses).
+const allInputs = $('Build Analysis Input').all().map(i => i.json);
+const inputs = allInputs.filter((inp) => inp && inp.analysis_ready !== false && !inp.audit_finding);
+const errorItems = $input.all();
+const errors = errorItems.map(i => i.json);
+function pairedIndex(item, fallback) {
+  const p = item && item.pairedItem;
+  const one = Array.isArray(p) ? p[0] : p;
+  if (one && typeof one === 'object' && Number.isInteger(one.item)) return one.item;
+  if (Number.isInteger(one)) return one;
+  return fallback;
+}
 const now = new Date().toISOString();
 const out = [];
 const RETRY_MAX = 3;
@@ -47,7 +63,7 @@ function errorClass(e) {
 }
 
 for (let idx = 0; idx < errors.length; idx++) {
-  const inp = inputs[idx];
+  const inp = inputs[pairedIndex(errorItems[idx], idx)];
   if (!inp) continue;
   const klass = errorClass(errors[idx]);
   const upgrading = inp.analysis_mode === 'UPGRADE_EXISTING' && inp.existing_analysis && typeof inp.existing_analysis === 'object';

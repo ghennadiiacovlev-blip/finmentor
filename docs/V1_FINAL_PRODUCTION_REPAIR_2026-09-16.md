@@ -10,6 +10,7 @@ Repair agent: Claude (sole authority for the pass, continuing the accepted foren
 |---|---|---|---|
 | Lead Intake `QmIyEW2ZEqKregmN` | `82f2e933` (re-stamped `33817470` by the rolled-back first attempt) → **`108640f1-654e-4258-8e47-678398a12f77`** at 16:16 local | 4 nodes: `Save Lead to CRM`, `Build C3 Intelligence Request`, `Run Owner Intelligence (C3)`, `Route C3 Result Mode` moved from y 688 to y 1424 (below the bottom-most sibling y 1248); `Run Owner Intelligence (C3)` `waitForSubWorkflow:false`, `onError:continueRegularOutput`. **0 connection changes**, credentials/webhooks/settings unchanged. | `scripts/deploy-v1-submit-return-contract.mjs --verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-submit-return-contract/deploy-2026-09-16T13-16-40-466Z/` |
 | X-Ray Analysis `tNSMRoKlFB52vjge` | `8d1bdc66` → **`bd40bf86-cc0d-4efc-b0a3-b48c6c0e2f58`** at 16:31 local | `parameters.jsCode` of `Select Pending Leads`, `Analysis Failed Row`, `Validate + Store Rows` replaced from tracked sources. Graph, credentials, schedule (`0,30 8-19 * * 1-5`), OpenAI node (model expression, `maxTries 2`, `waitBetweenTries 3000`), Sheets nodes unchanged. | `scripts/deploy-v1-xray-retry-contract.mjs --verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-xray-retry-contract/deploy-2026-09-16T13-31-13-656Z/` |
+| X-Ray Analysis `tNSMRoKlFB52vjge` (second pass) | `bd40bf86` → **`33358ab5-aa92-4112-a8b5-ac157c035562`** at 17:13 local | `parameters.jsCode` of `Analysis Failed Row`, `Validate + Store Rows`, `Build Analysis Input` (see §3a: output↔input pairing and legacy-retry pairing). Everything else identical to the accepted baseline. | `--verify` PASS; post-deploy `--dry-run` → PENDING DELTA = 0; artifacts `.uat/v1-xray-retry-contract/deploy-2026-09-16T14-13-36-784Z/` |
 | Concierge `mppzthlkSJFr6Kle` | `5cfe9515` (14:12 local, earlier Codex pass) | free text → `company_name` P0 correction; unchanged in this pass | live == `.uat/p0-new-request-context/deploy-…/…post.json`; now reconciled into the repository |
 
 Note on the first Lead Intake attempt (16:13 local): the PUT succeeded, but the byte-exact read-back
@@ -66,15 +67,44 @@ Retry authority now (`n8n/src/xray-analysis/select-pending.js`):
 Historical evidence is untouched: no receipt, Leads, Pipeline, XRay_Analysis, Activities row or
 System Alert was edited or deleted.
 
+### 3a. Second defect, surfaced by the first corrected sweep (17:00 local) and fixed the same hour
+
+The 17:00 sweep selected two retries: the legacy concierge lead `TG-1636472252-1789130138995`
+(newest failed row `…-MU3MTQ8J-F`) and the 15:26 request. The legacy retry became an audit
+finding (`REQUEST_ID_NOT_FOUND`: its `C-…` cycle id is not archived as a request), so only the
+15:26 request reached the model, which returned 429. Both ledger writers paired model outputs with
+`Build Analysis Input` items **by raw index across all items**, including the audit finding that
+never reached the model — so the 15:26 request's failure was written under the legacy lead as a
+fresh row `XA-TG-…-MU46477P-F` (model, company, source empty, ATTEMPT=1), and the 15:26 row stayed
+at ATTEMPT=1. The same misattribution had already happened once under the old code at 08:00 local
+(`…-MU3MTQ8J-F` carried FIN-1789469658573-427's 429). Left alone, every 30-minute tick would have
+repeated it: a duplicate failed row on the wrong lead and a request that never advances.
+
+Correction (X-Ray version `33358ab5`, three Code bodies, no graph change):
+- `Analysis Failed Row` and `Validate + Store Rows` resolve each model output to its producer through
+  n8n `pairedItem` into the model node's own input list (audit findings excluded); raw index is only
+  the fallback when `pairedItem` is absent (offline harnesses). A batch split between success and
+  error branches is therefore attributed correctly too.
+- `Build Analysis Input`: a retry keeps request-scoped pairing when the request is a Mini App
+  submission (`sub_…`, fail-closed if its archived row is missing) or when its `request_id`
+  resolves; a legacy failed row (concierge `C-…`, pre-archiving website) pairs by `lead_id` as it
+  always did, so it is analysed (and bounded at three attempts) instead of producing an owner audit
+  message on every sweep for ever.
+
+Gate: `qa/v1-xray-retry-contract.test.mjs` now 19 checks (misattribution reproduced and refused,
+pairedItem honoured on split batches, legacy vs submission retry pairing). The misattributed rows
+`XA-TG-…-MU3MTQ8J-F` / `-MU46477P-F` are left in place as evidence; they are ANALYSIS_FAILED rows of
+a lead whose newest row will be retried and bounded like any other.
+
 ## 4. QA
 
 | gate | checks |
 |---|---|
 | `qa/v1-submit-return-contract.test.mjs` (new) | 22 — v1 rule; defect reproduced on the accepted shape (Save Activity last); corrected shape terminal-last in merged/escalated/new; four-node bounded delta; detached, tolerant, single X-Ray dispatch; NEW and MERGED terminal items parse to submit success through the real `Parse Intake Result`; a Save Activity sheet row parses to INTAKE_NOT_OK and is never last; routing independent of the model result; committed replay reaches no write (no duplicate lead); canvas-move regression detector |
-| `qa/v1-xray-retry-contract.test.mjs` (new) | 15 — legacy rule reproduced; multi-row lead retries the exact newest failed request with its own `request_id`; exhausted/published rows never selected; same-request success ends retries; newest success wins; bounded at attempt 3; NEXT respected; ambiguity fails closed; unrelated historic request never selected; single-row behaviour unchanged; retry does not re-alert; copy ↔ `retry_possible`/`retry_exhausted` truth; validation path carries the same truth; patcher exact and idempotent |
+| `qa/v1-xray-retry-contract.test.mjs` (new) | 19 — legacy rule reproduced; output↔input pairing (§3a) reproduced and refused; legacy vs submission retry pairing; multi-row lead retries the exact newest failed request with its own `request_id`; exhausted/published rows never selected; same-request success ends retries; newest success wins; bounded at attempt 3; NEXT respected; ambiguity fails closed; unrelated historic request never selected; single-row behaviour unchanged; retry does not re-alert; copy ↔ `retry_possible`/`retry_exhausted` truth; validation path carries the same truth; patcher exact and idempotent |
 | existing | Concierge free-text→company gates (Codex pass) green; RO/RU presentation, X-Ray engine (219), owner cards golden (27), launch-blocker (19), RO UAT (11), System Alert (44) unchanged and green |
 
-Full suite: **98/98 gates, 3,561 assertions, floors PASS** (baseline raised 3524 → 3561).
+Full suite: **98/98 gates, 3,565 assertions, floors PASS** (baseline raised 3524 → 3565).
 Generated artifacts rebuilt and reproduced byte-for-byte: `n8n/candidate/xray-analysis-workflow.sdk.js`,
 `n8n/candidate/premium-concierge-candidate.json`. `git diff --check` PASS; secret scan of changed and
 untracked files PASS.

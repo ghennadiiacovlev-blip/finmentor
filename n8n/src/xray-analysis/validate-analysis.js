@@ -273,13 +273,25 @@ function failedOutput(inp, now, errors) {
 
 const cfg = (function () { try { return $('Settings to Object').first().json.settings || {}; } catch (e) { return {}; } })();
 const inputs = $('Build Analysis Input').all().map(i => i.json);
-const responses = $input.all().map(i => i.json);
+const responseItems = $input.all();
+const responses = responseItems.map(i => i.json);
+// PAIRING (V1 correction 2026-09-16): the model node only ever saw the analysis_ready items, and a
+// partially failed batch splits its outputs between the success and error branches — so an output
+// is resolved to its producer through pairedItem, never by raw position. See analysis-failed.js.
+const readyInputs = inputs.filter((inp) => inp && inp.analysis_ready !== false && !inp.audit_finding);
+function pairedIndex(item, fallback) {
+  const p = item && item.pairedItem;
+  const one = Array.isArray(p) ? p[0] : p;
+  if (one && typeof one === 'object' && Number.isInteger(one.item)) return one.item;
+  if (Number.isInteger(one)) return one;
+  return fallback;
+}
 const now = new Date().toISOString();
 const out = [];
 
 for (let idx = 0; idx < responses.length; idx++) {
   const ai = responses[idx] || {};
-  const inp = inputs[idx];
+  const inp = readyInputs[pairedIndex(responseItems[idx], idx)];
   if (!inp) continue;
   const locale = XRAY_LABELS[inp.locale] ? inp.locale : 'ru';
   let parsed = null;
