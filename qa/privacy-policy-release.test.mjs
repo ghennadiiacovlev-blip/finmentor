@@ -169,27 +169,28 @@ check('the controller appears exactly once as the controller declaration in each
 
 // ── GATE 3: the Romanian journey must not offer a route into a Russian-only conversation ──────
 //
-// Every Romanian page carries CTAs to the public Telegram contact, whose non-owner branch answers
-// in Russian. Three of them on the landing page were pure duplicates: ghost buttons reading
+// Every Romanian page carries CTAs to the public Telegram contact. Three legacy landing-page
+// buttons were pure duplicates: ghost buttons reading
 // «Mai simplu: scrieți direct → FINMENTOR Bot» sitting immediately beside the primary
 // «Începeți Testul financiar FINMENTOR» button, so they added no route the reader did not already
-// have. Those three are removed. The rest stay, because they are the contact and fallback routes
-// the approved privacy policy names, and a Romanian first-contact branch in the Concierge now
-// answers them in Romanian.
+// have. Those three remain removed. The approved hero parity CTA is a separate, measured action
+// with the same contract as RU and the established Romanian locale payload. The six existing
+// contact and fallback routes remain as well.
 
 const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html', 'ro/thank-you.html'];
 
-check('the three duplicate landing CTAs are gone', () => {
+check('the obsolete duplicate landing CTAs are gone and the approved hero CTA is singular', () => {
   const h = read('ro/index.html');
   assert(h.indexOf('Mai simplu: scrieți direct') === -1, 'a duplicate ghost CTA survives');
-  const ghosts = (h.match(/btn--ghost[^>]*t\.me\/finmentor_md_bot/g) || []).length;
-  assert(ghosts === 0, ghosts + ' ghost Telegram buttons remain on the landing page');
+  const hero = h.match(/<div class="hero__actions[^>]*>([\s\S]*?)<\/div>/);
+  const approved = hero && (hero[1].match(/data-cta-id="hero_bot"/g) || []).length;
+  assert(approved === 1, 'expected one approved hero Telegram CTA, found ' + (approved || 0));
 });
 
-check('Telegram was not removed globally — the contact and fallback routes remain', () => {
+check('Telegram was not removed globally — the approved hero, contact and fallback routes remain', () => {
   const h = read('ro/index.html');
   const left = (h.match(/t\.me\/finmentor_md_bot/g) || []).length;
-  assert(left === 6, 'expected the 6 contact/fallback links to remain, found ' + left);
+  assert(left === 7, 'expected the approved hero plus 6 contact/fallback links, found ' + left);
 });
 
 check('every affected RO page still offers a working customer route', () => {
