@@ -361,9 +361,11 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
   };
   for (const protectedPath of protectedPaths) walk(join(ROOT, protectedPath));
   eq(rows.length, 41, 'protected C1/C2 source file count outside V1 owner-intelligence allowlist');
+  // Re-sealed after the separately gated 2026-09-16 client hardening pass (render-boundary
+  // localisation and viewport continuity in app-premium/app.js). C2 itself remains unchanged.
   eq(
     createHash('sha256').update(rows.join('\n')).digest('hex'),
-    '091431f03cb6180d3ff82ff6c9a79e5cab42d190b8e94c716e1831cb6ee4f764',
+    'c02eac3ad1f861b92220bc7c8c7882405063fb699456947f1585bc26633340e1',
     'protected C1/C2 source tree hash outside C3 allowlist'
   );
 });

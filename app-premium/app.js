@@ -266,8 +266,18 @@
   // last-resort guard, not a fallback policy.
   function T(s) {
     if (typeof s !== 'string' || uiLocale() !== 'ro') { return s; }
-    var t = window.FM_RO && window.FM_RO[s];
-    return t === undefined ? s : t;
+    var table = window.FM_RO || {};
+    var t = table[s];
+    if (t !== undefined) { return t; }
+    // Summary lines combine canonical machine values with presentation separators. Keep the
+    // translation at this single DOM boundary by translating only complete list segments; free
+    // text remains byte-for-byte what the customer entered.
+    return s.split(/( · | \+ |, )/).map(function (part) {
+      return table[part] === undefined ? part : table[part];
+    }).join('');
+  }
+  function machineList(values, separator) {
+    return (values || []).filter(Boolean).join(separator);
   }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -364,7 +374,7 @@
     if (head) { lines.push(head); }
     if (get('objective')) { lines.push(get('objective')); }
     var setup = get('current_setup');
-    if (setup && setup.length) { lines.push(setup.slice(0, 2).join(' + ')); }
+    if (setup && setup.length) { lines.push(machineList(setup.slice(0, 2), ' + ')); }
     if (!lines.length) { return null; }
 
     var left = [];
@@ -885,7 +895,7 @@
     var id = el('div');
     id.appendChild(el('div', 'company', get('company_name') || ''));
     id.appendChild(el('div', 'activity', get('business_activity') || ''));
-    id.appendChild(el('div', 'meta', [get('role'), get('turnover_band')].filter(Boolean).join(' · ')));
+    id.appendChild(el('div', 'meta', machineList([get('role'), get('turnover_band')], ' · ')));
     d.appendChild(id);
 
     // ЗАДАЧА is the objective LABEL, never derived and never the problem.
@@ -951,7 +961,7 @@
       for (var i = 0; i < C.CONTACT.options.length; i++) { if (C.CONTACT.options[i].id === v) { return C.CONTACT.options[i].label; } }
       return '';
     }
-    if (Array.isArray(v)) { return v.length ? v.join(', ') : '—'; }
+    if (Array.isArray(v)) { return v.length ? machineList(v, ', ') : '—'; }
     return v || '—';
   }
   function scrEditSelector() {
@@ -993,11 +1003,12 @@
     var sum = el('div', 'summary');
     sum.appendChild(el('div', 'kicker', 'Confidential brief'));
     sum.appendChild(el('div', 'name', get('company_name') || ''));
-    sum.appendChild(el('div', 'l1', [o ? o.label : '', get('decision_horizon')].filter(Boolean).join(' · ')));
+    sum.appendChild(el('div', 'l1', machineList([o ? o.label : '', get('decision_horizon')], ' · ')));
     var docs = get('documents') || [];
+    var ps = ui().privacySummary;
     sum.appendChild(el('div', 'l2', [
-      docs.length ? docs.length + ' категорий материалов' : 'без материалов',
-      get('contact_channel') === 'telegram' ? 'ответ в Telegram' : 'ответ по контакту'
+      docs.length ? ps.materials.replace('{n}', String(docs.length)) : ps.noMaterials,
+      get('contact_channel') === 'telegram' ? ps.telegram : ps.contact
     ].join(' · ')));
     s.appendChild(sum);
 
@@ -1143,6 +1154,7 @@
   // language whichever shell is showing it.
   var UI = {
     ru: {
+      privacySummary: { materials: '{n} категорий материалов', noMaterials: 'без материалов', telegram: 'ответ в Telegram', contact: 'ответ по контакту' },
       result: {
         kicker: 'Результат', title: 'Результат анализа', scale: '/ 100', outOfFive: 'из 5',
         noScore: 'Оценка не рассчитана',
@@ -1169,6 +1181,7 @@
       }
     },
     ro: {
+      privacySummary: { materials: '{n} categorii de materiale', noMaterials: 'fără materiale', telegram: 'răspuns în Telegram', contact: 'răspuns prin canalul ales' },
       result: {
         kicker: 'Rezultat', title: 'Rezultatul analizei', scale: '/ 100', outOfFive: 'din 5',
         noScore: 'Scorul nu a fost calculat',
@@ -1433,7 +1446,36 @@
     });
   }
 
+  var lastRenderedState = null;
+  function visibleViewport() {
+    var vv = window.visualViewport;
+    return { top: vv ? vv.offsetTop : 0, bottom: (vv ? vv.offsetTop + vv.height : window.innerHeight) };
+  }
+  function keepActiveQuestionVisible(previousState, previousY) {
+    var semanticTop = ['APP_STARTING', 'APP_BOOTSTRAP', 'APP_REVIEW', 'APP_SUCCESS', 'APP_RESULT',
+      'APP_FAILURE', 'APP_BOOT_FAILURE', 'APP_SESSION_EXPIRED'].indexOf(state) !== -1;
+    if (semanticTop && previousState !== state) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+    if (previousState === state && typeof previousY === 'number') {
+      window.scrollTo({ top: previousY, behavior: 'auto' });
+    }
+    if (!main || typeof main.querySelector !== 'function') { return; }
+    var target = main.querySelector('input:not([disabled]), textarea:not([disabled]), button.is-selected, button:not([disabled])');
+    if (!target || typeof target.getBoundingClientRect !== 'function') { return; }
+    var rect = target.getBoundingClientRect();
+    var viewport = visibleViewport();
+    if (rect.top < viewport.top + 12 || rect.bottom > viewport.bottom - 12) {
+      if (typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
+      }
+    }
+  }
+
   function render() {
+    var previousState = lastRenderedState;
+    var previousY = typeof window.pageYOffset === 'number' ? window.pageYOffset : 0;
     draft.step = state;
     var fn = SCREENS[state] || scrEntry;
     main.innerHTML = '';
@@ -1445,7 +1487,10 @@
     backBtn.hidden = (state === 'APP_BOOTSTRAP' || state === 'APP_SUCCESS' || state === 'APP_SUBMITTING' ||
       state === 'APP_STARTING' || state === 'APP_BOOT_FAILURE' || state === 'APP_SESSION_EXPIRED' ||
       state === 'APP_RESUME' || state === 'APP_RESULT');
-    window.scrollTo({ top: 0, behavior: (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth' });
+    lastRenderedState = state;
+    if (typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(function () { keepActiveQuestionVisible(previousState, previousY); });
+    } else { keepActiveQuestionVisible(previousState, previousY); }
   }
 
   backBtn.addEventListener('click', function () {
@@ -1490,8 +1535,9 @@
         render();
         return;
       }
-      // The SERVER decides the locale; the client records what it was told.
-      set('locale', String((r.body && r.body.locale) || locale), 'telegram_carried', true);
+      // The SERVER decides the locale. It is applied AFTER hydration below so a blank or stale
+      // prior draft can never overwrite the current Telegram journey authority.
+      var serverLocale = String((r.body && r.body.locale) || locale);
 
       // ── HYDRATION ─────────────────────────────────────────────────────────────────────────
       //
@@ -1520,6 +1566,7 @@
         // marking it dirty would write it straight back for no reason.
         dirty = false;
       }
+      set('locale', serverLocale, 'telegram_carried', true);
       carryFromTelegram();
 
       // A COMMITTED session never returns to qualification. It shows what it produced.

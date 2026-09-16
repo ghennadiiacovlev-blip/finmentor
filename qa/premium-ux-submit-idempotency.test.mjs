@@ -253,6 +253,10 @@ check('D6 — the canonical lead id is recorded on the session row', () => {
   eq(r.response.body.lead_id, 'FIN-1', 'the response lead id');
   eq(w.sessions[0].state, 'submitted', 'the session state');
   eq(w.sessions[0].lead_id, 'FIN-1', 'THE LEAD ID WAS NOT STORED — a replay would answer with an empty string');
+  eq(w.calls.clientAck, 1, 'the customer acknowledgement count');
+  const draft = JSON.parse(w.sessions[0].draft_json);
+  eq(draft.server_events.client_ack.phase, 'sent', 'the acknowledgement was not durably marked sent');
+  assert(String(draft.server_events.client_ack.message_id || '') !== '', 'the Telegram message id was not recorded');
 });
 
 check('D7 — a replay of a committed submission answers ok:TRUE with the canonical lead', () => {
@@ -265,7 +269,26 @@ check('D7 — a replay of a committed submission answers ok:TRUE with the canoni
   eq(r.response.body.lead_id, 'FIN-1', 'the canonical lead did not come back');
   eq(r.response.body.error_code, undefined, 'a success carries an error code');
   eq(w.calls.intake, 1, 'the replay called Lead Intake again');
+  eq(w.calls.clientAck, 1, 'the replay sent a second customer acknowledgement');
   eq(w.privacy.length, 1, 'the replay wrote a second acknowledgement');
+});
+
+check('D7 — an ambiguous acknowledgement never duplicates Telegram and never hides the committed lead', () => {
+  const w = world();
+  const first = run(w, bodyFor(SID), { node: 'Send Client Ack', mode: 'not_ok', times: 1 });
+  eq(first.response.status, 503, 'the ambiguous first response status');
+  eq(first.response.body.retryable, true, 'the client cannot reconcile the committed result');
+  eq(w.sessions[0].state, 'committed_ack_claimed', 'the ambiguous claim was discarded');
+  eq(w.sessions[0].lead_id, 'FIN-1', 'the committed lead was lost');
+  eq(w.calls.clientAck, 1, 'the first acknowledgement attempt count');
+
+  const retry = run(w, bodyFor(SID));
+  eq(retry.response.status, 200, 'the retry status');
+  eq(retry.response.body.ok, true, 'the committed submission was reported as a failure');
+  eq(retry.response.body.lead_id, 'FIN-1', 'the canonical lead did not survive');
+  eq(retry.response.body.client_ack_state, 'unconfirmed', 'the acknowledgement uncertainty was hidden');
+  eq(w.calls.clientAck, 1, 'the retry duplicated an ambiguous Telegram send');
+  eq(w.calls.intake, 1, 'the retry duplicated Lead Intake');
 });
 
 check('D7 — a committed session that has since EXPIRED still answers with its lead', () => {

@@ -41,6 +41,7 @@ export const SUBMIT_NAME = '[CANDIDATE] FINMENTOR Mini App Submit';
 export const LEAD_INTAKE_PLACEHOLDER = '__LEAD_INTAKE_WORKFLOW_ID__';
 export const PRIVACY_CRED_PLACEHOLDER = '__PRIVACY_AUDIT_CREDENTIAL_ID__';
 export const SESSION_TABLE = 'MiniApp_App_Sessions';
+export const CLIENT_TRANSPORT_WORKFLOW_ID = 'ShcmmJeLSE8LYVBk';
 // The SAME receipt store the Concierge preallocates into. Not a Mini App table: Lead Intake
 // reads exactly one store, and a second one would be a second contract to drift.
 const RECEIPT_TABLE = 'Submission_Receipts';
@@ -190,7 +191,8 @@ const SESSION_RESOLVE = [
 const SESSION_VERDICT = [
   '// TTL and terminal state, decided from the STORED row and the server clock only.',
   '//',
-  '// `submitted` is terminal: a draft write after a committed submission is refused rather than',
+  '// Every post-commit acknowledgement state is terminal: a draft write after the business commit',
+  '// is refused rather than',
   '// merged, because the alternative is a client quietly editing a request a consultant already',
   '// has. That is the same terminal rule the Telegram side enforces.',
   'const allRows = $input.all().map(i => i.json);',
@@ -214,7 +216,7 @@ const SESSION_VERDICT = [
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) {',
   '  return [{ json: { ok: 0, error_code: "SESSION_EXPIRED", status: 401 } }];',
   '}',
-  'if (String(s.state) === "submitted") { return [{ json: { ok: 0, error_code: "SUBMIT_IN_PROGRESS", status: 409 } }]; }',
+  'if (String(s.state) !== "draft") { return [{ json: { ok: 0, error_code: "SUBMIT_IN_PROGRESS", status: 409 } }]; }',
   'return [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id, cycle_id: String(s.cycle_id || "") } }];'
 ].join('\n');
 
@@ -265,7 +267,7 @@ function sessionWorkflow() {
       // Same hole as the submit read: a no-match must still produce an item, or Session Verdict
       // never runs and an unknown or expired session answers HTTP 200 with an empty body.
       alwaysOutputData: true,
-      onError: 'continueRegularOutput' },
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
     code('Session Verdict', SESSION_VERDICT),
     ifNode('IF Session Valid', '={{ $json.ok }}', 1),
     code('Validate Draft', SESSION_VALIDATE),
@@ -370,6 +372,8 @@ const SUBMIT_STATE = [
   'const rows = allRows.filter(r => r && String(r.app_session_id || "").trim() !== "");',
   'if (rows.length !== 1) { return R(401, "SESSION_INVALID"); }',
   'const s = rows[0];',
+  'let storedDraft = null; try { storedDraft = JSON.parse(String(s.draft_json || "null")); } catch (e) { storedDraft = null; }',
+  'const ackEvent = storedDraft && storedDraft.server_events && storedDraft.server_events.client_ack;',
   '',
   '// C3 — RELEASE GATE. A row with no server-bound identity is not a session; and until the explicit',
   '// CUSTOMER release the endpoint answers only the owner (see the Session endpoint).',
@@ -385,20 +389,34 @@ const SUBMIT_STATE = [
   '// COMMITTED IS CHECKED FIRST, BEFORE EXPIRY. A session that was submitted and has since aged',
   '// past its TTL is still a committed submission, and the truthful answer is the lead it',
   '// produced rather than "expired". This branch answers ok:TRUE — see Respond Submit Terminal.',
-  'if (String(s.state) === "submitted") {',
+  'if (String(s.state) === "submitted" && ackEvent && ackEvent.phase === "sent") {',
   '  return [{ json: { ok: 0, already: 1, submission_key: submission_key,',
   '    __status: 200,',
   '    __response: { ok: true, already: true, lead_id: String(s.lead_id || ""), submit_state: "submitted" } } }];',
   '}',
+  'if (String(s.state) === "submitted" || String(s.state) === "committed_ack_pending") {',
+  '  if (!String(s.lead_id || "").trim() || !storedDraft || !storedDraft.fields) return R(503, "SUBMIT_PERSISTENCE_UNCONFIRMED", true);',
+  '  return [{ json: { ok: 1, ack_recovery: 1, session_state: String(s.state), app_session_id: s.app_session_id,',
+  '    telegram_user_id: s.telegram_user_id, chat_id: String(s.chat_id || s.telegram_user_id || ""), cycle_id: String(s.cycle_id || ""),',
+  '    contact_name: String(s.contact_name || ""), submission_key: submission_key, draft: storedDraft,',
+  '    lead_id: String(s.lead_id || ""), priority: "", financial_zone: "" } }];',
+  '}',
+  'if (String(s.state) === "committed_ack_claimed") {',
+  '  if (!String(s.lead_id || "").trim() || !storedDraft || !storedDraft.fields) return R(503, "SUBMIT_PERSISTENCE_UNCONFIRMED", true);',
+  '  // The business submission is durably committed. A previous execution owns an ambiguous',
+  '  // Telegram send, so replaying it could duplicate the customer message; report the committed',
+  '  // truth and keep the acknowledgement explicitly unconfirmed instead.',
+  '  return [{ json: { ok: 0, already: 1, __status: 200, __response: { ok: true, already: true,',
+  '    lead_id: String(s.lead_id), submit_state: "submitted", client_ack_state: "unconfirmed" } } }];',
+  '}',
   'if (new Date(String(s.expires_at)).getTime() <= Date.now()) { return R(401, "SESSION_EXPIRED"); }',
-  'let draft = null;',
-  'try { draft = JSON.parse(String(s.draft_json || "null")); } catch (e) { draft = null; }',
+  'let draft = storedDraft;',
   '// An empty draft is its own refusal. Calling it BAD_REQUEST told the client its request was',
   '// malformed when what actually happened is that no answers ever reached the server.',
   'if (!draft || !draft.fields || !Object.keys(draft.fields).length) { return R(409, "DRAFT_EMPTY"); }',
   'return [{ json: { ok: 1, app_session_id: s.app_session_id, telegram_user_id: s.telegram_user_id,',
   '  chat_id: String(s.chat_id || s.telegram_user_id || ""), cycle_id: String(s.cycle_id || ""),',
-  '  contact_name: String(s.contact_name || ""), submission_key: submission_key, draft: draft } }];'
+  '  contact_name: String(s.contact_name || ""), submission_key: submission_key, session_state: "draft", draft: draft } }];'
 ].join('\n');
 
 const SUBMIT_PRIVACY = [
@@ -650,8 +668,69 @@ const VERIFY_SUBMITTED_PERSISTENCE = [
   'const fail = code => [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: code, retryable: true } } }];',
   'if (rows.some(r => r && (r.error || r.errorMessage))) return fail("SUBMIT_STORE_UNAVAILABLE");',
   'const row = rows.find(r => r && String(r.app_session_id || "") === sid);',
-  'if (!row || String(row.state || "") !== "submitted" || String(row.lead_id || "") !== String(expected.lead_id || "")) return fail("SUBMIT_PERSISTENCE_UNCONFIRMED");',
+  'if (!row || String(row.state || "") !== "committed_ack_pending" || String(row.lead_id || "") !== String(expected.lead_id || "")) return fail("SUBMIT_PERSISTENCE_UNCONFIRMED");',
   'return [{ json: { ok: 1 } }];'
+].join('\n');
+
+const BUILD_CLIENT_ACK_CLAIM = [
+  '// The durable lead commit is already proven before this node is reachable. Claim the one',
+  '// Telegram acknowledgement with a random token stored inside the EXISTING draft_json.',
+  '// The state+token pair is the compare-and-readback guard: concurrent replays can observe the',
+  '// winner, but only the execution whose token was stored may call Telegram Transport.',
+  'const s = $("Submit State").first().json || {};',
+  'const expectedState = String(s.ack_recovery ? s.session_state : "committed_ack_pending");',
+  'const draft = JSON.parse(JSON.stringify(s.draft || {}));',
+  'const lead = (function () { try { return $("Parse Intake Result").first().json || {}; } catch (e) { return {}; } })();',
+  'const leadId = String(lead.lead_id || s.lead_id || "").trim();',
+  'if (!leadId || !draft.fields) throw new Error("CLIENT_ACK_COMMIT_CONTEXT_INVALID");',
+  'const localeValue = draft.fields.locale && draft.fields.locale.value;',
+  'const locale = /^ro(?:-|$)/i.test(String(localeValue || "")) ? "ro" : "ru";',
+  'const claimId = "ack_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 18);',
+  'draft.server_events = draft.server_events && typeof draft.server_events === "object" ? draft.server_events : {};',
+  'draft.server_events.client_ack = { phase: "claimed", claim_id: claimId, claimed_at: new Date().toISOString() };',
+  'const text = locale === "ro"',
+  '  ? "✅ Solicitarea a fost transmisă consultantului FINMENTOR.\\n\\nRevenim în cel mult 1 zi lucrătoare.\\nNu trebuie să repetați informațiile deja transmise."',
+  '  : "✅ Обращение передано консультанту FINMENTOR.\\n\\nМы свяжемся с вами в течение 1 рабочего дня.\\nПовторно передавать уже указанные данные не нужно.";',
+  'return [{ json: { app_session_id: String(s.app_session_id), expected_state: expectedState, claim_id: claimId,',
+  '  draft_json: JSON.stringify(draft), lead_id: leadId, priority: String(lead.priority || s.priority || ""),',
+  '  financial_zone: String(lead.financial_zone || s.financial_zone || ""), chat_id: String(s.chat_id || s.telegram_user_id || ""),',
+  '  locale: locale, text: text, keyboard_layout_id: "L0_NONE", keyboard_data: { rows: [] }, parse_mode: "",',
+  '  disable_preview: true, correlation_id: ("miniapp-ack:" + String(s.submission_key || "")).slice(0, 100) } }];'
+].join('\n');
+
+const VERIFY_CLIENT_ACK_CLAIM = [
+  'const claim = $("Build Client Ack Claim").first().json;',
+  'const rows = $input.all().map(i => i.json);',
+  'const fail = code => [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: code, retryable: false } } }];',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) return fail("CLIENT_ACK_CLAIM_UNRESOLVED");',
+  'const row = rows.find(r => r && String(r.app_session_id || "") === String(claim.app_session_id));',
+  'let draft = null; try { draft = JSON.parse(String((row && row.draft_json) || "null")); } catch (e) {}',
+  'const event = draft && draft.server_events && draft.server_events.client_ack;',
+  'if (!row || String(row.state || "") !== "committed_ack_claimed" || !event || event.phase !== "claimed" || String(event.claim_id || "") !== String(claim.claim_id)) return fail("CLIENT_ACK_CLAIM_LOST");',
+  'return [{ json: Object.assign({ ok: 1 }, claim) }];'
+].join('\n');
+
+const PARSE_CLIENT_ACK_RESULT = [
+  'const sent = $input.first().json || {};',
+  'const claim = $("Build Client Ack Claim").first().json;',
+  'if (sent.ok !== true || !String(sent.message_id || "").trim() || String(sent.correlation_id || "") !== String(claim.correlation_id || "")) {',
+  '  return [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: String(sent.error_code || "CLIENT_ACK_UNRESOLVED"), retryable: false } } }];',
+  '}',
+  'const draft = JSON.parse(String(claim.draft_json));',
+  'draft.server_events.client_ack = { phase: "sent", claim_id: claim.claim_id, sent_at: new Date().toISOString(), message_id: String(sent.message_id) };',
+  'return [{ json: Object.assign({}, claim, { ok: 1, draft_json: JSON.stringify(draft), ack_message_id: String(sent.message_id) }) }];'
+].join('\n');
+
+const VERIFY_CLIENT_ACK_FINAL = [
+  'const expected = $("Parse Client Ack Result").first().json;',
+  'const rows = $input.all().map(i => i.json);',
+  'const fail = code => [{ json: { ok: 0, __status: 503, __response: { ok: false, error_code: code, retryable: false } } }];',
+  'if (rows.some(r => r && (r.error || r.errorMessage))) return fail("CLIENT_ACK_PERSISTENCE_UNCONFIRMED");',
+  'const row = rows.find(r => r && String(r.app_session_id || "") === String(expected.app_session_id));',
+  'let draft = null; try { draft = JSON.parse(String((row && row.draft_json) || "null")); } catch (e) {}',
+  'const event = draft && draft.server_events && draft.server_events.client_ack;',
+  'if (!row || String(row.state || "") !== "submitted" || String(row.lead_id || "") !== String(expected.lead_id || "") || !event || event.phase !== "sent" || String(event.claim_id || "") !== String(expected.claim_id)) return fail("CLIENT_ACK_PERSISTENCE_UNCONFIRMED");',
+  'return [{ json: { ok: 1, __status: 200, __response: { ok: true, lead_id: String(expected.lead_id), priority: String(expected.priority || ""), financial_zone: String(expected.financial_zone || ""), submit_state: "submitted" } } }];'
 ].join('\n');
 
 function submitWorkflow() {
@@ -668,8 +747,9 @@ function submitWorkflow() {
       // the caller gets an empty 200. Safe here because onError is continueRegularOutput, not
       // continueErrorOutput — the flag is not the P9-R2 hazard, the pair is.
       alwaysOutputData: true,
-      onError: 'continueRegularOutput' },
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
     code('Submit State', SUBMIT_STATE),
+    ifNode('IF Ack Recovery', '={{ $json.ack_recovery || 0 }}', 1),
     ifNode('IF Submit Allowed', '={{ $json.ok }}', 1),
     code('Build Privacy Record', SUBMIT_PRIVACY),
     { parameters: { operation: 'executeQuery',
@@ -712,7 +792,7 @@ function submitWorkflow() {
       // D6. The session row is where a REPLAY finds the canonical lead id, so a committed
       // submission that is submitted again can be answered with the lead it produced instead of
       // an empty string. Without this column the terminal branch had nothing truthful to say.
-      columns: { mappingMode: 'defineBelow', value: { state: 'submitted',
+      columns: { mappingMode: 'defineBelow', value: { state: 'committed_ack_pending',
         lead_id: '={{ $(\'Parse Intake Result\').first().json.lead_id }}',
         updated_at: '={{ new Date().toISOString() }}' }, schema: [] } },
       id: 'pux-mark-submitted', name: 'Mark Submitted', type: 'n8n-nodes-base.dataTable', typeVersion: 1, position: [2200, 0],
@@ -723,7 +803,45 @@ function submitWorkflow() {
       alwaysOutputData: true, onError: 'continueRegularOutput' },
     code('Verify Submitted Persistence', VERIFY_SUBMITTED_PERSISTENCE),
     ifNode('IF Submitted Persisted', '={{ $json.ok }}', 1),
-    respond('Respond Submit OK', 200, '={{ JSON.stringify({ ok: true, lead_id: $(\'Parse Intake Result\').first().json.lead_id, priority: $(\'Parse Intake Result\').first().json.priority, financial_zone: $(\'Parse Intake Result\').first().json.financial_zone, submit_state: \'submitted\' }) }}'),
+    code('Build Client Ack Claim', BUILD_CLIENT_ACK_CLAIM),
+    { parameters: { resource: 'row', operation: 'update', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      matchType: 'allConditions', filters: { conditions: [
+        { keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $json.app_session_id }}' },
+        { keyName: 'state', condition: 'eq', keyValue: '={{ $json.expected_state }}' }
+      ] }, columns: { mappingMode: 'defineBelow', value: {
+        state: 'committed_ack_claimed', draft_json: '={{ $json.draft_json }}', updated_at: '={{ new Date().toISOString() }}'
+      }, schema: [] } }, id: 'pux-claim-client-ack', name: 'Claim Client Ack', type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [y * 220, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $(\'Build Client Ack Claim\').first().json.app_session_id }}' }] } },
+      id: 'pux-readback-client-ack-claim', name: 'Read Back Client Ack Claim', type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [y * 220, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    code('Verify Client Ack Claim', VERIFY_CLIENT_ACK_CLAIM),
+    ifNode('IF Client Ack Claimed', '={{ $json.ok }}', 1),
+    { parameters: { mode: 'each', workflowId: { __rl: true, mode: 'id', value: CLIENT_TRANSPORT_WORKFLOW_ID },
+      workflowInputs: { mappingMode: 'defineBelow', matchingColumns: [], schema: [], value: {
+        chat_id: '={{ $json.chat_id }}', text: '={{ $json.text }}', keyboard_layout_id: '={{ $json.keyboard_layout_id }}',
+        keyboard_data: '={{ $json.keyboard_data }}', parse_mode: '={{ $json.parse_mode }}', disable_preview: '={{ $json.disable_preview }}',
+        correlation_id: '={{ $json.correlation_id }}'
+      } }, options: { waitForSubWorkflow: true } }, id: 'pux-send-client-ack', name: 'Send Client Ack',
+      type: 'n8n-nodes-base.executeWorkflow', typeVersion: 1.2, position: [y * 220, 0], onError: 'continueRegularOutput' },
+    code('Parse Client Ack Result', PARSE_CLIENT_ACK_RESULT),
+    ifNode('IF Client Ack Sent', '={{ $json.ok }}', 1),
+    { parameters: { resource: 'row', operation: 'update', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      matchType: 'allConditions', filters: { conditions: [
+        { keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $json.app_session_id }}' },
+        { keyName: 'state', condition: 'eq', keyValue: 'committed_ack_claimed' }
+      ] }, columns: { mappingMode: 'defineBelow', value: {
+        state: 'submitted', draft_json: '={{ $json.draft_json }}', updated_at: '={{ new Date().toISOString() }}'
+      }, schema: [] } }, id: 'pux-finalise-client-ack', name: 'Finalise Client Ack', type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [y * 220, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    { parameters: { operation: 'get', dataTableId: { __rl: true, mode: 'name', value: SESSION_TABLE },
+      filters: { conditions: [{ keyName: 'app_session_id', condition: 'eq', keyValue: '={{ $(\'Build Client Ack Claim\').first().json.app_session_id }}' }] } },
+      id: 'pux-readback-client-ack-final', name: 'Read Back Client Ack Final', type: 'n8n-nodes-base.dataTable', typeVersion: 1.1, position: [y * 220, 0],
+      alwaysOutputData: true, onError: 'continueRegularOutput' },
+    code('Verify Client Ack Final', VERIFY_CLIENT_ACK_FINAL),
+    ifNode('IF Client Ack Finalised', '={{ $json.ok }}', 1),
+    respondTerminal('Respond Submit OK'),
     // NO separate 'Rejected' responder. It answered a hard-coded BAD_REQUEST 400 to everything on
     // the shape branch, which is the exact flattening this file warns about above respondEcho —
     // in the one place the warning had not been applied.
@@ -736,7 +854,8 @@ function submitWorkflow() {
     'Submit Guard': { main: [[{ node: 'IF Submit Shape', type: 'main', index: 0 }]] },
     'IF Submit Shape': { main: [[{ node: 'Read Submit Session', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] },
     'Read Submit Session': { main: [[{ node: 'Submit State', type: 'main', index: 0 }]] },
-    'Submit State': { main: [[{ node: 'IF Submit Allowed', type: 'main', index: 0 }]] },
+    'Submit State': { main: [[{ node: 'IF Ack Recovery', type: 'main', index: 0 }]] },
+    'IF Ack Recovery': { main: [[{ node: 'Build Client Ack Claim', type: 'main', index: 0 }], [{ node: 'IF Submit Allowed', type: 'main', index: 0 }]] },
     'IF Submit Allowed': { main: [[{ node: 'Build Privacy Record', type: 'main', index: 0 }], [{ node: 'Respond Submit Terminal', type: 'main', index: 0 }]] },
     'Build Privacy Record': { main: [[{ node: 'Write Privacy Acknowledgement', type: 'main', index: 0 }]] },
     'Write Privacy Acknowledgement': { main: [[{ node: 'Privacy Verdict', type: 'main', index: 0 }]] },
@@ -762,7 +881,19 @@ function submitWorkflow() {
     // An unproven or unreadable read-back answers the SAME typed 503 as a failed Mark Submitted:
     // one responder for the whole "the store did not prove the commit" class, so the live
     // SYSTEM ALERT caller can be attached to it once (see scripts/deploy-c3-endpoints.mjs).
-    'IF Submitted Persisted': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] }
+    'IF Submitted Persisted': { main: [[{ node: 'Build Client Ack Claim', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] },
+    'Build Client Ack Claim': { main: [[{ node: 'Claim Client Ack', type: 'main', index: 0 }]] },
+    'Claim Client Ack': { main: [[{ node: 'Read Back Client Ack Claim', type: 'main', index: 0 }]] },
+    'Read Back Client Ack Claim': { main: [[{ node: 'Verify Client Ack Claim', type: 'main', index: 0 }]] },
+    'Verify Client Ack Claim': { main: [[{ node: 'IF Client Ack Claimed', type: 'main', index: 0 }]] },
+    'IF Client Ack Claimed': { main: [[{ node: 'Send Client Ack', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] },
+    'Send Client Ack': { main: [[{ node: 'Parse Client Ack Result', type: 'main', index: 0 }]] },
+    'Parse Client Ack Result': { main: [[{ node: 'IF Client Ack Sent', type: 'main', index: 0 }]] },
+    'IF Client Ack Sent': { main: [[{ node: 'Finalise Client Ack', type: 'main', index: 0 }], [{ node: 'Respond Submit Unresolved', type: 'main', index: 0 }]] },
+    'Finalise Client Ack': { main: [[{ node: 'Read Back Client Ack Final', type: 'main', index: 0 }]] },
+    'Read Back Client Ack Final': { main: [[{ node: 'Verify Client Ack Final', type: 'main', index: 0 }]] },
+    'Verify Client Ack Final': { main: [[{ node: 'IF Client Ack Finalised', type: 'main', index: 0 }]] },
+    'IF Client Ack Finalised': { main: [[{ node: 'Respond Submit OK', type: 'main', index: 0 }], [{ node: 'Respond Submit Persistence Failure', type: 'main', index: 0 }]] }
   };
   return { name: SUBMIT_NAME, nodes: nodes, connections: connections, settings: JSON.parse(JSON.stringify(SETTINGS)) };
 }

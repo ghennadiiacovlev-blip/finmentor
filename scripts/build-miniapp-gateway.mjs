@@ -262,7 +262,7 @@ const CLAIM_VERDICT_CODE = [
 //
 //   · rows for THIS telegram_user_id and THIS cycle_id
 //   · not expired
-//   · state draft or submitted   (superseded and anything else is out)
+//   · state draft or committed   (superseded and anything else is out)
 //   · ordered by created_at DESC, then app_session_id DESC as a total tie-break
 //
 // Both racers return the SAME app_session_id and write to the same draft. The losing row is never
@@ -284,8 +284,8 @@ const AUTHORITATIVE_RULE = [
   "    .filter(r => r && String(r.app_session_id || '').trim() !== '')",
   '    .filter(r => String(r.telegram_user_id || "") === String(userId))',
   '    .filter(r => String(r.cycle_id || "") !== "" && String(r.cycle_id || "") === String(cycleId))',
-  '    .filter(r => { const st = String(r.state || ""); return st === "draft" || st === "submitted"; })',
-  '    .filter(r => { if (String(r.state) === "submitted") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });',
+  '    .filter(r => { const st = String(r.state || ""); return st === "draft" || st === "committed_ack_pending" || st === "committed_ack_claimed" || st === "submitted"; })',
+  '    .filter(r => { if (String(r.state) !== "draft") { return true; } const t = new Date(String(r.expires_at)).getTime(); return Number.isFinite(t) && t > nowMs; });',
   '  live.sort((a, b) => {',
   '    const ta = String(a.created_at || ""), tb = String(b.created_at || "");',
   '    if (ta !== tb) { return ta < tb ? 1 : -1; }',
@@ -299,10 +299,11 @@ const AUTHORITATIVE_RULE = [
   'function answer(row, locale, resumed) {',
   '  let draft = null;',
   '  try { draft = JSON.parse(String(row.draft_json || "null")); } catch (e) { draft = null; }',
+  '  const clientState = String(row.state || "draft") === "draft" ? "draft" : "submitted";',
   '  return {',
   '    app_session_id: String(row.app_session_id),',
   '    expires_at: String(row.expires_at),',
-  '    state: String(row.state || "draft"),',
+  '    state: clientState,',
   '    resumed: resumed ? 1 : 0,',
   '    // Server-side only: the committed lead behind a submitted session, read by the client',
   '    // result lookup. It is NOT part of __response.',
@@ -312,7 +313,7 @@ const AUTHORITATIVE_RULE = [
   '      app_session_id: String(row.app_session_id),',
   '      expires_at: String(row.expires_at),',
   '      locale: String(locale || "ru"),',
-  '      state: String(row.state || "draft"),',
+  '      state: clientState,',
   '      resumed: !!resumed,',
   '      // The stored draft, so the client can hydrate without a second round trip. It is the',
   '      // The stored draft. It is the client own material returning to it, and nothing else.',
@@ -325,6 +326,7 @@ const AUTHORITATIVE_RULE = [
 const RESOLVE_SESSION_CODE = [
   AUTHORITATIVE_RULE,
   '',
+  'function draftLocale(row) { let d = null; try { d = JSON.parse(String(row.draft_json || "null")); } catch (e) {} const v = d && d.fields && d.fields.locale && d.fields.locale.value; return /^ro(?:-|$)/i.test(String(v || "")) ? "ro" : (/^ru(?:-|$)/i.test(String(v || "")) ? "ru" : ""); }',
   "const c = $('Claim Verdict').first().json;",
   "const cand = $('Build App Session').first().json;",
   'const rows = $input.all().map(i => i.json);',
@@ -334,7 +336,7 @@ const RESOLVE_SESSION_CODE = [
   '// Nothing live for this user and cycle: mint. `create` is read by IF Create Session and by',
   '// nothing else, so it never reaches the Data Table.',
   'if (!found) { return [{ json: { create: 1 } }]; }',
-  'return [{ json: Object.assign({ create: 0 }, answer(found, c.locale, true)) }];'
+  'return [{ json: Object.assign({ create: 0 }, answer(found, draftLocale(cand) || c.locale, true)) }];'
 ].join('\n');
 
 // After the insert, the SAME rule is applied to a fresh read. In the ordinary case the candidate
@@ -348,6 +350,7 @@ const RESOLVE_SESSION_CODE = [
 const FINALISE_SESSION_CODE = [
   AUTHORITATIVE_RULE,
   '',
+  'function draftLocale(row) { let d = null; try { d = JSON.parse(String(row.draft_json || "null")); } catch (e) {} const v = d && d.fields && d.fields.locale && d.fields.locale.value; return /^ro(?:-|$)/i.test(String(v || "")) ? "ro" : (/^ru(?:-|$)/i.test(String(v || "")) ? "ru" : ""); }',
   "const c = $('Claim Verdict').first().json;",
   "const cand = $('Build App Session').first().json;",
   'const rows = $input.all().map(i => i.json);',
@@ -361,7 +364,7 @@ const FINALISE_SESSION_CODE = [
   'if (!found) { return [{ json: { persistence_error: 1 } }]; }',
   'const row = found;',
   'const resumed = String(row.app_session_id) !== String(cand.app_session_id);',
-  'return [{ json: answer(row, c.locale, resumed) }];'
+  'return [{ json: answer(row, draftLocale(cand) || c.locale, resumed) }];'
 ].join('\n');
 
 const BUILD_SESSION_ROW_CODE = [
@@ -440,6 +443,7 @@ const BUILD_SESSION_CODE = [
   "  const original = String(p.original_text || '').slice(0, 500); if (original) fields.important_context = c1Field(original, 'user_explicit', true, nowIso);",
   "  const tgName = [p.first_name, p.last_name].map(v => String(v || '').trim()).filter(Boolean).join(' '); const displayName = String(p.contact_name || '').trim() || tgName;",
   "  if (displayName) { const explicit = String(p.contact_name || '').trim() !== '' && String(p.contact_name).trim() !== tgName; fields.contact_name = c1Field(displayName, explicit ? 'user_explicit' : 'telegram_carried', true, nowIso); }",
+  "  const locale = /^ro(?:-|$)/i.test(String(p.locale || '').trim()) ? 'ro' : (/^ru(?:-|$)/i.test(String(p.locale || '').trim()) ? 'ru' : ''); if (locale) fields.locale = c1Field(locale, 'telegram_carried', true, nowIso);",
   "  return { v: 1, cycle_id: cycleId, step: 'APP_BOOTSTRAP', updated_at: nowIso, fields: fields };",
   "}",
   "const CYCLE_ID_RE = " + String(CYCLE_ID_RE) + ";",

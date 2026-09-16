@@ -21,9 +21,12 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+const require = createRequire(import.meta.url);
+const { NOTICE_VERSION } = require(join(ROOT, 'n8n', 'src', 'premium-ux', 'privacy-notice.js'));
 
 const HOST_ID = 'KBD7Q94QQnlzgYKJ';
 const GATEWAY_ID = 'nTZHLbv2KFggdhh5';
@@ -144,7 +147,7 @@ console.log('');
 // ── 3. the submit endpoint, live, along refused paths ──────────────────────────────────────────
 console.log('THE SUBMIT ENDPOINT (refused paths only — nothing is written)');
 const SUB = 'finmentor-miniapp-submit';
-const ACK = { notice_version: 'pn-2026-08', locale: 'ru', shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z' };
+const ACK = { notice_version: NOTICE_VERSION, locale: 'ru', shown_at: '2026-08-30T10:00:00.000Z', acknowledged_at: '2026-08-30T10:00:01.000Z' };
 {
   const noId = await post(SUB, { privacy_ack: ACK });
   want(noId.status === 400 && noId.body.error_code === 'BAD_REQUEST', 'a missing session id is refused 400');
@@ -176,7 +179,7 @@ console.log('');
 console.log('THE DEPLOYED SUBMIT MECHANISM');
 const codeOf = (w, n) => String((w.nodes.find((x) => x.name === n) || { parameters: {} }).parameters.jsCode || '');
 {
-  want(sub.nodes.length === 26, 'the endpoint has 26 nodes (+7 for the caller-side receipt contract)');
+  want(sub.nodes.length === 45, 'the live endpoint has 45 nodes, including alert callers and client-ack recovery');
   for (const n of ['Privacy Verdict', 'IF Privacy Recorded', 'IF Payload Built', 'Respond Submit Terminal']) {
     want(!!sub.nodes.find((x) => x.name === n), 'node present: ' + n);
   }
@@ -302,8 +305,8 @@ const codeOf = (w, n) => String((w.nodes.find((x) => x.name === n) || { paramete
     'the terminal responder serialises a prebuilt object — a ternary in the template returned an empty 200');
   want(String(termNode.parameters.options.responseCode) === '={{ Number($json.__status || 400) }}',
     'and it takes its status from the same object');
-  want(sub.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook').length === 3,
-    'three responders: OK, Terminal, Unresolved — the flattening one is gone');
+  want(sub.nodes.filter((n) => n.type === 'n8n-nodes-base.respondToWebhook').length === 4,
+    'four responders: OK, Terminal, Unresolved, Persistence Failure — no flattening responder');
 
   // What must NOT have moved.
   const json = JSON.stringify(sub);
@@ -318,7 +321,8 @@ const codeOf = (w, n) => String((w.nodes.find((x) => x.name === n) || { paramete
   const readsOf = (table) => sub.nodes.concat(sess.nodes).filter((n) =>
     n.type === 'n8n-nodes-base.dataTable' && n.parameters.operation === 'get' &&
     n.parameters.dataTableId.value === table);
-  want(readsOf('MiniApp_App_Sessions').length === 2, 'both endpoints still read the SESSION table exactly once each');
+  want(readsOf('MiniApp_App_Sessions').length === 6,
+    'the endpoints expose six named SESSION reads: initial/readback plus submit and acknowledgement proof');
   // Every read, whichever table: the flag rules below apply to all of them.
   const reads = sub.nodes.concat(sess.nodes).filter((n) => n.type === 'n8n-nodes-base.dataTable' && n.parameters.operation === 'get');
 
@@ -363,16 +367,22 @@ console.log('');
 console.log('THE DEPLOYED RESUME MECHANISM');
 {
   const gwCode = (n) => String((gw.nodes.find((x) => x.name === n) || { parameters: {} }).parameters.jsCode || '');
-  want(gw.nodes.length === 19, 'the Gateway has 19 nodes (was 13: +6 for resume)');
+  want(gw.nodes.length === 32, 'the live Gateway has 32 nodes, including cycle/result reads and alert callers');
   for (const n of ['Read User Sessions', 'Resolve Session', 'IF Create Session',
     'Build Session Row', 'Read Back Sessions', 'Finalise Session']) {
     want(!!gw.nodes.find((x) => x.name === n), 'node present: ' + n);
   }
-  // The resume path is downstream of the claim, and the insert is downstream of the decision.
-  want(gw.connections['IF Claim Won'].main[0][0].node === 'Build App Session', 'the claim still gates everything');
-  want(gw.connections['Build App Session'].main[0][0].node === 'Read User Sessions', 'the read follows the mint');
+  // The cycle and resume reads are downstream of the claim, and the insert is downstream of the decision.
+  want(gw.connections['IF Claim Won'].main[0][0].node === 'Read Cycle Projection',
+    'the replay claim still gates the authoritative cycle read');
+  want(gw.connections['Read Cycle Projection'].main[0][0].node === 'Build App Session' &&
+    gw.connections['Build App Session'].main[0][0].node === 'IF Cycle Store Readable' &&
+    gw.connections['IF Cycle Store Readable'].main[0][0].node === 'IF Cycle Resolved' &&
+    gw.connections['IF Cycle Resolved'].main[0][0].node === 'Read User Sessions',
+    'the session read follows a readable, authoritative cycle projection');
   want(gw.connections['IF Create Session'].main[0][0].node === 'Build Session Row', 'the create branch');
-  want(gw.connections['IF Create Session'].main[1][0].node === 'Respond Bootstrap OK', 'the resume branch answers directly');
+  want(gw.connections['IF Create Session'].main[1][0].node === 'IF Session Committed',
+    'the resume branch checks committed state before returning a result or draft');
 
   const resolve = gwCode('Resolve Session');
   want(/telegram_user_id/.test(resolve) && /cycle_id/.test(resolve),

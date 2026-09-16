@@ -415,6 +415,21 @@ check('EXECUTED: TTL, binding and terminal state are as specified', () => {
   assert(!('consent' in s) && !('consent_at' in s), 'the app session records consent — it must never be consent proof');
 });
 
+check('EXECUTED: internal acknowledgement states remain terminal to the client', () => {
+  const body = byName('Resolve Session').parameters.jsCode;
+  const buildBody = byName('Build App Session').parameters.jsCode;
+  const buildRef = () => ({ first: () => ({ json: { telegram_user_id: '551662084', replay_key: 'k'.repeat(64), correlation_id: 'C', locale: 'ru' } }) });
+  const candidate = new Function('$', '$input', 'require', buildBody)(buildRef, projection([PROJ]), nodeRequire)[0].json;
+  const $ = (name) => ({ first: () => ({ json: name === 'Claim Verdict' ? { locale: 'ru' } : candidate }) });
+  for (const state of ['committed_ack_pending', 'committed_ack_claimed', 'submitted']) {
+    const row = Object.assign({}, candidate, { state, lead_id: 'FIN-1' });
+    const out = new Function('$', '$input', body)($, projection([row]))[0].json;
+    eq(out.state, 'submitted', state + ': internal state leaked into routing');
+    eq(out.__response.state, 'submitted', state + ': internal state leaked to the client');
+    eq(out.lead_id, 'FIN-1', state + ': committed lead binding was lost');
+  }
+});
+
 console.log('\n-- C3.1: the authoritative cycle is resolved server-side, or nothing is minted --');
 
 const runBuild = (rows, userId) => {

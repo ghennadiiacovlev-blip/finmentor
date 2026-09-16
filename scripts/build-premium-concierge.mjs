@@ -283,6 +283,7 @@ const ADAPTER_TAIL = [
   'const LABEL_ACTION_BY_STATE = {',
   '  TG_NEW_REQUEST_CONFIRM: { "Начать новый вопрос": ACTIONS.NEW_CONFIRM }',
   '};',
+  'const LANGUAGE_CALLBACK = { "Română": "p|lang_ro", "Русский": "p|lang_ru" };',
   '',
   'function buildMarkup(labels, sessionId, state) {',
   '  const perState = LABEL_ACTION_BY_STATE[String(state || "")] || {};',
@@ -291,6 +292,7 @@ const ADAPTER_TAIL = [
   // key on both lookups (LABEL_ACTION and the web_app test), so the callback contract and the
   // routing that reads it are byte-identical in Romanian. Only `text` changes.
   '  for (const label of labels || []) {',
+  '    if (LANGUAGE_CALLBACK[label]) { rows.push([{ text: label, callback_data: LANGUAGE_CALLBACK[label] }]); continue; }',
   '    if (label === "Открыть бриф" || label === "Открыть диагностику") {',
   '      rows.push([{ text: TR(label), web_app: { url: MINIAPP_URL } }]);',
   '      continue;',
@@ -314,7 +316,8 @@ const ADAPTER_TAIL = [
   // running client text through a label table would be both wrong and a way to smuggle a lookup hit
   // into user input. It stays escaped, which is the whole defence on an HTML screen.
   '      lines.push(TR(s.label));',
-  '      lines.push("<b>" + escapeHtml(s.value) + "</b>");',
+  '      const machineValue = ["role", "turnover_band", "objective"].indexOf(String(s.key || "")) !== -1;',
+  '      lines.push("<b>" + escapeHtml(machineValue ? TR(s.value) : s.value) + "</b>");',
   '      lines.push("");',
   '    }',
   '    lines.push(TR(copy.closing));',
@@ -359,8 +362,10 @@ const ADAPTER_TAIL = [
   //
   // A Romanian who reads Telegram in Russian therefore stays Romanian, which is the defect this
   // closes. No model call and no language detection participates: the origin is a page, not a guess.
+  'const languageChoiceRequired = session.__language_choice_required === true;',
   'const LOCALE = resolveCustomerLocale({',
   '  messageText: text,',
+  '  journeyLocale: session.__journey_locale,',
   '  sessionLocale: session.language,',
   '  telegramLanguageCode: p.language',
   '});',
@@ -369,7 +374,7 @@ const ADAPTER_TAIL = [
   // PERSISTED, so the deep link only has to happen once. `language` is an EXISTING Bot_Sessions
   // column that Build Session Row already writes — no column is added, and F16 (a stray property
   // permanently widening the sheet) cannot repeat here.
-  'session.language = LOCALE;',
+  'session.language = languageChoiceRequired ? "" : LOCALE;',
   '',
   '// The authority snapshot is resolved UPSTREAM, from Bot_Sessions, and is read here rather than',
   '// derived from the message. `committed` is never taken from a caller.',
@@ -396,6 +401,16 @@ const ADAPTER_TAIL = [
   '',
   'const stateBefore = String(session.state || "TG_ENTRY");',
   'const outcome = decide(auth, input);',
+  'if (languageChoiceRequired) {',
+  '  outcome.state = "TG_ENTRY";',
+  '  outcome.copy = { text: ["Alegeți limba / Выберите язык"], actions: ["Română", "Русский"] };',
+  '  outcome.rotate = false; outcome.writes = [];',
+  '} else if (data === "p|lang_ro" || data === "p|lang_ru") {',
+  '  // The selector callback is presentation control, not a state-machine action. Persisting the',
+  '  // choice happened in Get Bot Session; now render the ordinary entry in the chosen language.',
+  '  outcome.state = "TG_ENTRY"; outcome.copy = B.TG_COPY.TG_ENTRY;',
+  '  outcome.rotate = false; outcome.writes = [];',
+  '}',
   '',
   '// The terminal rule, asserted on the OUTCOME rather than trusted from the machine. If this ever',
   '// fires the machine has a defect, and the safe answer is the terminal screen — not qualification.',
@@ -706,11 +721,16 @@ const JOURNEY_ORIGIN_SPLICE = [
   '// an authoritative `ru` or `ro` rather than re-deriving one.',
   localeSource,
   '',
-  's.language = resolveCustomerLocale({',
-  '  messageText: String(p.message_text || ""),',
-  '  sessionLocale: s.language,',
-  '  telegramLanguageCode: p.language',
-  '});',
+  'const storedLocale = Number(s.row_number || 0) > 0 ? normalize(s.language) : "";',
+  'const journeyLocale = startPayloadLocale(String(p.message_text || ""));',
+  'const selectedLocale = String(p.callback_data || "") === "p|lang_ro" ? "ro" : (String(p.callback_data || "") === "p|lang_ru" ? "ru" : "");',
+  'const resolvedLocale = resolveCustomerLocale({ messageText: String(p.message_text || ""), journeyLocale: selectedLocale || journeyLocale, sessionLocale: storedLocale, telegramLanguageCode: p.language });',
+  'const explicitLocale = selectedLocale || journeyLocale || storedLocale;',
+  '// A cold Telegram language_code is only a first-contact hint. It chooses the language of the',
+  '// one-time selector, but is not persisted as the customer preference until a button is tapped.',
+  's.language = explicitLocale ? resolvedLocale : "";',
+  's.__journey_locale = resolvedLocale;',
+  's.__language_choice_required = !explicitLocale;',
   '// ============ end P1-01 ============',
   ''
 ].join('\n');
@@ -908,7 +928,7 @@ if (edgeDiff.length) {
       }
     }
     if (body.indexOf('resolveCustomerLocale({') === -1) {
-      fail.push(label + ': does not resolve the locale through resolveCustomerLocale');
+      fail.push(label + ': does not resolve the locale through the lifted locale authority');
     }
   }
   // The ad-hoc predicate the node used to carry must not come back.
@@ -917,10 +937,11 @@ if (edgeDiff.length) {
   }
   // The resolved locale must be PERSISTED, or the deep link would have to be re-followed on every
   // turn — which is the defect in a different shape.
-  if (NODE_BODY.indexOf('session.language = LOCALE;') === -1) {
+  if (NODE_BODY.indexOf('session.language = languageChoiceRequired ? "" : LOCALE;') === -1) {
     fail.push(CUSTOMER_RESPONSE + ': the resolved locale is not persisted onto the session');
   }
-  if (sessionJs.indexOf('s.language = resolveCustomerLocale({') === -1) {
+  if (sessionJs.indexOf('const selectedLocale =') === -1 ||
+      sessionJs.indexOf('s.language = explicitLocale ? resolvedLocale : "";') === -1) {
     fail.push(CUSTOMER_SESSION + ': the journey origin is not recorded onto the session');
   }
   // `language` must stay an EXISTING column. A new one would silently widen Bot_Sessions (F16).
@@ -1003,7 +1024,7 @@ for (const key of ['chat_id', 'reply_text', 'reply_markup', 'tg_body', 'session'
   }
   // TG_CONFIRM_CONTEXT is the only data-assembled screen, and its values are client text. On an
   // HTML screen safeText does not strip < and >, so escaping the values is the whole defence.
-  if (NODE_BODY.indexOf('escapeHtml(s.value)') === -1) {
+  if (NODE_BODY.indexOf('escapeHtml(machineValue ? TR(s.value) : s.value)') === -1) {
     fail.push('the confirmation screen interpolates client text into HTML without escaping it');
   }
   // Failure must never read as success.

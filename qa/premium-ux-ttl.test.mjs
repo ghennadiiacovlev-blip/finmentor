@@ -22,6 +22,7 @@ import { dirname, join } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const { APP_SESSION_TTL_SECONDS, buildGateway } = await import('../scripts/build-miniapp-gateway.mjs');
+const ENDPOINTS = await import('../scripts/build-premium-endpoints.mjs');
 
 let pass = 0;
 const failures = [];
@@ -97,6 +98,23 @@ check('an expired session can neither mutate nor submit', () => {
   const submitAllowed = isLive(exp, after);
   eq(draftAllowed, submitAllowed, 'draft and submit disagree about expiry');
   eq(draftAllowed, false, 'an expired session was allowed to write');
+});
+
+check('post-commit acknowledgement states cannot accept another draft write', () => {
+  const candidate = JSON.parse(readFileSync(join(ROOT, 'n8n', 'candidate', 'premium-session-endpoint-candidate.json'), 'utf8'));
+  const wf = ENDPOINTS.resolveEndpoint(candidate, {
+    ownerId: '551662084', releaseMode: 'CUSTOMER', leadIntakeId: 'unused', privacyCredId: 'unused'
+  });
+  const code = wf.nodes.find((n) => n.name === 'Session Verdict').parameters.jsCode;
+  const row = (state) => ({ app_session_id: 'AS-' + 'a'.repeat(64), telegram_user_id: '551662084',
+    expires_at: '2099-01-01T00:00:00.000Z', state });
+  const run = (state) => new Function('$input', code)({ all: () => [{ json: row(state) }] })[0].json;
+  eq(run('draft').ok, 1, 'a live draft was refused');
+  for (const state of ['committed_ack_pending', 'committed_ack_claimed', 'submitted']) {
+    const out = run(state);
+    eq(out.ok, 0, state + ': draft write accepted after commit');
+    eq(out.error_code, 'SUBMIT_IN_PROGRESS', state + ': wrong terminal refusal');
+  }
 });
 
 // ---------------------------------------------------------------- fixed, server-side, unsliding

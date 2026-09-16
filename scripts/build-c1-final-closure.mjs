@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CONTEXT_PROJECTION_WITH_LOCALE } from './deploy-c3-concierge-cycle.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 function argValue(name, fallback) {
@@ -81,8 +82,7 @@ function buildConcierge(workflow) {
     "const g = ($('Get Bot Session (Premium)').isExecuted ? $('Get Bot Session (Premium)') : $('Get Bot Session')).first().json || {};",
     "const g = ($('Get Bot Session (Premium)').isExecuted ? $('Get Bot Session (Premium)') : $('Get Bot Session')).first().json || {};\n" +
     "const b = ($('Build Bot Response (Premium)').isExecuted ? $('Build Bot Response (Premium)') : $('Build Bot Response')).first().json || {};\n" +
-    "const session = b.session || row;\n" +
-    "function contextProjection(reset, s) { let note = {}; try { note = JSON.parse(String(s.notes || '{}')); } catch (e) { note = {}; } if (!note || note.v !== 1 || note.kind !== 'premium_context') note = {}; return 'C1:' + JSON.stringify({ v: 1, reset: String(reset || ''), original_text: String(note.original_text || s.free_text_request || '').slice(0, 500), extracted: note.extracted && typeof note.extracted === 'object' ? note.extracted : {}, context_confirmed: note.context_confirmed === true, first_name: String(s.first_name || '').trim().slice(0, 100), last_name: String(s.last_name || '').trim().slice(0, 100), contact_name: String(s.contact_name || '').trim().slice(0, 200) }); }",
+    "const session = b.session || row;\n" + CONTEXT_PROJECTION_WITH_LOCALE,
     'Concierge projection context splice');
   projection = replaceOnce(projection, "const now = new Date().toISOString();", "const now = new Date().toISOString();\nconst projectionValue = contextProjection(g.cycle_reset, session);", 'Concierge projection value');
   const resetExpr = "cycle_reset: String(g.cycle_reset || '')";

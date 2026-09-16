@@ -119,6 +119,7 @@ const cold = (ctx) => ({
   state: '', cycle_id: '', consent: '', lead_id: '', lead_cycle_id: '', status: '',
   submission_key: '', previous_lead_id: ''
 });
+const stored = (ctx, over) => Object.assign(cold(ctx), { row_number: 1 }, over || {});
 
 const CUSTOMER = '551662999';        // a NON-owner customer
 const OWNER_SHAPED = '551662084';    // the shape of an owner id, used only to prove it is ignored
@@ -185,7 +186,8 @@ check('CASE 1b — the Romanian locale SURVIVES the deep link, turn after turn',
   // or the customer falls back into Russian on their second message.
   const ctx = { chat_id: CUSTOMER, telegramLanguage: 'ru', messageText: '/start ro' };
   const first = turn(Object.assign({ row: cold(ctx) }, ctx));
-  const second = turn({ chat_id: CUSTOMER, telegramLanguage: 'ru', callbackData: 'p|describe', row: first.session });
+  const second = turn({ chat_id: CUSTOMER, telegramLanguage: 'ru', callbackData: 'p|describe',
+    row: Object.assign({}, first.session, { row_number: 1 }) });
   eq(second.session.language, 'ro', 'the locale was lost on the next turn');
   assert(RO_MARK.test(second.reply.reply_text), 'the second reply fell back to Russian');
   assert(!CYRILLIC.test(second.reply.reply_text), 'Cyrillic reached the Romanian customer on turn 2');
@@ -208,18 +210,28 @@ check('CASE 3 — journey ru + Telegram ro = Russian', () => {
   assert(!RO_MARK.test(t.reply.reply_text), 'Romanian leaked into the Russian journey: ' + t.reply.reply_text.slice(0, 80));
 });
 
-check('CASE 4 — no journey locale + Telegram ro-MD = Romanian fallback', () => {
+check('CASE 4 — a cold bare start asks for an explicit language; Telegram is a hint only', () => {
   const ctx = { chat_id: CUSTOMER, telegramLanguage: 'ro-MD', messageText: '/start' };
   const t = turn(Object.assign({ row: cold(ctx) }, ctx));
-  eq(t.session.language, 'ro', 'locale');
-  assert(RO_MARK.test(t.reply.reply_text) && !CYRILLIC.test(t.reply.reply_text), 'not Romanian');
+  eq(t.session.language, '', 'a Telegram hint was persisted as a preference');
+  eq(t.reply.reply_text, 'Alegeți limba / Выберите язык', 'selector copy');
+  eq((t.reply.reply_markup.inline_keyboard || []).map((r) => r[0].callback_data),
+    ['p|lang_ro', 'p|lang_ru'], 'selector callbacks');
 });
 
-check('CASE 5 — no journey locale + Telegram ru = Russian fallback', () => {
+check('CASE 5 — selecting either language persists it and opens the ordinary entry', () => {
   const ctx = { chat_id: CUSTOMER, telegramLanguage: 'ru', messageText: '/start' };
-  const t = turn(Object.assign({ row: cold(ctx) }, ctx));
-  eq(t.session.language, 'ru', 'locale');
-  assert(CYRILLIC.test(t.reply.reply_text) && !RO_MARK.test(t.reply.reply_text), 'not Russian');
+  const first = turn(Object.assign({ row: cold(ctx) }, ctx));
+  for (const [callbackData, locale] of [['p|lang_ro', 'ro'], ['p|lang_ru', 'ru']]) {
+    const t = turn({ chat_id: CUSTOMER, telegramLanguage: 'en', callbackData,
+      row: Object.assign({}, first.session, { row_number: 1 }) });
+    eq(t.session.language, locale, callbackData + ': locale');
+    eq(t.reply.debug.state_after, 'TG_ENTRY', callbackData + ': state');
+    const callbacks = (t.reply.reply_markup.inline_keyboard || []).map((r) => r[0].callback_data);
+    eq(callbacks, ['p|describe', 'p|diagnosis', 'p|brief', 'p|meeting'], callbackData + ': entry actions');
+    if (locale === 'ro') assert(RO_MARK.test(t.reply.reply_text) && !CYRILLIC.test(t.reply.reply_text), 'Romanian selection did not render Romanian');
+    else assert(CYRILLIC.test(t.reply.reply_text) && !RO_MARK.test(t.reply.reply_text), 'Russian selection did not render Russian');
+  }
 });
 
 check('CASE 6 — a NON-owner customer cannot reach an owner or admin action', () => {
@@ -227,12 +239,12 @@ check('CASE 6 — a NON-owner customer cannot reach an owner or admin action', (
   // owner. Swept over every screen, every input and both locales: the only callbacks a customer
   // can be shown are the approved conversation actions.
   const APPROVED = ['p|describe', 'p|diagnosis', 'p|brief', 'p|meeting', 'p|meeting_y', 'p|ctx_ok', 'p|ctx_fix', 'p|open', 'p|resume',
-    'p|restart', 'p|restart_y', 'p|append', 'p|new', 'p|new_y', 'p|back', 'p|retry'];
+    'p|restart', 'p|restart_y', 'p|append', 'p|new', 'p|new_y', 'p|back', 'p|retry', 'p|lang_ro', 'p|lang_ru'];
   const rows = [
     cold({ chat_id: CUSTOMER, telegramLanguage: 'ro' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_APPEND_MESSAGE', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' })
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_APPEND_MESSAGE', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' })
   ];
   const inputs = [{ messageText: '/start' }, { messageText: '/start ro' }, { messageText: 'у нас кассовые разрывы' }]
     .concat(APPROVED.map((cb) => ({ callbackData: cb })));
@@ -279,11 +291,11 @@ check('CASE 6b — the customer id is not consulted at all when choosing the rep
 
 check('UNEXPECTED RU IN RO = 0 — no Russian machine value survives into a Romanian reply', () => {
   const rows = [
-    cold({ chat_id: CUSTOMER, telegramLanguage: 'ro' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_NEW_REQUEST_CONFIRM', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', draft_state: 'draft', draft_step: 'objective', state: 'TG_RESUME_DRAFT' })
+    stored({ chat_id: CUSTOMER, telegramLanguage: 'ro' }, { language: 'ro' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', state: 'TG_NEW_REQUEST_CONFIRM', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }),
+    stored({ chat_id: CUSTOMER }, { cycle_id: 'CY-1', draft_state: 'draft', draft_step: 'objective', state: 'TG_RESUME_DRAFT' })
   ];
   const inputs = [{ messageText: '/start ro' }, { callbackData: 'p|describe' }, { callbackData: 'p|brief' },
     { callbackData: 'p|resume' }, { callbackData: 'p|new' }, { callbackData: 'p|append' }, { callbackData: 'p|retry' }];
@@ -304,9 +316,9 @@ check('UNEXPECTED RU IN RO = 0 — no Russian machine value survives into a Roma
 
 check('UNEXPECTED RO IN RU = 0 — the Russian journey is untouched by the Romanian work', () => {
   const rows = [
-    cold({ chat_id: CUSTOMER, telegramLanguage: 'ru' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
-    Object.assign(cold({ chat_id: CUSTOMER }), { cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' })
+    stored({ chat_id: CUSTOMER, telegramLanguage: 'ru' }, { language: 'ru' }),
+    stored({ chat_id: CUSTOMER }, { language: 'ru', cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }),
+    stored({ chat_id: CUSTOMER }, { language: 'ru', cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' })
   ];
   const inputs = [{ messageText: '/start ru' }, { messageText: '/start' }, { callbackData: 'p|describe' }, { callbackData: 'p|new' }];
   let leaks = 0;
@@ -382,7 +394,9 @@ check('the start payload is a CLOSED vocabulary — nothing else can set a local
                          '<script>', 'ro ru', '  ', '0']) {
     const ctx = { chat_id: CUSTOMER, telegramLanguage: 'ru', messageText: '/start ' + payload };
     const t = turn(Object.assign({ row: cold(ctx) }, ctx));
-    eq(t.session.language, 'ru', 'the payload ' + JSON.stringify(payload) + ' changed the locale');
+    eq(t.session.language, '', 'the payload ' + JSON.stringify(payload) + ' created an explicit locale');
+    eq((t.reply.reply_markup.inline_keyboard || []).map((r) => r[0].callback_data),
+      ['p|lang_ro', 'p|lang_ru'], 'the invalid payload bypassed the selector');
   }
 });
 
@@ -393,7 +407,7 @@ check('no language DETECTION participates — the origin is a page, never a gues
   }
   // A Romanian SENTENCE typed by a Russian-journey customer must not switch their locale.
   const ctx = { chat_id: CUSTOMER, telegramLanguage: 'ru', messageText: 'Bună ziua, avem probleme cu fluxul de numerar.' };
-  const row = Object.assign(cold(ctx), { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM', language: 'ru' });
+  const row = stored(ctx, { cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM', language: 'ru' });
   const t = turn(Object.assign({ row: row }, ctx));
   eq(t.session.language, 'ru', 'the customer\'s own words changed their locale');
 });
@@ -402,10 +416,10 @@ check('no language DETECTION participates — the origin is a page, never a gues
 
 check('the locale changes the LABEL and nothing the CRM or the routing reads', () => {
   const cases = [
-    { messageText: '/start', row: (l) => Object.assign(cold({ chat_id: CUSTOMER }), { language: l, cycle_id: 'CY-1' }) },
-    { callbackData: 'p|describe', row: (l) => Object.assign(cold({ chat_id: CUSTOMER }), { language: l, cycle_id: 'CY-1' }) },
-    { messageText: 'кассовые разрывы', row: (l) => Object.assign(cold({ chat_id: CUSTOMER }), { language: l, cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }) },
-    { callbackData: 'p|new', row: (l) => Object.assign(cold({ chat_id: CUSTOMER }), { language: l, cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }) }
+    { messageText: '/start', row: (l) => stored({ chat_id: CUSTOMER }, { language: l, cycle_id: 'CY-1' }) },
+    { callbackData: 'p|describe', row: (l) => stored({ chat_id: CUSTOMER }, { language: l, cycle_id: 'CY-1' }) },
+    { messageText: 'кассовые разрывы', row: (l) => stored({ chat_id: CUSTOMER }, { language: l, cycle_id: 'CY-1', state: 'TG_FREEFORM_PROBLEM' }) },
+    { callbackData: 'p|new', row: (l) => stored({ chat_id: CUSTOMER }, { language: l, cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1' }) }
   ];
   for (const c of cases) {
     const ru = turn(Object.assign({ chat_id: CUSTOMER, telegramLanguage: 'ru', row: c.row('ru') }, c));
@@ -435,7 +449,7 @@ check('`language` stays an EXISTING Bot_Sessions column — no column is added',
 
 check('the /start reset opens a clean cycle and preserves the historical lead — in either language', () => {
   for (const [text, lang] of [['/start', 'ru'], ['/start ro', 'ro'], ['/start ru', 'ru']]) {
-    const row = Object.assign(cold({ chat_id: CUSTOMER }), {
+    const row = stored({ chat_id: CUSTOMER }, {
       cycle_id: 'CY-1', state: 'TG_SUBMITTED', lead_id: 'LEAD-1', lead_cycle_id: 'CY-1',
       consent: 'yes', consent_cycle_id: 'CY-1', submission_key: 'sub_' + '0'.repeat(32)
     });

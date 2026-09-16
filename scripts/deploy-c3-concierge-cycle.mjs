@@ -80,6 +80,8 @@ export const PROJECT_NODE = 'Project Cycle';
 export const PREP_NODE = 'Prepare Cycle Projection';
 export const GUARD_NODE = 'Cycle Projection Guard';
 export const PROJECTION_TABLE = 'MiniApp_Cycle_Projection';
+export const CONTEXT_PROJECTION_LEGACY = "function contextProjection(reset, s) { let note = {}; try { note = JSON.parse(String(s.notes || '{}')); } catch (e) { note = {}; } if (!note || note.v !== 1 || note.kind !== 'premium_context') note = {}; return 'C1:' + JSON.stringify({ v: 1, reset: String(reset || ''), original_text: String(note.original_text || s.free_text_request || '').slice(0, 500), extracted: note.extracted && typeof note.extracted === 'object' ? note.extracted : {}, context_confirmed: note.context_confirmed === true, first_name: String(s.first_name || '').trim().slice(0, 100), last_name: String(s.last_name || '').trim().slice(0, 100), contact_name: String(s.contact_name || '').trim().slice(0, 200) }); }";
+export const CONTEXT_PROJECTION_WITH_LOCALE = "function contextProjection(reset, s) { let note = {}; try { note = JSON.parse(String(s.notes || '{}')); } catch (e) { note = {}; } if (!note || note.v !== 1 || note.kind !== 'premium_context') note = {}; const locale = /^ro(?:-|$)/i.test(String(s.language || '').trim()) ? 'ro' : (/^ru(?:-|$)/i.test(String(s.language || '').trim()) ? 'ru' : ''); return 'C1:' + JSON.stringify({ v: 1, reset: String(reset || ''), locale: locale, original_text: String(note.original_text || s.free_text_request || '').slice(0, 500), extracted: note.extracted && typeof note.extracted === 'object' ? note.extracted : {}, context_confirmed: note.context_confirmed === true, first_name: String(s.first_name || '').trim().slice(0, 100), last_name: String(s.last_name || '').trim().slice(0, 100), contact_name: String(s.contact_name || '').trim().slice(0, 200) }); }";
 
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry-run');
@@ -186,7 +188,7 @@ export const PROJECTION_INPUT_CODE = [
   "const g = ($('" + PREMIUM_SESSION + "').isExecuted ? $('" + PREMIUM_SESSION + "') : $('Get Bot Session')).first().json || {};",
   "const b = ($('Build Bot Response (Premium)').isExecuted ? $('Build Bot Response (Premium)') : $('Build Bot Response')).first().json || {};",
   "const session = b.session || row;",
-  "function contextProjection(reset, s) { let note = {}; try { note = JSON.parse(String(s.notes || '{}')); } catch (e) { note = {}; } if (!note || note.v !== 1 || note.kind !== 'premium_context') note = {}; return 'C1:' + JSON.stringify({ v: 1, reset: String(reset || ''), original_text: String(note.original_text || s.free_text_request || '').slice(0, 500), extracted: note.extracted && typeof note.extracted === 'object' ? note.extracted : {}, context_confirmed: note.context_confirmed === true, first_name: String(s.first_name || '').trim().slice(0, 100), last_name: String(s.last_name || '').trim().slice(0, 100), contact_name: String(s.contact_name || '').trim().slice(0, 200) }); }",
+  CONTEXT_PROJECTION_WITH_LOCALE,
   "const user = String(row.user_id || row.chat_id || '').trim();",
   "const cycle = String(row.cycle_id || g.cycle_id || '').trim();",
   "const match = cycle.match(/^C-([0-9]+)-([0-9]+)$/);",

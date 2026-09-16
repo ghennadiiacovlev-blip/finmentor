@@ -51,7 +51,7 @@ export function makeWorld(seed) {
     // The Pipeline sheet: one row per committed lead, and never a second for the same key.
     pipeline: [],
     leadSeq: 0,
-    calls: { privacyInsert: 0, intake: 0, sessionUpdate: 0, receiptInsert: 0, receiptRead: 0 },
+    calls: { privacyInsert: 0, intake: 0, clientAck: 0, sessionUpdate: 0, receiptInsert: 0, receiptRead: 0 },
     log: []
   };
 }
@@ -185,15 +185,18 @@ export function runSubmit(wf, world, body, faults) {
         input = outputs[cursor];
         if (node.onError === 'continueErrorOutput') branch = 1;
       } else {
-        const key = evalExpr(node.parameters.filters.conditions[0].keyValue, { $json: input[0], $ });
-        const row = world.sessions.find((r) => String(r.app_session_id) === String(key));
+        const conditions = (node.parameters.filters && node.parameters.filters.conditions) || [];
+        const row = world.sessions.find((candidate) => conditions.every((condition) => {
+          const expected = evalExpr(condition.keyValue, { $json: input[0], $ });
+          return String(candidate[condition.keyName]) === String(expected);
+        }));
         const patch = {};
         for (const [k, v] of Object.entries(node.parameters.columns.value)) {
           patch[k] = typeof v === 'string' && v.startsWith('=') ? evalExpr(v, { $json: input[0], $ }) : v;
         }
         if (row) { Object.assign(row, patch); }
         world.log.push('session.update ' + JSON.stringify(patch));
-        outputs[cursor] = [Object.assign({}, row)];
+        outputs[cursor] = row ? [Object.assign({}, row)] : (node.alwaysOutputData ? [{}] : []);
         input = outputs[cursor];
       }
     } else if (type === 'postgres') {
@@ -216,6 +219,16 @@ export function runSubmit(wf, world, body, faults) {
           outputs[cursor] = [{ success: true }];
           world.log.push('privacy.insert ok ' + key);
         }
+      }
+      input = outputs[cursor];
+    } else if (type === 'executeWorkflow' && cursor === 'Send Client Ack') {
+      world.calls.clientAck++;
+      if (shouldFail(faults, cursor)) {
+        outputs[cursor] = [{ ok: false, error_code: 'TELEGRAM_UNAVAILABLE', retryable: true }];
+      } else {
+        const request = input[0] || {};
+        outputs[cursor] = [{ ok: true, message_id: String(world.calls.clientAck),
+          correlation_id: String(request.correlation_id || '') }];
       }
       input = outputs[cursor];
     } else if (type === 'executeWorkflow') {
