@@ -160,7 +160,7 @@ const xrayBase = workflow('X-Ray', [
 const xray = patchXray(xrayBase, intakeBase, sources);
 check('X-Ray owner alert exposes the four approved single-row actions', () => {
   const rows = byName(xray, 'Telegram Owner Alert').parameters.inlineKeyboard.rows;
-  eq(rows.map((row) => row.row.buttons[0].text), ['Бриф к встрече', 'Discovery', 'Разбор клиента', 'Связаться'], 'buttons');
+  eq(rows.map((row) => row.row.buttons[0].text), ['Бриф к встрече', 'Связаться', 'Discovery', '⋯ Управление лидом'], 'buttons');
   assert(rows[0].row.buttons[0].additionalFields.callback_data.includes("'brief|'"), 'brief callback');
 });
 check('X-Ray failure graph updates Pipeline before owner/system routing', () => {

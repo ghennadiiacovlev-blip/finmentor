@@ -128,6 +128,10 @@ const RO_MARK = /[ăâîșțĂÂÎȘȚ]/;
 const CYRILLIC = /[А-Яа-яЁё]/;
 const roTable = L.roTable(B);
 const RU_MACHINE_VALUES = Object.keys(roTable);
+// The two static Mini App accessibility labels are served only by app-premium/app.js and have
+// their own exhaustive parity gate. They are intentionally absent from the Telegram Concierge
+// renderer, whose shipped table must contain every customer value it can actually render.
+const CONCIERGE_MACHINE_VALUES = RU_MACHINE_VALUES.filter((value) => !['Назад', 'Этапы'].includes(value));
 
 // ── the published journey origin ─────────────────────────────────────────────────────────────
 //
@@ -342,8 +346,8 @@ check('RO CUSTOMER PARITY — every screen the Romanian customer reaches has Rom
   const m = /const RO_LABELS = (\{[\s\S]*?\n\});/.exec(body);
   assert(m, 'the candidate carries no Romanian label table');
   const shipped = JSON.parse(m[1]);
-  eq(Object.keys(shipped).length, RU_MACHINE_VALUES.length, 'the shipped table is not the module table');
-  for (const k of RU_MACHINE_VALUES) {
+  eq(Object.keys(shipped).length, CONCIERGE_MACHINE_VALUES.length, 'the shipped table is not the Concierge table');
+  for (const k of CONCIERGE_MACHINE_VALUES) {
     assert(Object.prototype.hasOwnProperty.call(shipped, k), 'the shipped table has no Romanian for: ' + k);
     assert(String(shipped[k]).trim() !== '', 'the shipped Romanian label is empty for: ' + k);
     assert(!CYRILLIC.test(String(shipped[k])), 'a Romanian label is still Russian: ' + k);

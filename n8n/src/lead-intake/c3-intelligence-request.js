@@ -1,20 +1,29 @@
-// FINMENTOR V1 — dispatch one eligible, newly committed lead to owner intelligence.
+// FINMENTOR V1 — dispatch one eligible, committed submission to owner intelligence.
 //
-// This node is downstream of IF Committed (New) and Save Lead to CRM. The graph is the primary
+// This node is downstream of a committed New/Merge verdict and Save Lead to CRM. The graph is the primary
 // authority; these assertions make the boundary fail closed if a future edit bypasses either
 // prerequisite. Both approved authorities converge here:
 //   internal — receipt commit updated exactly one row;
 //   public   — the successful Pipeline append reached Respond New Lead.
 // Provenance is never used as an eligibility shortcut.
 
-const lead = $('Restore Lead Context').first().json || {};
+let merged = false;
+try { merged = $('Restore Lead Context (Merged)').isExecuted === true; } catch (e) {}
+const lead = merged
+  ? ($('Restore Lead Context (Merged)').first().json || {})
+  : ($('Restore Lead Context').first().json || {});
 const internal = lead.provenance_trusted === true;
 let commitAuthority = '';
 if (internal) {
-  const commit = $('Commit Verdict (New)').first().json || {};
+  const commit = merged
+    ? ($('Commit Verdict (Merge)').first().json || {})
+    : ($('Commit Verdict (New)').first().json || {});
   if (Number(commit.__commit_updated_rows) !== 1 || Number(commit.__commit_ok) !== 1) return [];
-  commitAuthority = 'RECEIPT_COMMIT';
+  commitAuthority = merged ? 'RECEIPT_COMMIT_MERGE' : 'RECEIPT_COMMIT';
 } else {
+  // Public merges retain their existing response/side-effect contract. This correction is bounded
+  // to the authenticated Mini App path whose durable receipt provides the commit authority.
+  if (merged) return [];
   let publicNew = false;
   try { publicNew = $('Respond New Lead').isExecuted === true && $('Save to Pipeline').isExecuted === true; } catch (e) {}
   if (!publicNew) return [];
@@ -36,11 +45,13 @@ if (!internal && !/^fmr_[0-9a-f]{32}$/.test(requestId)) throw new Error('C3_PUBL
 const eligible = String(lead.lead_priority || '').toUpperCase() !== 'INCOMPLETE'
   && String(lead.status || '').toLowerCase() !== 'incomplete lead';
 
-return [{ json: {
-  event: 'ELIGIBLE_NEW_COMMITTED',
+const envelope = {
+  event: merged ? 'ELIGIBLE_MERGE_COMMITTED' : 'ELIGIBLE_NEW_COMMITTED',
   lead_id: leadId,
   request_id: requestId,
   eligible,
   commit_authority: commitAuthority,
   source_workflow_id: 'QmIyEW2ZEqKregmN'
-} }];
+};
+if (merged) envelope.settlement_mode = 'merged';
+return [{ json: envelope }];

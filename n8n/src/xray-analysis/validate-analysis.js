@@ -212,6 +212,8 @@ function failedOutput(inp, now, errors) {
   const retrying = inp.analysis_mode === 'RETRY_FAILED' && plainObject(inp.existing_analysis);
   const existing = upgrading || retrying ? inp.existing_analysis : {};
   const analysisId = upgrading || retrying ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id) + '-F';
+  const requestScoped = inp.analysis_mode === 'NEW_REQUEST_ANALYSIS'
+    || (retrying && String(inp.xray_analysis_id || '') !== analysisId);
   const attempt = retrying ? retryAttempt(existing) + 1 : 1;
   const exhausted = !upgrading && attempt >= RETRY_MAX;
   const next = exhausted || upgrading ? '' : new Date(Date.parse(now) + retryDelayMs(attempt)).toISOString();
@@ -241,10 +243,22 @@ function failedOutput(inp, now, errors) {
     }) : Object.assign({}, existing, failureFields);
   return {
     is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
-    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : 'NEW_ANALYSIS'),
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
     notify_owner: !retrying, retry_attempt: attempt, retry_exhausted: exhausted,
     pipeline_row: upgrading
       ? { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: String(existing.review_status || 'AI_DRAFT'), updated_at: now }
+      : requestScoped
+        ? {
+          lead_id: inp.lead_id,
+          xray_analysis_id: String(inp.xray_analysis_id || ''),
+          xray_score: inp.xray_score === undefined ? '' : inp.xray_score,
+          xray_maturity: inp.xray_maturity === undefined ? '' : inp.xray_maturity,
+          xray_primary_risk: String(inp.xray_primary_risk || ''),
+          xray_analysis_status: String(inp.xray_analysis_status || ''),
+          xray_next_step: String(inp.xray_next_step || ''),
+          updated_at: now,
+          last_activity_at: now
+        }
       : { lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED', updated_at: now, last_activity_at: now },
     owner_alert: null,
     // ❌ Анализ не сформирован — the error class renders as Russian; the raw validation errors stay
@@ -290,6 +304,8 @@ for (let idx = 0; idx < responses.length; idx++) {
   if (flags.length) { a.confidence = 'LOW'; a.limitations.push((locale === 'ro' ? 'Cifre neconfirmate de datele de intrare: ' : 'Цифры, не подтверждённые входными данными: ') + flags.join(', ')); }
 
   const analysisId = existing ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id);
+  const requestScoped = inp.analysis_mode === 'NEW_REQUEST_ANALYSIS'
+    || (retrying && String(inp.xray_analysis_id || '') !== analysisId);
   const analysisJson = JSON.stringify(a);
   const ownerBriefJson = JSON.stringify(ownerBrief);
   const generatedClientDraftJson = JSON.stringify(Object.assign({}, a, { owner_brief: undefined }));
@@ -348,7 +364,19 @@ for (let idx = 0; idx < responses.length; idx++) {
       : (upgrading ? String(existing.lead_intelligence_upgrade_errors || '') : '')
   };
   const row = existing ? Object.assign({}, existing, fields) : fields;
-  const pipelineRow = {
+  const pipelineRow = requestScoped ? {
+    // The new request gets its own X-Ray ledger row and owner alert, while the canonical lead's
+    // already-published CLIENT_READY/NOTIFIED/VIEWED projection remains authoritative.
+    lead_id: inp.lead_id,
+    xray_analysis_id: String(inp.xray_analysis_id || ''),
+    xray_score: inp.xray_score === undefined ? '' : inp.xray_score,
+    xray_maturity: inp.xray_maturity === undefined ? '' : inp.xray_maturity,
+    xray_primary_risk: String(inp.xray_primary_risk || ''),
+    xray_analysis_status: String(inp.xray_analysis_status || ''),
+    xray_next_step: String(inp.xray_next_step || ''),
+    updated_at: now,
+    last_activity_at: now
+  } : {
     lead_id: inp.lead_id,
     xray_analysis_id: analysisId,
     xray_score: row.score,
@@ -361,7 +389,7 @@ for (let idx = 0; idx < responses.length; idx++) {
   };
   out.push({ json: {
     is_valid: true,
-    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : 'NEW_ANALYSIS'),
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
     notify_owner: !upgrading,
     analysis_row: row, pipeline_row: pipelineRow,
     owner_alert: upgrading ? null : ownerAlert(inp, a, row, cfg),

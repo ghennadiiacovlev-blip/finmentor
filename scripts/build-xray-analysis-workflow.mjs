@@ -275,9 +275,9 @@ const ownerAlert = node({
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
         { row: { buttons: [ { text: 'Бриф к встрече', additionalFields: { callback_data: expr("{{ 'brief|' + $('Validate + Store Rows').item.json.lead_id }}"), style: 'primary' } } ] } },
+        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}") } } ] } },
         { row: { buttons: [ { text: 'Discovery', additionalFields: { callback_data: expr("{{ 'stage|' + $('Validate + Store Rows').item.json.lead_id + '|Discovery Scheduled' }}"), style: 'success' } } ] } },
-        { row: { buttons: [ { text: 'Разбор клиента', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } },
-        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}") } } ] } }
+        { row: { buttons: [ { text: '⋯ Управление лидом', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: ${TG_CRED} },

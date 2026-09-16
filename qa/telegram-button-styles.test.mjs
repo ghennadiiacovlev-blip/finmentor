@@ -181,9 +181,9 @@ check('10. the owner keyboard is one keyboard — it never varies with the clien
 check('X-Ray Lead Intelligence alert: brief is primary, Discovery is success, links are neutral', () => {
   assert(/text: 'Бриф к встрече', additionalFields: \{ callback_data: [\s\S]{0,180}?style: 'primary' \}/.test(XRAY_SDK), 'the brief button is not primary');
   assert(/text: 'Discovery', additionalFields: \{ callback_data: [\s\S]{0,220}?style: 'success' \}/.test(XRAY_SDK), 'Discovery is not success');
-  assert(/text: 'Разбор клиента', additionalFields: \{ url: [\s\S]{0,140}?\} \}/.test(XRAY_SDK), 'the review URL button changed');
+  assert(/text: '⋯ Управление лидом', additionalFields: \{ url: [\s\S]{0,140}?\} \}/.test(XRAY_SDK), 'the management URL button changed');
   assert(/text: 'Связаться', additionalFields: \{ url: [\s\S]{0,140}?\} \}/.test(XRAY_SDK), 'the contact URL button changed');
-  assert(!/text: '(?:Разбор клиента|Связаться)'[\s\S]{0,180}?style:/.test(XRAY_SDK), 'a link button carries a style');
+  assert(!/text: '(?:⋯ Управление лидом|Связаться)'[\s\S]{0,180}?style:/.test(XRAY_SDK), 'a link button carries a style');
   assert(/owner_alert\.review_url/.test(XRAY_SDK) && /owner_alert\.contact_url/.test(XRAY_SDK), 'a brief/contact url expression changed');
   assert(!/Telegram Analysis Approved/.test(XRAY_SDK), 'the retired duplicate owner approval notice remains');
 });

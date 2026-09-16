@@ -1132,6 +1132,8 @@ window.FM_RO = {
   "Текущий черновик будет заменён.": "Ciorna curentă va fi înlocuită.",
   "Уже переданные обращения это не затронет.": "Solicitările deja transmise nu vor fi afectate.",
   "Начать новое": "Începeți din nou",
+  "Назад": "Înapoi",
+  "Этапы": "Etape",
   "срок": "termen",
   "материалы": "materiale",
   "Уже понятно": "Deja clar",

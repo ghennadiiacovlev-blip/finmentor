@@ -466,6 +466,8 @@ const RO_LABELS = {
 // qa/premium-ux-ro-parity.test.mjs re-extracts these from app.js and fails on any that is missing
 // here, so a new hardcoded Russian string cannot quietly appear on the Romanian path.
 const SHELL_RO = {
+  'Назад': 'Înapoi',
+  'Этапы': 'Etape',
   'срок': 'termen',
   'материалы': 'materiale',
   'Уже понятно': 'Deja clar',

@@ -314,10 +314,14 @@ for (const pipe of pending) {
 
   const direct = byLeadId[leadId] || [];
   let leadRow = null; let pairingMethod = '';
-  if (direct.length > 1) {
+  // A committed merge is archived under its submission lead id while the Pipeline keeps the
+  // canonical lead id. Bind that new request to its exact archived Raw JSON; never reuse the old
+  // canonical lead's answers. Retries keep the same request authority.
+  const requestScoped = pipe.analysis_mode === 'NEW_REQUEST_ANALYSIS' || pipe.analysis_mode === 'RETRY_FAILED';
+  if (!requestScoped && direct.length > 1) {
     out.push({ json: auditFinding(pipe, 'LEAD_ID_COLLISION', 'matches=' + direct.length) }); continue;
   }
-  if (direct.length === 1) {
+  if (!requestScoped && direct.length === 1) {
     leadRow = direct[0]; pairingMethod = 'lead_id';
   } else {
     if (!requestId) { out.push({ json: auditFinding(pipe, 'REQUEST_ID_MISSING') }); continue; }

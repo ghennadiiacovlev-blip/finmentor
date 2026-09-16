@@ -40,13 +40,19 @@ export function readFixSources(root) {
 const leadId = String(cmd.lead_id || '').trim();
 const rows = $input.all().map((item) => item.json || {}).filter((row) => String(row.lead_id || '').trim() === leadId);
 const ready = rows.filter((row) => String(row.review_status || '').toUpperCase() !== 'ANALYSIS_FAILED'
-  && String(row.owner_brief_json || '').trim() !== '');
+  && String(row.owner_brief_json || '').trim() !== '')
+  .sort((a, b) => {
+    const byTime = (Date.parse(String(a.created_at || '')) || 0) - (Date.parse(String(b.created_at || '')) || 0);
+    return byTime || String(a.analysis_id || '').localeCompare(String(b.analysis_id || ''));
+  });
 let reply = '';
-if (ready.length !== 1) {
+if (!ready.length) {
   reply = '<b>FINMENTOR · БРИФ К ПЕРВОЙ ВСТРЕЧЕ</b>\\n\\nБриф пока недоступен. Лид сохранён; дождитесь завершения анализа.';
 } else {
   try {
-    const brief = JSON.parse(String(ready[0].owner_brief_json || ''));
+    // A canonical lead may receive more than one committed Mini App request. The callback remains
+    // lead-scoped; its Brief opens the newest request intelligence deterministically.
+    const brief = JSON.parse(String(ready[ready.length - 1].owner_brief_json || ''));
     reply = PRECALL.renderPrecallBrief({ lead_id: leadId, brief });
   } catch (e) {
     reply = '<b>FINMENTOR · БРИФ К ПЕРВОЙ ВСТРЕЧЕ</b>\\n\\nБриф пока недоступен. Лид сохранён; команда получила уведомление.';
@@ -152,9 +158,9 @@ export function patchXray(workflow, intakeTemplate, sources) {
   const alert = node(out, 'Telegram Owner Alert');
   alert.parameters.inlineKeyboard = { rows: [
     { row: { buttons: [{ text: 'Бриф к встрече', additionalFields: { callback_data: "={{ 'brief|' + $('Validate + Store Rows').item.json.lead_id }}", style: 'primary' } }] } },
+    { row: { buttons: [{ text: 'Связаться', additionalFields: { url: "={{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}" } }] } },
     { row: { buttons: [{ text: 'Discovery', additionalFields: { callback_data: "={{ 'stage|' + $('Validate + Store Rows').item.json.lead_id + '|Discovery Scheduled' }}", style: 'success' } }] } },
-    { row: { buttons: [{ text: 'Разбор клиента', additionalFields: { url: "={{ $('Validate + Store Rows').item.json.owner_alert.review_url }}" } }] } },
-    { row: { buttons: [{ text: 'Связаться', additionalFields: { url: "={{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}" } }] } }
+    { row: { buttons: [{ text: '⋯ Управление лидом', additionalFields: { url: "={{ $('Validate + Store Rows').item.json.owner_alert.review_url }}" } }] } }
   ] };
 
   const failedSet = clone(node(out, 'Failed Row'));

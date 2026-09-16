@@ -134,11 +134,37 @@ check('the app submits the machine value, never the Romanian label', () => {
   return true;
 });
 
-check('T() is applied at the render boundary only', () => {
+check('T() is applied only at customer-visible render boundaries', () => {
   assert(/n\.textContent = T\(text\);/.test(APP), 'el() does not translate');
+  assert(/node\.setAttribute\(name, T\(text\)\);/.test(APP), 'visibleAttr() does not translate');
   const calls = APP.match(/\bT\(/g) || [];
-  // the definition, the call inside el(), and nothing else
-  assert(calls.length <= 3, 'T() is called ' + calls.length + ' times; it belongs in el() alone');
+  // the definition, the call inside el(), the call inside visibleAttr(), and nothing else
+  assert(calls.length <= 3, 'T() is called ' + calls.length + ' times; it bypassed a render helper');
+  return true;
+});
+
+check('placeholders and static accessibility labels use the locale boundary', () => {
+  assert(!/\.placeholder\s*=/.test(APP), 'a placeholder bypasses visibleAttr()');
+  assert(/visibleAttr\(inp, 'placeholder', placeholder\)/.test(APP), 'input placeholder is not localised');
+  assert(/visibleAttr\(ta, 'placeholder', placeholder\)/.test(APP), 'textarea placeholder is not localised');
+  assert(/visibleAttr\(backBtn, 'aria-label', 'Назад'\)/.test(APP), 'back aria-label is not localised');
+  assert(/visibleAttr\(stagesEl, 'aria-label', 'Этапы'\)/.test(APP), 'stages aria-label is not localised');
+  return true;
+});
+
+check('dynamic helper sentences localise their canonical segments before composition', () => {
+  assert(!/el\('div', 'left', left\.length \? 'Осталось уточнить ' \+/.test(APP),
+    'the assembled Russian progress sentence bypasses the dictionary');
+  for (const segment of ["'Осталось уточнить '", "' и '", "'Осталось проверить бриф.'"])
+    assert(APP.includes("el('span', null, " + segment + ')'), 'progress segment bypasses el(): ' + segment);
+  return true;
+});
+
+check('CSS pseudo-elements carry no customer-visible copy', () => {
+  const css = read(join('app-premium', 'app.css'));
+  const values = [...css.matchAll(/(?:^|[;{])\s*content\s*:\s*([^;]+);/gm)].map((m) => m[1].trim());
+  const visible = values.filter((v) => !/^(?:""|''|none|normal)$/.test(v));
+  assert(visible.length === 0, 'visible pseudo-content bypasses localisation: ' + visible[0]);
   return true;
 });
 

@@ -254,8 +254,9 @@
   // ---------------------------------------------------------------- dom helpers
   // SPRINT 1 — the single render boundary, and the only place a Romanian label is chosen.
   //
-  // Every visible string in this app reaches the DOM through `el()`: rowBtn, cardBtn and btn all
-  // delegate here. Translating at this one point localises the whole surface, and — more
+  // Every visible string in this app reaches the DOM through `el()` or `visibleAttr()`: rowBtn,
+  // cardBtn and btn all delegate here, while placeholders and accessibility labels use the latter.
+  // Translating at this presentation boundary localises the whole surface, and — more
   // importantly — it CANNOT localise a value, because `set()`, `get()` and every `===` comparison
   // work on the literals from FM_CONTENT and never pass through here. That is what keeps the
   // Pipeline storing the same Russian machine value in both languages (owner decision, Option A).
@@ -284,6 +285,10 @@
     if (cls) { n.className = cls; }
     if (text !== undefined && text !== null) { n.textContent = T(text); }
     return n;
+  }
+  function visibleAttr(node, name, text) {
+    if (text !== undefined && text !== null) { node.setAttribute(name, T(text)); }
+    return node;
   }
   // ---------------------------------------------------------------- privacy links
   //
@@ -385,7 +390,22 @@
     var ls = el('div', 'lines');
     lines.forEach(function (l) { ls.appendChild(el('span', null, l)); });
     d.appendChild(ls);
-    d.appendChild(el('div', 'left', left.length ? 'Осталось уточнить ' + left.join(' и ') + '.' : 'Осталось проверить бриф.'));
+    var remaining = el('div', 'left');
+    if (left.length) {
+      // This is dynamic customer copy, so translate each canonical segment before joining it in
+      // the DOM. Passing the assembled Russian sentence to the translator cannot work: that full
+      // sentence
+      // is not (and must not become) a stored machine value or a dictionary key.
+      remaining.appendChild(el('span', null, 'Осталось уточнить '));
+      left.forEach(function (item, index) {
+        if (index) { remaining.appendChild(el('span', null, ' и ')); }
+        remaining.appendChild(el('span', null, item));
+      });
+      remaining.appendChild(el('span', null, '.'));
+    } else {
+      remaining.appendChild(el('span', null, 'Осталось проверить бриф.'));
+    }
+    d.appendChild(remaining);
     return d;
   }
 
@@ -560,7 +580,7 @@
       inp.setAttribute('autocorrect', 'off');
     }
     inp.value = get(name) || '';
-    if (placeholder) { inp.placeholder = placeholder; }
+    if (placeholder) { visibleAttr(inp, 'placeholder', placeholder); }
     inp.addEventListener('input', function () {
       var v = inp.value.trim();
       set(name, v || null, 'user_explicit', !!v);
@@ -675,7 +695,7 @@
     var ta = el('textarea');
     ta.value = get(name) || '';
     ta.maxLength = 500;
-    if (placeholder) { ta.placeholder = placeholder; }
+    if (placeholder) { visibleAttr(ta, 'placeholder', placeholder); }
     ta.addEventListener('input', function () {
       var v = ta.value.trim();
       set(name, v || null, 'user_explicit', !!v);
@@ -1480,6 +1500,11 @@
     var fn = SCREENS[state] || scrEntry;
     main.innerHTML = '';
     main.appendChild(fn());
+    // These labels originate in static HTML rather than `el()`, so refresh them from the same
+    // presentation-only locale boundary on every render. No stored or user-entered value passes
+    // through this path.
+    visibleAttr(backBtn, 'aria-label', 'Назад');
+    visibleAttr(stagesEl, 'aria-label', 'Этапы');
     renderStages();
     // Terminal states have no back affordance; submitting is not interruptible.
     // Terminal states have no back affordance; submitting is not interruptible; and the three

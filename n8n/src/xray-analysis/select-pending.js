@@ -73,6 +73,8 @@ function needsUpgrade(row) {
 // only the exact committed lead named by the internal trigger. The ordinary schedule path never
 // executes Validate C3 Lead Target and therefore remains byte-for-byte equivalent below.
 let c3TargetLeadId = '';
+let c3TargetRequestId = '';
+let c3SettlementMode = '';
 try {
   const target = $('Validate C3 Lead Target').first().json || {};
   if (target.c3_targeted === true) {
@@ -80,13 +82,22 @@ try {
     // falling through and unexpectedly consuming unrelated backlog work.
     if (target.c3_target_eligible !== true) return [];
     c3TargetLeadId = String(target.c3_target_lead_id || '').trim();
+    c3TargetRequestId = String(target.c3_request_id || '').trim();
+    c3SettlementMode = String(target.c3_settlement_mode || 'new').trim();
   }
 } catch (e) {}
 if (c3TargetLeadId) {
   const pipelineMatches = eligiblePipeline.filter((row) => String(row.lead_id || '').trim() === c3TargetLeadId);
   if (pipelineMatches.length !== 1) return [];
-  if ((analysesByLead[c3TargetLeadId] || []).length !== 0) return [];
-  return [{ json: { ...pipelineMatches[0], analysis_mode: 'NEW_ANALYSIS', c3_targeted: true } }];
+  const prior = analysesByLead[c3TargetLeadId] || [];
+  if (c3SettlementMode === 'merged') {
+    if (!c3TargetRequestId || prior.some((row) => String(row.request_id || '').trim() === c3TargetRequestId)) return [];
+    return [{ json: { ...pipelineMatches[0], request_id: c3TargetRequestId,
+      analysis_mode: 'NEW_REQUEST_ANALYSIS', c3_targeted: true } }];
+  }
+  if (c3SettlementMode !== 'new' || prior.length !== 0) return [];
+  return [{ json: { ...pipelineMatches[0], request_id: c3TargetRequestId,
+    analysis_mode: 'NEW_ANALYSIS', c3_targeted: true } }];
 }
 
 // Explicit target mode is surgical: resolve exactly one ledger row and exactly one eligible

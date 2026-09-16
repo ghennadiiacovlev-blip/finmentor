@@ -54,6 +54,8 @@ for (let idx = 0; idx < errors.length; idx++) {
   const retrying = inp.analysis_mode === 'RETRY_FAILED' && inp.existing_analysis && typeof inp.existing_analysis === 'object';
   const existing = upgrading || retrying ? inp.existing_analysis : {};
   const analysisId = upgrading || retrying ? String(existing.analysis_id || '') : 'XA-' + String(inp.lead_id).replace(/[^A-Za-z0-9_-]/g, '') + '-' + Date.now().toString(36).toUpperCase() + '-F';
+  const requestScoped = inp.analysis_mode === 'NEW_REQUEST_ANALYSIS'
+    || (retrying && String(inp.xray_analysis_id || '') !== analysisId);
   const attempt = retrying ? attemptOf(existing) + 1 : 1;
   const exhausted = !upgrading && attempt >= RETRY_MAX;
   const next = exhausted || upgrading ? '' : new Date(Date.parse(now) + retryDelayMs(attempt)).toISOString();
@@ -80,7 +82,7 @@ for (let idx = 0; idx < errors.length; idx++) {
   }) : Object.assign({}, existing, failureRow);
   out.push({ json: {
     analysis_row: analysisRow,
-    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : 'NEW_ANALYSIS'),
+    analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
     is_valid: false,
     notify_owner: !retrying,
     retry_attempt: attempt,
@@ -92,7 +94,17 @@ for (let idx = 0; idx < errors.length; idx++) {
       contact_text: contactText(inp), next_action: ((inp.owner_context || {}).next_action || ''),
       retry_exhausted: exhausted
     }),
-    pipeline_row: {
+    pipeline_row: requestScoped ? {
+      lead_id: inp.lead_id,
+      xray_analysis_id: String(inp.xray_analysis_id || ''),
+      xray_score: inp.xray_score === undefined ? '' : inp.xray_score,
+      xray_maturity: inp.xray_maturity === undefined ? '' : inp.xray_maturity,
+      xray_primary_risk: String(inp.xray_primary_risk || ''),
+      xray_analysis_status: String(inp.xray_analysis_status || ''),
+      xray_next_step: String(inp.xray_next_step || ''),
+      updated_at: now,
+      last_activity_at: now
+    } : {
       lead_id: inp.lead_id, xray_analysis_id: analysisId, xray_analysis_status: 'ANALYSIS_FAILED',
       updated_at: now, last_activity_at: now
     },
