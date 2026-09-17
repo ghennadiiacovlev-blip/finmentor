@@ -406,13 +406,75 @@ export function verifyXrayGraph(workflow) {
   return expected;
 }
 
-function verifyCommon(before, candidate, after, id) {
+// The V1 owner-render closure adds two model nodes, and a model node carries a credential. A flat
+// "the readback's credential signature must equal the pre-deploy workflow's" rule therefore cannot
+// express a deployment that legitimately grows 24 -> 26 credential-bearing nodes. Relaxing it to
+// "compare against the candidate" would be worse: the candidate is the artefact under test, so a
+// rewritten binding inside it would verify itself. The rule is split instead.
+//
+//   PRE-DEPLOY WORKFLOW proves the negative space — every binding that already existed is still
+//   byte-identical, and nothing new appeared beyond the named additions.
+//   THE PRODUCTION MODEL NODE proves the additions — each authorised new node must carry the very
+//   same credential object the live X-Ray model node already uses. Not "an OpenAI credential": the
+//   same type, the same id, the same reference. A new node cannot introduce a new secret.
+//
+// Nothing here prints or inspects credential data; n8n's API never returns it, and the objects
+// compared are {type: {id, name}} references only.
+export const XRAY_AUTHORISED_CREDENTIAL_ADDITIONS = Object.freeze({
+  authorised_at: '2026-09-17',
+  reason: 'V1 owner-render closure: bounded owner presentation normalizer + its single correction',
+  reference_node: 'AI X-Ray Analysis',
+  nodes: Object.freeze(['Owner Render Normalizer', 'Owner Render Correction'])
+});
+
+export function verifyCredentialDelta(before, after, authorised, label) {
+  const beforeMap = new Map(nodeCredentialSignature(before));
+  const afterMap = new Map(nodeCredentialSignature(after));
+  const authorisedNames = authorised && Array.isArray(authorised.nodes) ? [...authorised.nodes] : [];
+
+  // No pre-existing binding may change, and none may disappear.
+  for (const [name, credentials] of beforeMap) {
+    if (!afterMap.has(name)) throw new Error(label + ': credential-bearing node removed: ' + name);
+    if (stableJson(afterMap.get(name)) !== stableJson(credentials)) {
+      throw new Error(label + ': credential binding changed at ' + name);
+    }
+  }
+
+  // Only the explicitly authorised nodes may bring a new binding — never a third one.
+  const added = [...afterMap.keys()].filter((name) => !beforeMap.has(name)).sort((a, b) => a.localeCompare(b));
+  const unauthorised = added.filter((name) => !authorisedNames.includes(name));
+  if (unauthorised.length) throw new Error(label + ': unauthorised credential-bearing node(s): ' + unauthorised.join(', '));
+
+  if (!authorisedNames.length) return added;
+
+  // Every authorised node that exists in the deployed graph must in fact carry the production
+  // model node's own credential. This is what refuses "only one of the two is bound", a wrong
+  // credential id, and a wrong credential type.
+  const reference = afterMap.get(authorised.reference_node);
+  if (!reference) throw new Error(label + ': credential reference node is absent or unbound: ' + authorised.reference_node);
+  for (const name of authorisedNames) {
+    if (!byName(after, name)) continue;
+    const bound = afterMap.get(name);
+    if (!bound) throw new Error(label + ': authorised node carries no credential: ' + name);
+    if (stableJson(bound) !== stableJson(reference)) {
+      throw new Error(label + ': ' + name + ' does not reuse the ' + authorised.reference_node + ' credential');
+    }
+  }
+  return added;
+}
+
+function verifyCommon(before, candidate, after, id, authorisedCredentialAdditions) {
   if (after.id !== id) throw new Error(id + ': workflow ID changed');
   if (after.name !== before.name) throw new Error(id + ': workflow name changed');
   if (after.active !== before.active) throw new Error(id + ': active state changed');
   if (j(after.settings || {}) !== j(before.settings || {})) throw new Error(id + ': settings changed');
   if (j(after.staticData || null) !== j(before.staticData || null)) throw new Error(id + ': staticData changed');
-  if (j(nodeCredentialSignature(after)) !== j(nodeCredentialSignature(before))) throw new Error(id + ': credentials changed');
+  verifyCredentialDelta(before, after, authorisedCredentialAdditions, id);
+  // Readback authority for what was deployed: the live bindings must be the ones the verified
+  // candidate declared, not merely a set that happens to satisfy the delta rule.
+  if (stableJson(nodeCredentialSignature(after)) !== stableJson(nodeCredentialSignature(candidate))) {
+    throw new Error(id + ': deployed credential bindings differ from candidate');
+  }
   if (j(after.connections) !== j(candidate.connections)) throw new Error(id + ': deployed connections differ from candidate');
   if (after.nodes.length !== candidate.nodes.length) throw new Error(id + ': deployed node count differs from candidate');
 }
@@ -429,7 +491,7 @@ function verifyConciergeReadback(before, candidate, after) {
 }
 
 export function verifyXrayReadback(before, candidate, after) {
-  verifyCommon(before, candidate, after, XRAY_ID);
+  verifyCommon(before, candidate, after, XRAY_ID, XRAY_AUTHORISED_CREDENTIAL_ADDITIONS);
   verifyXrayWebhookReadback(before, candidate, after);
   const candidateStableNodes = candidate.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });
   const readbackStableNodes = after.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });

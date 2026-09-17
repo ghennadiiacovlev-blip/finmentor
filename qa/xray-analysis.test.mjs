@@ -21,6 +21,7 @@ import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-ana
 import { compileFile } from '../scripts/lib/compile-workflow-sdk.mjs';
 import {
   XRAY_ID, XRAY_NAME, XRAY_VOLATILE_WEBHOOK_ID_NODES, XRAY_OWNER_SOURCE_REPOINT, stableWebhookSignature,
+  XRAY_AUTHORISED_CREDENTIAL_ADDITIONS, verifyCredentialDelta,
   reconcileWorkflowActivity, verifyXrayWebhookReadback, verifyXrayReadback
 } from '../scripts/deploy-final-p1.mjs';
 import { NIAGARA_AI, NIAGARA_LIVE_SANITIZED_SOURCE } from './fixtures/lead-intelligence-fixtures.mjs';
@@ -685,6 +686,82 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
   }
   check('deploy guard: a historically stable webhookId change is rejected',
     rejects((changed) => { changed.nodes.find((node) => node.name === 'Review POST Webhook').webhookId = '40000000-0000-4000-8000-000000000001'; }));
+
+  // ── AUTHORISED CREDENTIAL DELTA (24 -> 26) ───────────────────────────────────────────────────
+  //
+  // The owner-render closure adds two model nodes, so two more nodes carry a credential. That is
+  // the whole authorised delta, and it is proven rather than assumed: the additions must reuse the
+  // production model node's own credential object, every pre-existing binding must survive
+  // byte-identical, and nothing else may appear or disappear.
+  {
+    const AUTH = XRAY_AUTHORISED_CREDENTIAL_ADDITIONS;
+    const REFERENCE = 'AI X-Ray Analysis';
+    const named = (workflow, name) => workflow.nodes.find((node) => node.name === name);
+    const credentialNames = (workflow) => workflow.nodes.filter((node) => node.credentials).map((node) => node.name);
+    // The live pre-deploy graph: the same workflow without the two owner-render model nodes.
+    const preDeploy = structuredClone(before);
+    preDeploy.nodes = preDeploy.nodes.filter((node) => !AUTH.nodes.includes(node.name));
+    const deltaAccepts = (mutate) => {
+      const changed = structuredClone(after);
+      if (mutate) mutate(changed);
+      try { verifyCredentialDelta(preDeploy, changed, AUTH, XRAY_ID); return true; } catch { return false; }
+    };
+
+    check('credential delta: the deployment grows credential-bearing nodes by exactly the two authorised model nodes',
+      credentialNames(after).length - credentialNames(preDeploy).length === 2
+      && JSON.stringify(verifyCredentialDelta(preDeploy, after, AUTH, XRAY_ID)) === JSON.stringify([...AUTH.nodes].sort((a, b) => a.localeCompare(b))));
+    check('credential delta: both additions reuse the AI X-Ray Analysis credential reference exactly',
+      AUTH.nodes.every((name) => JSON.stringify(named(after, name).credentials) === JSON.stringify(named(after, REFERENCE).credentials))
+      && deltaAccepts(null));
+    check('credential delta: the authorised 24 -> 26 readback verifies end to end',
+      accepts(() => verifyXrayReadback(preDeploy, candidate, after)));
+
+    check('credential delta: a wrong credential id on Owner Render Normalizer is rejected',
+      !deltaAccepts((changed) => {
+        const node = named(changed, 'Owner Render Normalizer');
+        const type = Object.keys(node.credentials)[0];
+        node.credentials = { [type]: { ...node.credentials[type], id: 'OTHER-CREDENTIAL-ID' } };
+      }));
+    check('credential delta: a wrong credential type on an authorised addition is rejected',
+      !deltaAccepts((changed) => {
+        const node = named(changed, 'Owner Render Correction');
+        const type = Object.keys(node.credentials)[0];
+        node.credentials = { httpHeaderAuth: node.credentials[type] };
+      }));
+    check('credential delta: only one of the two additions carrying a credential is rejected',
+      !deltaAccepts((changed) => { delete named(changed, 'Owner Render Normalizer').credentials; }));
+    check('credential delta: a third new credential-bearing node is rejected',
+      !deltaAccepts((changed) => {
+        const added = structuredClone(named(changed, REFERENCE));
+        added.name = 'Unauthorised Model Node'; added.id = 'unauthorised-model-node';
+        changed.nodes.push(added);
+      }));
+    check('credential delta: a changed credential on any pre-existing node is rejected',
+      !deltaAccepts((changed) => {
+        const node = named(changed, 'Save XRay_Analysis');
+        const type = Object.keys(node.credentials)[0];
+        node.credentials = { [type]: { ...node.credentials[type], id: 'ROTATED-WITHOUT-AUTHORISATION' } };
+      })
+      && !deltaAccepts((changed) => {
+        const node = named(changed, REFERENCE);
+        const type = Object.keys(node.credentials)[0];
+        node.credentials = { [type]: { ...node.credentials[type], id: 'ROTATED-WITHOUT-AUTHORISATION' } };
+      }));
+    check('credential delta: a removed credential-bearing node is rejected',
+      !deltaAccepts((changed) => { delete named(changed, 'Save XRay_Analysis').credentials; })
+      && !deltaAccepts((changed) => { changed.nodes = changed.nodes.filter((node) => node.name !== 'Save XRay_Analysis'); }));
+    check('credential delta: a readback whose bindings differ from the verified candidate is rejected',
+      !accepts(() => {
+        const changed = structuredClone(after);
+        const node = named(changed, 'Owner Render Normalizer');
+        const reference = named(changed, REFERENCE);
+        node.credentials = structuredClone(reference.credentials);
+        const type = Object.keys(reference.credentials)[0];
+        // Bindings that satisfy the delta rule on both sides but were never in the candidate.
+        for (const workflow of [changed]) named(workflow, 'Owner Render Correction').credentials = { [type]: { ...reference.credentials[type], name: 'Renamed Reference' } };
+        verifyXrayReadback(preDeploy, candidate, changed);
+      }));
+  }
   check('deploy guard: X-Ray success graph is exactly sequential and the AI sibling edge is absent',
     accepts(() => verifyXrayReadback(before, candidate, after)) &&
     rejects((changed) => { changed.connections['AI X-Ray Analysis'].main[0].push({ node: 'Analysis Row', type: 'main', index: 0 }); }, verifyXrayReadback));
