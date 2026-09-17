@@ -240,6 +240,27 @@ function userPrompt(locale, facts, projection) {
   return [head, JSON.stringify(facts, null, 2), '', 'ИНДЕКС ФАКТОВ КЛИЕНТА / CLIENT FACT INDEX:', JSON.stringify(facts.client_fact_index || [], null, 2), '', body, JSON.stringify(projection, null, 2), '', tail, JSON.stringify(CONTRACT, null, 2)].join('\n');
 }
 
+// A contract retry must correct the exact deterministic miss instead of sending the identical
+// bilingual prompt again. The customer result remains Romanian; only the owner-only subtree is
+// rewritten in Russian. Other failures get no hint, so upstream, scoring and intake behaviour are
+// unchanged.
+function retryContractCorrection(pipe) {
+  const row = pipe && pipe.existing_analysis && typeof pipe.existing_analysis === 'object'
+    ? pipe.existing_analysis : {};
+  const error = String(row.validation_errors || '');
+  if (!/(?:^|[|;])ERROR=owner brief must be Russian(?:$|[|;])/i.test(error)) return '';
+  return [
+    '',
+    'MANDATORY RETRY CORRECTION:',
+    'The previous response was rejected because owner_brief was not entirely Russian.',
+    'Keep every top-level customer-facing field outside owner_brief in professional Romanian.',
+    'Rewrite EVERY human-readable string value inside owner_brief in professional Russian.',
+    'This includes owner_fact_translations.value_ru, diagnoses, pain_map, unknowns, first_meeting_objective, conversation_opening, discovery_questions, solution_hypothesis and next_action.',
+    'Do not copy any Romanian sentence or Romanian connective word into owner_brief.',
+    'Before returning the single JSON object, inspect owner_brief separately and verify that all of its human-readable prose is Russian.'
+  ].join('\n');
+}
+
 function currentRequestContactName(raw, leadRow, pipe, requestScoped) {
   const client = (raw && raw.client) || {};
   if (!requestScoped) return String(pick(pipe && pipe.name, client.name, leadRow && leadRow.Name) || '');
@@ -531,7 +552,7 @@ for (const pipe of pending) {
       input_digest_text: JSON.stringify({ facts: factsClean, projection }),
       ai_model: String(($('Settings to Object').first().json.settings || {}).xray_ai_model || 'gpt-4.1'),
       ai_system_prompt: systemPrompt(locale),
-      ai_user_prompt: userPrompt(locale, factsClean, projection)
+      ai_user_prompt: userPrompt(locale, factsClean, projection) + retryContractCorrection(pipe)
     }
   });
 }

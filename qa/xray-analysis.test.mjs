@@ -309,6 +309,20 @@ let inputItem;
   // and this gate now refuses either of them.
   check('input: RO prompt names the canonical RO product, never the retired name', /Test financiar FINMENTOR/.test(out[0].json.ai_system_prompt) && !/Radiografia Financiară/.test(out[0].json.ai_system_prompt) && !/sănătate financiară/.test(out[0].json.ai_system_prompt));
   check('input: RO client prompt assigns owner_brief exclusively to Russian', /owner_brief.*limba rusă profesională/i.test(out[0].json.ai_system_prompt) && /owner_fact_translations/.test(out[0].json.ai_system_prompt));
+  check('input: first attempt does not carry a retry-only correction', !/MANDATORY RETRY CORRECTION/.test(out[0].json.ai_user_prompt));
+  const retryPipe = {
+    ...pipeRu, lead_id: 'L-4', source_page: 'https://www.finmentor.md/ro/questionnaire.html',
+    analysis_mode: 'RETRY_FAILED',
+    existing_analysis: {
+      analysis_id: 'XA-L-4-RETRY-F', lead_id: 'L-4', request_id: 'req-1',
+      review_status: 'ANALYSIS_FAILED', model: 'gpt-4.1', analysis_json: '', owner_brief_json: '',
+      validation_errors: 'MODEL_OUTPUT_INVALID|ATTEMPT=1|MAX=3|NEXT=2026-09-17T10:36:08.906Z|ERROR=owner brief must be Russian'
+    }
+  };
+  const retry = runNode(withIntelligence(read('build-input.js')), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [retryPipe], 'Settings to Object': [{ settings }] } })[0].json;
+  check('input: exact RU contract failure adds a retry-only bilingual boundary correction', /MANDATORY RETRY CORRECTION/.test(retry.ai_user_prompt) && /outside owner_brief.*Romanian/i.test(retry.ai_user_prompt) && /inside owner_brief.*Russian/i.test(retry.ai_user_prompt));
+  const unrelatedRetry = runNode(withIntelligence(read('build-input.js')), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [{ ...retryPipe, existing_analysis: { ...retryPipe.existing_analysis, validation_errors: 'MODEL_OUTPUT_INVALID|ATTEMPT=1|ERROR=diagnoses must contain 2..4 items' } }], 'Settings to Object': [{ settings }] } })[0].json;
+  check('input: unrelated model contract failure does not receive the RU correction', !/MANDATORY RETRY CORRECTION/.test(unrelatedRetry.ai_user_prompt));
 }
 {
   const requestId = 'sub_' + 'd'.repeat(32);
