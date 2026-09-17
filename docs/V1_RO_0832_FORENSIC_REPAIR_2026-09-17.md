@@ -98,5 +98,7 @@ Full suite before final deployment: **99/99 gates, 3,580 assertions, assertion f
 
 ## Production observation
 
-The existing bounded retry is observed without manually invoking X-Ray and without creating a new
-submission. Its final ledger result is recorded separately after the scheduled sweep.
+The existing bounded retry completed without manually invoking X-Ray. Ledger row 18 is now
+`AI_DRAFT` for the exact request ID, company `FINMENTOR UAT RO FINAL`, locale `ro`, and three
+diagnoses. The 08:32 incident is closed. The subsequent acceptance run exposed a separate Lead
+Intake false-retry defect, recorded in `V1_LEAD_INTAKE_FALSE_RETRY_REPAIR_2026-09-17.md`.

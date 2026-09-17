@@ -1186,10 +1186,11 @@ check('(F6) retry settles READY -> COMMITTED directly and is reachable only from
   eq(SHEET_WRITERS.filter((x) => lost.has(x)).join(','), '', 'a lost retry settlement reaches Pipeline');
 });
 
-check('(F6) the retry branch does not pretend a Pipeline write happened', () => {
+check('(F6) retry correlation is proven without pretending a Pipeline write happened', () => {
   const retry = R.P1_L9_CORRELATION_CHAIN.retry;
   eq(retry.pipeline_write_occurs, false, 'the retry branch claims a Pipeline write');
-  eq(retry.correlation_id_is_in_pipeline, false, 'the retry branch claims its correlation id is in Pipeline');
+  eq(retry.correlation_id_is_in_pipeline, true, 'the retry branch lost its corroborated Pipeline request id');
+  eq(retry.matched_row_carries_the_same_request_id, true, 'retry is not bound to the same request id');
   eq(retry.cosmetic_pipeline_write_added_to_satisfy_the_equation, false,
     'a cosmetic Pipeline write was added to satisfy the correlation equation');
   assert(/canonical_lead_id/.test(retry.operator_recovers_by),

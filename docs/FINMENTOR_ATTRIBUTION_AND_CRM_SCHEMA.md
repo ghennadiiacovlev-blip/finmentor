@@ -78,9 +78,9 @@ attribution whatsoever** — not even the pre-existing last-touch `utm_*` column
 rule in this section was unimplemented on the only path where merges actually occur. The
 deploy script patched three nodes and silently skipped this one.
 
-A retry is defined by `Dedup Guard`: either a match inside the two-minute window, or a
-`request_id` corroborated by a server-derived identity (2.5). On a retry every rule below is
-a no-op.
+A retry is defined by `Dedup Guard` only when `request_id` is corroborated by a server-derived
+contact identity (2.5). Pipeline timestamps are mutable operational state and never prove that
+two requests are the same submission. On a retry every rule below is a no-op.
 
 | Column | On a genuine later submission | On a retry | Never |
 |---|---|---|---|

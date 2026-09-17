@@ -337,6 +337,25 @@ check('a request_id match corroborated by email is a same-submission retry', () 
   assert(d.dedup_escalated === false, 'a retry escalated');
 });
 
+check('a recent background update cannot turn a distinct request into a retry', () => {
+  const recent = Object.assign({}, VICTIM_ROW, {
+    request_id: 'fmr_previous_request',
+    updated_at: new Date(Date.now() - 30 * 1000).toISOString()
+  });
+  const n = runNormalize({
+    payload: basePayload({
+      lead: { name: 'Victim', contact: 'victim@example.com', company: 'New Venture', email: 'victim@example.com' },
+      answers: { objective: 'new investment', problem: 'new financial model' },
+      meta: { consent: true, request_id: 'fmr_distinct_request' }
+    })
+  });
+  const d = runDedup({ lead: n, rows: [recent] });
+  assert(d.dedup_mode === 'duplicate', 'same contact no longer merges');
+  assert(d.dedup_match_by === 'email', 'contact identity did not select the row: ' + d.dedup_match_by);
+  assert(d.dedup_request_id_corroborated === false, 'different request ids were corroborated');
+  assert(d.dedup_is_retry === false, 'mutable updated_at incorrectly proved a retry');
+});
+
 check('request_id never steers away from the row the contact identity selects', () => {
   // The attacker's own row carries the stolen request_id; their real identity belongs
   // elsewhere. Selection must follow the identity, never the borrowed key.

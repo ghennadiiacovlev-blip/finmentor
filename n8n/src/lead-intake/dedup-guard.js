@@ -132,10 +132,13 @@ if (!match && lead.company_norm && lead.name_norm) {
   if (recent.length) { match = newest(recent); matchBy = 'company_name_48h'; tier = 'weak'; }
   else if (weak.length) { possibleDuplicateOf = newest(weak).lead_id || ''; matchBy = 'company_name_old'; }
 }
-// A corroborated request_id IS the same submission, whatever the clock says, so it is a
-// retry regardless of the two-minute window. That in turn suppresses escalation below and
-// tells Build Merge Update to leave attribution alone.
-const isRetry = requestIdCorroborated || (!!match && (now - ts(match.updated_at || match.created_at)) < 2 * 60 * 1000);
+// Retry is an identity verdict, never a clock verdict. Pipeline.updated_at is shared mutable
+// state: X-Ray publication, SLA maintenance and other background work can update it immediately
+// before a genuinely new request from the same contact. The former two-minute shortcut therefore
+// discarded new submissions as retries without archiving their request facts. The canonical
+// request_id, corroborated by a server-derived contact identity above, is the only evidence that
+// this is the same submission arriving again.
+const isRetry = requestIdCorroborated;
 const PR = { INCOMPLETE: 0, COLD: 1, WARM: 2, HOT: 3 };
 const ZR = { UNKNOWN: 0, GREEN: 1, YELLOW: 2, ORANGE: 3, RED: 4 };
 const pr = x => PR[String(x || '').toUpperCase()] ?? 0;

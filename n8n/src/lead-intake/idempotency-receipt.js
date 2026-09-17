@@ -807,11 +807,9 @@ function updateSpec(key, fromState, toState, patch) {
 //
 // The equation `receipt.correlation_id === envelope request_id === Pipeline.request_id (AZ)`
 // only holds where THIS attempt's request_id actually lands in Pipeline. On the RETRY branch
-// there is no Pipeline write at all, and worse, the matched row already carries the request_id
-// of an EARLIER attempt — `Dedup Guard` reaches `dedup_is_retry` partly via
-// `requestIdCorroborated`, which matches a row whose stored request_id equals this one, or via
-// a two-minute window on a row written by a previous submission. Asserting the equation there
-// would point an operator at a Pipeline cell that was written by a different attempt.
+// there is no Pipeline write at all. `Dedup Guard` reaches `dedup_is_retry` only through
+// `requestIdCorroborated`: the matched row carries this request_id and a server-derived contact
+// identity selects the same row. A mutable Pipeline timestamp is not submission identity.
 //
 // So the chain is declared per branch, and the retry branch says plainly what it does and does
 // not prove. A cosmetic Pipeline write to make the equation true everywhere was considered and
@@ -839,14 +837,14 @@ const P1_L9_CORRELATION_CHAIN = {
   },
 
   retry: {
-    rule: 'receipt.correlation_id === envelope.payload.meta.request_id ONLY. It is NOT equal ' +
-      'to Pipeline.request_id, and no such equality is claimed.',
+    rule: 'receipt.correlation_id === envelope.payload.meta.request_id === Pipeline.request_id, ' +
+      'with the Pipeline match corroborated by a server-derived contact identity.',
     written_at: 'the READY -> COMMITTED retry settlement',
     pipeline_write_occurs: false,
     // The honest statement of what the stored value is for.
     correlation_id_means: 'which attempt settled this receipt',
-    correlation_id_is_in_pipeline: false,
-    matched_row_carries_an_earlier_request_id: true,
+    correlation_id_is_in_pipeline: true,
+    matched_row_carries_the_same_request_id: true,
     operator_recovers_by: 'canonical_lead_id on the receipt, which names the existing ' +
       'Pipeline row that dedup selected',
     cosmetic_pipeline_write_added_to_satisfy_the_equation: false

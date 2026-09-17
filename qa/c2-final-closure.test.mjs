@@ -361,11 +361,11 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
   };
   for (const protectedPath of protectedPaths) walk(join(ROOT, protectedPath));
   eq(rows.length, 41, 'protected C1/C2 source file count outside V1 owner-intelligence allowlist');
-  // Re-sealed after the separately gated 2026-09-16 request-context correction removed identity
-  // fields from free-text extraction. C2 owner controls are unchanged.
+  // Re-sealed after the separately gated 2026-09-17 Lead Intake correction removed mutable
+  // Pipeline timestamps from retry authority. C2 owner controls are unchanged.
   eq(
     createHash('sha256').update(rows.join('\n')).digest('hex'),
-    'ac02c731cb75cb5092fe30671607171f793ba100cb917aafbdc335a3c6102d94',
+    '93969fcbf8d5a94677a7a03cbacb98523a2d643aaacd3e90b676bdd3608318ef',
     'protected C1/C2 source tree hash outside C3 allowlist'
   );
 });

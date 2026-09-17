@@ -160,10 +160,9 @@ function submit(wf, pipeline, body, opts) {
 const newPipeline = () => ({ rows: [] });
 
 // A genuine LATER submission is not a retry, and the difference decides which merge rules fire.
-// Dedup Guard scores any match inside two minutes as a retry, so a fixture that submits twice in
-// one tick exercises REPLAY semantics and never reaches the attribution/idempotency block at the
-// bottom of Build Merge Update — where `advance()` lives. Ageing the row is what makes the second
-// submission genuine, and therefore what makes the immutability cases test what they claim to.
+// Retry authority is the corroborated request identity, never the mutable Pipeline timestamp.
+// A fixture that uses a different request identity is therefore a genuine later submission;
+// row ageing below only models elapsed time for the cases that explicitly need it.
 const age = (pipeline, minutes) => {
   const t = new Date(Date.now() - minutes * 60000).toISOString();
   for (const r of pipeline.rows) { r.created_at = t; r.updated_at = t; }
