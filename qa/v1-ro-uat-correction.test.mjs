@@ -149,20 +149,42 @@ check('the same request cannot produce duplicate analysis or duplicate owner ale
 check('request-scoped analysis pairs only with the new archived Raw JSON', () => {
   const pipe = {
     lead_id: 'FIN-CANON', request_id: 'sub_current', analysis_mode: 'NEW_REQUEST_ANALYSIS',
-    priority: 'HOT', status: 'Qualified', created_at: '2026-01-01T00:00:00Z', main_pain: 'Current request pain',
-    financial_zone: 'UNKNOWN', xray_analysis_id: 'XA-OLD', xray_analysis_status: 'CLIENT_READY'
+    company: 'OLD IMC GROUP SRL', name: 'Old Name', role: 'Old Role',
+    priority: 'COLD', priority_reason: 'Old priority', status: 'Qualified', created_at: '2026-01-01T00:00:00Z',
+    main_pain: 'Old exhausted request pain', selected_goals: 'Old goal', business_model: 'Old model',
+    financial_zone: 'RED', xray_analysis_id: 'XA-OLD', xray_analysis_status: 'CLIENT_READY'
   };
-  const raw = JSON.stringify({ source: 'telegram_miniapp', client: { company: 'Test SRL' }, premium: {}, request_id: 'sub_current' });
+  const raw = JSON.stringify({
+    source: 'telegram_miniapp', client: { company: 'FINMENTOR UAT RO FINAL', name: 'New Name', role: 'Director nou' },
+    premium: {}, request_id: 'sub_current', selected_goals: ['Control nou']
+  });
   const out = runCode(sources.buildInput, {
     'Select Pending Leads': [pipe],
     'Settings to Object': [{ settings: { xray_ai_model: 'gpt-4.1' } }]
   }, [
     { 'Lead ID': 'FIN-CANON', 'Raw JSON': JSON.stringify({ source: 'telegram_miniapp', client: { company: 'Old SRL' } }) },
-    { 'Lead ID': 'FIN-SUBMISSION', 'Raw JSON': raw, request_id: 'sub_current' }
+    {
+      'Lead ID': 'FIN-SUBMISSION', 'Request ID': 'sub_current', 'Raw JSON': raw,
+      'Created At': '2026-09-17T05:32:26.241Z', Company: 'FINMENTOR UAT RO FINAL', Name: 'New Name', Role: 'Director nou',
+      Language: 'ro', 'Main Pain': 'Lipsă de numerar pentru solicitarea nouă', 'Selected Goals': 'Control nou',
+      'Business Model': 'Servicii B2B noi', 'Financial Zone': 'GREEN', 'Lead Priority': 'HOT',
+      'Priority Reason': 'Solicitare nouă urgentă'
+    }
   ]);
   eq(out.length, 1, 'analysis input count');
   eq(out[0].json.source_pairing.method, 'request_id', 'pairing method');
   eq(out[0].json.request_id, 'sub_current', 'paired request');
+  eq(out[0].json.locale, 'ro', 'RO locale');
+  eq(out[0].json.company, 'FINMENTOR UAT RO FINAL', 'failure-card company authority');
+  eq(out[0].json.owner_context.company, 'FINMENTOR UAT RO FINAL', 'owner-card company authority');
+  eq(out[0].json.owner_context.role, 'Director nou', 'owner-card role authority');
+  eq(out[0].json.owner_context.qualification, 'HOT', 'request qualification authority');
+  eq(out[0].json.owner_context.priority_reason, 'Solicitare nouă urgentă', 'request priority authority');
+  eq(out[0].json.created_at_lead, '2026-09-17T05:32:26.241Z', 'request timestamp authority');
+  assert(out[0].json.input_digest_text.includes('Lipsă de numerar pentru solicitarea nouă'), 'new request pain missing from model input');
+  assert(out[0].json.input_digest_text.includes('Control nou'), 'new request goal missing from model input');
+  assert(!out[0].json.input_digest_text.includes('Old exhausted request pain'), 'old request pain leaked into model input');
+  assert(!out[0].json.input_digest_text.includes('Old goal'), 'old request goal leaked into model input');
 });
 
 check('request-scoped result preserves the canonical Pipeline X-Ray publication projection', () => {

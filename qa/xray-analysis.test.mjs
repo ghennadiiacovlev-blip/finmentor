@@ -267,6 +267,7 @@ let inputItem;
   check('input: turnover statement from free text survives scrubbing (business fact)', /1 200 000 EUR/.test(prompt));
   check('input: the questionnaire content reaches the model (the analysis is not built from codes alone)', /Кассовые разрывы/.test(prompt) && /q_f1/.test(prompt));
   check('input: system prompt forbids changing score/zone (RU)', /Не пересчитывай/.test(inputItem.ai_system_prompt));
+  check('input: RU prompt states the validator cardinality for diagnoses', /diagnoses.*2[–-]4/.test(inputItem.ai_system_prompt));
   check('input: contract lists plan_30_days weeks', /days_22_30/.test(inputItem.ai_user_prompt));
   check('input: source channel website_xray', inputItem.source_channel === 'website_xray');
 }
@@ -301,6 +302,7 @@ let inputItem;
   const out = runNode(withIntelligence(read('build-input.js')), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [{ ...pipeRu, lead_id: 'L-4', source_page: 'https://www.finmentor.md/ro/questionnaire.html' }], 'Settings to Object': [{ settings }] } });
   check('input: RO locale from site_language', out[0].json.locale === 'ro');
   check('input: RO system prompt is Romanian and formal', /dumneavoastră/.test(out[0].json.ai_system_prompt) && /DATE INSUFICIENTE/.test(out[0].json.ai_system_prompt));
+  check('input: RO prompt states the validator cardinality for diagnoses', /diagnoses.*2[–-]4/.test(out[0].json.ai_system_prompt));
   // SPRINT 1 (2026-09-07): the owner decision of 2026-09-07 supersedes the Gate 3 and Gate 5
   // naming decisions. The canonical customer-facing Romanian product name is «Test financiar
   // FINMENTOR». BOTH «Radiografia Financiară» and «Test de sănătate financiară» are retired,

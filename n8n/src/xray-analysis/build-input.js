@@ -201,7 +201,8 @@ function systemPrompt(locale) {
       '8. Produse FINMENTOR permise pentru recommended_next_step.product: ' + ALLOWED_PRODUCTS.join(', ') + '.',
       '9. În owner_brief, CLIENT FACT INDEX este singura sursă de fapte. Folosește numai identificatori existenți în evidence_fact_ids. Ipotezele nu sunt fapte.',
       '10. Soluția este o ipoteză de lucru. Dacă dovezile nu ajung, folosește NEEDS_CLARIFICATION. Nu alege automat produsul cel mai scump.',
-      '11. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
+      '11. În owner_brief, diagnoses trebuie să conțină obligatoriu 2–4 concluzii distincte, fiecare susținută numai de evidence_fact_ids existenți.',
+      '12. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
     ].join('\n');
   }
   return [
@@ -219,7 +220,8 @@ function systemPrompt(locale) {
     '9. В owner_brief ИНДЕКС ФАКТОВ КЛИЕНТА — единственный источник фактов. В evidence_fact_ids используй только существующие идентификаторы. Гипотеза не является фактом.',
     '10. Решение — рабочая гипотеза. Если доказательств недостаточно, используй NEEDS_CLARIFICATION. Не выбирай автоматически самый дорогой продукт.',
     '11. Выявляй материальные противоречия: инструменты могут быть заявлены, но не работать операционно. Не повторяй ответы вместо диагноза.',
-    '12. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
+    '12. В owner_brief массив diagnoses должен содержать обязательно 2–4 разных вывода, каждый только с существующими evidence_fact_ids.',
+    '13. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
   ].join('\n');
 }
 
@@ -342,12 +344,21 @@ for (const pipe of pending) {
   const source = parseRaw(leadRow['Raw JSON']);
   if (!source.ok) { out.push({ json: auditFinding(pipe, source.reason) }); continue; }
   const raw = source.raw;
+  const requestScopedPick = (requestValues, canonicalValues) => requestScoped
+    ? pick(...requestValues, ...canonicalValues)
+    : pick(...canonicalValues, ...requestValues);
+  const requestScopedArray = (requestValues, canonicalValues) => asArray(
+    requestScopedPick(requestValues, canonicalValues)
+  );
 
   const locale = detectLocale(pipe, raw, leadRow);
   const diagnostic = raw.diagnostic || {};
   const score = num(pick(diagnostic.score, leadRow['Diagnostic Score']));
   // Bounded vocabulary: anything outside the five zones is UNKNOWN, never a free string in the prompt.
-  const zoneRaw = String(pick(pipe.financial_zone, diagnostic.traffic_light, leadRow['Financial Zone'], 'UNKNOWN')).trim().toUpperCase();
+  const zoneRaw = String(requestScopedPick(
+    [leadRow['Financial Zone'], diagnostic.traffic_light],
+    [pipe.financial_zone, 'UNKNOWN']
+  )).trim().toUpperCase();
   const zone = ['GREEN', 'YELLOW', 'ORANGE', 'RED', 'UNKNOWN'].includes(zoneRaw) ? zoneRaw : 'UNKNOWN';
   const tool = String(pick(raw.tool, leadRow['Tool'], pipe.source_page && String(pipe.source_page).includes('questionnaire') ? 'xray_extended' : '')).toLowerCase();
   const sourceChannel = tool.includes('xray') ? 'website_xray' : tool.includes('mini_scan') ? 'website_mini_scan' : (raw.premium || raw.brief || /miniapp|concierge|telegram/.test(String(raw.source || ''))) ? 'telegram_premium' : 'other';
@@ -362,29 +373,44 @@ for (const pipe of pending) {
   const systemStatus = controls.filter((x) => /receivables|payables|owner_report|margin_control|payment_approval_rules/.test(x.key)).map((x) => x.label + ': ' + x.value).join('; ');
   const industrySpecific = (raw.intake && raw.intake.industry_specific) || raw.industry_specific || {};
   const capitalContext = [pick(industrySpecific.loans_or_investors), pick(industrySpecific.capex_or_projects)].filter(Boolean).join('; ');
-  const desiredResult = pick(pipe.selected_goals, raw.selected_goals, raw.intake && raw.intake.goals && raw.intake.goals.selected_goals);
+  const desiredResult = requestScopedPick(
+    [raw.selected_goals, raw.intake && raw.intake.goals && raw.intake.goals.selected_goals, leadRow['Selected Goals']],
+    [pipe.selected_goals]
+  );
   const desiredFirstStep = pick(raw.intake && raw.intake.business_pain && raw.intake.business_pain.desired_first_step, raw.desired_first_step);
   const preferredChannel = preferredContact(client, raw, sourceChannel);
   const contact = LI.buildReachability({
     preferred_contact_channel: preferredChannel,
-    phone: pick(client.phone_or_messenger, client.phone, pipe.phone), email: pick(client.email, pipe.email),
-    telegram: pick(client.telegram, pipe.telegram), source_channel: sourceChannel,
+    phone: requestScopedPick([client.phone_or_messenger, client.phone, leadRow.Phone], [pipe.phone]),
+    email: requestScopedPick([client.email, leadRow.Email], [pipe.email]),
+    telegram: requestScopedPick([client.telegram, leadRow.Telegram], [pipe.telegram]), source_channel: sourceChannel,
     telegram_route_verified: sourceChannel === 'telegram_premium'
   });
+  const mainProblem = requestScopedPick(
+    [leadRow['Main Pain'], diagnostic.main_pain, raw.main_pain && raw.main_pain.problem],
+    [pipe.main_pain]
+  );
+  const selectedDocuments = requestScopedPick(
+    [raw.intake && raw.intake.documents_available && raw.intake.documents_available.selected_documents, leadRow['Selected Documents']],
+    [pipe.selected_documents]
+  );
   const clientFacts = LI.buildClientFacts({
-    main_problem: pick(pipe.main_pain, diagnostic.main_pain, raw.main_pain && raw.main_pain.problem),
-    main_problem_source: pipe.main_pain ? 'Pipeline.main_pain' : diagnostic.main_pain ? 'Leads.Raw JSON.diagnostic.main_pain' : 'Leads.Raw JSON.main_pain.problem',
+    main_problem: mainProblem,
+    main_problem_source: requestScoped ? 'Leads request archive' : pipe.main_pain ? 'Pipeline.main_pain' : 'Leads.Raw JSON',
     existing_setup: existingSetup,
     existing_setup_source: existingSetupSource,
     desired_result: desiredResult,
-    desired_result_source: pipe.selected_goals ? 'Pipeline.selected_goals' : 'Leads.Raw JSON.intake.goals.selected_goals',
+    desired_result_source: requestScoped ? 'Leads request archive' : pipe.selected_goals ? 'Pipeline.selected_goals' : 'Leads.Raw JSON.intake.goals.selected_goals',
     desired_first_step: desiredFirstStep,
     desired_first_step_source: 'Leads.Raw JSON.intake.business_pain.desired_first_step',
-    urgency: pick(diagnostic.urgency, pipe.urgency, raw.main_pain && raw.main_pain.urgency),
+    urgency: requestScopedPick(
+      [leadRow.Urgency, diagnostic.urgency, raw.main_pain && raw.main_pain.urgency],
+      [pipe.urgency]
+    ),
     financial_system: systemStatus,
     financial_system_source: 'Leads.Raw JSON.intake.financial_control',
-    documents: pick(pipe.selected_documents, raw.intake && raw.intake.documents_available && raw.intake.documents_available.selected_documents),
-    documents_source: pipe.selected_documents ? 'Pipeline.selected_documents' : 'Leads.Raw JSON.intake.documents_available.selected_documents',
+    documents: selectedDocuments,
+    documents_source: requestScoped ? 'Leads request archive' : pipe.selected_documents ? 'Pipeline.selected_documents' : 'Leads.Raw JSON.intake.documents_available.selected_documents',
     capital_context: capitalContext,
     capital_context_source: 'Leads.Raw JSON.intake.industry_specific'
   });
@@ -397,26 +423,37 @@ for (const pipe of pending) {
   const resultEligibility = LI.clientResultEligibility({ source_channel: sourceChannel, explicit_request: eligibilitySignal.value, source_path: eligibilitySignal.path });
 
   const projectedRiskZones = projectRiskZones(diagnostic.risk_zones);
+  const businessModel = requestScopedPick([leadRow['Business Model'], diagnostic.business_model], [pipe.business_model]);
+  const industryCategory = requestScopedPick([leadRow['Industry Category']], [pipe.industry_category]);
+  const turnoverRange = requestScopedPick([leadRow['Turnover Range']], [pipe.turnover_range]);
+  const employeesRange = requestScopedPick([leadRow['Employees Range']], [pipe.employees_range]);
+  const urgency = requestScopedPick([leadRow.Urgency, diagnostic.urgency], [pipe.urgency]);
+  const leadPriority = requestScopedPick([leadRow['Lead Priority']], [pipe.priority]);
+  const selectedProblems = requestScopedArray([leadRow['Selected Problems'], raw.selected_problems], [pipe.selected_problems]);
+  const selectedGoals = requestScopedArray([leadRow['Selected Goals'], raw.selected_goals], [pipe.selected_goals]);
+  const documentsStatus = requestScopedPick([leadRow['Documents Status']], [pipe.documents_status]);
+  const workInterest = requestScopedArray([leadRow['Work Interest']], [pipe.work_interest]);
+  const criticalFlags = requestScopedPick([leadRow['Critical Flags']], [pipe.critical_flags]);
   const facts = {
     deterministic_score_0_100: score === null ? 'INSUFFICIENT DATA' : score,
     deterministic_zone: zone,
     scored_by_xray_questionnaire: score !== null,
     risk_zones_from_questionnaire: projectedRiskZones,
-    business_model: pick(pipe.business_model, diagnostic.business_model),
-    industry_category: pick(pipe.industry_category),
-    turnover_range: pick(pipe.turnover_range),
-    employees_range: pick(pipe.employees_range),
-    urgency: pick(diagnostic.urgency, pipe.urgency),
-    lead_priority_internal: pick(pipe.priority),
-    main_pain: pick(pipe.main_pain, diagnostic.main_pain),
-    selected_problems: asArray(pipe.selected_problems),
-    selected_goals: asArray(pipe.selected_goals),
-    documents_status: pick(pipe.documents_status),
-    documents_available: asArray(pipe.selected_documents),
-    work_interest: asArray(pipe.work_interest),
+    business_model: businessModel,
+    industry_category: industryCategory,
+    turnover_range: turnoverRange,
+    employees_range: employeesRange,
+    urgency,
+    lead_priority_internal: leadPriority,
+    main_pain: mainProblem,
+    selected_problems: selectedProblems,
+    selected_goals: selectedGoals,
+    documents_status: documentsStatus,
+    documents_available: asArray(selectedDocuments),
+    work_interest: workInterest,
     data_quality: pick(leadRow['Data Quality Hint'], raw.completion && raw.completion.data_quality_hint),
     completion_score_percent: (function (n) { return n !== null && n >= 0 && n <= 100 ? Math.round(n) : null; })(num(raw.completion && raw.completion.completion_score)),
-    critical_flags: pick(pipe.critical_flags),
+    critical_flags: criticalFlags,
     locale,
     client_fact_index: clientFacts.map((f) => ({ id: f.id, label: f.label, value: f.value }))
   };
@@ -440,27 +477,31 @@ for (const pipe of pending) {
       request_id: requestId,
       locale,
       source_channel: sourceChannel,
-      company: String(pipe.company || ''),
+      company: String(requestScopedPick([leadRow.Company, client.company], [pipe.company]) || ''),
       // Owner-card context (classified questionnaire labels, user-explicit, already scrubbed) and
       // the Pipeline row for the «Карточка лида» deep link. Presentation only: not in the prompt.
       company_context: { industry: String(factsClean.business_model || factsClean.industry_category || ''), industry_category: String(factsClean.industry_category || ''), turnover: String(factsClean.turnover_range || ''), employees: String(factsClean.employees_range || '') },
       // PII and contact routes never enter the AI prompt. They travel only to the owner surface.
       owner_context: {
-        company: String(pipe.company || client.company || ''), contact_name: String(pipe.name || client.name || ''), role: String(pipe.role || client.role || ''),
+        company: String(requestScopedPick([leadRow.Company, client.company], [pipe.company]) || ''),
+        contact_name: String(requestScopedPick([leadRow.Name, client.name], [pipe.name]) || ''),
+        role: String(requestScopedPick([leadRow.Role, client.role], [pipe.role]) || ''),
         business: String(factsClean.business_model || factsClean.industry_category || ''),
         scale: [String(factsClean.turnover_range || ''), String(factsClean.employees_range || '')].filter(Boolean).join(' · '),
         source: sourceChannel, lead_status: String(pipe.deal_stage || pipe.status || ''),
-        qualification: String(pipe.priority || ''), priority_reason: String(pipe.priority_reason || ''),
+        qualification: String(leadPriority || ''),
+        priority_reason: String(requestScopedPick([leadRow['Priority Reason']], [pipe.priority_reason]) || ''),
         data_quality: String(factsClean.data_quality || 'Требует проверки'),
-        commercial_intent_confirmed: String(pipe.strong_commercial_intent || '').toLowerCase() === 'true',
-        commercial_intent: String(pipe.work_interest || ''), next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
+        commercial_intent_confirmed: String(requestScopedPick([leadRow['Strong Commercial Intent']], [pipe.strong_commercial_intent]) || '').toLowerCase() === 'true',
+        commercial_intent: String(requestScopedPick([leadRow['Work Interest']], [pipe.work_interest]) || ''),
+        next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
         diagnostic_score: score, financial_zone: zone, contact, client_facts: clientFacts,
         client_result_eligible: resultEligibility.eligible,
         client_result_eligibility_reason: resultEligibility.reason,
         history: humanHistory(leadId, pipe.created_at)
       },
       crm_row: Number.isInteger(Number(pipe.row_number)) ? Number(pipe.row_number) : null,
-      created_at_lead: String(pipe.created_at || ''),
+      created_at_lead: String(requestScopedPick([leadRow['Created At']], [pipe.created_at]) || ''),
       score: score,
       zone,
       analysis_version: 'lead-intelligence-v1',
