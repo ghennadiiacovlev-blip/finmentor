@@ -6,6 +6,7 @@ import { NIAGARA_AI, NIAGARA_BRIEF, NIAGARA_CLIENT_DRAFT, NIAGARA_CONTEXT, NIAGA
 const require = createRequire(import.meta.url);
 const LI = require('../n8n/src/lead-intelligence/contract.js');
 const ALERT = require('../n8n/src/lead-intelligence/alert.js');
+const PRECALL = require('../n8n/src/lead-intelligence/precall.js');
 const RENDER = require('../n8n/src/lead-intelligence/render.js');
 const ACTIONS = require('../n8n/src/lead-intelligence/actions.js');
 const NOTIFY = require('../n8n/src/lead-intelligence/notification.js');
@@ -121,7 +122,27 @@ check('preview declares exact customer view', /ТОЧНО ТАК УВИДИТ К
 check('preview uses saved customer draft', previewHtml.includes(NIAGARA_CLIENT_DRAFT.executive_summary) && previewHtml.includes(NIAGARA_CLIENT_DRAFT.recommended_next_step.rationale));
 const eligibleNav = RENDER.renderOwnerBriefPage({ brief: ELIGIBLE_BRIEF, row: ELIGIBLE_ROW, client_draft: NIAGARA_CLIENT_DRAFT, auth });
 check('eligible mobile action model keeps two primary actions plus overflow', (eligibleNav.match(/data-primary-action/g) || []).length === 2 && /<details class="action-overflow">/.test(eligibleNav));
-check('RO owner page keeps html locale when requested', /<html lang="ro">/.test(RENDER.renderOwnerBriefPage({ brief: NIAGARA_BRIEF, row: { ...NIAGARA_ROW, locale: 'ro' }, client_draft: NIAGARA_CLIENT_DRAFT, auth })));
+check('RO client locale never changes the owner page from Russian', /<html lang="ru">/.test(RENDER.renderOwnerBriefPage({ brief: NIAGARA_BRIEF, row: { ...NIAGARA_ROW, locale: 'ro' }, client_draft: NIAGARA_CLIENT_DRAFT, auth })));
+
+const RO_SOURCE_FACT = 'Avem dificultăți cu controlul fluxului de numerar și nu vedem clar unde se blochează lichiditatea.';
+const RO_OWNER_FACT = 'Есть сложности с контролем денежного потока, и нет ясности, где блокируется ликвидность.';
+const roContext = {
+  ...NIAGARA_CONTEXT,
+  client_locale: 'ro', owner_locale: 'ru',
+  client_facts: NIAGARA_CONTEXT.client_facts.map((f, i) => ({ ...f, value: i === 0 ? RO_SOURCE_FACT : f.value }))
+};
+const roAi = {
+  ...NIAGARA_AI,
+  owner_fact_translations: roContext.client_facts.map((f, i) => ({ id: f.id, value_ru: i === 0 ? RO_OWNER_FACT : f.value }))
+};
+const roBrief = LI.normalizeOwnerBrief(roAi, roContext);
+const roHtml = RENDER.renderOwnerBriefPage({ brief: roBrief, row: { ...NIAGARA_ROW, locale: 'ro' }, client_draft: NIAGARA_CLIENT_DRAFT, auth });
+const roPrecall = PRECALL.renderPrecallBrief({ brief: roBrief, lead_id: 'L-RO' });
+check('RO original fact remains byte-identical in storage', roBrief.client_facts[0].value === RO_SOURCE_FACT);
+check('owner Russian translation is separate from the source fact', roBrief.owner_fact_translations[0].value_ru === RO_OWNER_FACT && roBrief.owner_fact_translations[0].value_ru !== roBrief.client_facts[0].value);
+check('owner page presents translated Russian fact and never raw Romanian', roHtml.includes(RO_OWNER_FACT) && !roHtml.includes(RO_SOURCE_FACT));
+check('meeting brief sections 1–11 present Russian translation and never raw Romanian', roPrecall.includes(RO_OWNER_FACT) && !roPrecall.includes(RO_SOURCE_FACT) && /<b>11\. СЛЕДУЮЩЕЕ ДЕЙСТВИЕ<\/b>/.test(roPrecall));
+check('RO owner brief contract requires complete Russian presentation translations', LI.briefErrors(roBrief).length === 0 && LI.briefErrors(LI.normalizeOwnerBrief({ ...roAi, owner_fact_translations: [] }, roContext)).some((e) => /translation missing/.test(e)));
 
 // OWNER ACTIONS — save/preview do not publish; approval does; after-call never rewrites facts.
 const editBody = {

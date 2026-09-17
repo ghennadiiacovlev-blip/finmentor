@@ -51,6 +51,16 @@ function authInputs(auth, action) {
     + '<input type="hidden" name="action" value="' + esc(action) + '">';
 }
 function asText(items, fn) { return arr(items).map(fn || ((x) => x)).filter(present).join('\n'); }
+function ownerFactMap(brief) {
+  return new Map(arr((brief || {}).owner_fact_translations).map((x) => [x && x.id, x && x.value_ru]));
+}
+function ownerFactValue(brief, fact) {
+  const f = fact || {};
+  const translated = ownerFactMap(brief).get(f.id);
+  if (present(translated)) return translated;
+  if ((brief || {}).client_locale === 'ru') return f.value || '';
+  return 'Перевод для владельца не сформирован';
+}
 
 const SHELL_CSS = `
 :root{--navy:#091626;--navy2:#10233a;--ink:#142233;--muted:#66717e;--paper:#f7f3eb;--white:#fffdf8;--gold:#ae8a47;--gold2:#d6c49c;--line:#dcd5c7;--fact:#315d70;--verify:#8f5c27;--ok:#325e4d;--shadow:0 24px 70px rgba(8,20,36,.14)}
@@ -144,6 +154,7 @@ function renderBriefBody(brief, row, auth) {
   const evidence = (ids) => arr(ids).map((id) => factNames[id]).filter(Boolean).join(' · ');
   const reachableSummary = arr(c.reachable_channels).map((x) => x.label).join(', ') || 'Нет подтверждённых каналов';
   const pain = arr(b.client_facts).find((f) => f.id === 'main_problem') || arr(b.client_facts)[0] || {};
+  const ownerPain = ownerFactValue(b, pain);
   const insight = arr(b.diagnoses)[0] || {};
   const verify = arr(b.unknowns)[0] || {};
   const solution = b.solution_hypothesis || {};
@@ -156,11 +167,11 @@ function renderBriefBody(brief, row, auth) {
     + '<div class="contact-card"><span class="micro">Контакт сейчас</span><strong>' + esc(c.preferred_label || 'Не указано') + '</strong>'
     + (c.preferred_contact_channel === 'telegram' && !(c.telegram && c.telegram.reachable) ? '<p class="warn">Telegram-контакт не подключён</p>' : '')
     + '<p>Доступно: ' + esc(reachableSummary) + '</p></div></div>'
-    + '<div class="hero-priority"><div class="hero-signal"><span class="micro">Ключевая проблема</span><strong>' + esc(pain.value || 'Нужно уточнить') + '</strong></div>'
+    + '<div class="hero-priority"><div class="hero-signal"><span class="micro">Ключевая проблема</span><strong>' + esc(ownerPain || 'Нужно уточнить') + '</strong></div>'
     + '<div class="hero-signal"><span class="micro">Вывод FINMENTOR</span><strong>' + esc(insight.conclusion || 'Формируется') + '</strong></div>'
     + '<div class="hero-signal"><span class="micro">Следующее действие</span><strong>' + esc(next.action || h.next_action || 'Нужно определить') + '</strong></div></div></header>'
     + '<section class="executive-path" aria-label="Логика решения">'
-    + '<article class="path-card" data-stage="pain"><div class="path-step">01 · Проблема</div><h2>Что происходит</h2><p>' + esc(pain.value || 'Нужно уточнить') + '</p></article>'
+    + '<article class="path-card" data-stage="pain"><div class="path-step">01 · Проблема</div><h2>Что происходит</h2><p>' + esc(ownerPain || 'Нужно уточнить') + '</p></article>'
     + '<article class="path-card" data-stage="insight"><div class="path-step">02 · FINMENTOR</div><h2>Что это значит</h2><p>' + esc(insight.conclusion || 'Формируется') + '</p></article>'
     + '<article class="path-card" data-stage="verify"><div class="path-step">03 · Проверить</div><h2>Чего не хватает</h2><p>' + esc(verify.item || 'Нужно определить') + '</p></article>'
     + '<article class="path-card" data-stage="conversation"><div class="path-step">04 · Разговор</div><h2>Как открыть</h2><p>' + esc(b.conversation_opening || 'Нужно подготовить') + '</p></article>'
@@ -172,7 +183,7 @@ function renderBriefBody(brief, row, auth) {
 
   const body = '<main class="memo">' + (notes ? '<section>' + notes + '</section>' : '')
     + '<section class="section"><div class="section-no">01</div><div><div class="kind fact">КЛИЕНТ ГОВОРИТ</div><h2>Что говорит клиент</h2>'
-    + list(b.client_facts, (f) => '<div class="fact-row" data-kind="CLIENT_FACT"><h3>' + esc(f.label) + '</h3>' + p(f.value) + '</div>') + '</div></section>'
+    + list(b.client_facts, (f) => '<div class="fact-row" data-kind="CLIENT_FACT"><h3>' + esc(f.label) + '</h3>' + p(ownerFactValue(b, f)) + '</div>') + '</div></section>'
     + '<section class="section"><div class="section-no">02</div><div><div class="kind interpretation">FINMENTOR ВИДИТ</div><h2>Диагноз FINMENTOR</h2>'
     + list(b.diagnoses, (d) => '<div class="diagnosis" data-kind="FINMENTOR_INTERPRETATION"><h3>Профессиональный вывод</h3>' + p(d.conclusion) + (d.hypothesis ? p('Гипотеза: ' + d.hypothesis, 'hypothesis') : '') + (d.economic_implication ? p(d.economic_implication, 'why') : '') + (evidence(d.evidence_fact_ids) ? p('Основание: ' + evidence(d.evidence_fact_ids), 'evidence') : '') + '</div>') + '</div></section>'
     + '<section class="section"><div class="section-no">03</div><div><div class="kind interpretation">FINMENTOR ВИДИТ</div><h2>Карта боли</h2><div class="pain-grid">'
@@ -192,7 +203,7 @@ function renderBriefBody(brief, row, auth) {
     + '<section class="section"><div class="section-no">09</div><div><div class="kind interpretation">РЕШЕНИЕ ВЛАДЕЛЬЦА</div><h2>Следующее действие</h2><div class="decision">'
     + '<div><span class="micro">Действие</span>' + p((b.next_action || {}).action) + '<span class="micro">Цель</span>' + p((b.next_action || {}).purpose) + '</div>'
     + '<div><span class="micro">Успешный результат</span>' + p((b.next_action || {}).success_condition) + ((b.next_action || {}).due_date ? '<span class="micro">Срок</span>' + p(b.next_action.due_date) : '') + '</div></div></div></section>'
-    + '<details class="details"><summary>Исходные ответы</summary><div class="details-body">' + arr(b.client_facts).map((f) => '<p><strong>' + esc(f.label) + ':</strong> ' + esc(f.value) + '</p>').join('') + '</div></details>'
+    + '<details class="details"><summary>Исходные ответы</summary><div class="details-body">' + arr(b.client_facts).map((f) => '<p><strong>' + esc(f.label) + ':</strong> ' + esc(ownerFactValue(b, f)) + '</p>').join('') + '</div></details>'
     + '<details class="details"><summary>История</summary><div class="details-body">' + (arr(b.history).length ? arr(b.history).map((x) => '<p>' + esc([x.at,x.label].filter(present).join(' — ')) + '</p>').join('') : '<p>История действий пока пуста.</p>') + '</div></details>'
     + '<details class="details"><summary>Контакты</summary><div class="details-body">' + renderContact(c, auth, h.company, row.review_status) + '</div></details>'
     + renderCapture(auth) + '</main></article>';
@@ -213,7 +224,7 @@ function renderOwnerBriefPage(opts) {
   const qs = '?a=' + encodeURIComponent(auth.analysis_id || '') + '&amp;t=' + encodeURIComponent(auth.token || '');
   const overflow = clientEligible ? '<details class="action-overflow"><summary class="btn">Ещё</summary><div class="action-menu"><a class="btn" href="' + qs + '&amp;view=edit">Редактировать результат</a><a class="btn" href="' + qs + '&amp;view=preview">Предпросмотр клиента</a></div></details>' : '';
   const actions = '<nav class="actionsbar"><a class="btn primary" data-primary-action href="' + qs + '">Разбор</a><a class="btn" data-primary-action href="' + qs + '&amp;view=contact">Связаться</a>' + overflow + '</nav>';
-  return shell('FINMENTOR · ' + ((brief.header || {}).company || 'Разбор клиента'), state, content, actions, row.locale);
+  return shell('FINMENTOR · ' + ((brief.header || {}).company || 'Разбор клиента'), state, content, actions, 'ru');
 }
 
 function renderMessagePage(title, message, state) {

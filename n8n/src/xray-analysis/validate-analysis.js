@@ -174,6 +174,7 @@ function fabricationFlags(inputText, outputText) {
 function ownerAlert(inp, a, row, cfg) {
   const brief = row.owner_brief_json ? JSON.parse(row.owner_brief_json) : {};
   const firstFact = (brief.client_facts || []).find(f => f.id === 'main_problem') || (brief.client_facts || [])[0] || {};
+  const ownerTranslations = new Map((brief.owner_fact_translations || []).map((x) => [x && x.id, x && x.value_ru]));
   const firstDiagnosis = (brief.diagnoses || [])[0] || {};
   const text = LI_ALERT.renderLeadIntelligenceAlert({
     lead_id: inp.lead_id,
@@ -185,10 +186,10 @@ function ownerAlert(inp, a, row, cfg) {
     qualification: (inp.owner_context || {}).qualification,
     financial_zone: inp.zone,
     priority_reason: (inp.owner_context || {}).priority_reason,
-    main_pain: firstFact.value,
+    main_pain: ownerTranslations.get(firstFact.id) || (brief.client_locale === 'ru' ? firstFact.value : ''),
     observation: firstDiagnosis.conclusion,
-    maturity: a.financial_maturity,
-    risks: a.key_risks,
+    maturity: {},
+    risks: (brief.pain_map || []).map((x) => ({ title: [x.area, x.consequence].filter(Boolean).join(': ') })),
     needs_verification: (brief.unknowns || [])[0],
     economic_impact: firstDiagnosis.economic_implication,
     discovery_questions: (brief.discovery_questions || []).slice(0, 3),

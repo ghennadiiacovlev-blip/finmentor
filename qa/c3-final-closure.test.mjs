@@ -230,8 +230,9 @@ check('C3.4 existing ledger row suppresses a duplicate targeted analysis and ale
 check('C3.3 rendered brief contains identity, importance, problem and contact', () => {
   const text = renderBrief();
   for (const value of ['FINMENTOR · Новый лид', 'Lead ID:', 'FIN-C3-OWNER', 'C3 Synthetic SRL', 'Ирина Власова',
-    'Финансовый директор', 'ВАЖНОСТЬ', 'Квалификация:', 'HOT', 'Финансовая зона:', 'ORANGE',
+    'Финансовый директор', 'ВАЖНОСТЬ', 'Квалификация:', 'Высокий приоритет', 'Финансовая зона:', 'Существенные пробелы',
     'КЛЮЧЕВАЯ ПРОБЛЕМА', 'кассовые разрывы', 'КОНТАКТ', '@c3_owner_test']) assert(text.includes(value), 'missing ' + value);
+  assert(!/\bHOT\b|\bORANGE\b/.test(text), 'raw owner enum leaked');
 });
 
 check('C3.3 rendered brief contains existing FINMENTOR uncertainty and impact', () => {

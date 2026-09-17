@@ -160,6 +160,7 @@ const ALLOWED_PRODUCTS = ['CFO_ADVISORY_SESSION', 'FINANCIAL_HEALTH_CHECK', 'BUS
 
 const CONTRACT = {
   owner_brief: {
+    owner_fact_translations: [{ id: 'id from CLIENT FACT INDEX', value_ru: 'faithful Russian presentation translation; do not change the source fact' }],
     diagnoses: [{ conclusion: 'professional conclusion, not a repeated answer', evidence_fact_ids: ['ids from CLIENT FACT INDEX only'], hypothesis: 'explicit hypothesis', economic_implication: 'liquidity/profitability/working capital/cost of capital/control consequence without invented amount' }],
     pain_map: [{ area: 'maximum 4 areas', attention: 'short attention state', observation: 'what FINMENTOR sees', consequence: 'why it matters economically', economic_category: 'liquidity|profitability|working capital|cost of capital|cash conversion|asset utilisation|management speed|risk|capital preservation', evidence_fact_ids: ['fact ids'] }],
     unknowns: [{ item: 'what is missing/contradictory/unconfirmed', why: 'why it matters' }],
@@ -196,13 +197,15 @@ function systemPrompt(locale) {
       '3. Nu formula concluzii juridice sau fiscale. Nu promite rezultate financiare garantate.',
       '4. Separă faptele (din date) de ipoteze; ipotezele se marchează cu «ipoteză:».',
       '5. Datele sunt anonimizate: nu te adresa persoanei pe nume și nu cere date de contact.',
-      '6. Scrie în limba română profesională, registru formal (dumneavoastră). Termenii englezești apar doar în paranteză la prima menționare, de ex. «Flux de numerar (Cash Flow)».',
+      '6. Câmpurile rezultatului pentru client (toate câmpurile de nivel superior din afara owner_brief) se scriu în limba română profesională, registru formal (dumneavoastră).',
       '7. Terminologie: Flux de numerar, Cont managerial de profit și pierdere (P&L), Capital circulant, Creanțe, Datorii către furnizori, Lichiditate, Rentabilitate, Raportare managerială, Panou de indicatori-cheie.',
       '8. Produse FINMENTOR permise pentru recommended_next_step.product: ' + ALLOWED_PRODUCTS.join(', ') + '.',
       '9. În owner_brief, CLIENT FACT INDEX este singura sursă de fapte. Folosește numai identificatori existenți în evidence_fact_ids. Ipotezele nu sunt fapte.',
       '10. Soluția este o ipoteză de lucru. Dacă dovezile nu ajung, folosește NEEDS_CLARIFICATION. Nu alege automat produsul cel mai scump.',
-      '11. În owner_brief, diagnoses trebuie să conțină obligatoriu 2–4 concluzii distincte, fiecare susținută numai de evidence_fact_ids existenți.',
-      '12. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
+      '11. owner_brief este exclusiv pentru proprietarul FINMENTOR: scrie TOATE câmpurile sale în limba rusă profesională, indiferent de limba clientului.',
+      '12. În owner_brief.owner_fact_translations întoarce exact câte un value_ru în rusă pentru fiecare id din CLIENT FACT INDEX. Nu modifica, nu înlocui și nu rescrie faptele-sursă.',
+      '13. În owner_brief, diagnoses trebuie să conțină obligatoriu 2–4 concluzii distincte, fiecare susținută numai de evidence_fact_ids existenți.',
+      '14. Răspunde STRICT cu un singur obiect JSON conform contractului. Fără markdown, fără text înainte sau după JSON.'
     ].join('\n');
   }
   return [
@@ -220,8 +223,9 @@ function systemPrompt(locale) {
     '9. В owner_brief ИНДЕКС ФАКТОВ КЛИЕНТА — единственный источник фактов. В evidence_fact_ids используй только существующие идентификаторы. Гипотеза не является фактом.',
     '10. Решение — рабочая гипотеза. Если доказательств недостаточно, используй NEEDS_CLARIFICATION. Не выбирай автоматически самый дорогой продукт.',
     '11. Выявляй материальные противоречия: инструменты могут быть заявлены, но не работать операционно. Не повторяй ответы вместо диагноза.',
-    '12. В owner_brief массив diagnoses должен содержать обязательно 2–4 разных вывода, каждый только с существующими evidence_fact_ids.',
-    '13. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
+    '12. В owner_brief.owner_fact_translations верни ровно один value_ru для каждого id из ИНДЕКСА ФАКТОВ КЛИЕНТА. Это только перевод для показа владельцу: не изменяй и не заменяй исходные факты.',
+    '13. В owner_brief массив diagnoses должен содержать обязательно 2–4 разных вывода, каждый только с существующими evidence_fact_ids.',
+    '14. Верни СТРОГО один JSON-объект по контракту. Без markdown, без текста до и после JSON.'
   ].join('\n');
 }
 
@@ -234,6 +238,22 @@ function userPrompt(locale, facts, projection) {
     ? 'CONTRACT JSON (respectă exact cheile; maxim 5 key_risks, maxim 3 management_priorities, maxim 3 tomorrow_actions; fiecare săptămână 2–4 acțiuni):'
     : 'JSON-КОНТРАКТ (соблюдай ключи точно; не более 5 key_risks, не более 3 management_priorities, не более 3 tomorrow_actions; в каждой неделе 2–4 действия):';
   return [head, JSON.stringify(facts, null, 2), '', 'ИНДЕКС ФАКТОВ КЛИЕНТА / CLIENT FACT INDEX:', JSON.stringify(facts.client_fact_index || [], null, 2), '', body, JSON.stringify(projection, null, 2), '', tail, JSON.stringify(CONTRACT, null, 2)].join('\n');
+}
+
+function currentRequestContactName(raw, leadRow, pipe, requestScoped) {
+  const client = (raw && raw.client) || {};
+  if (!requestScoped) return String(pick(pipe && pipe.name, client.name, leadRow && leadRow.Name) || '');
+  const provenance = String(pick(client.name_provenance, client.name_source, raw && raw.contact_name_provenance) || '').toLowerCase();
+  if (provenance) {
+    return /^(user_explicit|user_confirmed)$/.test(provenance)
+      ? String(pick(client.name, leadRow && leadRow.Name) || '')
+      : '';
+  }
+  // Premium v1 carried the Telegram profile/draft name but did not persist its provenance.
+  // It is therefore not safe to present that legacy value as explicit in the current request.
+  const tool = String(raw && raw.tool || '').toLowerCase();
+  if (tool === 'miniapp_premium_brief') return '';
+  return String(pick(client.name, raw && raw.lead && raw.lead.name, leadRow && leadRow.Name) || '');
 }
 
 function controlSummary(control) {
@@ -364,6 +384,7 @@ for (const pipe of pending) {
   const sourceChannel = tool.includes('xray') ? 'website_xray' : tool.includes('mini_scan') ? 'website_mini_scan' : (raw.premium || raw.brief || /miniapp|concierge|telegram/.test(String(raw.source || ''))) ? 'telegram_premium' : 'other';
 
   const client = raw.client || {};
+  const currentContactName = currentRequestContactName(raw, leadRow, pipe, requestScoped);
   const financialControl = (raw.intake && raw.intake.financial_control) || raw.financial_control || {};
   const controls = controlSummary(financialControl);
   const quickControls = quickControlSummary(raw, diagnostic);
@@ -484,7 +505,7 @@ for (const pipe of pending) {
       // PII and contact routes never enter the AI prompt. They travel only to the owner surface.
       owner_context: {
         company: String(requestScopedPick([leadRow.Company, client.company], [pipe.company]) || ''),
-        contact_name: String(requestScopedPick([leadRow.Name, client.name], [pipe.name]) || ''),
+        contact_name: currentContactName,
         role: String(requestScopedPick([leadRow.Role, client.role], [pipe.role]) || ''),
         business: String(factsClean.business_model || factsClean.industry_category || ''),
         scale: [String(factsClean.turnover_range || ''), String(factsClean.employees_range || '')].filter(Boolean).join(' · '),
@@ -496,6 +517,7 @@ for (const pipe of pending) {
         commercial_intent: String(requestScopedPick([leadRow['Work Interest']], [pipe.work_interest]) || ''),
         next_action: String(pipe.next_action || ''), next_action_date: String(pipe.next_follow_up_at || ''),
         diagnostic_score: score, financial_zone: zone, contact, client_facts: clientFacts,
+        client_locale: locale, owner_locale: 'ru',
         client_result_eligible: resultEligibility.eligible,
         client_result_eligibility_reason: resultEligibility.reason,
         history: humanHistory(leadId, pipe.created_at)

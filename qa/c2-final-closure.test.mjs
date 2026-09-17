@@ -331,8 +331,8 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     'app-premium', 'n8n/src/xray-analysis', 'n8n/src/lead-intelligence', 'n8n/src/lead-intake',
     'n8n/src/premium-ux', 'n8n/src/miniapp-submit', 'n8n/src/miniapp-readmodel', 'n8n/src/crm'
   ];
-  // C3 is a later, separately-gated closure. Exclude only its six explicitly authorised source
-  // files; the remaining C1/C2 surface keeps its original byte-level regression seal.
+  // C3/V1 owner intelligence is a later, separately-gated closure. Exclude only its explicitly
+  // authorised source files; the remaining C1/C2 surface keeps its byte-level regression seal.
   const c3Authorised = new Set([
     'n8n/src/xray-analysis/c3-target.js',
     'n8n/src/xray-analysis/select-pending.js',
@@ -341,7 +341,9 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     'n8n/src/xray-analysis/analysis-failed.js',
     'n8n/src/xray-analysis/owner-cards.js',
     'n8n/src/lead-intelligence/alert.js',
+    'n8n/src/lead-intelligence/contract.js',
     'n8n/src/lead-intelligence/precall.js',
+    'n8n/src/lead-intelligence/render.js',
     'n8n/src/premium-ux/tg-state-machine.js',
     'n8n/src/lead-intake/c3-intelligence-request.js'
   ]);
@@ -360,12 +362,12 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     }
   };
   for (const protectedPath of protectedPaths) walk(join(ROOT, protectedPath));
-  eq(rows.length, 41, 'protected C1/C2 source file count outside V1 owner-intelligence allowlist');
-  // Re-sealed after the separately gated 2026-09-17 Lead Intake correction removed mutable
-  // Pipeline timestamps from retry authority. C2 owner controls are unchanged.
+  eq(rows.length, 39, 'protected C1/C2 source file count outside V1 owner-intelligence allowlist');
+  // Re-sealed after the separately gated 2026-09-17 owner-language correction added the
+  // Lead Intelligence contract and renderer to the explicit V1 allowlist. C2 controls are unchanged.
   eq(
     createHash('sha256').update(rows.join('\n')).digest('hex'),
-    '93969fcbf8d5a94677a7a03cbacb98523a2d643aaacd3e90b676bdd3608318ef',
+    '876241c4e01627805b213bdc9f34f27e4c87fe6c892576006080bf2c1b5c7df8',
     'protected C1/C2 source tree hash outside C3 allowlist'
   );
 });

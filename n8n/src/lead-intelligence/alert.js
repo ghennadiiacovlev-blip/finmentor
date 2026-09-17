@@ -4,6 +4,16 @@
 function esc(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function tidy(v, n) { const s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n).replace(/[\s,.;:—-]+$/, '') + '…' : s; }
 function present(v) { return String(v == null ? '' : v).trim() !== ''; }
+function qualificationLabel(value) {
+  return ({ HOT: 'Высокий приоритет', WARM: 'Требует внимания', COLD: 'Низкий приоритет', INCOMPLETE: 'Данные неполные' })[String(value || '').toUpperCase()] || tidy(value, 24);
+}
+function zoneLabel(value) {
+  return ({ GREEN: 'Устойчивая', YELLOW: 'Требует внимания', ORANGE: 'Существенные пробелы', RED: 'Критическая', UNKNOWN: 'Без оценки' })[String(value || '').toUpperCase()] || tidy(value, 24);
+}
+function translateOwnerEnums(value) {
+  return String(value == null ? '' : value).replace(/\b(?:HOT|WARM|COLD|INCOMPLETE)\b/gi, (x) => qualificationLabel(x))
+    .replace(/\b(?:GREEN|YELLOW|ORANGE|RED|UNKNOWN)\b/gi, (x) => zoneLabel(x));
+}
 
 function contactLines(contact) {
   const c = contact || {}; const out = [];
@@ -22,9 +32,9 @@ function contactLines(contact) {
 
 function importanceLines(model) {
   const out = [];
-  if (present(model.qualification)) out.push('Квалификация: <b>' + esc(tidy(model.qualification, 24)) + '</b>');
-  if (present(model.financial_zone)) out.push('Финансовая зона: <b>' + esc(tidy(model.financial_zone, 24)) + '</b>');
-  if (present(model.priority_reason)) out.push('Почему важно: ' + esc(tidy(model.priority_reason, 240)));
+  if (present(model.qualification)) out.push('Квалификация: <b>' + esc(qualificationLabel(model.qualification)) + '</b>');
+  if (present(model.financial_zone)) out.push('Финансовая зона: <b>' + esc(zoneLabel(model.financial_zone)) + '</b>');
+  if (present(model.priority_reason)) out.push('Почему важно: ' + esc(tidy(translateOwnerEnums(model.priority_reason), 240)));
   return out;
 }
 
@@ -101,5 +111,5 @@ function renderLeadIntelligenceAlert(model) {
 }
 
 if (typeof module !== 'undefined' && module.exports) module.exports = {
-  renderLeadIntelligenceAlert, contactLines, importanceLines, finmentorViewLines, riskLines, discoveryLines, esc, tidy
+  renderLeadIntelligenceAlert, contactLines, importanceLines, finmentorViewLines, riskLines, discoveryLines, qualificationLabel, zoneLabel, translateOwnerEnums, esc, tidy
 };

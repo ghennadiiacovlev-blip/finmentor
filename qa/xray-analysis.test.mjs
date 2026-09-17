@@ -308,6 +308,26 @@ let inputItem;
   // FINMENTOR». BOTH «Radiografia Financiară» and «Test de sănătate financiară» are retired,
   // and this gate now refuses either of them.
   check('input: RO prompt names the canonical RO product, never the retired name', /Test financiar FINMENTOR/.test(out[0].json.ai_system_prompt) && !/Radiografia Financiară/.test(out[0].json.ai_system_prompt) && !/sănătate financiară/.test(out[0].json.ai_system_prompt));
+  check('input: RO client prompt assigns owner_brief exclusively to Russian', /owner_brief.*limba rusă profesională/i.test(out[0].json.ai_system_prompt) && /owner_fact_translations/.test(out[0].json.ai_system_prompt));
+}
+{
+  const requestId = 'sub_' + 'd'.repeat(32);
+  const premiumBase = {
+    tool: 'miniapp_premium_brief',
+    client: { company: 'Current Company', role: 'CEO', language: 'ro' },
+    answers: { business_model: 'Retail', revenue_range: '€500k–2m', main_pain: 'Problemă de lichiditate' },
+    main_pain: { problem: 'Problemă de lichiditate', urgency: 'Fără termen strict' },
+    intake: { consent: { privacy_accepted: true }, business_pain: { selected_problems: ['Problemă de lichiditate'] } },
+    meta: { request_id: requestId, page_url: 'telegram_miniapp_premium' },
+    miniapp: { client_version: 'b3.0.0' }
+  };
+  const oldCanonical = { ...pipeRu, lead_id: 'L-MERGED', request_id: requestId, analysis_mode: 'NEW_REQUEST_ANALYSIS', name: 'Старое имя CRM', company: 'Old Company' };
+  const archived = { ...leadRowRu, 'Lead ID': 'FIN-REQUEST', 'Request ID': requestId, Name: 'Старое имя CRM', Company: 'Current Company', Role: 'CEO', Language: 'ro', 'Raw JSON': JSON.stringify(premiumBase) };
+  const omitted = runNode(withIntelligence(read('build-input.js')), { input: [archived], nodes: { 'Select Pending Leads': [oldCanonical], 'Settings to Object': [{ settings }] } })[0].json;
+  check('identity: merged request with old canonical name and no current explicit name omits owner name', omitted.owner_context.contact_name === '');
+  const explicitRaw = { ...premiumBase, client: { ...premiumBase.client, name: 'Имя текущей заявки', name_provenance: 'user_explicit' } };
+  const explicit = runNode(withIntelligence(read('build-input.js')), { input: [{ ...archived, 'Raw JSON': JSON.stringify(explicitRaw) }], nodes: { 'Select Pending Leads': [oldCanonical], 'Settings to Object': [{ settings }] } })[0].json;
+  check('identity: explicit current-request name wins over archived and canonical stale names', explicit.owner_context.contact_name === 'Имя текущей заявки');
 }
 {
   // A missing Leads source is an audit finding, never an empty-fact brief.
@@ -366,7 +386,7 @@ let draftRow;
   check('owner alert: short Lead Intelligence entry point with the decision sections', /^🔔 <b>FINMENTOR · Новый лид<\/b>/.test(alert.text) && /КЛЮЧЕВАЯ ПРОБЛЕМА/.test(alert.text) && /ЧТО ВИДИТ FINMENTOR/.test(alert.text) && /КОНТАКТ/.test(alert.text) && /СЕЙЧАС/.test(alert.text));
   check('owner alert: no raw JSON exposed', !/\{"/.test(alert.text));
   check('owner alert: C3 renders Lead ID, qualification and zone but no workflow status, confidence or token',
-    /Lead ID:.*L-2/.test(alert.text) && /Квалификация:.*HOT/.test(alert.text) && /Финансовая зона:.*ORANGE/.test(alert.text)
+    /Lead ID:.*L-2/.test(alert.text) && /Квалификация:.*Высокий приоритет/.test(alert.text) && /Финансовая зона:.*Существенные пробелы/.test(alert.text)
     && !/AI_DRAFT|Достоверность|[0-9a-f]{64}/.test(alert.text));
   check('owner alert: prioritises one client pain and one FINMENTOR observation', /Кассовые разрывы/.test(alert.text) && /быстрая диагностика.*расширенная анкета/i.test(alert.text));
   check('owner alert: no verification line on a clean HIGH-confidence analysis', !/Требуется проверка/.test(alert.text));
@@ -437,10 +457,22 @@ let draftRow;
     analysisRowError);
 }
 {
-  const roInput = { ...inputItem, locale: 'ro' };
-  const o = validate(aiResp({ ...goodPlan, recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', rationale: 'r' } }), roInput);
+  const roSource = 'Avem dificultăți cu controlul fluxului de numerar și nu vedem clar unde se blochează lichiditatea.';
+  const roTranslation = 'Есть сложности с контролем денежного потока, и нет ясности, где блокируется ликвидность.';
+  const roFacts = inputItem.owner_context.client_facts.map((f, i) => ({ ...f, value: i === 0 ? roSource : f.value }));
+  const roInput = { ...inputItem, locale: 'ro', owner_context: { ...inputItem.owner_context, client_locale: 'ro', owner_locale: 'ru', client_facts: roFacts } };
+  const roOwnerBrief = { ...NIAGARA_AI, owner_fact_translations: roFacts.map((f, i) => ({ id: f.id, value_ru: i === 0 ? roTranslation : f.value })) };
+  const roPlan = { ...goodPlan, owner_brief: roOwnerBrief, executive_summary: 'Compania are nevoie de claritate financiară.', recommended_next_step: { product: 'FINANCIAL_HEALTH_CHECK', label: 'Diagnostic financiar complet', rationale: 'Este necesară o verificare.' } };
+  const rawOutputs = runNode(validateSrc, { input: [aiResp(roPlan)], nodes: { 'Build Analysis Input': [roInput], 'Settings to Object': [{ settings }] } });
+  const o = rawOutputs[0].json;
   check('validate: RO next-step label is Romanian', /Diagnostic financiar complet/.test(o.analysis_row.next_step_label) && o.analysis_row.locale === 'ro');
-  check('owner alert: stays RU for the owner even when the client result locale is RO', /КЛЮЧЕВАЯ ПРОБЛЕМА|СЕЙЧАС/.test(o.owner_alert.text) && !/Diagnostic financiar|Următoarea/.test(o.owner_alert.text));
+  const storedBrief = JSON.parse(o.analysis_row.owner_brief_json);
+  const clientDraft = JSON.parse(o.analysis_row.client_result_draft_json);
+  check('owner alert: stays RU for the owner even when the client result locale is RO', /КЛЮЧЕВАЯ ПРОБЛЕМА|СЕЙЧАС/.test(o.owner_alert.text) && o.owner_alert.text.includes(roTranslation) && !o.owner_alert.text.includes(roSource) && !/Diagnostic financiar|Următoarea/.test(o.owner_alert.text));
+  check('client locale RO remains Romanian while owner brief is Russian', /Compania/.test(clientDraft.executive_summary) && storedBrief.owner_locale === 'ru' && storedBrief.client_locale === 'ro' && /[А-Яа-яЁё]/.test(storedBrief.diagnoses[0].conclusion));
+  check('original RO facts are preserved in storage', storedBrief.client_facts[0].value === roSource);
+  check('owner translation never overwrites source facts', storedBrief.owner_fact_translations[0].value_ru === roTranslation && storedBrief.client_facts[0].value !== storedBrief.owner_fact_translations[0].value_ru);
+  check('one model result emits one analysis and one owner alert only', rawOutputs.length === 1 && !!o.analysis_row && !!o.owner_alert && !Array.isArray(o.owner_alert));
 }
 
 // ---------- analysis failed (OpenAI error output) ----------

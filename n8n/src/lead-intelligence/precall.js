@@ -23,6 +23,8 @@ function renderPrecallBrief(model) {
   const h = b.header || {};
   const facts = Array.isArray(b.client_facts) ? b.client_facts : [];
   const problem = facts.find((f) => f && f.id === 'main_problem') || facts[0] || {};
+  const ownerTranslations = new Map((Array.isArray(b.owner_fact_translations) ? b.owner_fact_translations : []).map((x) => [x && x.id, x && x.value_ru]));
+  const ownerProblem = ownerTranslations.get(problem.id) || (b.client_locale === 'ru' ? problem.value : 'Нужно уточнить на первом контакте');
   const diagnoses = Array.isArray(b.diagnoses) ? b.diagnoses : [];
   const unknowns = Array.isArray(b.unknowns) ? b.unknowns : [];
   const questions = Array.isArray(b.discovery_questions) ? b.discovery_questions : [];
@@ -51,7 +53,7 @@ function renderPrecallBrief(model) {
   const text = [
     '<b>FINMENTOR · БРИФ К ПЕРВОЙ ВСТРЕЧЕ</b>',
     section(1, 'КЛИЕНТ', client),
-    section(2, 'КЛЮЧЕВАЯ ПРОБЛЕМА', esc(tidy(problem.value, 220))),
+    section(2, 'КЛЮЧЕВАЯ ПРОБЛЕМА', esc(tidy(ownerProblem, 220))),
     section(3, 'ЧТО ВИДИТ FINMENTOR', view),
     section(4, 'ПРОТИВОРЕЧИЯ И НЕИЗВЕСТНОЕ', verification),
     section(5, 'ЭКОНОМИЧЕСКИЙ СМЫСЛ', economics),

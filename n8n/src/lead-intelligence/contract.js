@@ -183,6 +183,17 @@ function normalizeOwnerBrief(raw, context) {
     ? c.client_facts.filter((x) => x && x.kind === INFORMATION_KIND.CLIENT_FACT && text(x.value))
     : [];
   const known = new Set(facts.map((x) => x.id));
+  const clientLocale = text(c.client_locale || 'ru', 8).toLowerCase() === 'ro' ? 'ro' : 'ru';
+  const translationInput = Array.isArray(r.owner_fact_translations) ? r.owner_fact_translations : [];
+  const translatedById = new Map(translationInput.map((item) => {
+    const x = item && typeof item === 'object' ? item : {};
+    const id = text(x.id, 60);
+    return [id, text(x.value_ru || x.value, 1000)];
+  }).filter(([id, value]) => known.has(id) && value));
+  const ownerFactTranslations = facts.map((f) => ({
+    id: f.id,
+    value_ru: clientLocale === 'ru' ? f.value : (translatedById.get(f.id) || '')
+  }));
   const diagnoses = (Array.isArray(r.diagnoses) ? r.diagnoses : [])
     .map((x) => interpretation(x, known)).filter(Boolean).slice(0, 4);
   const painMap = (Array.isArray(r.pain_map) ? r.pain_map : []).map((p) => {
@@ -215,6 +226,8 @@ function normalizeOwnerBrief(raw, context) {
     schema_version: 'lead-intelligence-v1',
     generated_at: text(c.generated_at || new Date().toISOString(), 40),
     intelligence_version: Number(c.intelligence_version) > 0 ? Number(c.intelligence_version) : 1,
+    client_locale: clientLocale,
+    owner_locale: 'ru',
     header: {
       company: text(c.company, 160), contact_name: text(c.contact_name, 120), role: text(c.role, 100),
       business: text(c.business, 160), scale: text(c.scale, 160), source: text(c.source, 80),
@@ -226,6 +239,7 @@ function normalizeOwnerBrief(raw, context) {
     },
     contact: c.contact || buildReachability(c),
     client_facts: facts,
+    owner_fact_translations: ownerFactTranslations,
     diagnoses,
     pain_map: painMap,
     unknowns,
@@ -256,6 +270,21 @@ function normalizeOwnerBrief(raw, context) {
 function briefErrors(brief) {
   const b = brief || {}; const errors = [];
   if (!Array.isArray(b.client_facts) || !b.client_facts.length) errors.push('client_facts empty');
+  if (b.owner_locale !== 'ru') errors.push('owner_locale must be ru');
+  if (b.client_locale === 'ro') {
+    const translations = new Map((Array.isArray(b.owner_fact_translations) ? b.owner_fact_translations : []).map((x) => [x && x.id, text(x && x.value_ru)]));
+    for (const f of b.client_facts || []) if (!translations.get(f.id)) errors.push('owner Russian translation missing: ' + f.id);
+    const ownerSurface = JSON.stringify({
+      owner_fact_translations: b.owner_fact_translations, diagnoses: b.diagnoses, pain_map: b.pain_map,
+      unknowns: b.unknowns, first_meeting_objective: b.first_meeting_objective,
+      conversation_opening: b.conversation_opening, discovery_questions: b.discovery_questions,
+      solution_hypothesis: b.solution_hypothesis, next_action: b.next_action
+    });
+    if (!/[А-Яа-яЁё]/.test(ownerSurface) || /[ăâîșşțţ]/i.test(ownerSurface)
+      || /\b(?:compania|lichiditate|fluxul|numerar|trebuie|pentru|este|sunt|riscuri)\b/i.test(ownerSurface)) {
+      errors.push('owner brief must be Russian');
+    }
+  }
   if (!Array.isArray(b.diagnoses) || b.diagnoses.length < 2 || b.diagnoses.length > 4) errors.push('diagnoses must contain 2..4 items');
   if (!Array.isArray(b.pain_map) || b.pain_map.length < 1 || b.pain_map.length > 4) errors.push('pain_map must contain 1..4 items');
   if (!Array.isArray(b.unknowns) || b.unknowns.length < 1 || b.unknowns.length > 7) errors.push('unknowns must contain 1..7 items');

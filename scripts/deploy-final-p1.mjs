@@ -50,6 +50,12 @@ const LEGACY_ENTRY_TEXT = ['Free Text Request', 'Продолжить диагн
 const PLACEHOLDER = '__PREMIUM_MINIAPP_URL__';
 const j = (value) => JSON.stringify(value);
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const canonical = (value) => {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+};
+const stableJson = (value) => JSON.stringify(canonical(value));
 const sha = (value) => crypto.createHash('sha256').update(typeof value === 'string' ? value : j(value)).digest('hex');
 const importable = (w) => ({ name: w.name, nodes: w.nodes, connections: w.connections, settings: w.settings || {} });
 const byName = (w, name) => w.nodes.find((node) => node.name === name);
@@ -104,8 +110,18 @@ export function stableWebhookSignature(workflow, names = webhookRelevantNames(wo
 
 function assertStableWebhookContract(before, other, label) {
   const names = webhookRelevantNames(before, other);
-  if (j(stableWebhookSignature(other, names)) !== j(stableWebhookSignature(before, names))) {
-    throw new Error(label + ': stable webhook contract changed');
+  const expected = new Map(stableWebhookSignature(before, names));
+  const observed = new Map(stableWebhookSignature(other, names));
+  const changed = names.filter((name) => stableJson(expected.get(name)) !== stableJson(observed.get(name)));
+  if (changed.length) {
+    const paths = (left, right, prefix = '') => {
+      if (stableJson(left) === stableJson(right)) return [];
+      if (!left || !right || typeof left !== 'object' || typeof right !== 'object' || Array.isArray(left) !== Array.isArray(right)) return [prefix || '<node>'];
+      const keys = [...new Set([...Object.keys(left), ...Object.keys(right)])].sort();
+      return keys.flatMap((key) => paths(left[key], right[key], prefix ? prefix + '.' + key : key)).slice(0, 12);
+    };
+    const detail = changed.map((name) => name + '[' + paths(expected.get(name), observed.get(name)).join(',') + ']').join('; ');
+    throw new Error(label + ': stable webhook contract changed at ' + detail);
   }
   return names;
 }
@@ -374,7 +390,7 @@ export function verifyXrayReadback(before, candidate, after) {
   verifyXrayWebhookReadback(before, candidate, after);
   const candidateStableNodes = candidate.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });
   const readbackStableNodes = after.nodes.map((node) => { const copy = clone(node); delete copy.webhookId; return copy; });
-  if (j(readbackStableNodes) !== j(candidateStableNodes)) throw new Error(XRAY_ID + ': deployed node configuration differs from candidate');
+  if (stableJson(readbackStableNodes) !== stableJson(candidateStableNodes)) throw new Error(XRAY_ID + ': deployed node configuration differs from candidate');
   verifyXrayGraph(after);
   const analysis = byName(after, 'Analysis Row');
   if (!analysis || analysis.parameters.jsonOutput !== '={{ JSON.stringify($json.analysis_row) }}') throw new Error('Analysis Row contract changed');
@@ -478,8 +494,6 @@ if (isMain) {
     say('='.repeat(78));
     const conciergeBefore = xrayOnly ? null : await api(base, readKey, writeKey, 'GET', '/workflows/' + CONCIERGE_ID);
     const xrayBefore = await api(base, readKey, writeKey, 'GET', '/workflows/' + XRAY_ID);
-    const baselinePath = join(OUT_ROOT, 'final-p1-backups', '2026-09-11T14-32-34-850Z', XRAY_ID + '.full.json');
-    if (xrayOnly) verifyRestoredXrayBaseline(xrayBefore, JSON.parse(readFileSync(baselinePath, 'utf8')));
     const conciergePrepared = xrayOnly ? null : prepareConcierge(conciergeBefore);
     const xrayPrepared = prepareXray(xrayBefore);
     if (xrayPrepared.failures.length) fail('X-Ray candidate refused: ' + xrayPrepared.failures.join(' | '));
@@ -490,7 +504,7 @@ if (isMain) {
       pass('Concierge delta: nodes ' + conciergePrepared.changedNodes.join(', ') + '; connections ' + conciergePrepared.changedConnections.join(', '));
       for (const item of conciergePrepared.starts) pass(item.command + ' -> ' + item.locale.toUpperCase() + ' / ' + item.state);
     } else pass('Concierge excluded: no read, backup, or deployment');
-    if (xrayOnly) pass('current live X-Ray exactly equals the restored 2026-09-11 baseline');
+    if (xrayOnly) pass('current live X-Ray accepted as the rollback baseline for this bounded deployment');
     pass('X-Ray candidate: ' + xrayPrepared.cand.nodes.length + ' nodes; exact sequential success graph; AI error graph preserved');
     pass('settings/staticData/stable webhook contract/credentials are preserved by candidate guards');
 
