@@ -64,6 +64,8 @@ const code = {
   validate: read('validate-analysis.js').replace('// __XRAY_LABELS__ (inlined by the builder)', labels).replace(CARDS_MARKER, ownerCards)
     .replace('// __LEAD_INTELLIGENCE_CONTRACT__ (inlined by the builder)', liContract)
     .replace('// __LEAD_INTELLIGENCE_ALERT__ (inlined by the builder)', liAlert),
+  validateOwnerRender: read('validate-owner-render.js'),
+  ownerRenderFailed: read('owner-render-failed.js'),
   failed: read('analysis-failed.js').replace(CARDS_MARKER, ownerCards),
   reviewSurface: read('review-surface.js').replace('// __LEAD_INTELLIGENCE_RENDER__ (inlined by the builder)', liRender),
   review: read('review-verdict.js')
@@ -219,7 +221,83 @@ const aiAnalysis = node({
 const validateRows = node({
   type: 'n8n-nodes-base.code', version: 2,
   config: { name: 'Validate + Store Rows', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.validate)} } },
-  output: [{ is_valid: true, analysis_row: { analysis_id: '', lead_id: '' }, pipeline_row: { lead_id: '' }, owner_alert: { text: '', review_url: '', crm_url: '' }, owner_text: '' }]
+  output: [{ is_valid: true, owner_render_required: false, analysis_row: { analysis_id: '', lead_id: '' }, pipeline_row: { lead_id: '' }, owner_alert: { text: '', review_url: '', crm_url: '' }, owner_text: '' }]
+});
+
+const ifOwnerRenderRequired = ifElse({
+  version: 2.2,
+  config: { name: 'IF Owner Render Required', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.owner_render_required }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ownerRenderNormalizer = node({
+  type: '@n8n/n8n-nodes-langchain.openAi', version: 2.3,
+  config: { name: 'Owner Render Normalizer', onError: 'continueRegularOutput',
+    parameters: { resource: 'text', operation: 'response',
+      modelId: { __rl: true, mode: 'id', value: expr("{{ $('Settings to Object').first().json.settings.xray_ai_model }}") },
+      responses: { values: [ { role: 'system', content: 'Normalize only the supplied owner presentation. Return strict JSON and obey every immutable-field rule.' }, { role: 'user', content: expr('{{ $json.owner_render_prompt }}') } ] },
+      simplify: true, builtInTools: {}, options: { temperature: 0, maxTokens: 5000, textFormat: { textOptions: { type: 'json_object' } } } },
+    credentials: ${OPENAI_CRED} },
+  output: [{ output_text: '{"owner_brief":{}}' }]
+});
+
+const validateOwnerRender = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Validate Owner Render', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.validateOwnerRender)} } },
+  output: [{ owner_render_valid: true, owner_render_attempt: 1, output_text: '{}' }]
+});
+
+const ifOwnerRenderValid = ifElse({
+  version: 2.2,
+  config: { name: 'IF Owner Render Valid', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.owner_render_valid }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const revalidateOwnerRender = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Revalidate Normalized Analysis', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.validate)} } },
+  output: [{ is_valid: true, owner_render_required: false, analysis_row: { analysis_id: '', lead_id: '' } }]
+});
+
+const ownerRenderCorrection = node({
+  type: '@n8n/n8n-nodes-langchain.openAi', version: 2.3,
+  config: { name: 'Owner Render Correction', onError: 'continueRegularOutput',
+    parameters: { resource: 'text', operation: 'response',
+      modelId: { __rl: true, mode: 'id', value: expr("{{ $('Settings to Object').first().json.settings.xray_ai_model }}") },
+      responses: { values: [ { role: 'system', content: 'Correct only the supplied owner presentation validation errors. Return strict JSON.' }, { role: 'user', content: expr('{{ $json.owner_render_prompt }}') } ] },
+      simplify: true, builtInTools: {}, options: { temperature: 0, maxTokens: 5000, textFormat: { textOptions: { type: 'json_object' } } } },
+    credentials: ${OPENAI_CRED} },
+  output: [{ output_text: '{"owner_brief":{}}' }]
+});
+
+const validateOwnerRenderCorrection = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Validate Owner Render Correction', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.validateOwnerRender)} } },
+  output: [{ owner_render_valid: true, owner_render_attempt: 2, output_text: '{}' }]
+});
+
+const ifOwnerRenderCorrectionValid = ifElse({
+  version: 2.2,
+  config: { name: 'IF Owner Render Correction Valid', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr('{{ $json.owner_render_valid }}'), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const revalidateOwnerRenderCorrection = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Revalidate Corrected Analysis', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.validate)} } },
+  output: [{ is_valid: true, owner_render_required: false, analysis_row: { analysis_id: '', lead_id: '' } }]
+});
+
+const ownerRenderFailed = node({
+  type: 'n8n-nodes-base.code', version: 2,
+  config: { name: 'Owner Render Failed Row', parameters: { mode: 'runOnceForAllItems', language: 'javaScript', jsCode: ${CODE(code.ownerRenderFailed)} } },
+  output: [{ is_valid: false, owner_render_failed: true, owner_render_attempt: 2, analysis_row: { analysis_id: '', lead_id: '', review_status: 'ANALYSIS_FAILED' } }]
+});
+
+const resolvedAnalysisOutcome = node({
+  type: 'n8n-nodes-base.set', version: 3.4,
+  config: { name: 'Resolved Analysis Outcome', parameters: { mode: 'raw', jsonOutput: expr('{{ JSON.stringify($json) }}'), options: {} } },
+  output: [{ is_valid: true, owner_render_failed: false, analysis_row: { analysis_id: '', lead_id: '' }, pipeline_row: { lead_id: '' }, owner_alert: { text: '', review_url: '', crm_url: '' }, owner_text: '' }]
 });
 
 const analysisRow = node({
@@ -239,7 +317,7 @@ const saveAnalysis = node({
 
 const pipelineRow = node({
   type: 'n8n-nodes-base.set', version: 3.4,
-  config: { name: 'Pipeline Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Validate + Store Rows').item.json.pipeline_row) }}"), options: {} } },
+  config: { name: 'Pipeline Row', parameters: { mode: 'raw', jsonOutput: expr("{{ JSON.stringify($('Resolved Analysis Outcome').item.json.pipeline_row) }}"), options: {} } },
   output: [{ lead_id: '', xray_analysis_status: 'AI_DRAFT' }]
 });
 
@@ -257,13 +335,13 @@ const updatePipeline = node({
 const ifAnalysisValid = ifElse({
   version: 2.2,
   config: { name: 'IF Analysis Valid', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.is_valid }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+    conditions: [{ leftValue: expr("{{ $('Resolved Analysis Outcome').item.json.is_valid }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const ifNotifyOwner = ifElse({
   version: 2.2,
   config: { name: 'IF New Owner Alert Required', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+    conditions: [{ leftValue: expr("{{ $('Resolved Analysis Outcome').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const ownerAlert = node({
@@ -271,13 +349,13 @@ const ownerAlert = node({
   config: { name: 'Telegram Owner Alert', onError: 'continueRegularOutput',
     parameters: { resource: 'message', operation: 'sendMessage',
       chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
-      text: expr("{{ $('Validate + Store Rows').item.json.owner_alert.text }}"),
+      text: expr("{{ $('Resolved Analysis Outcome').item.json.owner_alert.text }}"),
       replyMarkup: 'inlineKeyboard',
       inlineKeyboard: { rows: [
-        { row: { buttons: [ { text: 'Бриф к встрече', additionalFields: { callback_data: expr("{{ 'brief|' + $('Validate + Store Rows').item.json.lead_id }}"), style: 'primary' } } ] } },
-        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.contact_url }}") } } ] } },
-        { row: { buttons: [ { text: 'Discovery', additionalFields: { callback_data: expr("{{ 'stage|' + $('Validate + Store Rows').item.json.lead_id + '|Discovery Scheduled' }}"), style: 'success' } } ] } },
-        { row: { buttons: [ { text: '⋯ Управление лидом', additionalFields: { url: expr("{{ $('Validate + Store Rows').item.json.owner_alert.review_url }}") } } ] } }
+        { row: { buttons: [ { text: 'Бриф к встрече', additionalFields: { callback_data: expr("{{ 'brief|' + $('Resolved Analysis Outcome').item.json.lead_id }}"), style: 'primary' } } ] } },
+        { row: { buttons: [ { text: 'Связаться', additionalFields: { url: expr("{{ $('Resolved Analysis Outcome').item.json.owner_alert.contact_url }}") } } ] } },
+        { row: { buttons: [ { text: 'Discovery', additionalFields: { callback_data: expr("{{ 'stage|' + $('Resolved Analysis Outcome').item.json.lead_id + '|Discovery Scheduled' }}"), style: 'success' } } ] } },
+        { row: { buttons: [ { text: '⋯ Управление лидом', additionalFields: { url: expr("{{ $('Resolved Analysis Outcome').item.json.owner_alert.review_url }}") } } ] } }
       ] },
       additionalFields: { appendAttribution: false, parse_mode: 'HTML', disable_web_page_preview: true } },
     credentials: ${TG_CRED} },
@@ -289,7 +367,7 @@ const validationFailureNotice = node({
   config: { name: 'Telegram Validation Failure Notice', onError: 'continueRegularOutput',
     parameters: { resource: 'message', operation: 'sendMessage',
       chatId: expr("{{ $('Settings to Object').first().json.settings.owner_chat_id }}"),
-      text: expr("{{ $('Validate + Store Rows').item.json.owner_text }}"),
+      text: expr("{{ $('Resolved Analysis Outcome').item.json.owner_text }}"),
       additionalFields: { appendAttribution: false, parse_mode: 'HTML' } },
     credentials: ${TG_CRED} },
   output: [{ ok: true }]
@@ -346,13 +424,32 @@ const ifUpstreamRetryExhausted = ifElse({
 const ifValidationFailureNotice = ifElse({
   version: 2.2,
   config: { name: 'IF Validation Failure Owner Notice', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+    conditions: [{ leftValue: expr("{{ $('Resolved Analysis Outcome').item.json.notify_owner }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const ifOwnerRenderFailed = ifElse({
+  version: 2.2,
+  config: { name: 'IF Owner Render Failed', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
+    conditions: [{ leftValue: expr("{{ $('Resolved Analysis Outcome').item.json.owner_render_failed }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+});
+
+const emitOwnerRenderFailed = node({
+  type: 'n8n-nodes-base.executeWorkflow', version: 1.2,
+  config: { name: 'Emit System Alert (Owner Render Failed)', onError: 'continueRegularOutput',
+    parameters: { workflowId: { __rl: true, value: ${J(SYSTEM_ALERT_WORKFLOW_ID)}, mode: 'list', cachedResultName: 'FINMENTOR SYSTEM ALERT' },
+      workflowInputs: { mappingMode: 'defineBelow', value: {
+        workflow_key: 'xray-analysis', verdict_node: 'Owner Render Normalizer', error_code: 'OWNER_RENDER_FAILED', retryable: 'false',
+        route_identity: expr("{{ String($('Resolved Analysis Outcome').first().json.lead_id || '') }}"),
+        occurred_at: expr('{{ $now.toISO() }}')
+      }, matchingColumns: [], schema: [], attemptToConvertTypes: false, convertFieldsToString: true },
+      mode: 'once', options: { waitForSubWorkflow: false } } },
+  output: [{}]
 });
 
 const ifValidationRetryExhausted = ifElse({
   version: 2.2,
   config: { name: 'IF Validation Retry Exhausted', parameters: { conditions: { options: { caseSensitive: true, leftValue: '', typeValidation: 'strict' },
-    conditions: [{ leftValue: expr("{{ $('Validate + Store Rows').item.json.retry_exhausted }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
+    conditions: [{ leftValue: expr("{{ $('Resolved Analysis Outcome').item.json.retry_exhausted }}"), operator: { type: 'boolean', operation: 'true', singleValue: true } }], combinator: 'and' } } }
 });
 
 const emitRetryExhausted = node({
@@ -361,7 +458,7 @@ const emitRetryExhausted = node({
     parameters: { workflowId: { __rl: true, value: ${J(SYSTEM_ALERT_WORKFLOW_ID)}, mode: 'list', cachedResultName: 'FINMENTOR SYSTEM ALERT' },
       workflowInputs: { mappingMode: 'defineBelow', value: {
         workflow_key: 'xray-analysis', verdict_node: 'Retry Exhausted', error_code: 'XRAY_RETRY_EXHAUSTED', retryable: 'false',
-        route_identity: expr("{{ String(($('Analysis Failed Row').isExecuted ? $('Analysis Failed Row').first().json.lead_id : $('Validate + Store Rows').first().json.lead_id) || '') }}"),
+        route_identity: expr("{{ String(($('Analysis Failed Row').isExecuted ? $('Analysis Failed Row').first().json.lead_id : $('Resolved Analysis Outcome').first().json.lead_id) || '') }}"),
         occurred_at: expr('{{ $now.toISO() }}')
       }, matchingColumns: [], schema: [], attemptToConvertTypes: false, convertFieldsToString: true },
       mode: 'once', options: { waitForSubWorkflow: false } } },
@@ -653,15 +750,28 @@ export default workflow('finmentor-xray-analysis', 'FINMENTOR X-Ray Analysis')
           .onTrue(ownerFailureNotice)
           .onFalse(ifUpstreamRetryExhausted.onTrue(emitRetryExhausted))))))))
       .to(validateRows
-        .to(analysisRow
-          .to(saveAnalysis
-            .to(pipelineRow
-              .to(updatePipeline
-                .to(ifAnalysisValid
-                  .onTrue(ifNotifyOwner.onTrue(ownerAlert))
-                  .onFalse(ifValidationFailureNotice
-                    .onTrue(validationFailureNotice)
-                    .onFalse(ifValidationRetryExhausted.onTrue(emitRetryExhausted))))))))))
+        .to(ifOwnerRenderRequired
+          .onTrue(ownerRenderNormalizer
+            .to(validateOwnerRender
+              .to(ifOwnerRenderValid
+                .onTrue(revalidateOwnerRender.to(resolvedAnalysisOutcome))
+                .onFalse(ownerRenderCorrection
+                  .to(validateOwnerRenderCorrection
+                    .to(ifOwnerRenderCorrectionValid
+                      .onTrue(revalidateOwnerRenderCorrection.to(resolvedAnalysisOutcome))
+                      .onFalse(ownerRenderFailed.to(resolvedAnalysisOutcome))))))))
+          .onFalse(resolvedAnalysisOutcome
+            .to(analysisRow
+              .to(saveAnalysis
+                .to(pipelineRow
+                  .to(updatePipeline
+                    .to(ifAnalysisValid
+                      .onTrue(ifNotifyOwner.onTrue(ownerAlert))
+                      .onFalse(ifValidationFailureNotice
+                        .onTrue(validationFailureNotice)
+                        .onFalse(ifOwnerRenderFailed
+                          .onTrue(emitOwnerRenderFailed)
+                          .onFalse(ifValidationRetryExhausted.onTrue(emitRetryExhausted)))))))))))))
     .onFalse(sourceAuditNotice))
   .add(c3LeadTrigger)
   .to(validateC3Target)

@@ -340,6 +340,8 @@ check('C2 touches no X-Ray, scoring, CRM, privacy, client journey, or Mini App s
     'n8n/src/xray-analysis/validate-analysis.js',
     'n8n/src/xray-analysis/analysis-failed.js',
     'n8n/src/xray-analysis/owner-cards.js',
+    'n8n/src/xray-analysis/validate-owner-render.js',
+    'n8n/src/xray-analysis/owner-render-failed.js',
     'n8n/src/lead-intelligence/alert.js',
     'n8n/src/lead-intelligence/contract.js',
     'n8n/src/lead-intelligence/precall.js',

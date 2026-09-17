@@ -166,6 +166,59 @@ function fabricationFlags(inputText, outputText) {
   return flags.slice(0, 12);
 }
 
+// Only this sanitized presentation object is sent to the owner-render model. Identity and contact
+// routes are placeholders, while the client fact values needed for faithful translation remain the
+// only source authority. The validated result is later merged onto the original object by an
+// allowlist, so these placeholders can never reach storage or an owner surface.
+function ownerRenderSource(ownerBrief) {
+  const b = JSON.parse(JSON.stringify(ownerBrief || {}));
+  if (b.header && typeof b.header === 'object') {
+    b.header.company = '[COMPANY]';
+    b.header.contact_name = '[CONTACT]';
+  }
+  if (b.contact && typeof b.contact === 'object') {
+    const redact = (value) => value === undefined || value === null || value === '' ? value : '[REDACTED]';
+    if (Array.isArray(b.contact.reachable_channels)) {
+      b.contact.reachable_channels = b.contact.reachable_channels.map((x) => x && typeof x === 'object'
+        ? Object.assign({}, x, { value: redact(x.value) }) : x);
+    }
+    for (const key of ['telegram', 'phone', 'email']) {
+      if (b.contact[key] && typeof b.contact[key] === 'object') {
+        b.contact[key] = Object.assign({}, b.contact[key], { value: redact(b.contact[key].value) });
+      }
+    }
+  }
+  // Owner-authored notes are not model input and are reattached unchanged after normalization.
+  b.owner_confirmed_facts = [];
+  b.owner_notes = [];
+  return b;
+}
+
+function ownerRenderPrompt(source) {
+  const facts = (source.client_facts || []).map((f) => ({ id: f.id, value: f.value, source_path: f.source_path }));
+  const evidence_ids = [];
+  for (const section of ['diagnoses', 'pain_map']) {
+    for (const item of source[section] || []) for (const id of item.evidence_fact_ids || []) {
+      if (!evidence_ids.includes(id)) evidence_ids.push(id);
+    }
+  }
+  return [
+    'OWNER RENDER NORMALIZER — bounded presentation-only task.',
+    'Return exactly one JSON object with the single key owner_brief.',
+    'Rewrite ONLY human-readable owner presentation into professional Russian.',
+    'Keep the complete object structure, keys, array order and array cardinality exactly unchanged.',
+    'Preserve every fact id, evidence id, source_path, kind, product code, score, zone, boolean, number, date, currency and risk classification.',
+    'Preserve the meaning of every diagnosis, recommendation, risk, question and next action. Do not add, remove, merge or invent facts.',
+    'Do not rewrite client_facts. They are immutable source facts and may remain Romanian.',
+    'Do not change placeholders, company/product names or unavoidable proper nouns.',
+    'Every other owner-visible prose value must be Russian. Return JSON only.',
+    '',
+    'CURRENT REQUEST FACT INDEX:', JSON.stringify(facts),
+    'CURRENT EVIDENCE IDS:', JSON.stringify(evidence_ids),
+    'OWNER BRIEF TO NORMALIZE:', JSON.stringify(source)
+  ].join('\n');
+}
+
 // The owner card (OWNER DECISION 2026-09-04): rendered by XRAY_OWNER_CARDS.renderReview from an
 // already-decided model. No Lead ID, no confidence enum, no raw flags — a data-quality doubt is
 // ONE line («Требуется проверка исходных данных»), raised when the fabrication guard flagged a
@@ -185,7 +238,7 @@ function ownerAlert(inp, a, row, cfg) {
     scale: (brief.header || {}).scale,
     qualification: (inp.owner_context || {}).qualification,
     financial_zone: inp.zone,
-    priority_reason: (inp.owner_context || {}).priority_reason,
+    priority_reason: (brief.header || {}).priority_reason || (inp.owner_context || {}).priority_reason,
     main_pain: ownerTranslations.get(firstFact.id) || (brief.client_locale === 'ru' ? firstFact.value : ''),
     observation: firstDiagnosis.conclusion,
     maturity: {},
@@ -243,7 +296,8 @@ function failedOutput(inp, now, errors) {
       lead_intelligence_upgrade_errors: detail
     }) : Object.assign({}, existing, failureFields);
   return {
-    is_valid: false, lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
+    is_valid: false, core_analysis_valid: false, owner_render_required: false,
+    lead_id: inp.lead_id, analysis_id: analysisId, analysis_row: row,
     analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
     notify_owner: !retrying, retry_attempt: attempt, retry_exhausted: exhausted, retry_possible: !exhausted,
     pipeline_row: upgrading
@@ -306,9 +360,12 @@ for (let idx = 0; idx < responses.length; idx++) {
     generated_at: now,
     intelligence_version: Number(priorBrief.intelligence_version || 0) + 1,
     owner_confirmed_facts: priorBrief.owner_confirmed_facts || [],
-    owner_notes: priorBrief.owner_notes || []
+    owner_notes: priorBrief.owner_notes || [],
+    owner_render_normalized: ai.__owner_render_completed === true
   }));
-  errors.push(...LI.briefErrors(ownerBrief));
+  const briefErrors = LI.briefErrors(ownerBrief);
+  const ownerLanguageErrors = briefErrors.filter((error) => error === 'owner brief must be Russian');
+  errors.push(...briefErrors.filter((error) => error !== 'owner brief must be Russian'));
   if (errors.length) { out.push({ json: failedOutput(inp, now, errors) }); continue; }
 
   const a = normalize(parsed, locale);
@@ -316,7 +373,54 @@ for (let idx = 0; idx < responses.length; idx++) {
   const flags = fabricationFlags(inp.input_digest_text || '', factText(a));
   if (flags.length) { a.confidence = 'LOW'; a.limitations.push((locale === 'ro' ? 'Cifre neconfirmate de datele de intrare: ' : 'Цифры, не подтверждённые входными данными: ') + flags.join(', ')); }
 
-  const analysisId = existing ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id);
+  const analysisId = str(ai.__owner_render_analysis_id, 180)
+    || (existing ? String(existing.analysis_id || '') : newAnalysisId(inp.lead_id));
+  if (ownerLanguageErrors.length && ai.__owner_render_completed !== true) {
+    const renderSource = ownerRenderSource(ownerBrief);
+    out.push({ json: {
+      is_valid: false,
+      core_analysis_valid: true,
+      owner_render_required: true,
+      owner_render_attempt: 0,
+      owner_render_error: ownerLanguageErrors.join('; '),
+      owner_render_prompt: ownerRenderPrompt(renderSource),
+      lead_id: inp.lead_id,
+      request_id: inp.request_id || '',
+      analysis_id: analysisId,
+      _owner_render_state: {
+        input_index: pairedIndex(responseItems[idx], idx),
+        analysis_id: analysisId,
+        original_core_response: parsed,
+        original_owner_brief: ownerBrief,
+        render_source: renderSource
+      }
+    } });
+    continue;
+  }
+  // The bounded owner-render pass has already run and its immutable-field validator accepted the
+  // rewrite, yet the full owner contract still reads the surface as non-Russian. That is terminal
+  // presentation evidence, never authority to rerun a core X-Ray model that already passed: the
+  // row is written with the OWNER_RENDER_FAILED marker that Select Pending Leads treats as final.
+  if (ownerLanguageErrors.length) {
+    const residual = failedOutput(inp, now, ownerLanguageErrors);
+    const ledgerError = ['OWNER_RENDER_FAILED', 'ATTEMPT=2', 'MAX=2', 'ERROR=' + safeErrorText(ownerLanguageErrors.join('; '))]
+      .join('|').slice(0, 1200);
+    out.push({ json: Object.assign(residual, {
+      core_analysis_valid: true, owner_render_failed: true, owner_render_attempt: 2,
+      owner_render_error: ownerLanguageErrors.join('; '),
+      notify_owner: false, retry_possible: false, retry_exhausted: false,
+      analysis_id: analysisId, owner_alert: null, owner_text: '',
+      analysis_row: Object.assign({}, residual.analysis_row, {
+        analysis_id: analysisId, validation_errors: ledgerError,
+        executive_summary: 'ANALYSIS_FAILED: OWNER_RENDER_FAILED',
+        lead_intelligence_upgrade_errors: ledgerError
+      }),
+      pipeline_row: Object.assign({}, residual.pipeline_row,
+        residual.pipeline_row && residual.pipeline_row.xray_analysis_status === 'ANALYSIS_FAILED'
+          ? { xray_analysis_id: analysisId } : {})
+    }) });
+    continue;
+  }
   const requestScoped = inp.analysis_mode === 'NEW_REQUEST_ANALYSIS'
     || (retrying && String(inp.xray_analysis_id || '') !== analysisId);
   const analysisJson = JSON.stringify(a);
@@ -402,6 +506,8 @@ for (let idx = 0; idx < responses.length; idx++) {
   };
   out.push({ json: {
     is_valid: true,
+    core_analysis_valid: true,
+    owner_render_required: false,
     analysis_mode: upgrading ? 'UPGRADE_EXISTING' : (retrying ? 'RETRY_FAILED' : (requestScoped ? 'NEW_REQUEST_ANALYSIS' : 'NEW_ANALYSIS')),
     notify_owner: !upgrading,
     analysis_row: row, pipeline_row: pipelineRow,

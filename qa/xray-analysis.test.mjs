@@ -20,7 +20,7 @@ import { spawnSync } from 'node:child_process';
 import { sdk, CLIENT_RESULT_TABLE, REVIEW_PATH } from '../scripts/build-xray-analysis-workflow.mjs';
 import { compileFile } from '../scripts/lib/compile-workflow-sdk.mjs';
 import {
-  XRAY_ID, XRAY_NAME, XRAY_VOLATILE_WEBHOOK_ID_NODES, stableWebhookSignature,
+  XRAY_ID, XRAY_NAME, XRAY_VOLATILE_WEBHOOK_ID_NODES, XRAY_OWNER_SOURCE_REPOINT, stableWebhookSignature,
   reconcileWorkflowActivity, verifyXrayWebhookReadback, verifyXrayReadback
 } from '../scripts/deploy-final-p1.mjs';
 import { NIAGARA_AI, NIAGARA_LIVE_SANITIZED_SOURCE } from './fixtures/lead-intelligence-fixtures.mjs';
@@ -83,8 +83,22 @@ const isEdge = (from, to, output = 0) => edgeTargets(from, output).includes(to);
 {
   check('compiled graph: AI success has exactly one edge to Validate + Store Rows',
     JSON.stringify(edgeTargets('AI X-Ray Analysis')) === JSON.stringify(['Validate + Store Rows']));
-  check('compiled graph: Validate + Store Rows has exactly one edge to Analysis Row',
-    JSON.stringify(edgeTargets('Validate + Store Rows')) === JSON.stringify(['Analysis Row']));
+  check('compiled graph: core validation routes through the bounded owner-render decision',
+    JSON.stringify(edgeTargets('Validate + Store Rows')) === JSON.stringify(['IF Owner Render Required']) &&
+    isEdge('IF Owner Render Required', 'Owner Render Normalizer', 0) &&
+    isEdge('IF Owner Render Required', 'Resolved Analysis Outcome', 1));
+  check('compiled graph: owner render has one correction only and both valid paths converge once',
+    isEdge('Owner Render Normalizer', 'Validate Owner Render') &&
+    isEdge('IF Owner Render Valid', 'Revalidate Normalized Analysis', 0) &&
+    isEdge('IF Owner Render Valid', 'Owner Render Correction', 1) &&
+    isEdge('Owner Render Correction', 'Validate Owner Render Correction') &&
+    isEdge('IF Owner Render Correction Valid', 'Revalidate Corrected Analysis', 0) &&
+    isEdge('IF Owner Render Correction Valid', 'Owner Render Failed Row', 1) &&
+    isEdge('Revalidate Normalized Analysis', 'Resolved Analysis Outcome') &&
+    isEdge('Revalidate Corrected Analysis', 'Resolved Analysis Outcome') &&
+    isEdge('Owner Render Failed Row', 'Resolved Analysis Outcome'));
+  check('compiled graph: Resolved Analysis Outcome has exactly one edge to Analysis Row',
+    JSON.stringify(edgeTargets('Resolved Analysis Outcome')) === JSON.stringify(['Analysis Row']));
   check('compiled graph: Analysis Row has exactly one edge to Save XRay_Analysis',
     JSON.stringify(edgeTargets('Analysis Row')) === JSON.stringify(['Save XRay_Analysis']));
   check('compiled graph: Save XRay_Analysis has exactly one edge to Pipeline Row',
@@ -320,7 +334,7 @@ let inputItem;
     }
   };
   const retry = runNode(withIntelligence(read('build-input.js')), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [retryPipe], 'Settings to Object': [{ settings }] } })[0].json;
-  check('input: exact RU contract failure adds a retry-only bilingual boundary correction', /MANDATORY RETRY CORRECTION/.test(retry.ai_user_prompt) && /outside owner_brief.*Romanian/i.test(retry.ai_user_prompt) && /inside owner_brief.*Russian/i.test(retry.ai_user_prompt));
+  check('input: owner-language failure never changes the main X-Ray retry prompt', !/MANDATORY RETRY CORRECTION/.test(retry.ai_user_prompt));
   const unrelatedRetry = runNode(withIntelligence(read('build-input.js')), { input: [{ ...leadRowRu, 'Lead ID': 'L-4', 'Raw JSON': JSON.stringify(rawRo) }], nodes: { 'Select Pending Leads': [{ ...retryPipe, existing_analysis: { ...retryPipe.existing_analysis, validation_errors: 'MODEL_OUTPUT_INVALID|ATTEMPT=1|ERROR=diagnoses must contain 2..4 items' } }], 'Settings to Object': [{ settings }] } })[0].json;
   check('input: unrelated model contract failure does not receive the RU correction', !/MANDATORY RETRY CORRECTION/.test(unrelatedRetry.ai_user_prompt));
 }
@@ -632,6 +646,43 @@ const publish = (verdict) => runNode(clientSrc, { nodes: { 'Review POST Verdict'
     rejects((changed) => { const added = structuredClone(getHook); added.name = 'Unexpected Review Webhook'; added.id = 'unexpected-webhook-node'; changed.nodes.push(added); }));
   check('deploy guard: unrelated webhook parameter change is rejected',
     rejects((changed) => { changed.nodes.find((node) => node.name === 'Review GET Webhook').parameters.options = { rawBody: true }; }));
+
+  // The owner-render closure repoints the owner-facing Telegram nodes at the convergence node. It
+  // is the only authorised parameter delta on a webhook-relevant node, and it stays proven: it is
+  // accepted alone, refused when it carries anything else, and refused when it names nothing.
+  {
+    const retire = (value) => {
+      if (Array.isArray(value)) return value.map(retire);
+      if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, retire(entry)]));
+      return typeof value === 'string' ? value.split(XRAY_OWNER_SOURCE_REPOINT.from).join(XRAY_OWNER_SOURCE_REPOINT.to) : value;
+    };
+    const retired = (workflow) => retire(workflow);
+    const liveBefore = retired(before);
+    const alertName = 'Telegram Owner Alert';
+    const byName = (workflow, name) => workflow.nodes.find((node) => node.name === name);
+    check('deploy guard: the owner-render source repoint is a real delta the strict signature would refuse',
+      JSON.stringify(stableWebhookSignature(liveBefore)) !== JSON.stringify(stableWebhookSignature(after))
+      && JSON.stringify(byName(liveBefore, alertName).parameters) !== JSON.stringify(byName(after, alertName).parameters));
+    check('deploy guard: the authorised owner-render source repoint alone is accepted',
+      accepts(() => verifyXrayWebhookReadback(liveBefore, candidate, after)));
+    check('deploy guard: the owner-render repoint carrying any other Telegram edit is rejected',
+      !accepts(() => {
+        const changed = structuredClone(after);
+        byName(changed, alertName).parameters.additionalFields.parse_mode = 'MarkdownV2';
+        verifyXrayWebhookReadback(liveBefore, candidate, changed);
+      })
+      && !accepts(() => {
+        const changed = structuredClone(after);
+        byName(changed, alertName).parameters.text = "={{ $('Resolved Analysis Outcome').item.json.owner_text }}";
+        verifyXrayWebhookReadback(liveBefore, candidate, changed);
+      }));
+    check('deploy guard: a repoint naming an absent convergence node is rejected',
+      !accepts(() => {
+        const changed = structuredClone(after);
+        changed.nodes = changed.nodes.filter((node) => node.name !== 'Resolved Analysis Outcome');
+        verifyXrayWebhookReadback(liveBefore, candidate, changed);
+      }));
+  }
   check('deploy guard: a historically stable webhookId change is rejected',
     rejects((changed) => { changed.nodes.find((node) => node.name === 'Review POST Webhook').webhookId = '40000000-0000-4000-8000-000000000001'; }));
   check('deploy guard: X-Ray success graph is exactly sequential and the AI sibling edge is absent',

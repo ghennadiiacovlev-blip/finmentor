@@ -52,6 +52,9 @@ function retryMeta(row) {
 function retryableFailed(row) {
   if (!row || String(row.review_status || '').toUpperCase() !== 'ANALYSIS_FAILED') return false;
   if (String(row.owner_brief_json || '').trim() !== '' || String(row.analysis_json || '').trim() !== '') return false;
+  // Owner-render normalization has its own bounded two-attempt contract. Once exhausted it is a
+  // terminal presentation incident, not authority to rerun the already-valid core X-Ray model.
+  if (/(?:^|[|;])OWNER_RENDER_FAILED(?:$|[|;])/i.test(String(row.validation_errors || ''))) return false;
   // A failed row that never reached the model carries no model name: it was written from a
   // non-model input (the pre-2026-09-16 index misattribution) or belongs to a lead with no Leads
   // archive row, which can only ever end as an owner audit message. Retrying it "in place" would

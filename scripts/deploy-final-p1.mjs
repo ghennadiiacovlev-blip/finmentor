@@ -108,10 +108,37 @@ export function stableWebhookSignature(workflow, names = webhookRelevantNames(wo
   });
 }
 
+// The ONE authorised parameter delta on an X-Ray webhook-relevant node (owner-render closure,
+// 2026-09-17). Both the direct route and the bounded owner-normalizer route now converge on a
+// single node, and the owner-facing Telegram nodes must read their payload from that convergence
+// instead of the core validator. The guard proves the delta rather than trusting it: it rewrites
+// the new reference back to the retired one and still demands a byte-exact match, so any other
+// edit to those nodes — copy, keyboard, parse mode, credentials, flags — is still refused.
+export const XRAY_OWNER_SOURCE_REPOINT = Object.freeze({
+  authorised_at: '2026-09-17', from: "$('Resolved Analysis Outcome')", to: "$('Validate + Store Rows')"
+});
+
+function withRetiredOwnerSource(value) {
+  if (Array.isArray(value)) return value.map(withRetiredOwnerSource);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, withRetiredOwnerSource(entry)]));
+  }
+  return typeof value === 'string' ? value.split(XRAY_OWNER_SOURCE_REPOINT.from).join(XRAY_OWNER_SOURCE_REPOINT.to) : value;
+}
+
 function assertStableWebhookContract(before, other, label) {
   const names = webhookRelevantNames(before, other);
-  const expected = new Map(stableWebhookSignature(before, names));
-  const observed = new Map(stableWebhookSignature(other, names));
+  // Both sides are read through the same equivalence: the owner source repoint is the only
+  // difference this collapses, so an unauthorised edit on either side still shows as a delta.
+  const expected = new Map(stableWebhookSignature(before, names).map(([name, node]) => [name, withRetiredOwnerSource(node)]));
+  const observed = new Map(stableWebhookSignature(other, names).map(([name, node]) => {
+    const repointed = withRetiredOwnerSource(node);
+    // A repoint is only authorised when the convergence node it names actually exists.
+    if (stableJson(repointed) !== stableJson(node) && !byName(other, 'Resolved Analysis Outcome')) {
+      throw new Error(label + ': owner source repoint names an absent node at ' + name);
+    }
+    return [name, repointed];
+  }));
   const changed = names.filter((name) => stableJson(expected.get(name)) !== stableJson(observed.get(name)));
   if (changed.length) {
     const paths = (left, right, prefix = '') => {
@@ -337,7 +364,21 @@ export function prepareConcierge(live, accepted = PREMIUM_SOURCE) {
 export function verifyXrayGraph(workflow) {
   const expected = [
     ['AI X-Ray Analysis', ['Validate + Store Rows'], 0],
-    ['Validate + Store Rows', ['Analysis Row'], 0],
+    ['Validate + Store Rows', ['IF Owner Render Required'], 0],
+    ['IF Owner Render Required', ['Owner Render Normalizer'], 0],
+    ['IF Owner Render Required', ['Resolved Analysis Outcome'], 1],
+    ['Owner Render Normalizer', ['Validate Owner Render'], 0],
+    ['Validate Owner Render', ['IF Owner Render Valid'], 0],
+    ['IF Owner Render Valid', ['Revalidate Normalized Analysis'], 0],
+    ['IF Owner Render Valid', ['Owner Render Correction'], 1],
+    ['Owner Render Correction', ['Validate Owner Render Correction'], 0],
+    ['Validate Owner Render Correction', ['IF Owner Render Correction Valid'], 0],
+    ['IF Owner Render Correction Valid', ['Revalidate Corrected Analysis'], 0],
+    ['IF Owner Render Correction Valid', ['Owner Render Failed Row'], 1],
+    ['Revalidate Normalized Analysis', ['Resolved Analysis Outcome'], 0],
+    ['Revalidate Corrected Analysis', ['Resolved Analysis Outcome'], 0],
+    ['Owner Render Failed Row', ['Resolved Analysis Outcome'], 0],
+    ['Resolved Analysis Outcome', ['Analysis Row'], 0],
     ['Analysis Row', ['Save XRay_Analysis'], 0],
     ['Save XRay_Analysis', ['Pipeline Row'], 0],
     ['Pipeline Row', ['Update Pipeline X-Ray'], 0],
@@ -353,7 +394,9 @@ export function verifyXrayGraph(workflow) {
     ['IF Upstream Retry Exhausted', ['Emit System Alert (X-Ray Retry Exhausted)'], 0],
     ['IF Analysis Valid', ['IF Validation Failure Owner Notice'], 1],
     ['IF Validation Failure Owner Notice', ['Telegram Validation Failure Notice'], 0],
-    ['IF Validation Failure Owner Notice', ['IF Validation Retry Exhausted'], 1],
+    ['IF Validation Failure Owner Notice', ['IF Owner Render Failed'], 1],
+    ['IF Owner Render Failed', ['Emit System Alert (Owner Render Failed)'], 0],
+    ['IF Owner Render Failed', ['IF Validation Retry Exhausted'], 1],
     ['IF Validation Retry Exhausted', ['Emit System Alert (X-Ray Retry Exhausted)'], 0]
   ];
   for (const [from, to, output] of expected) exactly(workflow, from, to, output);

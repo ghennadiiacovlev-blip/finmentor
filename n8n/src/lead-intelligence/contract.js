@@ -179,6 +179,11 @@ function interpretation(item, known) {
 function normalizeOwnerBrief(raw, context) {
   const r = raw && typeof raw === 'object' ? raw : {};
   const c = context || {};
+  // Header prose belongs to the owner presentation, but identity and source facts do not. The
+  // bounded owner-render pass sets this flag after its immutable-field validator has accepted the
+  // translated surface. Ordinary core-model output can never override deterministic CRM context.
+  const renderedHeader = c.owner_render_normalized === true && r.header && typeof r.header === 'object'
+    ? r.header : {};
   const facts = Array.isArray(c.client_facts)
     ? c.client_facts.filter((x) => x && x.kind === INFORMATION_KIND.CLIENT_FACT && text(x.value))
     : [];
@@ -229,11 +234,17 @@ function normalizeOwnerBrief(raw, context) {
     client_locale: clientLocale,
     owner_locale: 'ru',
     header: {
-      company: text(c.company, 160), contact_name: text(c.contact_name, 120), role: text(c.role, 100),
-      business: text(c.business, 160), scale: text(c.scale, 160), source: text(c.source, 80),
-      lead_status: text(c.lead_status, 100), data_quality: text(c.data_quality || 'Требует проверки', 120),
-      commercial_intent: c.commercial_intent_confirmed === true ? text(c.commercial_intent, 160) : 'Не подтверждён',
-      next_action: text(c.next_action || nh.action, 300), next_action_date: text(c.next_action_date || nh.due_date, 40),
+      company: text(c.company, 160), contact_name: text(c.contact_name, 120),
+      role: text(renderedHeader.role || c.role, 100),
+      business: text(renderedHeader.business || c.business, 160),
+      scale: text(renderedHeader.scale || c.scale, 160), source: text(c.source, 80),
+      lead_status: text(renderedHeader.lead_status || c.lead_status, 100),
+      priority_reason: text(renderedHeader.priority_reason || c.priority_reason, 240),
+      data_quality: text(renderedHeader.data_quality || c.data_quality || 'Требует проверки', 120),
+      commercial_intent: c.commercial_intent_confirmed === true
+        ? text(renderedHeader.commercial_intent || c.commercial_intent, 160) : 'Не подтверждён',
+      next_action: text(renderedHeader.next_action || (c.owner_render_normalized === true ? nh.action : '') || c.next_action || nh.action, 300),
+      next_action_date: text(c.next_action_date || nh.due_date, 40),
       diagnostic_score: c.diagnostic_score === '' || c.diagnostic_score === null || c.diagnostic_score === undefined ? null : Number(c.diagnostic_score),
       financial_zone: text(c.financial_zone || 'UNKNOWN', 20)
     },
@@ -261,7 +272,12 @@ function normalizeOwnerBrief(raw, context) {
     },
     owner_confirmed_facts: Array.isArray(c.owner_confirmed_facts) ? c.owner_confirmed_facts.slice(0, 20) : [],
     owner_notes: Array.isArray(c.owner_notes) ? c.owner_notes.slice(0, 20) : [],
-    history: Array.isArray(c.history) ? c.history.slice(0, 30) : [],
+    history: (Array.isArray(c.history) ? c.history.slice(0, 30) : []).map((item, index) => {
+      if (c.owner_render_normalized !== true || !Array.isArray(r.history)) return item;
+      const rendered = r.history[index];
+      return item && typeof item === 'object' && rendered && typeof rendered === 'object'
+        ? Object.assign({}, item, { label: text(rendered.label || item.label, 500) }) : item;
+    }),
     client_result_eligible: c.client_result_eligible === true,
     client_result_eligibility_reason: text(c.client_result_eligibility_reason, 80)
   };
