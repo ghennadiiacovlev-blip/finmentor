@@ -55,6 +55,7 @@ function printDrift() {
   console.log('CREDENTIAL DRIFT = 0');
   console.log('WEBHOOK DRIFT = 0');
   console.log('SCHEDULE DRIFT = 0');
+  console.log('CONNECTION DRIFT = 0');
 }
 
 async function main() {

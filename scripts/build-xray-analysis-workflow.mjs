@@ -694,4 +694,4 @@ if (isMain) {
   fs.writeFileSync(OUT, sdk);
   console.log('wrote ' + path.relative(ROOT, OUT) + ' (' + sdk.length + ' chars)');
 }
-export { sdk };
+export { code, sdk };

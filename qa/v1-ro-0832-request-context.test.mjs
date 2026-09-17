@@ -46,6 +46,17 @@ const raw = JSON.stringify({ source: 'telegram_miniapp', request_id: requestId, 
 const archive = { 'Lead ID': 'FIN-SUBMISSION', 'Request ID': requestId, 'Raw JSON': raw, 'Created At': '2026-09-17T05:32:26.241Z', Company: 'FINMENTOR UAT RO FINAL', Name: 'Nume Nou', Role: 'Director nou', Language: 'ro', 'Main Pain': 'Problemă nouă', 'Selected Goals': 'Control nou', 'Financial Zone': 'GREEN', 'Lead Priority': 'HOT' };
 const selected = select([oldFailure]);
 const analysisInput = run(sources.buildInput, { 'Select Pending Leads': [selected[0].json], 'Settings to Object': [{ settings }] }, [archive])[0].json;
+const deployedBuildInput = readSource(ROOT);
+let deployedAnalysisInput = null;
+let deployedRuntimeError = null;
+try {
+  deployedAnalysisInput = run(deployedBuildInput, {
+    'Select Pending Leads': [selected[0].json],
+    'Settings to Object': [{ settings }]
+  }, [archive])[0].json;
+} catch (error) {
+  deployedRuntimeError = error;
+}
 const candidate = compileFile(join(ROOT, 'n8n/candidate/xray-analysis-workflow.sdk.js'), {});
 
 check('1 same contact may merge into one canonical lead', () => eq(envelope.lead_id, canonicalLeadId, 'canonical lead'));
@@ -60,6 +71,25 @@ check('5 NEW_REQUEST_ANALYSIS uses exact archived facts', () => {
   const fixture = { name: 'fixture', nodes: [{ name: 'Build Analysis Input', type: 'n8n-nodes-base.code', typeVersion: 2, parameters: { jsCode: '// old' }, position: [0, 0] }], connections: {}, settings: {} };
   const patched = patchRequestContext(fixture, readSource(ROOT));
   eq(protectedShape(patched), protectedShape(fixture), 'bounded patch');
+});
+check('5a deploy candidate executes with the LI helper bound at runtime', () => {
+  assert(!deployedRuntimeError, deployedRuntimeError && deployedRuntimeError.stack || 'runtime failed');
+  assert(/const LI = \(function \(\)/.test(deployedBuildInput), 'LI runtime binding missing');
+});
+check('5b deploy candidate selects the exact archived request', () => {
+  eq(deployedAnalysisInput.source_pairing.method, 'request_id', 'pairing');
+  eq(deployedAnalysisInput.request_id, requestId, 'request id');
+  eq(deployedAnalysisInput.company, 'FINMENTOR UAT RO FINAL', 'company');
+  assert(/Problemă nouă/.test(deployedAnalysisInput.input_digest_text) && !/Old pain/.test(deployedAnalysisInput.input_digest_text), 'request facts');
+});
+check('5c deploy candidate produces valid model input', () => {
+  assert(deployedAnalysisInput.analysis_ready === true, 'analysis not ready');
+  assert(typeof deployedAnalysisInput.ai_system_prompt === 'string' && deployedAnalysisInput.ai_system_prompt.length > 100, 'system prompt missing');
+  assert(typeof deployedAnalysisInput.ai_user_prompt === 'string' && deployedAnalysisInput.ai_user_prompt.length > 100, 'user prompt missing');
+});
+check('5d deploy candidate preserves RO and the approved diagnoses contract', () => {
+  eq(deployedAnalysisInput.locale, 'ro', 'locale');
+  assert(/diagnoses.*2[–-]4/.test(deployedAnalysisInput.ai_system_prompt), 'diagnosis cardinality contract');
 });
 check('6 successful request has exactly one rich owner-alert route', () => {
   eq(candidate.nodes.filter((node) => node.name === 'Telegram Owner Alert').length, 1, 'owner alert nodes');

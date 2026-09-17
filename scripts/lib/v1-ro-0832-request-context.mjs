@@ -1,10 +1,9 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { code as generatedXrayCode } from '../build-xray-analysis-workflow.mjs';
 
 export const IDS = Object.freeze({ xray: 'tNSMRoKlFB52vjge' });
 export const NODE_NAME = 'Build Analysis Input';
-export const EXPECTED_PRE_VERSION = 'f218bf76-7a63-4ee1-85a2-f92faa216117';
-export const EXPECTED_PRE_NODE_SHA256 = '04296c993c1bc586c478044c258ccdd9671b4ec76ee2a107aeccb911378a733e';
+export const EXPECTED_PRE_VERSION = '3038cab5-df8f-4be0-8020-9394f77107a9';
+export const EXPECTED_PRE_NODE_SHA256 = 'd30ad9f4d9692a2161580b3e47d1e02eba973205a6d9021ce8176356c1b929f3';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const fail = (message) => { throw new Error(message); };
@@ -16,8 +15,13 @@ const node = (workflow) => {
 };
 
 export function readSource(root) {
-  const source = readFileSync(join(root, 'n8n', 'src', 'xray-analysis', 'build-input.js'), 'utf8');
+  // Build Analysis Input depends on the Lead Intelligence contract injected by the canonical
+  // X-Ray workflow builder. Returning the raw source here drops that binding and creates a node
+  // that compiles but fails at its first LI call in production.
+  const source = generatedXrayCode.buildInput;
   if (!source.includes('const requestScopedPick = ')) fail('tracked source lacks request-scoped authority marker');
+  if (!source.includes('const LI = (function () {')) fail('generated source lacks LI runtime binding');
+  if (source.includes('__LEAD_INTELLIGENCE_CONTRACT__')) fail('generated source retains LI inline marker');
   return source;
 }
 
