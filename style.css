@@ -1405,6 +1405,12 @@ body.menu-open .mobile-menu {
   line-height: 1.15;
   margin: 0;
 }
+.industry-card p.industry-card__sub {
+  margin-top: calc(6px - var(--sp-4));
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
 .industry-card__badge {
   flex-shrink: 0;
   border-radius: var(--r-pill);
