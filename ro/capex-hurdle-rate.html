@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="../analytics.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate | FINMENTOR</title>
+  <meta name="description" content="Cum evaluați investițiile de capital: NPV, IRR, termen de recuperare, randament incremental ajustat la risc, randament minim cerut și impactul asupra lichidității. Decizia INVEST / REWORK / WAIT / REJECT." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/capex-hurdle-rate.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/capex-hurdle-rate.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/capex-hurdle-rate.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/capex-hurdle-rate.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="FINMENTOR" />
+  <meta property="og:title" content="Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate | FINMENTOR" />
+  <meta property="og:description" content="Capitalul nou se evaluează altfel decât cel deja în lucru. Randament minim cerut, flux incremental, scenariu advers și impact asupra lichidității — cu calculul complet." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/capex-hurdle-rate.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ro_RO" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate | FINMENTOR" />
+  <meta name="twitter:description" content="Capitalul nou se evaluează altfel decât cel deja în lucru. Randament minim cerut, flux incremental, scenariu advers și impact asupra lichidității — cu calculul complet." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "@id": "https://www.finmentor.md/ro/capex-hurdle-rate.html#article",
+        "headline": "Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate",
+        "description": "Cum evaluați investițiile de capital: NPV, IRR, termen de recuperare, randament incremental ajustat la risc, randament minim cerut și impactul asupra lichidității. Decizia INVEST / REWORK / WAIT / REJECT.",
+        "inLanguage": "ro",
+        "author": { "@type": "Person", "name": "Ghennadi Iacovlev" },
+        "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/" },
+        "mainEntityOfPage": "https://www.finmentor.md/ro/capex-hurdle-rate.html"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Acasă", "item": "https://www.finmentor.md/" },
+          { "@type": "ListItem", "position": 2, "name": "Materiale", "item": "https://www.finmentor.md/ro/materials.html" },
+          { "@type": "ListItem", "position": 3, "name": "CAPEX și randamentul minim", "item": "https://www.finmentor.md/ro/capex-hurdle-rate.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="article-page capex-hurdle-page">
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Test financiar FINMENTOR</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../capex-hurdle-rate.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="capex-hurdle-rate.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discutați situația</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>CAPEX și randamentul minim</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">Metodologie · Investiții</p>
+        <h1>Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate</h1>
+        <p class="doc-hero__lead">O decizie de investiție răspunde la o singură întrebare: va genera capitalul nou un randament peste cel pe care proprietarul îl cere justificat, ținând cont de risc. Tot restul este metoda prin care se verifică acest răspuns.</p>
+        <p class="doc-hero__context">FINMENTOR · Ghennadi Iacovlev · jurnal profesional de director financiar</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section class="article-section">
+          <h2>Două întrebări diferite care nu pot fi amestecate</h2>
+          <p>Despre capitalul unei companii se pun două întrebări, iar ele cer instrumente diferite.</p>
+          <p>Prima întrebare privește capitalul deja în lucru: ce randament produce ceea ce este investit și depășește el costul economic al acestui capital. Aici se aplică randamentul capitalului utilizat, ajustat la risc, comparat cu costul său economic.</p>
+          <p>A doua întrebare privește capitalul nou: merită investiți bani suplimentari într-un proiect concret. Aici funcționează o altă logică — randamentul incremental (Incremental Return) comparat cu randamentul minim cerut (Hurdle Rate).</p>
+          <p>Amestecarea acestor două logici este o greșeală frecventă și costisitoare. O companie cu un randament mediu al capitalului de 18% poate respinge un proiect cu randament de 15%, deși costul său al capitalului este de 12%: proiectul ar crea valoare, dar ar „strica media”. Greșeala inversă apare și mai des: un proiect slab este aprobat pentru că „per ansamblu afacerea câștigă mai mult”.</p>
+          <p>Regula este simplă: capitalul nou se evaluează exclusiv după fluxul său incremental și după riscul său propriu. Rezultatele trecute nu participă la acest calcul.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>De unde provine randamentul minim cerut</h2>
+          <p>Randamentul minim cerut nu este dobânda la credit și nici o dorință. Este nivelul sub care proiectul nu compensează costul banilor și riscul asumat.</p>
+          <ul class="fin-list">
+            <li><strong>Costul finanțării împrumutate.</strong> Cel efectiv, cu comisioane și cerințe de garantare incluse, nu rata nominală.</li>
+            <li><strong>Randamentul cerut de proprietar.</strong> Capitalul propriu nu are o rată contractuală, dar are o alternativă și un risc de pierdere totală.</li>
+            <li><strong>Prima de risc a proiectului.</strong> O direcție nouă, o piață nouă sau o tehnologie nouă cer un prag mai ridicat decât extinderea unei activități existente.</li>
+            <li><strong>Prima de nelichiditate.</strong> Cu cât ieșirea din investiție este mai dificilă, cu atât randamentul cerut trebuie să fie mai mare.</li>
+            <li><strong>Utilizarea alternativă.</strong> Dacă firma are un proiect cu randament de 19% la același risc, pragul pentru un proiect nou este practic 19%, nu costul formal al capitalului.</li>
+          </ul>
+          <p>Consecința practică: o companie poate avea mai multe niveluri de randament minim — pentru investiții de menținere, pentru extindere și pentru o direcție nouă. O rată unică pentru toate tipurile de proiecte este aproape întotdeauna greșită în ambele sensuri.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Trei indicatori și ce nu arată fiecare</h2>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Indicatorii investiționali: punctul forte și cel slab</caption>
+              <thead>
+                <tr><th scope="col">Indicator</th><th scope="col">Ce arată</th><th scope="col">Ce nu arată</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">NPV</th><td>Câtă valoare creează proiectul peste randamentul cerut</td><td>Cât de mare este marja de siguranță și când se întorc banii</td></tr>
+                <tr><th scope="row">IRR</th><td>Randamentul propriu al proiectului</td><td>Amploarea efectului; supraevaluează rezultatul la încasări timpurii</td></tr>
+                <tr><th scope="row">Termen de recuperare</th><td>Când se întoarce investiția</td><td>Ce se întâmplă după recuperare</td></tr>
+                <tr><th scope="row">Scenariul advers</th><td>Ce se întâmplă dacă ipotezele nu se confirmă</td><td>Probabilitatea acestui scenariu</td></tr>
+                <tr><th scope="row">Impactul asupra lichidității</th><td>Dacă firma rezistă proiectului din punct de vedere al banilor</td><td>Eficiența economică a proiectului</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Niciun indicator nu este suficient de unul singur. Decizia se ia pe combinația lor și tocmai de aceea un calcul investițional nu se reduce la o singură cifră.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Exemplu: un proiect care arată convingător</h2>
+          <p>O companie analizează achiziția unui utilaj. Investiția — 400 000 €, fluxul de numerar suplimentar așteptat — 90 000 € pe an timp de șapte ani. Randamentul minim cerut pentru proiectele de extindere — 14%.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Calculul proiectului, date convenționale</caption>
+              <thead>
+                <tr><th scope="col">Indicator</th><th scope="col">Valoare</th><th scope="col">Concluzie</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Investiția</th><td>400 000 €</td><td>Într-o singură tranșă</td></tr>
+                <tr><th scope="row">Flux incremental</th><td>90 000 € × 7 ani</td><td>Total 630 000 €</td></tr>
+                <tr><th scope="row">Recuperare simplă</th><td>4,4 ani</td><td>Pare acceptabilă</td></tr>
+                <tr><th scope="row">Valoarea actualizată a fluxului la 14%</th><td>385 900 €</td><td>Sub valoarea investiției</td></tr>
+                <tr><th scope="row">NPV la 14%</th><td>−14 100 €</td><td>Proiectul nu trece pragul</td></tr>
+                <tr><th scope="row">IRR</th><td>≈ 12,9%</td><td>Sub cei 14% ceruți</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Observați distanța dintre intuiție și calcul. Proiectul returnează 630 000 € la o investiție de 400 000 € — un câștig de 230 000 € pare evident. O recuperare simplă în 4,4 ani nu ridică obiecții. Cu toate acestea, proiectul nu creează valoare: randamentul său propriu este cu 1,1 puncte procentuale sub cel cerut.</p>
+          <p>Motivul este că aritmetica simplă ignoră cei șapte ani în care banii companiei rămân imobilizați. Exact această durată o evaluează randamentul minim cerut.</p>
+        </section>
+
+        <section class="article-section article-section--financial">
+          <h2>Scenariul advers decide mai des decât cel de bază</h2>
+          <p>Scenariul de bază este construit aproape întotdeauna pe ipoteze deja agreate în interiorul companiei. De aceea decizia nu se ia după el, ci după scenariul advers.</p>
+          <p>Continuăm exemplul. Să presupunem că fluxul efectiv va fi cu 20% sub cel așteptat — 72 000 € pe an în loc de 90 000 €. Valoarea actualizată la 14% va fi de circa 308 700 €, iar NPV — minus 91 300 €. Proiectul pierde aproape un sfert din investiție.</p>
+          <p>Și verificarea inversă este utilă: la ce nivel al fluxului atinge proiectul randamentul cerut? În cazul nostru — la 93 300 € pe an. Adică marja de siguranță este sub 4%. Orice abatere în jos face proiectul nerentabil după criteriul economic.</p>
+          <p>Tocmai această cifră — marja de siguranță, nu NPV — se dovedește de obicei decisivă în discuție.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Capitalul circulant al proiectului se calculează separat</h2>
+          <p>O omisiune frecventă în calculele investiționale este luarea în considerare doar a cheltuielilor de capital. Între timp, o producție nouă, un magazin nou sau o direcție nouă cer nu doar utilaje, ci și stoc, creanțe și avansuri către furnizori.</p>
+          <p>Acești bani sunt investiți la fel de real ca utilajul, dar adesea nu ajung în calcul, pentru că formal nu sunt cheltuieli de capital. Dacă proiectul necesită suplimentar 60 000 € de capital circulant, investiția nu este de 400 000 €, ci de 460 000 €.</p>
+          <p>O precizare importantă: spre deosebire de utilaj, capitalul circulant se eliberează la finalul proiectului. Un calcul corect include atât investiția de la început, cât și recuperarea de la final — ceea ce îmbunătățește simțitor imaginea față de modul în care capitalul circulant este tratat de obicei, adică deloc.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Un proiect profitabil poate fi imposibil de executat</h2>
+          <p>Eficiența economică și fezabilitatea sunt lucruri diferite. Un proiect cu NPV excelent poate fi inacceptabil dacă, în momentul investiției, compania nu suportă presiunea asupra lichidității.</p>
+          <p>De aceea calculul investițional trebuie să se încheie cu o verificare pe prognoza de numerar: cum arată soldul conturilor în lunile de investiție maximă, nu coboară el sub rezerva operațională minimă și ce se întâmplă dacă, simultan, se decalează termenele la două încasări mari.</p>
+          <p>Formularea deciziei poate fi aici nu „nu”, ci „nu acum”. Un proiect bun, început într-un moment nepotrivit, poate crea o problemă care nu are legătură cu economia sa proprie.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Patru decizii și verificarea obligatorie de după</h2>
+          <ul class="fin-list">
+            <li><strong>INVEST.</strong> Randamentul incremental depășește pragul cerut, scenariul advers este acceptabil, lichiditatea rezistă.</li>
+            <li><strong>REWORK.</strong> Economia nu trece, dar structura proiectului poate fi modificată: etapizare, volumul investiției, condițiile furnizorului, schema de finanțare.</li>
+            <li><strong>WAIT.</strong> Proiectul este acceptabil economic, dar lansarea lui acum creează risc de lichiditate sau concurează cu o alternativă mai puternică.</li>
+            <li><strong>REJECT.</strong> Proiectul nu trece nici în varianta de bază, nici în cea îmbunătățită.</li>
+          </ul>
+          <p>O categorie aparte o constituie investițiile de menținere: înlocuirea utilajelor uzate, cerințele obligatorii, securitatea. Ele se evaluează nu prin randament, ci prin costul refuzului. Întrebarea sună altfel: ce se întâmplă dacă nu investim.</p>
+          <p>Și ultimul lucru, cel mai des omis: analiza de după investiție. La un an — un an și jumătate după lansare, fluxul efectiv trebuie comparat cu cel inclus în calcul. Fără această procedură, calitatea ipotezelor investiționale dintr-o companie nu se îmbunătățește niciodată — erorile pur și simplu nu devin cunoscute.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Calculul complet: ce schimbă capitalul circulant</h2>
+          <p>Să revenim la exemplu și să îl ducem la forma corectă. Proiectul necesită suplimentar 60 000 € de capital circulant — stocul și creanțele aferente volumului nou — care se investesc la început și se recuperează la închiderea proiectului.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Același proiect, cu capitalul circulant inclus, rata 14%</caption>
+              <thead>
+                <tr><th scope="col">Poziție</th><th scope="col">Momentul</th><th scope="col">Valoare actualizată</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Cheltuieli de capital</th><td>început</td><td>−400 000 €</td></tr>
+                <tr><th scope="row">Investiție în capital circulant</th><td>început</td><td>−60 000 €</td></tr>
+                <tr><th scope="row">Flux de numerar 90 000 € × 7 ani</th><td>anii 1–7</td><td>+385 900 €</td></tr>
+                <tr><th scope="row">Recuperarea capitalului circulant</th><td>anul 7</td><td>+24 000 €</td></tr>
+                <tr><th scope="row">NPV cu capitalul circulant inclus</th><td>—</td><td>−50 100 €</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Comparați cu rezultatul anterior: fără capitalul circulant, NPV era minus 14 100 €, cu el — minus 50 100 €. Diferența de 36 000 € nu a apărut din modificarea proiectului, ci din faptul că, anterior, o parte din investiție pur și simplu nu era luată în calcul.</p>
+          <p>Se modifică și pragul de rentabilitate. Anterior, proiectul atingea randamentul cerut la un flux de 93 300 € pe an. Acum, fluxul necesar este de circa 101 700 € — cu 13% peste ceea ce este inclus în calcul.</p>
+          <p>Nu este o corecție teoretică. Pentru proiectele de comerț, producție și distribuție, capitalul circulant reprezintă adesea între 10% și 25% din investiția totală, iar ignorarea lui sistematică face ca întreaga evaluare investițională a companiei să fie optimistă într-o singură direcție.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Ce trebuie să vadă proprietarul</h2>
+          <div class="fin-callout">
+            <p class="fin-callout__label">O singură pagină pe proiect</p>
+            <ul>
+              <li><strong>Investiția totală.</strong> Cheltuieli de capital plus capital circulant plus costuri de lansare.</li>
+              <li><strong>Fluxul incremental.</strong> Doar fluxul suplimentar generat de proiect, fără transferul rezultatului existent.</li>
+              <li><strong>NPV, IRR și randamentul cerut, alături.</strong> Cu precizarea pragului aplicat și a motivului.</li>
+              <li><strong>Marja de siguranță.</strong> La ce scădere a fluxului proiectul încetează să creeze valoare.</li>
+              <li><strong>Impactul asupra lichidității.</strong> Soldul minim al conturilor în perioada investiției.</li>
+              <li><strong>Data și formatul verificării de după lansare.</strong> Când și după ce indicatori se compară faptul.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Greșeli frecvente</h2>
+          <div class="fin-callout">
+            <p class="fin-callout__label">Cum trec proiectele de aprobare fără să creeze valoare</p>
+            <ul>
+              <li><strong>În calcul se include fluxul existent.</strong> Dacă veniturile ar fi apărut și fără proiect, ele nu sunt incrementale și nu trebuie incluse.</li>
+              <li><strong>Randamentul cerut este egalat cu dobânda la credit.</strong> Aceasta coboară pragul și lasă să treacă proiecte slabe.</li>
+              <li><strong>Capitalul circulant nu este luat în calcul.</strong> Investiția se dovedește cu zeci de procente mai mare decât cea declarată.</li>
+              <li><strong>Decizia se ia după termenul de recuperare.</strong> Termenul de recuperare nu spune nimic despre ce urmează după el și ignoră valoarea timpului.</li>
+              <li><strong>Scenariul advers nu este calculat.</strong> Fără el, decizia se ia după cea mai optimistă variantă posibilă a viitorului.</li>
+              <li><strong>Proiectele nu sunt comparate între ele.</strong> Aprobarea unui proiect care trece pragul, în prezența unei alternative mai puternice, înseamnă valoare pierdută.</li>
+              <li><strong>Verificarea de după lansare nu se face.</strong> Ca urmare, aceleași ipoteze se repetă de la un proiect la altul.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Listă practică de verificare</h2>
+          <div class="fin-check">
+            <p class="fin-check__label">Nouă întrebări înaintea unei decizii de investiție</p>
+            <ol>
+              <li>Care este suma totală a investiției, inclusiv capitalul circulant și costurile de lansare?</li>
+              <li>Ce flux este cu adevărat incremental și ce flux ar fi apărut și fără proiect?</li>
+              <li>Ce randament minim a fost aplicat și de ce anume acela?</li>
+              <li>Care sunt NPV și IRR la acest prag?</li>
+              <li>La ce scădere a fluxului proiectul încetează să creeze valoare?</li>
+              <li>Ce arată scenariul advers cu 20%?</li>
+              <li>Cum arată soldul conturilor în lunile de investiție maximă?</li>
+              <li>Există un proiect alternativ cu un raport mai bun între randament și risc?</li>
+              <li>Când și după ce indicatori se va face verificarea de după lansare?</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Verificarea de după lansare: ce anume se confruntă</h2>
+          <p>Analiza de după investiție este singurul mecanism care îmbunătățește calitatea deciziilor investiționale dintr-o companie. Ea nu are scopul de a căuta vinovați: proiectul este deja realizat, iar banii deja cheltuiți. Rostul ei este să rafineze ipotezele pentru deciziile următoare.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Confruntarea la 12–18 luni după lansare</caption>
+              <thead>
+                <tr><th scope="col">Ce se confruntă</th><th scope="col">Abaterea tipică</th><th scope="col">Concluzia pentru proiectele următoare</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Suma investiției</th><td>Peste plan cu 10–20%</td><td>Includerea unei rezerve de lansare în calculul de bază</td></tr>
+                <tr><th scope="row">Termenul de atingere a capacității</th><td>Mai lung decât planul cu una-două trimestre</td><td>Decalarea începutului fluxului, nu doar a mărimii lui</td></tr>
+                <tr><th scope="row">Fluxul incremental</th><td>O parte din flux este preluată de la direcțiile existente</td><td>Separarea mai strictă a fluxului incremental de cel redistribuit</td></tr>
+                <tr><th scope="row">Capitalul circulant</th><td>Peste cel calculat, la atingerea volumului</td><td>Recalcularea coeficientului pe unitate de venit</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Al treilea rând merită o atenție aparte. Cea mai frecventă abatere din calculele investiționale nu este o eroare de rată și nici una de sumă. Este fluxul care ar fi fost obținut și fără proiect, dar a fost contabilizat drept incremental.</p>
+          <p>Regula practică pentru următorul calcul: dacă un canal, un obiectiv sau un produs nou preia parțial vânzări de la cele existente, în fluxul incremental intră doar diferența, nu întregul rulaj al direcției noi.</p>
+        </section>
+
+        <section class="article-section article-conclusion">
+          <h2>Concluzia managerială</h2>
+          <p>Capitalul nou se evaluează după fluxul său incremental față de randamentul cerut — și niciodată după indicatorii medii ai companiei. Decizia se ia nu după scenariul de bază, ci după marja de siguranță și scenariul advers.</p>
+          <p>Iar chiar și un proiect solid economic rămâne o decizie despre bani: el trebuie să fie fezabil din punct de vedere al lichidității exact în momentul în care este lansat.</p>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="map-cta" aria-label="Unde se încadrează acest subiect în sistemul financiar al afacerii?">
+        <p class="map-cta__q">Unde se încadrează acest subiect în sistemul financiar al afacerii?</p>
+        <a class="map-cta__link" href="materials.html#financial-map">Vezi harta financiară →</a>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Continuați pe lanțul financiar</p>
+        <div class="related__grid"><a href="capital-allocation-value.html">Directorul financiar ca administrator al capitalului</a><a href="capital-preservation.html">Cum consumă compania capitalul</a><a href="deal-economics.html">Economia tranzacției înainte de semnare</a><a href="cash-flow.html">De ce profitul nu înseamnă bani</a></div>
+      </nav>
+    </div>
+
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Verificați unde lanțul dvs. financiar pierde rezultatul</p>
+        <p class="cta-band__text">Testul financiar FINMENTOR arată care circuit de management necesită atenție în primul rând — de la pâlnia de vânzări la alocarea capitalului.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Treceți testul financiar</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="materials.html#financial-map">Harta financiară a afacerii</a>
+        <a href="questionnaire.html">Test financiar FINMENTOR</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="terms.html">Condițiile de utilizare a materialelor</a>
+        <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Discutați situația</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condițiile de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="../analytics.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii | FINMENTOR</title>
+  <meta name="description" content="Registrul capitalului, stările capitalului, ROIC ajustat la risc și costul economic al capitalului. Trei niveluri ale valorii create — EVC, NVC și MAVC — și cum separăm efectul de piață de cel managerial." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/ro/capital-allocation-value.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/capital-allocation-value.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/capital-allocation-value.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/capital-allocation-value.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="FINMENTOR" />
+  <meta property="og:title" content="Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii | FINMENTOR" />
+  <meta property="og:description" content="Capitalul eliberat nu este încă valoare creată. Registrul capitalului, RA-ROIC, spread-ul economic și trei niveluri de creare a valorii." />
+  <meta property="og:url" content="https://www.finmentor.md/ro/capital-allocation-value.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ro_RO" />
+  <meta property="og:locale:alternate" content="ru_RU" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii | FINMENTOR" />
+  <meta name="twitter:description" content="Capitalul eliberat nu este încă valoare creată. Registrul capitalului, RA-ROIC, spread-ul economic și trei niveluri de creare a valorii." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../lang.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "@id": "https://www.finmentor.md/ro/capital-allocation-value.html#article",
+        "headline": "Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii",
+        "description": "Registrul capitalului, stările capitalului, ROIC ajustat la risc și costul economic al capitalului. Trei niveluri ale valorii create — EVC, NVC și MAVC — și cum separăm efectul de piață de cel managerial.",
+        "inLanguage": "ro",
+        "author": { "@type": "Person", "name": "Ghennadi Iacovlev" },
+        "publisher": { "@type": "Organization", "name": "FINMENTOR", "url": "https://www.finmentor.md/" },
+        "mainEntityOfPage": "https://www.finmentor.md/ro/capital-allocation-value.html"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Acasă", "item": "https://www.finmentor.md/" },
+          { "@type": "ListItem", "position": 2, "name": "Materiale", "item": "https://www.finmentor.md/ro/materials.html" },
+          { "@type": "ListItem", "position": 3, "name": "Administrarea capitalului și valoarea", "item": "https://www.finmentor.md/ro/capital-allocation-value.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="article-page capital-allocation-page">
+  <header class="doc-bar">
+    <div class="container doc-bar__row">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+      <nav class="doc-bar__nav" aria-label="Navigare">
+        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
+        <a href="materials.html">Materiale</a>
+        <a href="questionnaire.html">Test financiar FINMENTOR</a>
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../capital-allocation-value.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="capital-allocation-value.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="index.html#consult" class="btn btn--primary btn--sm">Discutați situația</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <nav class="crumbs" aria-label="Traseu de navigare">
+        <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Administrarea capitalului și valoarea</span>
+      </nav>
+    </div>
+
+    <section class="doc-hero">
+      <div class="container">
+        <p class="doc-hero__eyebrow">Metodologie · Capital și valoare</p>
+        <h1>Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii</h1>
+        <p class="doc-hero__lead">Raportarea managerială răspunde la întrebarea cât a câștigat compania într-o perioadă. Întrebarea proprietarului este mai complexă: câtă valoare a fost creată pe capitalul aflat în această afacere — și ce parte din ea este rezultatul managementului, nu al mișcării pieței.</p>
+        <p class="doc-hero__context">FINMENTOR · Ghennadi Iacovlev · jurnal profesional de director financiar</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <article class="doc">
+        <section class="article-section">
+          <h2>Contul de profit nu răspunde la întrebarea despre capital</h2>
+          <p>Contul de profit și pierdere arată rezultatul perioadei. El nu arată ce volum de capital a fost necesar pentru obținerea lui, unde este plasat acest capital, în ce stare se află și care este costul său economic.</p>
+          <p>Din această cauză este posibilă o situație familiară multor proprietari: compania este profitabilă câțiva ani la rând, dar senzația de creștere a valorii lipsește. Explicația este de obicei simplă — profitul se produce pe un capital care crește mai repede decât profitul însuși.</p>
+          <p>Rolul directorului financiar se schimbă aici: de la consemnarea rezultatului la administrarea capitalului. Întrebarea se mută de la „cât am câștigat” la „unde se află capitalul proprietarului, cum lucrează el și ce facem mai departe cu el”.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Registrul capitalului: primul instrument de lucru</h2>
+          <p>Registrul capitalului (Capital Register) este lista tuturor locurilor în care se află banii proprietarului, cu evaluarea stării fiecăruia. El nu înlocuiește bilanțul: bilanțul răspunde la întrebarea „cât”, registrul — la întrebarea „cum lucrează”.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Stările capitalului și sensul managerial al fiecăreia</caption>
+              <thead>
+                <tr><th scope="col">Stare</th><th scope="col">Ce înseamnă</th><th scope="col">Decizia posibilă</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Productiv</th><td>Generează un randament peste costul economic al capitalului</td><td>HOLD, IMPROVE</td></tr>
+                <tr><th scope="row">Necesar</th><td>Nu generează randament în sine, dar este necesar funcționării afacerii</td><td>HOLD, optimizarea volumului</td></tr>
+                <tr><th scope="row">Subutilizat</th><td>Lucrează, dar vizibil sub potențialul său</td><td>IMPROVE, REALLOCATE</td></tr>
+                <tr><th scope="row">Blocat</th><td>Nu generează flux și nu are un termen clar de recuperare</td><td>RELEASE, EXIT</td></tr>
+                <tr><th scope="row">Excedentar</th><td>Depășește necesarul ciclului operațional</td><td>RELEASE, REALLOCATE</td></tr>
+                <tr><th scope="row">Angajat prin obligații</th><td>Formal disponibil, în fapt rezervat</td><td>HOLD, revizuirea obligațiilor</td></tr>
+                <tr><th scope="row">Expus la risc</th><td>Poate pierde valoare sau lichiditate</td><td>LIMIT EXPOSURE, EXIT</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>O precizare metodologică importantă: starea este determinată de economie, nu de un semn exterior. Un imobil neocupat nu este automat capital blocat — el poate fi în pregătire planificată pentru o utilizare mai rentabilă. Și invers, o producție complet încărcată poate fi capital subutilizat, dacă randamentul ei este sub costul economic al banilor investiți în ea.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Randamentul capitalului și costul său economic</h2>
+          <p>Randamentul capitalului utilizat (ROIC) arată câtă profitabilitate operațională după impozit generează fiecare euro de capital investit. Luat separat, acest indicator nu spune încă nimic: dacă 14% este bine sau rău depinde de cât costă capitalul și ce risc poartă.</p>
+          <p>De aceea se folosesc două corecții. Prima este cea de risc: randamentele unor direcții cu profiluri de risc diferite nu pot fi comparate direct. A doua este costul economic al capitalului, adică randamentul cerut, ținând cont de structura finanțării și de riscul afacerii.</p>
+          <p>Diferența dintre ele se numește spread economic. Un spread pozitiv înseamnă creare de valoare, unul negativ — distrugerea ei, indiferent de ce arată contul de profit.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Trei direcții ale aceleiași companii, date convenționale</caption>
+              <thead>
+                <tr><th scope="col">Direcție</th><th scope="col">ROIC</th><th scope="col">ROIC ajustat la risc</th><th scope="col">Costul capitalului</th><th scope="col">Spread</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Producția de bază</th><td>16%</td><td>15%</td><td>12%</td><td>+3 p.p.</td></tr>
+                <tr><th scope="row">Direcția nouă</th><td>22%</td><td>15%</td><td>17%</td><td>−2 p.p.</td></tr>
+                <tr><th scope="row">Închirierea spațiilor</th><td>9%</td><td>9%</td><td>8%</td><td>+1 p.p.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>După ROIC-ul simplu, direcția nouă pare cea mai bună: 22% față de 16% și 9%. După corecția de risc și compararea cu propriul cost al capitalului, imaginea se inversează: tocmai ea distruge valoare, iar cea mai „plictisitoare” direcție, cu un randament de 9%, o creează.</p>
+          <p>Aceasta nu înseamnă că direcția nouă trebuie închisă. Înseamnă că randamentul ei trebuie să crească sau riscul ei trebuie să scadă — și că, până atunci, majorarea capitalului alocat ei nu este justificată economic.</p>
+        </section>
+
+        <section class="article-section article-section--financial">
+          <h2>Capitalul existent și capitalul nou: două logici diferite</h2>
+          <p>Această distincție determină corectitudinea întregului sistem și este încălcată mai des decât oricare alta.</p>
+          <p>Pentru <strong>capitalul deja în lucru</strong>, întrebarea sună astfel: randamentul ajustat la risc față de costul economic al acestui capital. Rezultatul calculului este decizia HOLD, IMPROVE, RELEASE, REALLOCATE sau EXIT.</p>
+          <p>Pentru <strong>capitalul nou</strong>, întrebarea este alta: randamentul incremental al unui proiect concret față de randamentul minim cerut. Rezultatul este INVEST, REWORK, WAIT sau REJECT.</p>
+          <p>Amestecarea lor duce la două greșeli caracteristice. Prima: un proiect este respins pentru că randamentul său este sub media companiei, deși depășește pragul cerut și ar crea valoare. A doua, mai costisitoare: un proiect slab este aprobat pentru că randamentul general al afacerii este ridicat — adică noul capital este evaluat după rezultatele celui vechi.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Eliberarea capitalului nu înseamnă creare de valoare</h2>
+          <p>Eliberarea capitalului (Capital Release) înseamnă recuperarea banilor din locurile în care ei nu lucrează: reducerea stocului excedentar, încasarea creanțelor restante, vânzarea unui activ neesențial, refinanțarea unei datorii scumpe, renunțarea la investiții ineficiente.</p>
+          <p>Aici se află principiul încălcat cel mai des: <strong>capitalul eliberat nu este încă valoare creată.</strong> Eliberarea schimbă starea capitalului — din blocat în disponibil. Ea creează posibilitatea următoarei decizii, dar în sine nu mărește valoarea afacerii.</p>
+          <p>Valoarea apare abia la al doilea pas — atunci când banii eliberați sunt plasați cu un randament peste costul lor economic. Dacă cei 300 000 € obținuți din reducerea stocului stau pur și simplu în cont, compania și-a îmbunătățit lichiditatea și și-a redus riscul, dar nu a creat valoare.</p>
+          <p>Regula practică: orice proiect de eliberare a capitalului trebuie să aibă o a doua parte — unde anume sunt direcționate fondurile eliberate. Fără ea, rezultatul se măsoară doar în reducerea riscului.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Trei niveluri ale valorii create</h2>
+          <p>Termenul „creare de valoare” este folosit lejer, iar aici se află dificultatea principală. Din punct de vedere managerial este util să separăm trei mărimi diferite.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>EVC, NVC și MAVC: ce măsoară fiecare nivel</caption>
+              <thead>
+                <tr><th scope="col">Indicator</th><th scope="col">Ce măsoară</th><th scope="col">La ce întrebare răspunde</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">EVC</th><td>Rezultatul economic peste costul capitalului aflat în lucru</td><td>A câștigat afacerea mai mult decât costă capitalul ei?</td></tr>
+                <tr><th scope="row">NVC</th><td>Variația netă a valorii economice pentru proprietar, după ajustarea cu capitalul aportat și cu retragerile</td><td>A devenit proprietarul mai bogat prin această afacere?</td></tr>
+                <tr><th scope="row">MAVC</th><td>Partea din valoarea creată care poate fi legată demonstrabil de deciziile manageriale</td><td>Ce din toate acestea este meritul managementului?</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Să analizăm pe un exemplu convențional, pentru un an.</p>
+          <ul class="fin-list">
+            <li><strong>EVC.</strong> Capitalul utilizat la începutul anului — 4 000 000 €, costul său economic — 13%, adică 520 000 €. Profitul operațional după impozit — 620 000 €. Valoarea economică creată: 620 000 − 520 000 = <strong>100 000 €</strong>.</li>
+            <li><strong>NVC.</strong> Valoarea economică a afacerii a crescut în cursul anului de la 4 600 000 € la 5 050 000 €, adică cu 450 000 €. În același timp, proprietarul a aportat 300 000 € de capital nou și a primit 150 000 € dividende. Valoarea netă creată: 450 000 − 300 000 + 150 000 = <strong>300 000 €</strong>.</li>
+            <li><strong>MAVC.</strong> Din acești 300 000 €, circa 180 000 € provin din creșterea prețurilor de piață la un imobil al companiei — un rezultat care ar fi apărut și fără vreo acțiune a managementului. Valoarea legată de deciziile manageriale: <strong>120 000 €</strong>.</li>
+          </ul>
+          <p>Toate cele trei cifre sunt corecte și toate descriu același an. Dar ele răspund la întrebări diferite, iar substituirea uneia cu alta distorsionează atât evaluarea afacerii, cât și evaluarea echipei de management.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Efectul de piață și efectul managerial</h2>
+          <p>Separarea MAVC de rezultatul total nu este o chestiune de rigoare metodologică, ci de calitate a deciziilor ulterioare.</p>
+          <p>Dacă creșterea valorii unui imobil pe o piață în urcare este contabilizată drept rezultat managerial, compania trage o concluzie greșită despre ce strategie funcționează. La întoarcerea pieței, același mecanism va acționa în sens invers, iar „nereușit” va apărea managementul care nu a schimbat nimic.</p>
+          <p>Metoda practică de separare nu cere modele complexe: se estimează care ar fi fost rezultatul în absența acțiunilor manageriale — la prețuri anterioare, structură anterioară, condiții anterioare — iar diferența se atribuie MAVC. Precizia unei astfel de estimări este limitată, dar direcția pe care o indică este corectă.</p>
+          <p>Separarea funcționează și în sens invers, ceea ce nu este mai puțin important: la scăderea pieței, ea arată ce parte din pierderi a fost prevenită de management.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Alocarea capitalului: unde merge următorul euro</h2>
+          <p>Registrul capitalului, randamentul și cele trei niveluri ale valorii sunt necesare pentru o singură întrebare practică: unde va crea următorul euro de capital mai multă valoare ajustată la risc.</p>
+          <p>Alternativele se compară după același set de criterii — randament așteptat, risc, impact asupra lichidității, capital necesar, cost de oportunitate și rol strategic. Cerința esențială: să fie comparate între ele, nu evaluate fiecare separat. Un proiect care trece pragul poate fi decizia greșită, dacă există o alternativă mai puternică la același nivel de risc.</p>
+          <p>Setul de decizii este limitat și identic pentru toate pozițiile registrului: HOLD, IMPROVE, REFINANCE, RELEASE, INVEST, REALLOCATE, EXIT. Fiecare decizie primește un responsabil, un termen și o modalitate de verificare a rezultatului.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Cum arată o decizie de alocare a capitalului</h2>
+          <p>Alocarea capitalului devine instrument managerial abia atunci când alternativele sunt comparate în același tabel, după aceleași criterii. Atât timp cât fiecare oportunitate este evaluată separat, compania alege sistematic pe cea discutată ultima.</p>
+          <p>Situație convențională: au fost eliberați 500 000 € — din reducerea stocului și din încasarea creanțelor restante. Costul economic al capitalului companiei — 13%.</p>
+          <div class="fin-table-wrap" tabindex="0">
+            <table class="fin-table">
+              <caption>Compararea alternativelor de plasare, date convenționale</caption>
+              <thead>
+                <tr><th scope="col">Alternativă</th><th scope="col">Randament ajustat la risc</th><th scope="col">Impact asupra lichidității</th><th scope="col">Decizie</th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Rambursarea datoriei scumpe, la 16%</th><td>16% garantat</td><td>Îmbunătățește</td><td>INVEST — varianta de bază</td></tr>
+                <tr><th scope="row">Extinderea direcției principale</th><td>15% la risc moderat</td><td>Înrăutățește pe 9 luni</td><td>INVEST parțial</td></tr>
+                <tr><th scope="row">Direcție nouă</th><td>15% la risc ridicat</td><td>Înrăutățește pe 18 luni</td><td>WAIT până la confirmarea modelului</td></tr>
+                <tr><th scope="row">Păstrarea în conturi</th><td>circa 2%</td><td>Neutru</td><td>HOLD doar pentru partea de rezervă</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Observați primul rând. Rambursarea unei datorii cu dobândă de 16% oferă un randament garantat de 16%, fără risc operațional — și se dovedește aproape întotdeauna mai puternică decât proiectele cu randament așteptat comparabil, dar cu risc de execuție. Este cea mai subevaluată alternativă din practica alocării capitalului.</p>
+          <p>Al doilea și al treilea rând arată de ce un randament identic nu înseamnă o decizie identică. La 15% în ambele cazuri, alegerea este dată de risc și de durata pe care se deteriorează lichiditatea.</p>
+          <p>Al patrulea rând este o reamintire că și inacțiunea este o decizie, iar ea are un preț. A ține 500 000 € la 2%, în condițiile unui cost al capitalului de 13%, înseamnă a pierde circa 55 000 € de valoare economică pe an. O parte din sold trebuie să rămână rezervă, dar întregul sold nu este rezervă.</p>
+        </section>
+
+        <section class="article-section">
+          <h2>Ce trebuie să vadă proprietarul</h2>
+          <div class="fin-callout">
+            <p class="fin-callout__label">O analiză pe an — și o scurtă revizuire pe trimestru</p>
+            <ul>
+              <li><strong>Registrul capitalului pe stări.</strong> Câți bani lucrează, câți sunt necesari operațiunilor, câți sunt blocați și câți sunt excedentari.</li>
+              <li><strong>Randamentul față de costul capitalului, pe direcții.</strong> Cu ajustarea de risc și cu indicarea spread-ului.</li>
+              <li><strong>Potențialul de eliberare.</strong> Sumă, termen și risc pentru fiecare sursă.</li>
+              <li><strong>Unde au fost direcționate fondurile eliberate.</strong> Fără acest rând, eliberarea rămâne o decizie neterminată.</li>
+              <li><strong>EVC, NVC și MAVC pentru perioadă.</strong> Trei cifre alăturate, cu explicarea diferenței dintre ele.</li>
+              <li><strong>Lista deciziilor privind capitalul.</strong> Cu responsabil, termen și rezultat efectiv.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Greșeli frecvente</h2>
+          <div class="fin-callout">
+            <p class="fin-callout__label">Unde își pierde sensul administrarea capitalului</p>
+            <ul>
+              <li><strong>Eliberarea este declarată valoare creată.</strong> Banii eliberați sunt o posibilitate, nu un rezultat.</li>
+              <li><strong>Creșterea pieței este trecută în contul managementului.</strong> Aceasta distorsionează atât evaluarea strategiei, cât și evaluarea echipei.</li>
+              <li><strong>Capitalul nou este evaluat după randamentul mediu al companiei.</strong> Două logici diferite sunt contopite într-una singură.</li>
+              <li><strong>Riscul nu este inclus în randament.</strong> O direcție cu randament ridicat și risc ridicat pare cea mai bună, până când riscul se materializează.</li>
+              <li><strong>Registrul capitalului se întocmește o singură dată.</strong> Stările se schimbă: capitalul productiv devine subutilizat, cel excedentar devine necesar.</li>
+              <li><strong>Deciziile nu sunt duse până la execuție.</strong> Un registru în care sunt consemnate concluzii fără responsabili și termene nu schimbă nimic.</li>
+              <li><strong>EVC este substituit cu profitul.</strong> Un an profitabil cu spread economic negativ înseamnă distrugere de valoare, nu creare.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Listă practică de verificare</h2>
+          <div class="fin-check">
+            <p class="fin-check__label">De unde începeți administrarea capitalului</p>
+            <ol>
+              <li>Întocmiți lista locurilor în care se află capitalul proprietarului, cu suma aferentă fiecăruia.</li>
+              <li>Stabiliți starea fiecărei poziții: productiv, necesar, subutilizat, blocat, excedentar, expus la risc.</li>
+              <li>Calculați randamentul pe direcțiile principale și comparați-l cu costul economic al capitalului.</li>
+              <li>Verificați unde spread-ul este negativ și formulați o decizie pentru fiecare astfel de poziție.</li>
+              <li>Estimați potențialul de eliberare: sumă, termen, risc.</li>
+              <li>Pentru fiecare sursă de eliberare, stabiliți unde sunt direcționate fondurile.</li>
+              <li>Descompuneți rezultatul perioadei în EVC, NVC și MAVC.</li>
+              <li>Separați efectul de piață de cel managerial, măcar aproximativ.</li>
+              <li>Consemnați deciziile cu responsabil, termen și data verificării rezultatului efectiv.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="article-section">
+          <h2>Controlul de după decizie</h2>
+          <p>Deciziile privind capitalul au un orizont lung și tocmai de aceea rămân, mai des decât altele, neverificate. Până când rezultatul devine vizibil, circumstanțele s-au schimbat deja, iar confruntarea pare lipsită de sens. Este o eroare: fără ea, compania nu află dacă propria logică de alocare funcționează.</p>
+          <ul class="fin-list">
+            <li><strong>Starea pozițiilor din registru.</strong> Trimestrial: ce și-a schimbat starea, ce a rămas blocat peste termenul declarat, unde au apărut poziții noi expuse la risc.</li>
+            <li><strong>Eliberarea față de plan.</strong> Cât capital s-a planificat a fi eliberat, cât a fost eliberat efectiv și în ce termen.</li>
+            <li><strong>Plasarea față de decizie.</strong> Au ajuns fondurile eliberate acolo unde s-a decis. Dacă nu — decizia a fost anulată tacit, iar acesta este în sine un fapt managerial.</li>
+            <li><strong>Spread-ul de după decizie.</strong> S-a modificat spread-ul economic al poziției pentru care s-a decis IMPROVE. Dacă după un an spread-ul este același, decizia nu a fost executată.</li>
+            <li><strong>Descompunerea rezultatului.</strong> EVC, NVC și MAVC pentru perioadă — cu indicarea explicită a părții din variație explicate de piață.</li>
+          </ul>
+          <p>Al treilea punct merită o atenție aparte. Cea mai răspândită disfuncție în administrarea capitalului nu este decizia greșită, ci decizia luată și apoi neexecutată pe nesimțite: fondurile eliberate au ajuns în cheltuieli curente, pentru că nimeni nu le-a fixat destinația.</p>
+          <p>Tocmai de aceea decizia de eliberare și cea de plasare trebuie luate simultan și consemnate împreună. Separate în timp, ele diverg aproape întotdeauna.</p>
+        </section>
+
+        <section class="article-section article-conclusion">
+          <h2>Concluzia managerială</h2>
+          <p>Administrarea capitalului începe cu o acțiune simplă: să vedeți unde se află banii proprietarului și în ce stare sunt. Mai departe funcționează o succesiune — randamentul față de costul economic al capitalului, o decizie pentru fiecare poziție, eliberarea acolo unde capitalul nu lucrează și plasarea acolo unde el creează mai multă valoare ajustată la risc.</p>
+          <p>Valoarea creată se măsoară pe trei niveluri, iar ele nu pot fi substituite unul cu altul. Valoarea economică arată dacă afacerea a câștigat mai mult decât costă capitalul ei. Cea netă — dacă proprietarul a devenit mai bogat. Cea atribuibilă managementului — ce din toate acestea este rezultatul deciziilor, nu al mișcării pieței.</p>
+          <p>Proprietarul are nevoie de a treia cifră. Tocmai ea răspunde la întrebarea dacă sistemul de management funcționează — și tocmai ea este cel mai adesea necalculată.</p>
+        </section>
+      </article>
+    </div>
+
+    <div class="container">
+      <section class="map-cta" aria-label="Unde se încadrează acest subiect în sistemul financiar al afacerii?">
+        <p class="map-cta__q">Unde se încadrează acest subiect în sistemul financiar al afacerii?</p>
+        <a class="map-cta__link" href="materials.html#financial-map">Vezi harta financiară →</a>
+      </section>
+    </div>
+
+    <div class="container">
+      <nav class="related" aria-label="Materiale conexe">
+        <p class="related__label">Continuați pe lanțul financiar</p>
+        <div class="related__grid"><a href="capex-hurdle-rate.html">CAPEX: Incremental Return vs Hurdle Rate</a><a href="capital-preservation.html">Cum consumă compania capitalul</a><a href="working-capital.html">Unde sunt blocați banii afacerii</a><a href="business-control-system.html">Business Control System</a></div>
+      </nav>
+    </div>
+
+    <div class="container">
+      <section class="cta-band" style="margin-bottom:var(--sp-9)">
+        <p class="cta-band__title">Verificați unde lanțul dvs. financiar pierde rezultatul</p>
+        <p class="cta-band__text">Testul financiar FINMENTOR arată care circuit de management necesită atenție în primul rând — de la pâlnia de vânzări la alocarea capitalului.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Treceți testul financiar</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="doc-foot">
+    <div class="container doc-foot__row">
+      <div class="doc-foot__links">
+        <a href="index.html">Acasă</a>
+        <a href="materials.html">Materiale</a>
+        <a href="materials.html#financial-map">Harta financiară a afacerii</a>
+        <a href="questionnaire.html">Test financiar FINMENTOR</a>
+        <a href="privacy.html">Politica de confidențialitate</a>
+        <a href="terms.html">Condițiile de utilizare a materialelor</a>
+        <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Discutați situația</a>
+        <a href="mailto:cfo@finmentor.md">Email</a>
+      </div>
+      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
+      <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condițiile de utilizare a materialelor</a></span>
+    </div>
+  </footer>
+  <script src="../lang.js"></script>
+  <script src="../assistant.js"></script>
+</body>
+</html>
