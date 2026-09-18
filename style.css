@@ -5224,6 +5224,348 @@ body.menu-open .doc-bar { visibility: hidden; }
   .fin-table-wrap::after { transition: none; }
 }
 
+/* ==========================================================================
+   FINANCIAL BUSINESS MAP — premium editorial refinement
+   Design-only: hierarchy, spacing, typography, grouping. No content, no logic,
+   no markup change. Everything here is scoped to Materials-page classes.
+   Ordering note: inserted BEFORE the canonical prefers-reduced-motion block so
+   that block remains last in the file (quality gate reads the last one).
+   ========================================================================== */
+
+/* ---------------------------------------------------- chapters as divisions */
+.fmap-chapter { padding-top: clamp(var(--sp-7), 6vw, var(--sp-10)); }
+.fmap-chapter + .fmap-chapter { margin-top: clamp(var(--sp-7), 6vw, var(--sp-9)); }
+.fmap-chapter__head {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+  margin-bottom: clamp(var(--sp-5), 3vw, var(--sp-7));
+}
+.fmap-chapter__num {
+  position: relative;
+  justify-self: start;
+  padding: 0 0 0 52px;
+  border-bottom: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.fmap-chapter__num::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 36px;
+  height: 1px;
+  background: var(--accent);
+}
+.fmap-chapter__title {
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  letter-spacing: -0.015em;
+  max-width: 24ch;
+}
+.fmap-chapter__note {
+  grid-column: 1;
+  margin-top: 0;
+  max-width: 66ch;
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+/* ------------------------------------------- stage index: one strict column */
+/* A single column lets an opened stage use a real three-block structured area
+   instead of a cramped half-width card, and reads as a methodology index. */
+.fmap-stages {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.fmap-stage {
+  border-radius: var(--r-sm);
+  border-color: var(--border-hairline);
+  background: transparent;
+}
+.fmap-stage:hover { background: rgba(255, 255, 255, 0.022); }
+.fmap-stage[open] {
+  background: rgba(255, 255, 255, 0.032);
+  border-color: var(--border-gold);
+}
+.fmap-stage__summary {
+  padding: var(--sp-4) var(--sp-5);
+  gap: var(--sp-5);
+  min-height: 56px;
+}
+.fmap-stage__no {
+  font-size: 0.8rem;
+  min-width: 2ch;
+}
+.fmap-stage__name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px var(--sp-4);
+  font-size: 1.02rem;
+}
+.fmap-stage__name em {
+  display: inline;
+  margin-top: 0;
+  font-size: 0.66rem;
+}
+
+/* ------------------------------------------------ opened stage: hierarchy */
+.fmap-stage__body {
+  margin: 0 var(--sp-5) var(--sp-5);
+  padding-top: var(--sp-5);
+}
+.fmap-stage__q {
+  font-size: 1.06rem;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+.fmap-stage__rule {
+  margin-top: var(--sp-4);
+  padding-left: var(--sp-5);
+  max-width: 62ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.fmap-stage__row {
+  margin-top: clamp(var(--sp-5), 3vw, var(--sp-6));
+  font-size: 0.94rem;
+  line-height: 1.66;
+}
+.fmap-stage__row > dt {
+  margin-bottom: 10px;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+}
+.fmap-stage__row > dd { margin-bottom: var(--sp-5); }
+.fmap-tags { gap: 7px; }
+.fmap-tags li {
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+/* KPI → FLAGS → DECISION: weight increases left to right, so the eye reads
+   "number → signal → decision" without any extra wording. */
+.fmap-stage__row > dd:nth-of-type(3) {          /* FLAGS */
+  padding-left: var(--sp-4);
+  border-left: 2px solid rgba(201, 162, 39, 0.26);
+}
+.fmap-stage__row > dd:nth-of-type(4) {          /* DECISION — strongest */
+  padding: var(--sp-4);
+  border: 1px solid rgba(201, 162, 39, 0.22);
+  border-radius: var(--r-sm);
+  background: rgba(201, 162, 39, 0.06);
+}
+.fmap-stage__row > dt:nth-of-type(4) { color: var(--micro-label-gold); }
+.fmap-tags--decision li {
+  font-weight: 600;
+  background: rgba(201, 162, 39, 0.12);
+  border-color: rgba(201, 162, 39, 0.26);
+}
+
+/* structured three-block area once there is room for it */
+@media (min-width: 900px) {
+  .fmap-stage__row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--sp-5);
+    row-gap: 0;
+    align-items: start;
+  }
+  .fmap-stage__row > dt:nth-of-type(1) { grid-area: 1 / 1 / 2 / -1; }
+  .fmap-stage__row > dd:nth-of-type(1) { grid-area: 2 / 1 / 3 / -1; max-width: 76ch; }
+  .fmap-stage__row > dt:nth-of-type(2) { grid-area: 3 / 1 / 4 / 2; }
+  .fmap-stage__row > dd:nth-of-type(2) { grid-area: 4 / 1 / 5 / 2; }
+  .fmap-stage__row > dt:nth-of-type(3) { grid-area: 3 / 2 / 4 / 3; }
+  .fmap-stage__row > dd:nth-of-type(3) { grid-area: 4 / 2 / 5 / 3; }
+  .fmap-stage__row > dt:nth-of-type(4) { grid-area: 3 / 3 / 4 / 4; }
+  .fmap-stage__row > dd:nth-of-type(4) { grid-area: 4 / 3 / 5 / 4; }
+  .fmap-stage__row > dt:nth-of-type(5) { grid-area: 5 / 1 / 6 / -1; padding-top: var(--sp-5); }
+  .fmap-stage__row > dd:nth-of-type(5) { grid-area: 6 / 1 / 7 / -1; margin-bottom: 0; }
+  .fmap-stage__row > dt:nth-of-type(2),
+  .fmap-stage__row > dt:nth-of-type(3),
+  .fmap-stage__row > dt:nth-of-type(4) { padding-top: var(--sp-4); }
+}
+
+/* --------------------------------------------- causal handoff as movement */
+.fmap-stage__next {
+  margin-top: clamp(var(--sp-5), 3vw, var(--sp-6));
+  padding-top: var(--sp-5);
+  max-width: 76ch;
+  font-size: 0.9rem;
+  line-height: 1.64;
+}
+.fmap-stage__next-label {
+  margin-bottom: 8px;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+}
+.fmap-stage__next a {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--sp-4);
+  padding: 8px 15px;
+  border: 1px solid var(--glass-border);
+  border-bottom-color: var(--border-gold);
+  border-radius: var(--r-pill);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+}
+.fmap-stage__next a:hover {
+  border-color: var(--glass-border-gold);
+  background: rgba(201, 162, 39, 0.06);
+}
+
+/* ------------------------------------------------- cross-cutting layers */
+.fmap-layers {
+  margin-top: clamp(var(--sp-7), 5vw, var(--sp-8));
+  padding-top: clamp(var(--sp-6), 4vw, var(--sp-7));
+}
+.fmap-layers__title { font-size: clamp(1.15rem, 2vw, 1.4rem); }
+.fmap-layers__note { font-size: 0.98rem; line-height: 1.66; }
+.fmap-layers__list {
+  margin-top: clamp(var(--sp-5), 3vw, var(--sp-6));
+  gap: clamp(var(--sp-5), 3vw, var(--sp-7));
+}
+.fmap-layer {
+  padding-top: 0;
+  border-top: 0;
+}
+.fmap-layer::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 1px;
+  margin-bottom: var(--sp-4);
+  background: var(--accent);
+}
+.fmap-layer__name { font-size: 0.7rem; letter-spacing: 0.16em; }
+.fmap-layer__text { font-size: 0.9rem; line-height: 1.66; }
+
+/* ------------------------------------------- principles as an editorial set */
+.fmap-principles {
+  margin-top: clamp(var(--sp-8), 7vw, var(--sp-10));
+  padding-top: clamp(var(--sp-7), 5vw, var(--sp-9));
+  border-top: 1px solid var(--border-gold);
+}
+.fmap-principles__title {
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  letter-spacing: -0.015em;
+}
+.fmap-principles__note {
+  max-width: 62ch;
+  font-size: 1.02rem;
+  line-height: 1.68;
+}
+.fmap-principles__list {
+  margin-top: clamp(var(--sp-6), 4vw, var(--sp-7));
+  gap: 0 clamp(var(--sp-7), 5vw, var(--sp-9));
+}
+.fmap-principle { padding-block: clamp(var(--sp-5), 3vw, var(--sp-6)); }
+.fmap-principle__formula {
+  font-size: 0.86rem;
+  letter-spacing: 0.03em;
+  color: var(--accent-bright);
+}
+.fmap-principle__text {
+  margin-top: var(--sp-3);
+  font-size: 0.95rem;
+  line-height: 1.68;
+}
+
+/* ------------------------------------------------------ materials library */
+.materials-hub.sec--light { padding-top: clamp(var(--sp-6), 4vw, var(--sp-7)); }
+.materials-section { margin-top: clamp(var(--sp-8), 6vw, var(--sp-9)); }
+.materials-section__head h2 { font-size: clamp(1.5rem, 2.8vw, 2rem); letter-spacing: -0.012em; }
+.materials-section__note { font-size: 1rem; line-height: 1.66; max-width: 68ch; }
+.materials-list { gap: var(--sp-5); }
+.kb-item {
+  gap: 12px;
+  padding: clamp(var(--sp-5), 2.4vw, var(--sp-6));
+  border-radius: var(--r-md);
+}
+.kb-item__cat {
+  position: relative;
+  padding-left: 22px;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+}
+.kb-item__cat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.75;
+}
+.kb-item__title { font-size: 1.12rem; line-height: 1.32; }
+.kb-item__desc { font-size: 0.9rem; line-height: 1.62; }
+.kb-item__status { padding-top: 14px; font-size: 0.68rem; letter-spacing: 0.1em; }
+
+/* 981–1200px: three editorial columns get cramped before the existing 980px
+   breakpoint takes over, so widen the two-column band. The approved
+   three-column desktop system above 1200px is unchanged. */
+@media (min-width: 981px) and (max-width: 1200px) {
+  .materials-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ------------------------------------------------------ CTA band hierarchy */
+.materials-page .cta-band { padding: clamp(var(--sp-6), 4vw, var(--sp-8)); }
+.materials-page .cta-band__title { font-size: clamp(1.4rem, 2.4vw, 1.75rem); }
+.materials-page .cta-band__text { font-size: 1rem; line-height: 1.66; }
+.materials-page .cta-band__row { align-items: center; }
+.materials-page .cta-band__row .btn--ghost:last-child {
+  border-color: transparent;
+  padding-inline: var(--sp-3);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--border-gold);
+}
+.materials-page .cta-band__row .btn--ghost:last-child:hover {
+  border-color: transparent;
+  text-decoration-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- tablet */
+@media (max-width: 899px) {
+  .fmap-stage__row > dd:nth-of-type(4) { margin-top: 2px; }
+}
+
+/* ---------------------------------------------------------------- mobile */
+@media (max-width: 620px) {
+  .fmap-chapter__title { font-size: clamp(1.3rem, 6vw, 1.6rem); max-width: none; }
+  .fmap-chapter__num { padding-left: 40px; font-size: 0.74rem; letter-spacing: 0.18em; }
+  .fmap-chapter__num::before { width: 26px; }
+  .fmap-stage__summary { padding: var(--sp-4); gap: var(--sp-3); }
+  .fmap-stage__name { font-size: 0.98rem; }
+  .fmap-stage__body { margin-inline: var(--sp-4); margin-bottom: var(--sp-4); }
+  .fmap-stage__q { font-size: 1rem; }
+  .fmap-principle__formula { font-size: 0.8rem; }
+  .fmap-principles__list { gap: 0; }
+  .fmap-layers__list { gap: 0; }
+  .fmap-layer { padding-block: var(--sp-5) 0; }
+}
+@media (max-width: 380px) {
+  .fmap-stage__summary { padding: 14px 12px; gap: 10px; }
+  .fmap-stage__body { margin-inline: 12px; }
+  .kb-item { padding: var(--sp-5) var(--sp-4); }
+}
+
+/* ----------------------------------------------------------- accessibility */
+.fmap-stage__next a:focus-visible,
+.fmap-stage__links a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fmap-stage,
+  .fmap-stage__next a { transition: none; }
+}
+
 /* --- reduced-motion: no hover displacement -------------------------------
    Canonical guarantee, kept last in the file so it remains the authoritative
    prefers-reduced-motion block. Re-states the existing rule; no rendered change. */
