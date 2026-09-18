@@ -4,7 +4,8 @@
 // authority; these assertions make the boundary fail closed if a future edit bypasses either
 // prerequisite. Both approved authorities converge here:
 //   internal — receipt commit updated exactly one row;
-//   public   — the successful Pipeline append reached Respond New Lead.
+//   public   — the successful Pipeline append reached Respond New Lead, or the successful
+//              Pipeline merge update reached Respond Merged.
 // Provenance is never used as an eligibility shortcut.
 
 let merged = false;
@@ -21,13 +22,20 @@ if (internal) {
   if (Number(commit.__commit_updated_rows) !== 1 || Number(commit.__commit_ok) !== 1) return [];
   commitAuthority = merged ? 'RECEIPT_COMMIT_MERGE' : 'RECEIPT_COMMIT';
 } else {
-  // Public merges retain their existing response/side-effect contract. This correction is bounded
-  // to the authenticated Mini App path whose durable receipt provides the commit authority.
-  if (merged) return [];
-  let publicNew = false;
-  try { publicNew = $('Respond New Lead').isExecuted === true && $('Save to Pipeline').isExecuted === true; } catch (e) {}
-  if (!publicNew) return [];
-  commitAuthority = 'PUBLIC_PIPELINE_COMMIT';
+  // A committed public merge is a new request on an existing lead. Every eligible lead's legacy
+  // intake alert is suppressed in favour of the single X-Ray owner alert, so returning nothing
+  // here left a website request that merged with no owner alert at all (2026-09-18 RU incident).
+  // Respond Merged is reachable only from a successful Update Pipeline (Merge); a public retry
+  // settles through Respond Retry and never reaches this node, and X-Ray analyses one request_id
+  // at most once, so this cannot replay an alert for an already-settled request.
+  let publicCommitted = false;
+  try {
+    publicCommitted = merged
+      ? $('Respond Merged').isExecuted === true && $('Update Pipeline (Merge)').isExecuted === true
+      : $('Respond New Lead').isExecuted === true && $('Save to Pipeline').isExecuted === true;
+  } catch (e) {}
+  if (!publicCommitted) return [];
+  commitAuthority = merged ? 'PUBLIC_PIPELINE_MERGE' : 'PUBLIC_PIPELINE_COMMIT';
 }
 
 const leadId = String(lead.lead_id || '').trim();

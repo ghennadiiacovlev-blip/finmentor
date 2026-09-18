@@ -105,14 +105,14 @@ check('one-row durable Merge commit emits one closed owner-intelligence request'
   } }], 'Merge envelope');
 });
 
-check('uncommitted or public Merge cannot dispatch owner intelligence', () => {
+check('uncommitted internal or public Merge (no Pipeline merge proof) cannot dispatch owner intelligence', () => {
   eq(runCode(sources.intakeRequest, {
     'Restore Lead Context (Merged)': [{ provenance_trusted: true, lead_id: 'FIN-CANON', request_id: 'sub_current' }],
     'Commit Verdict (Merge)': [{ __commit_updated_rows: 0, __commit_ok: 0 }]
   }, [{}]), [], 'uncommitted Merge');
   eq(runCode(sources.intakeRequest, {
     'Restore Lead Context (Merged)': [{ provenance_trusted: false, lead_id: 'FIN-CANON', request_id: 'fmr_' + 'a'.repeat(32) }]
-  }, [{}]), [], 'public Merge');
+  }, [{}]), [], 'public Merge without Pipeline merge proof');
 });
 
 const target = runCode(sources.xrayTarget, {}, [{

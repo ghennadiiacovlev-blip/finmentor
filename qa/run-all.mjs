@@ -114,6 +114,7 @@ const GATES = [
   ['V1 submit return contract — committed answer is the last node (v1 order)', 'v1-submit-return-contract.test.mjs'],
   ['V1 X-Ray retry contract — newest failed request retried, bounded, truthful copy', 'v1-xray-retry-contract.test.mjs'],
   ['V1 owner render architecture — core language-decoupled, bounded owner normalizer', 'v1-owner-render-architecture.test.mjs'],
+  ['V1 public merge reaches the single X-Ray owner alert', 'v1-public-merge-owner-alert.test.mjs'],
   ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
   ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
