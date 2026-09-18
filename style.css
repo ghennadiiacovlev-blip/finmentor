@@ -5893,6 +5893,71 @@ body.menu-open .doc-bar { visibility: hidden; }
   .finmentor-flow__arrow { left: 19px; }
 }
 
+/* ==========================================================================
+   STATEMENT SCREEN — one full-width pause on the homepage
+   A single muted-gold keyword and an ivory question on flat navy, set on the
+   content grid's left edge (not centred) and sitting slightly above the
+   optical middle. No cards, icons, CTA, gradient or glow. Motion is the
+   shared `.reveal` (fires once), softened to a short rise.
+   Ordering note: inserted BEFORE the canonical prefers-reduced-motion block so
+   that block remains last in the file.
+   ========================================================================== */
+.statement-screen {
+  --ss-ivory: #F2EFE7;  /* the institutional ivory of the light sections */
+  display: flex;
+  align-items: center;
+  min-height: 65vh;
+  padding-block: var(--sp-8) var(--sp-10);
+  background: var(--navy-800);
+}
+.statement-screen .statement-screen__text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+.statement-screen__keyword {
+  display: block;
+  font-size: clamp(4rem, 9.5vw, 8.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--gold-500);   /* brand gold; softened by opacity 0.82 once revealed */
+}
+.statement-screen__question {
+  display: block;
+  max-width: 38ch;      /* one line in RU and RO on desktop */
+  margin-top: clamp(var(--sp-5), 2.4vw, var(--sp-6));
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--ss-ivory);
+  text-wrap: balance;
+}
+.statement-screen .reveal {
+  transform: translateY(12px);
+  transition-duration: 700ms;
+}
+.statement-screen .reveal.is-visible { transform: none; }
+/* the keyword reveals to its softened opacity, not the shared 1 */
+.statement-screen__keyword.reveal.is-visible { opacity: 0.82; }
+
+@media (max-width: 720px) {
+  .statement-screen {
+    min-height: 50vh;
+    min-height: 50svh;
+    padding-block: var(--sp-7) var(--sp-9);
+  }
+  .statement-screen__keyword { font-size: clamp(3.25rem, 17vw, 4.5rem); }
+  .statement-screen__question { font-size: clamp(1.25rem, 5.6vw, 1.45rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .statement-screen .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .statement-screen .statement-screen__keyword { opacity: 0.82; }
+}
+
 /* --- reduced-motion: no hover displacement -------------------------------
    Canonical guarantee, kept last in the file so it remains the authoritative
    prefers-reduced-motion block. Re-states the existing rule; no rendered change. */
