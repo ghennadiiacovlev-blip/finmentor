@@ -5217,3 +5217,13 @@ body.menu-open .doc-bar { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .fin-table-wrap::after { transition: none; }
 }
+
+/* --- reduced-motion: no hover displacement -------------------------------
+   Canonical guarantee, kept last in the file so it remains the authoritative
+   prefers-reduced-motion block. Re-states the existing rule; no rendered change. */
+@media (prefers-reduced-motion: reduce) {
+  .package--flagship:hover,
+  a.kb-item:hover {
+    transform: none !important;
+  }
+}
