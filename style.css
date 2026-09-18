@@ -5566,6 +5566,333 @@ body.menu-open .doc-bar { visibility: hidden; }
   .fmap-stage__next a { transition: none; }
 }
 
+/* ==========================================================================
+   FINMENTOR COMPARE — executive comparison panels (reusable)
+   One large two-column panel: a strong thesis above, a restrained HTML/CSS
+   flow in each column, a short caption below. Navy / graphite surface, ivory
+   copy, FINMENTOR gold only on the controlled side. No images, no icons, no
+   gradients, no glass, no glow.
+
+     .finmentor-compare            root (section content, or a <figure>)
+       __head / __eyebrow / __title (a <span> inside the title = second line, gold)
+       __panel                     the two-column grid
+       __side  (--control)         left = what happens, right = what is managed
+         __side-head / __label / __sub
+         .finmentor-flow           <ol>, one __node per step
+           __node (--result)       last step carries the conclusion
+           __arrow                 connector drawn into the gap above a node
+           __delta                 ↑ marker, paired with visually hidden text
+         __note                    caption
+     --inline                      inside a service page's reading column
+     --editorial                   article figure
+
+   Motion lives only on the homepage, where main.js already drives `.reveal`:
+   a 280 ms fade/rise of the panel, then the connectors draw once, downward.
+   Service and article pages load no main.js and render the final state.
+   Ordering note: inserted BEFORE the canonical prefers-reduced-motion block so
+   that block remains last in the file (quality gate reads the last one).
+   ========================================================================== */
+
+.finmentor-compare {
+  --fc-line: rgba(255, 255, 255, 0.10);
+  --fc-line-strong: rgba(255, 255, 255, 0.26);
+  --fc-gold-line: rgba(201, 162, 39, 0.62);
+  --fc-gold-strong: rgba(201, 162, 39, 0.82);
+  --fc-gold-hair: rgba(201, 162, 39, 0.18);
+  --fc-gold-divider: rgba(201, 162, 39, 0.24);
+  --fc-gap: 30px;                                   /* between flow nodes */
+  --fc-pad: clamp(var(--sp-5), 3.6vw, var(--sp-7)); /* side padding */
+  --fc-row-gap: var(--sp-6);                        /* label / flow / note */
+  color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------- thesis */
+.finmentor-compare__head {
+  max-width: 820px;
+  margin-bottom: clamp(var(--sp-6), 4vw, var(--sp-7));
+}
+.finmentor-compare .finmentor-compare__eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--micro-label-gold);
+}
+.finmentor-compare .finmentor-compare__title {
+  max-width: none;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.finmentor-compare__title > span {
+  display: block;
+  color: var(--accent);
+}
+
+/* ----------------------------------------------------------------- panel */
+.finmentor-compare__panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto 1fr auto;
+  border: 1px solid var(--fc-line);
+  border-radius: var(--r-sm);
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+.finmentor-compare__side {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: var(--fc-row-gap);
+  align-content: start;
+  min-width: 0;
+  padding: var(--fc-pad);
+  box-shadow: inset 0 2px 0 var(--fc-line-strong);
+}
+.finmentor-compare__side + .finmentor-compare__side { border-left: 1px solid var(--fc-line); }
+/* RIGHT = the desired state. Emphasis comes only from rule weight, hairline
+   warmth and the result node; the LEFT side stays deliberately quieter. */
+.finmentor-compare__side--control {
+  background: rgba(201, 162, 39, 0.035);
+  box-shadow: inset 0 3px 0 var(--accent);
+}
+.finmentor-compare__side + .finmentor-compare__side--control { border-left-color: var(--fc-gold-divider); }
+.finmentor-compare__side-head { position: relative; }
+.finmentor-compare__side--control .finmentor-compare__side-head::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--fc-row-gap) / -2);
+  width: 28px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.finmentor-compare .finmentor-compare__label {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.02rem, 1.5vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.finmentor-compare__side--control .finmentor-compare__label { color: var(--micro-label-gold); }
+.finmentor-compare .finmentor-compare__sub {
+  margin: var(--sp-2) 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.finmentor-compare .finmentor-compare__note {
+  margin: 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--fc-line);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.finmentor-compare__side--control .finmentor-compare__note {
+  border-top-color: var(--border-gold);
+  color: var(--text-primary);
+}
+
+/* ------------------------------------------------------------------ flow */
+.finmentor-compare .finmentor-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fc-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.finmentor-compare .finmentor-flow__node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 48px;
+  padding: 11px 16px;
+  border: 1px solid var(--fc-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+}
+/* article/service prose styles decorate every list item; the flow opts out */
+.finmentor-compare .finmentor-flow__node::before { content: none; }
+
+.finmentor-compare .finmentor-flow__node--result {
+  border-color: var(--fc-line-strong);
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+}
+.finmentor-compare__side--control .finmentor-flow__node { border-color: var(--fc-gold-hair); }
+.finmentor-compare__side--control .finmentor-flow__node--result {
+  border-color: var(--fc-gold-strong);
+  background: rgba(201, 162, 39, 0.10);
+  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--accent-bright);
+}
+
+.finmentor-flow__arrow {
+  position: absolute;
+  left: 23px;
+  bottom: calc(100% + 1px);
+  width: 1px;
+  height: calc(var(--fc-gap) - 2px);
+  background: var(--fc-line-strong);
+}
+.finmentor-flow__arrow::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  bottom: 1px;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid var(--fc-line-strong);
+  border-bottom: 1px solid var(--fc-line-strong);
+  transform: rotate(45deg);
+}
+.finmentor-compare__side--control .finmentor-flow__arrow { background: var(--fc-gold-line); }
+.finmentor-compare__side--control .finmentor-flow__arrow::after { border-color: var(--fc-gold-line); }
+
+.finmentor-flow__delta {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-muted);
+}
+.finmentor-flow__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------ placements */
+/* homepage band between the symptoms and the differentiation strip */
+.finmentor-compare-band.sec { padding-block: clamp(var(--sp-8), 8vw, var(--sp-9)); }
+
+/* inside a service page's 760px reading column. The column's own rhythm is
+   16px, so the figure sits close under the paragraph it illustrates (it belongs
+   to that section) and leaves a clear, not isolating, break before the next H2. */
+.finmentor-compare--inline {
+  --fc-pad: clamp(var(--sp-5), 3vw, var(--sp-6));
+  margin-block: var(--sp-5) 40px;
+}
+.finmentor-compare--inline .finmentor-compare__head { margin-bottom: var(--sp-5); }
+.finmentor-compare--inline .finmentor-compare__title { font-size: clamp(1.4rem, 2.6vw, 1.8rem); }
+
+/* article figure: the same system at editorial scale */
+.finmentor-compare--editorial {
+  max-width: 980px;
+  margin-block: var(--sp-7) var(--sp-8);
+}
+.finmentor-compare--editorial .finmentor-compare__title { font-size: clamp(1.55rem, 3vw, 2.2rem); }
+.finmentor-compare__title .finmentor-compare__ne {
+  display: inline;
+  padding-inline: 0.12em;
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- motion */
+/* Homepage only (the panel carries `.reveal`). Opacity/transform/clip only:
+   nothing here changes layout, so there is no shift while it plays. */
+.finmentor-compare.reveal {
+  transform: translateY(10px);
+  transition: opacity 280ms var(--ease-out-expo), transform 280ms var(--ease-out-expo);
+  transition-delay: 0ms;
+}
+.finmentor-compare.reveal.is-visible { transform: none; }
+.finmentor-compare.reveal .finmentor-flow__arrow {
+  clip-path: inset(0 -6px 100% -6px);
+  transition: clip-path 240ms var(--ease-out-expo);
+  transition-delay: calc(160ms + var(--fc-step, 0) * 80ms);
+}
+.finmentor-compare.reveal.is-visible .finmentor-flow__arrow { clip-path: inset(0 -6px 0 -6px); }
+.finmentor-flow__node:nth-child(2) { --fc-step: 0; }
+.finmentor-flow__node:nth-child(3) { --fc-step: 1; }
+.finmentor-flow__node:nth-child(4) { --fc-step: 2; }
+.finmentor-flow__node:nth-child(5) { --fc-step: 3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .finmentor-compare.reveal,
+  .finmentor-compare.reveal .finmentor-flow__arrow,
+  .finmentor-compare.reveal.is-visible .finmentor-flow__arrow {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------ responsive */
+@media (max-width: 1024px) {
+  .finmentor-compare { --fc-gap: 26px; }
+}
+/* phones: LEFT then RIGHT, full width, same reading order — compact, not a
+   long stacked form: tighter rhythm, slightly larger node text */
+@media (max-width: 640px) {
+  .finmentor-compare {
+    --fc-gap: 20px;
+    --fc-pad: 20px;
+    --fc-row-gap: 18px;
+  }
+  .finmentor-compare__panel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .finmentor-compare__side {
+    grid-row: auto;
+    grid-template-rows: none;
+  }
+  .finmentor-compare__side + .finmentor-compare__side { border-left: 0; border-top: 1px solid var(--fc-line); }
+  .finmentor-compare .finmentor-compare__head { margin-bottom: var(--sp-5); }
+  .finmentor-compare .finmentor-compare__title {
+    font-size: clamp(1.45rem, 6.4vw, 1.8rem);
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+  }
+  .finmentor-compare--inline .finmentor-compare__title,
+  .finmentor-compare--editorial .finmentor-compare__title { font-size: clamp(1.3rem, 5.8vw, 1.6rem); }
+  .finmentor-compare .finmentor-flow__node { min-height: 44px; padding: 9px 14px; font-size: 1.03rem; }
+  .finmentor-compare .finmentor-compare__note { padding-top: 14px; }
+  .finmentor-flow__arrow { left: 21px; }
+  .finmentor-compare-band.sec { padding-block: var(--sp-7); }
+}
+@media (max-width: 360px) {
+  .finmentor-compare { --fc-pad: var(--sp-4); }
+  .finmentor-compare .finmentor-flow__node { padding-inline: 12px; }
+  .finmentor-flow__arrow { left: 19px; }
+}
+
 /* --- reduced-motion: no hover displacement -------------------------------
    Canonical guarantee, kept last in the file so it remains the authoritative
    prefers-reduced-motion block. Re-states the existing rule; no rendered change. */
