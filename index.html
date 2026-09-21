@@ -252,7 +252,7 @@
     .so-foot { margin-top:auto; padding-top:10px; border-top:1px solid var(--glass-border-gold); font-size:0.73rem; color:var(--accent); display:flex; align-items:center; gap:7px; }
     .so-foot__dot { width:5px; height:5px; border-radius:50%; background:var(--grad-gold); flex-shrink:0; box-shadow:0 0 6px rgba(201,162,39,0.6); }
   </style>
-  <link rel="preload" as="image" href="images/editorial/hero-capital.svg" fetchpriority="high">
+  <link rel="preload" as="image" type="image/avif" href="images/editorial/hero-capital.avif" fetchpriority="high">
 </head>
 
 <body class="home">
@@ -332,14 +332,19 @@
   <main>
     <section class="hero hero--editorial" id="top">
       <picture class="hero__media">
-        <!-- PHOTO 01 slot. Crop contract frozen: 1440+ / 1024 / 768 / 390.
-             When the licensed raster arrives, add AVIF/WebP <source> lines with the
-             same media queries and repoint <img src>; no CSS or layout change. -->
-        <source media="(min-width: 1440px)" srcset="images/editorial/hero-capital.svg" width="2400" height="1500">
-        <source media="(min-width: 1024px)" srcset="images/editorial/hero-capital.svg" width="1600" height="1100">
-        <source media="(min-width: 768px)"  srcset="images/editorial/hero-capital.svg" width="1200" height="1000">
-        <source media="(max-width: 767px)"  srcset="images/editorial/hero-capital.svg" width="780" height="975">
-        <img src="images/editorial/hero-capital.svg" alt="" width="2400" height="1500" fetchpriority="high" decoding="async">
+        <!-- PHOTO 01 · hero-capital. Crop contract frozen: 1440+ / 1024 / 768 / 390.
+             The final master is 1536×1024, so every breakpoint serves the same native file
+             (no upscaled variants); the media split is kept for a higher-resolution master.
+             hero-capital.svg stays in the repo as the rollback placeholder. -->
+        <source media="(min-width: 1440px)" type="image/avif" srcset="images/editorial/hero-capital.avif" width="2400" height="1500">
+        <source media="(min-width: 1440px)" type="image/webp" srcset="images/editorial/hero-capital.webp" width="2400" height="1500">
+        <source media="(min-width: 1024px)" type="image/avif" srcset="images/editorial/hero-capital.avif" width="1600" height="1100">
+        <source media="(min-width: 1024px)" type="image/webp" srcset="images/editorial/hero-capital.webp" width="1600" height="1100">
+        <source media="(min-width: 768px)" type="image/avif" srcset="images/editorial/hero-capital.avif" width="1200" height="1000">
+        <source media="(min-width: 768px)" type="image/webp" srcset="images/editorial/hero-capital.webp" width="1200" height="1000">
+        <source media="(max-width: 767px)" type="image/avif" srcset="images/editorial/hero-capital.avif" width="780" height="975">
+        <source media="(max-width: 767px)" type="image/webp" srcset="images/editorial/hero-capital.webp" width="780" height="975">
+        <img src="images/editorial/hero-capital.jpg" alt="" width="2400" height="1500" fetchpriority="high" decoding="async">
       </picture>
       <div class="hero__scrim" aria-hidden="true"></div>
 

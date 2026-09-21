@@ -6144,7 +6144,8 @@ body.menu-open .doc-bar { visibility: hidden; }
 
 /* Scrim: contrast is measured against the scrimmed composite, never the raw
    image. Weighted to the lower left, so the upper right of the facade stays
-   legible as architecture. */
+   legible as architecture. The 50% stop and the 30% top fade were set against
+   the final PHOTO 01: the kicker's line end sits over lit sky at 1024 and 1728. */
 .hero--editorial .hero__scrim {
   position: absolute;
   inset: 0;
@@ -6154,12 +6155,12 @@ body.menu-open .doc-bar { visibility: hidden; }
     linear-gradient(100deg,
       rgba(8, 17, 31, 0.94) 0%,
       rgba(8, 17, 31, 0.88) 26%,
-      rgba(8, 17, 31, 0.52) 46%,
+      rgba(8, 17, 31, 0.62) 50%,
       rgba(8, 17, 31, 0.14) 64%,
       rgba(8, 17, 31, 0) 82%),
     linear-gradient(to bottom,
       rgba(8, 17, 31, 0.58) 0%,
-      rgba(8, 17, 31, 0) 22%,
+      rgba(8, 17, 31, 0) 30%,
       rgba(8, 17, 31, 0) 64%,
       rgba(8, 17, 31, 0.62) 100%);
 }
@@ -6236,7 +6237,7 @@ body.menu-open .doc-bar { visibility: hidden; }
       linear-gradient(to bottom,
         rgba(8, 17, 31, 0.86) 0%,
         rgba(8, 17, 31, 0.74) 42%,
-        rgba(8, 17, 31, 0.88) 100%);
+        rgba(8, 17, 31, 0.92) 100%);
   }
   .hero--editorial .hero__title { max-width: 13ch; }
   .hero--editorial .hero__statement { max-width: 24ch; }

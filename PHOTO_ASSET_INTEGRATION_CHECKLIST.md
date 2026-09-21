@@ -31,12 +31,20 @@ that contract ever disagree, the contract wins.
 | Protected text zone | left 40–45% tonally flat: no edges, highlights or fine detail. The H1 sits there |
 | Desktop behavior | full-bleed behind the copy, `object-fit: cover`, 1.035→1 settle animation (off under reduced motion) |
 | Mobile behavior (≤860px) | full-bleed, section `min-height: 88svh`, cover crop at `64% 42%` |
-| Scrim | desktop: 100° directional + vertical; mobile: vertical only (0.86 / 0.74 / 0.88). Already in CSS, no change |
+| Scrim | desktop: 100° directional + vertical; mobile: vertical only (0.86 / 0.74 / 0.92). Already in CSS, no change |
 | AVIF target | `hero-capital{,-1600,-1200,-780}.avif`, q≈50 |
 | WebP fallback | `hero-capital{,-1600,-1200,-780}.webp`, q≈78 |
 | Loading | **eager**: `fetchpriority="high"` on `<img>`, `<link rel="preload">` in `<head>`. Never lazy |
 | Alt-text purpose | decorative. `alt=""` stays empty because the H1 carries the meaning |
 | CSS changes permitted | **No** |
+
+**As integrated (2026-09-21).** The delivered master is 1536×1024 (3:2), below the target.
+No upscaled variants were made: every `<source media>` serves the same native
+`hero-capital.{avif,webp}`, the `<img src>` is `hero-capital.jpg`, and one unscoped AVIF
+preload covers all widths. The per-width variants below apply once a ≥2400px master arrives.
+Contrast measured through the scrim fell below 4.5:1 on the kicker (1024, 1728) and the trust
+line (390/430), so the owner authorised a scrim-only CSS change. It is the one exception to the
+rule above: desktop mid stop 0.52@46% → 0.62@50%, top fade 22% → 30%, mobile bottom 0.88 → 0.92.
 
 **Integration points**: `index.html` ~L255 (preload) and ~L334–343 (`picture.hero__media`);
 `ro/index.html` ~L295 and ~L364–373.

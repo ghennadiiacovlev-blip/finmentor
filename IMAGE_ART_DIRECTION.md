@@ -37,16 +37,16 @@ Operational swap steps live in `PHOTO_ASSET_INTEGRATION_CHECKLIST.md`.
 
 ### Scrims as implemented
 
-**PHOTO 01, desktop (> 860px)**
+**PHOTO 01, desktop (> 860px)** — mid stop and top fade tuned against the final photograph
 ```
-linear-gradient(100deg, rgba(8,17,31,.94) 0%, rgba(8,17,31,.88) 26%, rgba(8,17,31,.52) 46%,
+linear-gradient(100deg, rgba(8,17,31,.94) 0%, rgba(8,17,31,.88) 26%, rgba(8,17,31,.62) 50%,
                         rgba(8,17,31,.14) 64%, rgba(8,17,31,0) 82%),
-linear-gradient(to bottom, rgba(8,17,31,.58) 0%, rgba(8,17,31,0) 22%,
+linear-gradient(to bottom, rgba(8,17,31,.58) 0%, rgba(8,17,31,0) 30%,
                            rgba(8,17,31,0) 64%, rgba(8,17,31,.62) 100%)
 ```
 **PHOTO 01, mobile (≤ 860px)**
 ```
-linear-gradient(to bottom, rgba(8,17,31,.86) 0%, rgba(8,17,31,.74) 42%, rgba(8,17,31,.88) 100%)
+linear-gradient(to bottom, rgba(8,17,31,.86) 0%, rgba(8,17,31,.74) 42%, rgba(8,17,31,.92) 100%)
 ```
 **PHOTO 02, all widths** (the §31 override is the active rule)
 ```
@@ -90,7 +90,7 @@ shots, anything that reads as a stock library thumbnail.
 
 | Slot | File | Status |
 |---|---|---|
-| 01 Hero | `hero-capital.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
+| 01 Hero | `hero-capital.*` | **FINAL SHIPPED** — AVIF/WebP/JPG from a 1536×1024 master (below the 2400×1500 target); SVG kept as rollback. Licence record pending |
 | 02 Decision environment | `capital-decision.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
 | 03 Real estate / investment | `real-assets.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
 
