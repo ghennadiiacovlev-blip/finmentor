@@ -299,13 +299,40 @@
       <a class="logo" href="#top" aria-label="finmentor — на главную">
         <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
       </a>
-
       <nav class="nav" aria-label="Основная навигация">
-        <a href="#about" class="nav__link">О проекте</a>
-        <a href="#audience" class="nav__link">Для кого</a>
-        <a href="#steps" class="nav__link">Как работаем</a>
-        <a href="#solutions" class="nav__link">Решения</a>
-        <a href="#knowledge" class="nav__link">Материалы</a>
+        <a href="about.html" class="nav__link">О FINMENTOR</a>
+        <div class="nav__item" data-nav-menu>
+          <a href="owner.html" class="nav__link">Для собственника</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-owner"><span class="visually-hidden">Показать разделы «Для собственника»</span></button>
+          <div class="nav__panel" id="nav-owner">
+            <ul class="nav__sublist">
+              <li><a class="nav__sublink" href="owner.html#chaos"><span class="nav__subtitle">Финансовый хаос</span><span class="nav__subnote">Признаки того, что системы управления нет</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#profit-question"><span class="nav__subtitle">Прибыль ≠ деньги</span><span class="nav__subnote">Почему прибыль ещё не означает ликвидность</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#owner-control"><span class="nav__subtitle">Три контура управления</span><span class="nav__subnote">Деньги, результат, капитал</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#steps"><span class="nav__subtitle">Как работает FINMENTOR</span><span class="nav__subnote">Диагностика, система, сопровождение</span></a></li>
+              <li><a class="nav__sublink" href="business-models.html"><span class="nav__subtitle">Бизнес-модели</span><span class="nav__subnote">Одна система — разная экономика</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav__item" data-nav-menu>
+          <a href="#solutions" class="nav__link">Решения</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-solutions"><span class="visually-hidden">Показать решения</span></button>
+          <div class="nav__panel nav__panel--wide" id="nav-solutions">
+            <ul class="nav__sublist nav__sublist--cols">
+              <li><a class="nav__sublink" href="business-control-system.html"><span class="nav__subtitle">Финансовый контроль</span></a></li>
+              <li><a class="nav__sublink" href="kaznacheystvo.html"><span class="nav__subtitle">Денежный поток и казначейство</span></a></li>
+              <li><a class="nav__sublink" href="upravlencheskiy-pl.html"><span class="nav__subtitle">Управленческий P&amp;L</span></a></li>
+              <li><a class="nav__sublink" href="working-capital.html"><span class="nav__subtitle">Оборотный капитал</span></a></li>
+              <li><a class="nav__sublink" href="treasury-waterfall.html"><span class="nav__subtitle">Бюджетирование и прогнозирование</span></a></li>
+              <li><a class="nav__sublink" href="capex-hurdle-rate.html"><span class="nav__subtitle">Капитальные вложения и инвестиции</span></a></li>
+              <li><a class="nav__sublink" href="power-bi-dlya-sobstvennika.html"><span class="nav__subtitle">Управленческая отчётность</span></a></li>
+              <li><a class="nav__sublink" href="ai-dlya-cfo.html"><span class="nav__subtitle">Автоматизация и BI</span></a></li>
+              <li><a class="nav__sublink" href="monthly-cfo-support.html"><span class="nav__subtitle">Регулярный CFO-контроль</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <a href="capital-management.html" class="nav__link">Управление капиталом</a>
+        <a href="materials.html" class="nav__link">Материалы</a>
         <a href="#consult" class="nav__link">Контакты</a>
       </nav>
 
@@ -321,12 +348,32 @@
 
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Мобильная навигация">
     <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
-      <a href="#about" class="mobile-menu__link" style="--mi:0">О проекте</a>
-      <a href="#audience" class="mobile-menu__link" style="--mi:1">Для кого</a>
-      <a href="#steps" class="mobile-menu__link" style="--mi:2">Как работаем</a>
-      <a href="#solutions" class="mobile-menu__link" style="--mi:3">Решения</a>
-      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Материалы</a>
-      <a href="#consult" class="mobile-menu__link" style="--mi:6">Контакты</a>
+      <a href="about.html" class="mobile-menu__link" style="--mi:0">О FINMENTOR</a>
+      <details class="mobile-menu__group" style="--mi:1">
+        <summary class="mobile-menu__link">Для собственника</summary>
+        <a href="owner.html" class="mobile-menu__sublink mobile-menu__sublink--hub">Обзор раздела</a>
+        <a href="owner.html#chaos" class="mobile-menu__sublink">Финансовый хаос</a>
+        <a href="owner.html#profit-question" class="mobile-menu__sublink">Прибыль ≠ деньги</a>
+        <a href="owner.html#owner-control" class="mobile-menu__sublink">Три контура управления</a>
+        <a href="owner.html#steps" class="mobile-menu__sublink">Как работает FINMENTOR</a>
+        <a href="business-models.html" class="mobile-menu__sublink">Бизнес-модели</a>
+      </details>
+      <details class="mobile-menu__group" style="--mi:2">
+        <summary class="mobile-menu__link">Решения</summary>
+        <a href="#solutions" class="mobile-menu__sublink mobile-menu__sublink--hub">Форматы работы</a>
+        <a href="business-control-system.html" class="mobile-menu__sublink">Финансовый контроль</a>
+        <a href="kaznacheystvo.html" class="mobile-menu__sublink">Денежный поток и казначейство</a>
+        <a href="upravlencheskiy-pl.html" class="mobile-menu__sublink">Управленческий P&amp;L</a>
+        <a href="working-capital.html" class="mobile-menu__sublink">Оборотный капитал</a>
+        <a href="treasury-waterfall.html" class="mobile-menu__sublink">Бюджетирование и прогнозирование</a>
+        <a href="capex-hurdle-rate.html" class="mobile-menu__sublink">Капитальные вложения и инвестиции</a>
+        <a href="power-bi-dlya-sobstvennika.html" class="mobile-menu__sublink">Управленческая отчётность</a>
+        <a href="ai-dlya-cfo.html" class="mobile-menu__sublink">Автоматизация и BI</a>
+        <a href="monthly-cfo-support.html" class="mobile-menu__sublink">Регулярный CFO-контроль</a>
+      </details>
+      <a href="capital-management.html" class="mobile-menu__link" style="--mi:3">Управление капиталом</a>
+      <a href="materials.html" class="mobile-menu__link" style="--mi:4">Материалы</a>
+      <a href="#consult" class="mobile-menu__link" style="--mi:5">Контакты</a>
     </nav>
     <div class="mobile-menu__lang">
       <span class="mobile-menu__lang-label">Язык · Limbă</span>
@@ -361,7 +408,7 @@
         <p class="hero__kicker reveal">ФИНАНСОВЫЙ КОНТРОЛЬ ДЛЯ СОБСТВЕННИКА БИЗНЕСА</p>
         <h1 class="hero__title reveal" data-reveal-delay="1">Финансовая система собственника</h1>
         <p class="hero__statement reveal" data-reveal-delay="2"><span>Видеть деньги.</span><span>Понимать прибыль.</span><span>Управлять капиталом.</span></p>
-        <p class="hero__subtitle reveal" data-reveal-delay="3">Внешний CFO и система финансового управления для растущего бизнеса.</p>
+        <p class="hero__subtitle reveal" data-reveal-delay="3">Внешний финансовый директор и система финансового управления для растущего бизнеса.</p>
 
         <div class="hero__actions reveal" data-reveal-delay="4">
           <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--primary btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
@@ -394,46 +441,18 @@
             <p class="chaos-card__text">Отчёты приходят поздно и не помогают принимать решения.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
-            <p class="chaos-card__text">Платежи согласуются хаотично, без приоритетов и фондов.</p>
+            <p class="chaos-card__text">Платежи согласуются без приоритетов и резервов.</p>
           </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
-            <p class="chaos-card__text">Кассовые разрывы появляются внезапно.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.0deg; --dy:14px">
             <p class="chaos-card__text">Продажи растут, но маржа и прибыль не растут.</p>
           </article>
-          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
-            <p class="chaos-card__text">Данные разбросаны между 1С, Excel, Google Sheets, CRM и мессенджерами.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
-            <p class="chaos-card__text">Собственник не видит ключевые показатели, риски и отклонения в одном месте.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
-            <p class="chaos-card__text">Искусственный интеллект (AI) и автоматизация не используются, хотя ручной работы слишком много.</p>
+          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:0.7deg; --dy:26px">
+            <p class="chaos-card__text">Собственник не видит деньги, результат и риски в одной системе.</p>
           </article>
         </div>
 
         <p class="chaos__verdict reveal">Это не проблема людей. <span class="text-gold">Это отсутствие системы.</span></p>
-        <span class="chaos__bridge" aria-hidden="true"></span>
-      </div>
-    </section>
-
-    <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
-      <div class="container container--editorial">
-        <div class="statement-screen__copy">
-          <h2 class="statement-screen__text" id="profit-question-title">
-            <span class="statement-screen__keyword reveal">Прибыль.</span>
-            <span class="statement-screen__question reveal" data-reveal-delay="2">А если это ещё не деньги?</span>
-          </h2>
-          <p class="statement-screen__note reveal" data-reveal-delay="3">Финансовый результат показывает, что заработал бизнес. Управление капиталом показывает, где находятся деньги и что с ними делать дальше.</p>
-        </div>
-        <ol class="capital-chain reveal" data-reveal-delay="2" aria-label="От прибыли к капиталу">
-          <li class="capital-chain__node">Прибыль</li>
-          <li class="capital-chain__node">Деньги</li>
-          <li class="capital-chain__node">Оборотный капитал</li>
-          <li class="capital-chain__node">Капитал</li>
-        </ol>
-        <p class="statement-screen__close reveal" data-reveal-delay="4">Прибыль показывает результат. Капитал показывает, что делать дальше.</p>
+        <p class="scene-link chaos__more reveal"><a href="owner.html#chaos" class="hero__link">Все признаки финансового хаоса&nbsp;&rarr;</a></p>
       </div>
     </section>
 
@@ -442,7 +461,6 @@
         <div class="section-head">
           <p class="overline reveal">Контур управления</p>
           <h2 class="section-title reveal" data-reveal-delay="1" id="owner-control-title">Три контура управления собственника</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR помогает собрать денежный поток (Cash Flow), отчёт о прибыли и убытках (P&amp;L), платежи, дебиторку, обязательства, маржу, ключевые показатели бизнеса (KPI) и риски в одной управляемой картине. Чтобы собственник видел не разрозненные отчёты, а финансовую логику бизнеса и решения через цифры.</p>
         </div>
         <div class="pillars__grid">
           <article class="pillar reveal" data-reveal-delay="1">
@@ -450,7 +468,7 @@
             <h3 class="pillar__title">Деньги</h3>
             <p class="pillar__descriptor">Сколько денег есть сейчас, когда они придут и на что их хватит.</p>
             <ul class="pillar__terms">
-              <li>Денежный поток (Cash Flow)</li>
+              <li>Денежный поток</li>
               <li>Ликвидность</li>
               <li>Казначейство</li>
             </ul>
@@ -461,9 +479,9 @@
             <h3 class="pillar__title">Результат</h3>
             <p class="pillar__descriptor">Где бизнес зарабатывает и где теряет маржу.</p>
             <ul class="pillar__terms">
-              <li>Управленческий отчёт о прибыли и убытках (P&amp;L)</li>
+              <li>Управленческий P&amp;L</li>
               <li>Маржа</li>
-              <li>Результативность</li>
+              <li>Рентабельность</li>
             </ul>
           </article>
 
@@ -473,7 +491,7 @@
             <p class="pillar__descriptor">Где деньги заморожены и куда направить следующий капитал.</p>
             <ul class="pillar__terms">
               <li>Оборотный капитал</li>
-              <li>Капитальные вложения (CAPEX)</li>
+              <li>Капитальные вложения</li>
               <li>Инвестиции</li>
             </ul>
           </article>
@@ -481,46 +499,28 @@
       </div>
     </section>
 
-    <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
-      <div class="container">
-        <div class="finmentor-compare reveal">
-          <div class="finmentor-compare__head">
-            <p class="finmentor-compare__eyebrow">Прибыль и капитал</p>
-            <h2 class="finmentor-compare__title" id="profit-capital-title">Прибыль&nbsp;— это результат. <span>Контроль капитала&nbsp;— это управление.</span></h2>
-          </div>
-          <div class="finmentor-compare__panel">
-            <div class="finmentor-compare__side">
-              <div class="finmentor-compare__side-head"><h3 class="finmentor-compare__label">Прибыль есть</h3></div>
-              <ol class="finmentor-flow">
-                <li class="finmentor-flow__node">Выручка <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">растёт</span></li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Дебиторка <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">растёт</span></li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Запасы <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">растут</span></li>
-                <li class="finmentor-flow__node finmentor-flow__node--result"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Денег меньше</li>
-              </ol>
-              <p class="finmentor-compare__note">Рост прибыли не гарантирует рост ликвидности.</p>
-            </div>
-            <div class="finmentor-compare__side finmentor-compare__side--control">
-              <div class="finmentor-compare__side-head"><h3 class="finmentor-compare__label">Капитал под контролем</h3></div>
-              <ol class="finmentor-flow">
-                <li class="finmentor-flow__node">Денежный поток</li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Оборотный капитал</li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Решение</li>
-                <li class="finmentor-flow__node finmentor-flow__node--result"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Контроль результата</li>
-              </ol>
-              <p class="finmentor-compare__note">FINMENTOR показывает, где капитал блокируется и какое решение принимать.</p>
-            </div>
-          </div>
+    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <picture class="capital-management__media">
+        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
+        <img src="images/editorial/capital-decision.svg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" loading="lazy" decoding="async">
+      </picture>
+      <div class="capital-management__scrim" aria-hidden="true"></div>
+      <div class="container container--editorial capital-management__inner">
+        <div class="capital-management__head">
+          <p class="overline reveal">Управление капиталом</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
+          <p class="capital-management__lead reveal" data-reveal-delay="2">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
+          <p class="capital-management__routes reveal" data-reveal-delay="3">Оборотный капитал · Капитальные вложения (CAPEX) · Обязательства · Резерв ликвидности</p>
+          <p class="scene-link reveal"><a href="capital-management.html" class="hero__link">Подробнее об управлении капиталом&nbsp;&rarr;</a></p>
         </div>
-      </div>
-    </section>
-
-    <section class="sec diff" id="difference" aria-label="Чем FINMENTOR отличается">
-      <div class="container">
-        <div class="diff__grid reveal">
-          <div class="diff__row"><span class="diff__who">Бухгалтерский учёт</span><p>обеспечивает корректность учёта, отчётности и налогового соответствия.</p></div>
-          <div class="diff__row"><span class="diff__who">Управленческая аналитика и автоматизация</span><p>делают данные видимыми и процессы быстрее, но сами по себе не определяют финансовую логику решений.</p></div>
-          <div class="diff__row diff__row--fm"><span class="diff__who">FINMENTOR</span><p>добавляет управленческий контур собственника: связывает деньги, прибыль, денежный поток, ключевые показатели и риски с конкретными управленческими решениями. Power&nbsp;BI, автоматизация и ИИ подключаются к уже построенной финансовой логике.</p></div>
-        </div>
+        <ol class="capital-cycle" aria-label="Цикл управления капиталом">
+            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Источник капитала</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Размещение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Отдача</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Риск</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Высвобождение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Перераспределение</span></li>
+        </ol>
       </div>
     </section>
 
@@ -528,8 +528,9 @@
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Бизнес-модели</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Финансовая система под вашу бизнес-модель</h2>
+          <h2 class="section-title reveal" data-reveal-delay="1">Одна финансовая система.<br> Разная экономика бизнеса.</h2>
           <p class="section-lead reveal" data-reveal-delay="2">Одно финансовое ядро — деньги, прибыль, денежный поток, ключевые показатели, риски. Разные отрасли — разная экономика. FINMENTOR настраивает контроль под ключевые метрики вашей бизнес-модели.</p>
+          <p class="scene-link reveal"><a href="business-models.html" class="hero__link">Все бизнес-модели&nbsp;&rarr;</a></p>
         </div>
 
         <figure class="industries__figure reveal">
@@ -543,94 +544,33 @@
               <h3>Недвижимость и аренда</h3>
               <span class="industry-card__badge">Флагман</span>
             </div>
-            <p class="industry-card__object">объект · арендатор · NOI · CAPEX · окупаемость</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p><b>Проблема:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
-            <p><b>Контроль:</b> Арендаторы и договоры, чистый операционный доход (NOI), ставка капитализации (Cap Rate), доля свободных площадей, капитальные вложения (CAPEX), рейтинг надёжности арендаторов, окупаемость.</p>
-            <p><b>Расчётная методология:</b> Чистый операционный доход, доля свободных площадей, рейтинг надёжности арендаторов, арендная ставка относительно рынка, покрытие депозитом и обеспечением, окупаемость капитальных вложений, денежный поток (cash flow), индикатор риска.</p>
-            <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p></div>
-            </details>
+            <p class="industry-card__object">Объект · арендатор · NOI · CAPEX · окупаемость</p>
             <a href="real-estate-control-system.html" class="industry-card__cta" data-ga="click_industry_real_estate" data-cta-id="industry_real_estate" data-cta-location="industries" data-event="cta_click" data-destination="real-estate-control-system">Система финансового управления недвижимостью</a>
           </article>
-
           <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
             <span class="industry-card__index">02</span>
             <div class="industry-card__top">
               <h3>Розничная торговля</h3>
               <span class="industry-card__badge">Маржа в рознице</span>
             </div>
-            <p class="industry-card__object">категория · SKU · маржа на м² · промо · ретробонус</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p><b>Проблема:</b> Полки заняты товаром, но непонятно, какие категории и товарные позиции (SKU) реально зарабатывают, а какие просто замораживают деньги.</p>
-            <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и товарную позицию; продажи, остатки, промоакция, ретробонус, поставщики и финансирование товарной полки поставщиком.</p>
-            <p><b>Расчётная методология:</b> Целевая маржа, маржа на 1 м², прибыльность товарной позиции, отклонение маржи от целевой (Margin Gap), финансирование товарной полки поставщиком, ретробонус, эффективность промоакции.</p>
-            <p><b>Результат:</b> Панель собственника (Dashboard) показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие товарные позиции вывести из ассортимента.</p></div>
-            </details>
+            <p class="industry-card__object">Категория · товарная позиция · маржа на м² · промо · ретробонус</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
-
           <article class="industry-card reveal" data-reveal-delay="3">
             <span class="industry-card__index">03</span>
             <div class="industry-card__top">
               <h3>Интернет-торговля</h3>
             </div>
-            <p class="industry-card__object">юнит-экономика · CAC · LTV · ROAS · возвраты</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p><b>Проблема:</b> Оборот растёт, реклама ест бюджет, а прибыль на единицу непонятна.</p>
-            <p><b>Контроль:</b> Экономика единицы продукта (Unit economics), стоимость привлечения клиента (CAC), ценность клиента за весь период сотрудничества (LTV), рентабельность рекламных расходов (ROAS), логистика, возвраты, склад, прибыльность товарной позиции, кассовый разрыв.</p>
-            <p><b>Результат:</b> Прибыль по товарной позиции и каналу видна после рекламы, логистики и возвратов.</p></div>
-            </details>
+            <p class="industry-card__object">Юнит-экономика · CAC · LTV · ROAS · возвраты</p>
             <a href="questionnaire.html?model=ecommerce" class="industry-card__cta" data-cta-id="industries_ecommerce" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Проверить интернет-торговлю</a>
           </article>
-
           <article class="industry-card reveal" data-reveal-delay="1">
             <span class="industry-card__index">04</span>
             <div class="industry-card__top">
               <h3>Оптовая торговля / дистрибуция</h3>
             </div>
-            <p class="industry-card__object">склад · дебиторка · лимиты клиентов · оборотный капитал</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p><b>Проблема:</b> Деньги заморожены в складе и дебиторке, лимиты клиентов — на глаз.</p>
-            <p><b>Контроль:</b> Склад, дебиторка, поставщики, товарные группы, лимиты клиентов, оборотный капитал, маржа.</p>
-            <p><b>Результат:</b> Оборотный капитал и реальная маржа по группам и клиентам под контролем.</p></div>
-            </details>
+            <p class="industry-card__object">Маржа · запасы · дебиторка · логистика · оборачиваемость</p>
             <a href="questionnaire.html?model=distribution" class="industry-card__cta" data-cta-id="industries_distribution" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Проверить дистрибуцию</a>
-          </article>
-
-          <article class="industry-card reveal" data-reveal-delay="2">
-            <span class="industry-card__index">05</span>
-            <div class="industry-card__top">
-              <h3>Производство под заказ</h3>
-            </div>
-            <p class="industry-card__object">заказ · себестоимость · загрузка · аванс · маржа проекта</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p><b>Проблема:</b> Заказы есть, а маржа по заказу неясна; незавершёнка и авансы живут отдельно.</p>
-            <p><b>Контроль:</b> Заказы, плановая и фактическая себестоимость, материалы, авансы, сроки, маржа по заказу, незавершёнка.</p>
-            <p><b>Результат:</b> Прибыль каждого заказа видна, понятно, где утекает себестоимость.</p></div>
-            </details>
-            <a href="questionnaire.html?model=manufacturing" class="industry-card__cta" data-cta-id="industries_manufacturing" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Проверить производство</a>
-          </article>
-
-          <article class="industry-card reveal" data-reveal-delay="3">
-            <span class="industry-card__index">06</span>
-            <div class="industry-card__top">
-              <h3>Бизнес с абонементной моделью</h3>
-            </div>
-            <p class="industry-card__object">подписка · отток · продления · выручка под риском</p>
-            <details class="industry-card__detail">
-              <summary>Методология контроля</summary>
-              <div class="industry-card__detail-body"><p class="industry-card__sub">Фитнес-клубы, SPA- и wellness-центры, спортивные и клубные сервисы</p>
-            <p><b>Управленческая проблема:</b> Продления происходят «как получится», риск оттока становится виден слишком поздно, будущая выручка не прогнозируется, а скидки на удержание клиентов предоставляются без оценки их экономического эффекта.</p>
-            <p><b>Контроль:</b> Профиль клиента-актива, склонность к продлению, выручка продлений под риском, план удержания под мощность команды, миграция сегментов.</p>
-            <p><b>Разработка:</b> Client Base Control System · вертикаль системы продления абонементов (Fitness Membership Renewal Engine) — выросшая из ежемесячного управленческого цикла в реальном бизнесе.</p>
-            <p><b>Результат:</b> Выручка продлений следующего периода и её риск — под контролем собственника.</p></div>
-            </details>
-            <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Подробнее о системе</a>
           </article>
         </div>
 
@@ -651,174 +591,7 @@
       </div>
     </section>
 
-    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <picture class="capital-management__media">
-        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
-        <img src="images/editorial/capital-decision.svg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" loading="lazy" decoding="async">
-      </picture>
-      <div class="capital-management__scrim" aria-hidden="true"></div>
-      <div class="container container--editorial capital-management__inner">
-        <div class="capital-management__head">
-          <p class="overline reveal">Управление капиталом</p>
-          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
-          <p class="capital-management__lead reveal" data-reveal-delay="2">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
-          <p class="capital-management__routes reveal" data-reveal-delay="3">Оборотный капитал · Капитальные вложения (CAPEX) · Обязательства · Резерв ликвидности</p>
-        </div>
-        <ol class="capital-cycle" aria-label="Цикл управления капиталом">
-            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Источник капитала</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Размещение</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Отдача</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Риск</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Высвобождение</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Перераспределение</span></li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="sec capital-logic" id="capital-logic" aria-labelledby="capital-logic-title">
-      <div class="container">
-        <div class="capital-logic__head">
-          <div class="capital-logic__title reveal">
-            <p class="overline">Логика CFO</p>
-            <h2 class="section-title" id="capital-logic-title">Капитал должен работать</h2>
-          </div>
-          <p class="capital-logic__lead reveal" data-reveal-delay="1">Для FINMENTOR роль финансового директора не сводится к отчётности. Его задача — сохранять стоимость капитала, обеспечивать ликвидность и направлять ресурсы туда, где они создают устойчивую доходность при приемлемом уровне риска.</p>
-        </div>
-
-        <p class="capital-logic__definition reveal" data-reveal-delay="2"><strong>Управленчески капитал — это не только деньги или собственный капитал в балансе.</strong> Это ресурсы компании, в которых зафиксированы средства и от которых собственник ожидает будущий денежный поток или экономическую отдачу.</p>
-
-        <article class="capital-map reveal" aria-labelledby="capital-map-title">
-          <div class="capital-map__head">
-            <div><p class="capital-map__eyebrow">Управленческий взгляд</p><h3 id="capital-map-title">Карта капитала</h3></div>
-            <p>Важно не только где находится капитал. Важно, чей это капитал, сколько он стоит и какую отдачу создаёт его использование.</p>
-          </div>
-          <section class="capital-source" aria-labelledby="capital-source-title">
-            <div class="capital-source__head">
-              <h4 id="capital-source-title">Источник капитала</h4>
-              <p>Структура финансирования показывает, чьи средства работают в бизнесе, на каких условиях они привлечены и какую стоимость должны окупить.</p>
-            </div>
-            <dl class="capital-source__list">
-              <div><dt>Собственный капитал</dt><dd>Средства собственника, взносы участников и накопленная прибыль. Договорной ставки нет, но собственник ожидает доходность и несёт риск потери капитала.</dd></div>
-              <div><dt>Заёмный капитал</dt><dd>Кредиты, займы и другие процентные обязательства. Их качество определяют стоимость, срок, валюта, график погашения и риск.</dd></div>
-              <div><dt>Операционное финансирование</dt><dd>Источники, которые временно финансируют активы или оборотный цикл: кредит поставщика, торговая кредиторская задолженность, авансы и отсрочки.</dd></div>
-            </dl>
-            <p class="capital-source__structure"><strong>Структура капитала.</strong> Один и тот же актив может быть экономически сильным при одной структуре финансирования и слабым — при другой. Иногда проблема не в активе, а в структуре его финансирования.</p>
-          </section>
-          <div class="capital-map__dimensions">
-            <section class="capital-dimension" aria-labelledby="capital-location-title">
-              <h4 id="capital-location-title">Где находится капитал</h4>
-              <ol>
-                <li><span>01</span><div><strong>Денежные средства</strong><p>Операционная ликвидность, свободные остатки, депозиты и денежный резерв.</p></div></li>
-                <li><span>02</span><div><strong>Оборотный капитал</strong><p>Запасы, дебиторская задолженность, авансы и средства в операционном цикле.</p></div></li>
-                <li><span>03</span><div><strong>Доходные и операционные активы</strong><p>Недвижимость, оборудование и другие активы, поддерживающие денежный поток.</p></div></li>
-                <li><span>04</span><div><strong>Проекты и CAPEX</strong><p>Строительство, development, расширение и инвестиционные программы.</p></div></li>
-                <li><span>05</span><div><strong>Инвестиции</strong><p>Доли, новые направления и другие размещения с ожидаемой доходностью.</p></div></li>
-              </ol>
-            </section>
-            <section class="capital-dimension" aria-labelledby="capital-state-title">
-              <h4 id="capital-state-title">Как работает капитал</h4>
-              <dl class="capital-states">
-                <div><dt>Работающий</dt><dd>Создаёт требуемый денежный поток и приемлемую доходность.</dd></div>
-                <div><dt>Необходимый</dt><dd>Поддерживает устойчивую работу бизнеса, даже без высокой прямой доходности.</dd></div>
-                <div><dt>Недоиспользуемый</dt><dd>Работает, но создаёт отдачу ниже требуемого уровня.</dd></div>
-                <div><dt>Замороженный</dt><dd>Связан в активе, запасе, дебиторке или проекте без достаточного денежного потока.</dd></div>
-                <div><dt>Избыточный</dt><dd>Превышает экономически необходимый объём и может быть высвобождён.</dd></div>
-              </dl>
-            </section>
-          </div>
-          <aside class="capital-risk"><strong>Риск — сквозной слой</strong><p>Стоимость, срок, валюта и долговая нагрузка могут усилить или ослабить экономику того же актива.</p></aside>
-          <p class="capital-map__question"><strong>Главный вопрос CFO:</strong> каким капиталом профинансирован бизнес, где этот капитал находится, какую отдачу создаёт и превышает ли эта отдача стоимость его использования?</p>
-          <a class="capital-map__material" href="capital-preservation.html">Подробнее → Как компания проедает капитал</a>
-        </article>
-
-        <div class="capital-flow reveal" data-reveal-delay="1" aria-label="Полная логика управления капиталом">
-          <span>Источник капитала</span><span>Где он размещён</span><span>Как он работает</span><span>Какую отдачу создаёт</span><span>Сколько стоит</span><span>Какой риск несёт</span><span>Что делать дальше</span>
-        </div>
-
-        <ol class="capital-principles">
-          <li class="capital-principle reveal">
-            <span class="capital-principle__num">01</span>
-            <div><h3>Сохранить стоимость</h3><p>Контролировать ликвидность, потери и экономическую устойчивость капитала.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="1">
-            <span class="capital-principle__num">02</span>
-            <div><h3>Разместить капитал</h3><p>Направлять ресурсы туда, где они создают экономическую ценность.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="1">
-            <span class="capital-principle__num">03</span>
-            <div><h3>Измерить отдачу</h3><p>Сопоставлять доходность, стоимость капитала, денежный поток и риск.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="2">
-            <span class="capital-principle__num">04</span>
-            <div><h3>Перераспределить</h3><p>Высвобождать ресурс, рефинансировать слабую структуру и усиливать более эффективные направления.</p></div>
-          </li>
-        </ol>
-
-        <p class="capital-logic__mechanisms reveal" data-reveal-delay="1">Капитал создаёт экономическую стоимость, когда его устойчиво используют с доходностью выше стоимости привлечения и требуемой доходности собственника — при приемлемом уровне риска.</p>
-      </div>
-    </section>
-
-        <section class="audience sec--light" id="audience">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Для кого</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Для кого FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR работает с собственниками растущего малого и среднего бизнеса, у которых уже есть бухгалтерия, Excel, 1C и команда, но нет полноценной финансовой функции, единой управленческой отчётности и регулярного контроля денег, прибыли и рисков.</p>
-        </div>
-        <ul class="audience__grid">
-          <li class="audience__item reveal">Несколько направлений, проектов или юридических лиц</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Оборот уже достаточно велик, чтобы ошибки стоили дорого</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Бухгалтерский учёт есть, но не отвечает на управленческие вопросы</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Собственник лично согласовывает значительную часть платежей</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Отчётность приходит поздно</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Бизнес вырос быстрее, чем финансовая система</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Нет единого источника правды по цифрам</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Денежный поток, прибыль и убытки, ключевые показатели и платежи живут в разных таблицах</li>
-        </ul>
-        <p class="audience__note reveal" data-reveal-delay="2">Если узнали хотя бы три пункта — финансовый рентген покажет, где система теряет контроль первым делом.</p>
-      </div>
-    </section>
-
-    <section class="sec steps sec--light" id="steps">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Как мы работаем</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Как работает FINMENTOR — три шага</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">От финансовой логики — к управленческим решениям, исполнению и контролю. Power&nbsp;BI, ИИ и автоматизация подключаются там, где усиливают уже выстроенную систему.</p>
-        </div>
-        <div class="steps-grid">
-          <article class="step-card reveal">
-            <span class="step-card__num">01</span>
-            <h3 class="step-card__title">Диагностика</h3>
-            <p class="step-card__desc">Понимаем, где деньги, прибыль, обязательства и риски: смотрим денежный поток, прибыль и убытки, платежи, дебиторку, кредиторку и качество данных.</p>
-          </article>
-          <article class="step-card reveal" data-reveal-delay="1">
-            <span class="step-card__num">02</span>
-            <h3 class="step-card__title">Система контроля</h3>
-            <p class="step-card__desc">Строим управленческий отчёт о прибыли и убытках, денежный поток, платёжный календарь, ключевые показатели, правила платежей и отчётность собственника — единый контур на цифрах.</p>
-          </article>
-          <article class="step-card reveal" data-reveal-delay="2">
-            <span class="step-card__num">03</span>
-            <h3 class="step-card__title">Сопровождение и контроль исполнения</h3>
-            <p class="step-card__desc">Регулярно разбираем финансовые результаты, фиксируем управленческие решения и переводим их в конкретные задачи: ответственный, срок и статус исполнения. Power&nbsp;BI, ИИ и автоматизация подключаются там, где они усиливают уже выстроенную финансовую логику.</p>
-          </article>
-        </div>
-        <article class="working-contour reveal" id="working-contour" data-reveal-delay="2">
-          <div class="working-contour__heading">
-            <span class="working-contour__accent">От решения — к исполнению.</span>
-            <h3>Совместный рабочий контур</h3>
-          </div>
-          <div class="working-contour__copy">
-            <p>Для проекта формируется единое рабочее пространство FINMENTOR и команды клиента. Ключевые решения, задачи, ответственные, сроки и статусы фиксируются в одном контуре, а прогресс и отклонения возвращаются в следующий управленческий цикл.</p>
-            <p>Результат строится совместно: FINMENTOR формирует финансовую логику, контрольный контур и управленческие рекомендации, а команда клиента обеспечивает необходимые данные и исполнение согласованных решений.</p>
-            <p class="working-contour__remote">Удалённый формат без потери управляемости: между CFO-сессиями сохраняются зафиксированные решения, ответственные, сроки и прозрачный статус исполнения.</p>
-            <p class="working-contour__capacity">FINMENTOR ведёт ограниченное количество проектов одновременно, чтобы сохранять прямую вовлечённость CFO в ключевые решения и контроль исполнения.</p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-<section class="packages" id="solutions">
+    <section class="packages" id="solutions">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Решения</p>
@@ -856,7 +629,7 @@
                 <li>Карта финансовых болей</li>
                 <li>Оценка уровня управленческого учёта</li>
                 <li>Список критических рисков</li>
-                <li>План действий (Roadmap) на 30 / 60 / 90 дней</li>
+                <li>План действий на 30 / 60 / 90 дней</li>
               </ul>
             </div>
             <div class="package__section">
@@ -864,7 +637,7 @@
               <p class="package__result">Собственник понимает, где проблема, что чинить первым и какой формат работы нужен дальше.</p>
             </div>
             <div class="package__term"><span>Ориентировочный срок</span><strong>Обычно 1–2 недели после получения данных</strong></div>
-            <p class="package__next"><span class="package__next-label">Когда нужен другой формат</span> Это диагностика, а не аудит, due diligence, полная финансовая модель или внедрение системы.</p>
+            <p class="package__next"><span class="package__next-label">Когда нужен другой формат</span> Это диагностика, а не аудит, комплексная проверка (due diligence), полная финансовая модель или внедрение системы.</p>
             <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Обсудить диагностику</a>
           </article>
 
@@ -928,300 +701,32 @@
         </div>
       </div>
     </section>
-<section class="sec sec--seam-top" id="modules">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Решения FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Одна система. Модули под вашу задачу</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Это не каталог инструментов: каждый модуль подключается к общей финансовой логике. У каждого решения есть своя страница — боль, что строит FINMENTOR, что видит собственник и какие решения становятся возможны. Не знаете, с чего начать, — начните с финансового рентгена.</p>
-        </div>
 
-        <div class="sysmap reveal" data-reveal-delay="1">
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Контроль денег</h3>
-            <a class="sysmap__row" href="kaznacheystvo.html" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="cta_click" data-destination="kaznacheystvo">
-              <span class="sysmap__name">Казначейство и платёжная дисциплина</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Платежи идут хаотично, «кто громче попросил» — кассовые разрывы возникают неожиданно.</span>
-              <span class="sysmap__gain">Деньги получают назначение и приоритеты P0–P5; платёж проходит, только если есть покрытие; статусы и блокировки вместо ручного режима.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="treasury-waterfall.html" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="cta_click" data-destination="treasury-waterfall">
-              <span class="sysmap__name">Планирование денежных средств и приоритет платежей</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Остаток на счёте ≠ свободные деньги: часть уже принадлежит обязательствам.</span>
-              <span class="sysmap__gain">Собственник видит реальную платёжную способность: что свободно, что зарезервировано, что оплатить, отложить или заблокировать.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="working-capital.html" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="cta_click" data-destination="working-capital">
-              <span class="sysmap__name">Управление оборотным капиталом</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Деньги «есть», но заморожены в дебиторке, запасах и авансах.</span>
-              <span class="sysmap__gain">Средний срок оплаты от клиентов (DSO) / средний срок оплаты поставщикам (DPO) / период оборачиваемости запасов (Inventory Days) и денежный цикл показывают, где застряла ликвидность и как её высвободить.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Маржа · закупки · ассортимент</h3>
-            <a class="sysmap__row" href="fcf-postavshiki.html" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="cta_click" data-destination="fcf-postavshiki">
-              <span class="sysmap__name">Анализ денежного потока по товарной позиции</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Выручка растёт, а свободных денег меньше.</span>
-              <span class="sysmap__gain">Свободный денежный поток (FCF) по каждой товарной позиции: какие товары создают деньги, какие — поглощают денежные средства, и где маркетинг съедает вклад.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row sysmap__row--flag" href="retail-margin-engine.html" data-ga="click_module_retail_margin_engine" data-cta-id="module_retail_engine" data-cta-location="modules" data-event="cta_click" data-destination="retail-margin-engine">
-              <span class="sysmap__name">Система управления маржой в рознице</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Полка, категория и товарная позиция не оцениваются как финансовый актив.</span>
-              <span class="sysmap__gain">Норма маржи на метр, м², категорию и товарную позицию; финансирование товарной полки поставщиком, промоакция и ретробонус превращаются в управленческие действия.</span></span>
-              <span class="sysmap__more">Флагманская модель <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="supplier-rating-purchasing-priorities.html" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="cta_click" data-destination="supplier-rating-purchasing-priorities">
-              <span class="sysmap__name">Оценка поставщиков и контроль закупок</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Закупки выбирают поставщика «по цене», игнорируя деньги и риск.</span>
-              <span class="sysmap__gain">Рейтинг по полной финансовой логике: цена, средний срок оплаты поставщикам, НДС, возвраты, сроки — и влияние на маржу и денежный поток.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="margin-factor-analysis-flags.html" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="cta_click" data-destination="margin-factor-analysis-flags">
-              <span class="sysmap__name">Анализ факторов маржи</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Маржа изменилась — причины неизвестны.</span>
-              <span class="sysmap__gain">Факторный разбор: цена, количество, структура ассортимента, себестоимость, промоакции — с флагами риска и качеством данных.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Цифровые решения · Power BI · автоматизация</h3>
-            <a class="sysmap__row" href="power-bi-dlya-sobstvennika.html" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="cta_click" data-destination="power-bi-dlya-sobstvennika">
-              <span class="sysmap__name">Панель собственника в Power BI</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Цифры разбросаны по таблицам и отчётам исполнителей.</span>
-              <span class="sysmap__gain">Ежедневная панель собственника: деньги, маржа, платежи, дефицит финансирования (Funding Gap) и ключевые флаги риска в одном экране.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="ai-dlya-cfo.html" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="cta_click" data-destination="ai-dlya-cfo">
-              <span class="sysmap__name">Автоматизация финансовой функции на базе n8n и Make</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Слишком много ручной работы в финансовой рутине.</span>
-              <span class="sysmap__gain">Заявки, согласования, уведомления и ежедневные отчёты работают автоматически — внутри построенной финансовой логики.</span></span>
-              <span class="sysmap__more">Подробнее <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-        </div>
-
-        <p class="module-note reveal">Технологический стек подбирается после диагностики и согласовывается заранее. Платные сервисы, лицензии Power&nbsp;BI, Make/n8n, ИИ/API или техническая интеграция с 1С не подключаются без подтверждения клиента.</p>
-      </div>
-    </section>
-
-    <section class="sec sec--alt flagship" id="flagship" aria-label="Из разработок FINMENTOR — Retail Margin Engine">
-      <div class="container">
-        <div class="flagship__grid">
-          <div class="flagship__intro reveal">
-            <p class="overline">Из разработок FINMENTOR · розничная торговля</p>
-            <h2 class="section-title">Система управления маржой в рознице: полка как финансовый актив</h2>
-            <p class="flagship__pain">Розница часто управляет ассортиментом по выручке и «ощущению категории». В этот момент часть полки тихо работает в минус: место занято, деньги заморожены в запасах, поставщик не участвует в финансировании, промоакция съедает маржу — а в отчётах всё выглядит «нормально».</p>
-          </div>
-          <div class="flagship__body">
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Что строит FINMENTOR</h3>
-              <p>Единую логику доходности торгового пространства: норма маржи для каждого линейного метра, м², категории и товарной позиции; экономика промоакций и ретробонусов; финансирование товарной полки поставщиком — кто на самом деле финансирует полку, вы или поставщик. Исходные данные, расчёты, отклонения и управленческие действия связаны в одну систему с панелью собственника.</p>
-            </div>
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Что видит собственник</h3>
-              <p>Где маржа не добирается до нормы; какие товарные позиции и категории замораживают деньги; какой поставщик кредитует полку, а какой живёт за ваш счёт; что даёт и что забирает каждая промоакция.</p>
-            </div>
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Какие решения становятся возможны</h3>
-              <p>Расширить или сократить место категории; запросить ретробонус или компенсацию; изменить отсрочку; заменить или вывести товарную позицию; пересмотреть условия поставщика — по цифрам, а не по интуиции.</p>
-            </div>
-          </div>
-          <div class="flagship__foot reveal">
-            <p class="flagship__for"><b>Для кого:</b> розничные сети и магазины, где полка, категория и товарная позиция — главный актив. <b>Как начинаем:</b> диагностика данных → настройка нормы доходности → внедрение контроля и панели собственника.</p>
-            <div class="flagship__cta">
-              <a href="retail-margin-engine.html" class="btn btn--primary btn--lg" data-ga="click_module_retail_margin_engine" data-cta-id="flagship_retail_engine" data-cta-location="flagship" data-event="cta_click" data-destination="retail-margin-engine">Открыть систему управления маржой в рознице</a>
-              <a href="#consult" class="hero__link" data-ga="click_discovery_call" data-cta-id="flagship_discuss" data-cta-location="flagship" data-event="cta_click" data-destination="#consult">Обсудить вашу розницу&nbsp;&rarr;</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
-      <div class="container">
-        <div class="ai-teaser">
-          <div class="ai-teaser__copy">
-            <p class="overline reveal">ЭКОНОМИКА ИСКУССТВЕННОГО ИНТЕЛЛЕКТА · финансовый контроль цифрового труда</p>
-            <h2 class="section-title reveal" data-reveal-delay="1">Вы уже платите за ИИ. Но знаете ли вы, что он реально приносит бизнесу?</h2>
-            <p class="ai-teaser__lead reveal" data-reveal-delay="2"><strong>Счета за ChatGPT, Claude, Copilot и API показывают расходы, но не показывают реальную стоимость полезного результата, время сотрудников на проверку, цену ошибок и финансовый эффект.</strong></p>
-            <p class="ai-teaser__bridge reveal" data-reveal-delay="3">FINMENTOR связывает расходы на ИИ с конкретным бизнес-результатом и показывает, что масштабировать, что оптимизировать, а что остановить.</p>
-            <div class="ai-pain-grid reveal" data-reveal-delay="4" aria-label="Сигналы ИИ-экономики">
-              <div class="ai-pain"><strong>ИИ-бюджет растёт,</strong><span>но рентабельность инвестиций (ROI) остаётся предположением.</span></div>
-              <div class="ai-pain"><strong>Часы «сэкономлены»,</strong><span>но денежной экономии компания не получила.</span></div>
-              <div class="ai-pain"><strong>Дорогие модели используются повсеместно</strong><span>без экономически обоснованного выбора.</span></div>
-              <div class="ai-pain"><strong>ИИ масштабируется</strong><span>раньше, чем доказана экономика процесса.</span></div>
-            </div>
-            <div class="ai-teaser__actions reveal" data-reveal-delay="5">
-              <a href="ai-agent-economics.html" class="btn btn--primary btn--lg" data-event="click_ai_economics_page" data-cta-id="ai_economics_teaser_primary" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html">Проверить экономику ИИ</a>
-              <a href="ai-agent-economics.html#methodology" class="btn btn--ghost btn--lg" data-event="click_ai_economics_methodology" data-cta-id="ai_economics_teaser_methodology" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html#methodology">Посмотреть методологию AI Economics</a>
-            </div>
-          </div>
-
-          <div class="ai-teaser__model reveal" data-reveal-delay="4" aria-label="Цепочка финансового контроля ИИ">
-            <div class="ai-flow">
-              <span>Расходы на ИИ</span>
-              <span>Полная стоимость (Full Cost)</span>
-              <span>Результат, принятый бизнесом</span>
-              <span>Финансовый эффект</span>
-              <span>Управленческое решение</span>
-            </div>
-            <div class="ai-decisions" aria-label="Управленческие решения">
-              <span>МАСШТАБИРОВАТЬ</span><span>ОПТИМИЗИРОВАТЬ</span><span>ПИЛОТ</span><span>ПЕРЕСТРОИТЬ</span><span>ОСТАНОВИТЬ</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
     <section class="proof-cases sec sec--light" id="cases">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Доказательства</p>
+          <p class="overline reveal">Практика</p>
           <h2 class="section-title reveal" data-reveal-delay="1">Как это выглядит на практике</h2>
           <p class="section-lead reveal" data-reveal-delay="2">Анонимные сценарии собственников и что меняет FINMENTOR. Без выдуманных цифр и гарантий — только логика работы.</p>
         </div>
         <div class="results__grid">
           <article class="result-card reveal" data-reveal-delay="1">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Прибыль есть, но денег не хватает — деньги застревали в дебиторке, запасах и хаотичных платежах.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Денежный поток, реестр дебиторской и кредиторской задолженности, платёжный календарь и приоритеты платежей.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит кассовый разрыв на 30 дней вперёд и получает план действий.</p></div>
+            <div class="result-row"><span class="result-row__label">Ситуация</span><p>Прибыль есть, но денег не хватает — деньги застревали в дебиторке, запасах и хаотичных платежах.</p></div>
+            <div class="result-row"><span class="result-row__label">Контроль</span><p>Денежный поток, реестр дебиторской и кредиторской задолженности, платёжный календарь и приоритеты платежей.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Решение</span><p>Собственник видит кассовый разрыв на 30 дней вперёд и получает план действий.</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="2">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Платежи каждый день, но без приоритетов — решения принимались вручную.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Логика покрытия 7/14/30 дней, критичные платежи и порядок согласования.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Платёжная дисциплина вместо ручного режима «кто громче попросил».</p></div>
+            <div class="result-row"><span class="result-row__label">Ситуация</span><p>Платежи каждый день, но без приоритетов — решения принимались вручную.</p></div>
+            <div class="result-row"><span class="result-row__label">Контроль</span><p>Логика покрытия 7/14/30 дней, критичные платежи и порядок согласования.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Решение</span><p>Платёжная дисциплина вместо ручного режима «кто громче попросил».</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="3">
-            <div class="result-row"><span class="result-row__label">Проблема</span><p>Много Excel-файлов, но нет единой картины — прибыль, деньги и обязательства порознь.</p></div>
-            <div class="result-row"><span class="result-row__label">Что сделали</span><p>Структура управленческого отчёта о прибыли и убытках, денежного потока и панели собственника.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Результат</span><p>Собственник видит прибыль, деньги и обязательства в одной картине.</p></div>
+            <div class="result-row"><span class="result-row__label">Ситуация</span><p>Много Excel-файлов, но нет единой картины — прибыль, деньги и обязательства порознь.</p></div>
+            <div class="result-row"><span class="result-row__label">Контроль</span><p>Структура управленческого отчёта о прибыли и убытках, денежного потока и панели собственника.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Решение</span><p>Собственник видит прибыль, деньги и обязательства в одной картине.</p></div>
           </article>
         </div>
-        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Смотреть все сценарии контроля&nbsp;&rarr;</a></p>
-
-        <h3 class="subhead reveal">Что вы получаете после диагностики</h3>
-        <ul class="deliv-list reveal">
-          <li><strong>Диагностическое заключение</strong> — карта финансовых болей и рисков</li>
-          <li><strong>Карта финансовых рисков</strong> — приоритизация рисков и меры с быстрым эффектом</li>
-          <li><strong>Список необходимых документов</strong> — что нужно для диагностики</li>
-          <li><strong>Денежный поток / Структура отчёта о прибыли и убытках</strong> — управленческая логика</li>
-          <li><strong>Логика платёжного календаря</strong> — приоритеты и покрытие</li>
-          <li><strong>План действий</strong> — план на 30 / 60 / 90 дней</li>
-          <li><strong>Концепция панели собственника</strong> — что видит собственник</li>
-          <li><strong>Рекомендация FINMENTOR</strong> — рекомендуемый формат и пакет</li>
-        </ul>
-
-        <h3 class="subhead reveal">Пример результата</h3>
-        <div class="sample-grid">
-          <article class="sample-card reveal">
-            <div class="sample-card__bar"><span class="sample-card__name">Диагностическая записка</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body">
-              <div class="so-line"><span class="so-line__k">Ключевая проблема</span><span class="so-line__v">Деньги есть в обороте, но не видны в управлении</span></div>
-              <div class="so-line"><span class="so-line__k">Первый вывод</span><span class="so-line__v">Нужен денежный поток и контроль обязательств</span></div>
-              <div class="so-line"><span class="so-line__k">Фокус</span><span class="so-line__v">Прибыль · платежи · риски</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Понятный вывод и первый шаг</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="1">
-            <div class="sample-card__bar"><span class="sample-card__name">Карта рисков</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Дебиторка</b></span><span class="so-row__v">высокий</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>Склад</b></span><span class="so-row__v">средний</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>Платёжный календарь</b></span><span class="so-row__v">контроль</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Приоритет — первые 30 дней</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="2">
-            <div class="sample-card__bar"><span class="sample-card__name">Список документов</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Банковские выписки</span><span class="so-pill so-pill--done">готово</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Прибыль и убытки · Денежный поток</span><span class="so-pill so-pill--done">готово</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Анализ дебиторской и кредиторской задолженности по срокам</span><span class="so-pill so-pill--req">запросить</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Договоры · условия оплат</span><span class="so-pill so-pill--req">запросить</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Что готово / что запросить</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="3">
-            <div class="sample-card__bar"><span class="sample-card__name">Панель собственника</span><span class="sample-card__tag">Образец</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Денежная позиция</span><span class="so-row__v">в норме</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Маржа</span><span class="so-row__v">под контролем</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Платежи к оплате</span><span class="so-row__v">внимание</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Оборотный капитал</span><span class="so-row__v">внимание</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Взгляд собственника: что требует решения</div>
-            </div>
-          </article>
-        </div>
-        <p class="sample-note">Это обезличенные образцы оформления, без реальных данных клиентов. Финальные выводы по вашему бизнесу формируются после диагностики.</p>
-      </div>
-    </section>
-
-<section class="about sec--light" id="about">
-      <div class="container about__grid">
-        <div class="about__portrait reveal">
-          <figure class="portrait">
-            <picture class="portrait__picture">
-              <source type="image/webp" media="(max-width: 640px)" srcset="portrait-mobile.webp 430w" sizes="min(86vw, 340px)" />
-              <source type="image/webp" srcset="portrait-medium.webp 520w, portrait-large.webp 780w" sizes="(max-width: 860px) 340px, 420px" />
-              <img class="portrait__img" src="portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Геннадий Яковлев — внешний финансовый директор, FINMENTOR" loading="lazy" decoding="async" />
-            </picture>
-          </figure>
-        </div>
-
-        <div class="about__body">
-          <p class="overline reveal">Кто стоит за FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Кто стоит за FINMENTOR</h2>
-          <p class="about__lead reveal" data-reveal-delay="2">
-            FINMENTOR — это авторская финансовая система, которую я разработал на основе многолетней практики финансового директора и работы с реальными бизнесами собственников.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="3">
-            Я создавал эту систему не в теории. Она выросла из практических задач: кассовые разрывы, слабый контроль платежей, непонятная прибыль, зависшая дебиторка, неуправляемые расходы, риски арендаторов, инвестиционные решения, объекты недвижимости, склады, заказы, маржа и ключевые показатели.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="4">
-            В FINMENTOR я объединил то, что собственнику действительно нужно для управления: денежный поток, прибыль и убытки, обязательства, дебиторку, платежи, маржу, риски, ключевые показатели и панель собственника в одной логике. Это не шаблон «для всех», а система, которая настраивается под экономику конкретного бизнеса.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="5">
-            Для меня FINMENTOR — это не просто консалтинг. Это личная методология финансового контроля, цель которой — дать собственнику ясную картину бизнеса и инструмент для решений через цифры.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="6">
-            Современные цифровые инструменты и автоматизация помогают быстрее обрабатывать данные и поддерживать качество, но финальные выводы и рекомендации всегда проходят экспертную проверку.
-          </p>
-
-          <div class="anchor-list reveal" data-reveal-delay="7">
-            <span><b>Финансовый подход</b> — функция финансового директора</span>
-            <span>Big4&nbsp;/ IFRS-фундамент</span>
-            <span>Управленческая отчётность</span>
-            <span>Управление денежным потоком и казначейством</span>
-            <span>Инвестиционные и операционные модели</span>
-            <span>Несколько юрлиц, проектов и объектов</span>
-          </div>
-
-
-          <div class="trust-links reveal" data-reveal-delay="8">
-            <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" data-ga="click_bot">Обсудить задачу</a>
-            <a href="mailto:cfo@finmentor.md" data-ga="click_email">E-mail</a>
-            <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin">LinkedIn</a>
-            <span class="trust-links__meet">Личная встреча в Кишинёве — по согласованию</span>
-          </div>
-
-          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="9" data-ga="click_discovery_call">Обсудить ваш бизнес</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec sec--alt" id="mini-scan">
-      <div class="container">
-        <div class="cta-band">
-          <p class="overline reveal">Лёгкий вход · 3 минуты</p>
-          <p class="cta-band__title reveal">Не готовы к полному рентгену? Начните с экспресс-диагностики оборотного капитала</p>
-          <p class="cta-band__text reveal">9 вопросов покажут, где могут застревать деньги: дебиторка, запасы, авансы, условия поставщиков или платёжная дисциплина. Это первичная финансовая оценка, а не полноценная диагностика.</p>
-          <div class="cta-band__row reveal">
-            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть экспресс-диагностику</a>
-            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Подробнее об оборотном капитале&nbsp;&rarr;</a>
-          </div>
-        </div>
+        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Посмотреть подход FINMENTOR&nbsp;&rarr;</a></p>
       </div>
     </section>
 
@@ -1232,11 +737,10 @@
           <h2 class="section-title reveal" data-reveal-delay="1">Материалы FINMENTOR</h2>
         <p class="section-lead reveal" data-reveal-delay="2">Практика, методология и собственные разработки FINMENTOR: наблюдения из реальной работы с деньгами, маржой и управленческим контролем. Полная база — на странице материалов.</p>
         </div>
-        <div class="materials-grid">
-          <a class="material-card reveal" href="supplier-shelf-credit.html" data-reveal-delay="2"><span class="material-card__tag">Методология · розничная торговля</span><span class="material-card__title">Финансирование товарной полки поставщиком: кто финансирует торговую полку</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="pribyl-vs-cash.html" data-reveal-delay="3"><span class="material-card__tag">Деньги и прибыль</span><span class="material-card__title">Прибыль есть, денег нет: отчёт о прибыли и убытках · денежные средства</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="capacity-released.html" data-reveal-delay="4"><span class="material-card__tag">Экономика искусственного интеллекта</span><span class="material-card__title">Высвобожденная мощность (Capacity Released) &ne; Фактическая экономия денежных средств (Cash Saving)</span><span class="material-card__arrow">Читать &rarr;</span></a>
-          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="5"><span class="material-card__tag">Оборотный капитал</span><span class="material-card__title">Оборотный капитал: где застряли деньги</span><span class="material-card__arrow">Читать &rarr;</span></a>
+        <div class="materials-grid materials-grid--three">
+          <a class="material-card reveal" href="pribyl-vs-cash.html" data-reveal-delay="1"><span class="material-card__tag">Деньги и прибыль</span><span class="material-card__title">Прибыль есть, денег нет: отчёт о прибыли и убытках · денежные средства</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="capital-allocation-value.html" data-reveal-delay="2"><span class="material-card__tag">Управление капиталом</span><span class="material-card__title">Финансовый директор как управляющий капиталом: от высвобождения к созданию стоимости</span><span class="material-card__arrow">Читать &rarr;</span></a>
+          <a class="material-card reveal" href="capex-hurdle-rate.html" data-reveal-delay="3"><span class="material-card__tag">Инвестиционные решения</span><span class="material-card__title">Как принимать решения о капитальных вложениях: приростная доходность и требуемая доходность</span><span class="material-card__arrow">Читать &rarr;</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
           <a href="materials.html#financial-map" class="btn btn--ghost btn--lg">Посмотреть финансовую карту бизнеса</a>
@@ -1246,25 +750,7 @@
       </div>
     </section>
 
-    <section class="sec after" id="after">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">После заявки</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Что происходит после заявки</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Прозрачный процесс без неизвестности — вы понимаете каждый следующий шаг.</p>
-        </div>
-        <div class="after-grid">
-          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Вы проходите <strong>финансовый рентген</strong> или пишете напрямую в FINMENTOR&nbsp;Bot.</p></div>
-          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR смотрит контекст и определяет, <strong>что нужно уточнить</strong>.</p></div>
-          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">На <strong>первичном финансовом разборе</strong> обсуждаем бизнес, данные и главную боль.</p></div>
-          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Формируется <strong>список документов</strong> и рекомендуемый формат работы.</p></div>
-          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Финальные выводы и стоимость согласуются <strong>после оценки объёма работ</strong>.</p></div>
-        </div>
-        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Важно</span><p>ИИ может подготовить черновик анализа и ускорить подготовку, но финальные выводы по вашему бизнесу подтверждает человек.</p></div>
-      </div>
-    </section>
-
-<section class="consult" id="consult">
+    <section class="consult" id="consult">
       <div class="consult__glow" aria-hidden="true"></div>
       <div class="container consult__grid">
         <div class="consult__intro">
@@ -1322,7 +808,8 @@
         </form>
       </div>
     </section>
-  </main>
+
+      </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
@@ -1339,10 +826,12 @@
 
         <nav class="footer__col" aria-label="Подвал — навигация">
           <span class="footer__col-label">Разделы</span>
-          <a href="#about">О проекте</a>
-          <a href="#steps">Как работаем</a>
-          <a href="#solutions">Решения</a>
-          <a href="#cases">Кейсы</a>
+          <a href="about.html">О FINMENTOR</a>
+          <a href="owner.html">Для собственника</a>
+          <a href="#solutions">Форматы работы</a>
+          <a href="capital-management.html">Управление капиталом</a>
+          <a href="business-models.html">Бизнес-модели</a>
+          <a href="cases.html">Практика</a>
           <a href="materials.html">Материалы</a>
           <a href="materials.html#financial-map">Финансовая карта бизнеса</a>
           <a href="questionnaire.html">Финансовый рентген</a>

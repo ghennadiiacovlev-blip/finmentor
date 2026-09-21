@@ -190,7 +190,11 @@ check('the obsolete duplicate landing CTAs are gone and the approved hero CTA is
 check('Telegram was not removed globally — the approved hero, contact and fallback routes remain', () => {
   const h = read('ro/index.html');
   const left = (h.match(/t\.me\/finmentor_md_bot/g) || []).length;
-  assert(left === 7, 'expected the approved hero plus 6 contact/fallback links, found ' + left);
+  // IA 2.0: the founder block (and its Telegram link) moved from the landing page to ro/about.html.
+  assert(left === 6, 'expected the approved hero plus 5 contact/fallback links, found ' + left);
+  const about = read('ro/about.html');
+  const founder = about.slice(about.indexOf('id="about"'), about.indexOf('id="method"'));
+  assert(/t\.me\/finmentor_md_bot/.test(founder), 'the founder block lost its Telegram route on ro/about.html');
 });
 
 check('every affected RO page still offers a working customer route', () => {

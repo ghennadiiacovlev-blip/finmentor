@@ -17,6 +17,8 @@ const ok = m => { PASS++; console.log('  PASS    ' + m); };
 const SCOPE = [];
 for (const s of NEW) { SCOPE.push(s); SCOPE.push('ro/' + s); }
 SCOPE.push('materials.html', 'ro/materials.html', 'index.html', 'ro/index.html');
+// IA 2.0 hub pages carry the navigation and the content moved off the homepage.
+for (const s of ['owner.html', 'capital-management.html', 'business-models.html', 'about.html']) { SCOPE.push(s); SCOPE.push('ro/' + s); }
 const TOUCHED = ['ai-dlya-cfo.html', 'capacity-released.html', 'capital-preservation.html', 'cash-flow.html',
   'fcf-postavshiki.html', 'kaznacheystvo.html', 'margin-factor-analysis-flags.html', 'methodology.html',
   'platezhnyy-kalendar.html', 'power-bi-dlya-sobstvennika.html', 'pribyl-vs-cash.html',

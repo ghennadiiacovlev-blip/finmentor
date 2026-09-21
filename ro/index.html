@@ -330,13 +330,40 @@
       <a class="logo" href="#top" aria-label="finmentor — spre pagina principală">
         <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
       </a>
-
       <nav class="nav" aria-label="Navigare principală">
-        <a href="#about" class="nav__link">Despre proiect</a>
-        <a href="#audience" class="nav__link">Pentru cine</a>
-        <a href="#steps" class="nav__link">Cum lucrăm</a>
-        <a href="#solutions" class="nav__link">Soluții</a>
-        <a href="#knowledge" class="nav__link">Materiale</a>
+        <a href="about.html" class="nav__link">Despre FINMENTOR</a>
+        <div class="nav__item" data-nav-menu>
+          <a href="owner.html" class="nav__link">Pentru proprietar</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-owner"><span class="visually-hidden">Afișați secțiunile „Pentru proprietar”</span></button>
+          <div class="nav__panel" id="nav-owner">
+            <ul class="nav__sublist">
+              <li><a class="nav__sublink" href="owner.html#chaos"><span class="nav__subtitle">Haosul financiar</span><span class="nav__subnote">Semnele că sistemul de management lipsește</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#profit-question"><span class="nav__subtitle">Profitul ≠ bani</span><span class="nav__subnote">De ce profitul nu înseamnă încă lichiditate</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#owner-control"><span class="nav__subtitle">Trei circuite de control</span><span class="nav__subnote">Bani, rezultat, capital</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#steps"><span class="nav__subtitle">Cum lucrează FINMENTOR</span><span class="nav__subnote">Diagnostic, sistem, însoțire</span></a></li>
+              <li><a class="nav__sublink" href="business-models.html"><span class="nav__subtitle">Modele de afaceri</span><span class="nav__subnote">Un singur sistem — economii diferite</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav__item" data-nav-menu>
+          <a href="#solutions" class="nav__link">Soluții</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-solutions"><span class="visually-hidden">Afișați soluțiile</span></button>
+          <div class="nav__panel nav__panel--wide" id="nav-solutions">
+            <ul class="nav__sublist nav__sublist--cols">
+              <li><a class="nav__sublink" href="business-control-system.html"><span class="nav__subtitle">Control financiar</span></a></li>
+              <li><a class="nav__sublink" href="kaznacheystvo.html"><span class="nav__subtitle">Flux de numerar și trezorerie</span></a></li>
+              <li><a class="nav__sublink" href="upravlencheskiy-pl.html"><span class="nav__subtitle">P&amp;L de management</span></a></li>
+              <li><a class="nav__sublink" href="working-capital.html"><span class="nav__subtitle">Capital de lucru</span></a></li>
+              <li><a class="nav__sublink" href="treasury-waterfall.html"><span class="nav__subtitle">Bugetare și prognoză</span></a></li>
+              <li><a class="nav__sublink" href="capex-hurdle-rate.html"><span class="nav__subtitle">Investiții de capital (CAPEX)</span></a></li>
+              <li><a class="nav__sublink" href="power-bi-dlya-sobstvennika.html"><span class="nav__subtitle">Raportare de management</span></a></li>
+              <li><a class="nav__sublink" href="ai-dlya-cfo.html"><span class="nav__subtitle">Automatizare și BI</span></a></li>
+              <li><a class="nav__sublink" href="monthly-cfo-support.html"><span class="nav__subtitle">Control CFO regulat</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <a href="capital-management.html" class="nav__link">Managementul capitalului</a>
+        <a href="materials.html" class="nav__link">Materiale</a>
         <a href="#consult" class="nav__link">Contacte</a>
       </nav>
 
@@ -352,12 +379,32 @@
 
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Navigare mobilă">
     <nav class="mobile-menu__nav" aria-label="Navigare mobilă">
-      <a href="#about" class="mobile-menu__link" style="--mi:0">Despre proiect</a>
-      <a href="#audience" class="mobile-menu__link" style="--mi:1">Pentru cine</a>
-      <a href="#steps" class="mobile-menu__link" style="--mi:2">Cum lucrăm</a>
-      <a href="#solutions" class="mobile-menu__link" style="--mi:3">Soluții</a>
-      <a href="#knowledge" class="mobile-menu__link" style="--mi:4">Materiale</a>
-      <a href="#consult" class="mobile-menu__link" style="--mi:6">Contacte</a>
+      <a href="about.html" class="mobile-menu__link" style="--mi:0">Despre FINMENTOR</a>
+      <details class="mobile-menu__group" style="--mi:1">
+        <summary class="mobile-menu__link">Pentru proprietar</summary>
+        <a href="owner.html" class="mobile-menu__sublink mobile-menu__sublink--hub">Prezentarea secțiunii</a>
+        <a href="owner.html#chaos" class="mobile-menu__sublink">Haosul financiar</a>
+        <a href="owner.html#profit-question" class="mobile-menu__sublink">Profitul ≠ bani</a>
+        <a href="owner.html#owner-control" class="mobile-menu__sublink">Trei circuite de control</a>
+        <a href="owner.html#steps" class="mobile-menu__sublink">Cum lucrează FINMENTOR</a>
+        <a href="business-models.html" class="mobile-menu__sublink">Modele de afaceri</a>
+      </details>
+      <details class="mobile-menu__group" style="--mi:2">
+        <summary class="mobile-menu__link">Soluții</summary>
+        <a href="#solutions" class="mobile-menu__sublink mobile-menu__sublink--hub">Formatele de lucru</a>
+        <a href="business-control-system.html" class="mobile-menu__sublink">Control financiar</a>
+        <a href="kaznacheystvo.html" class="mobile-menu__sublink">Flux de numerar și trezorerie</a>
+        <a href="upravlencheskiy-pl.html" class="mobile-menu__sublink">P&amp;L de management</a>
+        <a href="working-capital.html" class="mobile-menu__sublink">Capital de lucru</a>
+        <a href="treasury-waterfall.html" class="mobile-menu__sublink">Bugetare și prognoză</a>
+        <a href="capex-hurdle-rate.html" class="mobile-menu__sublink">Investiții de capital (CAPEX)</a>
+        <a href="power-bi-dlya-sobstvennika.html" class="mobile-menu__sublink">Raportare de management</a>
+        <a href="ai-dlya-cfo.html" class="mobile-menu__sublink">Automatizare și BI</a>
+        <a href="monthly-cfo-support.html" class="mobile-menu__sublink">Control CFO regulat</a>
+      </details>
+      <a href="capital-management.html" class="mobile-menu__link" style="--mi:3">Managementul capitalului</a>
+      <a href="materials.html" class="mobile-menu__link" style="--mi:4">Materiale</a>
+      <a href="#consult" class="mobile-menu__link" style="--mi:5">Contacte</a>
     </nav>
     <div class="mobile-menu__lang">
       <span class="mobile-menu__lang-label">Limbă · Язык</span>
@@ -424,46 +471,18 @@
             <p class="chaos-card__text">Rapoartele vin târziu și nu ajută la luarea deciziilor.</p>
           </article>
           <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
-            <p class="chaos-card__text">Plățile se aprobă haotic, fără priorități și fonduri.</p>
+            <p class="chaos-card__text">Plățile se aprobă fără priorități și fără rezerve.</p>
           </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
-            <p class="chaos-card__text">Golurile de numerar apar pe neașteptate.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.0deg; --dy:14px">
             <p class="chaos-card__text">Vânzările cresc, dar marja și profitul nu cresc.</p>
           </article>
-          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
-            <p class="chaos-card__text">Datele sunt împrăștiate între 1C, Excel, Google Sheets, CRM și mesagerie.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
-            <p class="chaos-card__text">Proprietarul nu vede indicatorii-cheie, riscurile și abaterile într-un singur loc.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
-            <p class="chaos-card__text">Inteligența artificială (AI) și automatizarea nu sunt folosite, deși munca manuală este prea multă.</p>
+          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:0.7deg; --dy:26px">
+            <p class="chaos-card__text">Proprietarul nu vede banii, rezultatul și riscurile într-un singur sistem.</p>
           </article>
         </div>
 
         <p class="chaos__verdict reveal">Nu este o problemă de oameni. <span class="text-gold">Este absența unui sistem.</span></p>
-        <span class="chaos__bridge" aria-hidden="true"></span>
-      </div>
-    </section>
-
-    <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
-      <div class="container container--editorial">
-        <div class="statement-screen__copy">
-          <h2 class="statement-screen__text" id="profit-question-title">
-            <span class="statement-screen__keyword reveal">Profit.</span>
-            <span class="statement-screen__question reveal" data-reveal-delay="2">Și dacă asta încă nu înseamnă bani?</span>
-          </h2>
-          <p class="statement-screen__note reveal" data-reveal-delay="3">Rezultatul financiar arată cât a câștigat afacerea. Managementul capitalului arată unde se află banii și ce trebuie făcut cu ei mai departe.</p>
-        </div>
-        <ol class="capital-chain reveal" data-reveal-delay="2" aria-label="De la profit la capital">
-          <li class="capital-chain__node">Profit</li>
-          <li class="capital-chain__node">Bani</li>
-          <li class="capital-chain__node">Capital circulant</li>
-          <li class="capital-chain__node">Capital</li>
-        </ol>
-        <p class="statement-screen__close reveal" data-reveal-delay="4">Profitul arată rezultatul. Capitalul arată ce trebuie făcut mai departe.</p>
+        <p class="scene-link chaos__more reveal"><a href="owner.html#chaos" class="hero__link">Toate semnele haosului financiar&nbsp;&rarr;</a></p>
       </div>
     </section>
 
@@ -472,7 +491,6 @@
         <div class="section-head">
           <p class="overline reveal">Circuitul de management</p>
           <h2 class="section-title reveal" data-reveal-delay="1" id="owner-control-title">Trei circuite de control ale proprietarului</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR reunește fluxul de numerar (Cash Flow), contul de profit și pierdere (P&amp;L), plățile, creanțele, obligațiile, marja, indicatorii-cheie de performanță (KPI) și riscurile într-un singur tablou de control — astfel încât proprietarul să vadă nu rapoarte disparate, ci logica financiară a afacerii, și să ia deciziile pe cifre.</p>
         </div>
         <div class="pillars__grid">
           <article class="pillar reveal" data-reveal-delay="1">
@@ -480,7 +498,7 @@
             <h3 class="pillar__title">Bani</h3>
             <p class="pillar__descriptor">Câți bani există acum, când intră și pentru ce ajung.</p>
             <ul class="pillar__terms">
-              <li>Flux de numerar (Cash Flow)</li>
+              <li>Flux de numerar</li>
               <li>Lichiditate</li>
               <li>Trezorerie</li>
             </ul>
@@ -491,9 +509,9 @@
             <h3 class="pillar__title">Rezultat</h3>
             <p class="pillar__descriptor">Unde câștigă afacerea și unde pierde marja.</p>
             <ul class="pillar__terms">
-              <li>Contul de profit și pierdere managerial (P&amp;L)</li>
+              <li>P&amp;L de management</li>
               <li>Marjă</li>
-              <li>Performanță</li>
+              <li>Rentabilitate</li>
             </ul>
           </article>
 
@@ -502,8 +520,8 @@
             <h3 class="pillar__title">Capital</h3>
             <p class="pillar__descriptor">Unde sunt banii blocați și încotro merge următorul capital.</p>
             <ul class="pillar__terms">
-              <li>Capital circulant</li>
-              <li>Investiții de capital (CAPEX)</li>
+              <li>Capital de lucru</li>
+              <li>Investiții de capital</li>
               <li>Investiții</li>
             </ul>
           </article>
@@ -511,46 +529,28 @@
       </div>
     </section>
 
-    <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
-      <div class="container">
-        <div class="finmentor-compare reveal">
-          <div class="finmentor-compare__head">
-            <p class="finmentor-compare__eyebrow">Profit și capital</p>
-            <h2 class="finmentor-compare__title" id="profit-capital-title">Profitul este un rezultat. <span>Controlul capitalului înseamnă management.</span></h2>
-          </div>
-          <div class="finmentor-compare__panel">
-            <div class="finmentor-compare__side">
-              <div class="finmentor-compare__side-head"><h3 class="finmentor-compare__label">Profitul există</h3></div>
-              <ol class="finmentor-flow">
-                <li class="finmentor-flow__node">Veniturile <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">cresc</span></li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Creanțele <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">cresc</span></li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Stocurile <span class="finmentor-flow__delta" aria-hidden="true">↑</span><span class="finmentor-flow__sr">cresc</span></li>
-                <li class="finmentor-flow__node finmentor-flow__node--result"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Mai puțini bani</li>
-              </ol>
-              <p class="finmentor-compare__note">Creșterea profitului nu garantează creșterea lichidității.</p>
-            </div>
-            <div class="finmentor-compare__side finmentor-compare__side--control">
-              <div class="finmentor-compare__side-head"><h3 class="finmentor-compare__label">Capitalul sub control</h3></div>
-              <ol class="finmentor-flow">
-                <li class="finmentor-flow__node">Fluxul de numerar</li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Capitalul de lucru</li>
-                <li class="finmentor-flow__node"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Decizia</li>
-                <li class="finmentor-flow__node finmentor-flow__node--result"><span class="finmentor-flow__arrow" aria-hidden="true"></span>Controlul rezultatului</li>
-              </ol>
-              <p class="finmentor-compare__note">FINMENTOR arată unde se blochează capitalul și ce decizie trebuie luată.</p>
-            </div>
-          </div>
+    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <picture class="capital-management__media">
+        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
+        <img src="../images/editorial/capital-decision.svg" alt="Mediul de lucru pentru deciziile de capital" width="1920" height="1280" loading="lazy" decoding="async">
+      </picture>
+      <div class="capital-management__scrim" aria-hidden="true"></div>
+      <div class="container container--editorial capital-management__inner">
+        <div class="capital-management__head">
+          <p class="overline reveal">Managementul capitalului</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Unde va lucra mai bine următorul 1&nbsp;EUR de capital?</h2>
+          <p class="capital-management__lead reveal" data-reveal-delay="2">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
+          <p class="capital-management__routes reveal" data-reveal-delay="3">Capital circulant · Investiții de capital (CAPEX) · Obligații · Rezervă de lichiditate</p>
+          <p class="scene-link reveal"><a href="capital-management.html" class="hero__link">Mai mult despre managementul capitalului&nbsp;&rarr;</a></p>
         </div>
-      </div>
-    </section>
-
-    <section class="sec diff" id="difference" aria-label="Prin ce se deosebește FINMENTOR">
-      <div class="container">
-        <div class="diff__grid reveal">
-          <div class="diff__row"><span class="diff__who">Contabilitatea</span><p>asigură corectitudinea evidenței, a raportării și conformitatea fiscală.</p></div>
-          <div class="diff__row"><span class="diff__who">Analiza managerială și automatizarea</span><p>fac datele vizibile și procesele mai rapide, dar nu definesc prin ele însele logica financiară a deciziilor.</p></div>
-          <div class="diff__row diff__row--fm"><span class="diff__who">FINMENTOR</span><p>adaugă circuitul managerial al proprietarului: leagă banii, profitul, fluxul de numerar, indicatorii-cheie și riscurile de decizii manageriale concrete. Power BI, automatizarea și IA se conectează la logica financiară deja construită.</p></div>
-        </div>
+        <ol class="capital-cycle" aria-label="Ciclul managementului capitalului">
+            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Sursa capitalului</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Alocare</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Randament</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Risc</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Eliberare</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Realocare</span></li>
+        </ol>
       </div>
     </section>
 
@@ -558,8 +558,9 @@
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Modele de business</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Sistem financiar adaptat modelului dvs. de business</h2>
+          <h2 class="section-title reveal" data-reveal-delay="1">Un singur sistem financiar.<br> Economii diferite ale afacerii.</h2>
           <p class="section-lead reveal" data-reveal-delay="2">Un singur nucleu financiar — bani, profit, flux de numerar, indicatori-cheie, riscuri. Industrii diferite — economie diferită. FINMENTOR reglează controlul pe metricile care contează cu adevărat în afacerea dvs.</p>
+          <p class="scene-link reveal"><a href="business-models.html" class="hero__link">Toate modelele de afaceri&nbsp;&rarr;</a></p>
         </div>
 
         <figure class="industries__figure reveal">
@@ -573,94 +574,33 @@
               <h3>Imobiliare și închiriere</h3>
               <span class="industry-card__badge">Soluție emblematică</span>
             </div>
-            <p class="industry-card__object">obiect · chiriaș · NOI · CAPEX · recuperare</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p><b>Durerea:</b> Imobilul nu se amortizează, chiriașii creează riscuri, se văd doar sumele facturate, nu banii.</p>
-            <p><b>Controlul:</b> Chiriași și contracte, venit operațional net (NOI), rata de capitalizare (Cap Rate), grad de neocupare, investiții de capital (CAPEX), evaluarea fiabilității chiriașilor, recuperarea investiției.</p>
-            <p><b>Metodologia de calcul:</b> Venit operațional net, grad de neocupare, evaluarea fiabilității chiriașilor, chiria raportată la nivelul pieței, acoperirea cu depozit și garanții, recuperarea investițiilor de capital, flux de numerar, indicator de risc.</p>
-            <p><b>Rezultatul:</b> Randamentul fiecărui imobil și chiriaș devine vizibil, riscurile — din timp.</p></div>
-            </details>
+            <p class="industry-card__object">Obiect · chiriaș · NOI · CAPEX · recuperare</p>
             <a href="real-estate-control-system.html" class="industry-card__cta" data-ga="click_industry_real_estate" data-cta-id="industry_real_estate" data-cta-location="industries" data-event="cta_click" data-destination="real-estate-control-system">Sistem de management financiar al activelor imobiliare</a>
           </article>
-
           <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
             <span class="industry-card__index">02</span>
             <div class="industry-card__top">
               <h3>Comerț cu amănuntul</h3>
               <span class="industry-card__badge">Marjă în retail</span>
             </div>
-            <p class="industry-card__object">categorie · SKU · marjă pe m² · promo · retrobonus</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p><b>Durerea:</b> Rafturile sunt pline cu marfă, dar nu este clar ce categorii și articole de stoc (SKU) chiar câștigă bani și care doar îi blochează.</p>
-            <p><b>Controlul:</b> Norma de marjă pe metru liniar, m², categorie și articol de stoc; vânzări, stocuri, promoție, bonus retroactiv, furnizori și finanțarea stocului de către furnizor.</p>
-            <p><b>Metodologia de calcul:</b> Marjă țintă, marjă pe m², profitabilitatea pe produs, abaterea marjei față de țintă (Margin Gap), finanțarea stocului de către furnizor, bonus retroactiv, eficiența promoției.</p>
-            <p><b>Rezultatul:</b> Tabloul de bord pentru proprietar (Dashboard) arată ce extindeți, ce reduceți, unde cereți bonus retroactiv, unde este necesară compensația furnizorului și ce articole de stoc trebuie scoase din sortiment.</p></div>
-            </details>
+            <p class="industry-card__object">Categorie · poziție de marfă · marjă pe m² · promo · retrobonus</p>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Verificați retailul</a>
           </article>
-
           <article class="industry-card reveal" data-reveal-delay="3">
             <span class="industry-card__index">03</span>
             <div class="industry-card__top">
               <h3>Comerț online</h3>
             </div>
-            <p class="industry-card__object">economia unitară · CAC · LTV · ROAS · retururi</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p><b>Durerea:</b> Cifra de afaceri crește, reclama consumă bugetul, iar profitul pe unitate rămâne neclar.</p>
-            <p><b>Controlul:</b> Economia pe unitate (Unit economics), costul de achiziție a clientului (CAC), valoarea clientului pe durata relației (LTV), rentabilitatea cheltuielilor de publicitate (ROAS), logistică, retururi, depozit, profitabilitatea pe produs, gol de numerar.</p>
-            <p><b>Rezultatul:</b> Profitul pe articol de stoc și pe canal se vede după reclamă, logistică și retururi.</p></div>
-            </details>
+            <p class="industry-card__object">Unit economics · CAC · LTV · ROAS · retururi</p>
             <a href="questionnaire.html?model=ecommerce" class="industry-card__cta" data-cta-id="industries_ecommerce" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Verificați comerțul online</a>
           </article>
-
           <article class="industry-card reveal" data-reveal-delay="1">
             <span class="industry-card__index">04</span>
             <div class="industry-card__top">
               <h3>Comerț cu ridicata / distribuție</h3>
             </div>
-            <p class="industry-card__object">stoc · creanțe · limite de client · capital circulant</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p><b>Durerea:</b> Banii sunt blocați în depozit și creanțe, limitele clienților — stabilite „din ochi”.</p>
-            <p><b>Controlul:</b> Depozit, creanțe, furnizori, grupe de marfă, limite pe clienți, capital de lucru, marjă.</p>
-            <p><b>Rezultatul:</b> Capitalul de lucru și marja reală pe grupe și clienți — sub control.</p></div>
-            </details>
+            <p class="industry-card__object">Marjă · stocuri · creanțe · logistică · rotație</p>
             <a href="questionnaire.html?model=distribution" class="industry-card__cta" data-cta-id="industries_distribution" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Verificați distribuția</a>
-          </article>
-
-          <article class="industry-card reveal" data-reveal-delay="2">
-            <span class="industry-card__index">05</span>
-            <div class="industry-card__top">
-              <h3>Producție la comandă</h3>
-            </div>
-            <p class="industry-card__object">comandă · cost · încărcare · avans · marja proiectului</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p><b>Durerea:</b> Există comenzi, dar marja pe comandă e neclară; producția neterminată și avansurile trăiesc separat.</p>
-            <p><b>Controlul:</b> Comenzi, cost planificat și efectiv, materiale, avansuri, termene, marjă pe comandă, producție neterminată.</p>
-            <p><b>Rezultatul:</b> Profitul fiecărei comenzi devine vizibil și se vede unde se scurge costul.</p></div>
-            </details>
-            <a href="questionnaire.html?model=manufacturing" class="industry-card__cta" data-cta-id="industries_manufacturing" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Verificați producția</a>
-          </article>
-
-          <article class="industry-card reveal" data-reveal-delay="3">
-            <span class="industry-card__index">06</span>
-            <div class="industry-card__top">
-              <h3>Afaceri cu model de abonament</h3>
-            </div>
-            <p class="industry-card__object">abonament · churn · reînnoiri · venit la risc</p>
-            <details class="industry-card__detail">
-              <summary>Metodologia de control</summary>
-              <div class="industry-card__detail-body"><p class="industry-card__sub">Cluburi de fitness, centre SPA și wellness, servicii sportive și de tip membership</p>
-            <p><b>Problema managerială:</b> Reînnoirile au loc fără un proces controlat, riscul de pierdere a clienților (churn) devine vizibil prea târziu, veniturile viitoare nu sunt prognozate riguros, iar reducerile pentru retenție se acordă fără evaluarea efectului economic.</p>
-            <p><b>Controlul:</b> Profilul clientului ca activ, propensiunea de prelungire, veniturile din prelungiri expuse riscului, plan de retenție pe capacitatea echipei, migrația segmentelor.</p>
-            <p><b>Dezvoltare:</b> Client Base Control System · verticala sistemului de reînnoire a abonamentelor (Fitness Membership Renewal Engine) — crescută din ciclul managerial lunar al unui business real.</p>
-            <p><b>Rezultatul:</b> Veniturile din prelungiri pentru perioada următoare și riscul lor — sub controlul proprietarului.</p></div>
-            </details>
-            <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Detalii despre sistem</a>
           </article>
         </div>
 
@@ -681,174 +621,7 @@
       </div>
     </section>
 
-    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <picture class="capital-management__media">
-        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
-        <img src="../images/editorial/capital-decision.svg" alt="Mediul de lucru pentru deciziile de capital" width="1920" height="1280" loading="lazy" decoding="async">
-      </picture>
-      <div class="capital-management__scrim" aria-hidden="true"></div>
-      <div class="container container--editorial capital-management__inner">
-        <div class="capital-management__head">
-          <p class="overline reveal">Managementul capitalului</p>
-          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Unde va lucra mai bine următorul 1&nbsp;EUR de capital?</h2>
-          <p class="capital-management__lead reveal" data-reveal-delay="2">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
-          <p class="capital-management__routes reveal" data-reveal-delay="3">Capital circulant · Investiții de capital (CAPEX) · Obligații · Rezervă de lichiditate</p>
-        </div>
-        <ol class="capital-cycle" aria-label="Ciclul managementului capitalului">
-            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Sursa capitalului</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Alocare</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Randament</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Risc</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Eliberare</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Realocare</span></li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="sec capital-logic" id="capital-logic" aria-labelledby="capital-logic-title">
-      <div class="container">
-        <div class="capital-logic__head">
-          <div class="capital-logic__title reveal">
-            <p class="overline">Logica CFO</p>
-            <h2 class="section-title" id="capital-logic-title">Capitalul trebuie să lucreze</h2>
-          </div>
-          <p class="capital-logic__lead reveal" data-reveal-delay="1">Pentru FINMENTOR, rolul directorului financiar nu se reduce la raportare. Misiunea sa este să protejeze valoarea capitalului, să asigure lichiditatea și să direcționeze resursele acolo unde pot genera un randament sustenabil, la un nivel de risc acceptabil.</p>
-        </div>
-
-        <p class="capital-logic__definition reveal" data-reveal-delay="2"><strong>În management, capitalul nu înseamnă doar numerar sau capitalul propriu din bilanț.</strong> El reprezintă resursele financiare deja alocate activității, activelor, capitalului de lucru, proiectelor și investițiilor, de la care proprietarul așteaptă flux de numerar sau randament economic.</p>
-
-        <article class="capital-map reveal" aria-labelledby="capital-map-title">
-          <div class="capital-map__head">
-            <div><p class="capital-map__eyebrow">Perspectivă managerială</p><h3 id="capital-map-title">Harta capitalului</h3></div>
-            <p>Nu este suficient să știm unde se află capitalul. Trebuie să știm cui aparține, cât costă și ce randament generează utilizarea lui.</p>
-          </div>
-          <section class="capital-source" aria-labelledby="capital-source-title">
-            <div class="capital-source__head">
-              <h4 id="capital-source-title">Sursa capitalului</h4>
-              <p>Structura de finanțare arată ale cui fonduri lucrează în afacere, în ce condiții au fost atrase și ce cost trebuie acoperit.</p>
-            </div>
-            <dl class="capital-source__list">
-              <div><dt>Capital propriu</dt><dd>Fondurile proprietarilor, aporturile și profitul reinvestit. Nu are dobândă contractuală, dar proprietarul așteaptă randament și suportă riscul capitalului.</dd></div>
-              <div><dt>Capital împrumutat</dt><dd>Credite bancare, împrumuturi și alte obligații purtătoare de dobândă. Calitatea lor depinde de cost, maturitate, monedă, rambursare și risc.</dd></div>
-              <div><dt>Finanțare operațională</dt><dd>Surse care finanțează temporar activele sau ciclul operațional: credit furnizor, datorii comerciale, avansuri și termene de plată.</dd></div>
-            </dl>
-            <p class="capital-source__structure"><strong>Structura capitalului.</strong> Același activ poate fi solid economic într-o structură de finanțare și slab în alta. Uneori problema nu este activul, ci structura finanțării sale.</p>
-          </section>
-          <div class="capital-map__dimensions">
-            <section class="capital-dimension" aria-labelledby="capital-location-title">
-              <h4 id="capital-location-title">Unde este capitalul</h4>
-              <ol>
-                <li><span>01</span><div><strong>Numerar și lichiditate</strong><p>Lichiditate operațională, disponibilități, depozite și rezerva de numerar.</p></div></li>
-                <li><span>02</span><div><strong>Capital de lucru</strong><p>Stocuri, creanțe, avansuri și resurse legate de ciclul operațional.</p></div></li>
-                <li><span>03</span><div><strong>Active operaționale și generatoare de venit</strong><p>Imobiliare, echipamente și alte active care susțin fluxul de numerar.</p></div></li>
-                <li><span>04</span><div><strong>Proiecte și CAPEX</strong><p>Construcții, development, extindere și programe de investiții.</p></div></li>
-                <li><span>05</span><div><strong>Investiții</strong><p>Participații, direcții noi și alte alocări cu randament așteptat.</p></div></li>
-              </ol>
-            </section>
-            <section class="capital-dimension" aria-labelledby="capital-state-title">
-              <h4 id="capital-state-title">Cum lucrează capitalul</h4>
-              <dl class="capital-states">
-                <div><dt>Capital productiv</dt><dd>Generează fluxul de numerar necesar și un randament acceptabil.</dd></div>
-                <div><dt>Capital necesar</dt><dd>Susține funcționarea stabilă, chiar fără randament direct ridicat.</dd></div>
-                <div><dt>Capital subutilizat</dt><dd>Lucrează, dar generează un randament sub nivelul necesar.</dd></div>
-                <div><dt>Capital blocat</dt><dd>Este legat de active, stocuri, creanțe sau proiecte fără flux suficient.</dd></div>
-                <div><dt>Capital excedentar</dt><dd>Depășește necesarul economic și poate fi eliberat sau realocat.</dd></div>
-              </dl>
-            </section>
-          </div>
-          <aside class="capital-risk"><strong>Riscul este un strat transversal</strong><p>Costul, maturitatea, moneda și gradul de îndatorare pot întări sau slăbi economia aceluiași activ.</p></aside>
-          <p class="capital-map__question"><strong>Întrebarea centrală a CFO-ului:</strong> cu ce capital este finanțată afacerea, unde este alocat, ce randament generează și dacă acest randament depășește costul utilizării lui?</p>
-          <a class="capital-map__material" href="capital-preservation.html">Mai mult → Cum consumă compania capitalul</a>
-        </article>
-
-        <div class="capital-flow reveal" data-reveal-delay="1" aria-label="Logica completă a administrării capitalului">
-          <span>Sursa capitalului</span><span>Unde este alocat</span><span>Cum lucrează</span><span>Ce randament generează</span><span>Cât costă</span><span>Ce risc implică</span><span>Decizie</span>
-        </div>
-
-        <ol class="capital-principles">
-          <li class="capital-principle reveal">
-            <span class="capital-principle__num">01</span>
-            <div><h3>Protejarea valorii</h3><p>Controlăm lichiditatea, pierderile și stabilitatea economică a capitalului.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="1">
-            <span class="capital-principle__num">02</span>
-            <div><h3>Alocarea capitalului</h3><p>Direcționăm resursele acolo unde creează valoare economică.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="1">
-            <span class="capital-principle__num">03</span>
-            <div><h3>Măsurarea randamentului</h3><p>Comparăm randamentul, costul capitalului, fluxul de numerar și riscul.</p></div>
-          </li>
-          <li class="capital-principle reveal" data-reveal-delay="2">
-            <span class="capital-principle__num">04</span>
-            <div><h3>Realocarea capitalului</h3><p>Eliberăm resursele, refinanțăm structura slabă și consolidăm utilizările mai eficiente.</p></div>
-          </li>
-        </ol>
-
-        <p class="capital-logic__mechanisms reveal" data-reveal-delay="1">Capitalul creează valoare economică atunci când este utilizat sustenabil cu un randament mai mare decât costul atragerii și randamentul cerut de proprietar — la un nivel de risc acceptabil.</p>
-      </div>
-    </section>
-
-        <section class="audience sec--light" id="audience">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Pentru cine</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Pentru cine este FINMENTOR</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR lucrează cu proprietarii afacerilor mici și mijlocii în creștere, care au deja contabilitate, Excel, 1C și echipă, dar nu au o funcție completă de director financiar, o raportare managerială unificată și un control regulat al banilor, profitului și riscurilor.</p>
-        </div>
-        <ul class="audience__grid">
-          <li class="audience__item reveal">Mai multe direcții, proiecte sau persoane juridice</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Cifra de afaceri e deja suficient de mare ca greșelile să coste scump</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Contabilitatea există, dar nu răspunde la întrebările manageriale</li>
-          <li class="audience__item reveal" data-reveal-delay="1">Proprietarul aprobă personal o parte semnificativă a plăților</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Raportarea vine târziu</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Afacerea a crescut mai repede decât sistemul financiar</li>
-          <li class="audience__item reveal" data-reveal-delay="2">Nu există o sursă unică de adevăr pentru cifre</li>
-          <li class="audience__item reveal" data-reveal-delay="3">Fluxul de numerar, contul de profit și pierdere, indicatorii-cheie și plățile trăiesc în tabele diferite</li>
-        </ul>
-        <p class="audience__note reveal" data-reveal-delay="2">Dacă ați recunoscut cel puțin trei puncte — Testul financiar FINMENTOR va arăta unde pierde sistemul controlul în primul rând.</p>
-      </div>
-    </section>
-
-    <section class="sec steps sec--light" id="steps">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Cum lucrăm</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Cum funcționează FINMENTOR — trei pași</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">De la logica financiară la decizii manageriale, execuție și control. Power BI, IA și automatizarea intervin acolo unde consolidează sistemul deja construit.</p>
-        </div>
-        <div class="steps-grid">
-          <article class="step-card reveal">
-            <span class="step-card__num">01</span>
-            <h3 class="step-card__title">Diagnostic</h3>
-            <p class="step-card__desc">Înțelegem unde sunt banii, profitul, obligațiile și riscurile: analizăm fluxul de numerar, contul de profit și pierdere, plățile, creanțele, datoriile către furnizori și calitatea datelor.</p>
-          </article>
-          <article class="step-card reveal" data-reveal-delay="1">
-            <span class="step-card__num">02</span>
-            <h3 class="step-card__title">Sistem de control</h3>
-            <p class="step-card__desc">Construim contul de profit și pierdere managerial, fluxul de numerar, calendarul plăților, indicatorii-cheie, regulile de plată și raportarea proprietarului — un singur circuit pe cifre.</p>
-          </article>
-          <article class="step-card reveal" data-reveal-delay="2">
-            <span class="step-card__num">03</span>
-            <h3 class="step-card__title">Parteneriat și controlul execuției</h3>
-            <p class="step-card__desc">Analizăm regulat rezultatele financiare, formalizăm deciziile manageriale și le transformăm în acțiuni concrete: responsabil, termen și stadiu. Power BI, IA și automatizarea intervin acolo unde consolidează logica financiară deja construită.</p>
-          </article>
-        </div>
-        <article class="working-contour reveal" id="working-contour" data-reveal-delay="2">
-          <div class="working-contour__heading">
-            <span class="working-contour__accent">De la decizie la execuție.</span>
-            <h3>Circuit comun de lucru</h3>
-          </div>
-          <div class="working-contour__copy">
-            <p>Pentru proiect se creează un spațiu de lucru comun pentru FINMENTOR și echipa clientului. Deciziile-cheie, sarcinile, responsabilii, termenele și stadiile sunt reunite într-un singur circuit, iar progresul și abaterile revin în următorul ciclu managerial.</p>
-            <p>Rezultatul se construiește împreună: FINMENTOR definește logica financiară, circuitul de control și recomandările manageriale, iar echipa clientului asigură datele necesare și executarea deciziilor convenite.</p>
-            <p class="working-contour__remote">Lucru la distanță fără pierderea controlului: între sesiunile CFO rămân vizibile deciziile, responsabilii, termenele și stadiul execuției.</p>
-            <p class="working-contour__capacity">FINMENTOR gestionează simultan un număr limitat de proiecte, pentru a păstra implicarea directă a CFO-ului în deciziile-cheie și controlul execuției.</p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-<section class="packages" id="solutions">
+    <section class="packages" id="solutions">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Soluții</p>
@@ -886,7 +659,7 @@
                 <li>Harta problemelor financiare</li>
                 <li>Evaluarea nivelului contabilității manageriale</li>
                 <li>Lista riscurilor critice</li>
-                <li>Plan de acțiune (Roadmap) pentru 30 / 60 / 90 de zile</li>
+                <li>Plan de acțiune pentru 30 / 60 / 90 de zile</li>
               </ul>
             </div>
             <div class="package__section">
@@ -894,7 +667,7 @@
               <p class="package__result">Proprietarul înțelege unde este problema, ce se repară mai întâi și ce format de lucru urmează.</p>
             </div>
             <div class="package__term"><span>Durată orientativă</span><strong>De regulă, 1–2 săptămâni după primirea datelor</strong></div>
-            <p class="package__next"><span class="package__next-label">Când este necesar un alt format</span> Este un diagnostic, nu audit, due diligence, model financiar complet sau implementare de sistem.</p>
+            <p class="package__next"><span class="package__next-label">Când este necesar un alt format</span> Este un diagnostic, nu audit, verificare aprofundată (due diligence), model financiar complet sau implementare de sistem.</p>
             <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Discutați diagnosticul</a>
           </article>
 
@@ -957,300 +730,32 @@
         </div>
       </div>
     </section>
-<section class="sec sec--seam-top" id="modules">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Soluțiile FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Un singur sistem. Module pentru sarcina dvs.</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Nu este un catalog de instrumente: fiecare modul se conectează la logica financiară comună. Fiecare soluție are pagina sa — durerea, ce construiește FINMENTOR, ce vede proprietarul și ce decizii devin posibile. Nu știți de unde să începeți — începeți cu Testul financiar FINMENTOR.</p>
-        </div>
 
-        <div class="sysmap reveal" data-reveal-delay="1">
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Controlul banilor</h3>
-            <a class="sysmap__row" href="kaznacheystvo.html" data-ga="click_module_treasury" data-cta-id="module_treasury" data-cta-location="modules" data-event="cta_click" data-destination="kaznacheystvo">
-              <span class="sysmap__name">Trezorerie și disciplină de plată</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Plățile merg haotic, „cine cere mai tare” — golurile de numerar apar pe neașteptate.</span>
-              <span class="sysmap__gain">Banii primesc destinație și priorități P0–P5; plata trece doar dacă există acoperire; statusuri și blocări în locul regimului manual.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="treasury-waterfall.html" data-ga="click_module_treasury" data-cta-id="module_waterfall" data-cta-location="modules" data-event="cta_click" data-destination="treasury-waterfall">
-              <span class="sysmap__name">Planificarea lichidităților și prioritizarea plăților</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Soldul din cont ≠ bani liberi: o parte aparține deja obligațiilor.</span>
-              <span class="sysmap__gain">Proprietarul vede capacitatea reală de plată: ce este liber, ce este rezervat, ce se achită, se amână sau se blochează.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="working-capital.html" data-ga="click_module_working_capital" data-cta-id="module_working_capital" data-cta-location="modules" data-event="cta_click" data-destination="working-capital">
-              <span class="sysmap__name">Managementul capitalului de lucru</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Banii „există”, dar sunt blocați în creanțe, stocuri și avansuri.</span>
-              <span class="sysmap__gain">Termenul mediu de încasare de la clienți (DSO) / termenul mediu de plată către furnizori (DPO) / durata de rotație a stocurilor (Inventory Days) și ciclul de numerar arată unde a rămas blocată lichiditatea și cum poate fi eliberată.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Marjă · achiziții · sortiment</h3>
-            <a class="sysmap__row" href="fcf-postavshiki.html" data-ga="click_module_fcf_sku" data-cta-id="module_fcf_sku" data-cta-location="modules" data-event="cta_click" data-destination="fcf-postavshiki">
-              <span class="sysmap__name">Analiza fluxului de numerar pe articol de stoc</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Veniturile cresc, iar banii liberi sunt tot mai puțini.</span>
-              <span class="sysmap__gain">Flux de numerar liber (FCF) pe fiecare articol de stoc: ce produse generează bani, care consumă numerar și unde marketingul înghite contribuția.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row sysmap__row--flag" href="retail-margin-engine.html" data-ga="click_module_retail_margin_engine" data-cta-id="module_retail_engine" data-cta-location="modules" data-event="cta_click" data-destination="retail-margin-engine">
-              <span class="sysmap__name">Sistem de management al marjei în retail</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Raftul, categoria și articolul de stoc nu sunt evaluate ca activ financiar.</span>
-              <span class="sysmap__gain">Norma de marjă pe metru, m², categorie și articol de stoc; finanțarea stocului de către furnizor, promoția și bonusul retroactiv devin acțiuni manageriale.</span></span>
-              <span class="sysmap__more">Model flagship <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="supplier-rating-purchasing-priorities.html" data-ga="click_module_supplier_rating" data-cta-id="module_supplier_rating" data-cta-location="modules" data-event="cta_click" data-destination="supplier-rating-purchasing-priorities">
-              <span class="sysmap__name">Evaluarea furnizorilor și controlul achizițiilor</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Achizițiile aleg furnizorul „după preț”, ignorând banii și riscul.</span>
-              <span class="sysmap__gain">Rating pe logica financiară completă: preț, termenul mediu de plată către furnizori, TVA, retururi, termene — și impactul asupra marjei și a fluxului de numerar.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="margin-factor-analysis-flags.html" data-ga="click_module_margin" data-cta-id="module_margin" data-cta-location="modules" data-event="cta_click" data-destination="margin-factor-analysis-flags">
-              <span class="sysmap__name">Analiza factorilor marjei</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Marja s-a schimbat — cauzele sunt necunoscute.</span>
-              <span class="sysmap__gain">Analiză factorială: preț, cantitate, structura sortimentului, cost, promoție — cu semnale de risc și calitatea datelor.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-
-          <div class="sysmap__group">
-            <h3 class="sysmap__label">Soluții digitale · Power BI · automatizare</h3>
-            <a class="sysmap__row" href="power-bi-dlya-sobstvennika.html" data-ga="click_module_power_bi" data-cta-id="module_power_bi" data-cta-location="modules" data-event="cta_click" data-destination="power-bi-dlya-sobstvennika">
-              <span class="sysmap__name">Tablou de bord pentru proprietar în Power BI</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Cifrele sunt împrăștiate prin tabelele și rapoartele executanților.</span>
-              <span class="sysmap__gain">Tabloul de bord zilnic al proprietarului: bani, marjă, plăți, deficit de finanțare (Funding Gap) și semnalele-cheie de risc pe un singur ecran.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-            <a class="sysmap__row" href="ai-dlya-cfo.html" data-ga="click_module_automation" data-cta-id="module_automation" data-cta-location="modules" data-event="cta_click" data-destination="ai-dlya-cfo">
-              <span class="sysmap__name">Automatizarea funcției financiare cu n8n și Make</span>
-              <span class="sysmap__body"><span class="sysmap__desc">Prea multă muncă manuală în rutina financiară.</span>
-              <span class="sysmap__gain">Solicitările, aprobările, notificările și rapoartele zilnice funcționează automat — în interiorul logicii financiare construite.</span></span>
-              <span class="sysmap__more">Detalii <span class="sysmap__arrow" aria-hidden="true">&rarr;</span></span>
-            </a>
-          </div>
-        </div>
-
-        <p class="module-note reveal">Stack-ul tehnologic se alege după diagnostic și se convine din start. Serviciile cu plată, licențele Power BI, Make/n8n, IA/API sau integrarea tehnică cu 1C nu se conectează fără confirmarea clientului.</p>
-      </div>
-    </section>
-
-    <section class="sec sec--alt flagship" id="flagship" aria-label="Din dezvoltările FINMENTOR — Retail Margin Engine">
-      <div class="container">
-        <div class="flagship__grid">
-          <div class="flagship__intro reveal">
-            <p class="overline">Din dezvoltările FINMENTOR · comerț cu amănuntul</p>
-            <h2 class="section-title">Sistem de management al marjei în retail: raftul ca activ financiar</h2>
-            <p class="flagship__pain">Retailul gestionează adesea sortimentul după venituri și „senzația categoriei”. În acel moment, o parte din raft lucrează tăcut în minus: spațiul e ocupat, banii sunt blocați în stocuri, furnizorul nu participă la finanțare, promoția consumă marja — iar în rapoarte totul pare „normal”.</p>
-          </div>
-          <div class="flagship__body">
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Ce construiește FINMENTOR</h3>
-              <p>O logică unică a randamentului spațiului comercial: norma de marjă pentru fiecare metru liniar, m², categorie și articol de stoc; economia promoțiilor și a bonusurilor retroactive; finanțarea stocului de către furnizor — cine finanțează de fapt raftul, dvs. sau furnizorul. Datele inițiale, calculele, abaterile și acțiunile manageriale sunt legate într-un singur sistem, cu tabloul de bord al proprietarului.</p>
-            </div>
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Ce vede proprietarul</h3>
-              <p>Unde marja nu atinge norma; ce articole de stoc și categorii blochează banii; ce furnizor creditează raftul și care trăiește pe contul dvs.; ce aduce și ce ia fiecare promoție.</p>
-            </div>
-            <div class="flagship__col reveal">
-              <h3 class="flagship__h">Ce decizii devin posibile</h3>
-              <p>Extindeți sau reduceți spațiul categoriei; cereți bonus retroactiv sau compensație; modificați amânarea la plată; înlocuiți sau scoateți articole de stoc; renegociați condițiile furnizorului — pe cifre, nu pe intuiție.</p>
-            </div>
-          </div>
-          <div class="flagship__foot reveal">
-            <p class="flagship__for"><b>Pentru cine:</b> rețele de comerț cu amănuntul și magazine în care raftul, categoria și articolul de stoc sunt activul principal. <b>Cum începem:</b> diagnosticul datelor → setarea normei de randament → implementarea controlului și a tabloului de bord.</p>
-            <div class="flagship__cta">
-              <a href="retail-margin-engine.html" class="btn btn--primary btn--lg" data-ga="click_module_retail_margin_engine" data-cta-id="flagship_retail_engine" data-cta-location="flagship" data-event="cta_click" data-destination="retail-margin-engine">Deschideți sistemul de management al marjei în retail</a>
-              <a href="#consult" class="hero__link" data-ga="click_discovery_call" data-cta-id="flagship_discuss" data-cta-location="flagship" data-event="cta_click" data-destination="#consult">Discutați retailul dvs. →</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
-      <div class="container">
-        <div class="ai-teaser">
-          <div class="ai-teaser__copy">
-            <p class="overline reveal">IA ECONOMICS · Control financiar al muncii digitale</p>
-            <h2 class="section-title reveal" data-reveal-delay="1">Plătiți deja pentru IA. Dar știți ce aduce ea efectiv afacerii?</h2>
-            <p class="ai-teaser__lead reveal" data-reveal-delay="2"><strong>Facturile pentru ChatGPT, Claude, Copilot și API arată cheltuielile, dar nu arată costul real al rezultatului util, timpul angajaților pentru verificare, prețul erorilor și efectul financiar.</strong></p>
-            <p class="ai-teaser__bridge reveal" data-reveal-delay="3">FINMENTOR leagă cheltuielile pentru IA de un rezultat de business concret și arată ce scalați, ce optimizați și ce opriți.</p>
-            <div class="ai-pain-grid reveal" data-reveal-delay="4" aria-label="Semnalele economiei IA">
-              <div class="ai-pain"><strong>Bugetul IA crește,</strong><span>dar rentabilitatea investiției (ROI) rămâne o presupunere.</span></div>
-              <div class="ai-pain"><strong>Orele sunt „economisite”,</strong><span>dar compania nu a obținut economii bănești.</span></div>
-              <div class="ai-pain"><strong>Modelele scumpe se folosesc peste tot</strong><span>fără o alegere justificată economic.</span></div>
-              <div class="ai-pain"><strong>IA se scalează</strong><span>înainte ca economia procesului să fie dovedită.</span></div>
-            </div>
-            <div class="ai-teaser__actions reveal" data-reveal-delay="5">
-              <a href="ai-agent-economics.html" class="btn btn--primary btn--lg" data-event="click_ai_economics_page" data-cta-id="ai_economics_teaser_primary" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html">Verificați economia IA</a>
-              <a href="ai-agent-economics.html#methodology" class="btn btn--ghost btn--lg" data-event="click_ai_economics_methodology" data-cta-id="ai_economics_teaser_methodology" data-cta-location="homepage_teaser" data-source-section="ai_economics_teaser" data-destination="ai-agent-economics.html#methodology">Vedeți metodologia AI Economics</a>
-            </div>
-          </div>
-
-          <div class="ai-teaser__model reveal" data-reveal-delay="4" aria-label="Lanțul de control financiar al IA">
-            <div class="ai-flow">
-              <span>Cheltuieli pentru IA</span>
-              <span>Cost total (Full Cost)</span>
-              <span>Rezultat acceptat de companie</span>
-              <span>Impact financiar</span>
-              <span>Decizie managerială</span>
-            </div>
-            <div class="ai-decisions" aria-label="Decizii manageriale">
-              <span>EXTINDERE</span><span>OPTIMIZARE</span><span>PILOTARE</span><span>REPROIECTARE</span><span>OPRIRE</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
     <section class="proof-cases sec sec--light" id="cases">
       <div class="container">
         <div class="section-head">
-          <p class="overline reveal">Dovezi</p>
+          <p class="overline reveal">Practică</p>
           <h2 class="section-title reveal" data-reveal-delay="1">Cum arată în practică</h2>
           <p class="section-lead reveal" data-reveal-delay="2">Scenarii anonime ale proprietarilor și ce schimbă FINMENTOR. Fără cifre inventate și fără garanții — doar logica de lucru.</p>
         </div>
         <div class="results__grid">
           <article class="result-card reveal" data-reveal-delay="1">
-            <div class="result-row"><span class="result-row__label">Problema</span><p>Există profit, dar banii nu ajung — rămâneau blocați în creanțe, stocuri și plăți haotice.</p></div>
-            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Flux de numerar, registrul creanțelor/datoriilor, calendarul plăților și prioritățile de plată.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Proprietarul vede golul de numerar cu 30 de zile înainte și primește un plan de acțiuni.</p></div>
+            <div class="result-row"><span class="result-row__label">Situația</span><p>Există profit, dar banii nu ajung — rămâneau blocați în creanțe, stocuri și plăți haotice.</p></div>
+            <div class="result-row"><span class="result-row__label">Controlul</span><p>Flux de numerar, registrul creanțelor/datoriilor, calendarul plăților și prioritățile de plată.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Decizia</span><p>Proprietarul vede golul de numerar cu 30 de zile înainte și primește un plan de acțiuni.</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="2">
-            <div class="result-row"><span class="result-row__label">Problema</span><p>Plăți în fiecare zi, dar fără priorități — deciziile se luau manual.</p></div>
-            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Logica acoperirii pe 7/14/30 de zile, plățile critice și ordinea aprobării.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Disciplină de plată în locul regimului manual „cine cere mai tare”.</p></div>
+            <div class="result-row"><span class="result-row__label">Situația</span><p>Plăți în fiecare zi, dar fără priorități — deciziile se luau manual.</p></div>
+            <div class="result-row"><span class="result-row__label">Controlul</span><p>Logica acoperirii pe 7/14/30 de zile, plățile critice și ordinea aprobării.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Decizia</span><p>Disciplină de plată în locul regimului manual „cine cere mai tare”.</p></div>
           </article>
           <article class="result-card reveal" data-reveal-delay="3">
-            <div class="result-row"><span class="result-row__label">Problema</span><p>Multe fișiere Excel, dar nicio imagine unică — profitul, banii și obligațiile stau separat.</p></div>
-            <div class="result-row"><span class="result-row__label">Ce am făcut</span><p>Structura contului de profit și pierdere managerial, a fluxului de numerar și a tabloului de bord al proprietarului.</p></div>
-            <div class="result-row result-row--out"><span class="result-row__label">Rezultat</span><p>Proprietarul vede profitul, banii și obligațiile într-o singură imagine.</p></div>
+            <div class="result-row"><span class="result-row__label">Situația</span><p>Multe fișiere Excel, dar nicio imagine unică — profitul, banii și obligațiile stau separat.</p></div>
+            <div class="result-row"><span class="result-row__label">Controlul</span><p>Structura contului de profit și pierdere managerial, a fluxului de numerar și a tabloului de bord al proprietarului.</p></div>
+            <div class="result-row result-row--out"><span class="result-row__label">Decizia</span><p>Proprietarul vede profitul, banii și obligațiile într-o singură imagine.</p></div>
           </article>
         </div>
-        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Vedeți toate scenariile de control →</a></p>
-
-        <h3 class="subhead reveal">Ce primiți după diagnostic</h3>
-        <ul class="deliv-list reveal">
-          <li><strong>Concluzie de diagnostic</strong> — harta problemelor și riscurilor financiare</li>
-          <li><strong>Harta riscurilor financiare</strong> — prioritizarea riscurilor și măsuri cu efect rapid</li>
-          <li><strong>Lista documentelor necesare</strong> — ce este necesar pentru diagnostic</li>
-          <li><strong>Flux de numerar / Structura contului de profit și pierdere</strong> — logica managerială</li>
-          <li><strong>Logica calendarului de plăți</strong> — priorități și acoperire</li>
-          <li><strong>Plan de acțiune</strong> — plan pentru 30 / 60 / 90 de zile</li>
-          <li><strong>Conceptul tabloului de bord al proprietarului</strong> — ce vede proprietarul</li>
-          <li><strong>Recomandarea FINMENTOR</strong> — formatul și pachetul recomandat</li>
-        </ul>
-
-        <h3 class="subhead reveal">Exemplu de rezultat</h3>
-        <div class="sample-grid">
-          <article class="sample-card reveal">
-            <div class="sample-card__bar"><span class="sample-card__name">Notă de diagnostic</span><span class="sample-card__tag">Exemplu</span></div>
-            <div class="sample-card__body">
-              <div class="so-line"><span class="so-line__k">Problema-cheie</span><span class="so-line__v">Banii există în circulație, dar nu se văd în management</span></div>
-              <div class="so-line"><span class="so-line__k">Prima concluzie</span><span class="so-line__v">Este nevoie de flux de numerar și de controlul obligațiilor</span></div>
-              <div class="so-line"><span class="so-line__k">Focus</span><span class="so-line__v">Profit · plăți · riscuri</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Concluzie clară și primul pas</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="1">
-            <div class="sample-card__bar"><span class="sample-card__name">Harta riscurilor</span><span class="sample-card__tag">Exemplu</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--red"></span><b>Creanțe</b></span><span class="so-row__v">ridicat</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span><b>Depozit</b></span><span class="so-row__v">mediu</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span><b>Calendarul plăților</b></span><span class="so-row__v">control</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Prioritate — primele 30 de zile</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="2">
-            <div class="sample-card__bar"><span class="sample-card__name">Lista documentelor</span><span class="sample-card__tag">Exemplu</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Extrase bancare</span><span class="so-pill so-pill--done">gata</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark so-mark--done">✓</span>Profit și pierdere · Flux de numerar</span><span class="so-pill so-pill--done">gata</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Analiza creanțelor și a datoriilor pe scadențe</span><span class="so-pill so-pill--req">de solicitat</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-mark">○</span>Contracte · condiții de plată</span><span class="so-pill so-pill--req">de solicitat</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Ce este gata / ce se solicită</div>
-            </div>
-          </article>
-          <article class="sample-card reveal" data-reveal-delay="3">
-            <div class="sample-card__bar"><span class="sample-card__name">Tabloul de bord al proprietarului</span><span class="sample-card__tag">Exemplu</span></div>
-            <div class="sample-card__body">
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Poziția de numerar</span><span class="so-row__v">în regulă</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--green"></span>Marjă</span><span class="so-row__v">sub control</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Plăți de achitat</span><span class="so-row__v">atenție</span></div>
-              <div class="so-row"><span class="so-row__l"><span class="so-dot so-dot--amber"></span>Capital de lucru</span><span class="so-row__v">atenție</span></div>
-              <div class="so-foot"><span class="so-foot__dot"></span>Perspectiva proprietarului: ce necesită decizie</div>
-            </div>
-          </article>
-        </div>
-        <p class="sample-note">Acestea sunt mostre de prezentare anonimizate, fără date reale ale clienților. Concluziile finale pentru afacerea dvs. se formează după diagnostic.</p>
-      </div>
-    </section>
-
-<section class="about sec--light" id="about">
-      <div class="container about__grid">
-        <div class="about__portrait reveal">
-          <figure class="portrait">
-            <picture class="portrait__picture">
-              <source type="image/webp" media="(max-width: 640px)" srcset="portrait-mobile.webp 430w" sizes="min(86vw, 340px)" />
-              <source type="image/webp" srcset="portrait-medium.webp 520w, portrait-large.webp 780w" sizes="(max-width: 860px) 340px, 420px" />
-              <img class="portrait__img" src="../portrait.jpg" srcset="portrait-medium.jpg 520w, portrait-large.jpg 780w" sizes="(max-width: 860px) 340px, 420px" width="780" height="975" alt="Ghennadi Iacovlev — director financiar extern, FINMENTOR" loading="lazy" decoding="async" />
-            </picture>
-          </figure>
-        </div>
-
-        <div class="about__body">
-          <p class="overline reveal">Cine stă în spatele FINMENTOR</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Cine stă în spatele FINMENTOR</h2>
-          <p class="about__lead reveal" data-reveal-delay="2">
-            FINMENTOR este un sistem financiar pe care l-am construit eu însumi, pe baza practicii mele de mulți ani ca director financiar și a lucrului cu afaceri reale ale proprietarilor.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="3">
-            Nu am creat acest sistem în teorie. El a crescut din sarcini practice: goluri de numerar, control slab al plăților, profit neclar, creanțe blocate, cheltuieli negestionate, riscuri ale chiriașilor, decizii de investiții, imobile, depozite, comenzi, marjă și indicatori-cheie.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="4">
-            În FINMENTOR am reunit ceea ce îi trebuie cu adevărat proprietarului pentru management: flux de numerar, cont de profit și pierdere, obligații, creanțe, plăți, marjă, riscuri, indicatori-cheie și tablou de bord într-o singură logică. Nu este un șablon „pentru toți”, ci un sistem care se configurează pe economia fiecărui business.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="5">
-            Pentru mine, FINMENTOR nu este doar consultanță. Este o metodologie personală de control financiar, al cărei scop este să-i ofere proprietarului o imagine clară a afacerii și un instrument de decizie prin cifre.
-          </p>
-          <p class="about__text reveal" data-reveal-delay="6">
-            Instrumentele digitale moderne și automatizarea ajută la procesarea mai rapidă a datelor și la menținerea calității, dar concluziile finale și recomandările trec întotdeauna prin validarea expertului.
-          </p>
-
-          <div class="anchor-list reveal" data-reveal-delay="7">
-            <span><b>Abordare de director financiar</b> — funcția directorului financiar</span>
-            <span>Fundament Big4 / IFRS</span>
-            <span>Raportare managerială</span>
-            <span>Gestionarea fluxului de numerar și a trezoreriei</span>
-            <span>Modele investiționale și operaționale</span>
-            <span>Mai multe persoane juridice, proiecte și imobile</span>
-          </div>
-
-
-          <div class="trust-links reveal" data-reveal-delay="8">
-            <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer" data-ga="click_bot">Discutați situația</a>
-            <a href="mailto:cfo@finmentor.md" data-ga="click_email">E-mail</a>
-            <a href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin">LinkedIn</a>
-            <span class="trust-links__meet">Întâlnire personală la Chișinău — prin acord prealabil</span>
-          </div>
-
-          <a href="#consult" class="btn btn--ghost about__cta reveal" data-reveal-delay="9" data-ga="click_discovery_call">Discutați afacerea dvs.</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="sec sec--alt" id="mini-scan">
-      <div class="container">
-        <div class="cta-band">
-          <p class="overline reveal">Start ușor · 3 minute</p>
-          <p class="cta-band__title reveal">Nu sunteți gata de testul complet? Începeți cu diagnosticul rapid al capitalului de lucru</p>
-          <p class="cta-band__text reveal">9 întrebări arată unde pot rămâne blocați banii: creanțe, stocuri, avansuri, condițiile furnizorilor sau disciplina de plată. Este o primă evaluare financiară, nu un diagnostic complet.</p>
-          <div class="cta-band__row reveal">
-            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Deschideți diagnosticul rapid</a>
-            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Detalii despre capitalul de lucru →</a>
-          </div>
-        </div>
+        <p class="proof-more reveal"><a href="cases.html" class="hero__link" data-ga="click_cases" data-cta-id="proof_all_cases" data-cta-location="proof" data-event="cta_click" data-destination="cases">Vedeți abordarea FINMENTOR&nbsp;&rarr;</a></p>
       </div>
     </section>
 
@@ -1261,11 +766,10 @@
           <h2 class="section-title reveal" data-reveal-delay="1">Materiale FINMENTOR</h2>
         <p class="section-lead reveal" data-reveal-delay="2">Practica, metodologia și dezvoltările proprii FINMENTOR: observații din lucrul real cu banii, marja și controlul managerial. Baza completă — pe pagina de materiale.</p>
         </div>
-        <div class="materials-grid">
-          <a class="material-card reveal" href="supplier-shelf-credit.html" data-reveal-delay="2"><span class="material-card__tag">Metodologie · comerț cu amănuntul</span><span class="material-card__title">Finanțarea stocului de către furnizor: cine finanțează raftul comercial</span><span class="material-card__arrow">Citiți →</span></a>
-          <a class="material-card reveal" href="pribyl-vs-cash.html" data-reveal-delay="3"><span class="material-card__tag">Bani și profit</span><span class="material-card__title">Există profit, dar nu sunt bani: cont de profit și pierdere · disponibilități bănești</span><span class="material-card__arrow">Citiți →</span></a>
-          <a class="material-card reveal" href="capacity-released.html" data-reveal-delay="4"><span class="material-card__tag">IA Economics</span><span class="material-card__title">Capacitate eliberată (Capacity Released) &ne; Economie efectivă de numerar (Cash Saving)</span><span class="material-card__arrow">Citiți →</span></a>
-          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="5"><span class="material-card__tag">Capital de lucru</span><span class="material-card__title">Capitalul de lucru: unde sunt blocați banii</span><span class="material-card__arrow">Citiți →</span></a>
+        <div class="materials-grid materials-grid--three">
+          <a class="material-card reveal" href="pribyl-vs-cash.html" data-reveal-delay="1"><span class="material-card__tag">Bani și profit</span><span class="material-card__title">Există profit, dar nu sunt bani: cont de profit și pierdere · disponibilități bănești</span><span class="material-card__arrow">Citiți →</span></a>
+          <a class="material-card reveal" href="capital-allocation-value.html" data-reveal-delay="2"><span class="material-card__tag">Managementul capitalului</span><span class="material-card__title">Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii</span><span class="material-card__arrow">Citiți →</span></a>
+          <a class="material-card reveal" href="capex-hurdle-rate.html" data-reveal-delay="3"><span class="material-card__tag">Decizii de investiții</span><span class="material-card__title">Cum evaluăm investițiile de capital: randamentul incremental și randamentul minim cerut</span><span class="material-card__arrow">Citiți →</span></a>
         </div>
         <div class="audience__cta reveal" style="margin-top:var(--sp-6)">
           <a href="materials.html#financial-map" class="btn btn--ghost btn--lg">Vezi harta financiară a afacerii</a>
@@ -1275,25 +779,7 @@
       </div>
     </section>
 
-    <section class="sec after" id="after">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">După solicitare</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Ce se întâmplă după solicitare</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Proces transparent, fără necunoscute — înțelegeți fiecare pas următor.</p>
-        </div>
-        <div class="after-grid">
-          <div class="after-step reveal"><span class="after-step__num">1</span><p class="after-step__text">Parcurgeți <strong>Testul financiar FINMENTOR</strong> sau discutați direct situația.</p></div>
-          <div class="after-step reveal" data-reveal-delay="1"><span class="after-step__num">2</span><p class="after-step__text">FINMENTOR analizează contextul și stabilește <strong>ce trebuie clarificat</strong>.</p></div>
-          <div class="after-step reveal" data-reveal-delay="2"><span class="after-step__num">3</span><p class="after-step__text">La <strong>discuția financiară inițială</strong> discutăm afacerea, datele și durerea principală.</p></div>
-          <div class="after-step reveal" data-reveal-delay="3"><span class="after-step__num">4</span><p class="after-step__text">Se formează <strong>lista documentelor</strong> și formatul de lucru recomandat.</p></div>
-          <div class="after-step reveal" data-reveal-delay="4"><span class="after-step__num">5</span><p class="after-step__text">Concluziile finale și costul se convin <strong>după evaluarea volumului de lucru</strong>.</p></div>
-        </div>
-        <div class="callout" style="margin-top:var(--sp-5);max-width:760px"><span class="callout__label">Important</span><p>IA poate pregăti o schiță de analiză și poate accelera pregătirea, dar concluziile finale despre afacerea dvs. sunt confirmate de un om.</p></div>
-      </div>
-    </section>
-
-<section class="consult" id="consult">
+    <section class="consult" id="consult">
       <div class="consult__glow" aria-hidden="true"></div>
       <div class="container consult__grid">
         <div class="consult__intro">
@@ -1351,7 +837,8 @@
         </form>
       </div>
     </section>
-  </main>
+
+      </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
@@ -1368,10 +855,12 @@
 
         <nav class="footer__col" aria-label="Subsol — navigare">
           <span class="footer__col-label">Secțiuni</span>
-          <a href="#about">Despre proiect</a>
-          <a href="#steps">Cum lucrăm</a>
-          <a href="#solutions">Soluții</a>
-          <a href="#cases">Studii de caz</a>
+          <a href="about.html">Despre FINMENTOR</a>
+          <a href="owner.html">Pentru proprietar</a>
+          <a href="#solutions">Formatele de lucru</a>
+          <a href="capital-management.html">Managementul capitalului</a>
+          <a href="business-models.html">Modele de afaceri</a>
+          <a href="cases.html">Practică</a>
           <a href="materials.html">Materiale</a>
           <a href="materials.html#financial-map">Harta financiară a afacerii</a>
           <a href="questionnaire.html">Test financiar FINMENTOR</a>

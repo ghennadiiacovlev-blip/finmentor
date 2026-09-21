@@ -13,6 +13,9 @@ const read = (file) => readFileSync(join(ROOT, file), 'utf8').replace(/\r\n/g, '
 const css = read('style.css');
 const ru = read('index.html');
 const ro = read('ro/index.html');
+// The working contour moved with «Как работает FINMENTOR» to the owner hub.
+const ownerRu = read('owner.html');
+const ownerRo = read('ro/owner.html');
 const qru = read('questionnaire.html');
 const qro = read('ro/questionnaire.html');
 
@@ -131,8 +134,8 @@ check('normal prose and public buttons do not use character-level breaking', () 
 
 check('working contour remains an editorial statement in both languages', () => {
   for (const [file, html, title, accent] of [
-    ['index.html', ru, 'Совместный рабочий контур', 'От решения — к исполнению.'],
-    ['ro/index.html', ro, 'Circuit comun de lucru', 'De la decizie la execuție.']
+    ['owner.html', ownerRu, 'Совместный рабочий контур', 'От решения — к исполнению.'],
+    ['ro/owner.html', ownerRo, 'Circuit comun de lucru', 'De la decizie la execuție.']
   ]) {
     const block = section(html, '<article class="working-contour', '</article>');
     assert(block.includes(title) && block.includes(accent), file + ' wording missing');

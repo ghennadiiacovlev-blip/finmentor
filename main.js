@@ -339,6 +339,68 @@
     });
   }
 
+  /* ------------------------------------------------------------- NAV DISCLOSURES
+     The parent label is a real link; the chevron is a button that discloses the
+     panel. Without this script the panels open on hover and focus-within (CSS). */
+  function initNavMenus() {
+    var items = Array.prototype.slice.call(document.querySelectorAll('[data-nav-menu]'));
+    if (!items.length) return;
+    document.documentElement.classList.add('nav-js');
+    var timers = new WeakMap();
+
+    function setOpen(item, open) {
+      var btn = item.querySelector('.nav__toggle');
+      item.classList.toggle('is-open', open);
+      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function closeAll(except) {
+      items.forEach(function (it) { if (it !== except) setOpen(it, false); });
+    }
+
+    items.forEach(function (item) {
+      var btn = item.querySelector('.nav__toggle');
+      var links = function () { return item.querySelectorAll('.nav__panel a'); };
+      if (!btn) return;
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = !item.classList.contains('is-open');
+        closeAll(item);
+        setOpen(item, open);
+      });
+      btn.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          closeAll(item);
+          setOpen(item, true);
+          var first = links()[0];
+          if (first) first.focus();
+        }
+      });
+      item.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && item.classList.contains('is-open')) {
+          setOpen(item, false);
+          btn.focus();
+        }
+      });
+      item.addEventListener('focusout', function (e) {
+        if (!item.contains(e.relatedTarget)) setOpen(item, false);
+      });
+      if (canHover) {
+        item.addEventListener('mouseenter', function () {
+          window.clearTimeout(timers.get(item));
+          closeAll(item);
+          setOpen(item, true);
+        });
+        item.addEventListener('mouseleave', function () {
+          timers.set(item, window.setTimeout(function () { setOpen(item, false); }, 140));
+        });
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest || !e.target.closest('[data-nav-menu]')) closeAll(null);
+    });
+  }
+
   /* ------------------------------------------------------------- COUNTERS */
   function initCounters() {
     var nums = document.querySelectorAll('[data-count]');
@@ -407,12 +469,14 @@
       var STEPS = [
         ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 70],
         ['.capital-cycle__stage', 110, 60],
-        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row', 80, 45]
+        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row', 80, 45]
       ];
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [
         ['.chaos__verdict', '.chaos-card:last-child', 260],
-        ['.statement-screen__close', '.capital-chain', 1300]
+        ['.statement-screen__close', '.capital-chain', 1300],
+        // the question comes first, then the photograph settles behind it
+        ['.capital-management', '.section-title', 220]
       ];
       // Hero: kicker, title, statement, subtitle, actions, trust line (ms after release).
       var HERO = [240, 360, 500, 760, 880, 1000];
@@ -440,7 +504,7 @@
         return narrow.matches ? 55 : 90;
       };
       var isPhoto = function (el) {
-        return el.matches('.hero--editorial, .capital-management, .industries__figure');
+        return el.matches('.hero--editorial, .industries__figure');
       };
       var byOrder = function (a, b) {
         if (isPhoto(a) !== isPhoto(b)) return isPhoto(a) ? -1 : 1;
@@ -500,10 +564,19 @@
       var intro = document.getElementById('intro');
       var held = (root.classList.contains('lang-gate-pending') ||
         (intro && !root.classList.contains('intro-skip') && !intro.classList.contains('is-done'))) ? [] : null;
+      // The hero is one scene: whichever part triggers first, the whole choreography
+      // runs, so a line that sits just below the trigger on a short phone is not left behind.
+      var withWholeHero = function (batch) {
+        if (!batch.some(function (el) { return el.closest('.hero'); })) return batch;
+        pending.forEach(function (el) {
+          if (el.closest('.hero') && batch.indexOf(el) < 0) { io.unobserve(el); batch.push(el); }
+        });
+        return batch;
+      };
       var release = function () {
         if (!held) return;
         var batch = held; held = null;
-        if (batch.length) run(batch);
+        if (batch.length) run(withWholeHero(batch));
       };
       if (held) {
         document.addEventListener('fm:intro-done', release, { once: true });
@@ -522,7 +595,7 @@
             instant(el);
           }
         });
-        if (batch.length) run(batch);
+        if (batch.length) run(withWholeHero(batch));
       }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
       all.forEach(function (el) { io.observe(el); });
 
@@ -1228,8 +1301,8 @@
       if (fired) return;
       fired = true;
       track('view_ai_economics_teaser', {
-        page_slug: 'index',
-        source_section: 'homepage_teaser'
+        page_slug: (location.pathname.split('/').pop() || 'index').replace(/\.html$/, '') || 'index',
+        source_section: 'owner_teaser'
       });
     }
     if ('IntersectionObserver' in window) {
@@ -1256,6 +1329,7 @@
     guard(initCursor);
     guard(initHeader);
     guard(initMenu);
+    guard(initNavMenus);
     guard(initCounters);
     guard(initReveal);
     guard(initParallax);

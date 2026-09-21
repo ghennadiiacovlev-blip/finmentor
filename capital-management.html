@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!--
+  FINMENTOR — proprietary website content and implementation.
+  © 2026 FINMENTOR / Ghennadi Iacovlev. All rights reserved.
+  Unauthorized copying, redistribution or commercial reuse is prohibited.
+  Contact: cfo@finmentor.md
+  -->
+  <!-- FINMENTOR analytics: consent-aware loader -->
+  <script src="analytics.js"></script>
+  <script src="lead-transport.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="copyright" content="© 2026 FINMENTOR. All rights reserved." />
+  <meta name="rights" content="All website content, methodology, structure, text and visual assets are protected. Unauthorized copying is prohibited." />
+  <title>Управление капиталом — источник, размещение, отдача, риск, перераспределение | FINMENTOR</title>
+  <meta name="description" content="Управление капиталом для собственника: источники капитала, где он размещён и как работает, отдача и стоимость, риск, высвобождение и перераспределение. Логика финансового директора FINMENTOR." />
+  <meta name="author" content="FINMENTOR / Ghennadi Iacovlev" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#08111F" />
+  <link rel="canonical" href="https://www.finmentor.md/capital-management.html" />
+  <link rel="alternate" hreflang="ru" href="https://www.finmentor.md/capital-management.html" />
+  <link rel="alternate" hreflang="ro" href="https://www.finmentor.md/ro/capital-management.html" />
+  <link rel="alternate" hreflang="x-default" href="https://www.finmentor.md/capital-management.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Finmentor" />
+  <meta property="og:title" content="Управление капиталом — источник, размещение, отдача, риск, перераспределение | FINMENTOR" />
+  <meta property="og:description" content="Управление капиталом для собственника: источники капитала, где он размещён и как работает, отдача и стоимость, риск, высвобождение и перераспределение. Логика финансового директора FINMENTOR." />
+  <meta property="og:url" content="https://www.finmentor.md/capital-management.html" />
+  <meta property="og:image" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:secure_url" content="https://www.finmentor.md/og-image.png?v=81" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:locale:alternate" content="ro_RO" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Управление капиталом — источник, размещение, отдача, риск, перераспределение | FINMENTOR" />
+  <meta name="twitter:description" content="Управление капиталом для собственника: источники капитала, где он размещён и как работает, отдача и стоимость, риск, высвобождение и перераспределение. Логика финансового директора FINMENTOR." />
+  <meta name="twitter:image" content="https://www.finmentor.md/og-image.png?v=81" />
+
+  <!-- Icons & manifest -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Structured data: WebPage + BreadcrumbList -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://www.finmentor.md/capital-management.html#webpage",
+      "url": "https://www.finmentor.md/capital-management.html",
+      "name": "Управление капиталом — источник, размещение, отдача, риск, перераспределение | FINMENTOR",
+      "description": "Управление капиталом для собственника: источники капитала, где он размещён и как работает, отдача и стоимость, риск, высвобождение и перераспределение. Логика финансового директора FINMENTOR.",
+      "inLanguage": "ru",
+      "isPartOf": {
+        "@id": "https://www.finmentor.md/#website"
+      },
+      "breadcrumb": {
+        "@id": "https://www.finmentor.md/capital-management.html#breadcrumb"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://www.finmentor.md/capital-management.html#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Главная",
+          "item": "https://www.finmentor.md/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Управление капиталом",
+          "item": "https://www.finmentor.md/capital-management.html"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="lang.css" />
+  <!-- Pre-paint motion gate: hidden states apply only under .m-js; withdrawn if the engine never starts -->
+  <script>
+    (function () {
+      try {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.documentElement.classList.add('m-js');
+        window.setTimeout(function () {
+          if (!window.__fmMotion) document.documentElement.classList.remove('m-js');
+        }, 2500);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    /* v9.3 — Expert modules + choose-guide (premium, light B2B) */
+    /* sample grid collapses via auto-fit/minmax on narrow screens */
+
+    /* v10 — Lean Premium homepage sections */
+    .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:var(--sp-4); margin-top:var(--sp-6); }
+    .step-card { position:relative; padding:var(--sp-6); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); }
+    .step-card__num { font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.14em; color:var(--accent); }
+    .step-card__title { font-family:var(--font-display); font-size:1.25rem; font-weight:700; color:var(--text-primary); margin:10px 0 8px; }
+    .step-card__desc { color:var(--text-secondary); font-size:0.92rem; line-height:1.6; }
+    .hero__divider { margin:var(--sp-4) auto 0; padding:12px 16px; border-left:2px solid var(--gold-500); color:var(--text-secondary); font-size:0.9rem; line-height:1.5; background:rgba(201,162,39,0.06); border-radius:0 var(--r-sm) var(--r-sm) 0; max-width:640px; }
+    .hero__divider b { color:var(--text-primary); }
+    .sample-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .sample-card { border:1px solid var(--glass-border-gold); border-radius:var(--r-lg); background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01)); overflow:hidden; }
+    .sample-card__bar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 14px; border-bottom:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .sample-card__name { font-weight:700; color:var(--text-primary); font-size:0.88rem; }
+    .sample-card__tag { font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); white-space:nowrap; }
+    .sample-card__body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+    .sample-line { height:9px; border-radius:5px; background:linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.03)); }
+    .sample-line--short { width:55%; } .sample-line--mid { width:78%; }
+    .sample-chip { display:inline-block; align-self:flex-start; margin-top:4px; padding:4px 10px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-secondary); font-size:0.74rem; }
+    .sample-note { margin-top:var(--sp-4); color:var(--text-muted); font-size:0.8rem; }
+    .after-grid { display:flex; flex-direction:column; gap:12px; margin-top:var(--sp-5); max-width:760px; }
+    .after-step { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border-radius:var(--r-md); border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); }
+    .after-step__num { flex-shrink:0; width:28px; height:28px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--border-gold); color:var(--accent); font-family:var(--font-mono); font-size:0.82rem; }
+    .after-step__text { color:var(--text-secondary); font-size:0.92rem; line-height:1.55; }
+    .after-step__text strong { color:var(--text-primary); }
+    .trust-links { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:var(--sp-4) 0 var(--sp-2); }
+    .trust-links a { display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:var(--r-pill); border:1px solid var(--glass-border-gold); color:var(--text-primary); text-decoration:none; font-size:0.84rem; font-weight:600; transition:border-color var(--dur-base) ease, background var(--dur-base) ease; }
+    .trust-links a:hover { border-color:var(--accent); background:rgba(201,162,39,0.08); }
+    .trust-links__meet { color:var(--text-muted); font-size:0.82rem; }
+    .materials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:var(--sp-4); margin-top:var(--sp-5); }
+    .material-card { display:flex; flex-direction:column; gap:6px; padding:var(--sp-5); border-radius:var(--r-lg); border:1px solid var(--glass-border); background:var(--glass-fill); text-decoration:none; transition:border-color var(--dur-base) ease, transform var(--dur-base) ease; }
+    .material-card:hover { border-color:var(--border-gold); transform:translateY(-3px); }
+    .material-card__tag { font-family:var(--font-mono); font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); }
+    .material-card__title { color:var(--text-primary); font-weight:700; font-size:1rem; line-height:1.35; }
+    .material-card__arrow { margin-top:auto; color:var(--accent); font-size:0.84rem; font-weight:600; }
+    .subhead { font-family:var(--font-display); font-size:1.2rem; font-weight:700; color:var(--text-primary); margin:var(--sp-7) 0 0; }
+    @media (max-width:600px){ .step-card,.after-step{padding:var(--sp-4);} }
+
+    /* v10.2 — hero scroll-cue: never overlap the stats card */
+    .hero__content { padding-bottom:64px; }
+    .hero__scroll { bottom:18px; gap:8px; z-index:1; }
+    .hero__scroll-line { height:30px; }
+    @media (max-height: 780px){ .hero__scroll { display:none; } }
+    @media (max-width: 640px){ .hero__scroll { display:none; } .hero__content { padding-bottom:24px; } }
+
+    /* v10.3 — premium visual polish (index-only overrides; no markup/JS/style.css changes) */
+    /* chaos: premium divider + soft top depth */
+    .chaos { position:relative; }
+    .chaos::before { content:""; position:absolute; left:0; right:0; top:0; height:1px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); opacity:0.35; pointer-events:none; }
+    .chaos::after { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:120px; background:radial-gradient(ellipse at top, rgba(201,162,39,0.10), transparent 70%); pointer-events:none; }
+    /* clean, even, premium card grid (drop chaotic tilt/scatter; equal heights) */
+    .chaos__grid { counter-reset:cx; align-items:stretch; gap:var(--sp-4); position:relative; z-index:1; }
+    .chaos-card { transform:none; height:100%; display:flex; flex-direction:column; justify-content:center; counter-increment:cx;
+      padding:calc(var(--sp-5) + 4px) var(--sp-5); border-radius:var(--r-lg);
+      background:linear-gradient(155deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+      border:1px solid var(--glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+      -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+      transition:transform var(--dur-base) var(--ease-out-expo), border-color var(--dur-base) ease, box-shadow var(--dur-base) ease, background-color var(--dur-base) ease; }
+    .chaos-card::before { content:""; position:absolute; top:18px; left:0; width:3px; height:26px; border-radius:0 3px 3px 0; background:var(--grad-gold); opacity:0.9; }
+    .chaos-card::after { content:counter(cx, decimal-leading-zero); position:absolute; top:14px; right:16px; font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.04em; color:var(--accent); opacity:0.42; }
+    /* subtle visual grouping: 1-4 cash/payments (gold) · 5-8 data/control (muted blue) */
+    .chaos-card:nth-child(n+5)::before { background:linear-gradient(180deg, #6f9bd8, #3f6aa6); }
+    .chaos-card:nth-child(n+5)::after { color:#8fb3e6; }
+    .chaos-card__text { color:var(--text-secondary); font-size:0.95rem; line-height:1.55; padding-left:12px; padding-right:6px; }
+    .chaos-card:hover { transform:translateY(-3px); border-color:var(--border-gold);
+      box-shadow:0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+      background:linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)); }
+    /* final phrase: bigger, more air, understated gold underline-glow */
+    .chaos__verdict { margin-top:calc(var(--sp-10) + var(--sp-2)); font-size:clamp(1.6rem, 3.6vw, 2.7rem); letter-spacing:-0.01em; }
+    .chaos__verdict .text-gold { position:relative; white-space:nowrap; }
+    .chaos__verdict .text-gold::after { content:""; position:absolute; left:6%; right:6%; bottom:-10px; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--gold-500), transparent); box-shadow:0 0 14px 1px rgba(201,162,39,0.45); }
+    /* premium keyboard focus (a11y) */
+    a:focus-visible, button:focus-visible, .btn:focus-visible { outline:2px solid var(--gold-500); outline-offset:3px; border-radius:var(--r-sm); }
+    .hero__scroll-label { opacity:0.8; }
+    @media (max-width:640px){
+      .chaos__grid { gap:var(--sp-3); }
+      .chaos-card { padding:var(--sp-5) var(--sp-4); }
+      .chaos-card__text { padding-left:10px; }
+      .chaos__verdict { margin-top:var(--sp-8); }
+      .chaos__verdict .text-gold { white-space:normal; }
+    }
+
+    /* v-rights — sample outputs: real CFO-document feel (anonymized) */
+    .sample-card { display:flex; flex-direction:column; }
+    .sample-card__body { padding:13px 15px 14px; display:flex; flex-direction:column; flex:1; }
+    .so-line { padding:7px 0; border-bottom:1px solid var(--glass-border); }
+    .so-line:first-child { padding-top:2px; }
+    .so-line__k { display:block; font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent); opacity:0.85; }
+    .so-line__v { display:block; margin-top:3px; color:var(--text-secondary); font-size:0.82rem; line-height:1.4; }
+    .so-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--glass-border); font-size:0.82rem; }
+    .so-row__l { display:flex; align-items:center; gap:8px; color:var(--text-secondary); }
+    .so-row__l b { color:var(--text-primary); font-weight:600; }
+    .so-row__v { color:var(--text-muted); font-size:0.74rem; white-space:nowrap; }
+    .so-row:last-of-type, .so-line:last-of-type { border-bottom:0; }
+    .so-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .so-dot--red{background:#E5484D;} .so-dot--amber{background:#D8B450;} .so-dot--green{background:#3FB950;}
+    .so-mark { width:14px; display:inline-grid; place-items:center; font-size:0.8rem; color:var(--text-muted); flex-shrink:0; }
+    .so-mark--done { color:#3FB950; }
+    .so-pill { font-size:0.66rem; padding:2px 9px; border-radius:var(--r-pill); border:1px solid var(--glass-border); color:var(--text-muted); white-space:nowrap; }
+    .so-pill--done { color:#3FB950; border-color:rgba(63,185,80,0.4); }
+    .so-pill--req { color:var(--accent); border-color:var(--glass-border-gold); }
+    .so-foot { margin-top:auto; padding-top:10px; border-top:1px solid var(--glass-border-gold); font-size:0.73rem; color:var(--accent); display:flex; align-items:center; gap:7px; }
+    .so-foot__dot { width:5px; height:5px; border-radius:50%; background:var(--grad-gold); flex-shrink:0; box-shadow:0 0 6px rgba(201,162,39,0.6); }
+  </style>
+</head>
+
+<body class="home hub-page hub-page--capital">
+  <!-- ===================================================== LANGUAGE ENTRY (root only) -->
+  
+
+  <!-- ============================================================= INTRO (restored from v8.6) -->
+  
+<header class="header" id="header">
+    <div class="container header__inner">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную">
+        <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
+      </a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="about.html" class="nav__link">О FINMENTOR</a>
+        <div class="nav__item" data-nav-menu>
+          <a href="owner.html" class="nav__link">Для собственника</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-owner"><span class="visually-hidden">Показать разделы «Для собственника»</span></button>
+          <div class="nav__panel" id="nav-owner">
+            <ul class="nav__sublist">
+              <li><a class="nav__sublink" href="owner.html#chaos"><span class="nav__subtitle">Финансовый хаос</span><span class="nav__subnote">Признаки того, что системы управления нет</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#profit-question"><span class="nav__subtitle">Прибыль ≠ деньги</span><span class="nav__subnote">Почему прибыль ещё не означает ликвидность</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#owner-control"><span class="nav__subtitle">Три контура управления</span><span class="nav__subnote">Деньги, результат, капитал</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#steps"><span class="nav__subtitle">Как работает FINMENTOR</span><span class="nav__subnote">Диагностика, система, сопровождение</span></a></li>
+              <li><a class="nav__sublink" href="business-models.html"><span class="nav__subtitle">Бизнес-модели</span><span class="nav__subnote">Одна система — разная экономика</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav__item" data-nav-menu>
+          <a href="index.html#solutions" class="nav__link">Решения</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-solutions"><span class="visually-hidden">Показать решения</span></button>
+          <div class="nav__panel nav__panel--wide" id="nav-solutions">
+            <ul class="nav__sublist nav__sublist--cols">
+              <li><a class="nav__sublink" href="business-control-system.html"><span class="nav__subtitle">Финансовый контроль</span></a></li>
+              <li><a class="nav__sublink" href="kaznacheystvo.html"><span class="nav__subtitle">Денежный поток и казначейство</span></a></li>
+              <li><a class="nav__sublink" href="upravlencheskiy-pl.html"><span class="nav__subtitle">Управленческий P&amp;L</span></a></li>
+              <li><a class="nav__sublink" href="working-capital.html"><span class="nav__subtitle">Оборотный капитал</span></a></li>
+              <li><a class="nav__sublink" href="treasury-waterfall.html"><span class="nav__subtitle">Бюджетирование и прогнозирование</span></a></li>
+              <li><a class="nav__sublink" href="capex-hurdle-rate.html"><span class="nav__subtitle">Капитальные вложения и инвестиции</span></a></li>
+              <li><a class="nav__sublink" href="power-bi-dlya-sobstvennika.html"><span class="nav__subtitle">Управленческая отчётность</span></a></li>
+              <li><a class="nav__sublink" href="ai-dlya-cfo.html"><span class="nav__subtitle">Автоматизация и BI</span></a></li>
+              <li><a class="nav__sublink" href="monthly-cfo-support.html"><span class="nav__subtitle">Регулярный CFO-контроль</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <a href="capital-management.html" class="nav__link" aria-current="page">Управление капиталом</a>
+        <a href="materials.html" class="nav__link">Материалы</a>
+        <a href="index.html#consult" class="nav__link">Контакты</a>
+      </nav>
+
+      <div class="header__actions">
+        <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="capital-management.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/capital-management.html" data-lang-switch="ro" lang="ro">RO</a></span>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
+        <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Мобильная навигация">
+    <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
+      <a href="about.html" class="mobile-menu__link" style="--mi:0">О FINMENTOR</a>
+      <details class="mobile-menu__group" style="--mi:1">
+        <summary class="mobile-menu__link">Для собственника</summary>
+        <a href="owner.html" class="mobile-menu__sublink mobile-menu__sublink--hub">Обзор раздела</a>
+        <a href="owner.html#chaos" class="mobile-menu__sublink">Финансовый хаос</a>
+        <a href="owner.html#profit-question" class="mobile-menu__sublink">Прибыль ≠ деньги</a>
+        <a href="owner.html#owner-control" class="mobile-menu__sublink">Три контура управления</a>
+        <a href="owner.html#steps" class="mobile-menu__sublink">Как работает FINMENTOR</a>
+        <a href="business-models.html" class="mobile-menu__sublink">Бизнес-модели</a>
+      </details>
+      <details class="mobile-menu__group" style="--mi:2">
+        <summary class="mobile-menu__link">Решения</summary>
+        <a href="index.html#solutions" class="mobile-menu__sublink mobile-menu__sublink--hub">Форматы работы</a>
+        <a href="business-control-system.html" class="mobile-menu__sublink">Финансовый контроль</a>
+        <a href="kaznacheystvo.html" class="mobile-menu__sublink">Денежный поток и казначейство</a>
+        <a href="upravlencheskiy-pl.html" class="mobile-menu__sublink">Управленческий P&amp;L</a>
+        <a href="working-capital.html" class="mobile-menu__sublink">Оборотный капитал</a>
+        <a href="treasury-waterfall.html" class="mobile-menu__sublink">Бюджетирование и прогнозирование</a>
+        <a href="capex-hurdle-rate.html" class="mobile-menu__sublink">Капитальные вложения и инвестиции</a>
+        <a href="power-bi-dlya-sobstvennika.html" class="mobile-menu__sublink">Управленческая отчётность</a>
+        <a href="ai-dlya-cfo.html" class="mobile-menu__sublink">Автоматизация и BI</a>
+        <a href="monthly-cfo-support.html" class="mobile-menu__sublink">Регулярный CFO-контроль</a>
+      </details>
+      <a href="capital-management.html" class="mobile-menu__link" style="--mi:3">Управление капиталом</a>
+      <a href="materials.html" class="mobile-menu__link" style="--mi:4">Материалы</a>
+      <a href="index.html#consult" class="mobile-menu__link" style="--mi:5">Контакты</a>
+    </nav>
+    <div class="mobile-menu__lang">
+      <span class="mobile-menu__lang-label">Язык · Limbă</span>
+      <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="capital-management.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/capital-management.html" data-lang-switch="ro" lang="ro">RO</a></span>
+    </div>
+    <div class="mobile-menu__footer">
+      <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
+      <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
+    </div>
+  </div>
+
+  <main>
+    <section class="page-head" aria-labelledby="page-title">
+      <div class="container container--editorial page-head__inner">
+        <nav class="breadcrumbs" aria-label="Навигационная цепочка">
+          <ol>
+            <li><a href="index.html">Главная</a></li>
+            <li aria-current="page">Управление капиталом</li>
+          </ol>
+        </nav>
+        <p class="overline reveal">Капитал</p>
+        <h1 class="page-head__title reveal" id="page-title">Капитал должен работать там, где создаёт больше стоимости</h1>
+        <p class="page-head__lead reveal">Где находится капитал, чей он, сколько стоит и какую отдачу создаёт — логика, по которой финансовый директор FINMENTOR принимает решения о капитале.</p>
+      </div>
+    </section>
+
+    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <picture class="capital-management__media">
+        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
+        <img src="images/editorial/capital-decision.svg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" loading="lazy" decoding="async">
+      </picture>
+      <div class="capital-management__scrim" aria-hidden="true"></div>
+      <div class="container container--editorial capital-management__inner">
+        <div class="capital-management__head">
+          <p class="overline reveal">Управление капиталом</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
+          <p class="capital-management__lead reveal" data-reveal-delay="2">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
+          <p class="capital-management__routes reveal" data-reveal-delay="3">Оборотный капитал · Капитальные вложения (CAPEX) · Обязательства · Резерв ликвидности</p>
+        </div>
+        <ol class="capital-cycle" aria-label="Цикл управления капиталом">
+            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Источник капитала</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Размещение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Отдача</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Риск</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Высвобождение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Перераспределение</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sec capital-logic" id="capital-logic" aria-labelledby="capital-logic-title">
+      <div class="container">
+        <div class="capital-logic__head">
+          <div class="capital-logic__title reveal">
+            <p class="overline">Логика CFO</p>
+            <h2 class="section-title" id="capital-logic-title">Капитал должен работать</h2>
+          </div>
+          <p class="capital-logic__lead reveal" data-reveal-delay="1">Для FINMENTOR роль финансового директора не сводится к отчётности. Его задача — сохранять стоимость капитала, обеспечивать ликвидность и направлять ресурсы туда, где они создают устойчивую доходность при приемлемом уровне риска.</p>
+        </div>
+
+        <p class="capital-logic__definition reveal" data-reveal-delay="2"><strong>Управленчески капитал — это не только деньги или собственный капитал в балансе.</strong> Это ресурсы компании, в которых зафиксированы средства и от которых собственник ожидает будущий денежный поток или экономическую отдачу.</p>
+
+        <article class="capital-map reveal" aria-labelledby="capital-map-title">
+          <div class="capital-map__head">
+            <div><p class="capital-map__eyebrow">Управленческий взгляд</p><h3 id="capital-map-title">Карта капитала</h3></div>
+            <p>Важно не только где находится капитал. Важно, чей это капитал, сколько он стоит и какую отдачу создаёт его использование.</p>
+          </div>
+          <section class="capital-source" aria-labelledby="capital-source-title">
+            <div class="capital-source__head">
+              <h4 id="capital-source-title">Источник капитала</h4>
+              <p>Структура финансирования показывает, чьи средства работают в бизнесе, на каких условиях они привлечены и какую стоимость должны окупить.</p>
+            </div>
+            <dl class="capital-source__list">
+              <div><dt>Собственный капитал</dt><dd>Средства собственника, взносы участников и накопленная прибыль. Договорной ставки нет, но собственник ожидает доходность и несёт риск потери капитала.</dd></div>
+              <div><dt>Заёмный капитал</dt><dd>Кредиты, займы и другие процентные обязательства. Их качество определяют стоимость, срок, валюта, график погашения и риск.</dd></div>
+              <div><dt>Операционное финансирование</dt><dd>Источники, которые временно финансируют активы или оборотный цикл: кредит поставщика, торговая кредиторская задолженность, авансы и отсрочки.</dd></div>
+            </dl>
+            <p class="capital-source__structure"><strong>Структура капитала.</strong> Один и тот же актив может быть экономически сильным при одной структуре финансирования и слабым — при другой. Иногда проблема не в активе, а в структуре его финансирования.</p>
+          </section>
+          <div class="capital-map__dimensions">
+            <section class="capital-dimension" aria-labelledby="capital-location-title">
+              <h4 id="capital-location-title">Где находится капитал</h4>
+              <ol>
+                <li><span>01</span><div><strong>Денежные средства</strong><p>Операционная ликвидность, свободные остатки, депозиты и денежный резерв.</p></div></li>
+                <li><span>02</span><div><strong>Оборотный капитал</strong><p>Запасы, дебиторская задолженность, авансы и средства в операционном цикле.</p></div></li>
+                <li><span>03</span><div><strong>Доходные и операционные активы</strong><p>Недвижимость, оборудование и другие активы, поддерживающие денежный поток.</p></div></li>
+                <li><span>04</span><div><strong>Проекты и CAPEX</strong><p>Строительство, девелопмент, расширение и инвестиционные программы.</p></div></li>
+                <li><span>05</span><div><strong>Инвестиции</strong><p>Доли, новые направления и другие размещения с ожидаемой доходностью.</p></div></li>
+              </ol>
+            </section>
+            <section class="capital-dimension" aria-labelledby="capital-state-title">
+              <h4 id="capital-state-title">Как работает капитал</h4>
+              <dl class="capital-states">
+                <div><dt>Работающий</dt><dd>Создаёт требуемый денежный поток и приемлемую доходность.</dd></div>
+                <div><dt>Необходимый</dt><dd>Поддерживает устойчивую работу бизнеса, даже без высокой прямой доходности.</dd></div>
+                <div><dt>Недоиспользуемый</dt><dd>Работает, но создаёт отдачу ниже требуемого уровня.</dd></div>
+                <div><dt>Замороженный</dt><dd>Связан в активе, запасе, дебиторке или проекте без достаточного денежного потока.</dd></div>
+                <div><dt>Избыточный</dt><dd>Превышает экономически необходимый объём и может быть высвобождён.</dd></div>
+              </dl>
+            </section>
+          </div>
+          <aside class="capital-risk"><strong>Риск — сквозной слой</strong><p>Стоимость, срок, валюта и долговая нагрузка могут усилить или ослабить экономику того же актива.</p></aside>
+          <p class="capital-map__question"><strong>Главный вопрос CFO:</strong> каким капиталом профинансирован бизнес, где этот капитал находится, какую отдачу создаёт и превышает ли эта отдача стоимость его использования?</p>
+          <a class="capital-map__material" href="capital-preservation.html">Подробнее → Как компания проедает капитал</a>
+        </article>
+
+        <div class="capital-flow reveal" data-reveal-delay="1" aria-label="Полная логика управления капиталом">
+          <span>Источник капитала</span><span>Где он размещён</span><span>Как он работает</span><span>Какую отдачу создаёт</span><span>Сколько стоит</span><span>Какой риск несёт</span><span>Что делать дальше</span>
+        </div>
+
+        <ol class="capital-principles">
+          <li class="capital-principle reveal">
+            <span class="capital-principle__num">01</span>
+            <div><h3>Сохранить стоимость</h3><p>Контролировать ликвидность, потери и экономическую устойчивость капитала.</p></div>
+          </li>
+          <li class="capital-principle reveal" data-reveal-delay="1">
+            <span class="capital-principle__num">02</span>
+            <div><h3>Разместить капитал</h3><p>Направлять ресурсы туда, где они создают экономическую ценность.</p></div>
+          </li>
+          <li class="capital-principle reveal" data-reveal-delay="1">
+            <span class="capital-principle__num">03</span>
+            <div><h3>Измерить отдачу</h3><p>Сопоставлять доходность, стоимость капитала, денежный поток и риск.</p></div>
+          </li>
+          <li class="capital-principle reveal" data-reveal-delay="2">
+            <span class="capital-principle__num">04</span>
+            <div><h3>Перераспределить</h3><p>Высвобождать ресурс, рефинансировать слабую структуру и усиливать более эффективные направления.</p></div>
+          </li>
+        </ol>
+
+        <p class="capital-logic__mechanisms reveal" data-reveal-delay="1">Капитал создаёт экономическую стоимость, когда его устойчиво используют с доходностью выше стоимости привлечения и требуемой доходности собственника — при приемлемом уровне риска.</p>
+      </div>
+    </section>
+
+    <section class="sec materials sec--light capital-deep" id="capital-decisions" aria-labelledby="capital-decisions-title">
+      <div class="container">
+        <div class="section-head">
+          <p class="overline reveal">Капитальные вложения и инвестиции</p>
+          <h2 class="section-title reveal" id="capital-decisions-title">Глубже: решения о капитале</h2>
+          <p class="section-lead reveal">Отдельные материалы FINMENTOR о том, как оценивать капитальные вложения, измерять созданную стоимость и замечать, где бизнес проедает капитал.</p>
+        </div>
+        <div class="materials-grid">
+          <a class="material-card reveal" href="capex-hurdle-rate.html" data-reveal-delay="1"><span class="material-card__title">Как принимать CAPEX и инвестиционные решения: Incremental Return vs Hurdle Rate</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+          <a class="material-card reveal" href="capital-allocation-value.html" data-reveal-delay="2"><span class="material-card__title">Финансовый директор как управляющий капиталом: от высвобождения к созданию стоимости</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+          <a class="material-card reveal" href="capital-preservation.html" data-reveal-delay="3"><span class="material-card__title">Как компания проедает капитал</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="4"><span class="material-card__title">Оборотный капитал: где застревают деньги бизнеса</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="5"><span class="material-card__title">Финансирование бизнеса за счёт поставщиков: какие товары реально создают денежный поток</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec sec--alt" id="mini-scan">
+      <div class="container">
+        <div class="cta-band">
+          <p class="overline reveal">Лёгкий вход · 3 минуты</p>
+          <p class="cta-band__title reveal">Не готовы к полному рентгену? Начните с экспресс-диагностики оборотного капитала</p>
+          <p class="cta-band__text reveal">9 вопросов покажут, где могут застревать деньги: дебиторка, запасы, авансы, условия поставщиков или платёжная дисциплина. Это первичная финансовая оценка, а не полноценная диагностика.</p>
+          <div class="cta-band__row reveal">
+            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть экспресс-диагностику</a>
+            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Подробнее об оборотном капитале&nbsp;&rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
+      <div class="container container--editorial">
+        <p class="overline reveal">Следующий шаг</p>
+        <h2 class="section-title reveal" id="hub-cta-title">Опишите ситуацию — определим подходящий формат.</h2>
+        <p class="section-lead reveal">Кратко расскажите, что происходит и какое решение вам нужно.</p>
+        <div class="hub-cta__actions reveal">
+          <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="capital" data-event="cta_click" data-destination="consult">Обсудить задачу</a>
+          <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="capital" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
+        </div>
+      </div>
+    </section>
+
+      </main>
+
+  <footer class="footer" id="contacts">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="index.html" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">От финансового хаоса — к&nbsp;системе управления бизнесом.</p>
+          <div class="contact-strip contact-strip--footer">
+          <a class="contact-btn" href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> Обсудить задачу</a>
+          <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> E-mail</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+        </div>
+        </div>
+
+        <nav class="footer__col" aria-label="Подвал — навигация">
+          <span class="footer__col-label">Разделы</span>
+          <a href="about.html">О FINMENTOR</a>
+          <a href="owner.html">Для собственника</a>
+          <a href="index.html#solutions">Форматы работы</a>
+          <a href="capital-management.html">Управление капиталом</a>
+          <a href="business-models.html">Бизнес-модели</a>
+          <a href="cases.html">Практика</a>
+          <a href="materials.html">Материалы</a>
+          <a href="materials.html#financial-map">Финансовая карта бизнеса</a>
+          <a href="questionnaire.html">Финансовый рентген</a>
+        </nav>
+
+        <div class="footer__col">
+          <span class="footer__col-label">Контакты</span>
+          <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
+          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">Обсудить задачу</a>
+          <span class="footer__muted">Кишинёв, Молдова</span>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 FINMENTOR™. Все права защищены.</span>
+        <span class="footer__legal">
+          <a href="privacy.html">Политика конфиденциальности</a>
+          <a href="terms.html">Условия использования материалов</a>
+          <span class="footer__muted">FINMENTOR · Moldova / International</span>
+        </span>
+      </div>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия.</p>
+    </div>
+  </footer>
+
+  <script src="lang.js"></script>
+  <script src="main.js"></script>
+  <script src="assistant.js"></script>
+</body>
+</html>

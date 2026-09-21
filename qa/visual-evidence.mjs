@@ -1096,14 +1096,25 @@ const SURFACES = [
   { id: 'ro-questionnaire-mid', url: '/ro/questionnaire.html', widths: [390, 1440], anchor: '.q-block:nth-of-type(6)' },
   { id: 'ru-questionnaire-submit', url: '/questionnaire.html', widths: [390, 1440], anchor: '.q-actions' },
   { id: 'ro-questionnaire-submit', url: '/ro/questionnaire.html', widths: [390, 1440], anchor: '.q-actions' },
-  { id: 'ru-how-we-work', url: '/index.html', widths: [390, 1440], anchor: '.steps' },
-  { id: 'ro-how-we-work', url: '/ro/index.html', widths: [390, 1440], anchor: '.steps' },
-  { id: 'ru-working-contour', url: '/index.html', widths: [390, 1440], anchor: '#working-contour' },
-  { id: 'ro-working-contour', url: '/ro/index.html', widths: [390, 1440], anchor: '#working-contour' },
+  // IA 2.0: «Как работает FINMENTOR» moved from the homepage to the owner hub.
+  { id: 'ru-how-we-work', url: '/owner.html', widths: [390, 1440], anchor: '.steps' },
+  { id: 'ro-how-we-work', url: '/ro/owner.html', widths: [390, 1440], anchor: '.steps' },
+  { id: 'ru-working-contour', url: '/owner.html', widths: [390, 1440], anchor: '#working-contour' },
+  { id: 'ro-working-contour', url: '/ro/owner.html', widths: [390, 1440], anchor: '#working-contour' },
   { id: 'ru-asset-logic', url: '/index.html', widths: [390, 1440], anchor: '.industries__asset-callout' },
   { id: 'ro-asset-logic', url: '/ro/index.html', widths: [390, 1440], anchor: '.industries__asset-callout' },
-  { id: 'ru-capital-logic', url: '/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
-  { id: 'ro-capital-logic', url: '/ro/index.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
+  // IA 2.0: «Капитал должен работать» moved to the Capital Management hub.
+  { id: 'ru-capital-logic', url: '/capital-management.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
+  { id: 'ro-capital-logic', url: '/ro/capital-management.html', widths: RESPONSIVE_WIDTHS, anchor: '#capital-logic' },
+  // IA 2.0 hub pages, rendered from the top: header, drawer, language, page head.
+  { id: 'ru-owner', url: '/owner.html', widths: [390, 1440] },
+  { id: 'ro-owner', url: '/ro/owner.html', widths: [390, 1440] },
+  { id: 'ru-capital-management', url: '/capital-management.html', widths: [390, 1440] },
+  { id: 'ro-capital-management', url: '/ro/capital-management.html', widths: [390, 1440] },
+  { id: 'ru-business-models', url: '/business-models.html', widths: [390, 1440] },
+  { id: 'ro-business-models', url: '/ro/business-models.html', widths: [390, 1440] },
+  { id: 'ru-about', url: '/about.html', widths: [390, 1440] },
+  { id: 'ro-about', url: '/ro/about.html', widths: [390, 1440] },
   { id: 'ru-capital-preservation', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
   { id: 'ro-capital-preservation', url: '/ro/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
   { id: 'ru-capital-control', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-flow' },
@@ -2055,12 +2066,15 @@ const drawerProbes = {};
     // sentence repaired in a file that some script overwrites at runtime would pass there and
     // fail here. Each entry is a sentence this release repaired.
     const FIXED = {
-      'ru-homepage@1440': ['На первичном финансовом разборе обсуждаем', 'какие — поглощают денежные средства',
-        'для управления: денежный поток', 'Прибыль есть, денег нет: отчёт о прибыли и убытках'],
-      'ro-homepage@1440': ['La discuția financiară inițială discutăm', 'Contabilitatea există',
-        'Există comenzi, dar marja', 'Banii „există”, dar sunt blocați',
-        'Inteligența artificială (AI) și automatizarea', 'Verificați economia IA',
-        'pentru management: flux de numerar', 'Există profit, dar nu sunt bani'],
+      'ru-homepage@1440': ['Прибыль есть, денег нет: отчёт о прибыли и убытках'],
+      'ro-homepage@1440': ['Există profit, dar nu sunt bani'],
+      // IA 2.0: the rest moved with their sections — verbatim needles, new surfaces.
+      'ru-owner@1440': ['На первичном финансовом разборе обсуждаем', 'какие — поглощают денежные средства'],
+      'ru-about@1440': ['для управления: денежный поток'],
+      'ro-owner@1440': ['La discuția financiară inițială discutăm', 'Contabilitatea există', 'Banii „există”, dar sunt blocați',
+        'Inteligența artificială (AI) și automatizarea', 'Verificați economia IA'],
+      'ro-business-models@1440': ['Există comenzi, dar marja'],
+      'ro-about@1440': ['pentru management: flux de numerar'],
       'ru-questionnaire@1440': ['Структурированная финансовая оценка'],
       'ro-questionnaire@1440': ['evaluare financiară structurată', 'Există profit, dar nu sunt bani',
         'trebuie pusă ordine?', 'Planific pe termen lung', 'Fluxul de numerar nu este suficient'],
@@ -2111,6 +2125,8 @@ const drawerProbes = {};
   check('RU/RO VISUAL PARITY = PASS — the two editions render the same structure', () => {
     const pairs = [['ru-homepage', 'ro-homepage'], ['ru-questionnaire', 'ro-questionnaire'],
       ['ru-how-we-work', 'ro-how-we-work'], ['ru-working-contour', 'ro-working-contour'],
+      ['ru-owner', 'ro-owner'], ['ru-capital-management', 'ro-capital-management'],
+      ['ru-business-models', 'ro-business-models'], ['ru-about', 'ro-about'],
       ['ru-packages', 'ro-packages'], ['ru-cfo-consultation', 'ro-cfo-consultation'], ['ru-monthly-pricing', 'ro-monthly-pricing'],
       ['ru-monthly-execution', 'ro-monthly-execution'],
       ['ru-real-estate', 'ro-real-estate'], ['thank-you', 'ro-thank-you']];

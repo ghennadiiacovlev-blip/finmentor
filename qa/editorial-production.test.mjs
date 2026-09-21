@@ -17,6 +17,9 @@ const ruShelf = read('supplier-shelf-credit.html');
 const roShelf = read('ro/supplier-shelf-credit.html');
 const ruHome = read('index.html');
 const roHome = read('ro/index.html');
+// «Капитал должен работать» moved from the homepage to the Capital Management hub.
+const ruCapitalLogic = read('capital-management.html');
+const roCapitalLogic = read('ro/capital-management.html');
 const ruCapital = read('capital-preservation.html');
 const roCapital = read('ro/capital-preservation.html');
 
@@ -50,10 +53,15 @@ function check(name, fn) {
 }
 const count = (text, re) => (text.match(re) || []).length;
 const hrefs = (html) => [...html.matchAll(/<a class="kb-item" href="([^"]+\.html)"/g)].map((m) => m[1]);
+// The section's own boundaries (it contains nested <section>s), not whatever follows it.
 const capitalSection = (html) => {
   const start = html.indexOf('<section class="sec capital-logic');
-  const end = html.indexOf('<section class="audience', start);
-  assert(start >= 0 && end > start, 'Capital Management section boundaries missing');
+  assert(start >= 0, 'Capital Management section boundaries missing');
+  const re = /<\/?section\b[^>]*>/g;
+  re.lastIndex = start;
+  let depth = 0, m, end = -1;
+  while ((m = re.exec(html))) { depth += m[0][1] === '/' ? -1 : 1; if (depth === 0) { end = re.lastIndex; break; } }
+  assert(end > start, 'Capital Management section boundaries missing');
   return html.slice(start, end);
 };
 
@@ -269,31 +277,38 @@ check('new editorial interactions retain focus and reduced-motion protection', (
   assert(reduced.includes('.kb-item:hover') && reduced.includes('transform: none'), 'Materials reduced-motion rule missing');
 });
 
-check('Capital Management sits after asset logic and before the existing client and offer sequence', () => {
-  for (const [name, html, asset] of [
-    ['RU', ruHome, 'Одна финансовая логика — разные активы'],
-    ['RO', roHome, 'O singură logică financiară — active diferite']
+// Owner-approved IA 2.0: the homepage is nine scenes (capital preview before business
+// models, offers after both); the full capital logic lives on the Capital Management hub.
+check('Capital Management sits in the nine-scene narrative and opens its own page in order', () => {
+  for (const [name, html, hub, asset] of [
+    ['RU', ruHome, ruCapitalLogic, 'Одна финансовая логика — разные активы'],
+    ['RO', roHome, roCapitalLogic, 'O singură logică financiară — active diferite']
   ]) {
-    const assetAt = html.indexOf(asset);
-    const capitalAt = html.indexOf('id="capital-logic"');
-    const audienceAt = html.indexOf('id="audience"');
-    const offersAt = html.indexOf('class="packages" id="solutions"');
-    assert(assetAt >= 0 && assetAt < capitalAt, name + ' capital logic does not follow asset logic');
-    assert(capitalAt < audienceAt && audienceAt < offersAt, name + ' existing narrative order changed');
+    const at = (needle) => html.indexOf(needle);
+    const scenes = ['id="top"', 'id="chaos"', 'id="owner-control"', 'id="capital-allocation"', 'id="industries"',
+      asset, 'class="packages" id="solutions"', 'id="cases"', 'id="knowledge"', 'id="consult"'].map(at);
+    assert(scenes.every((v) => v >= 0), name + ' homepage scene missing');
+    assert(scenes.every((v, i) => i === 0 || v > scenes[i - 1]), name + ' homepage scene order changed');
+    assert(!html.includes('id="capital-logic"'), name + ' full capital logic is duplicated on the homepage');
+    assert(/href="capital-management\.html"/.test(html), name + ' homepage does not route to the capital page');
+    const frameAt = hub.indexOf('id="capital-allocation"');
+    const logicAt = hub.indexOf('id="capital-logic"');
+    const deepAt = hub.indexOf('id="capital-decisions"');
+    assert(frameAt >= 0 && frameAt < logicAt && logicAt < deepAt, name + ' capital page order changed');
   }
 });
 
 check('Capital positioning defines management capital without equating it to cash, equity or total assets', () => {
-  assert(ruHome.includes('Управленчески капитал — это не только деньги или собственный капитал в балансе.'), 'RU management definition missing');
-  assert(roHome.includes('În management, capitalul nu înseamnă doar numerar sau capitalul propriu din bilanț.'), 'RO management definition missing');
-  for (const html of [ruHome, roHome]) {
+  assert(ruCapitalLogic.includes('Управленчески капитал — это не только деньги или собственный капитал в балансе.'), 'RU management definition missing');
+  assert(roCapitalLogic.includes('În management, capitalul nu înseamnă doar numerar sau capitalul propriu din bilanț.'), 'RO management definition missing');
+  for (const html of [ruHome, roHome, ruCapitalLogic, roCapitalLogic]) {
     assert(!/Total Assets\s*=\s*Capital|Equity\s*=\s*(?:Management )?Capital/i.test(html), 'accounting identity overclaim found');
     assert(!/максимальн\w* доходност|randament maxim/i.test(html), 'maximum-return promise found');
   }
 });
 
 check('Capital Map adds a compact funding-source layer above location and performance', () => {
-  for (const [name, html] of [['RU', ruHome], ['RO', roHome]]) {
+  for (const [name, html] of [['RU', ruCapitalLogic], ['RO', roCapitalLogic]]) {
     const map = html.slice(html.indexOf('<article class="capital-map'), html.indexOf('</article>', html.indexOf('<article class="capital-map')) + 10);
     assert(count(map, /<section class="capital-source"/g) === 1, name + ' funding-source layer missing');
     assert(count(map, /class="capital-source__list"/g) === 1, name + ' has more than one funding-source list');
@@ -306,15 +321,15 @@ check('Capital Map adds a compact funding-source layer above location and perfor
     assert(map.includes('capital-map__question'), name + ' owner-level CFO question missing');
   }
   for (const phrase of ['Собственный капитал', 'Заёмный капитал', 'Операционное финансирование', 'не в активе, а в структуре его финансирования']) {
-    assert(ruHome.includes(phrase), 'RU source/structure logic missing: ' + phrase);
+    assert(ruCapitalLogic.includes(phrase), 'RU source/structure logic missing: ' + phrase);
   }
   for (const phrase of ['Capital propriu', 'Capital împrumutat', 'Finanțare operațională', 'nu este activul, ci structura finanțării sale']) {
-    assert(roHome.includes(phrase), 'RO source/structure logic missing: ' + phrase);
+    assert(roCapitalLogic.includes(phrase), 'RO source/structure logic missing: ' + phrase);
   }
 });
 
-check('homepage Capital control keeps four principles, one complete flow and one material link', () => {
-  for (const [name, html] of [['RU', ruHome], ['RO', roHome]]) {
+check('Capital control keeps four principles, one complete flow and one material link', () => {
+  for (const [name, html] of [['RU', ruCapitalLogic], ['RO', roCapitalLogic]]) {
     const section = capitalSection(html);
     assert(count(section, /class="capital-principle reveal"/g) === 4, name + ' does not keep four CFO principles');
     assert(count(section, /<div class="capital-flow/g) === 1, name + ' has more than one capital flow');
@@ -360,7 +375,7 @@ check('capital economics covers owner cost, conditional leverage and refinancing
   for (const phrase of ['nu este gratuit din punct de vedere economic', 'pot amplifica randamentul capitalului propriu', 'amplifică riscul proprietarului', 'Uneori trebuie refinanțată datoria, nu vândut activul']) {
     assert(roCapital.includes(phrase), 'RO capital economics missing: ' + phrase);
   }
-  for (const html of [ruHome, roHome, ruCapital, roCapital]) {
+  for (const html of [ruHome, roHome, ruCapitalLogic, roCapitalLogic, ruCapital, roCapital]) {
     assert(!/WACC\s*=|ROIC\s*=|Cost of Equity\s*=/i.test(html), 'formula overload reached customer copy');
   }
 });
@@ -369,7 +384,7 @@ check('Romanian capital language is natural and retains liquidity, sustainable r
   for (const phrase of ['Harta capitalului', 'Numerar și lichiditate', 'Capital de lucru',
     'Active operaționale și generatoare de venit', 'Capital subutilizat', 'Capital blocat',
     'randament sustenabil', 'nivel de risc acceptabil', 'costul capitalului', 'refinanțăm']) {
-    assert((roHome + roCapital).includes(phrase), 'RO capital terminology missing: ' + phrase);
+    assert((roHome + roCapitalLogic + roCapital).includes(phrase), 'RO capital terminology missing: ' + phrase);
   }
 });
 
