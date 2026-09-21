@@ -13,8 +13,8 @@ commissioned, exported locally, and committed.
 | Slot | File | Status |
 |---|---|---|
 | 01 Hero | `hero-capital.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
-| 02 Decision environment | `decision-environment.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
-| 03 Real estate / investment | `real-estate-investment.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
+| 02 Decision environment | `capital-decision.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
+| 03 Real estate / investment | `real-assets.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
 
 The shipped placeholders are **generated SVG fields**, not stock photography.
 They are deliberately non-representational: a deep navy/graphite tonal field with
@@ -29,8 +29,8 @@ Shipped placeholder files:
 
 ```
 images/editorial/hero-capital.svg            2560 × 1440  (16:9)
-images/editorial/decision-environment.svg    1920 × 1280  (3:2)
-images/editorial/real-estate-investment.svg  1920 × 2400  (4:5)
+images/editorial/capital-decision.svg    1920 × 1280  (3:2)
+images/editorial/real-assets.svg  1920 × 2400  (4:5)
 ```
 
 Each is referenced by an `<img>` inside a `<picture>` element that currently carries
@@ -81,7 +81,7 @@ commissioned photographer. Each is paired with a hard negative list.
 brand marks, logos, lens flare, HDR halos, neon, blue-hour glow, drone view, reflections
 of a photographer, holographic overlays, charts, any digital UI.
 
-### PROMPT 02 — `decision-environment` (1920×1280, 3:2)
+### PROMPT 02 — `capital-decision` (1920×1280, 3:2)
 
 > Editorial still-life on a dark stone desk surface. A small stack of printed financial
 > documents and a folded architectural drawing, a closed leather notebook, a single
@@ -96,7 +96,7 @@ notes, printed bar charts or pie charts, trading screens, Bloomberg terminal, st
 tickers, visible logos or legible brand text, flat overhead flat-lay styling, bright
 white office.
 
-### PROMPT 03 — `real-estate-investment` (1920×2400, 4:5 portrait)
+### PROMPT 03 — `real-assets` (1920×2400, 4:5 portrait)
 
 > Vertical architectural detail of a high-end contemporary mixed-use building in
 > Europe. A repeating colonnade or facade bay system in pale stone and bronze-toned
@@ -113,6 +113,40 @@ wide-angle distortion, oversaturated blue sky.
    scrim** — body text must clear 4.5:1.
 2. Cover the logo. The frame must still read as *capital* rather than *office*.
 3. If it could plausibly illustrate a generic consulting or SaaS landing page, reject it.
+
+---
+
+## 0c. Crop contract — frozen, so the layout never depends on guesswork
+
+Every slot's aspect ratio, focal point and `object-position` is already committed in
+`style.css`. A replacement image that respects the table below drops in with **no CSS and
+no layout change**. One that does not will crop badly — the contract is the brief.
+
+| | PHOTO 01 `hero-capital` | PHOTO 02 `capital-decision` | PHOTO 03 `real-assets` |
+|---|---|---|---|
+| Used by | Hero | Управление капиталом | Бизнес-модели |
+| Master | 2400×1500 min (16:10) | 1920×1280 (3:2) | 1920×2400 (4:5) |
+| Desktop render | full-bleed behind copy | full-bleed behind copy | fixed column, `clamp(420px, 66vh, 820px)` tall |
+| Desktop `object-position` | `68% 42%` | `50% 45%` | `50% 60%` |
+| Mobile render | full-bleed, ~88vh | full-bleed | `clamp(190px, 44vw, 280px)` tall |
+| Mobile `object-position` | `64% 42%` | `50% 50%` | `50% 55%` |
+| Protected zone | **left 40–45% tonally flat** — headline sits there | left ~38% under a 0.86–0.95 navy scrim | top ~20% calm for the overline |
+| Scrim applied | 100° directional + vertical | 95° directional + vertical | none — image reads at full value on ivory |
+| Loading | `fetchpriority="high"`, preloaded | `lazy` | `lazy` |
+| Responsive sources | `<source media>` already wired at 1440 / 1024 / 768 / 390 | single source | single source |
+
+**What each slot must emotionally communicate, in one line each:**
+
+- **PHOTO 01** — *scale and permanence.* An institution that was here before you and will
+  be here after. Perspective, not a flat elevation.
+- **PHOTO 02** — *judgement.* The moment before a capital decision, shown through materials
+  and light rather than through a person.
+- **PHOTO 03** — *real assets.* Something built, owned and measurable. Structure and
+  materiality, never a skyline postcard.
+
+**What all three must avoid:** smiling people, handshakes, laptops with charts, holograms,
+neural-network motifs, glowing dashboards, city skylines, visible branding, drone hero
+shots, anything that reads as a stock library thumbnail.
 
 ---
 
@@ -167,7 +201,7 @@ corporate.
 
 ---
 
-## 3. IMAGE 02 — DECISION ENVIRONMENT · `decision-environment`
+## 3. IMAGE 02 — DECISION ENVIRONMENT · `capital-decision`
 
 **Purpose.** Support the capital/decision sections. Communicates *decision making,
 capital discipline, analytical precision* — the human judgement behind the system,
@@ -195,7 +229,7 @@ calculator, a fake Bloomberg terminal, a printed bar chart, coffee-cup styling.
 
 ---
 
-## 4. IMAGE 03 — REAL ESTATE / INVESTMENT · `real-estate-investment`
+## 4. IMAGE 03 — REAL ESTATE / INVESTMENT · `real-assets`
 
 **Purpose.** Supporting visual for real estate, investment and capital allocation.
 Signals asset quality and permanence.

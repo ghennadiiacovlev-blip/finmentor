@@ -7731,6 +7731,160 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .capital-management__inner { align-items: start; }
 }
 
+/* ==========================================================================
+   D1 — PREMIUM ART-DIRECTION PASS
+   Refinement only. No new section, no new visual language, no new effect.
+   Every rule here either RESOLVES a composition or REMOVES ink.
+   ========================================================================== */
+
+/* --- D1.1 PROFIT / CAPITAL — resolve the composition ---------------------
+   The section was not underfilled by choice: the flow diagram spanned two
+   grid rows, which stretched the left column and stranded the closing line
+   ~200px below the paragraph it belongs to. Grouping the copy into one cell
+   removes the void without moving a single word. */
+.home .statement-screen > .container {
+  grid-template-areas:
+    "copy  chain"
+    "close close";
+  grid-template-rows: auto auto;
+  column-gap: clamp(40px, 6vw, 120px);
+  row-gap: clamp(40px, 4.4vw, 72px);
+  align-items: center;
+}
+.home .statement-screen__copy {
+  grid-area: copy;
+  max-width: 44ch;
+}
+.home .statement-screen__note {
+  grid-area: auto;
+  margin-top: clamp(20px, 2.2vw, 32px);
+  max-width: 42ch;
+}
+/* A hairline that runs to the container edge reads as an unfinished table
+   row. Constrained to a measure, the same hairline reads as a drawn system. */
+.home .capital-chain {
+  grid-area: chain;
+  align-self: center;
+  max-width: 30ch;
+}
+/* The closing line carries the section's conclusion and was the faintest ink
+   on the screen. Lifted just enough to be read, not enough to shout. */
+.home .statement-screen__close {
+  grid-area: close;
+  margin-top: 0;
+  padding-top: clamp(18px, 1.8vw, 26px);
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  color: var(--text-secondary);
+  /* The rule runs the full measure of the section so it CLOSES both columns;
+     the sentence itself stays short. A rule that stops mid-page reads as an
+     unfinished row rather than a conclusion. */
+  max-width: none;
+}
+
+/* --- D1.2 HEADER — reduce load, keep clarity -----------------------------
+   Seven uppercase items at 0.14em tracking formed a dense band across the
+   top of every screen, and one of them duplicated the CTA beside it. The
+   duplicate is gone from the markup; what remains is set to breathe. */
+.home .nav { gap: clamp(20px, 2vw, 34px); }
+.home .nav__link {
+  font-size: 0.75rem;
+  letter-spacing: 0.075em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+.home .nav__link:hover { color: #fff; }
+
+/* The header CTA was the most saturated object on every viewport — a gold
+   flood in a system where gold is supposed to mean precision. It becomes a
+   gold rule with gold type, and fills only on intent. The solid gold CTA
+   stays where the conversion weight belongs: in the hero. */
+.home .header__cta.btn--primary {
+  background: none;
+  border: 1px solid var(--border-gold);
+  color: var(--gold-400);
+  box-shadow: none;
+  padding: 9px 18px;
+  transition: background-color var(--dur-base) ease,
+              color var(--dur-base) ease,
+              border-color var(--dur-base) ease;
+}
+.home .header__cta.btn--primary:hover {
+  background: var(--gold-500);
+  border-color: var(--gold-500);
+  color: var(--navy-900);
+  box-shadow: none;
+  transform: none;
+}
+
+/* --- D1.3 FLOATING HELP — recede ----------------------------------------
+   It sat in the lower right of every composition as a bordered pill with a
+   gold star. It stays available and becomes a quiet dot: label on intent,
+   never in the frame. The button keeps its aria-label, so hiding the visible
+   text costs nothing to a screen reader. */
+.fa-launch {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 17, 31, 0.72);
+  box-shadow: none;
+  opacity: 0.4;
+  transition: opacity var(--dur-base) ease, border-color var(--dur-base) ease;
+}
+.fa-launch__lg,
+.fa-launch__sm { display: none; }
+.fa-launch__icon {
+  width: 15px;
+  height: 15px;
+  color: rgba(255, 255, 255, 0.78);
+}
+.fa-launch:hover,
+.fa-launch:focus-visible {
+  opacity: 1;
+  border-color: var(--border-gold);
+  transform: none;
+  box-shadow: none;
+}
+.fa-launch:hover .fa-launch__icon { color: var(--gold-400); }
+@media (max-width: 640px) {
+  .fa-launch { width: 36px; height: 36px; min-height: 36px; opacity: 0.34; }
+}
+
+/* --- D1.4 MEASURE DISCIPLINE --------------------------------------------
+   Same principle as the flow: a rule should end where the composition says,
+   not where the container happens to stop. */
+.home .capital-cycle { max-width: 34ch; }
+.home .capital-management__routes { max-width: 42ch; }
+
+/* --- D1.5 TYPOGRAPHIC CONSISTENCY ---------------------------------------
+   Eyebrow labels were drifting between 0.12em, 0.13em, 0.14em and 0.15em
+   across sections. One value, so the labels read as one system. */
+.home .overline,
+.home .package__tier,
+.home .package__label,
+.home .result-row__label,
+.home .industry-card__detail > summary,
+.home .industry-card__detail-body b,
+.home .capital-management__routes {
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 900px) {
+  .home .statement-screen > .container {
+    grid-template-areas: none;
+    grid-template-rows: auto;
+    align-items: start;
+  }
+  .home .statement-screen__copy,
+  .home .capital-chain,
+  .home .statement-screen__close { grid-area: auto; grid-column: 1; max-width: none; }
+}
+
 /* --- 12. REDUCED MOTION (layer-local) ------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .hero--editorial .hero__media img { animation: none; transform: none; }
