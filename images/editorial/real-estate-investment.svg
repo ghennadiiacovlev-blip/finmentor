@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 2400" width="1920" height="2400" role="presentation">
+  <!--
+    FINMENTOR — IMAGE 03 placeholder · real-estate-investment
+    Final asset: high-end commercial architecture, detail over skyline.
+    See IMAGE_ART_DIRECTION.md §4. Replace this file, keep the name.
+  -->
+  <defs>
+    <linearGradient id="air" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E3352"/>
+      <stop offset="0.6" stop-color="#132338"/>
+      <stop offset="1" stop-color="#0A1422"/>
+    </linearGradient>
+    <linearGradient id="pier" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2B3C51"/>
+      <stop offset="0.5" stop-color="#1B2A3C"/>
+      <stop offset="1" stop-color="#101C2B"/>
+    </linearGradient>
+    <linearGradient id="bay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#28455F" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#0F1E30" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="topcalm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A1422" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#0A1422" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="2400" fill="url(#air)"/>
+
+  <!-- colonnade: repeating piers, strong geometry -->
+  <g>
+    <rect x="96"   y="300" width="176" height="2100" fill="url(#pier)"/>
+    <rect x="440"  y="300" width="176" height="2100" fill="url(#pier)"/>
+    <rect x="784"  y="300" width="176" height="2100" fill="url(#pier)"/>
+    <rect x="1128" y="300" width="176" height="2100" fill="url(#pier)"/>
+    <rect x="1472" y="300" width="176" height="2100" fill="url(#pier)"/>
+    <rect x="1816" y="300" width="104" height="2100" fill="url(#pier)"/>
+  </g>
+
+  <!-- recessed glazing between piers -->
+  <g>
+    <rect x="272" y="360" width="168" height="2040" fill="url(#bay)"/>
+    <rect x="616" y="360" width="168" height="2040" fill="url(#bay)"/>
+    <rect x="960" y="360" width="168" height="2040" fill="url(#bay)"/>
+    <rect x="1304" y="360" width="168" height="2040" fill="url(#bay)"/>
+    <rect x="1648" y="360" width="168" height="2040" fill="url(#bay)"/>
+  </g>
+
+  <!-- entablature -->
+  <rect y="230" width="1920" height="82" fill="#243549"/>
+  <rect y="300" width="1920" height="12" fill="#0B1726" opacity="0.8"/>
+  <rect y="230" width="1920" height="4" fill="#C9A227" opacity="0.30"/>
+
+  <!-- floor transoms -->
+  <g fill="#0C1829" opacity="0.6">
+    <rect y="860"  width="1920" height="8"/>
+    <rect y="1420" width="1920" height="8"/>
+    <rect y="1980" width="1920" height="8"/>
+  </g>
+
+  <!-- warm light raking one pier edge -->
+  <rect x="1128" y="300" width="6" height="2100" fill="#D8B450" opacity="0.26"/>
+  <rect x="784"  y="300" width="4" height="2100" fill="#D8B450" opacity="0.14"/>
+
+  <!-- ground plane -->
+  <rect y="2240" width="1920" height="160" fill="#080F1A"/>
+  <rect y="2240" width="1920" height="3" fill="#33506F" opacity="0.45"/>
+
+  <!-- top kept calm for the section overline -->
+  <rect width="1920" height="480" fill="url(#topcalm)"/>
+</svg>

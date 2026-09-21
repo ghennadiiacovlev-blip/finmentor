@@ -5958,6 +5958,837 @@ body.menu-open .doc-bar { visibility: hidden; }
   .statement-screen .statement-screen__keyword { opacity: 0.82; }
 }
 
+/* ==========================================================================
+   FINMENTOR — VISUAL SYSTEM 2.0
+   Premium editorial pass. Presentation only: no copy, routing, tracking or
+   business logic is changed here. See FINMENTOR_VISUAL_SYSTEM_2.md.
+
+   Governing principle: LESS INTERFACE. MORE AUTHORITY.
+
+   This layer is APPENDED so it overrides by cascade order without editing the
+   216 KB of contrast-corrected CSS above it, all of which is under QA contract.
+   Scoped to `body.home` wherever a rule could otherwise reach article, legal,
+   Materials or product pages.
+
+   Ordering note: the canonical prefers-reduced-motion block is re-stated at the
+   very end of this file — `qa/premium-typography.test.mjs` reads the LAST such
+   block and requires the hover-displacement override to live there.
+   ========================================================================== */
+
+/* --- 1. TOKENS ----------------------------------------------------------- */
+:root {
+  /* Fluid editorial type scale — no breakpoint-hardcoded type. */
+  --fs-statement: clamp(2.75rem, 7.2vw, 7.5rem);   /*  44 → 120px */
+  --fs-h1:        clamp(2.5rem,  5.4vw, 5.75rem);  /*  40 →  92px */
+  --fs-h2:        clamp(2.05rem, 3.6vw, 4rem);     /*  33 →  64px */
+  --fs-h3:        clamp(1.35rem, 1.9vw, 1.9rem);   /*  22 →  30px */
+  --fs-lead:      clamp(1.15rem, 1.5vw, 1.5rem);   /*  18 →  24px */
+  --fs-body:      clamp(1.0625rem, 1.1vw, 1.25rem);/*  17 →  20px */
+  --fs-label:     clamp(0.6875rem, 0.8vw, 0.8125rem); /* 11 → 13px */
+
+  /* Editorial spacing — sections must not share a height. */
+  --sp-11: 160px;
+  --sp-12: 200px;
+  --sp-section:    clamp(80px, 8.5vw, 168px);
+  --sp-section-lg: clamp(112px, 12vw, 232px);
+
+  /* Reading measure */
+  --measure-prose: 62ch;
+  --measure-lead:  50ch;
+
+  /* Editorial container — wider than the 1200px app container, homepage only. */
+  --container-editorial: 1400px;
+
+  /* Motion — premium, almost invisible. */
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-reveal: 760ms;
+  --dur-image: 1200ms;
+
+  /* Gold restraint: the accent stops glowing and starts pointing. */
+  --glow-gold: 0 0 24px rgba(201, 162, 39, 0.14);
+
+  /* --- Warm editorial surfaces -------------------------------------------
+     Navy is a brand ANCHOR, not the page background. The homepage now runs
+     roughly 60/40 light-to-dark, in the manner of a financial quarterly
+     rather than a dark SaaS product page. */
+  --ivory-100: #F6F4EF;   /* lightest warm surface — tinted variant */
+  --ivory-200: #F4F1EA;   /* primary warm editorial field */
+  --ink-900:   #08111F;   /* deep FINMENTOR navy, used as type on light */
+}
+
+/* The established light field keeps all of its contrast-corrected token
+   overrides and only moves to the warmer surface value. */
+.sec--light { background: var(--ivory-200); }
+.sec--light.sec--tint { background: var(--ivory-100); }
+
+/* Small uppercase labels sit at 11–13px, so they are never "large text" and
+   must clear 4.5:1. The light field's --text-muted (#6B7688) measures 4.18
+   on ivory, so these labels get their own token rather than the muted grey. */
+:root { --label-muted: rgba(255, 255, 255, 0.62); }
+.sec--light, .home .packages { --label-muted: #5A6577; }
+
+/* The offers section carries the same light field by selector rather than by
+   class: `class="packages" id="solutions"` is a literal under QA contract
+   (`editorial-production.test.mjs` reads it to prove narrative order), so the
+   class attribute must stay exactly as it is. */
+.home .packages {
+  --text-primary: #16233C;
+  --text-secondary: #3D4A5F;
+  --text-muted: #6B7688;
+  --glass-fill: rgba(255, 255, 255, 0.78);
+  --glass-fill-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(18, 28, 46, 0.12);
+  --glass-border-gold: rgba(140, 106, 26, 0.38);
+  --border-hairline: rgba(18, 28, 46, 0.11);
+  --border-gold: rgba(140, 106, 26, 0.5);
+  --accent: #8C6A1A;
+  --accent-bright: #6F5312;
+  --micro-label-gold: #765814;
+  --gold-500: #8C6A1A;
+  --focus-ring: #6F5312;
+  --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
+  --elev-2: 0 14px 34px rgba(16, 27, 44, 0.10);
+  background: var(--ivory-200);
+  color: var(--text-secondary);
+  border-top: 1px solid rgba(18, 28, 46, 0.08);
+}
+
+/* Seam between a light and a dark field: a short tonal ramp rather than a
+   hard edge, so the page changes temperature instead of snapping. */
+.home .sec--light + .sec--dark,
+.home .sec--light + .statement-screen:not(.sec--light),
+.home .sec--light + .consult { border-top: 0; }
+.home .sec--seam-top { position: relative; }
+.home .sec--seam-top::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: clamp(64px, 7vw, 132px);
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(244, 241, 234, 0.55), rgba(244, 241, 234, 0));
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-h2: clamp(1.85rem, 7.2vw, 2.4rem);
+    --fs-statement: clamp(2.5rem, 12vw, 3.5rem);
+  }
+}
+
+/* --- 2. EDITORIAL CONTAINER ---------------------------------------------- */
+.home .container--editorial {
+  max-width: var(--container-editorial);
+}
+@media (max-width: 430px) {
+  .home .container { padding-inline: 20px; }
+}
+
+/* --- 3. SECTION RHYTHM ---------------------------------------------------
+   Whitespace is the single highest-leverage change. Fewer objects per
+   viewport, one focal point per screen. */
+.home .sec,
+.home .chaos,
+.home .industries,
+.home .packages,
+.home .proof-cases,
+.home .about,
+.home .consult {
+  padding-block: var(--sp-section);
+}
+.home .sec--pivot { padding-block: var(--sp-section-lg); }
+
+.home .section-head {
+  margin-bottom: clamp(48px, 5vw, 96px);
+  max-width: var(--container-editorial);
+}
+
+/* --- 4. TYPOGRAPHY -------------------------------------------------------
+   Significantly larger headings, fewer words per heading, generous leading,
+   controlled measure. Same two families — Playfair Display + Manrope. */
+.home .section-title {
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+.home .section-lead {
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  max-width: var(--measure-lead);
+  color: var(--text-secondary);
+}
+.home .overline {
+  font-size: var(--fs-label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.home .section-head .section-title { margin-top: var(--sp-4); }
+
+/* --- 5. HERO — one message, photographic field, no dashboards ------------ */
+.hero--editorial {
+  min-height: 92vh;
+  min-height: 92svh;
+  background: var(--navy-900);
+}
+.hero--editorial .hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  display: block;
+  overflow: hidden;
+}
+.hero--editorial .hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 38%;
+  display: block;
+  animation: heroSettle var(--dur-image) var(--ease-editorial) 80ms both;
+}
+@keyframes heroSettle {
+  from { transform: scale(1.028); }
+  to   { transform: scale(1); }
+}
+
+/* Scrim: text contrast is measured against the scrimmed composite, never the
+   raw image. Horizontal ramp protects the headline column; vertical ramp
+   seats the header and the scroll cue. */
+.hero--editorial .hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to right,
+      rgba(8, 17, 31, 0.95) 0%,
+      rgba(8, 17, 31, 0.88) 36%,
+      rgba(8, 17, 31, 0.58) 66%,
+      rgba(8, 17, 31, 0.34) 100%),
+    linear-gradient(to bottom,
+      rgba(8, 17, 31, 0.62) 0%,
+      rgba(8, 17, 31, 0.12) 28%,
+      rgba(8, 17, 31, 0.10) 62%,
+      rgba(8, 17, 31, 0.78) 100%);
+}
+
+.hero--editorial .hero__content {
+  position: relative;
+  z-index: 3;
+  max-width: var(--container-editorial);
+  padding-block: clamp(96px, 12vh, 176px);
+}
+.hero--editorial .hero__kicker {
+  margin-bottom: clamp(24px, 3vw, 44px);
+  font-size: var(--fs-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--micro-label-gold);
+}
+.hero--editorial .hero__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+}
+/* The large supporting statement — the second voice, not a second headline. */
+.hero--editorial .hero__statement {
+  margin-top: clamp(28px, 3.4vw, 52px);
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.5vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.24;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  max-width: 20ch;
+}
+.hero--editorial .hero__statement span { display: block; }
+.hero--editorial .hero__subtitle {
+  margin-top: clamp(24px, 2.6vw, 36px);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  max-width: 46ch;
+  color: var(--text-secondary);
+}
+.hero--editorial .hero__actions {
+  margin-top: clamp(36px, 4vw, 60px);
+  gap: var(--sp-4) var(--sp-5);
+}
+.hero--editorial .hero__trust-line {
+  margin-top: clamp(28px, 3vw, 44px);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 56ch;
+}
+
+@media (max-width: 860px) {
+  .hero--editorial { min-height: 88vh; min-height: 88svh; }
+  .hero--editorial .hero__media img { object-position: 64% 42%; }
+  .hero--editorial .hero__scrim {
+    background:
+      linear-gradient(to bottom,
+        rgba(8, 17, 31, 0.86) 0%,
+        rgba(8, 17, 31, 0.74) 42%,
+        rgba(8, 17, 31, 0.88) 100%);
+  }
+  .hero--editorial .hero__title { max-width: 13ch; }
+  .hero--editorial .hero__statement { max-width: 24ch; }
+}
+
+/* --- 6. SIGNATURE STATEMENT ----------------------------------------------
+   Typography + whitespace only. No cards, no icons, no CTA. The existing
+   statement copy is preserved; what is added is the capital chain beneath it. */
+.home .statement-screen {
+  min-height: 72vh;
+  min-height: 72svh;
+  padding-block: var(--sp-section-lg);
+}
+/* MOMENT 2 — the profit/cash pivot now reads as a warm editorial spread.
+   On ivory the keyword drops to the contrast-safe bronze rather than the
+   dark-field gold, and the softened 0.82 opacity is released. */
+.home .statement-screen.sec--light .statement-screen__keyword {
+  color: var(--accent);
+  opacity: 1;
+}
+.home .statement-screen.sec--light .statement-screen__keyword.reveal.is-visible { opacity: 1; }
+.home .statement-screen.sec--light .statement-screen__question { color: var(--ink-900); }
+.home .statement-screen__keyword {
+  font-size: var(--fs-statement);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+}
+.home .statement-screen__question {
+  margin-top: clamp(28px, 2.8vw, 48px);
+  font-size: clamp(1.35rem, 2.2vw, 2.15rem);
+  max-width: 34ch;
+  line-height: 1.28;
+}
+
+/* PROFIT → CASH → WORKING CAPITAL → CAPITAL */
+.capital-chain {
+  list-style: none;
+  margin: clamp(56px, 6vw, 104px) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 26px);
+}
+.capital-chain__node {
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.capital-chain__node:last-child {
+  color: var(--micro-label-gold);
+  border-bottom-color: var(--border-gold);
+}
+/* The separator is decorative and belongs to the presentation, not the DOM:
+   a pseudo-element keeps the list semantically four items long. */
+.capital-chain__node + .capital-chain__node::before {
+  content: "\2192";
+  margin-right: clamp(14px, 1.6vw, 26px);
+  color: var(--gold-500);
+  opacity: 0.5;
+}
+.statement-screen__note {
+  margin: clamp(40px, 4vw, 64px) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 640px) {
+  .home .statement-screen { min-height: auto; }
+  .capital-chain { gap: 10px 14px; }
+}
+
+/* --- 7. OWNER CONTROL MODEL — three pillars, not many small cards -------- */
+/* This section carries the keyword-dense positioning paragraph relocated out of
+   the hero, so it reads as prose rather than as an oversized lead. */
+.home .pillars .section-lead {
+  font-size: var(--fs-body);
+  max-width: var(--measure-prose);
+  line-height: 1.7;
+}
+.pillars__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: clamp(56px, 6vw, 104px);
+  border-top: 1px solid var(--border-hairline);
+}
+.pillar {
+  padding: clamp(40px, 4vw, 72px) clamp(28px, 3vw, 56px) clamp(40px, 4vw, 64px) 0;
+  border-right: 1px solid var(--border-hairline);
+  min-width: 0;
+}
+.pillar:last-child { border-right: 0; padding-right: 0; }
+/* A pillar is not a card: it inherits no lift, fill or shadow on hover. */
+.pillar:hover {
+  background: none;
+  box-shadow: none;
+  transform: none;
+}
+.pillar__index {
+  display: block;
+  font-size: var(--fs-label);
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  color: var(--micro-label-gold);
+}
+.pillar__title {
+  margin: clamp(20px, 2vw, 32px) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+.pillar__terms {
+  list-style: none;
+  margin: clamp(24px, 2.4vw, 36px) 0 0;
+  padding: 0;
+}
+.pillar__terms li {
+  padding: 12px 0;
+  border-top: 1px solid var(--border-hairline);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.pillar__terms li:first-child { border-top: 0; padding-top: 0; }
+
+@media (max-width: 860px) {
+  .pillars__grid { grid-template-columns: 1fr; }
+  .pillar {
+    padding: clamp(32px, 6vw, 44px) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .pillar:last-child { border-bottom: 0; padding-bottom: 0; }
+}
+
+/* --- 7a. EDITORIAL IMAGE BANDS -------------------------------------------
+   Full-bleed photographic breaks that carry the page from a light field into
+   a dark one. One image, one hairline caption, no overlay copy — the picture
+   is allowed to be the whole idea. */
+.editorial-band {
+  background: var(--navy-900);
+  padding: 0;
+}
+.editorial-band__figure {
+  margin: 0;
+  position: relative;
+}
+.editorial-band__figure img {
+  display: block;
+  width: 100%;
+  height: clamp(280px, 42vw, 620px);
+  object-fit: cover;
+  object-position: 50% 45%;
+}
+.editorial-band--asset img { object-position: 50% 60%; }
+.editorial-band__caption {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 1.4vw, 24px);
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding: clamp(18px, 1.8vw, 28px) var(--sp-6) clamp(26px, 2.6vw, 44px);
+  font-size: var(--fs-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.editorial-band__index {
+  font-family: var(--font-mono);
+  color: var(--micro-label-gold);
+  letter-spacing: 0.08em;
+}
+@media (max-width: 640px) {
+  .editorial-band__figure img { height: clamp(240px, 62vw, 340px); }
+  .editorial-band__caption { padding-inline: 20px; }
+}
+
+/* --- 7b. MOMENT 3 — CAPITAL ALLOCATION (deep navy) -----------------------
+   One question, one unit of capital, four routes. Drawn with hairlines and
+   numeric labels rather than cards. Deliberately carries NO figures: the
+   routes are a decision framework, not invented performance data. */
+.home .capital-allocation {
+  background: var(--navy-900);
+  padding-block: var(--sp-section-lg);
+}
+.home .capital-allocation .section-title {
+  max-width: 24ch;
+  font-size: clamp(2.1rem, 4.2vw, 4.4rem);
+}
+.allocation {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 13fr);
+  gap: clamp(28px, 4vw, 88px);
+  margin-top: clamp(48px, 5vw, 92px);
+}
+.allocation__source {
+  position: relative;
+  align-self: start;
+  padding-top: clamp(18px, 2vw, 30px);
+  border-top: 1px solid var(--border-gold);
+}
+.allocation__unit-label {
+  display: block;
+  font-size: var(--fs-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--micro-label-gold);
+}
+.allocation__unit {
+  display: block;
+  margin-top: clamp(12px, 1.4vw, 20px);
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+.allocation__routes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.allocation__route {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 7fr) minmax(0, 9fr);
+  gap: clamp(16px, 2vw, 40px);
+  align-items: baseline;
+  padding: clamp(22px, 2.2vw, 34px) 0;
+  border-bottom: 1px solid var(--border-hairline);
+  transition: border-color var(--dur-base) ease;
+}
+.allocation__route:hover { border-bottom-color: var(--border-gold); }
+/* the thin connector that ties each route back to the capital unit */
+.allocation__route::before {
+  content: "";
+  position: absolute;
+  left: calc(clamp(28px, 4vw, 88px) * -1);
+  top: 0;
+  width: clamp(28px, 4vw, 88px);
+  height: 1px;
+  background: var(--border-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-reveal) var(--ease-editorial);
+}
+.allocation__route.is-visible::before { transform: scaleX(1); }
+.allocation__index {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--gold-500);
+  opacity: 0.75;
+}
+.allocation__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1.7vw, 1.6rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+.allocation__effect {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.allocation__note {
+  margin: clamp(40px, 4vw, 72px) 0 0;
+  max-width: var(--measure-prose);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+@media (max-width: 860px) {
+  .allocation { grid-template-columns: 1fr; gap: clamp(28px, 5vw, 44px); }
+  .allocation__route { grid-template-columns: auto 1fr; gap: 12px 18px; }
+  .allocation__effect { grid-column: 2; }
+  .allocation__route::before { display: none; }
+}
+
+/* --- 8. DENSITY: cards → editorial rows ----------------------------------
+   The symptom list and the business-model list stop being card grids and
+   become editorial indexes. No copy is hidden — every string stays painted,
+   which both the ZERO-HEIGHT TEXT gate and the SEO surface require. What
+   changes is rank: chrome is removed, hierarchy is restored. */
+
+/* 8.1 Symptoms */
+.home .chaos__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(40px, 5vw, 96px);
+  margin-top: clamp(48px, 5vw, 88px);
+}
+.home .chaos-card {
+  padding: clamp(24px, 2.4vw, 34px) 0;
+  border: 0;
+  border-top: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  transform: none;
+  height: auto;
+  /* `cx` is the homepage's existing symptom counter, reset on .chaos__grid by the
+     page-local <style>. Reuse it rather than starting a second sequence. */
+  counter-increment: cx;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(16px, 1.6vw, 28px);
+  align-items: start;
+  transition: border-color var(--dur-base) ease;
+}
+/* The index moves from a floating corner label to the editorial left rail; the
+   original corner number is retired so only one sequence is painted. */
+.home .chaos-card::after { content: none; }
+.home .chaos-card::before {
+  content: counter(cx, decimal-leading-zero);
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  opacity: 1;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--gold-500);
+  opacity: 0.7;
+  padding-top: 5px;
+}
+.home .chaos-card:nth-child(even)::before { background: none; }
+.home .chaos-card:hover {
+  transform: none;
+  background: none;
+  box-shadow: none;
+  border-top-color: var(--border-gold);
+}
+.home .chaos-card__text {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+@media (max-width: 760px) {
+  .home .chaos__grid { grid-template-columns: 1fr; }
+}
+
+/* 8.2 Business models — staggered editorial rows */
+.home .industries__grid {
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: clamp(48px, 5vw, 88px);
+  border-top: 1px solid var(--border-hairline);
+}
+.home .industry-card {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 13fr);
+  gap: clamp(20px, 3vw, 64px);
+  padding: clamp(36px, 3.6vw, 64px) 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transition: background-color var(--dur-base) ease;
+}
+.home .industry-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-hairline);
+  background: rgba(255, 255, 255, 0.014);
+}
+/* the flagship keeps its rank through a hairline and a label, not a gold slab */
+.home .industry-card--flagship,
+.home .industry-card--retail {
+  background: none;
+  border-bottom: 1px solid var(--border-hairline);
+  box-shadow: none;
+}
+.home .industry-card--flagship { border-left: 2px solid var(--border-gold); padding-left: clamp(20px, 2vw, 36px); }
+/* Column 1 holds the name and nothing else; every paragraph belongs to column 2,
+   otherwise the prose auto-places alternately and the row loses its spine. */
+.home .industry-card__top {
+  display: block;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-h) + 24px);
+}
+.home .industry-card__top h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.home .industry-card__badge {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  font-size: var(--fs-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.home .industry-card > p {
+  grid-column: 2;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.66;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+.home .industry-card > p + p { margin-top: var(--sp-4); }
+.home .industry-card > p b {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.home .industry-card__cta {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: var(--sp-5);
+}
+@media (max-width: 860px) {
+  .home .industry-card {
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
+  }
+  .home .industry-card__top { position: static; grid-column: 1; grid-row: auto; }
+  .home .industry-card > p { grid-column: 1; }
+  .home .industry-card__cta { grid-column: 1; }
+}
+
+/* --- 9. CARD RESTRAINT (where cards legitimately remain) ----------------- */
+.home .step-card,
+.home .material-card,
+.home .sample-card,
+.home .result-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+.home .step-card { padding: clamp(28px, 3vw, 48px); }
+
+/* --- 10. MOTION ----------------------------------------------------------
+   Entry motion emphasises; it never decorates and never gates reading.
+   Every rule here is inert under prefers-reduced-motion (§12). */
+.home .reveal {
+  transition-duration: var(--dur-reveal);
+  transition-timing-function: var(--ease-editorial);
+}
+.home .hero__title.reveal,
+.home .statement-screen__keyword.reveal {
+  transition-duration: 900ms;
+}
+
+/* HEADLINE CLIP REVEAL — the display lines rise out of their own box rather
+   than fading in place. Applied only to the two signature headlines.
+
+   Deliberately driven by a keyframe on `.is-visible` rather than by a resting
+   `clip-path` on `.reveal`: the hidden state must not gain a SECOND way to
+   stay hidden. If the observer never fires, these headlines behave exactly as
+   every other `.reveal` does today — no worse. */
+@keyframes clipRise {
+  from { clip-path: inset(0 0 108% 0); }
+  to   { clip-path: inset(0 0 -20% 0); }
+}
+.home .hero__title.reveal.is-visible,
+.home .statement-screen__keyword.reveal.is-visible {
+  animation: clipRise 900ms var(--ease-editorial) both;
+}
+
+/* SLOW PHOTOGRAPHIC SCALE on the editorial bands, driven by view rather than
+   by a loop — it settles and stops. */
+/* The figure opts into the observer purely to time the scale. It must never
+   inherit the reveal's opacity:0 — a band that fails to be observed would
+   otherwise show an empty navy block where the photograph should be. */
+.editorial-band__figure.reveal {
+  opacity: 1;
+  transform: none;
+}
+.editorial-band__figure.reveal img {
+  transform: scale(1.032);
+  transition: transform 1400ms var(--ease-editorial);
+}
+.editorial-band__figure.reveal.is-visible img { transform: scale(1); }
+
+/* LINE EXPANSION — hairlines draw themselves in rather than appearing. */
+.home .pillars__grid,
+.home .industries__grid,
+.allocation__routes {
+  transform-origin: left center;
+}
+.home .section-head .overline::after {
+  transition: transform var(--dur-reveal) var(--ease-editorial);
+}
+
+/* SECTION TEMPERATURE CHANGE — a light field hands off to a dark one through
+   a short tonal ramp instead of a hard edge. */
+.home .sec--seam-top::before { z-index: 0; }
+.home .sec--seam-top > * { position: relative; z-index: 1; }
+
+/* --- 11. NAVIGATION — calmer, more institutional ------------------------- */
+.home .header {
+  border-bottom: 0;
+  transition: background-color var(--dur-base) ease,
+              height var(--dur-base) var(--ease-editorial),
+              border-color var(--dur-base) ease;
+}
+.home .header.is-scrolled,
+.home .header.is-solid {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.home .nav__link {
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+/* --- 12. REDUCED MOTION (layer-local) ------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .hero--editorial .hero__media img { animation: none; transform: none; }
+  .home .reveal { transition: none; }
+  .home .chaos-card,
+  .home .industry-card { transition: none; }
+  /* the clip reveal must not leave a headline half-drawn when motion is off */
+  .home .hero__title.reveal.is-visible,
+  .home .statement-screen__keyword.reveal.is-visible {
+    animation: none;
+    clip-path: none;
+  }
+  .editorial-band__figure img { transform: none; transition: none; }
+  .allocation__route::before { transform: scaleX(1); transition: none; }
+}
+
 /* --- reduced-motion: no hover displacement -------------------------------
    Canonical guarantee, kept last in the file so it remains the authoritative
    prefers-reduced-motion block. Re-states the existing rule; no rendered change. */

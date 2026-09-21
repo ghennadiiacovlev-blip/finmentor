@@ -252,9 +252,10 @@
     .so-foot { margin-top:auto; padding-top:10px; border-top:1px solid var(--glass-border-gold); font-size:0.73rem; color:var(--accent); display:flex; align-items:center; gap:7px; }
     .so-foot__dot { width:5px; height:5px; border-radius:50%; background:var(--grad-gold); flex-shrink:0; box-shadow:0 0 6px rgba(201,162,39,0.6); }
   </style>
+  <link rel="preload" as="image" href="images/editorial/hero-capital.svg" fetchpriority="high">
 </head>
 
-<body>
+<body class="home">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
   <div class="lang-gate" id="langGate" role="dialog" aria-modal="true" aria-label="Selectarea limbii / Выбор языка">
     <div class="lang-gate__inner">
@@ -331,31 +332,24 @@
   </div>
 
   <main>
-    <section class="hero" id="top">
-      <canvas class="hero__canvas" aria-hidden="true"></canvas>
-      <div class="hero__mesh" aria-hidden="true">
-        <span class="hero__blob hero__blob--gold"></span>
-        <span class="hero__blob hero__blob--blue"></span>
-        <span class="hero__blob hero__blob--navy"></span>
-      </div>
-      <div class="hero__grain" aria-hidden="true"></div>
+    <section class="hero hero--editorial" id="top">
+      <picture class="hero__media">
+        <img src="images/editorial/hero-capital.svg" alt="" width="2560" height="1440" fetchpriority="high" decoding="async">
+      </picture>
+      <div class="hero__scrim" aria-hidden="true"></div>
 
       <div class="container hero__content">
-        <p class="hero__kicker reveal">АВТОРСКАЯ ФИНАНСОВАЯ СИСТЕМА · ФИНАНСОВЫЙ КОНТРОЛЬ СОБСТВЕННИКА</p>
-        <h1 class="hero__title reveal" data-reveal-delay="1">
-          Финансовая система, которая показывает собственнику, где деньги, прибыль и риск
-        </h1>
-        <p class="hero__subtitle reveal" data-reveal-delay="2">
-          FINMENTOR помогает собрать денежный поток (Cash Flow), отчёт о прибыли и убытках (P&amp;L), платежи, дебиторку, обязательства, маржу, ключевые показатели бизнеса (KPI) и риски в одной управляемой картине. Чтобы собственник видел не разрозненные отчёты, а финансовую логику бизнеса и решения через цифры.
-        </p>
+        <p class="hero__kicker reveal">ФИНАНСОВЫЙ КОНТРОЛЬ ДЛЯ СОБСТВЕННИКА БИЗНЕСА</p>
+        <h1 class="hero__title reveal" data-reveal-delay="1">Финансовая система собственника</h1>
+        <p class="hero__statement reveal" data-reveal-delay="2"><span>Видеть деньги.</span><span>Понимать прибыль.</span><span>Управлять капиталом.</span></p>
+        <p class="hero__subtitle reveal" data-reveal-delay="3">Внешний CFO и система финансового управления для растущего бизнеса.</p>
 
-        <div class="hero__actions reveal" data-reveal-delay="3">
-          <a href="questionnaire.html" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
-          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
+        <div class="hero__actions reveal" data-reveal-delay="4">
+          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--primary btn--lg" data-ga="click_bot" data-cta-id="hero_bot" data-cta-location="hero" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
+          <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hero_diagnostic" data-cta-location="hero" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
         </div>
-        <p class="hero__secondary reveal" data-reveal-delay="3"><a href="#industries" class="hero__link" data-ga="click_industries" data-cta-id="hero_industries" data-cta-location="hero" data-event="cta_click" data-destination="#industries">Решения под вашу бизнес-модель&nbsp;↓</a></p>
 
-        <p class="hero__trust-line reveal" data-reveal-delay="4">15+ лет в корпоративных финансах · финансовый подход · финальные выводы — после экспертной проверки</p>
+        <p class="hero__trust-line reveal" data-reveal-delay="5">15+ лет в корпоративных финансах · финансовый контроль на уровне собственника · финальные выводы — после экспертной проверки</p>
       </div>
 
       <a href="#chaos" class="hero__scroll" aria-label="Листать вниз">
@@ -364,7 +358,7 @@
       </a>
     </section>
 
-    <section class="chaos" id="chaos">
+    <section class="chaos sec--light" id="chaos">
       <div class="chaos__haze" aria-hidden="true"></div>
       <div class="container">
         <div class="section-head">
@@ -405,14 +399,69 @@
       </div>
     </section>
 
-    <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
-      <div class="container">
+    <section class="statement-screen sec--light sec--tint" id="profit-question" aria-labelledby="profit-question-title">
+      <div class="container container--editorial">
         <h2 class="statement-screen__text" id="profit-question-title">
           <span class="statement-screen__keyword reveal">прибыль.</span>
           <span class="statement-screen__question reveal" data-reveal-delay="2">а если это ещё не деньги?</span>
         </h2>
+        <ol class="capital-chain reveal" data-reveal-delay="3" aria-label="Движение от прибыли к капиталу">
+          <li class="capital-chain__node">Profit</li>
+          <li class="capital-chain__node">Cash</li>
+          <li class="capital-chain__node">Working Capital</li>
+          <li class="capital-chain__node">Capital</li>
+        </ol>
+        <p class="statement-screen__note reveal" data-reveal-delay="4">Финансовый результат показывает, что заработал бизнес. Управление капиталом показывает, где находятся деньги и что с ними делать дальше.</p>
       </div>
     </section>
+
+    <section class="sec pillars sec--light" id="owner-control" aria-labelledby="owner-control-title">
+      <div class="container container--editorial">
+        <div class="section-head">
+          <p class="overline reveal">Контур управления</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="owner-control-title">Три контура управления собственника</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">FINMENTOR помогает собрать денежный поток (Cash Flow), отчёт о прибыли и убытках (P&amp;L), платежи, дебиторку, обязательства, маржу, ключевые показатели бизнеса (KPI) и риски в одной управляемой картине. Чтобы собственник видел не разрозненные отчёты, а финансовую логику бизнеса и решения через цифры.</p>
+        </div>
+        <div class="pillars__grid">
+          <article class="pillar reveal" data-reveal-delay="1">
+            <span class="pillar__index">01</span>
+            <h3 class="pillar__title">Деньги</h3>
+            <ul class="pillar__terms">
+              <li>Денежный поток (Cash Flow)</li>
+              <li>Ликвидность</li>
+              <li>Казначейство</li>
+            </ul>
+          </article>
+
+          <article class="pillar reveal" data-reveal-delay="2">
+            <span class="pillar__index">02</span>
+            <h3 class="pillar__title">Результат</h3>
+            <ul class="pillar__terms">
+              <li>Управленческий отчёт о прибыли и убытках (P&amp;L)</li>
+              <li>Маржа</li>
+              <li>Результативность</li>
+            </ul>
+          </article>
+
+          <article class="pillar reveal" data-reveal-delay="3">
+            <span class="pillar__index">03</span>
+            <h3 class="pillar__title">Капитал</h3>
+            <ul class="pillar__terms">
+              <li>Оборотный капитал</li>
+              <li>Капитальные вложения (CAPEX)</li>
+              <li>Инвестиции</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <div class="editorial-band editorial-band--decision">
+      <figure class="editorial-band__figure reveal">
+        <img src="images/editorial/decision-environment.svg" alt="Рабочая среда принятия финансовых решений" width="1920" height="1280" loading="lazy" decoding="async">
+        <figcaption class="editorial-band__caption"><span class="editorial-band__index">02</span>Анализ → суждение → решение о капитале</figcaption>
+      </figure>
+    </div>
 
     <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
       <div class="container">
@@ -447,7 +496,7 @@
       </div>
     </section>
 
-    <section class="sec diff" id="difference" aria-label="Чем FINMENTOR отличается">
+    <section class="sec diff sec--light" id="difference" aria-label="Чем FINMENTOR отличается">
       <div class="container">
         <div class="diff__grid reveal">
           <div class="diff__row"><span class="diff__who">Бухгалтерский учёт</span><p>обеспечивает корректность учёта, отчётности и налогового соответствия.</p></div>
@@ -457,7 +506,7 @@
       </div>
     </section>
 
-    <section class="industries" id="industries">
+    <section class="industries sec--light sec--tint" id="industries">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Бизнес-модели</p>
@@ -547,6 +596,51 @@
           <p>Не нашли свою модель? Начните с финансового рентгена — система настраивается под вашу экономику.</p>
           <a href="questionnaire.html" class="btn btn--primary btn--lg" data-cta-id="industries_general_diagnostic" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire">Начать диагностику</a>
         </div>
+      </div>
+    </section>
+
+    <div class="editorial-band editorial-band--asset">
+      <figure class="editorial-band__figure reveal">
+        <img src="images/editorial/real-estate-investment.svg" alt="Коммерческая недвижимость как объект управления капиталом" width="1920" height="1280" loading="lazy" decoding="async">
+        <figcaption class="editorial-band__caption"><span class="editorial-band__index">03</span>Реальные активы · капитал · долгосрочная стоимость</figcaption>
+      </figure>
+    </div>
+
+    <section class="sec capital-allocation" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <div class="container container--editorial">
+        <div class="section-head">
+          <p class="overline reveal">Распределение капитала</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
+        </div>
+        <div class="allocation">
+          <div class="allocation__source reveal" data-reveal-delay="1">
+            <span class="allocation__unit-label">Единица капитала</span>
+            <span class="allocation__unit">1&nbsp;EUR</span>
+          </div>
+          <ol class="allocation__routes">
+          <li class="allocation__route reveal" data-reveal-delay="2">
+            <span class="allocation__index">01</span>
+            <span class="allocation__name">Оборотный капитал</span>
+            <span class="allocation__effect">Цикл быстрее превращается в деньги</span>
+          </li>
+          <li class="allocation__route reveal" data-reveal-delay="3">
+            <span class="allocation__index">02</span>
+            <span class="allocation__name">Капитальные вложения (CAPEX)</span>
+            <span class="allocation__effect">Актив создаёт доход дольше</span>
+          </li>
+          <li class="allocation__route reveal" data-reveal-delay="4">
+            <span class="allocation__index">03</span>
+            <span class="allocation__name">Обязательства</span>
+            <span class="allocation__effect">Стоимость капитала снижается</span>
+          </li>
+          <li class="allocation__route reveal" data-reveal-delay="5">
+            <span class="allocation__index">04</span>
+            <span class="allocation__name">Резерв ликвидности</span>
+            <span class="allocation__effect">Риск кассового разрыва падает</span>
+          </li>
+          </ol>
+        </div>
+        <p class="allocation__note reveal">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
       </div>
     </section>
 
@@ -803,7 +897,7 @@
         </div>
       </div>
     </section>
-<section class="sec" id="modules">
+<section class="sec sec--seam-top" id="modules">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Решения FINMENTOR</p>
@@ -1033,7 +1127,7 @@
       </div>
     </section>
 
-<section class="about" id="about">
+<section class="about sec--light" id="about">
       <div class="container about__grid">
         <div class="about__portrait reveal">
           <figure class="portrait">
@@ -1121,7 +1215,7 @@
       </div>
     </section>
 
-    <section class="sec after" id="after">
+    <section class="sec after sec--light" id="after">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">После заявки</p>
