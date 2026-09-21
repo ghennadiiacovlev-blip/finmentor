@@ -797,7 +797,8 @@ body.menu-open .mobile-menu {
   transform: translateY(24px);
   transition: opacity var(--dur-reveal) var(--ease-out-expo),
               transform var(--dur-reveal) var(--ease-out-expo);
-  transition-delay: calc(var(--reveal-delay, 0) * 90ms);
+  /* the observer computes the stagger; the authored index is the fallback */
+  transition-delay: var(--m-delay, calc(var(--reveal-delay, 0) * 90ms));
 }
 .reveal.is-visible { opacity: 1; transform: translateY(0); }
 
@@ -7901,6 +7902,228 @@ body.menu-open .doc-bar { visibility: hidden; }
   .editorial-band__figure img { transform: none; transition: none; }
   .allocation__route::before { transform: scaleX(1); transition: none; }
   .home .capital-chain::before { transform: scaleY(1); transition: none; }
+}
+
+/* ==========================================================================
+   MOTION DIRECTION — one engine, four families
+   A text      opacity + a short rise
+   B image     full-bleed photographs settle (opacity + scale);
+               the framed photograph is unveiled (clip + scale)
+   C line      hairlines and gold spines draw (scaleX / scaleY)
+   D sequence  rows and units follow one another; mandates unfold inside
+   Timing is computed by initReveal() in main.js and arrives as --m-delay.
+   Every hidden state below is scoped to html.m-js, which is set pre-paint only
+   when motion is allowed and withdrawn if the engine never starts: without
+   JavaScript, or with reduced motion, the page is complete on first paint.
+   ========================================================================== */
+.home {
+  --m-ease: cubic-bezier(0.2, 0.7, 0.12, 1);        /* long, quiet deceleration */
+  --m-ease-line: cubic-bezier(0.42, 0.08, 0.28, 1); /* near-even, so a spine can be read as progress */
+  --m-dur: 820ms;
+  --m-dur-row: 700ms;
+  --m-dur-img: 1150ms;
+  --m-rise: 26px;
+  --m-rise-row: 16px;
+  --m-rise-small: 12px;
+  --m-scale: 1.025;
+}
+@media (max-width: 860px) {
+  .home {
+    --m-dur: 620ms;
+    --m-dur-row: 520ms;
+    --m-dur-img: 900ms;
+    --m-rise: 14px;
+    --m-rise-row: 10px;
+    --m-rise-small: 8px;
+    --m-scale: 1.012;
+  }
+}
+
+/* No engine, no hidden state — the gold spine included. */
+html:not(.m-js) body.home .reveal { opacity: 1; transform: none; }
+html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
+
+/* Anything already scrolled past is shown as it is, without motion. */
+.home .m-instant,
+.home .m-instant *,
+.home .m-instant::before,
+.home .m-instant *::before,
+.home .m-instant *::after { transition: none !important; }
+/* …and an entry keyframe it skipped must not start later either */
+.home .m-still { animation: none !important; }
+
+/* --- A. TEXT ------------------------------------------------------------- */
+/* Explicit property list: several revealed components declare their own
+   `transition` shorthand after `.reveal`, which silently dropped opacity and
+   transform — rows popped in instead of arriving. Entry properties carry the
+   computed delay; interaction properties never wait for it. */
+.home .reveal {
+  transition-property: opacity, transform, border-color, background-color, box-shadow, color;
+  transition-duration: var(--m-dur), var(--m-dur), var(--dur-base), var(--dur-base), var(--dur-base), var(--dur-base);
+  transition-timing-function: var(--m-ease), var(--m-ease), ease, ease, ease, ease;
+  transition-delay: var(--m-delay, 0ms), var(--m-delay, 0ms), 0ms, 0ms, 0ms, 0ms;
+}
+.m-js .home .reveal:not(.is-visible) { transform: translateY(var(--m-rise)); }
+/* eyebrows move least — they are notation, not statements */
+.m-js .home :is(.overline, .hero__kicker).reveal:not(.is-visible) {
+  transform: translateY(var(--m-rise-small));
+}
+/* the two signature headlines keep their clip rise as their one movement */
+.m-js .home :is(.hero__title, .statement-screen__keyword).reveal:not(.is-visible) { transform: none; }
+/* The H1 is the page's largest contentful paint. Chrome does not record an element
+   painted at opacity 0 until some later repaint, which pushed LCP to ~3 s; at 0.01
+   it is painted from the first frame and is still invisible to the eye. */
+.m-js .home .hero__title.reveal:not(.is-visible) { opacity: 0.01; }
+.home .hero__title.reveal.is-visible,
+.home .statement-screen__keyword.reveal.is-visible { animation-delay: var(--m-delay, 0ms); }
+
+/* --- D. SEQUENCE — rows travel less and finish sooner than statements ---- */
+.home :is(.chaos-card, .capital-cycle__stage, .industry-card, .audience__item,
+          .after-step, .capital-principle, .diff__row).reveal {
+  transition-duration: var(--m-dur-row), var(--m-dur-row), var(--dur-base), var(--dur-base), var(--dur-base), var(--dur-base);
+}
+.m-js .home :is(.chaos-card, .capital-cycle__stage, .industry-card, .audience__item,
+                .after-step, .capital-principle, .diff__row).reveal:not(.is-visible) {
+  transform: translateY(var(--m-rise-row));
+}
+
+/* --- HERO — photograph first, then the argument in reading order --------- */
+.m-js .home .hero--editorial .hero__media img {
+  animation: none;
+  opacity: 0.92;
+  transform: scale(var(--m-scale));
+  transition: opacity var(--m-dur-img) var(--m-ease),
+              transform var(--m-dur-img) var(--m-ease);
+}
+.m-js .home .hero--editorial.is-visible .hero__media img { opacity: 1; transform: none; }
+/* Видеть деньги. / Понимать прибыль. / Управлять капиталом. — one line at a time */
+.m-js .home .hero__statement.reveal { opacity: 1; transform: none; }
+.m-js .home .hero__statement.reveal > span {
+  transition: opacity var(--m-dur) var(--m-ease), transform var(--m-dur) var(--m-ease);
+  transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 110ms);
+}
+.home .hero__statement > span:nth-child(2) { --m-k: 1; }
+.home .hero__statement > span:nth-child(3) { --m-k: 2; }
+.m-js .home .hero__statement.reveal:not(.is-visible) > span {
+  opacity: 0;
+  transform: translateY(var(--m-rise-small));
+}
+@media (max-width: 860px) {
+  .m-js .home .hero__statement.reveal > span {
+    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 70ms);
+  }
+}
+
+/* --- C. LINE — the chaos divider draws before the evidence is listed ----- */
+.m-js .home .chaos__grid { position: relative; border-top-color: transparent; }
+.m-js .home .chaos__grid::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 1px;
+  background: var(--border-hairline);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 760ms var(--m-ease-line) var(--m-delay, 0ms);
+}
+.m-js .home .chaos__grid.is-visible::before { transform: scaleX(1); }
+
+/* --- PROFIT → CAPITAL — each stage arrives when the spine reaches it ----- */
+.home .capital-chain::before {
+  transition: transform 1200ms var(--m-ease-line) var(--m-delay, 0ms);
+}
+.m-js .home .capital-chain.reveal { opacity: 1; transform: none; }
+.m-js .home .capital-chain__node {
+  transition: opacity 560ms var(--m-ease), transform 560ms var(--m-ease);
+  transition-delay: calc(var(--m-delay, 0ms) + 80ms + var(--m-k, 0) * 360ms);
+}
+.home .capital-chain__node:nth-child(2) { --m-k: 1; }
+.home .capital-chain__node:nth-child(3) { --m-k: 2; }
+.home .capital-chain__node:nth-child(4) { --m-k: 3; }
+.m-js .home .capital-chain.reveal:not(.is-visible) .capital-chain__node {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* --- CAPITAL MANAGEMENT — PHOTO 02 settles, the gold rule follows the cycle */
+.m-js .home .capital-management__media img {
+  transition: opacity var(--m-dur-img) var(--m-ease),
+              transform var(--m-dur-img) var(--m-ease);
+  transition-delay: var(--m-delay, 0ms);
+}
+.m-js .home .capital-management:not(.is-visible) .capital-management__media img {
+  opacity: 0;
+  transform: scale(var(--m-scale));
+}
+.m-js .home .capital-cycle::before {
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 1400ms var(--m-ease-line) var(--m-delay, 0ms);
+}
+.m-js .home .capital-cycle.is-visible::before { transform: scaleY(1); }
+
+/* --- BUSINESS MODELS — PHOTO 03 is unveiled from the top ----------------- */
+.m-js .home .industries__figure.reveal { opacity: 1; transform: none; }
+.m-js .home .industries__figure img {
+  transition: clip-path var(--m-dur-img) var(--m-ease),
+              transform var(--m-dur-img) var(--m-ease);
+  transition-delay: var(--m-delay, 0ms);
+}
+.m-js .home .industries__figure.reveal:not(.is-visible) img {
+  clip-path: inset(0 0 100% 0);
+  transform: scale(1.03);
+}
+/* a methodology opens only on request, and then quietly */
+@keyframes mDetailOpen {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.home .industry-card__detail[open] > .industry-card__detail-body {
+  animation: mDetailOpen 360ms var(--m-ease) both;
+}
+
+/* --- FORMATS OF WORK — each mandate unfolds from its index to its action -- */
+.m-js .home :is(.package, .packages__expert).reveal { opacity: 1; transform: none; }
+.m-js .home :is(.package, .packages__expert).reveal::before,
+.m-js .home :is(.package, .packages__expert).reveal .m-c {
+  transition: opacity var(--m-dur-row) var(--m-ease), transform var(--m-dur-row) var(--m-ease);
+  transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 80ms);
+}
+.m-js .home :is(.package, .packages__expert).reveal:not(.is-visible)::before,
+.m-js .home :is(.package, .packages__expert).reveal:not(.is-visible) .m-c {
+  opacity: 0;
+  transform: translateY(var(--m-rise-row));
+}
+@media (max-width: 860px) {
+  .m-js .home :is(.package, .packages__expert).reveal .m-c {
+    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 50ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home .reveal,
+  .home .hero__statement > span,
+  .home .capital-chain__node,
+  .home .m-c,
+  .home :is(.package, .packages__expert)::before {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .home .hero--editorial .hero__media img,
+  .home .capital-management__media img,
+  .home .industries__figure img {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+  .home .chaos__grid::before,
+  .home .capital-cycle::before,
+  .home .capital-chain::before { transform: none !important; transition: none !important; }
+  .home .industry-card__detail[open] > .industry-card__detail-body { animation: none; }
 }
 
 /* --- reduced-motion: no hover displacement -------------------------------

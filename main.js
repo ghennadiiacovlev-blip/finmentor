@@ -96,9 +96,13 @@
     var INTRO_MS = 4400;
 
     function dismiss() {
+      if (intro.classList.contains('is-done')) return;
       intro.classList.add('is-done');
       document.body.classList.remove('is-locked');
       try { sessionStorage.setItem('fm_intro_played', '1'); } catch (e) {}
+      // The hero choreography is held behind the intro and starts as it fades, so
+      // the brand signature hands over to the photograph without a reset frame.
+      try { document.dispatchEvent(new Event('fm:intro-done')); } catch (e) {}
       window.setTimeout(function () { if (intro && intro.parentNode) intro.style.display = 'none'; }, 650);
     }
 
@@ -367,27 +371,195 @@
     nums.forEach(function (n) { io.observe(n); });
   }
 
-  /* ------------------------------------------------------------- SCROLL REVEAL */
+  /* ------------------------------------------------------------- MOTION / SCROLL REVEAL
+     One observer for the page. Whatever arrives in the same frame is staggered in
+     document order, photographs first; whatever arrives alone starts at once, so a
+     reader is never kept waiting. Everything plays once. Anything already scrolled
+     past — an anchor jump, a refresh mid-page, a fast fling — is shown without
+     motion. Hidden states live in CSS under html.m-js only (set pre-paint), so
+     without this script the page renders complete. */
   function initReveal() {
-    var items = document.querySelectorAll('.reveal');
-    if (!items.length) return;
+    var root = document.documentElement;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+    // Scenes are containers whose own motion is a photograph or a drawn line.
+    var scenes = Array.prototype.slice.call(document.querySelectorAll(
+      '.hero--editorial, .chaos__grid, .capital-cycle, .capital-management'));
+    var all = items.concat(scenes);
 
     items.forEach(function (el) {
       var d = el.getAttribute('data-reveal-delay');
       if (d) el.style.setProperty('--reveal-delay', d);
     });
 
+    function showAll() {
+      all.forEach(function (el) { el.classList.add('is-visible'); });
+    }
+    if (!all.length) { window.__fmMotion = true; return; }
     if (prefersReduced || !('IntersectionObserver' in window)) {
-      items.forEach(function (el) { el.classList.add('is-visible'); });
+      showAll();
+      window.__fmMotion = true;
       return;
     }
 
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target); }
+    try {
+      var narrow = window.matchMedia('(max-width: 860px)');
+      // [selector, desktop step, mobile step] — the pause between siblings.
+      var STEPS = [
+        ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 70],
+        ['.capital-cycle__stage', 110, 60],
+        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row', 80, 45]
+      ];
+      // [element, the element it must follow, minimum gap in ms after that one starts]
+      var AFTER = [
+        ['.chaos__verdict', '.chaos-card:last-child', 260],
+        ['.statement-screen__close', '.capital-chain', 1300]
+      ];
+      // Hero: kicker, title, statement, subtitle, actions, trust line (ms after release).
+      var HERO = [240, 360, 500, 760, 880, 1000];
+      var MAX_WAIT = 600;
+      var clock = 0;
+      var pending = new Set(all);
+
+      // Advisory mandates unfold from the inside: index, title, description,
+      // commercial terms, then the action. The blocks are tagged here so the
+      // markup of either edition stays untouched.
+      document.querySelectorAll('.home .packages__expert, .home .package').forEach(function (m) {
+        var parts = m.matches('.packages__expert')
+          ? m.querySelectorAll(':scope > div > *')
+          : m.querySelectorAll(':scope > *');
+        Array.prototype.forEach.call(parts, function (p, k) {
+          p.classList.add('m-c');
+          p.style.setProperty('--m-k', String(k + 1));
+        });
       });
-    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-    items.forEach(function (el) { io.observe(el); });
+
+      var stepOf = function (el) {
+        for (var i = 0; i < STEPS.length; i++) {
+          if (el.matches(STEPS[i][0])) return narrow.matches ? STEPS[i][2] : STEPS[i][1];
+        }
+        return narrow.matches ? 55 : 90;
+      };
+      var isPhoto = function (el) {
+        return el.matches('.hero--editorial, .capital-management, .industries__figure');
+      };
+      var byOrder = function (a, b) {
+        if (isPhoto(a) !== isPhoto(b)) return isPhoto(a) ? -1 : 1;
+        return (a.compareDocumentPosition(b) & 4) ? -1 : 1;
+      };
+      var start = function (el, delay) {
+        pending.delete(el);
+        el.style.setProperty('--m-delay', delay + 'ms');
+        el.__mAt = performance.now() + delay;
+        el.classList.add('is-visible');
+        // Let later transitions on the element (hover, focus) run without the entry delay.
+        window.setTimeout(function () { el.style.setProperty('--m-delay', '0ms'); }, delay + 2600);
+      };
+      var instant = function (el) {
+        pending.delete(el);
+        el.__mAt = 0;
+        el.classList.add('m-instant', 'm-still', 'is-visible');
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () { el.classList.remove('m-instant'); });
+        });
+      };
+      var run = function (batch) {
+        var now = performance.now();
+        var t = Math.max(0, Math.min(clock - now, MAX_WAIT));
+        var heroItems = [];
+        // Whatever is already above the fold when the batch runs is settled, not animated.
+        batch = batch.filter(function (el) {
+          if (el.getBoundingClientRect().bottom > 0) return true;
+          instant(el);
+          return false;
+        });
+        batch.sort(byOrder);
+        // A batch never spreads longer than this, however many items arrive at once
+        // (a first pass around an anchor jump can report a whole page).
+        var spread = 0;
+        batch.forEach(function (el, i) { if (i > 0) spread += stepOf(el); });
+        var MAX_SPREAD = narrow.matches ? 600 : 900;
+        var squeeze = spread > MAX_SPREAD ? MAX_SPREAD / spread : 1;
+        batch.forEach(function (el, i) {
+          if (el.closest('.hero') && !el.classList.contains('hero')) { heroItems.push(el); return; }
+          if (i > 0) t += Math.round(stepOf(el) * squeeze);
+          var d = t;
+          for (var k = 0; k < AFTER.length; k++) {
+            if (!el.matches(AFTER[k][0])) continue;
+            var sec = el.closest('section');
+            var ref = sec && sec.querySelector(AFTER[k][1]);
+            if (ref && ref.__mAt) d = Math.max(d, Math.round(ref.__mAt + AFTER[k][2] - now));
+          }
+          start(el, d);
+          clock = now + d + stepOf(el);
+        });
+        heroItems.forEach(function (el, i) {
+          start(el, Math.round((HERO[i] || HERO[HERO.length - 1]) * (narrow.matches ? 0.7 : 1)));
+        });
+      };
+
+      var intro = document.getElementById('intro');
+      var held = (root.classList.contains('lang-gate-pending') ||
+        (intro && !root.classList.contains('intro-skip') && !intro.classList.contains('is-done'))) ? [] : null;
+      var release = function () {
+        if (!held) return;
+        var batch = held; held = null;
+        if (batch.length) run(batch);
+      };
+      if (held) {
+        document.addEventListener('fm:intro-done', release, { once: true });
+        window.setTimeout(release, 12000); // never leave the hero waiting on a stalled intro
+      }
+
+      var io = new IntersectionObserver(function (entries) {
+        var batch = [];
+        entries.forEach(function (en) {
+          var el = en.target;
+          if (en.isIntersecting) {
+            io.unobserve(el);
+            if (held && el.closest('.hero')) held.push(el); else batch.push(el);
+          } else if (en.boundingClientRect.bottom <= 0) {
+            io.unobserve(el);
+            instant(el);
+          }
+        });
+        if (batch.length) run(batch);
+      }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
+      all.forEach(function (el) { io.observe(el); });
+
+      // A fling or an anchor jump can carry an element from below the fold to above
+      // it between two observer ticks; sweep those once the scroll settles. The page
+      // end can also stop short of the trigger line, so flush what is on screen there.
+      var sweep = function () {
+        var vh = window.innerHeight;
+        var batch = [];
+        pending.forEach(function (el) {
+          if (held && el.closest('.hero')) return;
+          var r = el.getBoundingClientRect();
+          if (r.bottom <= 0) { io.unobserve(el); instant(el); }
+          else if (r.top < vh && (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 4) {
+            io.unobserve(el); batch.push(el);
+          }
+        });
+        if (batch.length) run(batch);
+      };
+      window.addEventListener('scrollend', sweep, { passive: true });
+      window.addEventListener('hashchange', function () { window.setTimeout(sweep, 120); });
+      // Scroll restoration on reload and the initial #anchor jump land after the
+      // observer's first pass and fire no scrollend; settle what they skipped.
+      window.addEventListener('load', function () {
+        sweep();
+        window.setTimeout(sweep, 400);
+        window.setTimeout(sweep, 1200);
+      });
+      window.addEventListener('pageshow', function () { window.setTimeout(sweep, 60); });
+
+      window.__fmMotion = true;
+    } catch (err) {
+      root.classList.remove('m-js');
+      showAll();
+      window.__fmMotion = true;
+      throw err;
+    }
   }
 
   /* ------------------------------------------------------------- HERO PARALLAX */

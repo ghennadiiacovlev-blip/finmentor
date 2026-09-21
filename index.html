@@ -132,6 +132,15 @@
         var played = sessionStorage.getItem('fm_intro_played');
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (played || reduced) document.documentElement.classList.add('intro-skip');
+        // Motion hidden states apply only under .m-js. If main.js has not started
+        // the engine within 2.5 s (failed, blocked, slow network), the class is
+        // withdrawn and the page renders complete, without motion.
+        if (!reduced) {
+          document.documentElement.classList.add('m-js');
+          window.setTimeout(function () {
+            if (!window.__fmMotion) document.documentElement.classList.remove('m-js');
+          }, 2500);
+        }
       } catch (e) {}
     })();
   </script>
