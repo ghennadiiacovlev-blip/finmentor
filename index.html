@@ -334,7 +334,14 @@
   <main>
     <section class="hero hero--editorial" id="top">
       <picture class="hero__media">
-        <img src="images/editorial/hero-capital.svg" alt="" width="2560" height="1440" fetchpriority="high" decoding="async">
+        <!-- PHOTO 01 slot. Crop contract frozen: 1440+ / 1024 / 768 / 390.
+             When the licensed raster arrives, add AVIF/WebP <source> lines with the
+             same media queries and repoint <img src>; no CSS or layout change. -->
+        <source media="(min-width: 1440px)" srcset="images/editorial/hero-capital.svg" width="2400" height="1500">
+        <source media="(min-width: 1024px)" srcset="images/editorial/hero-capital.svg" width="1600" height="1100">
+        <source media="(min-width: 768px)"  srcset="images/editorial/hero-capital.svg" width="1200" height="1000">
+        <source media="(max-width: 767px)"  srcset="images/editorial/hero-capital.svg" width="780" height="975">
+        <img src="images/editorial/hero-capital.svg" alt="" width="2400" height="1500" fetchpriority="high" decoding="async">
       </picture>
       <div class="hero__scrim" aria-hidden="true"></div>
 
@@ -402,20 +409,21 @@
     <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
       <div class="container container--editorial">
         <h2 class="statement-screen__text" id="profit-question-title">
-          <span class="statement-screen__keyword reveal">прибыль.</span>
-          <span class="statement-screen__question reveal" data-reveal-delay="2">а если это ещё не деньги?</span>
+          <span class="statement-screen__keyword reveal">Прибыль.</span>
+          <span class="statement-screen__question reveal" data-reveal-delay="2">А если это ещё не деньги?</span>
         </h2>
-        <ol class="capital-chain reveal" data-reveal-delay="3" aria-label="Движение от прибыли к капиталу">
-          <li class="capital-chain__node">Profit</li>
-          <li class="capital-chain__node">Cash</li>
-          <li class="capital-chain__node">Working Capital</li>
-          <li class="capital-chain__node">Capital</li>
+        <p class="statement-screen__note reveal" data-reveal-delay="3">Финансовый результат показывает, что заработал бизнес. Управление капиталом показывает, где находятся деньги и что с ними делать дальше.</p>
+        <ol class="capital-chain reveal" data-reveal-delay="2" aria-label="От прибыли к капиталу">
+          <li class="capital-chain__node">Прибыль</li>
+          <li class="capital-chain__node">Деньги</li>
+          <li class="capital-chain__node">Оборотный капитал</li>
+          <li class="capital-chain__node">Капитал</li>
         </ol>
-        <p class="statement-screen__note reveal" data-reveal-delay="4">Финансовый результат показывает, что заработал бизнес. Управление капиталом показывает, где находятся деньги и что с ними делать дальше.</p>
+        <p class="statement-screen__close reveal" data-reveal-delay="4">Прибыль показывает результат. Капитал показывает, что делать дальше.</p>
       </div>
     </section>
 
-    <section class="sec sec--alt pillars" id="owner-control" aria-labelledby="owner-control-title">
+    <section class="sec pillars sec--light" id="owner-control" aria-labelledby="owner-control-title">
       <div class="container container--editorial">
         <div class="section-head">
           <p class="overline reveal">Контур управления</p>
@@ -426,6 +434,7 @@
           <article class="pillar reveal" data-reveal-delay="1">
             <span class="pillar__index">01</span>
             <h3 class="pillar__title">Деньги</h3>
+            <p class="pillar__descriptor">Сколько денег есть сейчас, когда они придут и на что их хватит.</p>
             <ul class="pillar__terms">
               <li>Денежный поток (Cash Flow)</li>
               <li>Ликвидность</li>
@@ -436,6 +445,7 @@
           <article class="pillar reveal" data-reveal-delay="2">
             <span class="pillar__index">02</span>
             <h3 class="pillar__title">Результат</h3>
+            <p class="pillar__descriptor">Где бизнес зарабатывает и где теряет маржу.</p>
             <ul class="pillar__terms">
               <li>Управленческий отчёт о прибыли и убытках (P&amp;L)</li>
               <li>Маржа</li>
@@ -446,6 +456,7 @@
           <article class="pillar reveal" data-reveal-delay="3">
             <span class="pillar__index">03</span>
             <h3 class="pillar__title">Капитал</h3>
+            <p class="pillar__descriptor">Где деньги заморожены и куда направить следующий капитал.</p>
             <ul class="pillar__terms">
               <li>Оборотный капитал</li>
               <li>Капитальные вложения (CAPEX)</li>
@@ -455,13 +466,6 @@
         </div>
       </div>
     </section>
-
-    <div class="editorial-band editorial-band--decision">
-      <figure class="editorial-band__figure reveal">
-        <img src="images/editorial/decision-environment.svg" alt="Рабочая среда принятия финансовых решений" width="1920" height="1280" loading="lazy" decoding="async">
-        <figcaption class="editorial-band__caption"><span class="editorial-band__index">02</span>Анализ → суждение → решение о капитале</figcaption>
-      </figure>
-    </div>
 
     <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
       <div class="container">
@@ -514,70 +518,104 @@
           <p class="section-lead reveal" data-reveal-delay="2">Одно финансовое ядро — деньги, прибыль, денежный поток, ключевые показатели, риски. Разные отрасли — разная экономика. FINMENTOR настраивает контроль под ключевые метрики вашей бизнес-модели.</p>
         </div>
 
+        <figure class="industries__figure reveal">
+          <!-- PHOTO 03 slot · real-assets. Temporary vector placeholder. -->
+          <img src="images/editorial/real-assets.svg" alt="Коммерческая недвижимость как объект управления капиталом" width="1920" height="2400" loading="lazy" decoding="async">
+        </figure>
         <div class="industries__grid">
           <article class="industry-card industry-card--flagship reveal" data-reveal-delay="1">
+            <span class="industry-card__index">01</span>
             <div class="industry-card__top">
               <h3>Недвижимость и аренда</h3>
               <span class="industry-card__badge">Флагман</span>
             </div>
-            <p><b>Проблема:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
+            <p class="industry-card__object">объект · арендатор · NOI · CAPEX · окупаемость</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p><b>Проблема:</b> Объект не окупается, арендаторы создают риски, видны не деньги, а только начисления.</p>
             <p><b>Контроль:</b> Арендаторы и договоры, чистый операционный доход (NOI), ставка капитализации (Cap Rate), доля свободных площадей, капитальные вложения (CAPEX), рейтинг надёжности арендаторов, окупаемость.</p>
             <p><b>Расчётная методология:</b> Чистый операционный доход, доля свободных площадей, рейтинг надёжности арендаторов, арендная ставка относительно рынка, покрытие депозитом и обеспечением, окупаемость капитальных вложений, денежный поток (cash flow), индикатор риска.</p>
-            <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p>
+            <p><b>Результат:</b> Доходность каждого объекта и арендатора видна, риски — заранее.</p></div>
+            </details>
             <a href="real-estate-control-system.html" class="industry-card__cta" data-ga="click_industry_real_estate" data-cta-id="industry_real_estate" data-cta-location="industries" data-event="cta_click" data-destination="real-estate-control-system">Система финансового управления недвижимостью &rarr;</a>
           </article>
 
           <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
+            <span class="industry-card__index">02</span>
             <div class="industry-card__top">
               <h3>Розничная торговля</h3>
               <span class="industry-card__badge">Маржа в рознице</span>
             </div>
-            <p><b>Проблема:</b> Полки заняты товаром, но непонятно, какие категории и товарные позиции (SKU) реально зарабатывают, а какие просто замораживают деньги.</p>
+            <p class="industry-card__object">категория · SKU · маржа на м² · промо · ретробонус</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p><b>Проблема:</b> Полки заняты товаром, но непонятно, какие категории и товарные позиции (SKU) реально зарабатывают, а какие просто замораживают деньги.</p>
             <p><b>Контроль:</b> Норма маржи на линейный метр, м², категорию и товарную позицию; продажи, остатки, промоакция, ретробонус, поставщики и финансирование товарной полки поставщиком.</p>
             <p><b>Расчётная методология:</b> Целевая маржа, маржа на 1 м², прибыльность товарной позиции, отклонение маржи от целевой (Margin Gap), финансирование товарной полки поставщиком, ретробонус, эффективность промоакции.</p>
-            <p><b>Результат:</b> Панель собственника (Dashboard) показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие товарные позиции вывести из ассортимента.</p>
+            <p><b>Результат:</b> Панель собственника (Dashboard) показывает, что расширить, что сократить, где запросить ретробонус, где нужна компенсация поставщика, а какие товарные позиции вывести из ассортимента.</p></div>
+            </details>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Проверить розницу</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="3">
+            <span class="industry-card__index">03</span>
             <div class="industry-card__top">
               <h3>Интернет-торговля</h3>
             </div>
-            <p><b>Проблема:</b> Оборот растёт, реклама ест бюджет, а прибыль на единицу непонятна.</p>
+            <p class="industry-card__object">юнит-экономика · CAC · LTV · ROAS · возвраты</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p><b>Проблема:</b> Оборот растёт, реклама ест бюджет, а прибыль на единицу непонятна.</p>
             <p><b>Контроль:</b> Экономика единицы продукта (Unit economics), стоимость привлечения клиента (CAC), ценность клиента за весь период сотрудничества (LTV), рентабельность рекламных расходов (ROAS), логистика, возвраты, склад, прибыльность товарной позиции, кассовый разрыв.</p>
-            <p><b>Результат:</b> Прибыль по товарной позиции и каналу видна после рекламы, логистики и возвратов.</p>
+            <p><b>Результат:</b> Прибыль по товарной позиции и каналу видна после рекламы, логистики и возвратов.</p></div>
+            </details>
             <a href="questionnaire.html?model=ecommerce" class="industry-card__cta" data-cta-id="industries_ecommerce" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Проверить интернет-торговлю</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="1">
+            <span class="industry-card__index">04</span>
             <div class="industry-card__top">
               <h3>Оптовая торговля / дистрибуция</h3>
             </div>
-            <p><b>Проблема:</b> Деньги заморожены в складе и дебиторке, лимиты клиентов — на глаз.</p>
+            <p class="industry-card__object">склад · дебиторка · лимиты клиентов · оборотный капитал</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p><b>Проблема:</b> Деньги заморожены в складе и дебиторке, лимиты клиентов — на глаз.</p>
             <p><b>Контроль:</b> Склад, дебиторка, поставщики, товарные группы, лимиты клиентов, оборотный капитал, маржа.</p>
-            <p><b>Результат:</b> Оборотный капитал и реальная маржа по группам и клиентам под контролем.</p>
+            <p><b>Результат:</b> Оборотный капитал и реальная маржа по группам и клиентам под контролем.</p></div>
+            </details>
             <a href="questionnaire.html?model=distribution" class="industry-card__cta" data-cta-id="industries_distribution" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Проверить дистрибуцию</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="2">
+            <span class="industry-card__index">05</span>
             <div class="industry-card__top">
               <h3>Производство под заказ</h3>
             </div>
-            <p><b>Проблема:</b> Заказы есть, а маржа по заказу неясна; незавершёнка и авансы живут отдельно.</p>
+            <p class="industry-card__object">заказ · себестоимость · загрузка · аванс · маржа проекта</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p><b>Проблема:</b> Заказы есть, а маржа по заказу неясна; незавершёнка и авансы живут отдельно.</p>
             <p><b>Контроль:</b> Заказы, плановая и фактическая себестоимость, материалы, авансы, сроки, маржа по заказу, незавершёнка.</p>
-            <p><b>Результат:</b> Прибыль каждого заказа видна, понятно, где утекает себестоимость.</p>
+            <p><b>Результат:</b> Прибыль каждого заказа видна, понятно, где утекает себестоимость.</p></div>
+            </details>
             <a href="questionnaire.html?model=manufacturing" class="industry-card__cta" data-cta-id="industries_manufacturing" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Проверить производство</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="3">
+            <span class="industry-card__index">06</span>
             <div class="industry-card__top">
               <h3>Бизнес с абонементной моделью</h3>
             </div>
-            <p class="industry-card__sub">Фитнес-клубы, SPA- и wellness-центры, спортивные и клубные сервисы</p>
+            <p class="industry-card__object">подписка · отток · продления · выручка под риском</p>
+            <details class="industry-card__detail">
+              <summary>Методология контроля</summary>
+              <div class="industry-card__detail-body"><p class="industry-card__sub">Фитнес-клубы, SPA- и wellness-центры, спортивные и клубные сервисы</p>
             <p><b>Управленческая проблема:</b> Продления происходят «как получится», риск оттока становится виден слишком поздно, будущая выручка не прогнозируется, а скидки на удержание клиентов предоставляются без оценки их экономического эффекта.</p>
             <p><b>Контроль:</b> Профиль клиента-актива, склонность к продлению, выручка продлений под риском, план удержания под мощность команды, миграция сегментов.</p>
             <p><b>Разработка:</b> Client Base Control System · вертикаль системы продления абонементов (Fitness Membership Renewal Engine) — выросшая из ежемесячного управленческого цикла в реальном бизнесе.</p>
-            <p><b>Результат:</b> Выручка продлений следующего периода и её риск — под контролем собственника.</p>
+            <p><b>Результат:</b> Выручка продлений следующего периода и её риск — под контролем собственника.</p></div>
+            </details>
             <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Подробнее о системе</a>
           </article>
         </div>
@@ -599,48 +637,27 @@
       </div>
     </section>
 
-    <div class="editorial-band editorial-band--asset">
-      <figure class="editorial-band__figure reveal">
-        <img src="images/editorial/real-estate-investment.svg" alt="Коммерческая недвижимость как объект управления капиталом" width="1920" height="1280" loading="lazy" decoding="async">
-        <figcaption class="editorial-band__caption"><span class="editorial-band__index">03</span>Реальные активы · капитал · долгосрочная стоимость</figcaption>
-      </figure>
-    </div>
-
-    <section class="sec capital-allocation" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <div class="container container--editorial">
-        <div class="section-head">
-          <p class="overline reveal">Распределение капитала</p>
+    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <picture class="capital-management__media">
+        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
+        <img src="images/editorial/capital-decision.svg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" loading="lazy" decoding="async">
+      </picture>
+      <div class="capital-management__scrim" aria-hidden="true"></div>
+      <div class="container container--editorial capital-management__inner">
+        <div class="capital-management__head">
+          <p class="overline reveal">Управление капиталом</p>
           <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
+          <p class="capital-management__lead reveal" data-reveal-delay="2">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
+          <p class="capital-management__routes reveal" data-reveal-delay="3">Оборотный капитал · Капитальные вложения (CAPEX) · Обязательства · Резерв ликвидности</p>
         </div>
-        <div class="allocation">
-          <div class="allocation__source reveal" data-reveal-delay="1">
-            <span class="allocation__unit-label">Единица капитала</span>
-            <span class="allocation__unit">1&nbsp;EUR</span>
-          </div>
-          <ol class="allocation__routes">
-          <li class="allocation__route reveal" data-reveal-delay="2">
-            <span class="allocation__index">01</span>
-            <span class="allocation__name">Оборотный капитал</span>
-            <span class="allocation__effect">Цикл быстрее превращается в деньги</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="3">
-            <span class="allocation__index">02</span>
-            <span class="allocation__name">Капитальные вложения (CAPEX)</span>
-            <span class="allocation__effect">Актив создаёт доход дольше</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="4">
-            <span class="allocation__index">03</span>
-            <span class="allocation__name">Обязательства</span>
-            <span class="allocation__effect">Стоимость капитала снижается</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="5">
-            <span class="allocation__index">04</span>
-            <span class="allocation__name">Резерв ликвидности</span>
-            <span class="allocation__effect">Риск кассового разрыва падает</span>
-          </li>
-          </ol>
-        </div>
-        <p class="allocation__note reveal">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
+        <ol class="capital-cycle" aria-label="Цикл управления капиталом">
+            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Источник капитала</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Размещение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Отдача</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Риск</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Высвобождение</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Перераспределение</span></li>
+        </ol>
       </div>
     </section>
 

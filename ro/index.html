@@ -364,7 +364,14 @@
   <main>
     <section class="hero hero--editorial" id="top">
       <picture class="hero__media">
-        <img src="../images/editorial/hero-capital.svg" alt="" width="2560" height="1440" fetchpriority="high" decoding="async">
+        <!-- PHOTO 01 slot. Crop contract frozen: 1440+ / 1024 / 768 / 390.
+             When the licensed raster arrives, add AVIF/WebP <source> lines with the
+             same media queries and repoint <img src>; no CSS or layout change. -->
+        <source media="(min-width: 1440px)" srcset="../images/editorial/hero-capital.svg" width="2400" height="1500">
+        <source media="(min-width: 1024px)" srcset="../images/editorial/hero-capital.svg" width="1600" height="1100">
+        <source media="(min-width: 768px)"  srcset="../images/editorial/hero-capital.svg" width="1200" height="1000">
+        <source media="(max-width: 767px)"  srcset="../images/editorial/hero-capital.svg" width="780" height="975">
+        <img src="../images/editorial/hero-capital.svg" alt="" width="2400" height="1500" fetchpriority="high" decoding="async">
       </picture>
       <div class="hero__scrim" aria-hidden="true"></div>
 
@@ -432,20 +439,21 @@
     <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
       <div class="container container--editorial">
         <h2 class="statement-screen__text" id="profit-question-title">
-          <span class="statement-screen__keyword reveal">profit.</span>
-          <span class="statement-screen__question reveal" data-reveal-delay="2">și dacă asta încă nu înseamnă bani?</span>
+          <span class="statement-screen__keyword reveal">Profit.</span>
+          <span class="statement-screen__question reveal" data-reveal-delay="2">Și dacă asta încă nu înseamnă bani?</span>
         </h2>
-        <ol class="capital-chain reveal" data-reveal-delay="3" aria-label="Traseul de la profit la capital">
+        <p class="statement-screen__note reveal" data-reveal-delay="3">Rezultatul financiar arată cât a câștigat afacerea. Managementul capitalului arată unde se află banii și ce trebuie făcut cu ei mai departe.</p>
+        <ol class="capital-chain reveal" data-reveal-delay="2" aria-label="De la profit la capital">
           <li class="capital-chain__node">Profit</li>
-          <li class="capital-chain__node">Cash</li>
-          <li class="capital-chain__node">Working Capital</li>
+          <li class="capital-chain__node">Bani</li>
+          <li class="capital-chain__node">Capital circulant</li>
           <li class="capital-chain__node">Capital</li>
         </ol>
-        <p class="statement-screen__note reveal" data-reveal-delay="4">Rezultatul financiar arată cât a câștigat afacerea. Managementul capitalului arată unde se află banii și ce trebuie făcut cu ei mai departe.</p>
+        <p class="statement-screen__close reveal" data-reveal-delay="4">Profitul arată rezultatul. Capitalul arată ce trebuie făcut mai departe.</p>
       </div>
     </section>
 
-    <section class="sec sec--alt pillars" id="owner-control" aria-labelledby="owner-control-title">
+    <section class="sec pillars sec--light" id="owner-control" aria-labelledby="owner-control-title">
       <div class="container container--editorial">
         <div class="section-head">
           <p class="overline reveal">Circuitul de management</p>
@@ -456,6 +464,7 @@
           <article class="pillar reveal" data-reveal-delay="1">
             <span class="pillar__index">01</span>
             <h3 class="pillar__title">Bani</h3>
+            <p class="pillar__descriptor">Câți bani există acum, când intră și pentru ce ajung.</p>
             <ul class="pillar__terms">
               <li>Flux de numerar (Cash Flow)</li>
               <li>Lichiditate</li>
@@ -466,6 +475,7 @@
           <article class="pillar reveal" data-reveal-delay="2">
             <span class="pillar__index">02</span>
             <h3 class="pillar__title">Rezultat</h3>
+            <p class="pillar__descriptor">Unde câștigă afacerea și unde pierde marja.</p>
             <ul class="pillar__terms">
               <li>Contul de profit și pierdere managerial (P&amp;L)</li>
               <li>Marjă</li>
@@ -476,6 +486,7 @@
           <article class="pillar reveal" data-reveal-delay="3">
             <span class="pillar__index">03</span>
             <h3 class="pillar__title">Capital</h3>
+            <p class="pillar__descriptor">Unde sunt banii blocați și încotro merge următorul capital.</p>
             <ul class="pillar__terms">
               <li>Capital circulant</li>
               <li>Investiții de capital (CAPEX)</li>
@@ -485,13 +496,6 @@
         </div>
       </div>
     </section>
-
-    <div class="editorial-band editorial-band--decision">
-      <figure class="editorial-band__figure reveal">
-        <img src="../images/editorial/decision-environment.svg" alt="Mediul de lucru pentru deciziile financiare" width="1920" height="1280" loading="lazy" decoding="async">
-        <figcaption class="editorial-band__caption"><span class="editorial-band__index">02</span>Analiză → judecată → decizie de capital</figcaption>
-      </figure>
-    </div>
 
     <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
       <div class="container">
@@ -544,70 +548,104 @@
           <p class="section-lead reveal" data-reveal-delay="2">Un singur nucleu financiar — bani, profit, flux de numerar, indicatori-cheie, riscuri. Industrii diferite — economie diferită. FINMENTOR reglează controlul pe metricile care contează cu adevărat în afacerea dvs.</p>
         </div>
 
+        <figure class="industries__figure reveal">
+          <!-- PHOTO 03 slot · real-assets. Temporary vector placeholder. -->
+          <img src="../images/editorial/real-assets.svg" alt="Imobiliare comerciale ca obiect al managementului de capital" width="1920" height="2400" loading="lazy" decoding="async">
+        </figure>
         <div class="industries__grid">
           <article class="industry-card industry-card--flagship reveal" data-reveal-delay="1">
+            <span class="industry-card__index">01</span>
             <div class="industry-card__top">
               <h3>Imobiliare și închiriere</h3>
               <span class="industry-card__badge">Soluție emblematică</span>
             </div>
-            <p><b>Durerea:</b> Imobilul nu se amortizează, chiriașii creează riscuri, se văd doar sumele facturate, nu banii.</p>
+            <p class="industry-card__object">obiect · chiriaș · NOI · CAPEX · recuperare</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p><b>Durerea:</b> Imobilul nu se amortizează, chiriașii creează riscuri, se văd doar sumele facturate, nu banii.</p>
             <p><b>Controlul:</b> Chiriași și contracte, venit operațional net (NOI), rata de capitalizare (Cap Rate), grad de neocupare, investiții de capital (CAPEX), evaluarea fiabilității chiriașilor, recuperarea investiției.</p>
             <p><b>Metodologia de calcul:</b> Venit operațional net, grad de neocupare, evaluarea fiabilității chiriașilor, chiria raportată la nivelul pieței, acoperirea cu depozit și garanții, recuperarea investițiilor de capital, flux de numerar, indicator de risc.</p>
-            <p><b>Rezultatul:</b> Randamentul fiecărui imobil și chiriaș devine vizibil, riscurile — din timp.</p>
+            <p><b>Rezultatul:</b> Randamentul fiecărui imobil și chiriaș devine vizibil, riscurile — din timp.</p></div>
+            </details>
             <a href="real-estate-control-system.html" class="industry-card__cta" data-ga="click_industry_real_estate" data-cta-id="industry_real_estate" data-cta-location="industries" data-event="cta_click" data-destination="real-estate-control-system">Sistem de management financiar al activelor imobiliare &rarr;</a>
           </article>
 
           <article class="industry-card industry-card--retail reveal" data-reveal-delay="2">
+            <span class="industry-card__index">02</span>
             <div class="industry-card__top">
               <h3>Comerț cu amănuntul</h3>
               <span class="industry-card__badge">Marjă în retail</span>
             </div>
-            <p><b>Durerea:</b> Rafturile sunt pline cu marfă, dar nu este clar ce categorii și articole de stoc (SKU) chiar câștigă bani și care doar îi blochează.</p>
+            <p class="industry-card__object">categorie · SKU · marjă pe m² · promo · retrobonus</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p><b>Durerea:</b> Rafturile sunt pline cu marfă, dar nu este clar ce categorii și articole de stoc (SKU) chiar câștigă bani și care doar îi blochează.</p>
             <p><b>Controlul:</b> Norma de marjă pe metru liniar, m², categorie și articol de stoc; vânzări, stocuri, promoție, bonus retroactiv, furnizori și finanțarea stocului de către furnizor.</p>
             <p><b>Metodologia de calcul:</b> Marjă țintă, marjă pe m², profitabilitatea pe produs, abaterea marjei față de țintă (Margin Gap), finanțarea stocului de către furnizor, bonus retroactiv, eficiența promoției.</p>
-            <p><b>Rezultatul:</b> Tabloul de bord pentru proprietar (Dashboard) arată ce extindeți, ce reduceți, unde cereți bonus retroactiv, unde este necesară compensația furnizorului și ce articole de stoc trebuie scoase din sortiment.</p>
+            <p><b>Rezultatul:</b> Tabloul de bord pentru proprietar (Dashboard) arată ce extindeți, ce reduceți, unde cereți bonus retroactiv, unde este necesară compensația furnizorului și ce articole de stoc trebuie scoase din sortiment.</p></div>
+            </details>
             <a href="retail-margin-engine.html" class="industry-card__cta" data-cta-id="industries_retail" data-cta-location="industries" data-event="cta_click" data-destination="retail-margin-engine" data-business-model="retail">Verificați retailul</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="3">
+            <span class="industry-card__index">03</span>
             <div class="industry-card__top">
               <h3>Comerț online</h3>
             </div>
-            <p><b>Durerea:</b> Cifra de afaceri crește, reclama consumă bugetul, iar profitul pe unitate rămâne neclar.</p>
+            <p class="industry-card__object">economia unitară · CAC · LTV · ROAS · retururi</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p><b>Durerea:</b> Cifra de afaceri crește, reclama consumă bugetul, iar profitul pe unitate rămâne neclar.</p>
             <p><b>Controlul:</b> Economia pe unitate (Unit economics), costul de achiziție a clientului (CAC), valoarea clientului pe durata relației (LTV), rentabilitatea cheltuielilor de publicitate (ROAS), logistică, retururi, depozit, profitabilitatea pe produs, gol de numerar.</p>
-            <p><b>Rezultatul:</b> Profitul pe articol de stoc și pe canal se vede după reclamă, logistică și retururi.</p>
+            <p><b>Rezultatul:</b> Profitul pe articol de stoc și pe canal se vede după reclamă, logistică și retururi.</p></div>
+            </details>
             <a href="questionnaire.html?model=ecommerce" class="industry-card__cta" data-cta-id="industries_ecommerce" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="ecommerce">Verificați comerțul online</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="1">
+            <span class="industry-card__index">04</span>
             <div class="industry-card__top">
               <h3>Comerț cu ridicata / distribuție</h3>
             </div>
-            <p><b>Durerea:</b> Banii sunt blocați în depozit și creanțe, limitele clienților — stabilite „din ochi”.</p>
+            <p class="industry-card__object">stoc · creanțe · limite de client · capital circulant</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p><b>Durerea:</b> Banii sunt blocați în depozit și creanțe, limitele clienților — stabilite „din ochi”.</p>
             <p><b>Controlul:</b> Depozit, creanțe, furnizori, grupe de marfă, limite pe clienți, capital de lucru, marjă.</p>
-            <p><b>Rezultatul:</b> Capitalul de lucru și marja reală pe grupe și clienți — sub control.</p>
+            <p><b>Rezultatul:</b> Capitalul de lucru și marja reală pe grupe și clienți — sub control.</p></div>
+            </details>
             <a href="questionnaire.html?model=distribution" class="industry-card__cta" data-cta-id="industries_distribution" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="distribution">Verificați distribuția</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="2">
+            <span class="industry-card__index">05</span>
             <div class="industry-card__top">
               <h3>Producție la comandă</h3>
             </div>
-            <p><b>Durerea:</b> Există comenzi, dar marja pe comandă e neclară; producția neterminată și avansurile trăiesc separat.</p>
+            <p class="industry-card__object">comandă · cost · încărcare · avans · marja proiectului</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p><b>Durerea:</b> Există comenzi, dar marja pe comandă e neclară; producția neterminată și avansurile trăiesc separat.</p>
             <p><b>Controlul:</b> Comenzi, cost planificat și efectiv, materiale, avansuri, termene, marjă pe comandă, producție neterminată.</p>
-            <p><b>Rezultatul:</b> Profitul fiecărei comenzi devine vizibil și se vede unde se scurge costul.</p>
+            <p><b>Rezultatul:</b> Profitul fiecărei comenzi devine vizibil și se vede unde se scurge costul.</p></div>
+            </details>
             <a href="questionnaire.html?model=manufacturing" class="industry-card__cta" data-cta-id="industries_manufacturing" data-cta-location="industries" data-event="health_check_cta" data-destination="questionnaire" data-business-model="manufacturing">Verificați producția</a>
           </article>
 
           <article class="industry-card reveal" data-reveal-delay="3">
+            <span class="industry-card__index">06</span>
             <div class="industry-card__top">
               <h3>Afaceri cu model de abonament</h3>
             </div>
-            <p class="industry-card__sub">Cluburi de fitness, centre SPA și wellness, servicii sportive și de tip membership</p>
+            <p class="industry-card__object">abonament · churn · reînnoiri · venit la risc</p>
+            <details class="industry-card__detail">
+              <summary>Metodologia de control</summary>
+              <div class="industry-card__detail-body"><p class="industry-card__sub">Cluburi de fitness, centre SPA și wellness, servicii sportive și de tip membership</p>
             <p><b>Problema managerială:</b> Reînnoirile au loc fără un proces controlat, riscul de pierdere a clienților (churn) devine vizibil prea târziu, veniturile viitoare nu sunt prognozate riguros, iar reducerile pentru retenție se acordă fără evaluarea efectului economic.</p>
             <p><b>Controlul:</b> Profilul clientului ca activ, propensiunea de prelungire, veniturile din prelungiri expuse riscului, plan de retenție pe capacitatea echipei, migrația segmentelor.</p>
             <p><b>Dezvoltare:</b> Client Base Control System · verticala sistemului de reînnoire a abonamentelor (Fitness Membership Renewal Engine) — crescută din ciclul managerial lunar al unui business real.</p>
-            <p><b>Rezultatul:</b> Veniturile din prelungiri pentru perioada următoare și riscul lor — sub controlul proprietarului.</p>
+            <p><b>Rezultatul:</b> Veniturile din prelungiri pentru perioada următoare și riscul lor — sub controlul proprietarului.</p></div>
+            </details>
             <a href="client-base-control-system.html" class="industry-card__cta" data-ga="click_industry_fitness" data-cta-id="industry_fitness" data-cta-location="industries" data-event="cta_click" data-destination="client-base-control-system">Detalii despre sistem</a>
           </article>
         </div>
@@ -629,48 +667,27 @@
       </div>
     </section>
 
-    <div class="editorial-band editorial-band--asset">
-      <figure class="editorial-band__figure reveal">
-        <img src="../images/editorial/real-estate-investment.svg" alt="Imobiliare comerciale ca obiect al managementului de capital" width="1920" height="1280" loading="lazy" decoding="async">
-        <figcaption class="editorial-band__caption"><span class="editorial-band__index">03</span>Active reale · capital · valoare pe termen lung</figcaption>
-      </figure>
-    </div>
-
-    <section class="sec capital-allocation" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <div class="container container--editorial">
-        <div class="section-head">
-          <p class="overline reveal">Alocarea capitalului</p>
+    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
+      <picture class="capital-management__media">
+        <!-- PHOTO 02 slot · capital-decision. Temporary vector placeholder. -->
+        <img src="../images/editorial/capital-decision.svg" alt="Mediul de lucru pentru deciziile de capital" width="1920" height="1280" loading="lazy" decoding="async">
+      </picture>
+      <div class="capital-management__scrim" aria-hidden="true"></div>
+      <div class="container container--editorial capital-management__inner">
+        <div class="capital-management__head">
+          <p class="overline reveal">Managementul capitalului</p>
           <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Unde va lucra mai bine următorul 1&nbsp;EUR de capital?</h2>
+          <p class="capital-management__lead reveal" data-reveal-delay="2">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
+          <p class="capital-management__routes reveal" data-reveal-delay="3">Capital circulant · Investiții de capital (CAPEX) · Obligații · Rezervă de lichiditate</p>
         </div>
-        <div class="allocation">
-          <div class="allocation__source reveal" data-reveal-delay="1">
-            <span class="allocation__unit-label">Unitate de capital</span>
-            <span class="allocation__unit">1&nbsp;EUR</span>
-          </div>
-          <ol class="allocation__routes">
-          <li class="allocation__route reveal" data-reveal-delay="2">
-            <span class="allocation__index">01</span>
-            <span class="allocation__name">Capital circulant</span>
-            <span class="allocation__effect">Ciclul se transformă mai repede în bani</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="3">
-            <span class="allocation__index">02</span>
-            <span class="allocation__name">Investiții de capital (CAPEX)</span>
-            <span class="allocation__effect">Activul generează venit mai mult timp</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="4">
-            <span class="allocation__index">03</span>
-            <span class="allocation__name">Obligații</span>
-            <span class="allocation__effect">Costul capitalului scade</span>
-          </li>
-          <li class="allocation__route reveal" data-reveal-delay="5">
-            <span class="allocation__index">04</span>
-            <span class="allocation__name">Rezervă de lichiditate</span>
-            <span class="allocation__effect">Riscul de blocaj de numerar scade</span>
-          </li>
-          </ol>
-        </div>
-        <p class="allocation__note reveal">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
+        <ol class="capital-cycle" aria-label="Ciclul managementului capitalului">
+            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Sursa capitalului</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Alocare</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Randament</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Risc</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Eliberare</span></li>
+            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Realocare</span></li>
+        </ol>
       </div>
     </section>
 

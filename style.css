@@ -6598,98 +6598,6 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .chaos__grid { grid-template-columns: 1fr; }
 }
 
-/* 8.2 Business models — staggered editorial rows */
-.home .industries__grid {
-  grid-template-columns: 1fr;
-  gap: 0;
-  margin-top: clamp(48px, 5vw, 88px);
-  border-top: 1px solid var(--border-hairline);
-}
-.home .industry-card {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 13fr);
-  gap: clamp(20px, 3vw, 64px);
-  padding: clamp(36px, 3.6vw, 64px) 0;
-  border: 0;
-  border-bottom: 1px solid var(--border-hairline);
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  transition: background-color var(--dur-base) ease;
-}
-.home .industry-card:hover {
-  transform: none;
-  box-shadow: none;
-  border-color: var(--border-hairline);
-  background: rgba(255, 255, 255, 0.014);
-}
-/* the flagship keeps its rank through a hairline and a label, not a gold slab */
-.home .industry-card--flagship,
-.home .industry-card--retail {
-  background: none;
-  border-bottom: 1px solid var(--border-hairline);
-  box-shadow: none;
-}
-.home .industry-card--flagship { border-left: 2px solid var(--border-gold); padding-left: clamp(20px, 2vw, 36px); }
-/* Column 1 holds the name and nothing else; every paragraph belongs to column 2,
-   otherwise the prose auto-places alternately and the row loses its spine. */
-.home .industry-card__top {
-  display: block;
-  grid-column: 1;
-  grid-row: 1 / -1;
-  align-self: start;
-  position: sticky;
-  top: calc(var(--header-h) + 24px);
-}
-.home .industry-card__top h3 {
-  font-family: var(--font-sans);
-  font-size: var(--fs-h3);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-.home .industry-card__badge {
-  display: inline-block;
-  margin-top: var(--sp-3);
-  font-size: var(--fs-label);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.home .industry-card > p {
-  grid-column: 2;
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.66;
-  color: var(--text-secondary);
-  max-width: 68ch;
-}
-.home .industry-card > p + p { margin-top: var(--sp-4); }
-.home .industry-card > p b {
-  display: block;
-  margin-bottom: 4px;
-  font-family: var(--font-sans);
-  font-size: var(--fs-label);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--label-muted);
-}
-.home .industry-card__cta {
-  grid-column: 2;
-  justify-self: start;
-  margin-top: var(--sp-5);
-}
-@media (max-width: 860px) {
-  .home .industry-card {
-    grid-template-columns: 1fr;
-    gap: var(--sp-5);
-  }
-  .home .industry-card__top { position: static; grid-column: 1; grid-row: auto; }
-  .home .industry-card > p { grid-column: 1; }
-  .home .industry-card__cta { grid-column: 1; }
-}
-
 /* --- 9. CARD RESTRAINT (where cards legitimately remain) ----------------- */
 .home .step-card,
 .home .material-card,
@@ -6898,6 +6806,366 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .chaos__verdict { grid-column: 1; grid-row: 3; max-width: 30ch; }
 }
 
+/* --- C6. BUSINESS MODELS (§18) — PHOTO 03 anchor + indexed list ----------
+   One concise control line per model on the page; the full methodology stays
+   in the DOM inside a native <details>, so nothing is removed from the site
+   and nothing is hidden from a crawler. Closed <details> content is correctly
+   skipped by the visual gate through checkVisibility. */
+.home .industries { background: var(--ivory-200); }
+.home .industries > .container {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  column-gap: clamp(36px, 5vw, 96px);
+  row-gap: clamp(32px, 4vw, 56px);
+  align-items: start;
+}
+.home .industries .section-head {
+  grid-column: 2;
+  margin-bottom: 0;
+}
+.home .industries__figure {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  margin: 0;
+  position: sticky;
+  top: calc(var(--header-h) + 40px);
+  overflow: hidden;
+}
+.home .industries__figure img {
+  display: block;
+  width: 100%;
+  height: clamp(420px, 60vh, 760px);
+  object-fit: cover;
+  object-position: 50% 60%;
+}
+.home .industries__grid {
+  grid-column: 2;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .industry-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(16px, 1.8vw, 30px);
+  row-gap: clamp(8px, 1vw, 14px);
+  padding: clamp(22px, 2.4vw, 34px) 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.home .industry-card:hover { transform: none; box-shadow: none; background: none; }
+.home .industry-card--flagship,
+.home .industry-card--retail { background: none; box-shadow: none; border-left: 0; padding-left: 0; }
+.home .industry-card__index {
+  grid-column: 1;
+  grid-row: 1;
+  padding-top: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.home .industry-card__top {
+  grid-column: 2;
+  grid-row: 1;
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px 14px;
+}
+.home .industry-card__top h3 {
+  font-family: var(--font-sans);
+  font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--ink-900);
+}
+.home .industry-card__badge {
+  margin-top: 0;
+  padding: 3px 9px;
+  border: 1px solid var(--border-gold);
+  border-radius: 0;
+  background: none;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+}
+.home .industry-card__object {
+  grid-column: 2;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--label-muted);
+}
+/* the disclosure: a quiet text affordance, never a button */
+.home .industry-card__detail { grid-column: 2; margin: 0; }
+.home .industry-card__detail > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  padding: 4px 0;
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent);
+}
+.home .industry-card__detail > summary::-webkit-details-marker { display: none; }
+.home .industry-card__detail > summary::after {
+  content: "+";
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.home .industry-card__detail[open] > summary::after { content: "\2212"; }
+.home .industry-card__detail > summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.home .industry-card__detail-body {
+  padding: clamp(12px, 1.3vw, 18px) 0 clamp(4px, 0.6vw, 8px);
+  max-width: 74ch;
+}
+.home .industry-card__detail-body p {
+  margin: 0 0 var(--sp-3);
+  font-size: 0.95rem;
+  line-height: 1.62;
+  color: var(--text-secondary);
+}
+.home .industry-card__detail-body p:last-child { margin-bottom: 0; }
+.home .industry-card__detail-body b {
+  display: block;
+  margin-bottom: 3px;
+  font-size: var(--fs-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.home .industry-card__cta {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: clamp(6px, 0.8vw, 10px);
+  font-size: 0.9rem;
+}
+@media (max-width: 900px) {
+  .home .industries > .container { grid-template-columns: 1fr; }
+  .home .industries .section-head,
+  .home .industries__grid { grid-column: 1; }
+  .home .industries__figure {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+  }
+  .home .industries__figure img { height: clamp(200px, 46vw, 300px); object-position: 50% 55%; }
+}
+
+/* --- C5. CAPITAL MANAGEMENT (§17) — signature, image-led ------------------
+   The question is the section; the framework is its answer. One restrained
+   cycle over a real environment. No dashboard, no cards, no figures — the
+   stages are a decision framework, not invented performance data. */
+.home .capital-management {
+  position: relative;
+  isolation: isolate;
+  background: var(--navy-900);
+  padding-block: var(--sp-section-lg);
+  border-top: 0;
+  overflow: hidden;
+}
+.home .capital-management__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  margin: 0;
+}
+.home .capital-management__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 45%;
+  display: block;
+}
+.home .capital-management__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(95deg,
+      rgba(8, 17, 31, 0.96) 0%,
+      rgba(8, 17, 31, 0.90) 38%,
+      rgba(8, 17, 31, 0.74) 66%,
+      rgba(8, 17, 31, 0.60) 100%),
+    linear-gradient(to bottom,
+      rgba(8, 17, 31, 0.72) 0%,
+      rgba(8, 17, 31, 0.30) 40%,
+      rgba(8, 17, 31, 0.86) 100%);
+}
+.home .capital-management__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  column-gap: clamp(40px, 7vw, 130px);
+  row-gap: clamp(40px, 5vw, 64px);
+  align-items: start;
+}
+.home .capital-management .section-title {
+  max-width: 18ch;
+  font-size: clamp(1.85rem, 3vw, 3.1rem);
+  line-height: 1.1;
+}
+.home .capital-management__lead {
+  margin: clamp(22px, 2.4vw, 34px) 0 0;
+  max-width: 46ch;
+  font-size: 1.0625rem;
+  line-height: 1.66;
+  color: var(--text-secondary);
+}
+.home .capital-management__routes {
+  margin: clamp(24px, 2.4vw, 34px) 0 0;
+  padding-top: clamp(16px, 1.6vw, 22px);
+  border-top: 1px solid var(--border-gold);
+  max-width: 46ch;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.8;
+  color: var(--label-muted);
+}
+
+/* the cycle: a spine, six ticks, no arrows */
+.home .capital-cycle {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding-left: clamp(26px, 2.2vw, 40px);
+}
+.home .capital-cycle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--gold-500), rgba(201, 162, 39, 0.10));
+}
+.home .capital-cycle__stage {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 1.4vw, 24px);
+  padding: clamp(14px, 1.5vw, 22px) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.home .capital-cycle__stage:last-child { border-bottom: 0; }
+.home .capital-cycle__stage::after {
+  content: "";
+  position: absolute;
+  left: calc(clamp(26px, 2.2vw, 40px) * -1);
+  top: 1.35em;
+  width: clamp(12px, 1.1vw, 18px);
+  height: 1px;
+  background: var(--border-gold);
+}
+.home .capital-cycle__index {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--gold-500);
+  opacity: 0.8;
+}
+.home .capital-cycle__name {
+  font-size: clamp(1rem, 1.2vw, 1.22rem);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+}
+@media (max-width: 900px) {
+  .home .capital-management__inner { grid-template-columns: 1fr; }
+  .home .capital-management__media img { object-position: 50% 50%; }
+}
+
+/* --- C4. THREE OWNER-CONTROL PILLARS (§16) -------------------------------
+   Indexed editorial columns, not three floating cards: a large numeral, the
+   contour name, one descriptor line, a thin rule and the terms it governs. */
+.home .pillars .pillars__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: clamp(48px, 5vw, 92px);
+  border-top: 1px solid var(--border-hairline);
+}
+.home .pillar {
+  padding: clamp(32px, 3.4vw, 56px) clamp(24px, 2.6vw, 48px) clamp(36px, 3.4vw, 56px) 0;
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 0;
+  min-width: 0;
+}
+.home .pillar:last-child { border-right: 0; padding-right: 0; }
+.home .pillar__index {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: clamp(1.5rem, 2.1vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--accent);
+}
+.home .pillar__title {
+  margin: clamp(16px, 1.6vw, 24px) 0 0;
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.home .pillar__descriptor {
+  margin: clamp(12px, 1.2vw, 18px) 0 0;
+  max-width: 28ch;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.home .pillar__terms {
+  list-style: none;
+  margin: clamp(24px, 2.4vw, 36px) 0 0;
+  padding-top: clamp(16px, 1.6vw, 22px);
+  border-top: 1px solid var(--border-gold);
+}
+.home .pillar__terms li {
+  padding: 9px 0;
+  border-top: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--label-muted);
+}
+.home .pillar__terms li:first-child { padding-top: 0; }
+@media (max-width: 900px) {
+  .home .pillars .pillars__grid { grid-template-columns: 1fr; }
+  .home .pillar {
+    padding: clamp(28px, 5vw, 40px) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .home .pillar:last-child { border-bottom: 0; padding-bottom: 0; }
+}
+
 /* --- C3. «ПРИБЫЛЬ ≠ ДЕНЬГИ» — statement anchored by a capital flow -------
    Navy, because the subject is capital and the dark field carries the
    institutional weight. The old version floated one line in a huge empty
@@ -6915,8 +7183,9 @@ body.menu-open .doc-bar { visibility: hidden; }
   grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
   grid-template-areas:
     "text  chain"
-    "note  chain";
-  grid-template-rows: auto 1fr;
+    "note  chain"
+    "close close";
+  grid-template-rows: auto auto 1fr;
   column-gap: clamp(40px, 7vw, 140px);
   row-gap: clamp(26px, 3vw, 40px);
   align-items: start;
@@ -6944,6 +7213,21 @@ body.menu-open .doc-bar { visibility: hidden; }
   letter-spacing: -0.01em;
   max-width: 24ch;
   color: var(--accent-bright);
+}
+/* The closing thought is a quiet full-width rule under both columns — it
+   reads as the section's conclusion, not as a second headline. */
+.home .statement-screen__close {
+  grid-area: close;
+  margin: clamp(44px, 5vw, 84px) 0 0;
+  padding-top: clamp(20px, 2.2vw, 30px);
+  border-top: 1px solid var(--border-gold);
+  max-width: 62ch;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.7;
+  color: var(--label-muted);
 }
 .home .statement-screen__note {
   grid-area: note;
@@ -6983,10 +7267,10 @@ body.menu-open .doc-bar { visibility: hidden; }
   padding: clamp(16px, 1.7vw, 26px) 0;
   border-bottom: 1px solid var(--border-hairline);
   font-family: var(--font-sans);
-  font-size: clamp(1.05rem, 1.45vw, 1.5rem);
+  font-size: clamp(0.95rem, 1.15vw, 1.2rem);
   font-weight: 600;
-  letter-spacing: -0.01em;
-  text-transform: none;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--text-primary);
 }
 .home .capital-chain__node::before { content: none; }
@@ -7014,6 +7298,7 @@ body.menu-open .doc-bar { visibility: hidden; }
   }
   .home .statement-screen__text,
   .home .statement-screen__note,
+  .home .statement-screen__close,
   .home .capital-chain { grid-area: auto; grid-column: 1; }
   .home .capital-chain { margin-top: clamp(8px, 2vw, 16px); }
 }
