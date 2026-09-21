@@ -7933,6 +7933,76 @@ body.menu-open .doc-bar { visibility: hidden; }
 /* The editorial pass removed the rows' left padding but not the legacy 3px
    bar, so every scenario line began on top of it. */
 .home .result-row::before { content: none; }
+/* IMAGE_ART_DIRECTION §5: the founder portrait is editorial — no glow, no gold
+   ring, no rounded frame — and it anchors the top of the text, not its middle. */
+.home .about__grid { align-items: start; }
+.home .portrait { border-radius: 0; border: 0; box-shadow: none; }
+.home .portrait::after { content: none; }
+/* Card audit: the six facts were pill badges; they read as an indexed record. */
+.home .anchor-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: clamp(20px, 2.4vw, 36px);
+  row-gap: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .anchor-list span {
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  font-size: 0.9rem;
+}
+@media (max-width: 640px) {
+  .home .anchor-list { grid-template-columns: 1fr; }
+}
+/* Card audit: «Для кого» is a list of recognition signals, not eight SaaS
+   feature cards. Hairline rows; the gold tick stays as the index. */
+.home .audience__grid { column-gap: clamp(28px, 3vw, 56px); row-gap: 0; border-top: 1px solid var(--border-hairline); }
+.home .audience__item {
+  padding: 16px 0 16px 30px;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.home .audience__item::before { left: 2px; }
+/* The report samples stay cards — they stand for documents — but as sheets. */
+.home .sample-card { border-radius: 2px; }
+/* Columns divided by a rule had a right gutter only, so every following column
+   (steps 02–03, practice 02–03) began on its neighbour's rule. */
+@media (min-width: 901px) {
+  .home .step-card + .step-card,
+  .home .result-card + .result-card,
+  .home .pillar + .pillar { padding-left: clamp(24px, 2.6vw, 44px); }
+}
+/* The business-model scene's closing blocks were never placed: auto-placement put
+   the asset callout into the narrow photo column (929px tall beside a 95px CTA). */
+/* They now continue the rows' reading line, and the callout stops being a boxed
+   card with a shadow: it is one argument under a gold rule. */
+.home .industries__asset-callout,
+.home .industries__final { grid-column: 2; }
+.home .industries__asset-callout {
+  margin-top: clamp(28px, 3vw, 44px);
+  padding: clamp(26px, 2.8vw, 40px) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-gold);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.home .industries__asset-callout > div { max-width: none; margin-inline: 0; }
+.home .industries__asset-callout p { max-width: 64ch; }
+@media (max-width: 900px) {
+  .home .industries__asset-callout,
+  .home .industries__final { grid-column: 1; }
+}
+/* the note under the decision paths sat directly on the last point */
+.home .consult .contact-bot-note { margin-top: clamp(18px, 2vw, 26px); }
 
 /* --- Header navigation with two restrained disclosures -------------------- */
 .home .nav { align-items: center; }
