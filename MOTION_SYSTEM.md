@@ -40,6 +40,10 @@ No bounce, rotation, 3D, blur, parallax, looping or scroll-linked movement.
   "Прибыль показывает результат…" close follows the spine by ≥ 1300ms.
 - **Hero is held behind the intro** and released on `fm:intro-done`, so the photograph settles
   while the brand signature fades: no black frame, no reset. 12s safety release.
+- **The hero is one scene:** whichever hero element triggers first, the whole choreography
+  runs. (On a short phone the trust line sat just below the trigger and was left behind.)
+- **Capital shows the question first:** PHOTO 02 settles 220ms after its headline starts.
+  Every other photograph leads its batch.
 - **Plays once.** Every element is unobserved when it starts.
 - **Passed-over content is shown without motion:** anchor jumps, refresh mid-page and fast
   flings are swept on `load`, `pageshow`, `hashchange` and `scrollend` (`m-instant` for
@@ -54,20 +58,22 @@ No bounce, rotation, 3D, blur, parallax, looping or scroll-linked movement.
 | Hero | PHOTO 01 settles (0.92 → 1, 1.025 → 1) → eyebrow 240ms → H1 clip rise 360ms → Видеть деньги / Понимать прибыль / Управлять капиталом 500ms + 110ms steps → supporting copy 760 → CTAs 880 → trust line 1000. All readable by ~1.2s (mobile ×0.7) |
 | Problem | label → headline → copy → divider draws → symptoms 80ms apart → verdict last |
 | Owner system | title → 01 Деньги → 02 Результат → 03 Капитал, each pillar one unit (left → right on desktop, top → bottom on mobile) |
-| Capital | PHOTO 02 settles → label → headline → lead → gold rule draws (1.4s) while the six stages follow 110ms apart |
-| Прибыль → Капитал | statement → spine draws (1.2s) → each stage enters as the spine reaches it (80 / 440 / 800 / 1160ms) → close after the spine |
+| Capital | label → headline → PHOTO 02 settles behind it → lead → gold rule draws (1.4s) while the six stages follow 110ms apart |
+| Прибыль → Капитал (owner page) | statement → spine draws (1.2s) → each stage enters as the spine reaches it (80 / 440 / 800 / 1160ms) → close after the spine |
 | Business models | PHOTO 03 unveiled → heading → rows. `<details>` animate only when opened (opacity + 4px, 360ms) |
 | Formats | each mandate unfolds inside: index → title → description → terms → CTA, 80ms apart |
 | Final CTA | label → headline → copy → points → form (the form is never held more than one step) |
+| Hub pages | breadcrumb, overline → H1 → lead; then each moved section keeps the choreography it had on the homepage |
+| Navigation | disclosure panels: opacity + translateY 10px, 240ms; drawer items stagger 40ms as before |
 
 ## 5. Guarantees
 
 | Condition | Behaviour | Verified |
 |---|---|---|
-| No JavaScript | `m-js` is never set; every hidden state is scoped to it, so the page renders complete | 168 targets, 0 hidden |
+| No JavaScript | `m-js` is never set; every hidden state is scoped to it, so the page renders complete | homepage: 77 motion targets, 0 hidden |
 | `main.js` fails or is blocked | pre-paint failsafe withdraws `m-js` after 2.5s | 0 hidden |
 | Slow network (`main.js` +6s) | content visible by 3.4s without motion | 0 hidden |
 | `prefers-reduced-motion` | `m-js` is not set; explicit overrides remove every transition, scale, clip and line draw | 0 hidden, 60ms after load |
 | Anchor jump / refresh mid-page / fast fling | passed-over content is shown without motion | 0 hidden, RU + RO |
-| LCP | H1 starts at opacity 0.01 (painted, invisible) | LCP = H1 at ~50ms (390 and 1440) |
+| LCP | The first-viewport LCP candidates (hero H1, hub H1s, PHOTO 02 on the capital page) start at opacity 0.01: painted, invisible. At opacity 0, Chrome records them only on a later repaint (~3s) | LCP ≈ 30–110ms on every page, 390 and 1440 |
 | CLS | transforms only | ≤ 0.0004 at all 6 widths |
