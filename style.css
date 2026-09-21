@@ -7303,6 +7303,434 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .capital-chain { margin-top: clamp(8px, 2vw, 16px); }
 }
 
+/* ==========================================================================
+   C7 — PRODUCTION PASS, REMAINING SECTIONS (§19–§29)
+   All of these are restyles: no markup was changed, so RU/RO parity and every
+   copy contract are untouched. Indices come from CSS counters rather than new
+   elements, which keeps the DOM identical in both language editions.
+   ========================================================================== */
+
+/* --- §28 CARD AUDIT — global homepage restraint --------------------------
+   Radius, elevation and floating surfaces are removed wherever the content is
+   not genuinely a bounded object. `sample-card` keeps its frame: each one is a
+   discrete artefact the owner receives. */
+.home .step-card,
+.home .result-card,
+.home .material-card,
+.home .package,
+.home .packages__expert,
+.home .industry-card,
+.home .chaos-card {
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* --- §25 PROCESS — indexed sequence on a single line --------------------- */
+.home .steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: clamp(44px, 4.6vw, 80px);
+  border-top: 1px solid var(--border-gold);
+}
+.home .step-card {
+  padding: clamp(28px, 3vw, 48px) clamp(24px, 2.6vw, 44px) clamp(32px, 3vw, 48px) 0;
+  border: 0;
+  border-right: 1px solid var(--border-hairline);
+  background: none;
+}
+.home .step-card:last-child { border-right: 0; padding-right: 0; }
+.home .step-card__num {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: clamp(1.4rem, 1.9vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--accent);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.home .step-card__title {
+  margin: clamp(14px, 1.5vw, 22px) 0 0;
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--text-primary);
+}
+.home .step-card__desc {
+  margin-top: clamp(12px, 1.3vw, 18px);
+  font-size: 0.95rem;
+  line-height: 1.62;
+  color: var(--text-secondary);
+}
+@media (max-width: 900px) {
+  .home .steps-grid { grid-template-columns: 1fr; }
+  .home .step-card {
+    padding: clamp(24px, 5vw, 34px) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .home .step-card:last-child { border-bottom: 0; }
+}
+
+/* --- §21 PRACTICE — Situation → Control → Decision ----------------------- */
+.home .results__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: clamp(40px, 4.4vw, 76px);
+  border-top: 1px solid var(--border-hairline);
+  counter-reset: scenario;
+}
+.home .result-card {
+  position: relative;
+  counter-increment: scenario;
+  padding: clamp(28px, 3vw, 46px) clamp(24px, 2.6vw, 44px) clamp(30px, 3vw, 46px) 0;
+  border: 0;
+  border-right: 1px solid var(--border-hairline);
+  background: none;
+}
+.home .result-card:last-child { border-right: 0; padding-right: 0; }
+.home .result-card::before {
+  content: counter(scenario, decimal-leading-zero);
+  display: block;
+  margin-bottom: clamp(18px, 1.8vw, 26px);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.home .result-row {
+  padding: clamp(12px, 1.2vw, 16px) 0;
+  border-top: 1px solid var(--border-hairline);
+  background: none;
+}
+.home .result-row:first-of-type { border-top: 0; padding-top: 0; }
+.home .result-row__label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: var(--fs-label);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.home .result-row p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.home .result-row--out { border-top-color: var(--border-gold); }
+.home .result-row--out p { color: var(--text-primary); }
+@media (max-width: 900px) {
+  .home .results__grid { grid-template-columns: 1fr; }
+  .home .result-card {
+    padding: clamp(26px, 5vw, 36px) 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .home .result-card:last-child { border-bottom: 0; }
+}
+
+/* --- §20 FORMATS OF WORK — advisory mandates, not pricing plans ----------
+   Indices are CSS counters, so no element was added to either edition. The
+   QA-contract hooks (`packages__expert`, `package--flagship`, the
+   `.package__term` grid) are untouched. */
+.home .packages { counter-reset: mandate; }
+.home .packages__expert,
+.home .package {
+  position: relative;
+  counter-increment: mandate;
+  border: 0;
+  border-top: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: clamp(30px, 3.2vw, 52px) 0 clamp(32px, 3.2vw, 52px) clamp(44px, 4.4vw, 78px);
+}
+.home .packages__expert::before,
+.home .package::before {
+  content: counter(mandate, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: clamp(32px, 3.4vw, 55px);
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.home .packages__expert {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 3vw, 64px);
+  align-items: start;
+  margin-top: clamp(40px, 4.4vw, 76px);
+}
+.home .packages__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 0;
+}
+.home .package {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(20px, 2.6vw, 56px) clamp(24px, 3vw, 64px);
+  align-items: start;
+}
+/* the flagship earns a gold rule and a label, never a filled panel */
+.home .package--flagship {
+  background: none;
+  box-shadow: none;
+  border-top: 1px solid var(--border-gold);
+}
+.home .package__tier {
+  grid-column: 1;
+  display: block;
+  font-size: var(--fs-label);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.home .package__name {
+  grid-column: 1;
+  margin: clamp(10px, 1vw, 14px) 0 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+.home .package__descriptor {
+  grid-column: 1;
+  margin: 6px 0 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+.home .package__goal {
+  grid-column: 1;
+  margin: clamp(12px, 1.3vw, 18px) 0 0;
+  max-width: 60ch;
+  font-size: 1rem;
+  line-height: 1.64;
+  color: var(--text-secondary);
+}
+.home .package__price {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.15rem, 1.5vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.home .package__price-from {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--label-muted);
+}
+.home .package__section {
+  grid-column: 2;
+  margin: 0;
+  padding-top: clamp(14px, 1.4vw, 20px);
+  border-top: 1px solid var(--border-hairline);
+}
+.home .package__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--fs-label);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+.home .package__list { margin: 0; padding: 0; list-style: none; }
+.home .package__list li {
+  position: relative;
+  padding: 4px 0 4px 16px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.home .package__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.82em;
+  width: 6px;
+  height: 1px;
+  background: var(--border-gold);
+}
+.home .package__cta,
+.home .packages__expert-action .package__cta {
+  grid-column: 1;
+  justify-self: start;
+  margin-top: clamp(16px, 1.8vw, 26px);
+}
+.home .packages__expert-copy { grid-column: 1; }
+.home .packages__expert-action { grid-column: 2; }
+.home .packages__expert-action .package__price { grid-column: auto; grid-row: auto; }
+@media (max-width: 900px) {
+  .home .packages__expert,
+  .home .package { grid-template-columns: 1fr; padding-left: clamp(30px, 8vw, 44px); }
+  .home .package__tier,
+  .home .package__name,
+  .home .package__descriptor,
+  .home .package__goal,
+  .home .package__price,
+  .home .package__section,
+  .home .package__cta,
+  .home .packages__expert-copy,
+  .home .packages__expert-action { grid-column: 1; grid-row: auto; }
+}
+
+/* --- §19 SOLUTIONS — editorial rows, already row-shaped in markup -------- */
+.home .sysmap__group + .sysmap__group { margin-top: clamp(36px, 3.6vw, 62px); }
+.home .sysmap__label {
+  padding-bottom: clamp(12px, 1.2vw, 16px);
+  border-bottom: 1px solid var(--border-gold);
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+}
+.home .sysmap__row {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  background: none;
+  box-shadow: none;
+}
+.home .sysmap__row:hover { background: rgba(255, 255, 255, 0.02); transform: none; box-shadow: none; }
+.home .sysmap__name {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* --- §24 MATERIALS — an insights library, not a card wall ---------------- */
+.home .materials .materials-list,
+.home #knowledge .materials-list {
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .material-card {
+  border: 0;
+  border-bottom: 1px solid var(--border-hairline);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: clamp(20px, 2.2vw, 30px) 0;
+}
+.home .material-card:hover { transform: none; box-shadow: none; background: none; }
+.home .material-card__title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.home .material-card__tag {
+  font-size: var(--fs-label);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--label-muted);
+}
+
+/* --- §29 FLOATING HELP — a utility, not a sales bubble ------------------- */
+.fa-launch {
+  padding: 9px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(8, 17, 31, 0.88);
+  box-shadow: none;
+  opacity: 0.72;
+}
+.fa-launch:hover {
+  transform: none;
+  opacity: 1;
+  border-color: var(--border-gold);
+  box-shadow: none;
+}
+.fa-launch__icon { width: 14px; height: 14px; }
+@media (max-width: 640px) {
+  .fa-launch {
+    width: 40px; height: 40px; min-height: 40px;
+    border-radius: 50%;
+    opacity: 0.6;
+  }
+}
+
+/* --- §31 SPACING — no unanchored voids ----------------------------------
+   The section rhythm stays fluid, but the two sections that previously ran
+   tall with little content are pulled in. */
+.home .statement-screen { padding-block: var(--sp-section); }
+.home .mini-scan,
+.home #mini-scan { padding-block: clamp(64px, 6vw, 112px); }
+
+/* ==========================================================================
+   C8 — production-pass corrections found in self visual QA
+   ========================================================================== */
+
+/* Only the real-estate CTA carries a literal arrow in the markup; the shared
+   pseudo-arrow then painted a second one. The pseudo-element is the system,
+   so the markup arrow is the one that goes. */
+.home .industry-card__cta::after { content: "\2192"; }
+
+/* The badge belongs beside the model name, not pushed to the far margin. */
+.home .industry-card__top { justify-content: flex-start; }
+.home .industry-card__badge { margin-left: 4px; }
+
+/* Rows were running ~310px tall on an already tall section. */
+.home .industry-card {
+  padding: clamp(18px, 1.9vw, 26px) 0;
+  row-gap: clamp(6px, 0.7vw, 10px);
+}
+.home .industry-card__cta { margin-top: clamp(4px, 0.5vw, 8px); }
+.home .industries > .container { row-gap: clamp(24px, 2.6vw, 40px); }
+.home .industries__figure img { height: clamp(420px, 66vh, 820px); }
+
+/* §31 — the capital section was ending in an unanchored band of navy, and the
+   scrim was heavy enough to erase the environment behind it. */
+.home .capital-management { padding-block: var(--sp-section); }
+.home .capital-management__scrim {
+  background:
+    linear-gradient(95deg,
+      rgba(8, 17, 31, 0.95) 0%,
+      rgba(8, 17, 31, 0.86) 34%,
+      rgba(8, 17, 31, 0.56) 62%,
+      rgba(8, 17, 31, 0.34) 100%),
+    linear-gradient(to bottom,
+      rgba(8, 17, 31, 0.66) 0%,
+      rgba(8, 17, 31, 0.18) 34%,
+      rgba(8, 17, 31, 0.70) 100%);
+}
+.home .capital-management__inner { align-items: center; }
+
+/* C8 sets unconditioned heights above; restate the mobile crops after them. */
+@media (max-width: 900px) {
+  .home .industries__figure img { height: clamp(190px, 44vw, 280px); }
+  .home .capital-management__inner { align-items: start; }
+}
+
 /* --- 12. REDUCED MOTION (layer-local) ------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .hero--editorial .hero__media img { animation: none; transform: none; }
