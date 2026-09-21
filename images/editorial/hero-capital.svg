@@ -1,115 +1,99 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1440" width="2560" height="1440" role="presentation" aria-hidden="true">
   <!--
     FINMENTOR — IMAGE 01 · hero-capital
-    EDITORIAL ARCHITECTURAL ARTWORK (vector), not a photograph.
-    Final slot: licensed photography of contemporary European business
-    architecture. Generation prompt: IMAGE_ART_DIRECTION.md §2.
-    Left 45% is tonally flat by construction — the headline sits there.
+    VECTOR ARCHITECTURAL ARTWORK standing in for licensed photography.
+    Low-angle perspective, facade receding right: the frame carries SCALE.
+    Luminance is deliberately high — the page scrim (style.css .hero__scrim)
+    does the darkening, so the artwork must not pre-darken itself.
+    Final asset + generation prompt: IMAGE_ART_DIRECTION.md §2.
   -->
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0.25" y2="1">
-      <stop offset="0" stop-color="#22354F"/>
-      <stop offset="0.45" stop-color="#152539"/>
-      <stop offset="1" stop-color="#0A1422"/>
+    <linearGradient id="sky" x1="0.1" y1="0" x2="0.65" y2="1">
+      <stop offset="0" stop-color="#52759E"/>
+      <stop offset="0.42" stop-color="#31506F"/>
+      <stop offset="1" stop-color="#16263A"/>
     </linearGradient>
-    <linearGradient id="towerA" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#1B2E45"/>
-      <stop offset="0.62" stop-color="#22394F"/>
-      <stop offset="1" stop-color="#101E2F"/>
+    <linearGradient id="skyRefl" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0" stop-color="#9DBBD8" stop-opacity="0.55"/>
+      <stop offset="0.35" stop-color="#6E93B8" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#1B2E45" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="towerB" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#16273B"/>
-      <stop offset="1" stop-color="#0C1828"/>
-    </linearGradient>
-    <linearGradient id="glazing" x1="0" y1="0" x2="0.4" y2="1">
-      <stop offset="0" stop-color="#31557A" stop-opacity="0.9"/>
-      <stop offset="0.5" stop-color="#1C3049" stop-opacity="0.85"/>
-      <stop offset="1" stop-color="#0D1B2C" stop-opacity="0.95"/>
-    </linearGradient>
-    <linearGradient id="rake" x1="0" y1="0" x2="0.8" y2="1">
-      <stop offset="0" stop-color="#E8C766" stop-opacity="0.34"/>
-      <stop offset="0.45" stop-color="#C9A227" stop-opacity="0.10"/>
+    <linearGradient id="rake" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#FFE9A8" stop-opacity="0.80"/>
+      <stop offset="0.45" stop-color="#E8C766" stop-opacity="0.30"/>
       <stop offset="1" stop-color="#C9A227" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="stoneBase" x1="0" y1="0" x2="0.3" y2="1">
-      <stop offset="0" stop-color="#2B3B4E"/>
-      <stop offset="1" stop-color="#121E2C"/>
-    </linearGradient>
-    <!-- the flattening ramp that guarantees headline legibility -->
-    <linearGradient id="quiet" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#08111F"/>
-      <stop offset="0.30" stop-color="#08111F" stop-opacity="0.96"/>
-      <stop offset="0.52" stop-color="#08111F" stop-opacity="0.68"/>
-      <stop offset="0.78" stop-color="#08111F" stop-opacity="0.20"/>
-      <stop offset="1" stop-color="#08111F" stop-opacity="0.06"/>
+    <radialGradient id="sun" cx="0.62" cy="0.06" r="0.52">
+      <stop offset="0" stop-color="#FFF3D2" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#FFF3D2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="nearPier" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0E1B29"/>
+      <stop offset="1" stop-color="#25384F"/>
     </linearGradient>
     <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#08111F" stop-opacity="0"/>
-      <stop offset="1" stop-color="#08111F" stop-opacity="0.86"/>
+      <stop offset="0" stop-color="#0A1422" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0A1422" stop-opacity="0.55"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.74" cy="0.16" r="0.42">
-      <stop offset="0" stop-color="#F0DDA6" stop-opacity="0.15"/>
-      <stop offset="1" stop-color="#F0DDA6" stop-opacity="0"/>
-    </radialGradient>
   </defs>
 
   <rect width="2560" height="1440" fill="url(#sky)"/>
-  <rect width="2560" height="1440" fill="url(#glow)"/>
+  <rect width="2560" height="1440" fill="url(#sun)"/>
 
-  <!-- DISTANT PLANE — soft, low contrast, reads as depth not detail -->
-  <g opacity="0.5">
-    <rect x="1216" y="392" width="196" height="1048" fill="url(#towerB)"/>
-    <rect x="1444" y="470" width="150" height="970" fill="url(#towerB)"/>
-    <rect x="2288" y="430" width="180" height="1010" fill="url(#towerB)"/>
-  </g>
+  <!-- distant volume -->
+  <polygon points="790,1440 900,520 1120,566 1150,1440" fill="#22374F" opacity="0.75"/>
+  <polygon points="900,520 1120,566 1120,700 900,652" fill="#2E4A68" opacity="0.6"/>
 
-  <!-- MID PLANE — the principal volume, offset right of centre -->
+  <!-- PRINCIPAL FACADE -->
   <g>
-    <rect x="1596" y="196" width="470" height="1244" fill="url(#towerA)"/>
-    <!-- glazing bays -->
-    <g>
-      <rect x="1640" y="246" width="126" height="1194" fill="url(#glazing)"/>
-      <rect x="1794" y="246" width="126" height="1194" fill="url(#glazing)"/>
-      <rect x="1948" y="246" width="82"  height="1194" fill="url(#glazing)"/>
-    </g>
-    <!-- mullions: the vertical rhythm that makes it architecture, not a box -->
-    <g fill="#3E6189" opacity="0.42">
-      <rect x="1682" y="246" width="3" height="1194"/>
-      <rect x="1724" y="246" width="3" height="1194"/>
-      <rect x="1836" y="246" width="3" height="1194"/>
-      <rect x="1878" y="246" width="3" height="1194"/>
-      <rect x="1990" y="246" width="3" height="1194"/>
-    </g>
-    <!-- floor slabs -->
-    <g fill="#0B1726" opacity="0.66">
-      <rect x="1596" y="386" width="470" height="8"/>
-      <rect x="1596" y="562" width="470" height="8"/>
-      <rect x="1596" y="738" width="470" height="8"/>
-      <rect x="1596" y="914" width="470" height="8"/>
-      <rect x="1596" y="1090" width="470" height="8"/>
-      <rect x="1596" y="1266" width="470" height="8"/>
-    </g>
-    <!-- parapet -->
-    <rect x="1578" y="182" width="506" height="20" fill="#2C4462"/>
+    <polygon points="1240.0,70.0 1391.8,107.0 1161.7,1427.3 980.0,1440.0" fill="#41688F"/>
+    <polygon points="1391.8,107.0 1533.0,141.5 1330.8,1415.6 1161.7,1427.3" fill="#2B4767"/>
+    <polygon points="1533.0,141.5 1665.0,173.7 1488.8,1404.6 1330.8,1415.6" fill="#4B749C"/>
+    <polygon points="1665.0,173.7 1787.8,203.6 1635.7,1394.3 1488.8,1404.6" fill="#31527A"/>
+    <polygon points="1787.8,203.6 1901.3,231.3 1771.6,1384.9 1635.7,1394.3" fill="#3A5E86"/>
+    <polygon points="1901.3,231.3 2005.6,256.8 1896.4,1376.2 1771.6,1384.9" fill="#284460"/>
+    <polygon points="2005.6,256.8 2100.6,279.9 2010.2,1368.3 1896.4,1376.2" fill="#456C93"/>
+    <polygon points="2100.6,279.9 2187.8,301.2 2114.4,1361.0 2010.2,1368.3" fill="#2E4E72"/>
+    <polygon points="2187.8,301.2 2265.6,320.2 2207.7,1354.5 2114.4,1361.0" fill="#3D6289"/>
+    <polygon points="2265.6,320.2 2335.6,337.3 2291.4,1348.7 2207.7,1354.5" fill="#2A4663"/>
+    <polygon points="2335.6,337.3 2397.6,352.4 2365.7,1343.5 2291.4,1348.7" fill="#48709A"/>
+    <polygon points="2397.6,352.4 2451.8,365.6 2430.4,1339.0 2365.7,1343.5" fill="#32557C"/>
+    <polygon points="2451.8,365.6 2498.0,376.9 2485.7,1335.2 2430.4,1339.0" fill="#3B5F88"/>
+    <polygon points="2498.0,376.9 2533.6,385.6 2528.4,1332.2 2485.7,1335.2" fill="#294560"/>
+    <polygon points="2533.6,385.6 2560.0,392.0 2560.0,1330.0 2528.4,1332.2" fill="#446B92"/>
+    <!-- sky reflected down the upper glazing -->
+    <polygon points="1240.0,70.0 2560.0,392.0 2560.0,786.0 1130.8,645.4" fill="url(#skyRefl)"/>
+    <polygon points="1240.0,70.0 1248.0,72.0 990.0,1440.0 980.0,1440.0" fill="#16283C" opacity="0.85"/>
+    <polygon points="1391.8,107.0 1399.8,109.0 1171.7,1427.3 1161.7,1427.3" fill="#16283C" opacity="0.85"/>
+    <polygon points="1533.0,141.5 1541.0,143.5 1340.8,1415.6 1330.8,1415.6" fill="#16283C" opacity="0.85"/>
+    <polygon points="1665.0,173.7 1673.0,175.7 1498.8,1404.6 1488.8,1404.6" fill="#16283C" opacity="0.85"/>
+    <polygon points="1787.8,203.6 1795.8,205.6 1645.7,1394.3 1635.7,1394.3" fill="#16283C" opacity="0.85"/>
+    <polygon points="1901.3,231.3 1909.3,233.3 1781.6,1384.9 1771.6,1384.9" fill="#16283C" opacity="0.85"/>
+    <polygon points="2005.6,256.8 2013.6,258.8 1906.4,1376.2 1896.4,1376.2" fill="#16283C" opacity="0.85"/>
+    <polygon points="2100.6,279.9 2108.6,281.9 2020.2,1368.3 2010.2,1368.3" fill="#16283C" opacity="0.85"/>
+    <polygon points="2187.8,301.2 2195.8,303.2 2124.4,1361.0 2114.4,1361.0" fill="#16283C" opacity="0.85"/>
+    <polygon points="2265.6,320.2 2273.6,322.2 2217.7,1354.5 2207.7,1354.5" fill="#16283C" opacity="0.85"/>
+    <polygon points="2335.6,337.3 2343.6,339.3 2301.4,1348.7 2291.4,1348.7" fill="#16283C" opacity="0.85"/>
+    <polygon points="2397.6,352.4 2405.6,354.4 2375.7,1343.5 2365.7,1343.5" fill="#16283C" opacity="0.85"/>
+    <polygon points="2451.8,365.6 2459.8,367.6 2440.4,1339.0 2430.4,1339.0" fill="#16283C" opacity="0.85"/>
+    <polygon points="2498.0,376.9 2506.0,378.9 2495.7,1335.2 2485.7,1335.2" fill="#16283C" opacity="0.85"/>
+    <polygon points="2533.6,385.6 2541.6,387.6 2538.4,1332.2 2528.4,1332.2" fill="#16283C" opacity="0.85"/>
+    <polygon points="2560.0,392.0 2568.0,394.0 2570.0,1330.0 2560.0,1330.0" fill="#16283C" opacity="0.85"/>
+    <polygon points="1220.5,172.8 2560.0,462.4 2560.0,475.4 1220.5,187.8" fill="#101F31" opacity="0.88"/>
+    <polygon points="1197.1,296.1 2560.0,546.8 2560.0,559.8 1197.1,311.1" fill="#101F31" opacity="0.88"/>
+    <polygon points="1171.1,433.1 2560.0,640.6 2560.0,653.6 1171.1,448.1" fill="#101F31" opacity="0.88"/>
+    <polygon points="1142.5,583.8 2560.0,743.8 2560.0,756.8 1142.5,598.8" fill="#101F31" opacity="0.88"/>
+    <polygon points="1111.3,748.1 2560.0,856.3 2560.0,869.3 1111.3,763.1" fill="#101F31" opacity="0.88"/>
+    <polygon points="1077.5,926.3 2560.0,978.3 2560.0,991.3 1077.5,941.3" fill="#101F31" opacity="0.88"/>
+    <polygon points="1041.1,1118.0 2560.0,1109.6 2560.0,1122.6 1041.1,1133.0" fill="#101F31" opacity="0.88"/>
+    <polygon points="1002.1,1323.5 2560.0,1250.3 2560.0,1263.3 1002.1,1338.5" fill="#101F31" opacity="0.88"/>
+    <polygon points="1224.0,40.0 2560.0,366.0 2560.0,392.0 1240.0,70.0" fill="#3D5C80"/>
   </g>
 
-  <!-- FOREGROUND STONE PIER — material contrast, anchors the right edge -->
-  <g>
-    <path d="M2170 300 L2560 246 L2560 1440 L2170 1440 Z" fill="url(#stoneBase)"/>
-    <g fill="#0A1523" opacity="0.5">
-      <path d="M2170 620 L2560 578 L2560 590 L2170 632 Z"/>
-      <path d="M2170 940 L2560 908 L2560 920 L2170 952 Z"/>
-      <path d="M2170 1260 L2560 1238 L2560 1250 L2170 1272 Z"/>
-    </g>
-    <!-- the single warm rake of late-afternoon light on one edge -->
-    <path d="M2170 300 L2246 290 L2246 1440 L2170 1440 Z" fill="url(#rake)"/>
-    <rect x="2170" y="300" width="4" height="1140" fill="#E8C766" opacity="0.30"/>
-  </g>
+  <!-- near vertical edge catching late light -->
+  <polygon points="1224.0,40.0 1240.0,70.0 980.0,1440.0 946.0,1440.0" fill="url(#nearPier)"/>
+  <polygon points="1240.0,70.0 1270.0,77.0 1014.0,1440.0 980.0,1440.0" fill="url(#rake)"/>
+  <polygon points="1240.0,70.0 1247.0,72.0 987.0,1440.0 980.0,1440.0" fill="#FFE9A8" opacity="0.72"/>
 
-  <!-- the lit vertical edge of the principal volume -->
-  <rect x="2062" y="196" width="5" height="1244" fill="#D8B450" opacity="0.22"/>
-
-  <!-- atmosphere and seating -->
-  <rect y="980" width="2560" height="460" fill="url(#ground)"/>
-  <rect width="2560" height="1440" fill="url(#quiet)"/>
+  <rect y="1080" width="2560" height="360" fill="url(#ground)"/>
 </svg>

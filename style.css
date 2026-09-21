@@ -5978,10 +5978,10 @@ body.menu-open .doc-bar { visibility: hidden; }
 /* --- 1. TOKENS ----------------------------------------------------------- */
 :root {
   /* Fluid editorial type scale — no breakpoint-hardcoded type. */
-  --fs-statement: clamp(2.75rem, 7.2vw, 7.5rem);   /*  44 → 120px */
-  --fs-h1:        clamp(2.5rem,  5.4vw, 5.75rem);  /*  40 →  92px */
-  --fs-h2:        clamp(2.05rem, 3.6vw, 4rem);     /*  33 →  64px */
-  --fs-h3:        clamp(1.35rem, 1.9vw, 1.9rem);   /*  22 →  30px */
+  --fs-statement: clamp(1.9rem, 3.2vw, 3.5rem);    /*  30 →  56px */
+  --fs-h1:        clamp(2.15rem, 3.5vw, 3.6rem);   /*  34 →  58px */
+  --fs-h2:        clamp(1.6rem,  2.4vw, 2.5rem);   /*  26 →  40px */
+  --fs-h3:        clamp(1.15rem, 1.4vw, 1.4rem);   /*  18 →  22px */
   --fs-lead:      clamp(1.15rem, 1.5vw, 1.5rem);   /*  18 →  24px */
   --fs-body:      clamp(1.0625rem, 1.1vw, 1.25rem);/*  17 →  20px */
   --fs-label:     clamp(0.6875rem, 0.8vw, 0.8125rem); /* 11 → 13px */
@@ -6025,33 +6025,7 @@ body.menu-open .doc-bar { visibility: hidden; }
    must clear 4.5:1. The light field's --text-muted (#6B7688) measures 4.18
    on ivory, so these labels get their own token rather than the muted grey. */
 :root { --label-muted: rgba(255, 255, 255, 0.62); }
-.sec--light, .home .packages { --label-muted: #5A6577; }
-
-/* The offers section carries the same light field by selector rather than by
-   class: `class="packages" id="solutions"` is a literal under QA contract
-   (`editorial-production.test.mjs` reads it to prove narrative order), so the
-   class attribute must stay exactly as it is. */
-.home .packages {
-  --text-primary: #16233C;
-  --text-secondary: #3D4A5F;
-  --text-muted: #6B7688;
-  --glass-fill: rgba(255, 255, 255, 0.78);
-  --glass-fill-strong: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(18, 28, 46, 0.12);
-  --glass-border-gold: rgba(140, 106, 26, 0.38);
-  --border-hairline: rgba(18, 28, 46, 0.11);
-  --border-gold: rgba(140, 106, 26, 0.5);
-  --accent: #8C6A1A;
-  --accent-bright: #6F5312;
-  --micro-label-gold: #765814;
-  --gold-500: #8C6A1A;
-  --focus-ring: #6F5312;
-  --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
-  --elev-2: 0 14px 34px rgba(16, 27, 44, 0.10);
-  background: var(--ivory-200);
-  color: var(--text-secondary);
-  border-top: 1px solid rgba(18, 28, 46, 0.08);
-}
+.sec--light { --label-muted: #5A6577; }
 
 /* Seam between a light and a dark field: a short tonal ramp rather than a
    hard edge, so the page changes temperature instead of snapping. */
@@ -6070,8 +6044,8 @@ body.menu-open .doc-bar { visibility: hidden; }
 
 @media (max-width: 640px) {
   :root {
-    --fs-h2: clamp(1.85rem, 7.2vw, 2.4rem);
-    --fs-statement: clamp(2.5rem, 12vw, 3.5rem);
+    --fs-h2: clamp(1.5rem, 6vw, 1.85rem);
+    --fs-statement: clamp(1.75rem, 8vw, 2.4rem);
   }
 }
 
@@ -6105,12 +6079,21 @@ body.menu-open .doc-bar { visibility: hidden; }
 /* --- 4. TYPOGRAPHY -------------------------------------------------------
    Significantly larger headings, fewer words per heading, generous leading,
    controlled measure. Same two families — Playfair Display + Manrope. */
+/* FINMENTOR is an advisory firm, not a magazine. The homepage speaks in the
+   neutral grotesk it already loads; the serif is reserved for long-form
+   article pages, where it belongs. Hierarchy comes from scale, weight and
+   spacing — never from a decorative face. */
+.home .section-title,
+.home h2,
+.home h3 {
+  font-family: var(--font-sans);
+}
 .home .section-title {
   font-size: var(--fs-h2);
-  font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.025em;
-  max-width: 20ch;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  max-width: 24ch;
   text-wrap: balance;
 }
 .home .section-lead {
@@ -6127,11 +6110,16 @@ body.menu-open .doc-bar { visibility: hidden; }
 }
 .home .section-head .section-title { margin-top: var(--sp-4); }
 
-/* --- 5. HERO — one message, photographic field, no dashboards ------------ */
+/* --- 5. HERO — architecture at viewport scale ----------------------------
+   The photograph is the hero, not a texture behind it: it holds the full
+   viewport and supplies the perceived scale that used to be asked of empty
+   space. Copy sits in one restrained column over a directional scrim, sized
+   so the architecture is never reduced to a backdrop. */
 .hero--editorial {
-  min-height: 92vh;
-  min-height: 92svh;
+  min-height: 100vh;
+  min-height: 100svh;
   background: var(--navy-900);
+  align-items: flex-end;
 }
 .hero--editorial .hero__media {
   position: absolute;
@@ -6145,86 +6133,99 @@ body.menu-open .doc-bar { visibility: hidden; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 72% 38%;
+  object-position: 68% 42%;
   display: block;
   animation: heroSettle var(--dur-image) var(--ease-editorial) 80ms both;
 }
 @keyframes heroSettle {
-  from { transform: scale(1.028); }
+  from { transform: scale(1.035); }
   to   { transform: scale(1); }
 }
 
-/* Scrim: text contrast is measured against the scrimmed composite, never the
-   raw image. Horizontal ramp protects the headline column; vertical ramp
-   seats the header and the scroll cue. */
+/* Scrim: contrast is measured against the scrimmed composite, never the raw
+   image. Weighted to the lower left, so the upper right of the facade stays
+   legible as architecture. */
 .hero--editorial .hero__scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to right,
-      rgba(8, 17, 31, 0.95) 0%,
-      rgba(8, 17, 31, 0.88) 36%,
-      rgba(8, 17, 31, 0.58) 66%,
-      rgba(8, 17, 31, 0.34) 100%),
+    linear-gradient(100deg,
+      rgba(8, 17, 31, 0.94) 0%,
+      rgba(8, 17, 31, 0.88) 26%,
+      rgba(8, 17, 31, 0.52) 46%,
+      rgba(8, 17, 31, 0.14) 64%,
+      rgba(8, 17, 31, 0) 82%),
     linear-gradient(to bottom,
-      rgba(8, 17, 31, 0.62) 0%,
-      rgba(8, 17, 31, 0.12) 28%,
-      rgba(8, 17, 31, 0.10) 62%,
-      rgba(8, 17, 31, 0.78) 100%);
+      rgba(8, 17, 31, 0.58) 0%,
+      rgba(8, 17, 31, 0) 22%,
+      rgba(8, 17, 31, 0) 64%,
+      rgba(8, 17, 31, 0.62) 100%);
 }
 
 .hero--editorial .hero__content {
   position: relative;
   z-index: 3;
   max-width: var(--container-editorial);
-  padding-block: clamp(96px, 12vh, 176px);
+  padding-block: clamp(120px, 16vh, 200px) clamp(96px, 13vh, 168px);
 }
 .hero--editorial .hero__kicker {
-  margin-bottom: clamp(24px, 3vw, 44px);
+  position: relative;
+  margin-bottom: clamp(20px, 2.2vw, 32px);
+  padding-left: 52px;
   font-size: var(--fs-label);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   font-weight: 600;
   color: var(--micro-label-gold);
 }
-.hero--editorial .hero__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-h1);
-  font-weight: 600;
-  line-height: 1.0;
-  letter-spacing: -0.03em;
-  max-width: 15ch;
+/* one precise gold rule — the accent behaves like a measurement mark */
+.hero--editorial .hero__kicker::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 36px;
+  height: 1px;
+  background: var(--gold-500);
 }
-/* The large supporting statement — the second voice, not a second headline. */
+.hero--editorial .hero__title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  max-width: 17ch;
+}
+/* The supporting statement — three deliberate lines, weight-led not size-led. */
 .hero--editorial .hero__statement {
-  margin-top: clamp(28px, 3.4vw, 52px);
-  font-family: var(--font-display);
-  font-size: clamp(1.45rem, 2.5vw, 2.6rem);
-  font-weight: 400;
-  line-height: 1.24;
-  letter-spacing: -0.015em;
+  margin-top: clamp(22px, 2.4vw, 34px);
+  font-family: var(--font-sans);
+  font-size: clamp(1.05rem, 1.35vw, 1.4rem);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
   color: var(--text-primary);
-  max-width: 20ch;
+  max-width: 26ch;
 }
 .hero--editorial .hero__statement span { display: block; }
 .hero--editorial .hero__subtitle {
-  margin-top: clamp(24px, 2.6vw, 36px);
-  font-size: var(--fs-body);
-  line-height: 1.65;
-  max-width: 46ch;
+  margin-top: clamp(18px, 2vw, 28px);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  max-width: 44ch;
   color: var(--text-secondary);
 }
 .hero--editorial .hero__actions {
-  margin-top: clamp(36px, 4vw, 60px);
-  gap: var(--sp-4) var(--sp-5);
+  margin-top: clamp(30px, 3.2vw, 46px);
+  gap: var(--sp-4);
 }
 .hero--editorial .hero__trust-line {
-  margin-top: clamp(28px, 3vw, 44px);
-  font-size: 0.9rem;
+  margin-top: clamp(26px, 2.8vw, 40px);
+  font-size: 0.85rem;
   color: var(--text-muted);
-  max-width: 56ch;
+  max-width: 58ch;
 }
 
 @media (max-width: 860px) {
@@ -6351,7 +6352,7 @@ body.menu-open .doc-bar { visibility: hidden; }
 }
 .pillar__title {
   margin: clamp(20px, 2vw, 32px) 0 0;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--fs-h3);
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -6461,7 +6462,7 @@ body.menu-open .doc-bar { visibility: hidden; }
 .allocation__unit {
   display: block;
   margin-top: clamp(12px, 1.4vw, 20px);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(2.4rem, 4vw, 4rem);
   line-height: 1;
   letter-spacing: -0.03em;
@@ -6506,7 +6507,7 @@ body.menu-open .doc-bar { visibility: hidden; }
   opacity: 0.75;
 }
 .allocation__name {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: clamp(1.15rem, 1.7vw, 1.6rem);
   line-height: 1.2;
   letter-spacing: -0.015em;
@@ -6641,7 +6642,7 @@ body.menu-open .doc-bar { visibility: hidden; }
   top: calc(var(--header-h) + 24px);
 }
 .home .industry-card__top h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--fs-h3);
   font-weight: 600;
   line-height: 1.12;
@@ -6773,6 +6774,250 @@ body.menu-open .doc-bar { visibility: hidden; }
   letter-spacing: 0.01em;
 }
 
+/* ==========================================================================
+   VISUAL CHECKPOINT — ART DIRECTION CORRECTION
+   Composition first; background colour follows composition, never leads it.
+   Scope: header, hero, «Финансовый хаос», «Прибыль ≠ деньги».
+   Everything below overrides the earlier editorial pass by cascade order.
+   ========================================================================== */
+
+/* --- C1. HEADER — institutional, quiet, out of the way ------------------- */
+.home .header {
+  border-bottom: 0;
+  background: transparent;
+  transition: background-color 420ms var(--ease-editorial),
+              backdrop-filter 420ms var(--ease-editorial),
+              border-color 420ms var(--ease-editorial);
+}
+.home .header.is-scrolled,
+.home .header.is-solid {
+  background: rgba(8, 17, 31, 0.92);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.home .nav__link {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.76);
+}
+.home .nav__link:hover { color: #fff; }
+.home .header__cta {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* --- C2. «ФИНАНСОВЫЙ ХАОС» — one composition, not eight floating rows ----
+   Left: the claim and its conclusion. Right: the evidence, as a compact
+   numbered index. The light field is here because this section is eight
+   sentences of reading, not because the rhythm asked for a light band. */
+.home .chaos { background: var(--ivory-200); }
+.home .chaos > .container {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  column-gap: clamp(40px, 6vw, 130px);
+  row-gap: clamp(32px, 4vw, 56px);
+  align-items: start;
+}
+.home .chaos .section-head {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 0;
+  position: sticky;
+  top: calc(var(--header-h) + 40px);
+}
+.home .chaos .section-lead { max-width: 34ch; }
+.home .chaos__grid {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  grid-template-columns: 1fr;
+  margin-top: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .chaos-card {
+  padding: clamp(15px, 1.5vw, 20px) 0;
+  gap: clamp(16px, 1.4vw, 24px);
+  border-top: 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.home .chaos-card:last-child { border-bottom: 0; }
+.home .chaos-card::before { padding-top: 3px; }
+.home .chaos-card__text {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+/* the conclusion closes the left column — it is the section's verdict */
+/* The verdict sits immediately under the claim so column one reads as one
+   block. Pushed to the bottom of the row it left a dead panel of ivory —
+   empty space has to be a margin around something, not a gap inside it. */
+.home .chaos__verdict {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  margin: 0;
+  padding-top: clamp(26px, 2.8vw, 40px);
+  border-top: 1px solid var(--border-gold);
+  max-width: 24ch;
+  font-family: var(--font-sans);
+  font-size: clamp(1.3rem, 1.9vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  color: var(--ink-900);
+  text-align: left;
+}
+/* The shared `.text-gold` clips a light gradient into the glyphs, which on
+   ivory washes the top of every letter out. On a light field the accent is a
+   solid contrast-checked bronze instead. */
+.home .chaos__verdict .text-gold {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--accent);
+}
+.home .chaos__haze { display: none; }
+/* Decorations that belonged to the dark card grid and read as smudges on a
+   light field: the gold haze above the section, the glow under the verdict
+   and the centred "bridge" rule that pointed into the old layout. */
+.home .chaos::after,
+.home .chaos__verdict::after,
+.home .chaos__bridge { display: none; }
+/* The page-local <style> tints indices 05–08 blue to group the old cards and
+   matches `.home .chaos-card::before` exactly, so it wins on source order.
+   One sequence, one colour: the index is notation, not a category key. */
+.home .chaos-card:nth-child(n+5)::before,
+.home .chaos-card:nth-child(n+5)::after { background: none; color: var(--accent); }
+@media (max-width: 900px) {
+  .home .chaos > .container { grid-template-columns: 1fr; }
+  .home .chaos .section-head { position: static; grid-column: 1; grid-row: 1; }
+  .home .chaos__grid { grid-column: 1; grid-row: 2; }
+  .home .chaos__verdict { grid-column: 1; grid-row: 3; max-width: 30ch; }
+}
+
+/* --- C3. «ПРИБЫЛЬ ≠ ДЕНЬГИ» — statement anchored by a capital flow -------
+   Navy, because the subject is capital and the dark field carries the
+   institutional weight. The old version floated one line in a huge empty
+   canvas; the statement now sits opposite a real capital-flow diagram. */
+.home .statement-screen {
+  display: block;
+  min-height: 0;
+  background: var(--navy-900);
+  padding-block: var(--sp-section);
+}
+/* Explicit rows: the flow diagram spans both, so without them the auto rows
+   stretch and tear the statement away from its own footnote. */
+.home .statement-screen > .container {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  grid-template-areas:
+    "text  chain"
+    "note  chain";
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(40px, 7vw, 140px);
+  row-gap: clamp(26px, 3vw, 40px);
+  align-items: start;
+}
+.home .statement-screen__text {
+  grid-area: text;
+  display: block;
+}
+.home .statement-screen__keyword {
+  font-family: var(--font-sans);
+  font-size: var(--fs-statement);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  opacity: 1;
+}
+.home .statement-screen__keyword.reveal.is-visible { opacity: 1; }
+.home .statement-screen__question {
+  margin-top: clamp(16px, 1.6vw, 24px);
+  font-family: var(--font-sans);
+  font-size: clamp(1.15rem, 1.5vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+  max-width: 24ch;
+  color: var(--accent-bright);
+}
+.home .statement-screen__note {
+  grid-area: note;
+  margin: 0;
+  max-width: 44ch;
+  font-size: 1.0625rem;
+  line-height: 1.66;
+  color: var(--text-secondary);
+}
+
+/* The capital flow — the visual anchor for the right half. Vertical, with a
+   drawn spine and small financial notation. No card, no box, no shadow. */
+.home .capital-chain {
+  grid-area: chain;
+  align-self: start;
+  display: block;
+  position: relative;
+  margin: 0;
+  padding-left: clamp(26px, 2.4vw, 42px);
+}
+.home .capital-chain::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--gold-500), rgba(201, 162, 39, 0.12));
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 1100ms var(--ease-editorial);
+}
+.home .capital-chain.is-visible::before { transform: scaleY(1); }
+.home .capital-chain__node {
+  position: relative;
+  display: block;
+  padding: clamp(16px, 1.7vw, 26px) 0;
+  border-bottom: 1px solid var(--border-hairline);
+  font-family: var(--font-sans);
+  font-size: clamp(1.05rem, 1.45vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--text-primary);
+}
+.home .capital-chain__node::before { content: none; }
+/* the tick that ties each stage to the spine */
+.home .capital-chain__node::after {
+  content: "";
+  position: absolute;
+  left: calc(clamp(26px, 2.4vw, 42px) * -1);
+  top: 50%;
+  width: clamp(14px, 1.3vw, 22px);
+  height: 1px;
+  background: var(--border-gold);
+}
+.home .capital-chain__node:first-child { padding-top: 0; }
+.home .capital-chain__node:first-child::after { top: 0.6em; }
+.home .capital-chain__node:last-child {
+  border-bottom: 0;
+  color: var(--accent-bright);
+}
+@media (max-width: 900px) {
+  .home .statement-screen > .container {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+    grid-template-rows: auto;
+  }
+  .home .statement-screen__text,
+  .home .statement-screen__note,
+  .home .capital-chain { grid-area: auto; grid-column: 1; }
+  .home .capital-chain { margin-top: clamp(8px, 2vw, 16px); }
+}
+
 /* --- 12. REDUCED MOTION (layer-local) ------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .hero--editorial .hero__media img { animation: none; transform: none; }
@@ -6787,6 +7032,7 @@ body.menu-open .doc-bar { visibility: hidden; }
   }
   .editorial-band__figure img { transform: none; transition: none; }
   .allocation__route::before { transform: scaleX(1); transition: none; }
+  .home .capital-chain::before { transform: scaleY(1); transition: none; }
 }
 
 /* --- reduced-motion: no hover displacement -------------------------------
