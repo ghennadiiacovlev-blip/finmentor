@@ -155,7 +155,8 @@ check('article canonical and RU/RO alternate metadata survive the presentation p
 
 check('Materials RU/RO use shared CSS without page-local design drift', () => {
   for (const [file, html] of [['materials.html', ruMaterials], ['ro/materials.html', roMaterials]]) {
-    assert(html.includes('<body class="materials-page">'), file + ' body marker missing');
+    // the page keeps its own marker; fm-shell is the shared site shell added in the finalization pass
+    assert(/<body class="materials-page(?: fm-shell)?">/.test(html), file + ' body marker missing');
     assert(!/<style>[\s\S]*?\.materials-nav/.test(html), file + ' still duplicates Materials CSS');
   }
 });
@@ -173,10 +174,18 @@ check('inner-page navigation uses calm desktop spacing and the approved drawer b
   assert(/\.doc-bar \.burger\s*\{\s*display:\s*block/.test(lock), 'approved burger is not activated');
 });
 
+// Finalization pass: Materials moved from the reading header onto the site header (owner-approved).
 check('RU and RO Materials navigation retain the required hierarchy and language switch', () => {
-  for (const text of ['На главную', 'Материалы', 'Финансовый рентген', 'Обсудить задачу']) assert(ruMaterials.includes(text), 'RU nav lost ' + text);
-  for (const text of ['Pagina principală', 'Materiale', 'Test financiar FINMENTOR', 'Discutați situația']) assert(roMaterials.includes(text), 'RO nav lost ' + text);
-  assert(count(ruMaterials, /data-lang-switch=/g) === 2 && count(roMaterials, /data-lang-switch=/g) === 2, 'language switch parity lost');
+  for (const [name, html, texts] of [
+    ['RU', ruMaterials, ['Материалы', 'Финансовый рентген', 'Обсудить задачу']],
+    ['RO', roMaterials, ['Materiale', 'Test financiar FINMENTOR', 'Discutați situația']]
+  ]) {
+    const header = html.slice(html.indexOf('<header class="header'), html.indexOf('</header>') + 9);
+    const drawer = html.slice(html.indexOf('<div class="mobile-menu"'), html.indexOf('<main'));
+    assert(/<a class="logo" href="index\.html"/.test(header), name + ' header lost its home route');
+    for (const text of texts) assert(html.includes(text), name + ' nav lost ' + text);
+    assert(count(header, /data-lang-switch=/g) === 2 && count(drawer, /data-lang-switch=/g) === 2, name + ' language switch parity lost');
+  }
 });
 
 check('all four legal pages use the shared FINMENTOR legal design system', () => {

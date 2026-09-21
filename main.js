@@ -469,7 +469,7 @@
       var STEPS = [
         ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 70],
         ['.capital-cycle__stage', 110, 60],
-        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row', 80, 45]
+        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 45]
       ];
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [

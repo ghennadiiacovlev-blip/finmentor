@@ -6669,17 +6669,17 @@ body.menu-open .doc-bar { visibility: hidden; }
 .home .sec--seam-top > * { position: relative; z-index: 1; }
 
 /* --- 11. NAVIGATION — calmer, more institutional ------------------------- */
-.home .header {
+:is(.home, .fm-shell) .header {
   border-bottom: 0;
   transition: background-color var(--dur-base) ease,
               height var(--dur-base) var(--ease-editorial),
               border-color var(--dur-base) ease;
 }
-.home .header.is-scrolled,
-.home .header.is-solid {
+:is(.home, .fm-shell) .header.is-scrolled,
+:is(.home, .fm-shell) .header.is-solid {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
-.home .nav__link {
+:is(.home, .fm-shell) .nav__link {
   font-size: 0.9rem;
   letter-spacing: 0.01em;
 }
@@ -6692,29 +6692,29 @@ body.menu-open .doc-bar { visibility: hidden; }
    ========================================================================== */
 
 /* --- C1. HEADER — institutional, quiet, out of the way ------------------- */
-.home .header {
+:is(.home, .fm-shell) .header {
   border-bottom: 0;
   background: transparent;
   transition: background-color 420ms var(--ease-editorial),
               backdrop-filter 420ms var(--ease-editorial),
               border-color 420ms var(--ease-editorial);
 }
-.home .header.is-scrolled,
-.home .header.is-solid {
+:is(.home, .fm-shell) .header.is-scrolled,
+:is(.home, .fm-shell) .header.is-solid {
   background: rgba(8, 17, 31, 0.92);
   -webkit-backdrop-filter: saturate(140%) blur(14px);
   backdrop-filter: saturate(140%) blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
-.home .nav__link {
+:is(.home, .fm-shell) .nav__link {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.76);
 }
-.home .nav__link:hover { color: #fff; }
-.home .header__cta {
+:is(.home, .fm-shell) .nav__link:hover { color: #fff; }
+:is(.home, .fm-shell) .header__cta {
   font-size: 0.72rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -7788,20 +7788,20 @@ body.menu-open .doc-bar { visibility: hidden; }
    Seven uppercase items at 0.14em tracking formed a dense band across the
    top of every screen, and one of them duplicated the CTA beside it. The
    duplicate is gone from the markup; what remains is set to breathe. */
-.home .nav { gap: clamp(20px, 2vw, 34px); }
-.home .nav__link {
+:is(.home, .fm-shell) .nav { gap: clamp(20px, 2vw, 34px); }
+:is(.home, .fm-shell) .nav__link {
   font-size: 0.75rem;
   letter-spacing: 0.075em;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.72);
 }
-.home .nav__link:hover { color: #fff; }
+:is(.home, .fm-shell) .nav__link:hover { color: #fff; }
 
 /* The header CTA was the most saturated object on every viewport — a gold
    flood in a system where gold is supposed to mean precision. It becomes a
    gold rule with gold type, and fills only on intent. The solid gold CTA
    stays where the conversion weight belongs: in the hero. */
-.home .header__cta.btn--primary {
+:is(.home, .fm-shell) .header__cta.btn--primary {
   background: none;
   border: 1px solid var(--border-gold);
   color: var(--gold-400);
@@ -7811,7 +7811,7 @@ body.menu-open .doc-bar { visibility: hidden; }
               color var(--dur-base) ease,
               border-color var(--dur-base) ease;
 }
-.home .header__cta.btn--primary:hover {
+:is(.home, .fm-shell) .header__cta.btn--primary:hover {
   background: var(--gold-500);
   border-color: var(--gold-500);
   color: var(--navy-900);
@@ -7926,7 +7926,7 @@ body.menu-open .doc-bar { visibility: hidden; }
 /* --- Corrections found in the scene review -------------------------------- */
 /* The header sat on the 1200px measure while the hero copy sits on the 1400px
    editorial one: the logo missed the text edge and the nav had no air. */
-.home .header__inner { max-width: var(--container-editorial); }
+:is(.home, .fm-shell) .header__inner { max-width: var(--container-editorial); }
 /* The chaos heading was sticky; with the verdict in the same column it slid
    over the verdict as the section scrolled. */
 .home .chaos .section-head { position: static; }
@@ -8001,19 +8001,22 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .industries__asset-callout,
   .home .industries__final { grid-column: 1; }
 }
+/* Over the final PHOTO 02 the cycle numerals (0.8 opacity) dipped below 4.5:1 at 1024px; full
+   opacity is the smallest change that clears 4.5:1 (no colour or scrim change). */
+.home .capital-cycle__index { opacity: 1; }
 /* the note under the decision paths sat directly on the last point */
 .home .consult .contact-bot-note { margin-top: clamp(18px, 2vw, 26px); }
 
 /* --- Header navigation with two restrained disclosures -------------------- */
-.home .nav { align-items: center; }
-.home .nav__link[aria-current="page"] { color: var(--gold-400); }
-.home .nav__item {
+:is(.home, .fm-shell) .nav { align-items: center; }
+:is(.home, .fm-shell) .nav__link[aria-current="page"] { color: var(--gold-400); }
+:is(.home, .fm-shell) .nav__item {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 2px;
 }
-.home .nav__toggle {
+:is(.home, .fm-shell) .nav__toggle {
   position: relative;
   width: 24px;
   height: 24px;
@@ -8025,7 +8028,7 @@ body.menu-open .doc-bar { visibility: hidden; }
   cursor: pointer;
   border-radius: 2px;
 }
-.home .nav__toggle::before {
+:is(.home, .fm-shell) .nav__toggle::before {
   content: "";
   position: absolute;
   left: 50%; top: 50%;
@@ -8035,10 +8038,10 @@ body.menu-open .doc-bar { visibility: hidden; }
   border-bottom: 1px solid currentColor;
   transform: rotate(45deg);
 }
-.home .nav__toggle:hover,
-.home .nav__item.is-open .nav__toggle { color: var(--gold-400); }
-.home .nav__toggle:focus-visible { outline: 1px solid var(--gold-400); outline-offset: 2px; }
-.home .nav__panel {
+:is(.home, .fm-shell) .nav__toggle:hover,
+:is(.home, .fm-shell) .nav__item.is-open .nav__toggle { color: var(--gold-400); }
+:is(.home, .fm-shell) .nav__toggle:focus-visible { outline: 1px solid var(--gold-400); outline-offset: 2px; }
+:is(.home, .fm-shell) .nav__panel {
   position: absolute;
   top: calc(100% + 20px);
   left: -26px;
@@ -8056,33 +8059,33 @@ body.menu-open .doc-bar { visibility: hidden; }
   z-index: 5;
 }
 /* a bridge across the gap, so the pointer can travel into the panel */
-.home .nav__panel::before {
+:is(.home, .fm-shell) .nav__panel::before {
   content: "";
   position: absolute;
   left: 0; right: 0;
   top: -21px;
   height: 21px;
 }
-.home .nav__item.is-open .nav__panel,
-html:not(.nav-js) .home .nav__item:hover .nav__panel,
-html:not(.nav-js) .home .nav__item:focus-within .nav__panel {
+:is(.home, .fm-shell) .nav__item.is-open .nav__panel,
+html:not(.nav-js) :is(.home, .fm-shell) .nav__item:hover .nav__panel,
+html:not(.nav-js) :is(.home, .fm-shell) .nav__item:focus-within .nav__panel {
   opacity: 1;
   visibility: visible;
   transform: none;
   transition-delay: 0s;
 }
-.home .nav__panel--wide { min-width: 560px; }
-.home .nav__sublist { list-style: none; margin: 0; padding: 0; }
-.home .nav__sublist--cols { display: grid; grid-template-columns: 1fr 1fr; }
-.home .nav__sublink {
+:is(.home, .fm-shell) .nav__panel--wide { min-width: 560px; }
+:is(.home, .fm-shell) .nav__sublist { list-style: none; margin: 0; padding: 0; }
+:is(.home, .fm-shell) .nav__sublist--cols { display: grid; grid-template-columns: 1fr 1fr; }
+:is(.home, .fm-shell) .nav__sublink {
   display: block;
   padding: 13px 26px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   text-decoration: none;
 }
-.home .nav__sublist > li:first-child > .nav__sublink,
-.home .nav__sublist--cols > li:nth-child(-n+2) > .nav__sublink { border-top: 0; }
-.home .nav__subtitle {
+:is(.home, .fm-shell) .nav__sublist > li:first-child > .nav__sublink,
+:is(.home, .fm-shell) .nav__sublist--cols > li:nth-child(-n+2) > .nav__sublink { border-top: 0; }
+:is(.home, .fm-shell) .nav__subtitle {
   display: block;
   font-size: 0.9rem;
   font-weight: 500;
@@ -8091,28 +8094,28 @@ html:not(.nav-js) .home .nav__item:focus-within .nav__panel {
   color: rgba(255, 255, 255, 0.88);
   transition: color var(--dur-base) ease;
 }
-.home .nav__subnote {
+:is(.home, .fm-shell) .nav__subnote {
   display: block;
   margin-top: 3px;
   font-size: 0.78rem;
   line-height: 1.45;
   color: var(--text-muted);
 }
-.home .nav__sublink:hover .nav__subtitle,
-.home .nav__sublink:focus-visible .nav__subtitle { color: var(--gold-400); }
-.home .nav__sublink:focus-visible { outline: 1px solid var(--gold-400); outline-offset: -1px; }
+:is(.home, .fm-shell) .nav__sublink:hover .nav__subtitle,
+:is(.home, .fm-shell) .nav__sublink:focus-visible .nav__subtitle { color: var(--gold-400); }
+:is(.home, .fm-shell) .nav__sublink:focus-visible { outline: 1px solid var(--gold-400); outline-offset: -1px; }
 
 /* Six items and two disclosures need the full bar: below 1280px the drawer
    takes over, the language switch and the CTA stay in the bar. */
 @media (max-width: 1279px) {
-  .home .nav { display: none; }
-  .home .burger { display: block; }
+  :is(.home, .fm-shell) .nav { display: none; }
+  :is(.home, .fm-shell) .burger { display: block; }
 }
 /* The Romanian labels are the longest: between 1280 and 1359px the full bar has
    no air left, so the Romanian edition hands over to the drawer a little earlier. */
 @media (max-width: 1359px) {
-  html[lang="ro"] .home .nav { display: none; }
-  html[lang="ro"] .home .burger { display: block; }
+  html[lang="ro"] :is(.home, .fm-shell) .nav { display: none; }
+  html[lang="ro"] :is(.home, .fm-shell) .burger { display: block; }
 }
 
 /* --- Drawer: the two groups are native disclosures ----------------------- */
@@ -8196,6 +8199,55 @@ html:not(.nav-js) .home .nav__item:focus-within .nav__panel {
 .home .chaos .chaos__more { grid-column: 1; grid-row: 3; align-self: start; }
 @media (max-width: 900px) {
   .home .chaos .chaos__more { grid-row: 4; }
+}
+
+/* --- Shell pages (Materials, articles, offers): the site header and footer
+   without the homepage's dark hero. The header starts in its solid state and
+   the page makes room for it; article content is not restyled. */
+body.fm-shell { padding-top: var(--header-h); }
+/* One type system: the reading pages' display headings resolve to the same grotesk
+   as the homepage and hubs. The rules stay; only the token they read changes. */
+.fm-shell { --font-display: var(--font-sans); }
+.fm-shell .doc-hero h1 { letter-spacing: -0.025em; line-height: 1.08; }
+.fm-shell [id] { scroll-margin-top: calc(var(--header-h) + 16px); }
+
+/* --- Topic rows: an indexed sequence of existing pages (budgeting hub) ---- */
+.home .topic-rows {
+  list-style: none;
+  margin: clamp(32px, 4vw, 56px) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .topic-row {
+  display: grid;
+  grid-template-columns: clamp(40px, 4vw, 64px) minmax(0, 1fr);
+  align-items: baseline;
+  padding: clamp(20px, 2.2vw, 30px) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.home .topic-row__index {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.home .topic-row__title {
+  font-size: clamp(1.08rem, 1.4vw, 1.32rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  color: var(--ink-900);
+  text-decoration: none;
+  transition: color var(--dur-base) ease;
+}
+.home .topic-row__title:hover,
+.home .topic-row__title:focus-visible { color: var(--accent); }
+.home .topic-row__desc {
+  max-width: 72ch;
+  margin: 8px 0 0;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* --- О FINMENTOR: the methodology as an indexed sequence ----------------- */

@@ -134,19 +134,96 @@
     @media (max-width:640px){ .article-cta-actions{flex-direction:column;} .cta-btn{width:100%;} }
   </style>
 </head>
-<body class="article-page">
-  <header class="doc-bar">
-    <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Navigare">
-        <a href="index.html" class="doc-bar__hide">Pagina principală</a>
-        <a href="materials.html">Materiale</a>
-        <a href="questionnaire.html">Test financiar FINMENTOR</a>
-        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../margin-factor-analysis-flags.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="margin-factor-analysis-flags.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
-        <a href="index.html#consult" class="btn btn--primary btn--sm">Discutați situația</a>
+<body class="article-page fm-shell">
+  <header class="header is-solid" id="header">
+    <div class="container header__inner">
+      <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală">
+        <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
+      </a>
+      <nav class="nav" aria-label="Navigare principală">
+        <a href="about.html" class="nav__link">Despre FINMENTOR</a>
+        <div class="nav__item" data-nav-menu>
+          <a href="owner.html" class="nav__link">Pentru proprietar</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-owner"><span class="visually-hidden">Afișați secțiunile „Pentru proprietar”</span></button>
+          <div class="nav__panel" id="nav-owner">
+            <ul class="nav__sublist">
+              <li><a class="nav__sublink" href="owner.html#chaos"><span class="nav__subtitle">Haosul financiar</span><span class="nav__subnote">Semnele că sistemul de management lipsește</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#profit-question"><span class="nav__subtitle">Profitul ≠ bani</span><span class="nav__subnote">De ce profitul nu înseamnă încă lichiditate</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#owner-control"><span class="nav__subtitle">Trei circuite de control</span><span class="nav__subnote">Bani, rezultat, capital</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#steps"><span class="nav__subtitle">Cum lucrează FINMENTOR</span><span class="nav__subnote">Diagnostic, sistem, însoțire</span></a></li>
+              <li><a class="nav__sublink" href="business-models.html"><span class="nav__subtitle">Modele de afaceri</span><span class="nav__subnote">Un singur sistem — economii diferite</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav__item" data-nav-menu>
+          <a href="index.html#solutions" class="nav__link">Soluții</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-solutions"><span class="visually-hidden">Afișați soluțiile</span></button>
+          <div class="nav__panel nav__panel--wide" id="nav-solutions">
+            <ul class="nav__sublist nav__sublist--cols">
+              <li><a class="nav__sublink" href="business-control-system.html"><span class="nav__subtitle">Control financiar</span></a></li>
+              <li><a class="nav__sublink" href="kaznacheystvo.html"><span class="nav__subtitle">Flux de numerar și trezorerie</span></a></li>
+              <li><a class="nav__sublink" href="upravlencheskiy-pl.html"><span class="nav__subtitle">Cont de profit și pierdere (P&amp;L)</span></a></li>
+              <li><a class="nav__sublink" href="working-capital.html"><span class="nav__subtitle">Capital de lucru</span></a></li>
+              <li><a class="nav__sublink" href="budgeting-forecasting.html"><span class="nav__subtitle">Bugetare și prognoză</span></a></li>
+              <li><a class="nav__sublink" href="capex-hurdle-rate.html"><span class="nav__subtitle">Investiții de capital (CAPEX)</span></a></li>
+              <li><a class="nav__sublink" href="power-bi-dlya-sobstvennika.html"><span class="nav__subtitle">Raportare de management</span></a></li>
+              <li><a class="nav__sublink" href="ai-dlya-cfo.html"><span class="nav__subtitle">Automatizare și BI</span></a></li>
+              <li><a class="nav__sublink" href="monthly-cfo-support.html"><span class="nav__subtitle">Control CFO regulat</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <a href="capital-management.html" class="nav__link">Managementul capitalului</a>
+        <a href="materials.html" class="nav__link">Materiale</a>
+        <a href="index.html#consult" class="nav__link">Contacte</a>
       </nav>
+
+      <div class="header__actions">
+        <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../margin-factor-analysis-flags.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="margin-factor-analysis-flags.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Test financiar FINMENTOR</a>
+        <button class="burger" id="burger" type="button" aria-label="Deschideți meniul" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Navigare mobilă">
+    <nav class="mobile-menu__nav" aria-label="Navigare mobilă">
+      <a href="about.html" class="mobile-menu__link" style="--mi:0">Despre FINMENTOR</a>
+      <details class="mobile-menu__group" style="--mi:1">
+        <summary class="mobile-menu__link">Pentru proprietar</summary>
+        <a href="owner.html" class="mobile-menu__sublink mobile-menu__sublink--hub">Prezentarea secțiunii</a>
+        <a href="owner.html#chaos" class="mobile-menu__sublink">Haosul financiar</a>
+        <a href="owner.html#profit-question" class="mobile-menu__sublink">Profitul ≠ bani</a>
+        <a href="owner.html#owner-control" class="mobile-menu__sublink">Trei circuite de control</a>
+        <a href="owner.html#steps" class="mobile-menu__sublink">Cum lucrează FINMENTOR</a>
+        <a href="business-models.html" class="mobile-menu__sublink">Modele de afaceri</a>
+      </details>
+      <details class="mobile-menu__group" style="--mi:2">
+        <summary class="mobile-menu__link">Soluții</summary>
+        <a href="index.html#solutions" class="mobile-menu__sublink mobile-menu__sublink--hub">Formatele de lucru</a>
+        <a href="business-control-system.html" class="mobile-menu__sublink">Control financiar</a>
+        <a href="kaznacheystvo.html" class="mobile-menu__sublink">Flux de numerar și trezorerie</a>
+        <a href="upravlencheskiy-pl.html" class="mobile-menu__sublink">Cont de profit și pierdere (P&amp;L)</a>
+        <a href="working-capital.html" class="mobile-menu__sublink">Capital de lucru</a>
+        <a href="budgeting-forecasting.html" class="mobile-menu__sublink">Bugetare și prognoză</a>
+        <a href="capex-hurdle-rate.html" class="mobile-menu__sublink">Investiții de capital (CAPEX)</a>
+        <a href="power-bi-dlya-sobstvennika.html" class="mobile-menu__sublink">Raportare de management</a>
+        <a href="ai-dlya-cfo.html" class="mobile-menu__sublink">Automatizare și BI</a>
+        <a href="monthly-cfo-support.html" class="mobile-menu__sublink">Control CFO regulat</a>
+      </details>
+      <a href="capital-management.html" class="mobile-menu__link" style="--mi:3">Managementul capitalului</a>
+      <a href="materials.html" class="mobile-menu__link" style="--mi:4">Materiale</a>
+      <a href="index.html#consult" class="mobile-menu__link" style="--mi:5">Contacte</a>
+    </nav>
+    <div class="mobile-menu__lang">
+      <span class="mobile-menu__lang-label">Limbă</span>
+      <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../margin-factor-analysis-flags.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="margin-factor-analysis-flags.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
+    </div>
+    <div class="mobile-menu__footer">
+      <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Începeți Testul financiar FINMENTOR</a>
+    </div>
+  </div>
 
   <main>
     <div class="container">
@@ -454,23 +531,54 @@
     </div>
   </main>
 
-  <footer class="doc-foot">
-    <div class="container doc-foot__row">
-      <div class="doc-foot__links">
-        <a href="index.html">Acasă</a>
-        <a href="materials.html">Materiale</a>
-        <a href="materials.html#financial-map">Harta financiară a afacerii</a>
-        <a href="questionnaire.html">Test financiar FINMENTOR</a>
-        <a href="privacy.html">Politica de confidențialitate</a>
-        <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Discutați situația</a>
-        <a href="mailto:cfo@finmentor.md">Email</a>
+  <footer class="footer" id="contacts">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="index.html" aria-label="finmentor — sus"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">De la haos financiar — la un sistem de management al afacerii.</p>
+          <div class="contact-strip contact-strip--footer">
+          <a class="contact-btn" href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> Discutați situația</a>
+          <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> E-mail</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn-ul lui Ghennadi Iacovlev"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+        </div>
+        </div>
+
+        <nav class="footer__col" aria-label="Subsol — navigare">
+          <span class="footer__col-label">Secțiuni</span>
+          <a href="about.html">Despre FINMENTOR</a>
+          <a href="owner.html">Pentru proprietar</a>
+          <a href="index.html#solutions">Formatele de lucru</a>
+          <a href="capital-management.html">Managementul capitalului</a>
+          <a href="business-models.html">Modele de afaceri</a>
+          <a href="cases.html">Practică</a>
+          <a href="materials.html">Materiale</a>
+          <a href="materials.html#financial-map">Harta financiară a afacerii</a>
+          <a href="questionnaire.html">Test financiar FINMENTOR</a>
+        </nav>
+
+        <div class="footer__col">
+          <span class="footer__col-label">Contacte</span>
+          <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
+          <a href="https://t.me/finmentor_md_bot?start=ro" target="_blank" rel="noopener noreferrer">Discutați situația</a>
+          <span class="footer__muted">Chișinău, Moldova</span>
+        </div>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Toate drepturile rezervate. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris. <a href="terms.html">Condiții de utilizare a materialelor</a></span>
+
+      <div class="footer__bottom">
+        <span>© 2026 FINMENTOR™. Toate drepturile rezervate.</span>
+        <span class="footer__legal">
+          <a href="privacy.html">Politica de confidențialitate</a>
+          <a href="terms.html">Condiții de utilizare a materialelor</a>
+          <span class="footer__muted">FINMENTOR · Moldova / International</span>
+        </span>
+      </div>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Materialele site-ului, structura, textele, metodologia, elementele vizuale și brandul FINMENTOR™ nu pot fi copiate, publicate, prelucrate sau utilizate în scopuri comerciale fără acord scris.</p>
     </div>
   </footer>
   <script src="../i18n-ro.js"></script>
   <script src="../lang.js"></script>
+  <script src="../main.js"></script>
   <script src="../assistant.js"></script>
 </body>
 </html>

@@ -640,7 +640,7 @@ console.log('\nCOPY: TERMINOLOGY DAMAGE');
 // starts, the monthly page is where the packages are read and priced, and the thank-you page is
 // the last thing the journey shows them — a grammar defect on any of the four reaches every lead.
 // IA 2.0: copy that left the homepage lives on the hub pages, which the same sweeps cover.
-const HUB_PAGES = ['owner.html', 'capital-management.html', 'business-models.html', 'about.html'];
+const HUB_PAGES = ['owner.html', 'capital-management.html', 'business-models.html', 'about.html', 'budgeting-forecasting.html'];
 const RU_PAGES = ['index.html', 'questionnaire.html', 'monthly-cfo-support.html', 'thank-you.html', ...HUB_PAGES];
 const RO_PAGES = ['ro/index.html', 'ro/questionnaire.html', 'ro/monthly-cfo-support.html', 'ro/thank-you.html', ...HUB_PAGES.map((p) => 'ro/' + p)];
 

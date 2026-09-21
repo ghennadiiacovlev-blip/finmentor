@@ -1115,6 +1115,8 @@ const SURFACES = [
   { id: 'ro-business-models', url: '/ro/business-models.html', widths: [390, 1440] },
   { id: 'ru-about', url: '/about.html', widths: [390, 1440] },
   { id: 'ro-about', url: '/ro/about.html', widths: [390, 1440] },
+  { id: 'ru-budgeting', url: '/budgeting-forecasting.html', widths: [390, 1440] },
+  { id: 'ro-budgeting', url: '/ro/budgeting-forecasting.html', widths: [390, 1440] },
   { id: 'ru-capital-preservation', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
   { id: 'ro-capital-preservation', url: '/ro/capital-preservation.html', widths: [390, 1440], anchor: '.capital-preservation' },
   { id: 'ru-capital-control', url: '/capital-preservation.html', widths: [390, 1440], anchor: '.capital-flow' },
@@ -1709,7 +1711,8 @@ const drawerProbes = {};
       if (!h || !h.present) { bad.push(k + ': header missing'); continue; }
       if (h.overlaps.length) { bad.push(k + ': ' + h.overlaps.length + ' overlap(s)'); }
       if (h.outside.length) { bad.push(k + ': ' + h.outside.length + ' control(s) outside'); }
-      if (r.width <= 920) {
+      // the site header hands over to the drawer below 1280px (RU) / 1360px (RO, longer labels)
+      if (r.width <= (/^ro-/.test(k) ? 1359 : 1279)) {
         if (!h.burger || h.navs.length) { bad.push(k + ': mobile handoff is burger=' + !!h.burger + ', navs=' + h.navs.length); }
       } else if (h.burger || h.navs.length !== 1) {
         bad.push(k + ': desktop state is burger=' + !!h.burger + ', navs=' + h.navs.length);
@@ -2126,7 +2129,7 @@ const drawerProbes = {};
     const pairs = [['ru-homepage', 'ro-homepage'], ['ru-questionnaire', 'ro-questionnaire'],
       ['ru-how-we-work', 'ro-how-we-work'], ['ru-working-contour', 'ro-working-contour'],
       ['ru-owner', 'ro-owner'], ['ru-capital-management', 'ro-capital-management'],
-      ['ru-business-models', 'ro-business-models'], ['ru-about', 'ro-about'],
+      ['ru-business-models', 'ro-business-models'], ['ru-about', 'ro-about'], ['ru-budgeting', 'ro-budgeting'],
       ['ru-packages', 'ro-packages'], ['ru-cfo-consultation', 'ro-cfo-consultation'], ['ru-monthly-pricing', 'ro-monthly-pricing'],
       ['ru-monthly-execution', 'ro-monthly-execution'],
       ['ru-real-estate', 'ro-real-estate'], ['thank-you', 'ro-thank-you']];

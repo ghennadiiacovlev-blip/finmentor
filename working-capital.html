@@ -152,19 +152,97 @@
     .art-dot--green{background:#3FB950;} .art-dot--amber{background:#D8B450;} .art-dot--orange{background:#DB6D28;} .art-dot--red{background:#E5484D;}
   </style>
 </head>
-<body class="article-page">
-  <header class="doc-bar">
-    <div class="container doc-bar__row">
-      <a class="logo" href="index.html" aria-label="finmentor — на главную"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
-      <nav class="doc-bar__nav" aria-label="Навигация">
-        <a href="index.html" class="doc-bar__hide">На главную</a>
-        <a href="materials.html">Материалы</a>
-        <a href="questionnaire.html">Финансовый рентген</a>
-        <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="working-capital.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/working-capital.html" data-lang-switch="ro" lang="ro">RO</a></span>
-        <a href="index.html#consult" class="btn btn--primary btn--sm">Обсудить задачу</a>
+<body class="article-page fm-shell">
+  <header class="header is-solid" id="header">
+    <div class="container header__inner">
+      <a class="logo" href="index.html" aria-label="finmentor — на главную">
+        <span class="logo__fin">fin</span><span class="logo__mentor">mentor</span>
+      </a>
+      <nav class="nav" aria-label="Основная навигация">
+        <a href="about.html" class="nav__link">О FINMENTOR</a>
+        <div class="nav__item" data-nav-menu>
+          <a href="owner.html" class="nav__link">Для собственника</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-owner"><span class="visually-hidden">Показать разделы «Для собственника»</span></button>
+          <div class="nav__panel" id="nav-owner">
+            <ul class="nav__sublist">
+              <li><a class="nav__sublink" href="owner.html#chaos"><span class="nav__subtitle">Финансовый хаос</span><span class="nav__subnote">Признаки того, что системы управления нет</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#profit-question"><span class="nav__subtitle">Прибыль ≠ деньги</span><span class="nav__subnote">Почему прибыль ещё не означает ликвидность</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#owner-control"><span class="nav__subtitle">Три контура управления</span><span class="nav__subnote">Деньги, результат, капитал</span></a></li>
+              <li><a class="nav__sublink" href="owner.html#steps"><span class="nav__subtitle">Как работает FINMENTOR</span><span class="nav__subnote">Диагностика, система, сопровождение</span></a></li>
+              <li><a class="nav__sublink" href="business-models.html"><span class="nav__subtitle">Бизнес-модели</span><span class="nav__subnote">Одна система — разная экономика</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav__item" data-nav-menu>
+          <a href="index.html#solutions" class="nav__link">Решения</a>
+          <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-solutions"><span class="visually-hidden">Показать решения</span></button>
+          <div class="nav__panel nav__panel--wide" id="nav-solutions">
+            <ul class="nav__sublist nav__sublist--cols">
+              <li><a class="nav__sublink" href="business-control-system.html"><span class="nav__subtitle">Финансовый контроль</span></a></li>
+              <li><a class="nav__sublink" href="kaznacheystvo.html"><span class="nav__subtitle">Денежный поток и казначейство</span></a></li>
+              <li><a class="nav__sublink" href="upravlencheskiy-pl.html"><span class="nav__subtitle">Управленческий P&amp;L</span></a></li>
+              <li><a class="nav__sublink" href="working-capital.html"><span class="nav__subtitle">Оборотный капитал</span></a></li>
+              <li><a class="nav__sublink" href="budgeting-forecasting.html"><span class="nav__subtitle">Бюджетирование и прогнозирование</span></a></li>
+              <li><a class="nav__sublink" href="capex-hurdle-rate.html"><span class="nav__subtitle">Капитальные вложения и инвестиции</span></a></li>
+              <li><a class="nav__sublink" href="power-bi-dlya-sobstvennika.html"><span class="nav__subtitle">Управленческая отчётность</span></a></li>
+              <li><a class="nav__sublink" href="ai-dlya-cfo.html"><span class="nav__subtitle">Автоматизация и BI</span></a></li>
+              <li><a class="nav__sublink" href="monthly-cfo-support.html"><span class="nav__subtitle">Регулярный CFO-контроль</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <a href="capital-management.html" class="nav__link">Управление капиталом</a>
+        <a href="materials.html" class="nav__link">Материалы</a>
+        <a href="index.html#consult" class="nav__link">Контакты</a>
       </nav>
+
+      <div class="header__actions">
+        <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="working-capital.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/working-capital.html" data-lang-switch="ro" lang="ro">RO</a></span>
+        <a href="questionnaire.html" class="btn btn--primary btn--sm header__cta" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
+        <button class="burger" id="burger" type="button" aria-label="Открыть меню" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true" aria-label="Мобильная навигация">
+    <nav class="mobile-menu__nav" aria-label="Мобильная навигация">
+      <a href="about.html" class="mobile-menu__link" style="--mi:0">О FINMENTOR</a>
+      <details class="mobile-menu__group" style="--mi:1">
+        <summary class="mobile-menu__link">Для собственника</summary>
+        <a href="owner.html" class="mobile-menu__sublink mobile-menu__sublink--hub">Обзор раздела</a>
+        <a href="owner.html#chaos" class="mobile-menu__sublink">Финансовый хаос</a>
+        <a href="owner.html#profit-question" class="mobile-menu__sublink">Прибыль ≠ деньги</a>
+        <a href="owner.html#owner-control" class="mobile-menu__sublink">Три контура управления</a>
+        <a href="owner.html#steps" class="mobile-menu__sublink">Как работает FINMENTOR</a>
+        <a href="business-models.html" class="mobile-menu__sublink">Бизнес-модели</a>
+      </details>
+      <details class="mobile-menu__group" style="--mi:2">
+        <summary class="mobile-menu__link">Решения</summary>
+        <a href="index.html#solutions" class="mobile-menu__sublink mobile-menu__sublink--hub">Форматы работы</a>
+        <a href="business-control-system.html" class="mobile-menu__sublink">Финансовый контроль</a>
+        <a href="kaznacheystvo.html" class="mobile-menu__sublink">Денежный поток и казначейство</a>
+        <a href="upravlencheskiy-pl.html" class="mobile-menu__sublink">Управленческий P&amp;L</a>
+        <a href="working-capital.html" class="mobile-menu__sublink">Оборотный капитал</a>
+        <a href="budgeting-forecasting.html" class="mobile-menu__sublink">Бюджетирование и прогнозирование</a>
+        <a href="capex-hurdle-rate.html" class="mobile-menu__sublink">Капитальные вложения и инвестиции</a>
+        <a href="power-bi-dlya-sobstvennika.html" class="mobile-menu__sublink">Управленческая отчётность</a>
+        <a href="ai-dlya-cfo.html" class="mobile-menu__sublink">Автоматизация и BI</a>
+        <a href="monthly-cfo-support.html" class="mobile-menu__sublink">Регулярный CFO-контроль</a>
+      </details>
+      <a href="capital-management.html" class="mobile-menu__link" style="--mi:3">Управление капиталом</a>
+      <a href="materials.html" class="mobile-menu__link" style="--mi:4">Материалы</a>
+      <a href="index.html#consult" class="mobile-menu__link" style="--mi:5">Контакты</a>
+    </nav>
+    <div class="mobile-menu__lang">
+      <span class="mobile-menu__lang-label">Язык · Limbă</span>
+      <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="working-capital.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/working-capital.html" data-lang-switch="ro" lang="ro">RO</a></span>
+    </div>
+    <div class="mobile-menu__footer">
+      <a href="questionnaire.html" class="btn btn--primary btn--lg mobile-menu__cta" data-ga="click_questionnaire" data-cta-id="mobile_diagnostic" data-cta-location="mobile_menu" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
+      <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg mobile-menu__cta" data-ga="click_bot" data-cta-id="mobile_bot" data-cta-location="mobile_menu" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
+    </div>
+  </div>
 
   <main>
     <div class="container">
@@ -313,22 +391,53 @@
     </div>
   </main>
 
-  <footer class="doc-foot">
-    <div class="container doc-foot__row">
-      <div class="doc-foot__links">
-        <a href="index.html">Главная</a>
-        <a href="materials.html">Материалы</a>
-        <a href="materials.html#financial-map">Финансовая карта бизнеса</a>
-        <a href="questionnaire.html">Финансовый рентген</a>
-        <a href="privacy.html">Политика конфиденциальности</a>
-        <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">Обсудить задачу</a>
-        <a href="mailto:cfo@finmentor.md">Email</a>
+  <footer class="footer" id="contacts">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="index.html" aria-label="finmentor — наверх"><span class="logo__fin">fin</span><span class="logo__mentor">mentor</span></a>
+          <p class="footer__tagline">От финансового хаоса — к&nbsp;системе управления бизнесом.</p>
+          <div class="contact-strip contact-strip--footer">
+          <a class="contact-btn" href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" data-ga="click_bot"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.3a1.2 1.2 0 0 0-1.62-1.28L2.9 9.5c-1.1.43-1.08 2 .03 2.4l4.2 1.45 1.62 5.2c.2.65 1.02.85 1.5.36l2.32-2.36 4.2 3.08c.7.5 1.7.13 1.9-.72L21.94 4.3zM9.2 13.2l8.1-5.1-6.7 6.05-.2 3z"/></svg> Обсудить задачу</a>
+          <a class="contact-btn" href="mailto:cfo@finmentor.md" data-ga="click_email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> E-mail</a>
+          <a class="contact-btn" href="https://www.linkedin.com/in/ghennadi-iacovlev-791ba831" target="_blank" rel="noopener noreferrer" data-ga="click_linkedin" aria-label="LinkedIn Геннадия Яковлева"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM3.2 9h3.6v12H3.2zM9 9h3.45v1.64h.05c.48-.9 1.65-1.85 3.4-1.85 3.63 0 4.3 2.39 4.3 5.5V21h-3.6v-5.3c0-1.26-.02-2.9-1.77-2.9-1.77 0-2.04 1.38-2.04 2.8V21H9z"/></svg> LinkedIn</a>
+        </div>
+        </div>
+
+        <nav class="footer__col" aria-label="Подвал — навигация">
+          <span class="footer__col-label">Разделы</span>
+          <a href="about.html">О FINMENTOR</a>
+          <a href="owner.html">Для собственника</a>
+          <a href="index.html#solutions">Форматы работы</a>
+          <a href="capital-management.html">Управление капиталом</a>
+          <a href="business-models.html">Бизнес-модели</a>
+          <a href="cases.html">Практика</a>
+          <a href="materials.html">Материалы</a>
+          <a href="materials.html#financial-map">Финансовая карта бизнеса</a>
+          <a href="questionnaire.html">Финансовый рентген</a>
+        </nav>
+
+        <div class="footer__col">
+          <span class="footer__col-label">Контакты</span>
+          <a href="mailto:cfo@finmentor.md">cfo@finmentor.md</a>
+          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer">Обсудить задачу</a>
+          <span class="footer__muted">Кишинёв, Молдова</span>
+        </div>
       </div>
-      <span class="doc-foot__muted">© 2026 FINMENTOR™. Все права защищены. · Moldova / International</span>
-        <span class="doc-foot__muted" style="display:block;margin-top:8px;max-width:760px;font-size:0.74rem;line-height:1.55">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия. <a href="terms.html">Условия использования материалов</a></span>
+
+      <div class="footer__bottom">
+        <span>© 2026 FINMENTOR™. Все права защищены.</span>
+        <span class="footer__legal">
+          <a href="privacy.html">Политика конфиденциальности</a>
+          <a href="terms.html">Условия использования материалов</a>
+          <span class="footer__muted">FINMENTOR · Moldova / International</span>
+        </span>
+      </div>
+      <p class="footer__rights" style="margin-top:10px;font-size:0.74rem;line-height:1.55;opacity:0.62;max-width:840px">Материалы сайта, структура, тексты, методология, визуальные элементы и бренд FINMENTOR™ не могут копироваться, публиковаться, перерабатываться или использоваться в коммерческих целях без письменного согласия.</p>
     </div>
   </footer>
   <script src="lang.js"></script>
+  <script src="main.js"></script>
   <script src="assistant.js"></script>
 </body>
 </html>
