@@ -90,9 +90,9 @@ shots, anything that reads as a stock library thumbnail.
 
 | Slot | File | Status |
 |---|---|---|
-| 01 Hero | `hero-capital.*` | **FINAL SHIPPED** — AVIF/WebP/JPG from a 1536×1024 master (below the 2400×1500 target); SVG kept as rollback. Licence record pending |
-| 02 Decision environment | `capital-decision.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
-| 03 Real estate / investment | `real-assets.*` | **PLACEHOLDER SHIPPED** — awaiting licensed asset |
+| 01 Hero | `hero-capital.*` | **FINAL SHIPPED (v2).** AVIF/WebP/JPG from `hero-capital-final.png`, 1586×992 (≈16:10, below the 2400×1500 target). SVG kept as rollback. Licence record pending |
+| 02 Decision environment | `capital-decision.*` | **FINAL SHIPPED.** AVIF/WebP/JPG from `capital-decision-final.png`, 1586×992 (below 1920×1280). A dusk terrace view rather than the brief's desk still-life. Text contrast through the scrim was verified. SVG kept as rollback. Licence record pending |
+| 03 Real estate / investment | `real-assets.*` | **FINAL SHIPPED.** AVIF/WebP/JPG from `real-assets-final.png`, 1122×1402 (4:5, below 1920×2400). SVG kept as rollback. Licence record pending |
 
 The shipped placeholders are **generated SVG fields**, not stock photography.
 They are deliberately non-representational: a deep navy/graphite tonal field with

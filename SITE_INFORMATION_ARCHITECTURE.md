@@ -14,6 +14,7 @@ index.html                         Главная (9 scenes)
 │   ├── real-estate-control-system.html
 │   ├── retail-margin-engine.html
 │   └── client-base-control-system.html
+├── budgeting-forecasting.html     Бюджетирование и прогнозирование  NEW topic page
 ├── about.html                     О FINMENTOR (founder, experience)   NEW hub
 │   └── methodology.html           Методология FINMENTOR        reused, linked from about.html
 ├── cases.html                     Практика                     reused
@@ -64,7 +65,7 @@ substantial content moved off the homepage (no thin pages, no duplicates).
 | Денежный поток и казначейство | `kaznacheystvo.html` |
 | Управленческий P&L | `upravlencheskiy-pl.html` |
 | Оборотный капитал | `working-capital.html` |
-| Бюджетирование и прогнозирование | `treasury-waterfall.html` (fund planning and the payment waterfall; no separate budgeting page exists, see WATCH) |
+| Бюджетирование и прогнозирование | `budgeting-forecasting.html`. It is built only from existing pages: forecast → cash flow → payment calendar → fund planning → treasury → P&L → plan-vs-actual → CAPEX, each row the linked page's own H1 and visible lead |
 | Капитальные вложения и инвестиции | `capex-hurdle-rate.html` |
 | Управленческая отчётность | `power-bi-dlya-sobstvennika.html` |
 | Автоматизация и BI | `ai-dlya-cfo.html` |
@@ -80,9 +81,10 @@ translateY 10px, 240ms. The full bar shows from 1280px (RU) and from 1360px (RO,
 longer); below that the drawer takes over, with the two groups as native `<details>`
 disclosures (no JavaScript required).
 
-**Article pages** keep their reading header (`doc-bar`: logo · Материалы · Финансовый рентген ·
-RU/RO · Обсудить задачу). It is a deliberate reading mode, and QA contracts cover it
-(MATERIALS NAVIGATION FIT). See WATCH.
+**Every reading page is on the site shell.** Materials, the articles and the offer pages (37 + 37) share
+the same header, drawer and footer (`body.fm-shell`, solid header state), and their headings share the
+same grotesk. Only the questionnaire (app shell), the legal pages (legal shell) and five legacy root
+files outside the sitemap keep their own headers.
 
 ## 4. Hub page anatomy
 
@@ -105,7 +107,6 @@ section components), so moved sections render exactly as they did on the homepag
 
 ## 6. WATCH
 
-- **Budgeting:** no dedicated budgeting/forecasting page exists; the nav item points to the
-  closest existing page. A dedicated page is a content decision for the owner.
-- **Article headers:** article pages still use the reading header. Moving them onto the new
-  nav is a separate, test-covered change.
+- **Budgeting:** resolved by `budgeting-forecasting.html`. It is a topic page composed of existing content;
+  a longer methodology article on budgeting is still a content decision for the owner.
+- **Article headers:** resolved in the finalization pass.

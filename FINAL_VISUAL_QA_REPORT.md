@@ -225,3 +225,56 @@ page it now lives on. Details are in the `985d7fc` message.
     typography and argument, yes. The weakest element is photography: two placeholders and a
     hero photo that departs from the brief. The final photographs are what completes the
     brief's "scale and permanence".
+
+---
+
+## Addendum — Finalization pass
+
+**Scope (approved):**
+- final photographs, when supplied;
+- a correct budgeting destination;
+- the reading pages brought onto the site shell;
+- full QA and a browser walkthrough.
+
+No homepage, IA, navigation, typography, colour or motion redesign.
+
+| Item | Result |
+|---|---|
+| PHOTO 01/02/03 | **Supplied during the pass and integrated.** AVIF/WebP/JPG at native size, no crop or CSS change (details in `PHOTO_ASSET_INTEGRATION_CHECKLIST.md`). Contrast was measured through the scrims; the only adjustment is the capital cycle numerals' opacity 0.8 → 1 |
+| Budgeting and forecasting | New `budgeting-forecasting.html` (+ `ro/`), in the sitemap. Rows are the linked pages' **own H1s and visible leads**. The lead is the financial map's own sentence. The RO quotes follow the edition's P&L term. The nav item on every page points to it; `treasury-waterfall.html` is no longer mislabelled |
+| Reading pages | **74 pages** (37 RU + 37 RO): Materials, articles, offer pages, thank-you. `doc-bar`/`doc-foot` replaced by the site header, drawer and footer. `main.js` added once where missing (it drives the drawer, disclosures and header state; the articles use no `.reveal`, so nothing is hidden). The display-heading token resolves to the site grotesk. **Article content untouched** |
+| Header CSS | the 44 header/nav/burger rules widened from `.home` to `:is(.home, .fm-shell)`, same specificity, no change on the homepage |
+| RO | no Cyrillic on any RO page (the drawer label is now "Limbă"); nav item "Cont de profit și pierdere (P&L)" |
+| URLs | unchanged; one new URL (the budgeting page) |
+
+**Tests retargeted, not weakened:**
+- The Materials nav contract now asserts: the home route (the logo), Materials, the X-Ray CTA,
+  "Обсудить задачу", and one language pair in the bar plus one in the drawer.
+- The Materials body marker accepts the added shell class.
+- MATERIALS NAVIGATION FIT uses the site's 1280/1360px handoff.
+- The budgeting page is added to the copy sweeps, the link scope and the visual surfaces.
+
+**QA (final build):**
+
+| Suite | Result |
+|---|---|
+| run-all | **101/101, 3654, floors PASS** |
+| visual-evidence | **30/1**. The failure is only the pre-existing privacy check; MATERIALS NAVIGATION FIT passes |
+| content-migration | nothing lost |
+| financial-map | 19/0/0 |
+| motion + navigation harness | **76/76 in one run** on the final build. An earlier run had 74/76 from timing under load, and those scenarios passed 28/28 in three isolated reruns |
+| LCP with the final photographs | homepage ≤ 140ms (H1); capital page ≤ 480ms (PHOTO 02); business models ≤ 90ms |
+| Photo contrast through the scrims | hero ≥ 7:1 on every line at 6 widths × RU/RO; capital ≥ 6:1, except the 1024px numerals residual (WATCH) |
+
+**Browser walkthrough (real pointer input, recorded):**
+- **Desktop 1440, RU: 9/9.** Hover Решения → Бюджетирование → a row → the article → header
+  Материалы (marked current) → RO switch → Back → logo home.
+- **Mobile 390, RO: 7/7.** Burger → Soluții → Bugetare și prognoză → a row → the article's drawer →
+  Materiale → RU switch → Back.
+- Recordings: `qa-artifacts/final/walkthrough-desktop-1440.mp4` and `walkthrough-mobile-390.mp4`.
+
+**Remaining WATCH:**
+- All three photographs are below the recommended master resolution, and no licence has been recorded. PHOTO 02 is a terrace view, not the desk still-life in the brief. On the capital scene at 1024px, 0.3–0.5% of the numerals' pixels sit at 4.35:1.
+- The RO P&L article's own title and lead use a bare "P&L" (article content, not edited).
+- The five legacy root files outside the sitemap still use the old reading header.
+- A native-speaker read of the new RO strings.

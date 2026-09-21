@@ -160,3 +160,24 @@ selector, so it still matches.
 - [ ] Licence for each asset recorded
 - [ ] Status table in `IMAGE_ART_DIRECTION.md` §0 updated from PLACEHOLDER to SHIPPED
 - [ ] Placeholder SVGs removed only in a separate follow-up commit, after sign-off
+
+---
+
+## As integrated — all three (finalization pass, 2026-09-21)
+
+| Slot | Master supplied | Shipped | Markup |
+|---|---|---|---|
+| PHOTO 01 | `hero-capital-final.png` 1586×992 | `hero-capital.{avif,webp,jpg}` (AVIF 101 KB) | unchanged: same filenames, same four `<source media>` pairs, AVIF preload |
+| PHOTO 02 | `capital-decision-final.png` 1586×992 | `capital-decision.{avif,webp,jpg}` (AVIF 109 KB) | AVIF + WebP `<source>` added inside the existing `picture.capital-management__media`, JPG `<img>`, lazy |
+| PHOTO 03 | `real-assets-final.png` 1122×1402 | `real-assets.{avif,webp,jpg}` (AVIF 151 KB) | the bare `<img>` wrapped in an unclassed `<picture>` with AVIF + WebP sources, lazy |
+
+- **Masters and variants:** every master is below the recommended size, so there are no upscaled
+  width variants. Each slot serves one native file.
+- **Crop and CSS:** no crop or `object-position` change was needed; the crop contract held at
+  1440 and 390.
+- **Contrast measured through the scrims** on the rendered composite:
+  - **Hero:** kicker, title, statement and subtitle ≥ 7:1 at all six widths, RU and RO.
+  - **Capital (PHOTO 02):** every text line ≥ 6:1, except the gold cycle numerals at 1024px,
+    whose worst 0.3–0.5% of pixels are at 4.35:1 (bright glints of lit glazing). Their opacity
+    went 0.8 → 1, the only CSS change. Colour and scrim are unchanged.
+- **Rollback:** the SVG placeholders stay in the repo.
