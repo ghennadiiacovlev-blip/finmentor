@@ -472,7 +472,9 @@
         ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 45],
         // editorial primitives: panels and stages follow one another; rows are quicker
         ['.fx-principles > [data-fx], .fx-deck > [data-fx], .fx-related > [data-fx], .fx-mosaic > [data-fx]', 110, 60],
-        ['.fx-sequence > [data-fx], .fx-rows > [data-fx]', 70, 40]
+        ['.fx-sequence > [data-fx], .fx-rows > [data-fx]', 70, 40],
+        // statement scene: the word, then its question — a deliberate pause
+        ['.fx-word > [data-fx]', 380, 200]
       ];
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [

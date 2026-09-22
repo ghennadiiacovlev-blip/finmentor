@@ -1317,3 +1317,207 @@ main.nf { padding-top: clamp(56px, 10vh, 112px); }
 @media (max-width: 860px) {
   .rd-page .rd-cover--split .fx-stage__content > .doc-hero__context { grid-column: 1; grid-row: 3; }
 }
+
+/* ==========================================================================
+   24. SCALE & CHOREOGRAPHY CORRECTION — one screen, one primary idea
+   ========================================================================== */
+
+/* --- reading covers: the title is the primary visual object ------------------------ */
+.rd-page .rd-cover h1 { font-size: clamp(2.35rem, 1.1rem + 4.2vw, 5.25rem); line-height: 1.02; letter-spacing: -0.038em; max-width: 17ch; }
+.rd-page .rd-cover--short h1 { font-size: clamp(2.6rem, 1.1rem + 5.4vw, 6.5rem); max-width: 12ch; }
+.rd-page .rd-cover .doc-hero__lead { max-width: 54ch; font-size: clamp(1.1rem, 0.98rem + 0.5vw, 1.45rem); line-height: 1.5; }
+.rd-page .rd-cover--split h1 { font-size: clamp(2.3rem, 1.1rem + 3.6vw, 4.6rem); }
+/* photo covers take the whole first screen: the photograph carries the argument */
+.rd-page .rd-cover--photo { min-height: calc(100svh - var(--fx-head, 76px)); }
+.rd-page .rd-cover--photo .fx-stage__scrim { background: linear-gradient(90deg, rgba(8,17,31,0.88) 0%, rgba(8,17,31,0.62) 40%, rgba(8,17,31,0.12) 72%, rgba(8,17,31,0) 100%), linear-gradient(180deg, rgba(8,17,31,0.35) 0%, rgba(8,17,31,0) 28%, rgba(8,17,31,0) 62%, rgba(8,17,31,0.7) 100%); }
+
+/* --- article scenes ----------------------------------------------------------------
+   S: the thesis on a stone band; D: a navy field. The section box stays the reading column
+   (body text never leaves it); the band behind it is painted full-bleed, rises with a
+   rounded top and is closed by an ivory cap — the next sheet coming over it. Only the
+   statement heading leaves the column.                                                  */
+.rd-page .rd-sheet { overflow-x: clip; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene {
+  position: relative; isolation: isolate; z-index: 0;
+  margin-top: clamp(64px, 8vw, 128px); margin-bottom: clamp(64px, 8vw, 128px);
+  padding: clamp(80px, 9vw, 144px) 0 calc(var(--fx-r) + clamp(64px, 7vw, 112px));
+  border: 0; border-radius: 0; box-shadow: none; background: none;
+}
+html .rd-page .rd-sheet > .container > section.rd-scene.rd-scene { max-width: var(--rd-measure); margin-inline: auto; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene::before { content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); border-radius: var(--fx-r) var(--fx-r) 0 0; background: var(--fx-stone); pointer-events: none; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene::after { content: ""; position: absolute; z-index: -1; bottom: -1px; height: var(--fx-r); left: calc(50% - 50vw); right: calc(50% - 50vw); border-radius: var(--fx-r) var(--fx-r) 0 0; background: var(--fx-ivory); pointer-events: none; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene + * { border-top: 0; }
+/* numbered decision stages keep their index, now as the scene's label */
+html .rd-page .rd-sheet section.rd-scene.rd-scene[data-editorial-step]::before { content: ""; }
+/* the statement */
+html .rd-page .rd-sheet section.rd-scene.rd-scene > h2 {
+  position: static; box-sizing: border-box; width: min(1200px - 2 * var(--fx-gutter), 100vw - 2 * var(--fx-gutter)); max-width: none;
+  margin: 0 0 clamp(40px, 4.5vw, 72px) calc((100% - min(1200px - 2 * var(--fx-gutter), 100vw - 2 * var(--fx-gutter))) / 2); padding: 0 0 0 0;
+  font-family: var(--font-sans); font-size: clamp(2.1rem, 1.1rem + 3.2vw, 4.4rem); font-weight: 300; line-height: 1.04; letter-spacing: -0.034em; color: var(--fx-ink); text-wrap: balance;
+}
+html .rd-page .rd-sheet section.rd-scene.rd-scene > h2 strong { font-weight: 750; }
+@media (min-width: 1100px) { html .rd-page .rd-sheet section.rd-scene.rd-scene > h2 { padding-right: 22%; } }
+/* the reading column inside the scene */
+html .rd-page .rd-sheet section.rd-scene.rd-scene > :is(p, ul, ol), html .rd-page .rd-sheet section.rd-scene.rd-scene > :is(ul, ol) > li { font-size: var(--t-body-l); line-height: 1.72; color: #26324A; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > p:first-of-type { font-size: clamp(1.15rem, 1rem + 0.55vw, 1.5rem); line-height: 1.55; color: var(--fx-ink); }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > p { margin: 0 0 1.1em; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > :last-child { margin-bottom: 0; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > :is(p, ul, ol) :is(strong, b) { color: var(--fx-ink); }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > h3 { font-size: var(--t-h3); font-weight: 700; color: var(--fx-ink); }
+
+/* D: the navy field */
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d { color: #C3CBD7;
+  --text-primary: #F3F5F8; --text-secondary: #C3CBD7; --text-muted: #9AA5B5; --label-muted: #9AA5B5; --accent: var(--fx-gold-l); --accent-bright: var(--fx-gold-l); --micro-label-gold: var(--fx-gold-l);
+  --border-hairline: rgba(255,255,255,0.14); --glass-border: rgba(255,255,255,0.14); --glass-border-gold: rgba(216,180,80,0.4); --glass-fill: rgba(255,255,255,0.05); --border-gold: rgba(216,180,80,0.45); --fx-rule: rgba(255,255,255,0.14); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d::before { background: var(--fx-navy); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > h2, html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > h2 strong { color: #F3F5F8; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(p, li, dd, td, figcaption) { color: #C3CBD7; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > p:first-of-type { color: #E6EAF0; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(h3, h4, strong, b, th, dt, td:first-child) { color: #F3F5F8; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d a:not(.btn) { color: var(--fx-gold-l); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d li::marker { color: var(--fx-gold-l); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d ul li::before { border-color: var(--fx-gold-l); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll) { background: rgba(255,255,255,0.04); box-shadow: 0 0 0 1px rgba(255,255,255,0.12); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d table :is(th, td) { border-bottom-color: rgba(255,255,255,0.12); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d table thead th { color: #9AA5B5; border-bottom-color: rgba(216,180,80,0.45); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(.callout, .fin-callout, .cb-example, .fin-check, .art-formula, .fcf-formula, .art-kpi__card, .fcf-kpi__card, .retail-kpi__card, .fcf-status__card, .cb-scene, .cb-level, .cb-q, .cb-factor, .cb-band, .retail-feature, .retail-action, .retail-path__step, .ai-kpi, .ai-question-card, .ai-mini-card, .doc-note) { background: rgba(255,255,255,0.06); box-shadow: 0 0 0 1px rgba(255,255,255,0.1); color: #C3CBD7; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(.callout__label, .fin-callout__label, .fin-check__label, .cb-example__tag, .fcf-audit__label, .art-kpi__lvl, .fcf-kpi__lvl, .retail-kpi__label) { color: var(--fx-gold-l); }
+
+/* the conclusion: same panel and width, statement-scale type */
+html .rd-page .rd-sheet :is(.rd-takeaway, .article-conclusion) > h2 { font-size: clamp(1.9rem, 1.1rem + 2.4vw, 3.4rem); font-weight: 300; letter-spacing: -0.03em; line-height: 1.06; }
+html .rd-page .rd-sheet :is(.rd-takeaway, .article-conclusion) > p:first-of-type { font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.85rem); line-height: 1.45; color: var(--fx-ink); }
+
+@media (max-width: 860px) {
+  html .rd-page .rd-sheet section.rd-scene.rd-scene { margin-block: 48px; padding: 56px 0 calc(var(--fx-r) + 48px); }
+  html .rd-page .rd-sheet section.rd-scene.rd-scene > h2 { width: auto; margin-left: 0; padding-right: 0; font-size: clamp(1.85rem, 1.2rem + 3vw, 2.4rem); margin-bottom: 28px; }
+  html .rd-page .rd-sheet section.rd-scene.rd-scene > p:first-of-type { font-size: 1.12rem; }
+  html .rd-page .rd-sheet :is(.rd-takeaway, .article-conclusion) > p:first-of-type { font-size: 1.15rem; }
+}
+html .rd-page .rd-sheet section.rd-scene.rd-scene > h2 { border: 0; padding-top: 0; }
+html .rd-page .rd-sheet section.rd-scene.rd-scene > h2::before, html .rd-page .rd-sheet section.rd-scene.rd-scene > h2::after { content: none; display: none; }
+/* scene typography reaches only the scene's own prose (direct children), never a component */
+html .rd-page .rd-sheet section.rd-scene--s.rd-scene--s > :is(p, ul, ol) , html .rd-page .rd-sheet section.rd-scene--s.rd-scene--s > :is(ul, ol) > li { font-size: var(--t-body-l); line-height: 1.72; color: #26324A; }
+html .rd-page .rd-sheet section.rd-scene--s.rd-scene--s > p:first-of-type { font-size: clamp(1.15rem, 1rem + 0.55vw, 1.5rem); line-height: 1.55; color: var(--fx-ink); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d table caption { color: var(--fx-gold-l); }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d :is(.fcf-bar__supplier, .fcf-bar__company, .fcf-bar__seg) { color: #F3F5F8; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > :is(p, ul, ol), html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > :is(ul, ol) > li { color: #C3CBD7; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > p:first-of-type { color: #E6EAF0; }
+html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > :is(p, ul, ol) :is(strong, b), html .rd-page .rd-sheet section.rd-scene--d.rd-scene--d > h3 { color: #F3F5F8; }
+
+/* --- Materials: FEATURED MATERIAL → COLLECTION SCENES → FULL LIBRARY ------------------ */
+/* featured: one lead material (large, navy) and the rest of the selection as a compact list */
+@media (min-width: 900px) {
+  .materials-page .mt-sheet--library #featured .materials-list { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-auto-rows: auto; gap: 0 clamp(32px, 4vw, 72px); }
+  .materials-page .mt-sheet--library #featured .kb-item:first-child { grid-column: 1; grid-row: 1 / span 5; }
+  .materials-page .mt-sheet--library #featured .kb-item:not(:first-child) { grid-column: 2; }
+}
+.materials-page .mt-sheet--library #featured .kb-item:first-child { position: relative; overflow: hidden; justify-content: flex-end; min-height: clamp(420px, 48vw, 620px); padding: clamp(32px, 4vw, 64px); border-radius: var(--fx-pr); background: radial-gradient(120% 90% at 85% 0%, rgba(31, 56, 100, 0.6) 0%, rgba(8, 17, 31, 0) 60%), linear-gradient(180deg, #0B1627 0%, #08111F 100%); box-shadow: none; }
+.materials-page .mt-sheet--library #featured .kb-item:first-child .kb-item__cat { color: var(--fx-gold-l); }
+.materials-page .mt-sheet--library #featured .kb-item:first-child .kb-item__title { font-size: clamp(2rem, 1.1rem + 2.8vw, 3.8rem); font-weight: 300; line-height: 1.04; letter-spacing: -0.034em; color: #F3F5F8; max-width: 16ch; }
+.materials-page .mt-sheet--library #featured .kb-item:first-child .kb-item__desc { font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.3rem); line-height: 1.55; color: #C3CBD7; max-width: 46ch; }
+.materials-page .mt-sheet--library #featured .kb-item:first-child .kb-item__status { margin-top: 12px; border-top-color: rgba(255, 255, 255, 0.16); color: var(--fx-gold-l); }
+.materials-page .mt-sheet--library #featured a.kb-item:first-child:hover { background: radial-gradient(120% 90% at 85% 0%, rgba(31, 56, 100, 0.75) 0%, rgba(8, 17, 31, 0) 60%), linear-gradient(180deg, #0B1627 0%, #08111F 100%); box-shadow: none; }
+.materials-page .mt-sheet--library #featured .kb-item:not(:first-child) { min-height: 0; padding: 18px 0; gap: 6px; border-radius: 0; background: none; box-shadow: none; border-bottom: 1px solid rgba(8, 17, 31, 0.16); }
+.materials-page .mt-sheet--library #featured .kb-item:nth-child(2) { border-top: 1px solid rgba(8, 17, 31, 0.16); }
+.materials-page .mt-sheet--library #featured .kb-item:not(:first-child) .kb-item__title { font-size: var(--t-h3); }
+.materials-page .mt-sheet--library #featured .kb-item:not(:first-child) :is(.kb-item__desc, .kb-item__status) { display: none; }
+.materials-page .mt-sheet--library #featured a.kb-item:not(:first-child):hover { transform: none; background: none; box-shadow: none; }
+.materials-page .mt-sheet--library #featured a.kb-item:not(:first-child):hover .kb-item__title { color: var(--fx-gold); }
+
+/* collections: each topic is a scene — a large title with its note, then the entries as an
+   editorial index (three columns, ruled, no boxes) */
+.materials-page .mt-sheet--library .materials-section:not(#featured) { margin-top: clamp(80px, 10vw, 160px); }
+@media (min-width: 900px) {
+  .materials-page .mt-sheet--library .materials-section:not(#featured) { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: clamp(32px, 5vw, 96px); align-items: end; }
+  .materials-page .mt-sheet--library .materials-section:not(#featured) > .materials-section__head { grid-column: 1; }
+  .materials-page .mt-sheet--library .materials-section:not(#featured) > .materials-section__note { grid-column: 2; }
+  .materials-page .mt-sheet--library .materials-section:not(#featured) > .materials-list { grid-column: 1 / -1; }
+}
+.materials-page .mt-sheet--library .materials-section:not(#featured) .materials-section__head { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; flex-direction: column; align-items: flex-start; gap: 10px; }
+.materials-page .mt-sheet--library .materials-section:not(#featured) h2 { font-size: clamp(2.4rem, 1.2rem + 3.6vw, 5rem); font-weight: 300; line-height: 1; letter-spacing: -0.04em; }
+.materials-page .mt-sheet--library .materials-section:not(#featured) > .materials-section__note { margin: 0 0 8px; font-size: var(--t-body-l); line-height: 1.6; }
+.materials-page .mt-sheet--library .materials-section:not(#featured) .materials-list { margin-top: clamp(36px, 4vw, 64px); gap: 0 clamp(28px, 3vw, 48px); border-top: 1px solid rgba(8, 17, 31, 0.28); }
+.materials-page .mt-sheet--library .materials-section:not(#featured) .kb-item { min-height: 0; padding: 22px 0 26px; border-radius: 0; background: none; box-shadow: none; border-bottom: 1px solid rgba(8, 17, 31, 0.14); }
+.materials-page .mt-sheet--library .materials-section:not(#featured) a.kb-item:hover { transform: none; background: none; box-shadow: none; }
+.materials-page .mt-sheet--library .materials-section:not(#featured) a.kb-item:hover .kb-item__title { color: var(--fx-gold); }
+.materials-page .mt-sheet--library .materials-section:not(#featured) .kb-item__status { border-top: 0; padding-top: 4px; }
+/* the full library heading introduces everything below it at the same scale as a collection */
+.materials-page .mt-sheet--library .materials-hub > .container > .materials-section__head h2 { font-size: clamp(2.6rem, 1.2rem + 4.2vw, 5.8rem); letter-spacing: -0.045em; }
+/* About · the founder scene: the portrait fills its half, the voice is set at statement scale */
+.pg-about .ab-thesis__text { max-width: 22ch; font-size: clamp(2.1rem, 1.1rem + 3.3vw, 4.6rem); line-height: 1.06; letter-spacing: -0.035em; }
+.pg-about .ab-thesis__text strong { font-weight: 750; }
+.pg-about .ab-founder__split { min-height: min(92svh, 980px); }
+.pg-about .ab-founder__media .portrait { max-width: none; width: auto; }
+.pg-about .ab-founder__media :is(.portrait__picture, .portrait__img) { width: 100%; height: 100%; max-width: none; }
+.pg-about .ab-founder__text { justify-content: center; padding: clamp(40px, 5vw, 96px) clamp(32px, 5vw, 96px); }
+.pg-about .ab-founder__text .fx-h2 { font-size: clamp(2.2rem, 1.2rem + 3vw, 4.2rem); font-weight: 300; line-height: 1.02; letter-spacing: -0.035em; }
+.pg-about .ab-founder__text > .fx-h2 + p { font-size: clamp(1.15rem, 1rem + 0.5vw, 1.45rem); line-height: 1.55; color: var(--fx-ink); }
+@media (max-width: 860px) { .pg-about .ab-founder__media { min-height: 118vw; } }
+.pg-about .ab-thesis__text { max-width: 30ch; font-size: clamp(1.9rem, 1.1rem + 2.6vw, 3.7rem); line-height: 1.1; }
+
+/* ==========================================================================
+   25. STATEMENT SCENE (.fx-word) — one financial word, one question
+   BACKGROUND  deep navy, full bleed, rounded top: the scene rises over the page
+   FOREGROUND  the word in very large Manrope 800, a restrained gold full stop, the
+               question beneath it in light weight; large negative space
+   OVERLAP     the next sheet closes it: an ivory cap rises over its lower edge
+   REVEAL      the word, then the question (IntersectionObserver, once; static when reduced)
+   MOBILE      the word scales with the viewport (never wider than it), the question
+               stays two to four lines; the scene keeps a smaller radius
+   Used selectively: the opening conceptual transition of eight articles.
+   ========================================================================== */
+.fx-word { position: relative; isolation: isolate; display: grid; align-content: center; min-height: min(84svh, 880px); padding: clamp(96px, 12vw, 200px) 0 calc(var(--fx-r) + clamp(96px, 11vw, 180px)); color: #F3F5F8; }
+.fx-word:not(.rd-word) { background: var(--fx-navy); padding-inline: var(--fx-gutter); border-radius: var(--fx-r) var(--fx-r) 0 0; }
+.fx-word__term { margin: 0; font-family: var(--font-sans); font-size: clamp(2rem, 0.2rem + 10vw, 9rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.045em; text-transform: uppercase; color: #F3F5F8; white-space: nowrap; }
+.fx-word__dot { color: var(--fx-gold-l); }
+.fx-word__q { margin: clamp(28px, 3.4vw, 56px) 0 0; max-width: 24ch; font-family: var(--font-sans); font-size: clamp(1.5rem, 0.95rem + 2.1vw, 3.1rem); font-weight: 300; line-height: 1.14; letter-spacing: -0.025em; color: #C3CBD7; text-wrap: balance; }
+
+/* inside a reading page: the section box stays the reading column; the scene is painted
+   full bleed behind the header and the term and question may leave the column */
+html .rd-page .rd-sheet section.rd-scene--w.rd-scene--w { padding-top: 0; }
+html .rd-page .rd-sheet section.rd-scene--w.rd-scene--w::before, html .rd-page .rd-sheet section.rd-scene--w.rd-scene--w::after { display: none; }
+html .rd-page .rd-sheet section.rd-scene--w.rd-scene--w > .rd-word { margin: 0 0 clamp(48px, 5vw, 80px); }
+.rd-page .rd-word::before { content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); border-radius: var(--fx-r) var(--fx-r) 0 0; background: radial-gradient(90% 70% at 80% 0%, rgba(31, 56, 100, 0.5) 0%, rgba(8, 17, 31, 0) 62%), var(--fx-navy); pointer-events: none; }
+.rd-page .rd-word::after { content: ""; position: absolute; z-index: -1; bottom: -1px; height: var(--fx-r); left: calc(50% - 50vw); right: calc(50% - 50vw); border-radius: var(--fx-r) var(--fx-r) 0 0; background: var(--fx-ivory); pointer-events: none; }
+@media (min-width: 1100px) {
+  .rd-page .rd-word > * { margin-left: calc((100% - min(1200px - 2 * var(--fx-gutter), 100vw - 2 * var(--fx-gutter))) / 2); }
+  .rd-page .rd-word > .fx-word__q { max-width: 26ch; }
+}
+html .rd-page .rd-sheet .rd-word > h2.fx-word__q { border: 0; padding: 0; color: #C3CBD7; font-size: clamp(1.5rem, 0.95rem + 2.1vw, 3.1rem); font-weight: 300; line-height: 1.14; letter-spacing: -0.025em; }
+html .rd-page .rd-sheet .rd-word > h2.fx-word__q::before, html .rd-page .rd-sheet .rd-word > h2.fx-word__q::after { content: none; display: none; }
+@media (max-width: 860px) {
+  .fx-word { min-height: 0; padding: 88px 0 calc(var(--fx-r) + 72px); }
+  .fx-word__q { max-width: none; }
+}
+html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var(--font-sans); font-size: clamp(2rem, 0.2rem + 10vw, 9rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.045em; text-transform: uppercase; color: #F3F5F8; max-width: none; }
+@media (min-width: 1100px) {
+  html .rd-page .rd-sheet .rd-word > :is(p.fx-word__term, h2.fx-word__q) { margin-left: calc((100% - min(1200px - 2 * var(--fx-gutter), 100vw - 2 * var(--fx-gutter))) / 2); }
+}
+/* Owner · the framing question at statement-scene scale (light variant: it sits between two navy scenes) */
+.pg-owner .ow-question .statement-screen__keyword { display: block; font-size: clamp(2.6rem, 0.4rem + 10vw, 9rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.045em; text-transform: uppercase; }
+.pg-owner .ow-question .statement-screen__question { display: block; margin-top: clamp(24px, 3vw, 48px); font-size: clamp(1.5rem, 0.95rem + 2.1vw, 3.1rem); line-height: 1.14; letter-spacing: -0.025em; }
+/* Home · the capital cycle becomes the scene's second primary object; the industries thesis a statement */
+.home .capital-cycle { max-width: none; }
+.home .capital-cycle__name { font-size: clamp(1.5rem, 0.9rem + 2.1vw, 3rem); font-weight: 300; line-height: 1.1; letter-spacing: -0.03em; }
+.home .capital-cycle__stage { padding: clamp(14px, 1.4vw, 22px) 0; }
+.home .capital-cycle__stage::after { top: 1.1em; }
+.home .industries .section-title { font-size: clamp(2.2rem, 1.1rem + 3.4vw, 4.8rem); line-height: 1.02; letter-spacing: -0.04em; max-width: 18ch; }
+/* Business Models · the photograph holds the right half of the first screen, edge to edge */
+@media (min-width: 861px) {
+  .pg-models .bm-stage .bm-figure { position: absolute; top: 0; right: 0; bottom: 0; width: 45vw; max-height: none; margin: 0; z-index: 0; display: block; }
+  .pg-models .bm-stage .bm-figure picture { position: absolute; inset: 0; height: auto; border-radius: 0; }
+  .pg-models .bm-stage .bm-figure picture::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,17,31,0.55) 0%, rgba(8,17,31,0) 30%), linear-gradient(180deg, rgba(8,17,31,0) 55%, rgba(8,17,31,0.82) 100%); pointer-events: none; }
+  .pg-models .bm-stage .bm-figure .industries__caption { position: absolute; left: clamp(28px, 3vw, 48px); right: clamp(28px, 3vw, 48px); bottom: calc(var(--fx-r) + clamp(28px, 3vw, 48px)); z-index: 1; color: #E6EAF0; max-width: 46ch; }
+  .pg-models .bm-stage__copy { position: relative; z-index: 1; }
+  .pg-models .bm-stage h1 { font-size: clamp(3rem, 1.2rem + 4.6vw, 6.2rem); }
+}
+/* narrow phones: the longest single word of a cover title must fit the frame */
+@media (max-width: 400px) {
+  .rd-page .rd-cover h1 { font-size: clamp(1.8rem, 0.6rem + 6.4vw, 2.35rem); }
+  .rd-page .rd-cover--short h1 { font-size: clamp(2rem, 0.6rem + 7.6vw, 2.6rem); }
+  .rd-page .rd-cover--split h1 { font-size: clamp(1.8rem, 0.6rem + 6.4vw, 2.3rem); }
+}
+@media (max-width: 400px) {
+  .fx-page .fx-statement--xl { font-size: clamp(1.9rem, 0.5rem + 7vw, 2.6rem); }
+}
+.rd-page .rd-cover--photo { min-height: min(calc(100svh - var(--fx-head, 76px)), 1000px); }
