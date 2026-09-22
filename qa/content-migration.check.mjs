@@ -27,6 +27,10 @@ const EDITS = {
     ['Это диагностика, а не аудит, due diligence, полная финансовая модель или внедрение системы.', 'Это диагностика, а не аудит, комплексная проверка (due diligence), полная финансовая модель или внедрение системы.'],
     ['Строительство, development, расширение и инвестиционные программы.', 'Строительство, девелопмент, расширение и инвестиционные программы.'],
     ['План действий (Roadmap) на 30 / 60 / 90 дней', 'План действий на 30 / 60 / 90 дней'],
+    // Final homepage polish: practice situations as a two-line headline + one meaning line
+    // (owner-approved wording); the headline carries the first clause.
+    ['Прибыль есть, но денег не хватает — деньги застревали в дебиторке, запасах и хаотичных платежах.', 'Прибыль есть. Денег не хватает. Деньги застряли в дебиторской задолженности, запасах и хаотичных платежах.'],
+    ['Много Excel-файлов, но нет единой картины — прибыль, деньги и обязательства порознь.', 'Отчётов много. Единой картины нет. Прибыль, деньги и обязательства существуют отдельно.'],
   ],
   ro: [
     ['Plățile se aprobă haotic, fără priorități și fonduri.', 'Plățile se aprobă fără priorități și fără rezerve.'],
@@ -34,6 +38,9 @@ const EDITS = {
     ['Este un diagnostic, nu audit, due diligence, model financiar complet sau implementare de sistem.', 'Este un diagnostic, nu audit, verificare aprofundată (due diligence), model financiar complet sau implementare de sistem.'],
     ['Construcții, development, extindere și programe de investiții.', 'Construcții, dezvoltare imobiliară, extindere și programe de investiții.'],
     ['Plan de acțiune (Roadmap) pentru 30 / 60 / 90 de zile', 'Plan de acțiune pentru 30 / 60 / 90 de zile'],
+    ['Există profit, dar banii nu ajung — rămâneau blocați în creanțe, stocuri și plăți haotice.', 'Există profit. Banii nu ajung. Banii au rămas blocați în creanțe, stocuri și plăți haotice.'],
+    ['Plăți în fiecare zi, dar fără priorități — deciziile se luau manual.', 'Plățile se fac. Priorități nu există. Deciziile se luau manual.'],
+    ['Multe fișiere Excel, dar nicio imagine unică — profitul, banii și obligațiile stau separat.', 'Rapoarte sunt multe. O imagine unică nu există. Profitul, banii și obligațiile stau separat.'],
   ],
 };
 

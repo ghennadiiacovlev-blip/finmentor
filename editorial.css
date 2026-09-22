@@ -1623,3 +1623,91 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
    fallback instead of a rigid single line. */
 .home .packages[data-formats] .fmt-panel.fmt-panel { container-type: inline-size; }
 .home .packages[data-formats] .fmt-panel .package__name { max-width: 100%; white-space: normal; overflow-wrap: normal; text-wrap: balance; font-size: clamp(1.25rem, 8.3cqi, 2.6rem); line-height: 1.22; padding-bottom: 0.06em; }
+
+/* ==========================================================================
+   27. HOME — PRACTICE (.case-panel) and MATERIALS (research index)
+   PRACTICE   three large strategic panels, navy · gold · graphite, one scenario each:
+              index → situation → control → decision (the decision is the conclusion)
+   MATERIALS  a calm warm-stone reading surface: numbered editorial rows, the title dominant,
+              thin rules, quiet outline actions
+   Rhythm:    formats (mandates) → practice (strong panels) → materials (stone pause) → CTA (navy)
+   ========================================================================== */
+.home .proof-cases[data-practice] { background: var(--fx-ivory); padding-block: clamp(80px, 9vw, 150px); }
+.home .proof-cases[data-practice] .section-head { max-width: none; margin-bottom: clamp(40px, 5vw, 72px); }
+.home .proof-cases[data-practice] .section-head .overline { font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold); }
+.home .proof-cases[data-practice] .section-title { max-width: 16ch; margin-top: 18px; font-family: var(--font-sans); font-size: clamp(2.3rem, 1.1rem + 3.8vw, 5.2rem); font-weight: 300; line-height: 1.02; letter-spacing: -0.04em; color: var(--fx-ink); }
+.home .proof-cases[data-practice] .section-title strong { font-weight: 650; }
+.home .proof-cases[data-practice] .section-lead { max-width: 56ch; margin-top: 24px; font-size: var(--t-body-l); line-height: 1.6; color: var(--fx-ink-2); }
+.home .proof-cases[data-practice] .case-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1.2vw, 20px); }
+.home .proof-cases[data-practice] .case-panel.case-panel { container-type: inline-size; position: relative; display: flex; flex-direction: column; gap: 0; min-height: clamp(600px, 50vw, 760px); margin: 0; padding: clamp(32px, 3.2vw, 56px); border: 0; border-radius: clamp(24px, 2.4vw, 40px); background: var(--fx-navy); color: #F3F5F8; box-shadow: none; transform: none; }
+.home .proof-cases[data-practice] .case-panel.case-panel::before, .home .proof-cases[data-practice] .case-panel.case-panel::after { content: none; display: none; }
+.home .proof-cases[data-practice] .case-panel--2.case-panel { background: #C9A544; color: var(--fx-ink); }
+.home .proof-cases[data-practice] .case-panel--3.case-panel { background: #1B2230; }
+.home .proof-cases[data-practice] .case-panel__index { font-family: var(--font-sans); font-size: clamp(3.4rem, 1.6rem + 3.6vw, 6rem); font-weight: 200; line-height: 0.9; letter-spacing: -0.05em; color: inherit; opacity: 0.9; }
+.home .proof-cases[data-practice] .case-panel .result-row__label { display: block; margin: 0 0 12px; padding: 0; border: 0; background: none; font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fx-gold-l); }
+.home .proof-cases[data-practice] .case-panel--2 .result-row__label { color: #3B2C07; }
+/* situation: the scenario itself */
+.home .proof-cases[data-practice] .case-panel__situation { margin-top: clamp(40px, 4.4vw, 80px); }
+.home .proof-cases[data-practice] .case-panel__head { margin: 0; font-family: var(--font-sans); font-size: clamp(1.65rem, 9.4cqi, 2.9rem); font-weight: 300; line-height: 1.08; letter-spacing: -0.032em; color: inherit; text-wrap: balance; }
+.home .proof-cases[data-practice] .case-panel__meaning { margin: 16px 0 0; max-width: 34ch; font-size: var(--t-body); line-height: 1.55; color: inherit; opacity: 0.78; }
+/* control: quiet */
+.home .proof-cases[data-practice] .case-panel__control { margin-top: clamp(28px, 3vw, 44px); }
+.home .proof-cases[data-practice] .case-panel__control p { margin: 0; font-size: var(--t-small); line-height: 1.6; color: inherit; opacity: 0.82; }
+/* decision: the conclusion, at the foot of the panel */
+.home .proof-cases[data-practice] .case-panel__decision { margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+.home .proof-cases[data-practice] .case-panel__control + .case-panel__decision { margin-top: auto; }
+.home .proof-cases[data-practice] .case-panel__situation + .case-panel__control { margin-bottom: 36px; }
+.home .proof-cases[data-practice] .case-panel--2 .case-panel__decision { border-top-color: rgba(8, 17, 31, 0.24); }
+.home .proof-cases[data-practice] .case-panel__decision p { margin: 0; font-size: clamp(1.15rem, 5.4cqi, 1.5rem); font-weight: 600; line-height: 1.35; letter-spacing: -0.012em; color: inherit; }
+.home .proof-cases[data-practice] .proof-more { margin-top: clamp(32px, 4vw, 56px); }
+.home .proof-cases[data-practice] .proof-more .hero__link { font-weight: 650; color: var(--fx-ink); border-bottom-color: var(--fx-gold-f); }
+/* motion: panels 01 → 03; inside, situation → control → decision */
+.m-js .home .proof-cases[data-practice] .case-panel.reveal { opacity: 1; transform: none; }
+.m-js .home .proof-cases[data-practice] .case-panel.reveal :is(.case-panel__index, .m-c) { transition: opacity 600ms var(--m-ease, ease), transform 600ms var(--m-ease, ease); transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 140ms); }
+.m-js .home .proof-cases[data-practice] .case-panel.reveal:not(.is-visible) :is(.case-panel__index, .m-c) { opacity: 0; transform: translateY(16px); }
+@media (prefers-reduced-motion: reduce) { .m-js .home .proof-cases[data-practice] .case-panel.reveal :is(.case-panel__index, .m-c) { opacity: 1 !important; transform: none !important; transition: none !important; } }
+@media (max-width: 960px) {
+  .home .proof-cases[data-practice] .case-grid { grid-template-columns: 1fr; gap: 10px; }
+  .home .proof-cases[data-practice] .case-panel.case-panel { min-height: 0; padding: 30px 24px 28px; border-radius: 24px; }
+  .home .proof-cases[data-practice] .case-panel__index { font-size: 3.2rem; }
+  .home .proof-cases[data-practice] .case-panel__situation { margin-top: 28px; }
+  .home .proof-cases[data-practice] .case-panel__head { font-size: clamp(1.65rem, 1.1rem + 2.6vw, 2.4rem); }
+  .home .proof-cases[data-practice] .case-panel__situation + .case-panel__control { margin-bottom: 0; }
+  .home .proof-cases[data-practice] .case-panel__decision { margin-top: 26px; }
+  .home .proof-cases[data-practice] .case-panel__decision p { font-size: 1.15rem; }
+}
+
+/* --- MATERIALS: the research index ------------------------------------------------ */
+.home .materials[data-research] { background: var(--fx-stone); padding-block: clamp(80px, 9vw, 150px); }
+.home .materials[data-research] .section-head { max-width: none; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); column-gap: clamp(32px, 5vw, 96px); align-items: end; margin-bottom: clamp(40px, 5vw, 72px); }
+.home .materials[data-research] .section-head .overline { grid-column: 1 / -1; font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold); }
+.home .materials[data-research] .section-title { margin-top: 18px; font-family: var(--font-sans); font-size: clamp(2.3rem, 1.1rem + 3.8vw, 5.2rem); font-weight: 300; line-height: 1.02; letter-spacing: -0.04em; color: var(--fx-ink); }
+.home .materials[data-research] .section-lead { margin: 0 0 8px; font-size: var(--t-body-l); line-height: 1.6; color: var(--fx-ink-2); }
+.home .materials[data-research] .materials-grid--three { border-top: 1px solid rgba(8, 17, 31, 0.3); }
+.home .materials[data-research] .material-card { grid-template-columns: clamp(56px, 7vw, 120px) minmax(0, 1fr) auto; column-gap: clamp(20px, 3vw, 56px); row-gap: 10px; padding: clamp(32px, 3.6vw, 52px) 0; border: 0; border-bottom: 1px solid rgba(8, 17, 31, 0.16); border-radius: 0; background: none; box-shadow: none; transform: none; text-decoration: none; }
+.home .materials[data-research] .material-card::before { content: none; display: none; }
+.home .materials[data-research] .material-card__index { grid-column: 1; grid-row: 1 / span 3; font-family: var(--font-sans); font-size: clamp(1.6rem, 1rem + 1.6vw, 2.6rem); font-weight: 200; line-height: 1; letter-spacing: -0.04em; color: var(--fx-ink); }
+.home .materials[data-research] .material-card__tag { grid-column: 2; font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6E5418; }
+.home .materials[data-research] .material-card__title { grid-column: 2; max-width: 30ch; font-family: var(--font-sans); font-size: clamp(1.5rem, 1rem + 1.6vw, 2.5rem); font-weight: 500; line-height: 1.14; letter-spacing: -0.025em; color: var(--fx-ink); text-wrap: balance; }
+.home .materials[data-research] .material-card__desc { grid-column: 2; max-width: 60ch; font-size: var(--t-body); line-height: 1.6; color: var(--fx-ink-2); }
+.home .materials[data-research] .material-card__arrow { grid-column: 3; grid-row: 1 / span 3; align-self: center; padding-bottom: 3px; border-bottom: 1px solid var(--fx-gold-f); font-size: var(--t-small); font-weight: 650; color: var(--fx-ink); transition: color 0.2s ease; }
+.home .materials[data-research] .material-card:hover .material-card__title { color: var(--fx-ink); }
+.home .materials[data-research] .material-card:hover .material-card__arrow { color: #6E5418; }
+.home .materials[data-research] .research-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(32px, 4vw, 56px); }
+.home .materials[data-research] .research-actions .btn { min-height: 48px; padding: 12px 22px; border: 1px solid rgba(8, 17, 31, 0.35); border-radius: 999px; background: transparent; color: var(--fx-ink); box-shadow: none; font-size: var(--t-small); font-weight: 650; }
+.home .materials[data-research] .research-actions .btn:hover { border-color: var(--fx-ink); background: rgba(8, 17, 31, 0.04); transform: none; }
+@media (max-width: 860px) {
+  .home .materials[data-research] .section-head { grid-template-columns: 1fr; }
+  .home .materials[data-research] .section-lead { margin-top: 20px; }
+  .home .materials[data-research] .material-card { grid-template-columns: 44px minmax(0, 1fr); padding: 28px 0; }
+  .home .materials[data-research] .material-card__index { font-size: 1.5rem; grid-row: 1 / span 4; }
+  .home .materials[data-research] .material-card__title { font-size: clamp(1.3rem, 1rem + 1.6vw, 1.7rem); }
+  .home .materials[data-research] .material-card__arrow { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 6px; }
+  .home .materials[data-research] .research-actions .btn { width: 100%; justify-content: center; }
+}
+.home .proof-cases[data-practice] .case-grid { border: 0; padding-top: 0; }
+.home .proof-cases[data-practice] .case-grid::before { content: none; display: none; }
+.home .proof-cases[data-practice] .case-panel__head { font-size: clamp(1.8rem, 11.2cqi, 3.3rem); }
+.home .proof-cases[data-practice] .case-panel--2 :is(.case-panel__meaning, .case-panel__control p) { opacity: 1; color: #2A2006; }
+@media (max-width: 960px) { .home .proof-cases[data-practice] .case-panel__head { font-size: clamp(1.8rem, 1.2rem + 2.8vw, 2.5rem); } }
+@media (max-width: 960px) { .home .proof-cases[data-practice] .case-panel__control + .case-panel__decision { margin-top: 28px; } }
