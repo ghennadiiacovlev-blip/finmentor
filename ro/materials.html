@@ -206,19 +206,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Traseu de navigare">
+    <div class="fx-scene mt-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact mt-cover doc-hero" aria-labelledby="mt-title">
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Traseu de navigare">
         <a href="index.html">Acasă</a> / <span>Materiale</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Materiale FINMENTOR · Harta financiară a afacerii</p>
-        <h1>Logica financiară a afacerii</h1>
-        <p class="fmap__subtitle">De la prima vânzare la valoarea creată</p>
-        <p class="doc-hero__lead">O afacere nu poate fi administrată printr-un singur raport. FINMENTOR arată cum vânzările se transformă în marjă, profit, numerar, lichiditate și capital — și în ce moment un indicator trebuie să conducă la o decizie managerială.</p>
-        <div class="fmap__chains">
+          <div class="mt-cover__grid">
+            <div class="mt-cover__main">
+              <p class="doc-hero__eyebrow" data-fx="rise">Materiale FINMENTOR · Harta financiară a afacerii</p>
+              <h1 id="mt-title" data-fx="rise">Logica <strong>financiară</strong> a afacerii</h1>
+              <p class="fmap__subtitle" data-fx="rise">De la prima vânzare la valoarea creată</p>
+              <p class="doc-hero__lead" data-fx="rise">O afacere nu poate fi administrată printr-un singur raport. FINMENTOR arată cum vânzările se transformă în marjă, profit, numerar, lichiditate și capital — și în ce moment un indicator trebuie să conducă la o decizie managerială.</p>
+              <p class="materials-hero__actions"><a href="#financial-map" class="hero__link">Deschideți harta financiară&nbsp;&darr;</a> <a href="#library" class="hero__link">Toate materialele&nbsp;&darr;</a></p>
+            </div>
+            <aside class="mt-cover__panel" aria-label="Două lanțuri prin care se citește fiecare material" data-fx="glide">
+              <div class="fmap__chains">
           <div class="fmap-chain">
             <p class="fmap-chain__label">Circuitul economic</p>
             <ol class="fmap-chain__primary"><li>Vânzări</li><li>Marjă</li><li>Profit</li><li>Numerar</li><li>Lichiditate</li><li>Capital</li><li>Valoare</li></ol>
@@ -231,10 +234,22 @@
             <ul class="fmap-chain__detail" style="margin-top:var(--sp-3);padding-top:0;border-top:0"><li>Calitatea datelor</li><li>Risc</li><li>Prognoză</li><li>Control</li></ul>
           </div>
         </div>
-        <p class="materials-hero__actions"><a href="#financial-map" class="hero__link">Deschideți harta financiară&nbsp;&darr;</a> <a href="#library" class="hero__link">Toate materialele&nbsp;&darr;</a></p>
-      </div>
-    </section>
-
+            </aside>
+          </div>
+          <nav class="mt-index" aria-label="Indexul bibliotecii" data-fx="rise">
+            <p class="mt-index__label">Indexul bibliotecii</p>
+            <ol>
+              <li><a href="#financial-map"><span class="mt-index__n">00</span><span class="mt-index__t">Harta financiară</span><span class="mt-index__c">24 de etape</span></a></li>
+              <li><a href="#featured"><span class="mt-index__n">01</span><span class="mt-index__t">Cu ce să începeți lectura</span><span class="mt-index__c">6</span></a></li>
+              <li><a href="#practice"><span class="mt-index__n">02</span><span class="mt-index__t">Practică</span><span class="mt-index__c">11</span></a></li>
+              <li><a href="#methodology"><span class="mt-index__n">03</span><span class="mt-index__t">Metodologie</span><span class="mt-index__c">13</span></a></li>
+              <li><a href="#developments"><span class="mt-index__n">04</span><span class="mt-index__t">Dezvoltările FINMENTOR</span><span class="mt-index__c">4</span></a></li>
+              <li><a href="#cfo-notes"><span class="mt-index__n">05</span><span class="mt-index__t">Notele directorului financiar</span><span class="mt-index__c">în completare</span></a></li>
+            </ol>
+          </nav>
+        </div>
+      </section>
+      <div class="fx-sheet fx-sheet--navy mt-sheet mt-sheet--map">
     <section class="fmap" id="financial-map" aria-labelledby="financial-map-title">
       <div class="container">
         <p class="fmap__eyebrow">Harta financiară a afacerii</p>
@@ -808,7 +823,8 @@
         </section>
       </div>
     </section>
-
+      </div>
+      <div class="fx-sheet mt-sheet mt-sheet--library">
     <section class="materials-hub sec--light" id="library">
       <div class="container">
         <div class="materials-section__head" style="margin-bottom:var(--sp-4)"><div><span class="materials-section__label">Bibliotecă</span><h2>Toate materialele</h2></div></div>
@@ -818,7 +834,7 @@
           <a href="#practice">Practică</a>
           <a href="#methodology">Metodologie</a>
           <a href="#developments">Dezvoltările FINMENTOR</a>
-          <a href="#cfo-notes">Director financiar Notes</a>
+          <a href="#cfo-notes">Notele directorului financiar</a>
         </nav>
 
         <section class="materials-section" id="featured">
@@ -883,7 +899,7 @@
         </section>
 
         <section class="materials-section" id="cfo-notes">
-          <div class="materials-section__head"><div><span class="materials-section__label">Secțiune</span><h2>Director financiar Notes</h2></div></div>
+          <div class="materials-section__head"><div><span class="materials-section__label">Secțiune</span><h2>Notele directorului financiar</h2></div></div>
           <p class="materials-section__note materials-section__note--empty">Notițe scurte și observații din practică. Notițe noi vor fi adăugate pe măsura apariției observațiilor practice.</p>
         </section>
 
@@ -898,6 +914,8 @@
         </section>
       </div>
     </section>
+      </div>
+    </div>
   </main>
 
   <footer class="footer" id="contacts">

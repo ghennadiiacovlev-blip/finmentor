@@ -188,19 +188,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+    <div class="fx-scene mt-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact mt-cover doc-hero" aria-labelledby="mt-title">
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <span>Материалы</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Материалы FINMENTOR · Финансовая карта бизнеса</p>
-        <h1>Финансовая логика бизнеса</h1>
-        <p class="fmap__subtitle">От первой продажи до созданной стоимости</p>
-        <p class="doc-hero__lead">Бизнес нельзя управлять по одному отчёту. FINMENTOR показывает, как продажи превращаются в маржу, прибыль, деньги, ликвидность и капитал — и в какой момент показатель должен привести к управленческому решению.</p>
-        <div class="fmap__chains">
+          <div class="mt-cover__grid">
+            <div class="mt-cover__main">
+              <p class="doc-hero__eyebrow" data-fx="rise">Материалы FINMENTOR · Финансовая карта бизнеса</p>
+              <h1 id="mt-title" data-fx="rise">Финансовая <strong>логика</strong> бизнеса</h1>
+              <p class="fmap__subtitle" data-fx="rise">От первой продажи до созданной стоимости</p>
+              <p class="doc-hero__lead" data-fx="rise">Бизнес нельзя управлять по одному отчёту. FINMENTOR показывает, как продажи превращаются в маржу, прибыль, деньги, ликвидность и капитал — и в какой момент показатель должен привести к управленческому решению.</p>
+              <p class="materials-hero__actions"><a href="#financial-map" class="hero__link">Открыть финансовую карту&nbsp;&darr;</a> <a href="#library" class="hero__link">Все материалы&nbsp;&darr;</a></p>
+            </div>
+            <aside class="mt-cover__panel" aria-label="Две цепочки, по которым читается каждый материал" data-fx="glide">
+              <div class="fmap__chains">
           <div class="fmap-chain">
             <p class="fmap-chain__label">Экономический контур</p>
             <ol class="fmap-chain__primary"><li>Продажи</li><li>Маржа</li><li>Прибыль</li><li>Деньги</li><li>Ликвидность</li><li>Капитал</li><li>Стоимость</li></ol>
@@ -213,10 +216,22 @@
             <ul class="fmap-chain__detail" style="margin-top:var(--sp-3);padding-top:0;border-top:0"><li>Качество данных</li><li>Риск</li><li>Прогноз</li><li>Контроль</li></ul>
           </div>
         </div>
-        <p class="materials-hero__actions"><a href="#financial-map" class="hero__link">Открыть финансовую карту&nbsp;&darr;</a> <a href="#library" class="hero__link">Все материалы&nbsp;&darr;</a></p>
-      </div>
-    </section>
-
+            </aside>
+          </div>
+          <nav class="mt-index" aria-label="Указатель библиотеки" data-fx="rise">
+            <p class="mt-index__label">Указатель библиотеки</p>
+            <ol>
+              <li><a href="#financial-map"><span class="mt-index__n">00</span><span class="mt-index__t">Финансовая карта</span><span class="mt-index__c">24 этапа</span></a></li>
+              <li><a href="#featured"><span class="mt-index__n">01</span><span class="mt-index__t">С чего начать чтение</span><span class="mt-index__c">6</span></a></li>
+              <li><a href="#practice"><span class="mt-index__n">02</span><span class="mt-index__t">Практика</span><span class="mt-index__c">11</span></a></li>
+              <li><a href="#methodology"><span class="mt-index__n">03</span><span class="mt-index__t">Методология</span><span class="mt-index__c">13</span></a></li>
+              <li><a href="#developments"><span class="mt-index__n">04</span><span class="mt-index__t">Разработки FINMENTOR</span><span class="mt-index__c">4</span></a></li>
+              <li><a href="#cfo-notes"><span class="mt-index__n">05</span><span class="mt-index__t">Заметки финансового директора</span><span class="mt-index__c">пополняется</span></a></li>
+            </ol>
+          </nav>
+        </div>
+      </section>
+      <div class="fx-sheet fx-sheet--navy mt-sheet mt-sheet--map">
     <section class="fmap" id="financial-map" aria-labelledby="financial-map-title">
       <div class="container">
         <p class="fmap__eyebrow">Финансовая карта бизнеса</p>
@@ -790,7 +805,8 @@
         </section>
       </div>
     </section>
-
+      </div>
+      <div class="fx-sheet mt-sheet mt-sheet--library">
     <section class="materials-hub sec--light" id="library">
       <div class="container">
         <div class="materials-section__head" style="margin-bottom:var(--sp-4)"><div><span class="materials-section__label">Библиотека</span><h2>Все материалы</h2></div></div>
@@ -800,7 +816,7 @@
           <a href="#practice">Практика</a>
           <a href="#methodology">Методология</a>
           <a href="#developments">Разработки FINMENTOR</a>
-          <a href="#cfo-notes">Финансовый директор Notes</a>
+          <a href="#cfo-notes">Заметки финансового директора</a>
         </nav>
 
         <section class="materials-section" id="featured">
@@ -819,10 +835,10 @@
           <div class="materials-section__head"><div><span class="materials-section__label">Раздел</span><h2>Практика</h2></div></div>
           <p class="materials-section__note">Наблюдения из реальной финансовой работы: деньги, платежи, оборотный капитал, товары.</p>
           <div class="materials-list">
-            <a class="kb-item" href="cash-flow.html"><span class="kb-item__cat">Денежный поток</span><span class="kb-item__title">Почему прибыль не равна деньгам</span><span class="kb-item__desc">Разбор для собственника: почему прибыль и убытки может быть прибыльным, а денег на счёте не хватает.</span><span class="kb-item__status">Читать</span></a>
-            <a class="kb-item" href="pribyl-vs-cash.html"><span class="kb-item__cat">Деньги и прибыль</span><span class="kb-item__title">Прибыль есть, денег нет: Прибыль и убытки и Cash</span><span class="kb-item__desc">Цепочка прибыль и убытки → оборотный капитал → капитальные вложения (CAPEX) → финансирование → деньги: почему ликвидность управляется отдельно.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="cash-flow.html"><span class="kb-item__cat">Денежный поток</span><span class="kb-item__title">Почему прибыль не равна деньгам</span><span class="kb-item__desc">Разбор для собственника: почему отчёт о прибылях и убытках показывает прибыль, а денег на счёте не хватает.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="pribyl-vs-cash.html"><span class="kb-item__cat">Деньги и прибыль</span><span class="kb-item__title">Прибыль есть, денег нет: P&amp;L и Cash</span><span class="kb-item__desc">Цепочка P&amp;L → оборотный капитал → капитальные вложения (CAPEX) → финансирование → деньги: почему ликвидность управляется отдельно.</span><span class="kb-item__status">Читать</span></a>
             <a class="kb-item" href="capital-preservation.html"><span class="kb-item__cat">Капитал собственника</span><span class="kb-item__title">Как компания проедает капитал</span><span class="kb-item__desc">Почему сильный актив может иметь слабую структуру финансирования и когда капитал нужно сохранить, высвободить или рефинансировать.</span><span class="kb-item__status">Читать</span></a>
-            <a class="kb-item" href="upravlencheskiy-pl.html"><span class="kb-item__cat">Прибыль и убытки</span><span class="kb-item__title">Как собственнику читать прибыль и убытки</span><span class="kb-item__desc">Главные строки отчёта о прибыли, которые действительно влияют на управленческие решения.</span><span class="kb-item__status">Читать</span></a>
+            <a class="kb-item" href="upravlencheskiy-pl.html"><span class="kb-item__cat">Прибыль и убытки</span><span class="kb-item__title">Как собственнику читать отчёт о прибылях и убытках</span><span class="kb-item__desc">Главные строки отчёта о прибыли, которые действительно влияют на управленческие решения.</span><span class="kb-item__status">Читать</span></a>
             <a class="kb-item" href="platezhnyy-kalendar.html"><span class="kb-item__cat">Платежи</span><span class="kb-item__title">Платёжный календарь: как не попасть в кассовый разрыв</span><span class="kb-item__desc">План поступлений и оплат на 4–8 недель, который делает платежи управляемыми.</span><span class="kb-item__status">Читать</span></a>
             <a class="kb-item" href="working-capital.html"><span class="kb-item__cat">Оборотный капитал</span><span class="kb-item__title">Где застряли деньги бизнеса</span><span class="kb-item__desc">Дебиторка, склад, авансы и условия поставщиков: как оборотный капитал съедает ликвидность.</span><span class="kb-item__status">Читать</span></a>
             <a class="kb-item" href="fcf-postavshiki.html"><span class="kb-item__cat">Товары и товарные позиции</span><span class="kb-item__title">FCF по товарной позиции: какие товары создают денежный поток</span><span class="kb-item__desc">Как увидеть, какие товары создают деньги, а какие замораживают оборотный капитал.</span><span class="kb-item__status">Читать</span></a>
@@ -859,13 +875,13 @@
           <div class="materials-list">
             <a class="kb-item" href="retail-margin-engine.html"><span class="kb-item__cat">Разработка · Retail</span><span class="kb-item__title">Система управления маржой в рознице</span><span class="kb-item__desc">Флагманская модель доходности торгового пространства: норма маржи на метр, категорию и товарную позицию, финансирование товарной полки поставщиком, promo и retrobonus.</span><span class="kb-item__status">Страница разработки</span></a>
             <a class="kb-item" href="ai-agent-economics.html"><span class="kb-item__cat">Разработка · ИИ</span><span class="kb-item__title">Система управления экономикой искусственного интеллекта (AI Economics Control System)</span><span class="kb-item__desc">Методология измерения экономики ИИ: Full Cost, стоимость принятого результата (Cost per Accepted Outcome), стоимость того же результата у человека (Human Baseline) и управленческие решения МАСШТАБИРОВАТЬ / ОПТИМИЗИРОВАТЬ / ОСТАНОВИТЬ.</span><span class="kb-item__status">Страница разработки</span></a>
-            <a class="kb-item" href="business-control-system.html"><span class="kb-item__cat">Разработка · финансовая система</span><span class="kb-item__title">Business Control System</span><span class="kb-item__desc">Система управленческого контроля собственника: Прибыль и убытки, денежный поток, платежи, ключевые показатели бизнеса (KPI) и риски в единой логике.</span><span class="kb-item__status">Страница разработки</span></a>
+            <a class="kb-item" href="business-control-system.html"><span class="kb-item__cat">Разработка · финансовая система</span><span class="kb-item__title">Business Control System</span><span class="kb-item__desc">Система управленческого контроля собственника: P&amp;L, денежный поток, платежи, ключевые показатели бизнеса (KPI) и риски в единой логике.</span><span class="kb-item__status">Страница разработки</span></a>
             <a class="kb-item" href="client-base-control-system.html"><span class="kb-item__cat">Разработка · Клиентская база</span><span class="kb-item__title">Client Base Control System</span><span class="kb-item__desc">Клиентская база как портфель активов: склонность к продлению, Expected Renewal Value / Revenue at Risk, приоритеты удержания под мощность. Вертикаль: Fitness Membership Renewal Engine.</span><span class="kb-item__status">Страница разработки</span></a>
           </div>
         </section>
 
         <section class="materials-section" id="cfo-notes">
-          <div class="materials-section__head"><div><span class="materials-section__label">Раздел</span><h2>Финансовый директор Notes</h2></div></div>
+          <div class="materials-section__head"><div><span class="materials-section__label">Раздел</span><h2>Заметки финансового директора</h2></div></div>
           <p class="materials-section__note materials-section__note--empty">Короткие заметки и наблюдения из практики. Новые заметки будут добавляться по мере появления практических наблюдений.</p>
         </section>
 
@@ -880,6 +896,8 @@
         </section>
       </div>
     </section>
+      </div>
+    </div>
   </main>
 
   <footer class="footer" id="contacts">
