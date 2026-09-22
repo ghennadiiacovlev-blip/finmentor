@@ -1213,3 +1213,96 @@ body.materials-page { background: var(--fx-navy); }
 .home .section-title { font-weight: 300; letter-spacing: -0.032em; }
 .home .section-title strong { font-weight: 800; letter-spacing: -0.03em; }
 .home .packages .section-title, .home .materials .section-title { font-weight: 400; }
+
+/* ==========================================================================
+   22. PAGE — FINANCIAL X-RAY (.q-entry / .q-sheet)
+   BACKGROUND  a dark entry: the thesis field with its hairline drawing, mixed-weight title
+   FOREGROUND  the questionnaire as a light working sheet (ivory, paper fields) rising over
+               the entry by one radius; the preliminary result stays a navy moment
+   OVERLAP     the sheet overlaps the entry by --fx-r; the entry is not pinned (a form must
+               never be covered while typing)
+   REVEAL      none on the form — inputs are never animated; the entry text is static
+   MOBILE      same order; the sheet keeps a smaller radius; fields single column (inline CSS)
+   ========================================================================== */
+.q-hero.q-entry { position: relative; isolation: isolate; overflow: hidden; padding-block: clamp(64px, 9vw, 128px) calc(var(--fx-r) + clamp(48px, 6vw, 88px));
+  background: radial-gradient(120% 90% at 85% 0%, rgba(31, 56, 100, 0.55) 0%, rgba(8, 17, 31, 0) 60%), linear-gradient(180deg, #0B1627 0%, #08111F 100%); }
+.q-hero.q-entry::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(to right, rgba(216, 180, 80, 0.10) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: calc(100% / 6) 100%, 100% 25%;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 70%, transparent 100%); }
+.q-hero.q-entry .q-hero__eyebrow { font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold-l); }
+.q-hero.q-entry h1 { max-width: 18ch; font-family: var(--font-sans); font-size: var(--t-display-l); font-weight: 300; line-height: 1.04; letter-spacing: -0.035em; color: #F3F5F8; text-wrap: balance; }
+.q-hero.q-entry h1 strong { font-weight: 800; }
+.q-hero.q-entry p { max-width: 62ch; font-size: var(--t-body-l); color: #C3CBD7; }
+.q-hero.q-entry p:first-of-type + p { color: #9FAABA; }
+.q-hero.q-entry .q-hero__eyebrow + h1 + p { font-size: var(--t-lead); color: #D5DCE6; }
+.q-hero.q-entry .q-hero__meta { margin-top: 28px; padding: 10px 18px; font-family: var(--font-sans); font-size: var(--t-small); font-weight: 600; color: #F3F5F8; border: 0; background: rgba(201, 162, 39, 0.12); box-shadow: inset 0 0 0 1px rgba(216, 180, 80, 0.4); }
+
+/* the light working sheet */
+.q-sheet { position: relative; z-index: 1; margin-top: calc(var(--fx-r) * -1); padding-top: clamp(40px, 5vw, 72px); border-radius: var(--fx-r) var(--fx-r) 0 0; background: var(--fx-ivory); color: var(--fx-ink);
+  --text-primary: var(--fx-ink); --text-secondary: #2F3B52; --text-muted: #525D6E; --label-muted: #525D6E;
+  --accent: var(--fx-gold); --accent-bright: var(--fx-gold); --micro-label-gold: var(--fx-gold);
+  --border-hairline: var(--fx-rule); --glass-border: rgba(8, 17, 31, 0.16); --glass-border-gold: rgba(126, 95, 22, 0.45); --glass-fill: var(--fx-paper); --border-gold: rgba(126, 95, 22, 0.45);
+  --critical: #B42318; }
+.q-sheet .q-block__title, .q-sheet .q-xray__intro h2, .q-sheet .q-faq h2 { font-family: var(--font-sans); color: var(--fx-ink); letter-spacing: -0.02em; }
+.q-sheet .q-block__num { color: #08111F; }
+/* fields: paper on ivory, never white-on-white */
+.q-sheet .q input[type="text"], .q-sheet .q input[type="email"], .q-sheet .q input[type="tel"], .q-sheet .q input[type="number"], .q-sheet .q select, .q-sheet .q textarea, .q-sheet .q-vf input { background: var(--fx-paper); border-color: rgba(8, 17, 31, 0.2); color: var(--fx-ink); }
+.q-sheet .q :is(input, textarea)::placeholder, .q-sheet .q-vf input::placeholder { color: #6B7587; }
+.q-sheet .q select, .q-sheet .q select option { background-color: var(--fx-paper); color: var(--fx-ink); }
+.q-sheet .q__choices label, .q-sheet .q__cards label { background: var(--fx-paper); border-color: rgba(8, 17, 31, 0.16); color: #2F3B52; }
+.q-sheet .q__choices label:hover, .q-sheet .q__cards label:hover { border-color: rgba(126, 95, 22, 0.55); color: var(--fx-ink); }
+.q-sheet .q__choices label:has(input:checked), .q-sheet .q__cards label:has(input:checked) { border-color: var(--fx-gold); background: #F6EFD9; color: var(--fx-ink); }
+.q-sheet .q__cards label::before { border-color: rgba(126, 95, 22, 0.6); }
+.q-sheet .q__cards label:has(input:checked)::before { border-color: var(--fx-gold); background: radial-gradient(circle, var(--fx-gold) 42%, transparent 47%); }
+.q-sheet .q.is-error .q__choices label, .q-sheet .q.is-error .q__cards label { border-color: rgba(180, 35, 24, 0.55); }
+.q-sheet :is(.q-note, .q-ai-notice) { background: var(--fx-stone); color: #3A4659; }
+.q-sheet .q-validate { background: #FBF3E4; }
+.q-sheet .q-validate__item { background: var(--fx-paper); }
+.q-sheet .q-validate__fields { background: var(--fx-paper); }
+.q-sheet .q-vf__err { color: #B42318; }
+.q-sheet .q-reassure { background: linear-gradient(135deg, rgba(201, 162, 39, 0.12), var(--fx-paper)); }
+.q-sheet .q-topic { background: linear-gradient(135deg, rgba(201, 162, 39, 0.12), var(--fx-paper)); }
+/* the quick diagnostic: a paper instrument panel on the sheet */
+.q-sheet .q-xray { border: 0; background: var(--fx-paper); box-shadow: 0 0 0 1px var(--fx-rule), inset 0 3px 0 var(--fx-gold-f), 0 24px 48px -36px rgba(8, 17, 31, 0.35); }
+/* the preliminary result stays a navy moment */
+.q-sheet .q-result { border: 0; background: var(--fx-navy); box-shadow: inset 0 0 0 1px rgba(216, 180, 80, 0.3);
+  --text-primary: #F3F5F8; --text-secondary: #C3CBD7; --text-muted: #9AA5B5; --accent: var(--fx-gold-l); --glass-border: rgba(255, 255, 255, 0.12); --border-gold: rgba(216, 180, 80, 0.4); }
+.q-sheet .q-result .q-risk-list li { background: rgba(255, 255, 255, 0.04); }
+.q-sheet .q-success { background: #F6EFD9; }
+/* FAQ on the sheet */
+.q-sheet .q-faq .faq__item { border-color: var(--fx-rule); }
+.q-sheet .q-faq summary { color: var(--fx-ink); }
+.q-sheet .q-faq .faq__item__body { color: #2F3B52; }
+@media (max-width: 860px) { .q-sheet { --fx-r: 22px; } }
+
+/* ==========================================================================
+   23. PAGES — THANK-YOU (closing scene) · 404
+   THANK-YOU  BACKGROUND the thesis field across the viewport · FOREGROUND eyebrow, mixed-weight
+              title, lead, a quiet note and two actions (continue the conversation, read) ·
+              OVERLAP none (a terminal scene) · REVEAL eyebrow → title → lead · MOBILE one column
+   404        the same field, the wordmark, one light code figure; absolute links only
+   ========================================================================== */
+.thankyou-hero.fx-stage { position: relative; min-height: calc(100svh - var(--fx-head)); align-items: center; }
+.thankyou-hero.fx-stage > .container { position: relative; padding-block: clamp(64px, 10vh, 120px); }
+.thankyou-hero .doc-hero__eyebrow { font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold-l); }
+.thankyou-hero h1 { max-width: 16ch; margin-top: 18px; font-family: var(--font-sans); font-size: var(--t-display-l); font-weight: 300; line-height: 1.04; letter-spacing: -0.035em; color: #F3F5F8; text-wrap: balance; }
+.thankyou-hero h1 strong { font-weight: 800; }
+.thankyou-hero .doc-hero__lead { max-width: 56ch; margin-top: 26px; font-size: var(--t-lead); line-height: 1.55; color: #D0D7E1; }
+.thankyou-hero .doc-hero__context { display: block; max-width: 70ch; margin-top: 26px; padding: 16px 0 0; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.14); border-radius: 0; background: none; font-family: var(--font-sans); font-size: var(--t-meta); letter-spacing: 0; line-height: 1.6; color: #9AA5B5; }
+.thankyou-hero .doc-hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.thankyou-hero .doc-hero__cta .btn--ghost { color: #F3F5F8; border-color: rgba(255, 255, 255, 0.28); background: transparent; }
+.thankyou-hero .doc-hero__cta .btn--ghost:hover { border-color: var(--fx-gold-l); color: var(--fx-gold-l); }
+@media (max-width: 560px) { .thankyou-hero .doc-hero__cta .btn { width: 100%; justify-content: center; } }
+
+body:has(> main.nf) { min-height: 100svh; background: radial-gradient(120% 90% at 85% 0%, rgba(31, 56, 100, 0.55) 0%, rgba(8, 17, 31, 0) 60%), linear-gradient(180deg, #0B1627 0%, #08111F 100%); background-attachment: fixed; color: #F3F5F8; font-family: var(--font-sans); }
+main.nf { padding-top: clamp(56px, 10vh, 112px); }
+.nf .nf__mark { display: inline-block; margin-bottom: clamp(40px, 7vh, 72px); }
+.nf .nf__mark img { display: block; width: auto; height: 34px; }
+.nf .nf__code { font-family: var(--font-sans); font-size: clamp(72px, 14vw, 132px); font-weight: 300; letter-spacing: -0.05em; color: var(--fx-gold-l); }
+.nf .nf__title { font-family: var(--font-sans); font-size: var(--t-h2); font-weight: 700; letter-spacing: -0.02em; }
+.nf .nf__text { opacity: 1; color: #C3CBD7; font-size: var(--t-body-l); line-height: 1.6; }
+.nf .nf__links a { opacity: 1; color: #D0D7E1; text-decoration: none; border-bottom: 1px solid rgba(216, 180, 80, 0.45); padding-bottom: 2px; }
+.nf .nf__links a:hover { color: var(--fx-gold-l); }
+.nf .nf__lang { opacity: 1; color: #9AA5B5; }
+.nf .nf__lang a { color: inherit; }
