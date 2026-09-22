@@ -1204,3 +1204,12 @@ body.materials-page { background: var(--fx-navy); }
 .materials-page .mt-cover .materials-hero__actions { margin-top: 22px; }
 .materials-page .mt-index { margin-top: clamp(32px, 4.5vh, 56px); }
 .materials-page .mt-index :is(.mt-index__label, .mt-index__c) { color: var(--fx-ink-2); }
+
+/* ==========================================================================
+   21. PAGE — HOME · mixed-weight scene titles
+   Every scene title is set light with one bold concept (the words are the page's own);
+   the brand-name titles stay light throughout. Gold stays reserved for the hero.
+   ========================================================================== */
+.home .section-title { font-weight: 300; letter-spacing: -0.032em; }
+.home .section-title strong { font-weight: 800; letter-spacing: -0.03em; }
+.home .packages .section-title, .home .materials .section-title { font-weight: 400; }
