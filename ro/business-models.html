@@ -92,10 +92,10 @@
 }
   </script>
 
-  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <!-- Fonts: Manrope (display, UI, body — sans-serif only) · JetBrains Mono (data). Both include Cyrillic + Latin-ext. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../lang.css" />
@@ -220,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--models">
+<body class="home hub-page hub-page--models fx-page pg-models">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
     </div>
   </div>
@@ -318,21 +318,29 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Traseu de navigare">
-          <ol>
-            <li><a href="index.html">Pagina principală</a></li>
-            <li aria-current="page">Modele de afaceri</li>
-          </ol>
-        </nav>
-        <p class="overline reveal">Logica pe industrii</p>
-        <h1 class="page-head__title reveal" id="page-title">Un singur sistem financiar. Economii diferite ale afacerii.</h1>
-        <p class="page-head__lead reveal">Nucleul financiar este unul — bani, profit, flux de numerar, indicatori-cheie, riscuri. Industriile diferă prin economie, de aceea fiecare model are propria metodologie de calcul.</p>
-      </div>
-    </section>
-
-    <section class="industries sec--light" id="industries">
+<div class="fx-scene">
+      <section class="fx-stage fx-stage--thesis bm-stage" aria-labelledby="page-title">
+        
+        <div class="fx-stage__content fx-container bm-stage__grid"><div class="bm-stage__copy">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Traseu de navigare">
+            <ol>
+              <li><a href="index.html">Pagina principală</a></li>
+              <li aria-current="page">Modele de afaceri</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Logica pe industrii</p>
+          <h1 class="fx-statement fx-statement--xl" id="page-title" data-fx="rise"><strong>Un singur</strong> sistem financiar. <em class="fx-gold">Economii diferite</em> ale afacerii.</h1>
+          <p class="fx-lead" data-fx="rise">Nucleul financiar este unul — bani, profit, flux de numerar, indicatori-cheie, riscuri. Industriile diferă prin economie, de aceea fiecare model are propria metodologie de calcul.</p>
+          
+        </div>
+          <figure class="industries__figure bm-figure" data-fx="unveil">
+          <!-- PHOTO 03 · real-assets. Final photograph; real-assets.svg kept as rollback. -->
+          <picture><source type="image/avif" srcset="../images/editorial/real-assets.avif"><source type="image/webp" srcset="../images/editorial/real-assets.webp"><img src="../images/editorial/real-assets.jpg" alt="Imobiliare comerciale ca obiect al managementului de capital" width="1920" height="2400" fetchpriority="high" decoding="async"></picture>
+          <figcaption class="industries__caption">Imobilul și chiriașul sunt doar un tip de activ. În comerțul cu amănuntul este raftul, în distribuție — depozitul și creanțele, în comerțul online — canalul și comanda.</figcaption>
+        </figure>
+        </div>
+      </section>
+      <section class="industries sec--light fx-sheet bm-models" id="industries">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Modele de business</p>
@@ -340,11 +348,7 @@
           <p class="section-lead reveal" data-reveal-delay="2">Un singur nucleu financiar — bani, profit, flux de numerar, indicatori-cheie, riscuri. Industrii diferite — economie diferită. FINMENTOR reglează controlul pe metricile care contează cu adevărat în afacerea dvs.</p>
         </div>
 
-        <figure class="industries__figure reveal">
-          <!-- PHOTO 03 · real-assets. Final photograph; real-assets.svg kept as rollback. -->
-          <picture><source type="image/avif" srcset="../images/editorial/real-assets.avif"><source type="image/webp" srcset="../images/editorial/real-assets.webp"><img src="../images/editorial/real-assets.jpg" alt="Imobiliare comerciale ca obiect al managementului de capital" width="1920" height="2400" loading="lazy" decoding="async"></picture>
-          <figcaption class="industries__caption">Imobilul și chiriașul sunt doar un tip de activ. În comerțul cu amănuntul este raftul, în distribuție — depozitul și creanțele, în comerțul online — canalul și comanda.</figcaption>
-        </figure>
+        
         <div class="industries__grid">
           <article class="industry-card industry-card--flagship reveal" data-reveal-delay="1">
             <span class="industry-card__index">01</span>
@@ -459,8 +463,9 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section class="sec sec--alt flagship" id="flagship" aria-label="Din dezvoltările FINMENTOR — Retail Margin Engine">
+    <section class="sec sec--alt flagship bm-flagship" id="flagship" aria-label="Din dezvoltările FINMENTOR — Retail Margin Engine">
       <div class="container">
         <div class="flagship__grid">
           <div class="flagship__intro reveal">
@@ -493,19 +498,18 @@
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Pasul următor</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Descrieți situația — stabilim formatul potrivit.</h2>
-        <p class="section-lead reveal">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Pasul următor</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Descrieți situația — stabilim formatul potrivit.</h2>
+        <p class="fx-lead" data-fx="rise">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="models" data-event="cta_click" data-destination="consult">Discutați situația</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="models" data-event="health_check_cta" data-destination="questionnaire">Test financiar FINMENTOR</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">

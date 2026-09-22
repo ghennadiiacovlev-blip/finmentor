@@ -92,10 +92,10 @@
 }
   </script>
 
-  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <!-- Fonts: Manrope (display, UI, body — sans-serif only) · JetBrains Mono (data). Both include Cyrillic + Latin-ext. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../lang.css" />
@@ -220,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--owner">
+<body class="home hub-page hub-page--owner fx-page pg-owner">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
     </div>
   </div>
@@ -318,62 +318,21 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Traseu de navigare">
-          <ol>
-            <li><a href="index.html">Pagina principală</a></li>
-            <li aria-current="page">Pentru proprietar</li>
-          </ol>
-        </nav>
-        <p class="overline reveal">Pentru proprietar</p>
-        <h1 class="page-head__title reveal" id="page-title">Sistemul financiar văzut de proprietar</h1>
-        <p class="page-head__lead reveal">De unde vine haosul financiar, de ce profitul nu înseamnă încă bani și cum construiește FINMENTOR controlul asupra banilor, rezultatului și capitalului — de la primul diagnostic până la ciclul managerial regulat.</p>
-      </div>
-    </section>
-
-    <section class="chaos sec--light" id="chaos">
-      <div class="chaos__haze" aria-hidden="true"></div>
-      <div class="container">
-        <div class="section-head">
-          <p class="overline overline--risk reveal">Simptome</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Așa arată haosul financiar</h2>
-          <p class="section-lead reveal" data-reveal-delay="2">Fără un sistem unic, proprietarul vede rapoarte, dar nu vede afacerea reală.</p>
+<div class="fx-scene">
+      <section class="fx-stage fx-stage--thesis ow-stage" aria-labelledby="page-title">
+        <div class="fx-stage__content fx-container">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Traseu de navigare">
+            <ol>
+              <li><a href="index.html">Pagina principală</a></li>
+              <li aria-current="page">Pentru proprietar</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Pentru proprietar</p>
+          <h1 class="fx-statement fx-statement--xl ow-title" id="page-title" data-fx="rise">Sistemul financiar <strong>văzut de proprietar</strong></h1>
+          <p class="fx-lead" data-fx="rise">De unde vine haosul financiar, de ce profitul nu înseamnă încă bani și cum construiește FINMENTOR controlul asupra banilor, rezultatului și capitalului — de la primul diagnostic până la ciclul managerial regulat.</p>
         </div>
-
-        <div class="chaos__grid">
-          <article class="chaos-card reveal" data-reveal-delay="1" style="--rot:-1.4deg; --dy:0px">
-            <p class="chaos-card__text">Profitul există pe hârtie, dar banii din cont nu ajung.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.2deg; --dy:22px">
-            <p class="chaos-card__text">Rapoartele vin târziu și nu ajută la luarea deciziilor.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
-            <p class="chaos-card__text">Plățile se aprobă fără priorități și fără rezerve.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
-            <p class="chaos-card__text">Golurile de numerar apar pe neașteptate.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
-            <p class="chaos-card__text">Vânzările cresc, dar marja și profitul nu cresc.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
-            <p class="chaos-card__text">Datele sunt împrăștiate între 1C, Excel, Google Sheets, CRM și mesagerie.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
-            <p class="chaos-card__text">Proprietarul nu vede banii, rezultatul și riscurile într-un singur sistem.</p>
-          </article>
-          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
-            <p class="chaos-card__text">Inteligența artificială (AI) și automatizarea nu sunt folosite, deși munca manuală este prea multă.</p>
-          </article>
-        </div>
-
-        <p class="chaos__verdict reveal">Nu este o problemă de oameni. <span class="text-gold">Este absența unui sistem.</span></p>
-        <span class="chaos__bridge" aria-hidden="true"></span>
-      </div>
-    </section>
-
-    <section class="statement-screen" id="profit-question" aria-labelledby="profit-question-title">
+      </section>
+      <section class="statement-screen fx-sheet ow-question" id="profit-question" aria-labelledby="profit-question-title">
       <div class="container container--editorial">
         <div class="statement-screen__copy">
           <h2 class="statement-screen__text" id="profit-question-title">
@@ -391,8 +350,9 @@
         <p class="statement-screen__close reveal" data-reveal-delay="4">Profitul arată rezultatul. Capitalul arată ce trebuie făcut mai departe.</p>
       </div>
     </section>
+    </div>
 
-    <section class="sec pillars sec--light" id="owner-control" aria-labelledby="owner-control-title">
+    <section class="sec pillars sec--light ow-contours" id="owner-control" aria-labelledby="owner-control-title">
       <div class="container container--editorial">
         <div class="section-head">
           <p class="overline reveal">Circuitul de management</p>
@@ -436,7 +396,7 @@
       </div>
     </section>
 
-    <section class="sec finmentor-compare-band" id="profit-capital" aria-labelledby="profit-capital-title">
+    <section class="sec finmentor-compare-band ow-compare" id="profit-capital" aria-labelledby="profit-capital-title">
       <div class="container">
         <div class="finmentor-compare reveal">
           <div class="finmentor-compare__head">
@@ -469,7 +429,7 @@
       </div>
     </section>
 
-    <section class="sec diff" id="difference" aria-label="Prin ce se deosebește FINMENTOR">
+    <section class="sec diff ow-diff" id="difference" aria-label="Prin ce se deosebește FINMENTOR">
       <div class="container">
         <div class="diff__grid reveal">
           <div class="diff__row"><span class="diff__who">Contabilitatea</span><p>asigură corectitudinea evidenței, a raportării și conformitatea fiscală.</p></div>
@@ -479,7 +439,48 @@
       </div>
     </section>
 
-    <section class="audience sec--light" id="audience">
+    <section class="chaos sec--light ow-chaos" id="chaos">
+      <div class="chaos__haze" aria-hidden="true"></div>
+      <div class="container">
+        <div class="section-head">
+          <p class="overline overline--risk reveal">Simptome</p>
+          <h2 class="section-title reveal" data-reveal-delay="1">Așa arată haosul financiar</h2>
+          <p class="section-lead reveal" data-reveal-delay="2">Fără un sistem unic, proprietarul vede rapoarte, dar nu vede afacerea reală.</p>
+        </div>
+
+        <div class="chaos__grid">
+          <article class="chaos-card reveal" data-reveal-delay="1" style="--rot:-1.4deg; --dy:0px">
+            <p class="chaos-card__text">Profitul există pe hârtie, dar banii din cont nu ajung.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.2deg; --dy:22px">
+            <p class="chaos-card__text">Rapoartele vin târziu și nu ajută la luarea deciziilor.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-0.8deg; --dy:10px">
+            <p class="chaos-card__text">Plățile se aprobă fără priorități și fără rezerve.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:1.6deg; --dy:30px">
+            <p class="chaos-card__text">Golurile de numerar apar pe neașteptate.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="2" style="--rot:1.0deg; --dy:14px">
+            <p class="chaos-card__text">Vânzările cresc, dar marja și profitul nu cresc.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="3" style="--rot:-1.6deg; --dy:0px">
+            <p class="chaos-card__text">Datele sunt împrăștiate între 1C, Excel, Google Sheets, CRM și mesagerie.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="4" style="--rot:0.7deg; --dy:26px">
+            <p class="chaos-card__text">Proprietarul nu vede banii, rezultatul și riscurile într-un singur sistem.</p>
+          </article>
+          <article class="chaos-card reveal" data-reveal-delay="5" style="--rot:-1.1deg; --dy:8px">
+            <p class="chaos-card__text">Inteligența artificială (AI) și automatizarea nu sunt folosite, deși munca manuală este prea multă.</p>
+          </article>
+        </div>
+
+        <p class="chaos__verdict reveal">Nu este o problemă de oameni. <span class="text-gold">Este absența unui sistem.</span></p>
+        <span class="chaos__bridge" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="audience sec--light ow-audience" id="audience">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Pentru cine</p>
@@ -500,7 +501,7 @@
       </div>
     </section>
 
-    <section class="sec steps sec--light" id="steps">
+    <section class="sec steps sec--light ow-steps" id="steps">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Cum lucrăm</p>
@@ -539,7 +540,7 @@
       </div>
     </section>
 
-    <section class="sec proof-cases sec--light" id="deliverables">
+    <section class="sec proof-cases sec--light ow-deliver" id="deliverables">
       <div class="container">
         <h3 class="subhead reveal">Ce primiți după diagnostic</h3>
         <ul class="deliv-list reveal">
@@ -598,7 +599,7 @@
       </div>
     </section>
 
-    <section class="sec sec--seam-top" id="modules">
+    <section class="sec sec--seam-top ow-modules" id="modules">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Soluțiile FINMENTOR</p>
@@ -678,7 +679,7 @@
       </div>
     </section>
 
-    <section class="sec sec--alt ai-economics-teaser" id="ai-economics-teaser" data-ai-economics-view="teaser">
+    <section class="sec sec--alt ai-economics-teaser ow-ai" id="ai-economics-teaser" data-ai-economics-view="teaser">
       <div class="container">
         <div class="ai-teaser">
           <div class="ai-teaser__copy">
@@ -714,7 +715,7 @@
       </div>
     </section>
 
-    <section class="sec after" id="after">
+    <section class="sec after ow-after" id="after">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">După solicitare</p>
@@ -732,19 +733,18 @@
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Pasul următor</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Descrieți situația — stabilim formatul potrivit.</h2>
-        <p class="section-lead reveal">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Pasul următor</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Descrieți situația — stabilim formatul potrivit.</h2>
+        <p class="fx-lead" data-fx="rise">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="owner" data-event="cta_click" data-destination="consult">Discutați situația</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="owner" data-event="health_check_cta" data-destination="questionnaire">Test financiar FINMENTOR</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">

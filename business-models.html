@@ -92,10 +92,10 @@
 }
   </script>
 
-  <!-- Fonts: Playfair Display (display) · Manrope (UI/body) · JetBrains Mono (data). All include Cyrillic + Latin-ext. -->
+  <!-- Fonts: Manrope (display, UI, body — sans-serif only) · JetBrains Mono (data). Both include Cyrillic + Latin-ext. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="lang.css" />
@@ -220,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--models">
+<body class="home hub-page hub-page--models fx-page pg-models">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
   
 
@@ -318,21 +318,29 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Навигационная цепочка">
-          <ol>
-            <li><a href="index.html">Главная</a></li>
-            <li aria-current="page">Бизнес-модели</li>
-          </ol>
-        </nav>
-        <p class="overline reveal">Отраслевая логика</p>
-        <h1 class="page-head__title reveal" id="page-title">Одна финансовая система. Разная экономика бизнеса.</h1>
-        <p class="page-head__lead reveal">Финансовое ядро одно — деньги, прибыль, денежный поток, ключевые показатели, риски. Разные отрасли — разная экономика, поэтому для каждой модели своя расчётная методология.</p>
-      </div>
-    </section>
-
-    <section class="industries sec--light" id="industries">
+<div class="fx-scene">
+      <section class="fx-stage fx-stage--thesis bm-stage" aria-labelledby="page-title">
+        
+        <div class="fx-stage__content fx-container bm-stage__grid"><div class="bm-stage__copy">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Навигационная цепочка">
+            <ol>
+              <li><a href="index.html">Главная</a></li>
+              <li aria-current="page">Бизнес-модели</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Отраслевая логика</p>
+          <h1 class="fx-statement fx-statement--xl" id="page-title" data-fx="rise"><strong>Одна</strong> финансовая система. <em class="fx-gold">Разная</em> экономика бизнеса.</h1>
+          <p class="fx-lead" data-fx="rise">Финансовое ядро одно — деньги, прибыль, денежный поток, ключевые показатели, риски. Разные отрасли — разная экономика, поэтому для каждой модели своя расчётная методология.</p>
+          
+        </div>
+          <figure class="industries__figure bm-figure" data-fx="unveil">
+          <!-- PHOTO 03 · real-assets. Final photograph; real-assets.svg kept as rollback. -->
+          <picture><source type="image/avif" srcset="images/editorial/real-assets.avif"><source type="image/webp" srcset="images/editorial/real-assets.webp"><img src="images/editorial/real-assets.jpg" alt="Коммерческая недвижимость как объект управления капиталом" width="1920" height="2400" fetchpriority="high" decoding="async"></picture>
+          <figcaption class="industries__caption">Объект и арендатор — лишь один вид актива. В рознице это полка, в дистрибуции — склад и дебиторка, в интернет-торговле — канал и заказ.</figcaption>
+        </figure>
+        </div>
+      </section>
+      <section class="industries sec--light fx-sheet bm-models" id="industries">
       <div class="container">
         <div class="section-head">
           <p class="overline reveal">Бизнес-модели</p>
@@ -340,11 +348,7 @@
           <p class="section-lead reveal" data-reveal-delay="2">Одно финансовое ядро — деньги, прибыль, денежный поток, ключевые показатели, риски. Разные отрасли — разная экономика. FINMENTOR настраивает контроль под ключевые метрики вашей бизнес-модели.</p>
         </div>
 
-        <figure class="industries__figure reveal">
-          <!-- PHOTO 03 · real-assets. Final photograph; real-assets.svg kept as rollback. -->
-          <picture><source type="image/avif" srcset="images/editorial/real-assets.avif"><source type="image/webp" srcset="images/editorial/real-assets.webp"><img src="images/editorial/real-assets.jpg" alt="Коммерческая недвижимость как объект управления капиталом" width="1920" height="2400" loading="lazy" decoding="async"></picture>
-          <figcaption class="industries__caption">Объект и арендатор — лишь один вид актива. В рознице это полка, в дистрибуции — склад и дебиторка, в интернет-торговле — канал и заказ.</figcaption>
-        </figure>
+        
         <div class="industries__grid">
           <article class="industry-card industry-card--flagship reveal" data-reveal-delay="1">
             <span class="industry-card__index">01</span>
@@ -459,8 +463,9 @@
         </div>
       </div>
     </section>
+    </div>
 
-    <section class="sec sec--alt flagship" id="flagship" aria-label="Из разработок FINMENTOR — Retail Margin Engine">
+    <section class="sec sec--alt flagship bm-flagship" id="flagship" aria-label="Из разработок FINMENTOR — Retail Margin Engine">
       <div class="container">
         <div class="flagship__grid">
           <div class="flagship__intro reveal">
@@ -493,19 +498,18 @@
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Следующий шаг</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Опишите ситуацию — определим подходящий формат.</h2>
-        <p class="section-lead reveal">Кратко расскажите, что происходит и какое решение вам нужно.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Следующий шаг</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Опишите ситуацию — определим подходящий формат.</h2>
+        <p class="fx-lead" data-fx="rise">Кратко расскажите, что происходит и какое решение вам нужно.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="models" data-event="cta_click" data-destination="consult">Обсудить задачу</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="models" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
