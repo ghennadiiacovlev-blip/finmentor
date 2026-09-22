@@ -592,36 +592,40 @@
       </div>
     </section>
 
-    <section class="packages" id="solutions">
+    <section class="packages" id="solutions" data-formats aria-labelledby="formats-title">
       <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Решения</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Форматы работы FINMENTOR</h2>
+        <div class="section-head fmt-head">
+          <p class="overline reveal">Форматы работы FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="formats-title">От одной финансовой задачи —<br> до <strong>постоянного CFO&#8209;контроля</strong>.</h2>
           <p class="section-lead reveal" data-reveal-delay="2">От одного конкретного управленческого вопроса — до диагностики, построения финансовой системы и регулярного CFO-партнёрства. Формат выбирается по вашей ситуации, а не по обязательной последовательности шагов.</p>
         </div>
-
-        <article class="packages__expert reveal" data-reveal-delay="1">
-          <div class="packages__expert-copy">
+        <div class="fmt-grid">
+          <article class="packages__expert fmt-panel fmt-panel--1 reveal" data-reveal-delay="1">
+            <span class="fmt-panel__index" aria-hidden="true">01</span>
             <span class="package__tier">Есть один конкретный управленческий вопрос</span>
             <h3 class="package__name">CFO Advisory Session</h3>
-            <p class="package__descriptor">Стратегическая CFO-консультация</p>
-            <p class="package__goal">Экспертная CFO-сессия по одному заранее определённому финансовому или управленческому решению. CFO FINMENTOR оценивает риски, сравнивает реалистичные варианты и формирует рекомендуемое направление — без обязательства продолжать сотрудничество.</p>
-          </div>
-          <div class="packages__expert-action">
-            <p class="package__price">750 € <span class="packages__expert-duration">· 60–90 минут</span></p>
-            <p class="packages__expert-note">Тема, контекст и нужное решение уточняются до подтверждения встречи.</p>
-            <a href="cfo-consultation.html" class="btn btn--ghost package__cta">Обсудить вопрос</a>
-          </div>
-        </article>
-
-        <div class="packages__grid">
-          <!-- Диагностика -->
-          <article class="package reveal" data-reveal-delay="1">
+            <p class="package__goal">Экспертная CFO-сессия по одному заранее определённому финансовому или управленческому решению.</p>
+            <div class="fmt-panel__meta"><p class="package__price">750 € <span class="packages__expert-duration">· 60–90 минут</span></p></div>
+            <a class="fmt-panel__more" href="cfo-consultation.html">Подробнее&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Состав и условия</summary>
+              <p class="package__goal-more">CFO FINMENTOR оценивает риски, сравнивает реалистичные варианты и формирует рекомендуемое направление — без обязательства продолжать сотрудничество.</p>
+              <p class="package__descriptor">Стратегическая CFO-консультация</p>
+              <p class="packages__expert-note">Тема, контекст и нужное решение уточняются до подтверждения встречи.</p>
+              <a href="cfo-consultation.html" class="btn btn--ghost package__cta">Обсудить вопрос</a>
+            </details>
+          </article>
+          <article class="package fmt-panel fmt-panel--2 reveal" data-reveal-delay="2">
+            <span class="fmt-panel__index" aria-hidden="true">02</span>
             <span class="package__tier">Не понимаю, что не так</span>
             <h3 class="package__name">Financial Health Check</h3>
             <p class="package__goal">Диагностическая работа по финансовой ситуации компании: где теряются деньги, прибыль и&nbsp;контроль.</p>
-            <p class="package__price"><span class="package__price-from">от</span> 1 500 €</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Ориентировочный срок</span><strong>Обычно 1–2 недели после получения данных</strong></div><p class="package__price"><span class="package__price-from">от</span> 1 500 €</p></div>
+            <a class="fmt-panel__more" href="financial-health-check.html">Подробнее&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Состав и условия</summary>
+              
+              <div class="package__section">
               <span class="package__label">Что входит</span>
               <ul class="package__list">
                 <li>Финансовый рентген собственника</li>
@@ -633,22 +637,25 @@
                 <li>План действий на 30 / 60 / 90 дней</li>
               </ul>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Результат</span>
               <p class="package__result">Собственник понимает, где проблема, что чинить первым и какой формат работы нужен дальше.</p>
             </div>
-            <div class="package__term"><span>Ориентировочный срок</span><strong>Обычно 1–2 недели после получения данных</strong></div>
-            <p class="package__next"><span class="package__next-label">Когда нужен другой формат</span> Это диагностика, а не аудит, комплексная проверка (due diligence), полная финансовая модель или внедрение системы.</p>
-            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Обсудить диагностику</a>
+              <p class="package__next"><span class="package__next-label">Когда нужен другой формат</span> Это диагностика, а не аудит, комплексная проверка (due diligence), полная финансовая модель или внедрение системы.</p>
+              <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Обсудить диагностику</a>
+            </details>
           </article>
-
-          <!-- Внедрение системы — FLAGSHIP -->
-          <article class="package package--flagship reveal" id="business-control-offer" data-reveal-delay="2">
-            <span class="package__tier package__tier--badge">★ Нужна система финансового управления</span>
+          <article class="package package--flagship fmt-panel fmt-panel--3 reveal" id="business-control-offer" data-reveal-delay="3">
+            <span class="fmt-panel__index" aria-hidden="true">03</span>
+            <span class="package__tier">★ Нужна система финансового управления</span>
             <h3 class="package__name">Business Control System</h3>
             <p class="package__goal"><strong>Базовый финансовый контур</strong> для контроля денег, прибыли и ключевых отклонений.</p>
-            <p class="package__price package__price--project"><span class="package__price-from">Проекты этого формата начинаются от</span> 5 000 €</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Ориентировочный срок</span><strong>Базовый контур — обычно 2–4 месяца</strong></div><p class="package__price package__price--project"><span class="package__price-from">Проекты этого формата начинаются от</span> 5 000 €</p></div>
+            <a class="fmt-panel__more" href="business-control-system.html">Подробнее&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Состав и условия</summary>
+              
+              <div class="package__section">
               <span class="package__label">Базовый финансовый контур</span>
               <ul class="package__list">
                 <li>Управленческий P&amp;L</li>
@@ -661,22 +668,25 @@
               </ul>
               <p class="package__module"><strong>Расширяется по задаче:</strong> казначейство · Power BI · автоматизация · регламенты · отраслевые модули</p>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Результат</span>
               <p class="package__result">Собственник получает единый финансовый контур для контроля денег, прибыли, ключевых отклонений, рисков и управленческих решений.</p>
             </div>
-            <div class="package__term"><span>Ориентировочный срок</span><strong>Базовый контур — обычно 2–4 месяца</strong></div>
-            <p class="package__next"><span class="package__next-label">Отдельный план</span> Для группы компаний, сложных данных и расширенного внедрения. Опциональные модули не входят автоматически в цену и срок базового контура.</p>
-            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Обсудить внедрение</a>
+              <p class="package__next"><span class="package__next-label">Отдельный план</span> Для группы компаний, сложных данных и расширенного внедрения. Опциональные модули не входят автоматически в цену и срок базового контура.</p>
+              <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Обсудить внедрение</a>
+            </details>
           </article>
-
-          <!-- Регулярный CFO-контроль -->
-          <article class="package reveal" id="control-partner-offer" data-reveal-delay="3">
+          <article class="package fmt-panel fmt-panel--4 reveal" id="control-partner-offer" data-reveal-delay="4">
+            <span class="fmt-panel__index" aria-hidden="true">04</span>
             <span class="package__tier">Нужен регулярный CFO-контроль</span>
             <h3 class="package__name">CFO Control Partner</h3>
             <p class="package__goal">Регулярный управленческий цикл: цифры → анализ → решение → исполнение → контроль.</p>
-            <p class="package__price"><span class="package__price-from">от</span> 1 500 € / мес</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Формат</span><strong>Ежемесячно</strong></div><p class="package__price"><span class="package__price-from">от</span> 1 500 € / мес</p></div>
+            <a class="fmt-panel__more" href="monthly-cfo-support.html">Подробнее&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Состав и условия</summary>
+              
+              <div class="package__section">
               <span class="package__label">Что входит</span>
               <ul class="package__list">
                 <li>Регулярный финансовый анализ</li>
@@ -685,20 +695,19 @@
                 <li>Контроль статуса к следующему CFO-циклу</li>
               </ul>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Контроль решений и исполнения</span>
               <p class="package__result">Ключевые решения переводятся в задачи с ответственным, сроком и статусом. На следующем CFO-цикле FINMENTOR проверяет прогресс, отклонения и дальнейшие действия.</p>
             </div>
-            <div class="package__term"><span>Формат</span><strong>Ежемесячно</strong></div>
-            <p class="package__next"><span class="package__next-label">Высокая вовлечённость</span> CFO AI Control — от 3 500 € / мес. Power BI, AI, n8n и Make применяются в согласованном объёме; крупное внедрение и интеграции оцениваются отдельно.</p>
-            <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Обсудить сопровождение</a>
+              <p class="package__next"><span class="package__next-label">Высокая вовлечённость</span> CFO AI Control — от 3 500 € / мес. Power BI, AI, n8n и Make применяются в согласованном объёме; крупное внедрение и интеграции оцениваются отдельно.</p>
+              <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Обсудить сопровождение</a>
+            </details>
           </article>
         </div>
-
-        <p class="roi-note reveal"><strong>Перед началом работы:</strong> FINMENTOR уточняет управленческую задачу, состояние исходных данных и необходимый уровень вовлечённости. После этого фиксируются объём работ, ожидаемый результат, этапы, сроки, формат взаимодействия и стоимость. До старта FINMENTOR также убеждается, что выбранный формат соответствует задаче, исходным данным и готовности команды к рабочему процессу; если нужен другой формат, это определяется заранее.</p>
-        <div class="packages__cta reveal">
-          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a>
-          <a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-event="bot_click" data-destination="telegram">Обсудить задачу</a>
+        <div class="fmt-decide reveal">
+          <p class="fmt-decide__line">Не уверены, какой формат подходит?</p>
+          <div class="fmt-decide__actions"><a href="https://t.me/finmentor_md_bot?start=ru" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg" data-ga="click_bot" data-event="bot_click" data-destination="telegram">Обсудить задачу</a><a href="questionnaire.html?topic=financial-diagnostic" class="fmt-decide__link" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Пройти финансовый рентген</a></div>
+          <p class="roi-note fmt-decide__note"><strong>Перед началом работы:</strong> FINMENTOR уточняет управленческую задачу, состояние исходных данных и необходимый уровень вовлечённости. После этого фиксируются объём работ, ожидаемый результат, этапы, сроки, формат взаимодействия и стоимость. До старта FINMENTOR также убеждается, что выбранный формат соответствует задаче, исходным данным и готовности команды к рабочему процессу; если нужен другой формат, это определяется заранее.</p>
         </div>
       </div>
     </section>

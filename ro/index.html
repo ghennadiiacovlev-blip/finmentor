@@ -622,36 +622,40 @@
       </div>
     </section>
 
-    <section class="packages" id="solutions">
+    <section class="packages" id="solutions" data-formats aria-labelledby="formats-title">
       <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Soluții</p>
-          <h2 class="section-title reveal" data-reveal-delay="1">Formatele de lucru FINMENTOR</h2>
+        <div class="section-head fmt-head">
+          <p class="overline reveal">Formatele de lucru FINMENTOR</p>
+          <h2 class="section-title reveal" data-reveal-delay="1" id="formats-title">De la o singură problemă financiară —<br> la <strong>control CFO permanent</strong>.</h2>
           <p class="section-lead reveal" data-reveal-delay="2">De la o întrebare managerială concretă la diagnostic, construirea sistemului financiar și un parteneriat CFO regulat. Formatul se alege după situația dvs., nu după o succesiune obligatorie de pași.</p>
         </div>
-
-        <article class="packages__expert reveal" data-reveal-delay="1">
-          <div class="packages__expert-copy">
+        <div class="fmt-grid">
+          <article class="packages__expert fmt-panel fmt-panel--1 reveal" data-reveal-delay="1">
+            <span class="fmt-panel__index" aria-hidden="true">01</span>
             <span class="package__tier">Aveți o întrebare managerială concretă</span>
             <h3 class="package__name">CFO Advisory Session</h3>
-            <p class="package__descriptor">Sesiune strategică de consultanță CFO</p>
-            <p class="package__goal">Sesiune CFO de expertiză pentru o singură decizie financiară sau managerială stabilită în prealabil. CFO-ul FINMENTOR evaluează riscurile, compară opțiunile realiste și formulează direcția recomandată — fără obligația continuării colaborării.</p>
-          </div>
-          <div class="packages__expert-action">
-            <p class="package__price">750 € <span class="packages__expert-duration">· 60–90 de minute</span></p>
-            <p class="packages__expert-note">Tema, contextul și decizia necesară se clarifică înainte de confirmarea întâlnirii.</p>
-            <a href="cfo-consultation.html" class="btn btn--ghost package__cta">Discutați întrebarea</a>
-          </div>
-        </article>
-
-        <div class="packages__grid">
-          <!-- 1 · Диагностика -->
-          <article class="package reveal" data-reveal-delay="1">
+            <p class="package__goal">Sesiune CFO de expertiză pentru o singură decizie financiară sau managerială stabilită în prealabil.</p>
+            <div class="fmt-panel__meta"><p class="package__price">750 € <span class="packages__expert-duration">· 60–90 de minute</span></p></div>
+            <a class="fmt-panel__more" href="cfo-consultation.html">Detalii&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Componență și condiții</summary>
+              <p class="package__goal-more">CFO-ul FINMENTOR evaluează riscurile, compară opțiunile realiste și formulează direcția recomandată — fără obligația continuării colaborării.</p>
+              <p class="package__descriptor">Sesiune strategică de consultanță CFO</p>
+              <p class="packages__expert-note">Tema, contextul și decizia necesară se clarifică înainte de confirmarea întâlnirii.</p>
+              <a href="cfo-consultation.html" class="btn btn--ghost package__cta">Discutați întrebarea</a>
+            </details>
+          </article>
+          <article class="package fmt-panel fmt-panel--2 reveal" data-reveal-delay="2">
+            <span class="fmt-panel__index" aria-hidden="true">02</span>
             <span class="package__tier">Nu înțeleg ce nu funcționează</span>
             <h3 class="package__name">Financial Health Check</h3>
             <p class="package__goal">Diagnostic al situației financiare a companiei: unde se pierd banii, profitul și controlul.</p>
-            <p class="package__price"><span class="package__price-from">de la</span> 1 500 €</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Durată orientativă</span><strong>De regulă, 1–2 săptămâni după primirea datelor</strong></div><p class="package__price"><span class="package__price-from">de la</span> 1 500 €</p></div>
+            <a class="fmt-panel__more" href="financial-health-check.html">Detalii&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Componență și condiții</summary>
+              
+              <div class="package__section">
               <span class="package__label">Ce include</span>
               <ul class="package__list">
                 <li>Testul financiar FINMENTOR pentru proprietar</li>
@@ -663,22 +667,25 @@
                 <li>Plan de acțiune pentru 30 / 60 / 90 de zile</li>
               </ul>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Rezultat</span>
               <p class="package__result">Proprietarul înțelege unde este problema, ce se repară mai întâi și ce format de lucru urmează.</p>
             </div>
-            <div class="package__term"><span>Durată orientativă</span><strong>De regulă, 1–2 săptămâni după primirea datelor</strong></div>
-            <p class="package__next"><span class="package__next-label">Când este necesar un alt format</span> Este un diagnostic, nu audit, verificare aprofundată (due diligence), model financiar complet sau implementare de sistem.</p>
-            <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Discutați diagnosticul</a>
+              <p class="package__next"><span class="package__next-label">Când este necesar un alt format</span> Este un diagnostic, nu audit, verificare aprofundată (due diligence), model financiar complet sau implementare de sistem.</p>
+              <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--ghost package__cta" data-ga="click_pkg_diagnostic">Discutați diagnosticul</a>
+            </details>
           </article>
-
-          <!-- 2 · Внедрение системы — FLAGSHIP -->
-          <article class="package package--flagship reveal" id="business-control-offer" data-reveal-delay="2">
-            <span class="package__tier package__tier--badge">★ Aveți nevoie de un sistem de management financiar</span>
+          <article class="package package--flagship fmt-panel fmt-panel--3 reveal" id="business-control-offer" data-reveal-delay="3">
+            <span class="fmt-panel__index" aria-hidden="true">03</span>
+            <span class="package__tier">★ Aveți nevoie de un sistem de management financiar</span>
             <h3 class="package__name">Business Control System</h3>
             <p class="package__goal"><strong>Circuit financiar de bază</strong> pentru controlul banilor, profitului și abaterilor-cheie.</p>
-            <p class="package__price package__price--project"><span class="package__price-from">Proiectele de acest tip pornesc de la</span> 5 000 €</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Durată orientativă</span><strong>Circuitul de bază — de regulă, 2–4 luni</strong></div><p class="package__price package__price--project"><span class="package__price-from">Proiectele de acest tip pornesc de la</span> 5 000 €</p></div>
+            <a class="fmt-panel__more" href="business-control-system.html">Detalii&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Componență și condiții</summary>
+              
+              <div class="package__section">
               <span class="package__label">Circuit financiar de bază</span>
               <ul class="package__list">
                 <li>P&amp;L managerial</li>
@@ -691,22 +698,25 @@
               </ul>
               <p class="package__module"><strong>Se extinde în funcție de obiectiv:</strong> trezorerie · Power BI · automatizare · regulamente · module sectoriale</p>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Rezultat</span>
               <p class="package__result">Proprietarul primește un circuit financiar unitar pentru controlul banilor, profitului, abaterilor-cheie, riscurilor și deciziilor manageriale.</p>
             </div>
-            <div class="package__term"><span>Durată orientativă</span><strong>Circuitul de bază — de regulă, 2–4 luni</strong></div>
-            <p class="package__next"><span class="package__next-label">Plan separat</span> Pentru grupuri de companii, date complexe și implementări extinse. Modulele opționale nu intră automat în prețul și termenul circuitului de bază.</p>
-            <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Discutați implementarea</a>
+              <p class="package__next"><span class="package__next-label">Plan separat</span> Pentru grupuri de companii, date complexe și implementări extinse. Modulele opționale nu intră automat în prețul și termenul circuitului de bază.</p>
+              <a href="questionnaire.html?topic=cfo-system" class="btn btn--primary package__cta" data-ga="click_pkg_cfo_system">Discutați implementarea</a>
+            </details>
           </article>
-
-          <!-- 3 · BI / автоматизация (после построения системы) -->
-          <article class="package reveal" id="control-partner-offer" data-reveal-delay="3">
+          <article class="package fmt-panel fmt-panel--4 reveal" id="control-partner-offer" data-reveal-delay="4">
+            <span class="fmt-panel__index" aria-hidden="true">04</span>
             <span class="package__tier">Aveți nevoie de control CFO regulat</span>
             <h3 class="package__name">CFO Control Partner</h3>
             <p class="package__goal">Ciclu managerial regulat: cifre → analiză → decizie → execuție → control.</p>
-            <p class="package__price"><span class="package__price-from">de la</span> 1 500 € / lună</p>
-            <div class="package__section">
+            <div class="fmt-panel__meta"><div class="package__term"><span>Format</span><strong>Lunar</strong></div><p class="package__price"><span class="package__price-from">de la</span> 1 500 € / lună</p></div>
+            <a class="fmt-panel__more" href="monthly-cfo-support.html">Detalii&nbsp;&rarr;</a>
+            <details class="fmt-panel__details">
+              <summary>Componență și condiții</summary>
+              
+              <div class="package__section">
               <span class="package__label">Ce include</span>
               <ul class="package__list">
                 <li>Analiză financiară regulată</li>
@@ -715,19 +725,19 @@
                 <li>Controlul stadiului până la următorul ciclu CFO</li>
               </ul>
             </div>
-            <div class="package__section">
+              <div class="package__section">
               <span class="package__label">Controlul deciziilor și al execuției</span>
               <p class="package__result">Deciziile-cheie devin sarcini cu responsabil, termen și stadiu. În următorul ciclu CFO, FINMENTOR verifică progresul, abaterile și acțiunile următoare.</p>
             </div>
-            <div class="package__term"><span>Format</span><strong>Lunar</strong></div>
-            <p class="package__next"><span class="package__next-label">Implicare ridicată</span> CFO AI Control — de la 3 500 € / lună. Power BI, IA, n8n și Make se folosesc în volumul convenit; implementările majore și integrările se estimează separat.</p>
-            <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Discutați colaborarea</a>
+              <p class="package__next"><span class="package__next-label">Implicare ridicată</span> CFO AI Control — de la 3 500 € / lună. Power BI, IA, n8n și Make se folosesc în volumul convenit; implementările majore și integrările se estimează separat.</p>
+              <a href="monthly-cfo-support.html" class="btn btn--ghost package__cta">Discutați colaborarea</a>
+            </details>
           </article>
         </div>
-
-        <p class="roi-note reveal"><strong>Colaborarea începe cu o definire profesională a cadrului:</strong> FINMENTOR clarifică obiectivul managerial, starea datelor inițiale și nivelul necesar de implicare. Apoi sunt stabilite volumul lucrărilor, rezultatul așteptat, etapele, termenele, formatul de colaborare și costul. Înainte de start, FINMENTOR verifică dacă formatul corespunde obiectivului, datelor și pregătirii echipei pentru procesul de lucru; dacă este necesar un alt format, acesta este stabilit din timp.</p>
-        <div class="packages__cta reveal">
-          <a href="questionnaire.html?topic=financial-diagnostic" class="btn btn--primary btn--lg" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Începeți Testul financiar FINMENTOR</a>
+        <div class="fmt-decide reveal">
+          <p class="fmt-decide__line">Nu sunteți sigur ce format se potrivește?</p>
+          <div class="fmt-decide__actions"><a href="#consult" class="btn btn--ghost btn--lg">Discutați situația</a><a href="questionnaire.html?topic=financial-diagnostic" class="fmt-decide__link" data-ga="click_questionnaire" data-event="health_check_cta" data-destination="questionnaire">Începeți Testul financiar FINMENTOR</a></div>
+          <p class="roi-note fmt-decide__note"><strong>Colaborarea începe cu o definire profesională a cadrului:</strong> FINMENTOR clarifică obiectivul managerial, starea datelor inițiale și nivelul necesar de implicare. Apoi sunt stabilite volumul lucrărilor, rezultatul așteptat, etapele, termenele, formatul de colaborare și costul. Înainte de start, FINMENTOR verifică dacă formatul corespunde obiectivului, datelor și pregătirii echipei pentru procesul de lucru; dacă este necesar un alt format, acesta este stabilit din timp.</p>
         </div>
       </div>
     </section>
