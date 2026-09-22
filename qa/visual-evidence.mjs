@@ -432,7 +432,8 @@ const MEASURE = `(() => {
     const r = el.getBoundingClientRect();
     return rendered(el) && r.width > 0 && r.height > 0;
   };
-  const label = (el) => (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 70);
+  // the visible text, or — for an image-only control such as the brand mark — its accessible name
+  const label = (el) => ((el.textContent || '').replace(/\\s+/g, ' ').trim() || el.getAttribute('aria-label') || '').slice(0, 70);
 
   // ── what is allowed to sit outside a box, and why ──────────────────────────────────────────
   //

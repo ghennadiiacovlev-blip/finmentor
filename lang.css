@@ -42,15 +42,8 @@ html.lang-gate-pending body { overflow: hidden; }
   width: 100%;
 }
 
-.lang-gate__wordmark {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: clamp(2.4rem, 8vw, 4.4rem);
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-.lang-gate__wordmark .logo__fin { color: #FFFFFF; }
-.lang-gate__wordmark .logo__mentor { color: #D4AF37; }
+.lang-gate__wordmark { display: flex; justify-content: center; line-height: 0; }
+.lang-gate__wordmark .logo__mark { display: block; height: clamp(40px, 9vw, 64px); width: auto; }
 
 .lang-gate__rule {
   width: 56px;
