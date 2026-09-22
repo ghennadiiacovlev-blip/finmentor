@@ -165,7 +165,7 @@
     .art-dot--green{background:#3FB950;} .art-dot--amber{background:#D8B450;} .art-dot--orange{background:#DB6D28;} .art-dot--red{background:#E5484D;}
   </style>
 </head>
-<body class="article-page fm-shell">
+<body class="article-page fm-shell fx-page rd-page rd-knowledge">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -258,22 +258,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact rd-cover rd-cover--light doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Оборотный капитал</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">База знаний · финансовый контур</p>
-        <h1>Оборотный капитал: где застревают деньги бизнеса</h1>
-        <p class="doc-hero__lead">Прибыль может быть на бумаге, а деньги — в дебиторке, запасах и незакрытых расчётах. Разбираемся, где застревает cash flow и как выстроить контроль оборотного капитала.</p>
-        <p class="doc-hero__context">Оборотный капитал — мост между прибылью и деньгами в финансовой системе.</p>
-      </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__eyebrow" data-fx="rise">База знаний · финансовый контур</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Оборотный капитал</strong>: где застревают <em class="fx-gold">деньги бизнеса</em></h1>
+        <p class="doc-hero__lead" data-fx="rise">Прибыль может быть на бумаге, а деньги — в дебиторке, запасах и незакрытых расчётах. Разбираемся, где застревает cash flow и как выстроить контроль оборотного капитала.</p>
+        <p class="doc-hero__context" data-fx="rise">Оборотный капитал — мост между прибылью и деньгами в финансовой системе.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Что такое оборотный капитал простыми словами</h2>
@@ -286,7 +286,7 @@
           <ul><li><strong>DSO</strong> — за сколько дней в среднем платят клиенты.</li><li><strong>DPO</strong> — за сколько дней бизнес платит поставщикам.</li><li><strong>DIO</strong> — сколько дней деньги лежат в запасах.</li></ul>
           <h2>Cash Conversion Cycle</h2>
           <p>Cash conversion cycle — сколько дней деньги проходят путь от закупки до поступления от клиента (примерно DIO + DSO − DPO). Чем он короче, тем меньше денег «заморожено» в операционном цикле.</p>
-          <div class="cta-band"><p class="cta-band__title">Проверьте, где застряли деньги</p><p class="cta-band__text">Пройдите финансовый рентген или начните с диагностики денежный поток (Cash Flow) — покажем дебиторку, запасы и cash conversion cycle и где возникает funding gap.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Получить диагностику денежный поток</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div></div>
+          <div class="cta-band"><p class="cta-band__title">Проверьте, где застряли деньги</p><p class="cta-band__text">Пройдите финансовый рентген или начните с диагностики денежного потока (Cash Flow) — покажем дебиторку, запасы и cash conversion cycle и где возникает funding gap.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Получить диагностику денежного потока</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div></div>
           <h2>Качество оборотного капитала: почему не все активы являются свободными деньгами</h2>
           <p>Самая частая ошибка — считать свободные средства по общей сумме оборотных активов. На балансе запасы, дебиторка, НДС и деньги складываются в красивую цифру, но это «бумажный» оборотный капитал. Реальный свободный ресурс зависит не от суммы активов, а от их <strong>качества</strong>: насколько быстро и без больших потерь они превращаются в деньги — и сколько из этой суммы уже принадлежит кредиторам, налогам и резерву.</p>
           <div class="callout"><span class="callout__label">Главная мысль</span><p>Оборотный капитал — это не сумма активов. Это способность активов быстро и без больших потерь превратиться в деньги после учёта кредиторки, обязательных платежей и минимального резерва.</p></div>
@@ -398,9 +398,11 @@
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
         <p class="cta-band__title">Возьмите оборотный капитал под контроль</p>
-        <p class="cta-band__text">Пройдите финансовый рентген, получите диагностику денежный поток или обсудите финансовое сопровождение — выстроим контроль дебиторки, запасов и cash gap.</p>
-        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Получить диагностику денежный поток</a><a href="monthly-cfo-support.html" class="btn btn--ghost btn--lg">Обсудить финансовое сопровождение</a></div>
+        <p class="cta-band__text">Пройдите финансовый рентген, получите диагностику денежного потока или обсудите финансовое сопровождение — выстроим контроль дебиторки, запасов и cash gap.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Получить диагностику денежного потока</a><a href="monthly-cfo-support.html" class="btn btn--ghost btn--lg">Обсудить финансовое сопровождение</a></div>
       </section>
+    </div>
+      </div>
     </div>
   </main>
 

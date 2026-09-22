@@ -191,7 +191,7 @@
     @media (max-width:600px){ .doc-bar__row{padding-inline:var(--sp-5);} .retail-proof,.retail-feature-grid,.retail-path,.retail-actions{grid-template-columns:1fr;} .doc-hero__cta .btn{width:100%;} }
   </style>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-solution">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală">
@@ -283,18 +283,19 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Traseu de navigare">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--thesis fx-stage--compact rd-cover rd-cover--split rd-cover--short doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Traseu de navigare">
         <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Sistem de management al marjei în retail</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">FINMENTOR · Model director financiar pentru Retail</p>
-        <h1>Fiecare raft trebuie să câștige bani</h1>
-        <p class="doc-hero__lead">FINMENTOR sistem de management al marjei în retail transformă spațiul comercial în activ financiar: calculează norma de marjă pentru fiecare metru liniar, m², categorie și articol de stoc, arată deficitul de randament, calitatea creditului comercial al furnizorului și formează acțiuni manageriale.</p>
-        <p class="doc-hero__context">Verticala retail flagship FINMENTOR: raft, categorie, articol de stoc, furnizor, promo, retrobonus, credit comercial și tabloul de bord proprietarului.</p>
+          <div class="rd-cover__main">
+        <p class="doc-hero__eyebrow" data-fx="rise">FINMENTOR · Model director financiar pentru Retail</p>
+        <h1 id="rd-title" data-fx="rise">Fiecare raft <strong>trebuie să câștige bani</strong></h1>
+        <p class="doc-hero__lead" data-fx="rise">FINMENTOR sistem de management al marjei în retail transformă spațiul comercial în activ financiar: calculează norma de marjă pentru fiecare metru liniar, m², categorie și articol de stoc, arată deficitul de randament, calitatea creditului comercial al furnizorului și formează acțiuni manageriale.</p>
+        
         <div class="doc-hero__cta">
           <a href="questionnaire.html?model=retail&topic=retail-margin-engine" class="btn btn--primary btn--lg" onclick="gtag('event','click_retail_engine_questionnaire')">Începeți Testul financiar FINMENTOR pentru retail</a>
           <a href="index.html#consult" class="btn btn--ghost btn--lg" onclick="gtag('event','click_retail_engine_discovery')">Discutați modelul de retail</a>
@@ -308,9 +309,11 @@
         <p class="retail-proof__note">Pagina publică nu dezvăluie date reale ale clienților și arhitectura internă a modelului.</p>
         <p class="retail-proof__legal">Metricile QA descriu calitatea modelului și a logicii de calcul; ele nu sunt o garanție a rezultatului financiar al clientului.</p>
       </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__context" data-fx="rise">Verticala retail flagship FINMENTOR: raft, categorie, articol de stoc, furnizor, promo, retrobonus, credit comercial și tabloul de bord proprietarului.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Raftul ca activ financiar</h2>
@@ -467,6 +470,8 @@
         <p class="related__label">Materiale conexe</p>
         <div class="related__grid"><a href="supplier-shelf-credit.html">Articol: Finanțarea stocului de către furnizor</a><a href="fcf-postavshiki.html">FCF pe articol de stoc</a><a href="supplier-rating-purchasing-priorities.html">Ratingul furnizorilor</a><a href="margin-factor-analysis-flags.html">Analiza factorială a marjei</a><a href="working-capital.html">Capital de lucru</a><a href="business-control-system.html">Business Control System</a><a href="questionnaire.html?model=retail">Test financiar FINMENTOR pentru retail</a></div>
       </nav>
+    </div>
+      </div>
     </div>
   </main>
 

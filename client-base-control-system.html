@@ -115,7 +115,7 @@
 }
   </script>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-solution">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -208,22 +208,25 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--thesis fx-stage--compact rd-cover rd-cover--split doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Client Base Control System</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Разработка FINMENTOR · Клиентская база</p>
-        <h1>Client Base Control System: клиентская база под управлением</h1>
-        <p class="doc-hero__lead">Крупнейшая строка будущей выручки подписочного бизнеса — продления. И это единственная крупная строка, которой обычно никто не управляет: отток считают задним числом, когда деньги уже не пришли. FINMENTOR ведёт клиентскую базу как портфель активов — и отвечает на вопрос собственника заранее: <b>сколько выручки следующего периода уже под риском и что с этим делать на этой неделе.</b></p>
-        <p class="doc-hero__context">Привычка → импульс поведения → срыв привычки → глубина вовлечённости → склонность к продлению → выручка под риском → восстановимость → приоритет удержания → следующее действие → экономика удержания → фактическое продление → калибровка.</p>
+          <div class="rd-cover__main">
+        <p class="doc-hero__eyebrow" data-fx="rise">Разработка FINMENTOR · Клиентская база</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Client Base Control System</strong>: клиентская база <em class="fx-gold">под управлением</em></h1>
+        <p class="doc-hero__lead" data-fx="rise">Крупнейшая строка будущей выручки подписочного бизнеса — продления. И это единственная крупная строка, которой обычно никто не управляет: отток считают задним числом, когда деньги уже не пришли. FINMENTOR ведёт клиентскую базу как портфель активов — и отвечает на вопрос собственника заранее: <b>сколько выручки следующего периода уже под риском и что с этим делать на этой неделе.</b></p>
+        
       </div>
-    </section>
-
-    <div class="container"><section>
+          <p class="doc-hero__context" data-fx="rise">Привычка → импульс поведения → срыв привычки → глубина вовлечённости → склонность к продлению → выручка под риском → восстановимость → приоритет удержания → следующее действие → экономика удержания → фактическое продление → калибровка.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container"><section>
       <h2>Знакомая картина?</h2>
       <div class="cb-scenes">
         <article class="cb-scene"><b>«Сезон закрылся хуже, чем ждали»</b><p>Отчёт по выручке весь год выглядел нормально. Что часть базы не продлится — стало видно только тогда, когда она не продлилась. Управлять было уже нечем.</p><span>Отток виден задним числом</span></article>
@@ -336,7 +339,7 @@
         <li><strong>Витрина Expected Renewal Value / Revenue at Risk</strong> — по базе, продуктам и менеджерам</li>
         <li><strong>План действий под мощность команды</strong> — кому идти в первую очередь и кого отпустить осознанно</li>
         <li><strong>Контроль скидок удержания</strong> — Retention Discount Leakage под наблюдением</li>
-        <li><strong>Помесячная миграция сегментов</strong> — управление движением базы, при необходимости — Панель собственника (Dashboard) собственника</li>
+        <li><strong>Помесячная миграция сегментов</strong> — управление движением базы, при необходимости — панель собственника (Dashboard)</li>
       </ul>
       <p class="doc-note">Система не делает предсказательных заявлений о точности. Зоны склонности — управленческий инструмент приоритизации; финальные выводы проходят экспертную проверку FINMENTOR. Это не оговорка мелким шрифтом — это часть методологии.</p>
     </section></div>
@@ -359,6 +362,8 @@
         <p class="cta-band__text">Финансовый рентген покажет, где бизнес теряет контроль первым делом. Или обсудите вашу клиентскую базу напрямую — начнём с диагностики данных.</p>
         <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Обсудить вашу клиентскую базу</a></div>
       </section>
+    </div>
+      </div>
     </div>
   </main>
 

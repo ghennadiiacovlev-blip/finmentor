@@ -108,7 +108,7 @@
     @media (max-width:640px){ .article-cta-actions{flex-direction:column;} .cta-btn{width:100%;} }
   </style>
 </head>
-<body class="article-page fm-shell">
+<body class="article-page fm-shell fx-page rd-page rd-article">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -201,31 +201,31 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--thesis fx-stage--compact rd-cover rd-cover--thesis doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Рейтинг поставщиков</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">FINMENTOR · Закупки и поставщики</p>
-        <h1>Справочник коэффициентов рейтинга поставщиков: как выбрать, у кого купить одинаковый товар</h1>
-        <p class="doc-hero__lead">Самая низкая цена редко означает лучший выбор. Разбираем систему рейтинга поставщика по финансированию, марже, возврату и НДС — и как выбирать под текущий приоритет компании: Денежный поток (Cash Flow), маржа, наличие, риск или импорт.</p>
+          <p class="doc-hero__eyebrow" data-fx="rise">FINMENTOR · Закупки и поставщики</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Справочник коэффициентов рейтинга поставщиков</strong>: как выбрать, у кого купить одинаковый товар</h1>
+        <p class="doc-hero__lead" data-fx="rise">Самая низкая цена редко означает лучший выбор. Разбираем систему рейтинга поставщика по финансированию, марже, возврату и НДС — и как выбирать под текущий приоритет компании: денежный поток (Cash Flow), маржа, наличие, риск или импорт.</p>
         <p class="art-author">Геннадий Яковлев · FINMENTOR — внешний финансовый директор</p>
         <div class="article-cta-actions">
           <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=supplier-rating" onclick="gtag('event','click_supplier_rating_questionnaire')">Проверить закупки и поставщиков <span>&rarr;</span></a>
           <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_supplier_rating_discovery')">Построить рейтинг поставщиков <span>&rarr;</span></a>
         </div>
-      </div>
-    </section>
-
-    <div class="container">
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Executive Summary</h2>
           <p>Закупки чаще всего выбирают поставщика по двум критериям — цена и срок поставки. Это взгляд из отчёта о прибыли. Финансовый директор смотрит шире: на <strong>деньги и риск</strong>. Один поставщик даёт цену ниже, но требует предоплату. Второй — цену чуть выше, но отсрочку 45 дней. Третий поставит быстрее. Четвёртый примет возврат непроданного товара. Пятый импортный — выгоден по прайсу, но создаёт заморозку НДС и денежный разрыв.</p>
-          <p>Поэтому одинаковый товар нельзя оценивать только по закупочной цене. Нужна <strong>система рейтинга поставщика</strong> и понимание текущего приоритета компании. Главный вопрос: как выбрать поставщика, если приоритеты разные — Денежный поток, маржа, наличие товара, снижение риска или импортная выгода?</p>
+          <p>Поэтому одинаковый товар нельзя оценивать только по закупочной цене. Нужна <strong>система рейтинга поставщика</strong> и понимание текущего приоритета компании. Главный вопрос: как выбрать поставщика, если приоритеты разные — денежный поток, маржа, наличие товара, снижение риска или импортная выгода?</p>
           <div class="callout"><span class="callout__label">Главная мысль</span><p>Покупать нужно не просто дешевле, а финансово правильнее. Выбор поставщика зависит от текущего приоритета компании: иногда выгоднее купить дороже, но с отсрочкой, которая финансирует операционный цикл.</p></div>
 
           <h3>Четыре признака рейтинга и их вес</h3>
@@ -354,14 +354,14 @@
               <tr><td class="num">5</td><td>Возврат</td><td>Можно ли вернуть непроданный товар?</td></tr>
               <tr><td class="num">6</td><td>НДС / импорт</td><td>Сколько денег будет заморожено?</td></tr>
               <tr><td class="num">7</td><td>Рейтинг поставщика</td><td>Кто лучше по суммарному баллу?</td></tr>
-              <tr><td class="num">8</td><td>Приоритет компании</td><td>Что сейчас важнее: Денежный поток, маржа, наличие или риск?</td></tr>
+              <tr><td class="num">8</td><td>Приоритет компании</td><td>Что сейчас важнее: денежный поток, маржа, наличие или риск?</td></tr>
             </tbody>
           </table></div>
 
           <h2>Управленческая формула выбора поставщика</h2>
           <div class="art-formula"><b>Supplier Decision Score</b> = Supplier Rating × Strategic Priority Factor × Risk Adjustment<em>Supplier Rating — базовый балл по коэффициентам. Strategic Priority Factor — поправка на текущую цель компании. Risk Adjustment — понижение за риски качества, сроков, юридических условий или ненадёжности.</em></div>
           <div class="art-table-wrap"><table>
-            <thead><tr><th>Поставщик</th><th class="num">Базовый рейтинг</th><th class="num">Приоритет денежный поток</th><th class="num">Риск</th><th class="num">Финальный балл</th></tr></thead>
+            <thead><tr><th>Поставщик</th><th class="num">Базовый рейтинг</th><th class="num">Приоритет «денежный поток»</th><th class="num">Риск</th><th class="num">Финальный балл</th></tr></thead>
             <tbody>
               <tr><td>A</td><td class="num">72</td><td class="num">0,85</td><td class="num">1,00</td><td class="num">61,2</td></tr>
               <tr><td>B</td><td class="num">80</td><td class="num">1,15</td><td class="num">0,95</td><td class="num"><strong>87,4</strong></td></tr>
@@ -382,7 +382,7 @@
           </table></div>
           <div class="callout"><span class="callout__label">Правило для закупок</span><p>Нельзя выбирать поставщика только по цене, если разница в цене меньше стоимости денежного разрыва. Сначала считаем эффективную стоимость и влияние на цикл — потом сравниваем прайсы.</p></div>
 
-          <h2>Как должен выглядеть панель собственника (Dashboard) для собственника</h2>
+          <h2>Как должна выглядеть панель собственника (Dashboard)</h2>
           <p>Сводная таблица по одному товару у разных поставщиков: эффективная цена, маржа, доля финансирования поставщиком, возврат, заморозка НДС, базовый рейтинг, поправка на приоритет, риск, финальный балл и статус. Собственник видит не прайс, а полную картину выбора.</p>
           <div class="art-table-wrap art-table-wrap--wide"><table>
             <thead><tr><th>Поставщик</th><th class="num">Эфф. цена</th><th class="num">Маржа</th><th class="num">Финанс. цикла</th><th class="num">Возврат, дн</th><th class="num">НДС, дн</th><th class="num">Рейтинг</th><th class="num">Финал</th><th>Статус</th></tr></thead>
@@ -406,7 +406,7 @@
           <ul>
             <li><strong>Закупки.</strong> Выбирать поставщика под текущий приоритет, а не по привычке «дешевле по прайсу».</li>
             <li><strong>Переговоры.</strong> Считать стоимость потери отсрочки против скидки; переводить дорогих по деньгам поставщиков в более выгодные условия.</li>
-            <li><strong>Ассортимент.</strong> Для каждого ключевого товарная позиция (SKU) фиксировать предпочтительного поставщика и резервного.</li>
+            <li><strong>Ассортимент.</strong> Для каждой ключевой товарной позиции (SKU) фиксировать предпочтительного поставщика и резервного.</li>
             <li><strong>Импорт.</strong> Оценивать импортные позиции с учётом заморозки НДС, валюты и логистики, а не только цены.</li>
           </ul>
 
@@ -419,8 +419,8 @@
           <h3>Что можно автоматизировать через n8n / Make</h3>
           <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Процесс</th><th>Что делает автоматизация</th></tr></thead><tbody><tr><td>Сбор предложений поставщиков</td><td>Загружает цены и условия из email / Google Sheets / ERP</td></tr><tr><td>Обновление DPO</td><td>Подтягивает фактические сроки оплаты</td></tr><tr><td>Обновление возвратов</td><td>Отслеживает условия возврата и фактические возвраты</td></tr><tr><td>Расчёт НДС и импорта</td><td>Считает cash impact of VAT и сроки заморозки</td></tr><tr><td>Supplier Score</td><td>Пересчитывает рейтинг поставщика</td></tr><tr><td>Alerts</td><td>Уведомляет, если Preferred Supplier стал Conditional</td></tr><tr><td>Approval Flow</td><td>Отправляет закупку на согласование, если поставщик ниже порога</td></tr></tbody></table></div>
           <h3>Что показывает Power BI</h3>
-          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Панель собственника</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>Supplier Rating</td><td>Preferred / Approved / Conditional / Stop</td></tr><tr><td>Same Product Comparison</td><td>У кого выгоднее купить одинаковый товар</td></tr><tr><td>Денежный поток Impact</td><td>Кто финансирует оборот, а кто требует деньги компании</td></tr><tr><td>Risk Flags</td><td>НДС, возвраты, сроки, качество, логистика</td></tr><tr><td>Procurement Decision</td><td>Купить / согласовать / вести переговоры / stop</td></tr></tbody></table></div>
-          <div class="callout"><span class="callout__label">Главный вывод</span><p>Закупки становятся управляемыми, когда выбор поставщика основан не на «где дешевле», а на рейтинге, денежный поток и риске.</p></div>
+          <div class="art-table-wrap art-table-wrap--wide"><table><thead><tr><th>Панель собственника</th><th>Что видит собственник</th></tr></thead><tbody><tr><td>Supplier Rating</td><td>Preferred / Approved / Conditional / Stop</td></tr><tr><td>Same Product Comparison</td><td>У кого выгоднее купить одинаковый товар</td></tr><tr><td>Cash Flow Impact</td><td>Кто финансирует оборот, а кто требует деньги компании</td></tr><tr><td>Risk Flags</td><td>НДС, возвраты, сроки, качество, логистика</td></tr><tr><td>Procurement Decision</td><td>Купить / согласовать / вести переговоры / stop</td></tr></tbody></table></div>
+          <div class="callout"><span class="callout__label">Главный вывод</span><p>Закупки становятся управляемыми, когда выбор поставщика основан не на «где дешевле», а на рейтинге, денежном потоке и риске.</p></div>
           </section>
       </article>
     </div>
@@ -445,6 +445,8 @@
         <p class="related__label">Серия FINMENTOR: закупки, поставщики, маржа, денежный поток</p>
         <div class="related__grid"><a href="fcf-postavshiki.html">FCF по товарной позиции: какие товары создают денежный поток</a><a href="margin-factor-analysis-flags.html">Факторный анализ маржи с флагами</a><a href="working-capital.html">Оборотный капитал</a><a href="cash-flow.html">Почему прибыль не равна деньгам</a><a href="methodology.html">Методология FINMENTOR</a></div>
       </nav>
+    </div>
+      </div>
     </div>
   </main>
 

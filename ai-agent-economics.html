@@ -94,7 +94,7 @@
   }
   </script>
 </head>
-<body class="ai-economics-page fm-shell">
+<body class="ai-economics-page fm-shell fx-page rd-page rd-solution">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -187,18 +187,18 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--thesis fx-stage--compact rd-cover rd-cover--thesis doc-hero ai-doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <span>Система управления экономикой искусственного интеллекта</span>
       </nav>
-    </div>
-
-    <section class="doc-hero ai-doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">FINMENTOR · ЭКОНОМИКА ИСКУССТВЕННОГО ИНТЕЛЛЕКТА</p>
-        <h1>Вы уже инвестируете в искусственный интеллект (AI). Вопрос — создаёт ли он экономическую ценность?</h1>
-        <p class="ai-doc-hero__subtitle">Финансовый контроль цифрового труда и корпоративных ИИ-агентов</p>
-        <p class="doc-hero__lead">Компании внедряют ИИ быстрее, чем финансовая функция успевает измерять его реальную стоимость.</p>
+          <p class="doc-hero__eyebrow" data-fx="rise">FINMENTOR · ЭКОНОМИКА ИСКУССТВЕННОГО ИНТЕЛЛЕКТА</p>
+        <h1 id="rd-title" data-fx="rise">Вы уже инвестируете в искусственный интеллект (AI). <strong>Вопрос — создаёт ли он <em class="fx-gold">экономическую ценность</em>?</strong></h1>
+        <p class="ai-doc-hero__subtitle" data-fx="rise">Финансовый контроль цифрового труда и корпоративных ИИ-агентов</p>
+        <p class="doc-hero__lead" data-fx="rise">Компании внедряют ИИ быстрее, чем финансовая функция успевает измерять его реальную стоимость.</p>
         <div class="ai-hero-list" aria-label="Что часто не видно собственнику">
           <span>стоимость одного полезного результата</span>
           <span>время и стоимость человеческой проверки</span>
@@ -209,10 +209,10 @@
           <a href="questionnaire.html?topic=automation&source=ai-economics&intent=ai-economics-diagnostic" class="btn btn--primary btn--lg" data-event="click_ai_economics_primary_cta" data-cta-id="ai_economics_hero_primary" data-cta-location="ai_economics_hero" data-source-section="hero" data-destination="questionnaire">Обсудить экономику ИИ</a>
           <a href="#methodology" class="btn btn--ghost btn--lg" data-event="click_ai_economics_methodology" data-cta-id="ai_economics_hero_methodology" data-cta-location="ai_economics_hero" data-source-section="hero" data-destination="#methodology">Посмотреть методологию</a>
         </div>
-      </div>
-    </section>
-
-    <div class="container">
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc ai-doc">
         <section id="questions">
           <p class="overline">Пять вопросов собственника</p>
@@ -294,7 +294,7 @@
             <strong>≠</strong>
             <span>Денежная экономия (Cashable Saving)</span>
           </div>
-          <p>Если ИИ освободил 300 часов, но payroll не снизился, внешний подряд не отменён и сотрудники не создали дополнительный маржинальный объём, денежная экономия ещё не возникла. Нужен <strong>Событие перевода мощности в деньги (Capacity Conversion Event)</strong>.</p>
+          <p>Если ИИ освободил 300 часов, но payroll не снизился, внешний подряд не отменён и сотрудники не создали дополнительный маржинальный объём, денежная экономия ещё не возникла. Нужно <strong>событие перевода мощности в деньги (Capacity Conversion Event)</strong>.</p>
         </section>
 
         <section id="process-economics">
@@ -357,7 +357,7 @@
         </section>
 
         <section id="implementation">
-          <h2>Как FINMENTOR внедряет экономика искусственного интеллекта</h2>
+          <h2>Как FINMENTOR внедряет экономику искусственного интеллекта</h2>
           <div class="ai-path">
             <div class="ai-path__step"><strong>Диагностика</strong><span>Инвентаризация расходов, ИИ-процессов, владельцев и готовности данных.</span></div>
             <div class="ai-path__step"><strong>Юнит-экономика (Unit Economics)</strong><span>Full Cost, стоимость того же результата у человека (Human Baseline), Cost / Accepted Outcome, мост выгоды (Benefit Bridge).</span></div>
@@ -380,6 +380,8 @@
           </div>
         </section>
       </article>
+    </div>
+      </div>
     </div>
   </main>
 

@@ -151,7 +151,7 @@
     @media (max-width:640px){ .article-cta-actions{flex-direction:column;} .cta-btn{width:100%;} }
   </style>
 </head>
-<body class="article-page fm-shell">
+<body class="article-page fm-shell fx-page rd-page rd-article">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală">
@@ -243,26 +243,26 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Traseu de navigare">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--thesis fx-stage--compact rd-cover rd-cover--thesis doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Traseu de navigare">
         <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Ratingul furnizorilor</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">FINMENTOR · Achiziții și furnizori</p>
-        <h1>Nomenclatorul coeficienților ratingului furnizorilor: cum alegeți de la cine cumpărați aceeași marfă</h1>
-        <p class="doc-hero__lead">Cel mai mic preț rareori înseamnă cea mai bună alegere. Analizăm sistemul de rating al furnizorului după finanțare, marjă, retur și TVA — și cum se alege după prioritatea curentă a companiei: Flux de numerar (Cash Flow), marjă, disponibilitate, risc sau import.</p>
+          <p class="doc-hero__eyebrow" data-fx="rise">FINMENTOR · Achiziții și furnizori</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Nomenclatorul coeficienților ratingului furnizorilor</strong>: cum alegeți de la cine cumpărați aceeași marfă</h1>
+        <p class="doc-hero__lead" data-fx="rise">Cel mai mic preț rareori înseamnă cea mai bună alegere. Analizăm sistemul de rating al furnizorului după finanțare, marjă, retur și TVA — și cum se alege după prioritatea curentă a companiei: Flux de numerar (Cash Flow), marjă, disponibilitate, risc sau import.</p>
         <p class="art-author">Ghennadi Iacovlev · FINMENTOR — Director financiar extern</p>
         <div class="article-cta-actions">
           <a class="cta-btn cta-btn-primary" href="questionnaire.html?topic=supplier-rating" onclick="gtag('event','click_supplier_rating_questionnaire')">Verificați achizițiile și furnizorii <span>&rarr;</span></a>
           <a class="cta-btn cta-btn-secondary" href="index.html#consult" onclick="gtag('event','click_supplier_rating_discovery')">Construiți ratingul furnizorilor <span>&rarr;</span></a>
         </div>
-      </div>
-    </section>
-
-    <div class="container">
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Executive Summary</h2>
@@ -487,6 +487,8 @@
         <p class="related__label">Seria FINMENTOR: achiziții, furnizori, marjă, flux de numerar</p>
         <div class="related__grid"><a href="fcf-postavshiki.html">FCF pe articol de stoc: ce produse generează flux de numerar</a><a href="margin-factor-analysis-flags.html">Analiza factorială a marjei cu semnale de alertă</a><a href="working-capital.html">Capital de lucru</a><a href="cash-flow.html">De ce profitul nu înseamnă bani</a><a href="methodology.html">Metodologia FINMENTOR</a></div>
       </nav>
+    </div>
+      </div>
     </div>
   </main>
 

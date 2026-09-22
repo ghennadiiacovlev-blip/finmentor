@@ -147,7 +147,7 @@
     .scan__deeper-card:hover { border-color: var(--accent); background: rgba(201,162,39,0.08); }
   </style>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-tool">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală">
@@ -239,22 +239,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Traseu de navigare">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact rd-cover rd-cover--light rd-cover--short doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Traseu de navigare">
         <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Mini-scanarea capitalului de lucru</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Diagnostic expres · 3 minute</p>
-        <h1>Mini-scanarea capitalului de lucru</h1>
-        <p class="doc-hero__lead">Răspundeți la câteva întrebări ca să înțelegeți unde pot rămâne blocați banii în afacere: în creanțe, stocuri, avansuri, condiții de plată sau disciplina de plată.</p>
-        <p class="doc-hero__context">Mini-scanarea localizează rapid zona de atenție. Pentru o analiză mai amplă, completați Testul financiar FINMENTOR sau discutați situația.</p>
-      </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__eyebrow" data-fx="rise">Diagnostic expres · 3 minute</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Mini-scanarea</strong> capitalului de lucru</h1>
+        <p class="doc-hero__lead" data-fx="rise">Răspundeți la câteva întrebări ca să înțelegeți unde pot rămâne blocați banii în afacere: în creanțe, stocuri, avansuri, condiții de plată sau disciplina de plată.</p>
+        <p class="doc-hero__context" data-fx="rise">Mini-scanarea localizează rapid zona de atenție. Pentru o analiză mai amplă, completați Testul financiar FINMENTOR sau discutați situația.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <section class="scan" id="wcScanV88">
         <p class="scan__intro">9 întrebări scurte. Rezultatul apare imediat pe pagină — fără înregistrare și fără ca datele să fie trimise undeva automat.</p>
         <div class="scan__bar" aria-hidden="true"><div class="scan__bar-fill" id="scanBar"></div></div>
@@ -320,6 +320,8 @@
           <a href="questionnaire.html">Test financiar FINMENTOR</a>
         </div>
       </nav>
+    </div>
+      </div>
     </div>
   </main>
 

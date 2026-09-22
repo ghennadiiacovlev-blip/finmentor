@@ -1179,11 +1179,13 @@ check('the Real Estate page presents its approved name, not its English working 
       'og:description': /<meta property="og:description" content="([^"]*)"/,
       'twitter:title': /<meta name="twitter:title" content="([^"]*)"/,
       'twitter:description': /<meta name="twitter:description" content="([^"]*)"/,
-      'h1': /<h1>([^<]*)<\/h1>/
+      // the H1 may carry attributes and meaning-driven weight markup; its TEXT must carry the name
+      'h1': /<h1\b[^>]*>([\s\S]*?)<\/h1>/
     };
     for (const [slot, re] of Object.entries(slots)) {
       const m = re.exec(html);
       assert(m, f + ': no ' + slot);
+      if (slot === 'h1') { m[1] = m[1].replace(/<[^>]+>/g, ''); }
       assert(m[1].indexOf(approved) !== -1, f + ' ' + slot + ' does not carry the approved name: ' + m[1].slice(0, 70));
     }
     for (const n of graphNodes(html)) {

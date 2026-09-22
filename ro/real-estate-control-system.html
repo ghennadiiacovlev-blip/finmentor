@@ -103,7 +103,7 @@
 }
   </script>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-solution">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală">
@@ -195,22 +195,23 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Traseu de navigare">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--compact rd-cover rd-cover--photo doc-hero" aria-labelledby="rd-title">
+        <picture class="fx-stage__media"><source type="image/avif" srcset="../images/editorial/real-assets.avif"><source type="image/webp" srcset="../images/editorial/real-assets.webp"><img src="../images/editorial/real-assets.jpg" alt="Imobilul comercial ca obiect de randament" width="1122" height="1402" fetchpriority="high" decoding="async" style="object-position: 50% 58%"></picture>
+        <div class="fx-stage__scrim" aria-hidden="true"></div>
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Traseu de navigare">
         <a href="index.html">Acasă</a> / <a href="materials.html">Materiale</a> / <span>Sistem de management financiar al activelor imobiliare</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Dezvoltare FINMENTOR · Imobiliare și închiriere</p>
-        <h1>Sistem de management financiar al activelor imobiliare: randamentul imobilului sub control</h1>
-        <p class="doc-hero__lead">FINMENTOR leagă randamentul imobilului, chiriașii, contractele, garanțiile, investiții de capital (CAPEX) și flux de numerar (Cash Flow) într-un sistem unic de control managerial. Proprietarul vede nu „chiria e colectată”, ci ce imobil și ce chiriaș câștigă cu adevărat — și ce decizie trebuie luată.</p>
-        <p class="doc-hero__context">Activ → chiriaș → contract → chirie → vacancy → garanții → investiții de capital → flux de numerar → randament → decizie.</p>
-      </div>
-    </section>
-
-    <div class="container"><section>
+          <p class="doc-hero__eyebrow" data-fx="rise">Dezvoltare FINMENTOR · Imobiliare și închiriere</p>
+        <h1 id="rd-title" data-fx="rise">Sistem de management financiar al activelor imobiliare: <strong>randamentul imobilului</strong> sub control</h1>
+        <p class="doc-hero__lead" data-fx="rise">FINMENTOR leagă randamentul imobilului, chiriașii, contractele, garanțiile, investiții de capital (CAPEX) și flux de numerar (Cash Flow) într-un sistem unic de control managerial. Proprietarul vede nu „chiria e colectată”, ci ce imobil și ce chiriaș câștigă cu adevărat — și ce decizie trebuie luată.</p>
+        <p class="doc-hero__context" data-fx="rise">Activ → chiriaș → contract → chirie → vacancy → garanții → investiții de capital → flux de numerar → randament → decizie.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container"><section>
       <h2>Durerea proprietarului de imobile</h2>
       <p>Portofoliul crește, iar imaginea se fragmentează: pentru fiecare imobil — fișierul lui, chiria „în ansamblu se colectează”, contabilitatea arată încasările, administratorul — gradul de ocupare a spațiilor. În același timp, chiriile nu au fost revizuite de ani, o parte din spații stau goale, depozitele nu acoperă riscul, iar investiții de capital pleacă spre imobile „după senzația de urgență”.</p>
       <p>Simptomul-cheie: proprietarul nu poate răspunde într-un minut ce imobil și ce chiriaș câștigă și care distrug în tăcere randamentul portofoliului.</p>
@@ -253,6 +254,8 @@
         <p class="cta-band__text">Testul financiar FINMENTOR arată unde pierde portofoliul controlul în primul rând: randamentul imobilelor, chiriașii, garanțiile sau investiții de capital. Sau discutați portofoliul dvs. direct.</p>
         <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Începeți Testul financiar FINMENTOR</a><a href="index.html#consult" class="btn btn--ghost btn--lg">Discutați portofoliul dvs.</a></div>
       </section>
+    </div>
+      </div>
     </div>
   </main>
 

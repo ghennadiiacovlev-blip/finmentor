@@ -92,7 +92,7 @@
     .scan__deeper-card:hover { border-color: var(--accent); background: rgba(201,162,39,0.08); }
   </style>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-tool">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -185,22 +185,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact rd-cover rd-cover--light rd-cover--short doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Мини-скан оборотного капитала</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Экспресс-диагностика · 3 минуты</p>
-        <h1>Мини-скан оборотного капитала</h1>
-        <p class="doc-hero__lead">Ответьте на несколько вопросов, чтобы понять, где в бизнесе могут застревать деньги: в дебиторке, запасах, авансах, условиях оплаты или платёжной дисциплине.</p>
-        <p class="doc-hero__context">Мини-скан — быстрый способ локализовать зону внимания. Для более широкого разбора пройдите финансовый рентген или обсудите задачу.</p>
-      </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__eyebrow" data-fx="rise">Экспресс-диагностика · 3 минуты</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Мини-скан</strong> оборотного капитала</h1>
+        <p class="doc-hero__lead" data-fx="rise">Ответьте на несколько вопросов, чтобы понять, где в бизнесе могут застревать деньги: в дебиторке, запасах, авансах, условиях оплаты или платёжной дисциплине.</p>
+        <p class="doc-hero__context" data-fx="rise">Мини-скан — быстрый способ локализовать зону внимания. Для более широкого разбора пройдите финансовый рентген или обсудите задачу.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <section class="scan" id="wcScanV88">
         <p class="scan__intro">9 коротких вопросов. Результат покажется сразу на странице — без регистрации и без отправки данных куда-либо автоматически.</p>
         <div class="scan__bar" aria-hidden="true"><div class="scan__bar-fill" id="scanBar"></div></div>
@@ -266,6 +266,8 @@
           <a href="questionnaire.html">Финансовый рентген бизнеса</a>
         </div>
       </nav>
+    </div>
+      </div>
     </div>
   </main>
 

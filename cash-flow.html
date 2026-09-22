@@ -149,7 +149,7 @@
 }
   </script>
 </head>
-<body class="article-page fm-shell">
+<body class="article-page fm-shell fx-page rd-page rd-knowledge">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -242,22 +242,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact rd-cover rd-cover--light doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Денежный поток</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">База знаний · Финансы</p>
-        <h1>Денежный поток: почему деньги важнее бухгалтерской прибыли</h1>
-        <p class="doc-hero__lead">Бизнес может показывать прибыль в отчёте и при этом не иметь денег на счёте. Разбираемся, как собственнику видеть и контролировать реальное движение денег.</p>
-        <p class="doc-hero__context">Денежный поток — часть финансовой системы контроля денег.</p>
-      </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__eyebrow" data-fx="rise">База знаний · Финансы</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Денежный поток</strong>: почему деньги важнее <em class="fx-gold">бухгалтерской прибыли</em></h1>
+        <p class="doc-hero__lead" data-fx="rise">Бизнес может показывать прибыль в отчёте и при этом не иметь денег на счёте. Разбираемся, как собственнику видеть и контролировать реальное движение денег.</p>
+        <p class="doc-hero__context" data-fx="rise">Денежный поток — часть финансовой системы контроля денег.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Что такое денежный поток простыми словами</h2>
@@ -271,7 +271,7 @@
           <h2>Какие отчёты нужны собственнику</h2>
           <p>Минимальный управленческий контур по деньгам состоит из трёх элементов:</p>
           <ol><li><strong>Отчёт о движении денежных средств (Денежный поток)</strong> — факт по операционной, инвестиционной и финансовой деятельности.</li><li><strong>Платёжный календарь</strong> — план поступлений и платежей на 2–8 недель вперёд.</li><li><strong>Прогноз ликвидности</strong> — где и когда возможен кассовый разрыв.</li></ol>
-          <div class="cta-band"><p class="cta-band__title">Получите ориентир по деньгам за один шаг</p><p class="cta-band__text">Пройдите короткий финансовый рентген — на его основе готовится первичная карта проблем с деньгами и приоритеты. Или запросите базовый шаблон денежный поток.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон денежный поток</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div></div>
+          <div class="cta-band"><p class="cta-band__title">Получите ориентир по деньгам за один шаг</p><p class="cta-band__text">Пройдите короткий финансовый рентген — на его основе готовится первичная карта проблем с деньгами и приоритеты. Или запросите базовый шаблон денежного потока.</p><div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон денежного потока</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div></div>
           <h2>Как внедрить платёжный календарь</h2>
           <p>Платёжный календарь — самый быстрый способ убрать хаос в оплатах. Базовый запуск занимает 1–2 недели:</p>
           <ul><li>Соберите все регулярные и разовые платежи в одну таблицу по неделям.</li><li>Добавьте ожидаемые поступления с реалистичными датами.</li><li>Введите приоритеты платежей: налоги и зарплата, критичные поставщики, остальное.</li><li>Согласуйте правила: кто и на каком основании утверждает оплату.</li><li>Раз в неделю обновляйте факт и сравнивайте с планом.</li></ul>
@@ -301,16 +301,18 @@
       </section>
       <nav class="related" aria-label="Связанные материалы">
         <p class="related__label">Связанные материалы</p>
-        <div class="related__grid"><a href="pribyl-vs-cash.html">Глубже: P&L → Cash (цепочка)</a><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="margin-factor-analysis-flags.html">Факторный анализ маржи с флагами</a><a href="fcf-postavshiki.html">Финансирование за счёт поставщиков</a><a href="working-capital.html">Оборотный капитал</a><a href="upravlencheskiy-pl.html">Управленческий прибыль и убытки</a><a href="platezhnyy-kalendar.html">Платёжный календарь</a><a href="templates.html">Шаблоны</a><a href="methodology.html">Методология FINMENTOR</a></div>
+        <div class="related__grid"><a href="pribyl-vs-cash.html">Глубже: P&L → Cash (цепочка)</a><a href="supplier-rating-purchasing-priorities.html">Рейтинг поставщиков: у кого купить товар</a><a href="margin-factor-analysis-flags.html">Факторный анализ маржи с флагами</a><a href="fcf-postavshiki.html">Финансирование за счёт поставщиков</a><a href="working-capital.html">Оборотный капитал</a><a href="upravlencheskiy-pl.html">Управленческий отчёт о прибылях и убытках</a><a href="platezhnyy-kalendar.html">Платёжный календарь</a><a href="templates.html">Шаблоны</a><a href="methodology.html">Методология FINMENTOR</a></div>
       </nav>
     </div>
 
     <div class="container">
       <section class="cta-band" style="margin-bottom:var(--sp-9)">
         <p class="cta-band__title">Наведите порядок в деньгах</p>
-        <p class="cta-band__text">Пройдите финансовый рентген или запросите шаблон денежный поток — и получите первый ориентир для контроля денег.</p>
-        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон денежный поток</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div>
+        <p class="cta-band__text">Пройдите финансовый рентген или запросите шаблон денежного потока — и получите первый ориентир для контроля денег.</p>
+        <div class="cta-band__row"><a href="questionnaire.html" class="btn btn--primary btn--lg">Пройти финансовый рентген</a><a href="templates.html" class="btn btn--ghost btn--lg">Запросить шаблон денежного потока</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div>
       </section>
+    </div>
+      </div>
     </div>
   </main>
 

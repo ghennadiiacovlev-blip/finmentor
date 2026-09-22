@@ -133,7 +133,7 @@
 }
   </script>
 </head>
-<body class="fm-shell">
+<body class="fm-shell fx-page rd-page rd-article">
   <header class="header is-solid" id="header">
     <div class="container header__inner">
       <a class="logo" href="index.html" aria-label="finmentor — на главную">
@@ -226,22 +226,22 @@
   </div>
 
   <main>
-    <div class="container">
-      <nav class="crumbs" aria-label="Хлебные крошки">
+
+    <div class="fx-scene rd-scene">
+      <section class="fx-stage fx-stage--light fx-stage--compact rd-cover rd-cover--light doc-hero" aria-labelledby="rd-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="crumbs" aria-label="Хлебные крошки">
         <a href="index.html">Главная</a> / <a href="materials.html">Материалы</a> / <span>Анонимные сценарии</span>
       </nav>
-    </div>
-
-    <section class="doc-hero">
-      <div class="container">
-        <p class="doc-hero__eyebrow">Практика</p>
-        <h1>Анонимные сценарии: как выглядит работа FINMENTOR на практике</h1>
-        <p class="doc-hero__lead">Без раскрытия клиентов и коммерческих данных — только типовые ситуации, управленческие действия и результат, который собственник должен видеть в системе.</p>
-        <p class="doc-hero__context">Анонимные управленческие сценарии — без раскрытия клиентов.</p>
-      </div>
-    </section>
-
-    <div class="container">
+          <p class="doc-hero__eyebrow" data-fx="rise">Практика</p>
+        <h1 id="rd-title" data-fx="rise"><strong>Анонимные сценарии</strong>: как выглядит работа FINMENTOR на практике</h1>
+        <p class="doc-hero__lead" data-fx="rise">Без раскрытия клиентов и коммерческих данных — только типовые ситуации, управленческие действия и результат, который собственник должен видеть в системе.</p>
+        <p class="doc-hero__context" data-fx="rise">Анонимные управленческие сценарии — без раскрытия клиентов.</p>
+        </div>
+      </section>
+      <div class="fx-sheet rd-sheet">
+<div class="container">
       <article class="doc">
         <section>
           <h2>Сценарий 1 — Оборотный капитал</h2>
@@ -270,13 +270,13 @@
           <p>Реестр платежей и обязательств, остатки по счетам, поступления, приоритеты и лимиты, календарь оплат.</p>
           <h3>Следующий шаг</h3>
           <p>Обсудить задачу или внедрение казначейства в рамках Business Control System.</p>
-          <h2>Сценарий 3 — Панель собственника (Dashboard) для собственника</h2>
+          <h2>Сценарий 3 — Панель собственника (Dashboard)</h2>
           <h3>Ситуация</h3>
           <p>Компания с Excel / 1С / Google Sheets и несколькими источниками данных: отчёты собираются вручную, единой картины нет.</p>
           <h3>Симптомы</h3>
-          <ul><li>Данные расходятся между файлами.</li><li>Power BI воспринимается как «красивая визуализация» без логики.</li><li>Нет единого вида отчёт о прибыли и убытках (P&amp;L), денежный поток, дебиторки, платежей и ключевые показатели бизнеса (KPI).</li><li>Отчётность приходит с опозданием.</li></ul>
+          <ul><li>Данные расходятся между файлами.</li><li>Power BI воспринимается как «красивая визуализация» без логики.</li><li>Нет единого вида отчёта о прибыли и убытках (P&amp;L), денежного потока, дебиторки, платежей и ключевых показателей бизнеса (KPI).</li><li>Отчётность приходит с опозданием.</li></ul>
           <h3>Что делаем</h3>
-          <ul><li>Определяем, какие показатели действительно нужны собственнику.</li><li>Описываем управленческую модель данных.</li><li>Выделяем источники: 1С, Excel, Google Sheets, CRM, платёжный календарь.</li><li>Готовим структуру панель собственника; при необходимости выгрузку из 1С настраивает программист-интегратор.</li></ul>
+          <ul><li>Определяем, какие показатели действительно нужны собственнику.</li><li>Описываем управленческую модель данных.</li><li>Выделяем источники: 1С, Excel, Google Sheets, CRM, платёжный календарь.</li><li>Готовим структуру панели собственника; при необходимости выгрузку из 1С настраивает программист-интегратор.</li></ul>
           <h3>Что получает собственник</h3>
           <ul><li>Панель собственника становится управленческим инструментом, а не набором графиков.</li><li>Собственник видит деньги, прибыль, риски и отклонения в одной логике.</li><li>Power BI — продолжение финансовой системы.</li></ul>
           <h3>Какие данные нужны</h3>
@@ -310,6 +310,8 @@
         <p class="cta-band__text">Обсудите задачу или пройдите мини-скан — определим зону внимания под ваш бизнес.</p>
         <div class="cta-band__row"><a href="index.html#consult" class="btn btn--primary btn--lg">Обсудить задачу</a><a href="working-capital-scan.html" class="btn btn--ghost btn--lg">Пройти мини-скан</a><a href="https://t.me/finmentor_md_bot?start=ru" class="btn btn--ghost btn--lg" target="_blank" rel="noopener noreferrer">Обсудить задачу</a></div>
       </section>
+    </div>
+      </div>
     </div>
   </main>
 
