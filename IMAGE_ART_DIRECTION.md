@@ -3,8 +3,25 @@
 
 **Scope:** exactly **three** photographic assets on the homepage. No fourth.
 **Location:** `/images/editorial/`
-**Rule:** production never hotlinks third-party imagery. Assets are licensed or
-commissioned, exported locally, and committed.
+**Rule:** production never hotlinks third-party imagery. Assets are exported locally
+and committed. The three final photographs are project-specific AI-generated assets —
+origin, derivatives and use are recorded in `ASSET_PROVENANCE.md`.
+
+---
+
+## AMENDMENT — editorial convergence pass (2026-09-22)
+
+**This amendment supersedes the rows of the canonical table below where they differ.**
+The masters actually in production are 1586 × 992 (PHOTO 01, 02) and 1122 × 1402 (PHOTO 03).
+
+| | PHOTO 01 `hero-capital` | PHOTO 02 `capital-decision` | PHOTO 03 `real-assets` |
+|---|---|---|---|
+| Desktop render | full-bleed; the copy sits on a paper panel (`rgba(247,244,238,.9)`, blur 10px), not under a dark overlay | right 56% of the scene (`left: 44%`), height `min(100%, 62vw)`; fades into navy on the left and at the bottom | 5fr / 7fr grid column, height `clamp(520px, 80vh, 880px)` (≥ 901px), radius 4px, caption beneath |
+| Mobile render (≤ 860 / 900px) | a relative photographic band `56svh` (min 340px); the panel overlaps its lower edge by 64px | a relative band, 300px, fading into navy at the bottom | static, full width, height `clamp(280px, 76vw, 400px)` |
+| Scrim | top `rgba(8,17,31,.55)` → 0 at 22%; bottom `.28` → 0 at 26%; mobile top `.6` → 0 at 32% | `90deg` navy → 0 at 34% of the photo, plus bottom navy → 0 at 32% | none |
+
+Text contrast is measured on the rendered composite (panel over photo for PHOTO 01; navy
+field for PHOTO 02) — see `FINAL_VISUAL_QA_REPORT.md`.
 
 ---
 

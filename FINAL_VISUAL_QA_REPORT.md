@@ -278,3 +278,64 @@ No homepage, IA, navigation, typography, colour or motion redesign.
 - The RO P&L article's own title and lead use a bare "P&L" (article content, not edited).
 - The five legacy root files outside the sitemap still use the old reading header.
 - A native-speaker read of the new RO strings.
+
+---
+
+## Addendum — editorial convergence pass (2026-09-22)
+
+Visual convergence toward a photography-first, light editorial system. IA, the 9 scenes,
+their order, copy methodology, forms, X-Ray, analytics, SEO and the Mini App are unchanged.
+
+| Scene | Result |
+|---|---|
+| Header | transparent over the hero; paper (`rgba(250,248,244,.94)`) with navy links once scrolled, on hub pages, and whenever the drawer is open. The CTA is a gold rule with type, not a filled pill. Reading pages use an opaque paper bar. Dropdowns and the drawer are light sheets |
+| 01 Hero | full-bleed photograph. The copy sits on a paper panel (0.9, blur 10px) with navy type, not under a dark overlay. The panel arrives with the photo, then eyebrow → H1 → three lines → copy → CTA (engine unchanged). Mobile: a 56svh photographic band with the panel overlapping its edge |
+| 02 Problem | ivory; five indexed symptoms; the verdict spans the grid at 1.9–3.4rem with gold only on «Это отсутствие системы.» |
+| 03 Owner system | three connected tonal blocks: navy / stone / white with a gold top rule |
+| 04 Capital | PHOTO 02 owns the right 56% at near-native scale and fades into navy under the framework; the question, routes and gold-spine cycle stand on navy at the left |
+| 05 Business models | ivory; PHOTO 03 at 5fr of a 5/7 grid (520–880px tall) with a caption: the building is one kind of asset among several (shelf, warehouse and receivables, channel and order). Badges without boxes |
+| 06 Formats | ivory; the mandates are tonal bands (paper / sand), large names, navy ghost actions; mobile puts the index above the mandate |
+| 07 Practice | stone pause; no metrics, no photo |
+| 08 Materials | indexed library rows: index · topic · title · first sentence of the article's own lead · Читать → |
+| 09 Final CTA | navy with the gold submit; form unchanged |
+| Hub pages | light ivory page head with a 2.4–4.6rem H1; the dark logic sections stay as restrained navy scenes |
+| Reading pages (74) | ivory field, navy type; the page hero rises in on load (H1/lead/meta only, never paragraphs; off under reduced motion). Components written for the dark field were re-inked. The owner-vs-accounting comparison and the Materials chapter map stay dark exhibits with the dark token set |
+
+**Surface balance (homepage, by section height, 1440):** light 73% · navy 20% · hero photo 6%.
+
+**Colour:** light-field gold `#7E5F16` (≥ 4.56:1 on ivory, paper and stone). Light-section muted
+grey `#5E6A7C` (4.86:1 on ivory).
+
+**Light-theme audit** (every text element in `<main>` of 84 pages against its composited
+background): 52 failing keys before the fixes → 0. One remaining flag is a false positive:
+a gold-gradient button whose background the audit reads as transparent.
+
+**Measurements (final build):**
+
+| Check | Result |
+|---|---|
+| Hero text on the panel, 6 widths × RU/RO | H1 ≥ 13.6:1 · statement ≥ 11.7 · subtitle ≥ 6.6 · kicker ≥ 5.44 · trust line ≥ 5.79 |
+| PHOTO 02 text | ≥ 7.45:1 at 1440 / 1024 / 390, RU/RO and the capital page |
+| LCP (local) | homepage ≤ 136ms at 1440 (H1), ≤ 188ms at 390 (PHOTO 01); article ≤ 128ms; hub ≤ 124ms |
+| CLS | 0 on the hero at every width |
+| run-all | 101/101, 3654, floors PASS |
+| visual-evidence | 30/1, the pre-existing privacy check only |
+| motion + navigation harness | 76/76 |
+| content-migration / financial-map | nothing lost / 19-0-0 |
+
+No test was removed, retargeted or relaxed in this pass.
+
+**Artifacts:** `qa-artifacts/yellowtree-convergence/`: before/after full pages at 1440 and 390, scene
+captures, and `yellowtree-convergence-1440.mp4` / `-390.mp4` (natural scroll, intro included).
+
+**Provenance:** `ASSET_PROVENANCE.md` records the three final photographs as project-specific
+AI-generated assets. This supersedes the "no licence recorded" WATCH above.
+
+**WATCH:**
+- **Resolution:** PHOTO 01 renders at 1.13× its 1586px master at 1728px, and PHOTO 02 at 1.11×. On DPR 2
+  screens both are ~1.8–2.2× below native density. A ≥ 2400px master removes this with no CSS
+  change.
+- **Mobile hero CTA:** on phones the photographic band puts the CTA below the first viewport (at
+  ~1014px on 390×844). The H1 and the three lines are above the fold.
+- **Light share:** it is above the 55–65% target, because Formats is a long light scene (~4,100px at
+  1440).
