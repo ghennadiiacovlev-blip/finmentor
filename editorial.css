@@ -1306,3 +1306,7 @@ main.nf { padding-top: clamp(56px, 10vh, 112px); }
 .nf .nf__links a:hover { color: var(--fx-gold-l); }
 .nf .nf__lang { opacity: 1; color: #9AA5B5; }
 .nf .nf__lang a { color: inherit; }
+/* home · formats: legible meta on the light cards (contrast audit, AA) */
+.home .packages :is(.package__label, .package__tier, .package__price-from, .package__next) { color: var(--fx-ink-2); }
+.home .packages .package__tier--badge { color: #08111F; font-weight: 700; }
+.home .packages .package__module strong { color: var(--fx-gold); font-weight: 700; }
