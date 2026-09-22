@@ -1617,3 +1617,9 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
 .home .packages[data-formats] .fmt-panel .package__name { line-height: 1.16; padding-bottom: 0.04em; }
 .home .packages[data-formats] .fmt-panel .package__name { line-height: 1.3; padding-bottom: 0; }
 .home .packages[data-formats] .fmt-panel .package__price { line-height: 1.35; }
+/* formats · product titles sized by their panel, not the viewport: the panel caps its width
+   while the viewport keeps growing, so a vw-based title outgrew the panel at 1728 (RO card 03).
+   One size for all four panels (they are equal), a safe right edge, and a balanced two-line
+   fallback instead of a rigid single line. */
+.home .packages[data-formats] .fmt-panel.fmt-panel { container-type: inline-size; }
+.home .packages[data-formats] .fmt-panel .package__name { max-width: 100%; white-space: normal; overflow-wrap: normal; text-wrap: balance; font-size: clamp(1.25rem, 8.3cqi, 2.6rem); line-height: 1.22; padding-bottom: 0.06em; }
