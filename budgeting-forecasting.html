@@ -220,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--budgeting">
+<body class="home hub-page hub-page--budgeting fx-page pg-budgeting">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
   
 
@@ -318,21 +318,80 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Навигационная цепочка">
-          <ol>
-            <li><a href="index.html">Главная</a></li>
-            <li aria-current="page">Бюджетирование и прогнозирование</li>
+<div class="fx-scene">
+      <section class="fx-stage fx-stage--thesis bf-stage-hero" aria-labelledby="page-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Навигационная цепочка">
+            <ol>
+              <li><a href="index.html">Главная</a></li>
+              <li aria-current="page">Бюджетирование и прогнозирование</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Решения</p>
+          <h1 class="fx-statement fx-statement--xl" id="page-title" data-fx="rise">Бюджетирование <strong>и прогнозирование</strong></h1>
+          <p class="fx-lead" data-fx="rise">Любой показатель читается дважды: как факт закрытого периода и как основание для следующего прогноза. Иначе отчётность описывает прошлое и ничего не меняет.</p>
+          
+        </div>
+      </section>
+      <section class="fx-sheet bf-chain" id="chain" aria-labelledby="chain-title">
+        <div class="fx-container">
+          <div class="fx-head fx-head--split">
+            <div>
+              <p class="fx-eyebrow" data-fx="rise">Контур планирования</p>
+              <h2 class="fx-statement" id="chain-title" data-fx="rise">От плана — к <strong>деньгам</strong>, результату и <em class="fx-gold">решению</em></h2>
+            </div>
+            <p class="fx-lead" data-fx="rise">Каждый шаг отвечает на свой вопрос собственника. Вместе они превращают план продаж в управляемый прогноз денег и основание для решения.</p>
+          </div>
+          <ol class="fx-deck bf-deck" aria-label="Контур планирования: от плана к решению">
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">01</span>
+              <h3 class="fx-h2 bf-stage__name">План</h3>
+              <p class="bf-stage__desc">План продаж отвечает на вопрос «сколько мы продадим». Финансовый прогноз — на вопрос, сколько денег придёт и когда.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="pipeline-to-cash.html">От Pipeline до Cash&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">02</span>
+              <h3 class="fx-h2 bf-stage__name">Деньги</h3>
+              <p class="bf-stage__desc">Прибыль в отчёте ещё не означает деньги на счёте. Денежный поток и платёжный календарь показывают, чем закрыть обязательства.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="cash-flow.html">Денежный поток&nbsp;&rarr;</a> <a class="fx-link" href="platezhnyy-kalendar.html">Платёжный календарь&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">03</span>
+              <h3 class="fx-h2 bf-stage__name">Прибыль и убытки</h3>
+              <p class="bf-stage__desc">Управленческий отчёт о прибыли и убытках показывает, где бизнес зарабатывает и где теряет маржу.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="upravlencheskiy-pl.html">Управленческий P&amp;L&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">04</span>
+              <h3 class="fx-h2 bf-stage__name">Сценарии</h3>
+              <p class="bf-stage__desc">Крупная сделка или проект — это сценарий, а не прогноз. Неблагоприятный вариант считается отдельно и часто решает больше, чем базовый.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="pipeline-to-cash.html">От Pipeline до Cash&nbsp;&rarr;</a> <a class="fx-link" href="capex-hurdle-rate.html">CAPEX и требуемая доходность&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">05</span>
+              <h3 class="fx-h2 bf-stage__name">План-факт</h3>
+              <p class="bf-stage__desc">Без план-факта не с чем сравнивать результат. Отклонение становится предметом управленческого решения, а не поводом для отчёта.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="upravlencheskiy-pl.html">Управленческий P&amp;L&nbsp;&rarr;</a> <a class="fx-link" href="business-control-system.html">Business Control System&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">06</span>
+              <h3 class="fx-h2 bf-stage__name">Скользящий горизонт</h3>
+              <p class="bf-stage__desc">Прогноз денег пересматривается на горизонтах 7, 14 и 30 дней: покрытие обязательных платежей видно заранее, а не в день оплаты.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="treasury-waterfall.html">Фондовое планирование и водопад платежей&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage bf-stage--decision" data-fx="rise">
+              <span class="fx-index bf-stage__index">07</span>
+              <h3 class="fx-h2 bf-stage__name">Решение</h3>
+              <p class="bf-stage__desc">Что оплатить, что отложить, где нужен резерв и какой проект профинансировать — решение собственника опирается на прогноз, а не на остаток на счёте.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Материал</span> <a class="fx-link" href="kaznacheystvo.html">Казначейство и водопад платежей&nbsp;&rarr;</a> <a class="fx-link" href="capex-hurdle-rate.html">Инвестиционные решения&nbsp;&rarr;</a></p>
+            </li>
           </ol>
-        </nav>
-        <p class="overline reveal">Решения</p>
-        <h1 class="page-head__title reveal" id="page-title">Бюджетирование и прогнозирование</h1>
-        <p class="page-head__lead reveal">Любой показатель читается дважды: как факт закрытого периода и как основание для следующего прогноза. Иначе отчётность описывает прошлое и ничего не меняет.</p>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
 
-    <section class="sec topic-rows-sec sec--light" id="planning" aria-labelledby="planning-title">
+    <section class="sec topic-rows-sec sec--light bf-library" id="planning" aria-labelledby="planning-title">
       <div class="container container--editorial">
         <div class="section-head">
           <p class="overline reveal">Контур планирования</p>
@@ -352,19 +411,18 @@
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Следующий шаг</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Опишите ситуацию — определим подходящий формат.</h2>
-        <p class="section-lead reveal">Кратко расскажите, что происходит и какое решение вам нужно.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Следующий шаг</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Опишите ситуацию — определим подходящий формат.</h2>
+        <p class="fx-lead" data-fx="rise">Кратко расскажите, что происходит и какое решение вам нужно.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="budgeting" data-event="cta_click" data-destination="consult">Обсудить задачу</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="budgeting" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">

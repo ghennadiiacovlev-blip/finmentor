@@ -220,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--budgeting">
+<body class="home hub-page hub-page--budgeting fx-page pg-budgeting">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
     </div>
   </div>
@@ -318,21 +318,80 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Traseu de navigare">
-          <ol>
-            <li><a href="index.html">Pagina principală</a></li>
-            <li aria-current="page">Bugetare și prognoză</li>
+<div class="fx-scene">
+      <section class="fx-stage fx-stage--thesis bf-stage-hero" aria-labelledby="page-title">
+        
+        <div class="fx-stage__content fx-container">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Traseu de navigare">
+            <ol>
+              <li><a href="index.html">Pagina principală</a></li>
+              <li aria-current="page">Bugetare și prognoză</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Soluții</p>
+          <h1 class="fx-statement fx-statement--xl" id="page-title" data-fx="rise">Bugetare <strong>și prognoză</strong></h1>
+          <p class="fx-lead" data-fx="rise">Orice indicator se citește de două ori: ca fapt al perioadei închise și ca temei pentru următoarea prognoză. Altfel raportarea descrie trecutul și nu schimbă nimic.</p>
+          
+        </div>
+      </section>
+      <section class="fx-sheet bf-chain" id="chain" aria-labelledby="chain-title">
+        <div class="fx-container">
+          <div class="fx-head fx-head--split">
+            <div>
+              <p class="fx-eyebrow" data-fx="rise">Circuitul de planificare</p>
+              <h2 class="fx-statement" id="chain-title" data-fx="rise">De la plan — la <strong>bani</strong>, rezultat și <em class="fx-gold">decizie</em></h2>
+            </div>
+            <p class="fx-lead" data-fx="rise">Fiecare pas răspunde la propria întrebare a proprietarului. Împreună transformă planul de vânzări într-o prognoză de numerar controlabilă și în baza unei decizii.</p>
+          </div>
+          <ol class="fx-deck bf-deck" aria-label="Circuitul de planificare: de la plan la decizie">
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">01</span>
+              <h3 class="fx-h2 bf-stage__name">Plan</h3>
+              <p class="bf-stage__desc">Planul de vânzări răspunde la întrebarea „cât vom vinde”. Prognoza financiară — la întrebarea câți bani vor intra și când.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="pipeline-to-cash.html">De la Pipeline la Cash&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">02</span>
+              <h3 class="fx-h2 bf-stage__name">Bani</h3>
+              <p class="bf-stage__desc">Profitul din raport nu înseamnă încă bani în cont. Fluxul de numerar și calendarul de plăți arată cu ce se acoperă obligațiile.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="cash-flow.html">Fluxul de numerar&nbsp;&rarr;</a> <a class="fx-link" href="platezhnyy-kalendar.html">Calendarul de plăți&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">03</span>
+              <h3 class="fx-h2 bf-stage__name">Profit și pierdere</h3>
+              <p class="bf-stage__desc">Contul de profit și pierdere de management arată unde afacerea câștigă și unde pierde marjă.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="upravlencheskiy-pl.html">Contul de profit și pierdere (P&amp;L)&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">04</span>
+              <h3 class="fx-h2 bf-stage__name">Scenarii</h3>
+              <p class="bf-stage__desc">O tranzacție sau un proiect mare este un scenariu, nu o prognoză. Varianta nefavorabilă se calculează separat și decide adesea mai mult decât cea de bază.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="pipeline-to-cash.html">De la Pipeline la Cash&nbsp;&rarr;</a> <a class="fx-link" href="capex-hurdle-rate.html">CAPEX și randamentul minim cerut&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">05</span>
+              <h3 class="fx-h2 bf-stage__name">Plan-realizat</h3>
+              <p class="bf-stage__desc">Fără comparația plan-realizat nu există cu ce compara rezultatul. Abaterea devine obiectul unei decizii de management, nu un motiv pentru un raport.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="upravlencheskiy-pl.html">Contul de profit și pierdere (P&amp;L)&nbsp;&rarr;</a> <a class="fx-link" href="business-control-system.html">Business Control System&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage" data-fx="rise">
+              <span class="fx-index bf-stage__index">06</span>
+              <h3 class="fx-h2 bf-stage__name">Orizont glisant</h3>
+              <p class="bf-stage__desc">Prognoza de numerar se revizuiește pe orizonturi de 7, 14 și 30 de zile: acoperirea plăților obligatorii se vede din timp, nu în ziua plății.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="treasury-waterfall.html">Planificarea fondurilor și cascada plăților&nbsp;&rarr;</a></p>
+            </li>
+            <li class="bf-stage bf-stage--decision" data-fx="rise">
+              <span class="fx-index bf-stage__index">07</span>
+              <h3 class="fx-h2 bf-stage__name">Decizie</h3>
+              <p class="bf-stage__desc">Ce se plătește, ce se amână, unde este nevoie de rezervă și ce proiect se finanțează — decizia proprietarului se sprijină pe prognoză, nu pe soldul din cont.</p>
+              <p class="bf-stage__links"><span class="fx-meta">Material</span> <a class="fx-link" href="kaznacheystvo.html">Trezoreria și cascada plăților&nbsp;&rarr;</a> <a class="fx-link" href="capex-hurdle-rate.html">Decizii de investiții&nbsp;&rarr;</a></p>
+            </li>
           </ol>
-        </nav>
-        <p class="overline reveal">Soluții</p>
-        <h1 class="page-head__title reveal" id="page-title">Bugetare și prognoză</h1>
-        <p class="page-head__lead reveal">Orice indicator se citește de două ori: ca fapt al perioadei închise și ca temei pentru următoarea prognoză. Altfel raportarea descrie trecutul și nu schimbă nimic.</p>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
 
-    <section class="sec topic-rows-sec sec--light" id="planning" aria-labelledby="planning-title">
+    <section class="sec topic-rows-sec sec--light bf-library" id="planning" aria-labelledby="planning-title">
       <div class="container container--editorial">
         <div class="section-head">
           <p class="overline reveal">Circuitul de planificare</p>
@@ -352,19 +411,18 @@
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Pasul următor</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Descrieți situația — stabilim formatul potrivit.</h2>
-        <p class="section-lead reveal">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Pasul următor</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Descrieți situația — stabilim formatul potrivit.</h2>
+        <p class="fx-lead" data-fx="rise">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="budgeting" data-event="cta_click" data-destination="consult">Discutați situația</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="budgeting" data-event="health_check_cta" data-destination="questionnaire">Test financiar FINMENTOR</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
