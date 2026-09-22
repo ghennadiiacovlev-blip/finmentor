@@ -37,19 +37,25 @@ Source and rules: `images/brand/README_FINMENTOR_BRAND_ASSETS.md`. The wordmark 
 HTML text or a substitute font, never recoloured with CSS filters, and always sized by height
 with `width: auto`.
 
+**One canonical wordmark in the live UI (2026-09-22):** `finmentor-wordmark-on-dark`, with silver
+`fin` and gold `mentor`, on every surface. The brand colours never change, so the background adapts
+to the mark: the header is transparent over PHOTO 01 at the top of the homepage and a solid
+FINMENTOR navy band (`--navy-900`, #08111F) everywhere else, including the drawer. The
+navy-`fin` light variant is not approved for the website and is kept only as an archived
+derived asset.
+
 | File | Dimensions | Origin | Used on |
 |---|---|---|---|
 | `images/brand/FINMENTOR-master-reference.png` | 1254 × 1254, opaque | original project reference, recovered from the owner's library | canonical visual reference only; not served by any page |
 | `images/brand/finmentor-wordmark-on-dark.png` | 915 × 185, transparent | derived from the master, geometry unchanged (silver `fin`, gold `mentor`) | intro wordmark (homepage RU/RO, rendered 44–88px high) |
-| `images/brand/finmentor-wordmark-on-light.png` | 915 × 185, transparent | derived from the master, geometry unchanged (`fin` in FINMENTOR navy, `mentor` gold) | master of the on-light web derivative |
-| `images/brand/finmentor-wordmark-on-dark-h108.png` | 534 × 108 | web derivative of the on-dark wordmark: proportional downscale (Lanczos), lossless PNG | header over the hero (homepage), footer (86 pages), legacy dark bars (doc-bar, legal-bar, questionnaire bar), language gate |
-| `images/brand/finmentor-wordmark-on-light-h108.png` | 534 × 108 | web derivative of the on-light wordmark: proportional downscale (Lanczos), lossless PNG | light header states (scrolled, solid hub and reading pages, drawer open) and the legacy drawer |
+| `images/brand/finmentor-wordmark-on-light.png` | 915 × 185, transparent | derived from the master, geometry unchanged (`fin` in FINMENTOR navy, `mentor` gold) | **archived, not used in the UI** (not approved: `fin` must keep its original silver) |
+| `images/brand/finmentor-wordmark-on-dark-h108.png` | 534 × 108 | web derivative of the on-dark wordmark: proportional downscale (Lanczos), lossless PNG | **every live wordmark:** all site headers (86 pages, transparent and solid states), the mobile drawer and legacy drawer, footer (86 pages), legacy dark bars (doc-bar, legal-bar, questionnaire bar), language gate |
+| `images/brand/finmentor-wordmark-on-light-h108.png` | 534 × 108 | web derivative of the on-light wordmark: proportional downscale (Lanczos), lossless PNG | **archived, not used in the UI** |
 | `images/brand/finmentor-lockup-on-dark.png` | 940 × 915, transparent | derived from the master (emblem + wordmark + tagline) | not used: no surface currently needs the full lockup |
 | `images/brand/finmentor-lockup-on-light.png` | 940 × 915, transparent | derived from the master, navy for the silver parts | not used |
 
 The web derivatives are 108px high: 3.5× the 31px mobile header render and 3.7× the 29px desktop
-render, so the mark stays sharp at DPR 2 and DPR 3. The header carries both variants;
-CSS shows the one that matches the bar (no filters, no recolouring).
+render, so the mark stays sharp at DPR 2 and DPR 3.
 
 ## Earlier assets kept in the repository
 

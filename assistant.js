@@ -67,7 +67,7 @@
     var roHref = isRo ? pageFile : 'ro/' + pageFile;
     menu.innerHTML =
       '<div class="mobile-menu__head">' +
-        '<a class="logo" href="index.html" aria-label="' + tr('logoAria', 'finmentor — на главную') + '"><img class="logo__mark logo__mark--on-light" src="' + (isRo ? '../' : '') + 'images/brand/finmentor-wordmark-on-light-h108.png" width="534" height="108" alt="" decoding="async"></a>' +
+        '<a class="logo" href="index.html" aria-label="' + tr('logoAria', 'finmentor — на главную') + '"><img class="logo__mark" src="' + (isRo ? '../' : '') + 'images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>' +
         '<button type="button" class="mobile-menu__close" aria-label="' + tr('menuClose', 'Закрыть меню') + '"><span></span><span></span></button>' +
       '</div>' +
       '<nav class="mobile-menu__nav" aria-label="' + tr('mobileNavAria', 'Мобильная навигация') + '">' +

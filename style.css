@@ -392,15 +392,13 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
   gap: var(--sp-5);
 }
 
-/* the wordmark is the canonical brand asset (images/brand/): sized by height, width from
-   its own aspect ratio; never text, never filtered */
+/* the wordmark is the one canonical brand asset (images/brand/finmentor-wordmark-on-dark):
+   silver fin, gold mentor, on every surface — the background adapts to the mark, never the
+   mark to the background. Sized by height, width from its own aspect ratio; never text,
+   never filtered, never recoloured */
 .logo { display: inline-flex; align-items: center; flex: 0 0 auto; line-height: 0; }
 .logo__mark { display: block; height: 29px; width: auto; }
 @media (max-width: 860px) { .logo__mark { height: 31px; } }
-/* two approved variants in the header: on-dark over the hero, on-light on the light bar */
-.logo__mark--on-light { display: none; }
-/* the legacy drawer (assistant.js) is a light sheet and carries only the on-light mark */
-.mobile-menu .logo__mark--on-light { display: block; }
 /* the questionnaire bar holds mark + language switch + back link on one row: on phones it
    gets a side gutter and a smaller mark so the row fits without overflow */
 @media (max-width: 640px) { .q-bar .q-bar__row { gap: 10px; padding-inline: 16px; } }
@@ -8273,8 +8271,7 @@ body.fm-shell { padding-top: var(--header-h); }
   --ed-gold:  #7E5F16;       /* gold that holds 4.5:1 on ivory, paper and stone */
 }
 /* the light token set, shared by every light surface below */
-:is(.home .packages, .home .page-head, .hero--editorial .hero__panel, .mobile-menu,
-    :is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header), .fm-shell main) {
+:is(.home .packages, .home .page-head, .hero--editorial .hero__panel, .fm-shell main) {
   --text-primary: #16233C;
   --text-secondary: #3D4A5F;
   --text-muted: #5E6A7C;
@@ -8304,48 +8301,21 @@ body.fm-shell { padding-top: var(--header-h); }
 .home .overline { letter-spacing: 0.1em; }
 .hero--editorial .hero__kicker { letter-spacing: 0.1em; }
 
-/* --- Header: transparent over the hero photograph; a light institutional
-   state once it scrolls, on light pages, and whenever the drawer is open --- */
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) {
-  background: rgba(250, 248, 244, 0.94);
-  -webkit-backdrop-filter: saturate(140%) blur(14px);
-  backdrop-filter: saturate(140%) blur(14px);
-  border-bottom: 1px solid rgba(18, 28, 46, 0.08);
+/* --- Header: transparent over the hero photograph (homepage top only); a solid
+   FINMENTOR navy band once it scrolls, on every internal page from the start
+   (is-solid) and whenever the drawer is open. Dark institutional band above a light
+   editorial page. The drawer and the dropdown panels keep the dark system surfaces. --- */
+:is(.home, .fm-shell) .header.is-scrolled,
+:is(.home, .fm-shell) .header.is-solid,
+.menu-open .header {
+  background: var(--navy-900);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: none;
 }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link { color: rgba(22, 35, 60, 0.78); }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link:hover { color: var(--ed-ink); }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link[aria-current="page"] { color: var(--ed-gold); }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__toggle { color: rgba(22, 35, 60, 0.5); }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .logo__mark--on-dark { display: none; }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .logo__mark--on-light { display: block; }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .burger span { background: var(--ed-ink); }
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .header__cta.btn--primary {
-  border-color: rgba(140, 106, 26, 0.55);
-  color: #6F5312;
-}
-:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .header__cta.btn--primary:hover { color: var(--navy-900); }
 /* the CTA is a refined rule with type, not a filled pill, in every state */
 :is(.home, .fm-shell) .header__cta.btn--primary { padding: 8px 16px; font-size: 0.72rem; letter-spacing: 0.08em; }
-/* dropdown panels read as paper under the light bar */
-:is(.home, .fm-shell) .nav__panel {
-  background: rgba(250, 248, 244, 0.98);
-  border: 1px solid rgba(18, 28, 46, 0.09);
-  border-top: 1px solid var(--ed-gold);
-  box-shadow: 0 24px 48px -28px rgba(8, 17, 31, 0.35);
-}
-:is(.home, .fm-shell) .nav__sublink { border-top-color: rgba(18, 28, 46, 0.07); }
-:is(.home, .fm-shell) .nav__subtitle { color: var(--ed-ink); }
-:is(.home, .fm-shell) .nav__subnote { color: #5E6A7C; }
-:is(.home, .fm-shell) .nav__sublink:hover .nav__subtitle,
-:is(.home, .fm-shell) .nav__sublink:focus-visible .nav__subtitle { color: var(--ed-gold); }
-/* the drawer is a light editorial sheet */
-.mobile-menu {
-  background: rgba(250, 248, 244, 0.985);
-  color: var(--text-primary);
-}
-.mobile-menu .mobile-menu__link,
-.mobile-menu .mobile-menu__group > summary { color: var(--ed-ink); }
 
 /* --- 01 HERO: the photograph owns the viewport; the copy sits on one
    restrained paper panel instead of under a dark overlay ------------------ */
@@ -8640,9 +8610,7 @@ body.fm-shell { padding-top: var(--header-h); }
 .fm-shell .ai-status-card div { background: rgba(255, 255, 255, 0.6); }
 .fm-shell .ai-status-card strong { color: #1E6B35; }
 .fm-shell .ai-status-card :is(.is-risk, .is-stop) strong { color: #9A2B1F; }
-/* the bar is opaque paper on reading pages (the body ground stays navy for the footer),
-   and no margin escapes main to show navy above the footer */
-.fm-shell .header.is-solid { background: var(--ed-paper); }
+/* no margin escapes main to show navy above the footer */
 .fm-shell main { display: flow-root; }
 /* the owner-vs-accounting comparison and the chapter map of Materials stay
    dark exhibits inside the light page: they keep the dark token set */
