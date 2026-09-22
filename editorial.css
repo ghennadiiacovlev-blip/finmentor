@@ -1310,3 +1310,10 @@ main.nf { padding-top: clamp(56px, 10vh, 112px); }
 .home .packages :is(.package__label, .package__tier, .package__price-from, .package__next) { color: var(--fx-ink-2); }
 .home .packages .package__tier--badge { color: #08111F; font-weight: 700; }
 .home .packages .package__module strong { color: var(--fx-gold); font-weight: 700; }
+/* split cover: explicit placement (crumbs across the top, headline left, thesis panel right) */
+.rd-page .rd-cover--split .fx-stage__content > .crumbs { grid-column: 1 / -1; grid-row: 1; }
+.rd-page .rd-cover--split .fx-stage__content > .rd-cover__main { grid-column: 1; grid-row: 2; }
+.rd-page .rd-cover--split .fx-stage__content > .doc-hero__context { grid-column: 2; grid-row: 2; }
+@media (max-width: 860px) {
+  .rd-page .rd-cover--split .fx-stage__content > .doc-hero__context { grid-column: 1; grid-row: 3; }
+}
