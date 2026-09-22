@@ -99,6 +99,7 @@
 
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="../lang.css" />
+  <link rel="stylesheet" href="../editorial.css" />
   <!-- Pre-paint motion gate: hidden states apply only under .m-js; withdrawn if the engine never starts -->
   <script>
     (function () {
@@ -219,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--capital">
+<body class="home hub-page hub-page--capital fx-page pg-capital">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
     </div>
   </div>
@@ -317,44 +318,50 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Traseu de navigare">
-          <ol>
-            <li><a href="index.html">Pagina principală</a></li>
-            <li aria-current="page">Managementul capitalului</li>
-          </ol>
-        </nav>
-        <p class="overline reveal">Capital</p>
-        <h1 class="page-head__title reveal" id="page-title">Capitalul trebuie să lucreze acolo unde creează mai multă valoare</h1>
-        <p class="page-head__lead reveal">Unde se află capitalul, al cui este, cât costă și ce randament creează — logica după care directorul financiar FINMENTOR ia decizii despre capital.</p>
-      </div>
-    </section>
-
-    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <picture class="capital-management__media">
-        <!-- PHOTO 02 · capital-decision. Final photograph; capital-decision.svg kept as rollback. -->
-        <source type="image/avif" srcset="../images/editorial/capital-decision.avif"><source type="image/webp" srcset="../images/editorial/capital-decision.webp">
-        <img src="../images/editorial/capital-decision.jpg" alt="Mediul de lucru pentru deciziile de capital" width="1920" height="1280" loading="lazy" decoding="async">
-      </picture>
-      <div class="capital-management__scrim" aria-hidden="true"></div>
-      <div class="container container--editorial capital-management__inner">
-        <div class="capital-management__head">
-          <p class="overline reveal">Managementul capitalului</p>
-          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Unde va lucra mai bine următorul 1&nbsp;EUR de capital?</h2>
-          <p class="capital-management__lead reveal" data-reveal-delay="2">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
-          <p class="capital-management__routes reveal" data-reveal-delay="3">Capital circulant · Investiții de capital (CAPEX) · Obligații · Rezervă de lichiditate</p>
+<div class="fx-scene">
+      <section class="fx-stage cm-stage" aria-labelledby="page-title">
+        <picture class="fx-stage__media">
+          <!-- PHOTO 02 · capital-decision: the stage of this page -->
+          <source type="image/avif" srcset="../images/editorial/capital-decision.avif"><source type="image/webp" srcset="../images/editorial/capital-decision.webp">
+          <img src="../images/editorial/capital-decision.jpg" alt="Mediul în care se iau deciziile despre capital" width="1920" height="1280" fetchpriority="high" decoding="async">
+        </picture>
+        <div class="fx-stage__scrim cm-stage__scrim" aria-hidden="true"></div>
+        <div class="fx-stage__content fx-container">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Traseu de navigare">
+            <ol>
+              <li><a href="index.html">Pagina principală</a></li>
+              <li aria-current="page">Managementul capitalului</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Capital</p>
+          <h1 class="fx-statement fx-statement--xl cm-title" id="page-title" data-fx="rise">Capitalul trebuie să lucreze <strong>acolo unde creează</strong> mai multă <em class="fx-gold">valoare</em></h1>
+          <p class="fx-lead" data-fx="rise">Unde se află capitalul, al cui este, cât costă și ce randament creează — logica după care directorul financiar FINMENTOR ia decizii despre capital.</p>
         </div>
-        <ol class="capital-cycle" aria-label="Ciclul managementului capitalului">
-            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Sursa capitalului</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Alocare</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Randament</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Risc</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Eliberare</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Realocare</span></li>
-        </ol>
-      </div>
-    </section>
+      </section>
+
+      <section class="fx-sheet cm-question" id="capital-allocation" aria-labelledby="capital-allocation-title">
+        <div class="fx-container">
+          <div class="fx-head fx-head--split">
+            <div>
+              <p class="fx-eyebrow" data-fx="rise">Managementul capitalului</p>
+              <h2 class="fx-statement fx-statement--wide" id="capital-allocation-title" data-fx="rise">Unde va lucra <strong>mai bine</strong> următorul <strong>1&nbsp;EUR</strong> de capital?</h2>
+            </div>
+            <div class="cm-question__aside" data-fx="rise">
+              <p class="fx-lead">Decizia nu se ia după soldul din cont, ci după locul în care capitalul creează un efect mai mare, la un nivel de risc acceptabil.</p>
+              <p class="cm-routes"><span class="fx-meta">Direcții</span> <span>Capital circulant</span><span>Investiții de capital (CAPEX)</span><span>Obligații</span><span>Rezervă de lichiditate</span></p>
+            </div>
+          </div>
+          <ol class="fx-sequence fx-sequence--row cm-cycle" aria-label="Ciclul de management al capitalului" data-fx="line">
+            <li data-fx="rise"><span class="fx-index">01</span><div class="fx-sequence__body"><h3 class="fx-h3">Sursa capitalului</h3><p>Ale cui fonduri lucrează în afacere și cât costă.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">02</span><div class="fx-sequence__body"><h3 class="fx-h3">Alocare</h3><p>Unde sunt fixate resursele: numerar, capital de lucru, active, proiecte.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">03</span><div class="fx-sequence__body"><h3 class="fx-h3">Randament</h3><p>Ce flux de numerar și ce randament creează alocarea.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">04</span><div class="fx-sequence__body"><h3 class="fx-h3">Risc</h3><p>Costul, maturitatea, moneda și gradul de îndatorare.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">05</span><div class="fx-sequence__body"><h3 class="fx-h3">Eliberare</h3><p>Ce se recuperează din capitalul blocat și excedentar.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">06</span><div class="fx-sequence__body"><h3 class="fx-h3">Realocare</h3><p>Unde se direcționează următorul euro.</p></div></li>
+          </ol>
+        </div>
+      </section>
+    </div>
 
     <section class="sec capital-logic" id="capital-logic" aria-labelledby="capital-logic-title">
       <div class="container">
@@ -416,7 +423,7 @@
           <span>Sursa capitalului</span><span>Unde este alocat</span><span>Cum lucrează</span><span>Ce randament generează</span><span>Cât costă</span><span>Ce risc implică</span><span>Decizie</span>
         </div>
 
-        <ol class="capital-principles">
+        <ol class="capital-principles fx-deck">
           <li class="capital-principle reveal">
             <span class="capital-principle__num">01</span>
             <div><h3>Protejarea valorii</h3><p>Controlăm lichiditatea, pierderile și stabilitatea economică a capitalului.</p></div>
@@ -439,53 +446,64 @@
       </div>
     </section>
 
-    <section class="sec materials sec--light capital-deep" id="capital-decisions" aria-labelledby="capital-decisions-title">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Investiții de capital și investiții</p>
-          <h2 class="section-title reveal" id="capital-decisions-title">Mai departe: decizii despre capital</h2>
-          <p class="section-lead reveal">Materiale FINMENTOR despre cum evaluăm investițiile de capital, cum măsurăm valoarea creată și cum observăm unde afacerea își consumă capitalul.</p>
+    <section class="fx-band cm-deep" id="capital-decisions" aria-labelledby="capital-decisions-title">
+      <div class="fx-container">
+        <div class="fx-head fx-head--split">
+          <div>
+            <p class="fx-eyebrow" data-fx="rise">Investiții de capital și investiții</p>
+            <h2 class="fx-h2" id="capital-decisions-title" data-fx="rise">Mai departe: decizii despre capital</h2>
+          </div>
+          <p class="fx-lead" data-fx="rise">Materiale FINMENTOR despre cum evaluăm investițiile de capital, cum măsurăm valoarea creată și cum observăm unde afacerea își consumă capitalul.</p>
         </div>
-        <div class="materials-grid">
-          <a class="material-card reveal" href="capex-hurdle-rate.html" data-reveal-delay="1"><span class="material-card__title">Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate</span><span class="material-card__arrow">Citiți&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="capital-allocation-value.html" data-reveal-delay="2"><span class="material-card__title">Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii</span><span class="material-card__arrow">Citiți&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="capital-preservation.html" data-reveal-delay="3"><span class="material-card__title">Cum consumă compania capitalul</span><span class="material-card__arrow">Citiți&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="4"><span class="material-card__title">Capitalul de lucru: unde se blochează banii afacerii</span><span class="material-card__arrow">Citiți&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="5"><span class="material-card__title">Finanțarea afacerii din creditul furnizorilor: ce produse creează cu adevărat flux de numerar</span><span class="material-card__arrow">Citiți&nbsp;&rarr;</span></a>
+        <div class="fx-rows">
+          <a href="capex-hurdle-rate.html" data-fx="rise"><span class="fx-index">01</span><span><span class="fx-meta">Metodologie</span><span class="fx-h3 cm-deep__title">Cum evaluăm CAPEX și investițiile: Incremental Return vs Hurdle Rate</span></span><span class="fx-rows__arrow">Citiți&nbsp;&rarr;</span></a>
+          <a href="capital-allocation-value.html" data-fx="rise"><span class="fx-index">02</span><span><span class="fx-meta">Metodologie</span><span class="fx-h3 cm-deep__title">Directorul financiar ca administrator al capitalului: de la eliberarea capitalului la crearea valorii</span></span><span class="fx-rows__arrow">Citiți&nbsp;&rarr;</span></a>
+          <a href="capital-preservation.html" data-fx="rise"><span class="fx-index">03</span><span><span class="fx-meta">Capital</span><span class="fx-h3 cm-deep__title">Cum consumă compania capitalul</span></span><span class="fx-rows__arrow">Citiți&nbsp;&rarr;</span></a>
+          <a href="working-capital.html" data-fx="rise"><span class="fx-index">04</span><span><span class="fx-meta">Capital de lucru</span><span class="fx-h3 cm-deep__title">Capitalul de lucru: unde se blochează banii afacerii</span></span><span class="fx-rows__arrow">Citiți&nbsp;&rarr;</span></a>
+          <a href="fcf-postavshiki.html" data-fx="rise"><span class="fx-index">05</span><span><span class="fx-meta">Practică</span><span class="fx-h3 cm-deep__title">Finanțarea afacerii din creditul furnizorilor: ce produse creează cu adevărat flux de numerar</span></span><span class="fx-rows__arrow">Citiți&nbsp;&rarr;</span></a>
         </div>
       </div>
     </section>
 
-    <section class="sec sec--alt" id="mini-scan">
-      <div class="container">
-        <div class="cta-band">
-          <p class="overline reveal">Start ușor · 3 minute</p>
-          <p class="cta-band__title reveal">Nu sunteți gata de testul complet? Începeți cu diagnosticul rapid al capitalului de lucru</p>
-          <p class="cta-band__text reveal">9 întrebări arată unde pot rămâne blocați banii: creanțe, stocuri, avansuri, condițiile furnizorilor sau disciplina de plată. Este o primă evaluare financiară, nu un diagnostic complet.</p>
-          <div class="cta-band__row reveal">
-            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Deschideți diagnosticul rapid</a>
-            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Detalii despre capitalul de lucru →</a>
+    <section class="fx-band fx-band--tight cm-scan" id="mini-scan">
+      <div class="fx-container fx-container--wide">
+        <div class="fx-split fx-split--round cm-scan__split">
+          <div class="fx-split__text fx-split__text--stone" data-fx="rise">
+            <p class="fx-eyebrow">Start ușor · 3 minute</p>
+            <p class="fx-h2">Nu sunteți gata de testul complet? Începeți cu diagnosticul rapid al capitalului de lucru</p>
+            <p>9 întrebări arată unde pot rămâne blocați banii: creanțe, stocuri, avansuri, condițiile furnizorilor sau disciplina de plată. Este o primă evaluare financiară, nu un diagnostic complet.</p>
+            <div class="fx-cta__actions">
+              <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Deschideți diagnosticul rapid</a>
+              <a href="working-capital.html" class="fx-link" data-ga="click_working_capital">Detalii despre capitalul de lucru&nbsp;&rarr;</a>
+            </div>
+          </div>
+          <div class="fx-split__figure cm-scan__figure" data-fx="rise" aria-hidden="true">
+            <span class="fx-figure cm-scan__num">9</span>
+            <span class="fx-h3">întrebări</span>
+            <span class="fx-meta">3 minute · prima evaluare a capitalului de lucru</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Pasul următor</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Descrieți situația — stabilim formatul potrivit.</h2>
-        <p class="section-lead reveal">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Pasul următor</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Descrieți situația — stabilim formatul potrivit.</h2>
+        <p class="fx-lead" data-fx="rise">Spuneți pe scurt ce se întâmplă și ce decizie aveți de luat.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="capital" data-event="cta_click" data-destination="consult">Discutați situația</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="capital" data-event="health_check_cta" data-destination="questionnaire">Test financiar FINMENTOR</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
+      <div class="fx-closing">
+        <p class="fx-closing__statement">Să vedeți <strong>banii</strong>.<br>Să înțelegeți <strong>profitul</strong>.<br>Să gestionați <em class="fx-gold">capitalul</em>.</p>
+      </div>
       <div class="footer__top">
         <div class="footer__brand">
           <a class="logo" href="index.html" aria-label="finmentor — sus"><img class="logo__mark" src="../images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>

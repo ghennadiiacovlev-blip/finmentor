@@ -442,7 +442,7 @@
      without this script the page renders complete. */
   function initReveal() {
     var root = document.documentElement;
-    var items = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+    var items = Array.prototype.slice.call(document.querySelectorAll('.reveal, [data-fx]'));
     // Scenes are containers whose own motion is a photograph or a drawn line.
     var scenes = Array.prototype.slice.call(document.querySelectorAll(
       '.hero--editorial, .chaos__grid, .capital-cycle, .capital-management'));
@@ -469,7 +469,10 @@
       var STEPS = [
         ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 70],
         ['.capital-cycle__stage', 110, 60],
-        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 45]
+        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 45],
+        // editorial primitives: panels and stages follow one another; rows are quicker
+        ['.fx-principles > [data-fx], .fx-deck > [data-fx], .fx-related > [data-fx], .fx-mosaic > [data-fx]', 110, 60],
+        ['.fx-sequence > [data-fx], .fx-rows > [data-fx]', 70, 40]
       ];
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [
@@ -633,6 +636,40 @@
       window.__fmMotion = true;
       throw err;
     }
+  }
+
+  /* ------------------------------------------------------------- EDITORIAL LAYOUT
+     Sticky depth (editorial.css) only where it cannot hide content: a stage taller
+     than the viewport is released (.is-tall), and a deck pins only when every card
+     fits under the header. Re-evaluated on resize; nothing here runs on scroll. */
+  function initFx() {
+    var stages = document.querySelectorAll('.fx-stage');
+    var decks = document.querySelectorAll('.fx-deck');
+    if (!stages.length && !decks.length) return;
+    var head = function () {
+      var h = document.getElementById('header');
+      return h ? h.getBoundingClientRect().height : 76;
+    };
+    var layout = function () {
+      var vh = window.innerHeight;
+      Array.prototype.forEach.call(stages, function (st) {
+        st.classList.remove('is-tall');
+        if (st.offsetHeight > vh + 2) st.classList.add('is-tall');
+      });
+      Array.prototype.forEach.call(decks, function (d) {
+        var cards = d.querySelectorAll(':scope > *');
+        var room = vh - head() - 40 - cards.length * 14;
+        var fits = window.innerWidth > 860 && !prefersReduced;
+        Array.prototype.forEach.call(cards, function (c, i) {
+          c.style.setProperty('--n', String(i));
+          if (c.offsetHeight > room) fits = false;
+        });
+        d.classList.toggle('fx-deck--pin', fits);
+      });
+    };
+    layout();
+    window.addEventListener('resize', debounce(layout, 180), { passive: true });
+    window.addEventListener('load', layout);
   }
 
   /* ------------------------------------------------------------- HERO PARALLAX */
@@ -1331,6 +1368,7 @@
     guard(initMenu);
     guard(initNavMenus);
     guard(initCounters);
+    guard(initFx);
     guard(initReveal);
     guard(initParallax);
     guard(initCases);

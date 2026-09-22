@@ -43,9 +43,22 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="lang.css" />
+  <link rel="stylesheet" href="editorial.css" />
+  <!-- Pre-paint motion gate: hidden states apply only under .m-js; withdrawn if the engine never starts -->
+  <script>
+    (function () {
+      try {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.documentElement.classList.add('m-js');
+        window.setTimeout(function () {
+          if (!window.__fmMotion) document.documentElement.classList.remove('m-js');
+        }, 2500);
+      } catch (e) {}
+    })();
+  </script>
 
   <script type="application/ld+json">
   {
@@ -424,6 +437,9 @@
 
   <footer class="footer" id="contacts">
     <div class="container">
+      <div class="fx-closing">
+        <p class="fx-closing__statement">Видеть <strong>деньги</strong>.<br>Понимать <strong>прибыль</strong>.<br>Управлять <em class="fx-gold">капиталом</em>.</p>
+      </div>
       <div class="footer__top">
         <div class="footer__brand">
           <a class="logo" href="index.html" aria-label="finmentor — наверх"><img class="logo__mark" src="images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>

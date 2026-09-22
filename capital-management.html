@@ -99,6 +99,7 @@
 
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="lang.css" />
+  <link rel="stylesheet" href="editorial.css" />
   <!-- Pre-paint motion gate: hidden states apply only under .m-js; withdrawn if the engine never starts -->
   <script>
     (function () {
@@ -219,7 +220,7 @@
   </style>
 </head>
 
-<body class="home hub-page hub-page--capital">
+<body class="home hub-page hub-page--capital fx-page pg-capital">
   <!-- ===================================================== LANGUAGE ENTRY (root only) -->
   
 
@@ -317,44 +318,50 @@
   </div>
 
   <main>
-    <section class="page-head" aria-labelledby="page-title">
-      <div class="container container--editorial page-head__inner">
-        <nav class="breadcrumbs" aria-label="Навигационная цепочка">
-          <ol>
-            <li><a href="index.html">Главная</a></li>
-            <li aria-current="page">Управление капиталом</li>
-          </ol>
-        </nav>
-        <p class="overline reveal">Капитал</p>
-        <h1 class="page-head__title reveal" id="page-title">Капитал должен работать там, где создаёт больше стоимости</h1>
-        <p class="page-head__lead reveal">Где находится капитал, чей он, сколько стоит и какую отдачу создаёт — логика, по которой финансовый директор FINMENTOR принимает решения о капитале.</p>
-      </div>
-    </section>
-
-    <section class="sec capital-management" id="capital-allocation" aria-labelledby="capital-allocation-title">
-      <picture class="capital-management__media">
-        <!-- PHOTO 02 · capital-decision. Final photograph; capital-decision.svg kept as rollback. -->
-        <source type="image/avif" srcset="images/editorial/capital-decision.avif"><source type="image/webp" srcset="images/editorial/capital-decision.webp">
-        <img src="images/editorial/capital-decision.jpg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" loading="lazy" decoding="async">
-      </picture>
-      <div class="capital-management__scrim" aria-hidden="true"></div>
-      <div class="container container--editorial capital-management__inner">
-        <div class="capital-management__head">
-          <p class="overline reveal">Управление капиталом</p>
-          <h2 class="section-title reveal" data-reveal-delay="1" id="capital-allocation-title">Где следующий 1&nbsp;EUR капитала будет работать лучше?</h2>
-          <p class="capital-management__lead reveal" data-reveal-delay="2">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
-          <p class="capital-management__routes reveal" data-reveal-delay="3">Оборотный капитал · Капитальные вложения (CAPEX) · Обязательства · Резерв ликвидности</p>
+<div class="fx-scene">
+      <section class="fx-stage cm-stage" aria-labelledby="page-title">
+        <picture class="fx-stage__media">
+          <!-- PHOTO 02 · capital-decision: the stage of this page -->
+          <source type="image/avif" srcset="images/editorial/capital-decision.avif"><source type="image/webp" srcset="images/editorial/capital-decision.webp">
+          <img src="images/editorial/capital-decision.jpg" alt="Рабочая среда принятия решений о капитале" width="1920" height="1280" fetchpriority="high" decoding="async">
+        </picture>
+        <div class="fx-stage__scrim cm-stage__scrim" aria-hidden="true"></div>
+        <div class="fx-stage__content fx-container">
+          <nav class="breadcrumbs fx-crumbs" aria-label="Навигационная цепочка">
+            <ol>
+              <li><a href="index.html">Главная</a></li>
+              <li aria-current="page">Управление капиталом</li>
+            </ol>
+          </nav>
+          <p class="fx-eyebrow" data-fx="rise">Капитал</p>
+          <h1 class="fx-statement fx-statement--xl cm-title" id="page-title" data-fx="rise">Капитал должен работать <strong>там, где создаёт</strong> больше <em class="fx-gold">стоимости</em></h1>
+          <p class="fx-lead" data-fx="rise">Где находится капитал, чей он, сколько стоит и какую отдачу создаёт — логика, по которой финансовый директор FINMENTOR принимает решения о капитале.</p>
         </div>
-        <ol class="capital-cycle" aria-label="Цикл управления капиталом">
-            <li class="capital-cycle__stage reveal" data-reveal-delay="1"><span class="capital-cycle__index">01</span><span class="capital-cycle__name">Источник капитала</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="2"><span class="capital-cycle__index">02</span><span class="capital-cycle__name">Размещение</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="3"><span class="capital-cycle__index">03</span><span class="capital-cycle__name">Отдача</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="4"><span class="capital-cycle__index">04</span><span class="capital-cycle__name">Риск</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="5"><span class="capital-cycle__index">05</span><span class="capital-cycle__name">Высвобождение</span></li>
-            <li class="capital-cycle__stage reveal" data-reveal-delay="6"><span class="capital-cycle__index">06</span><span class="capital-cycle__name">Перераспределение</span></li>
-        </ol>
-      </div>
-    </section>
+      </section>
+
+      <section class="fx-sheet cm-question" id="capital-allocation" aria-labelledby="capital-allocation-title">
+        <div class="fx-container">
+          <div class="fx-head fx-head--split">
+            <div>
+              <p class="fx-eyebrow" data-fx="rise">Управление капиталом</p>
+              <h2 class="fx-statement fx-statement--wide" id="capital-allocation-title" data-fx="rise">Где следующий <strong>1&nbsp;EUR</strong> капитала будет работать <strong>лучше</strong>?</h2>
+            </div>
+            <div class="cm-question__aside" data-fx="rise">
+              <p class="fx-lead">Решение принимается не по остатку на счёте, а по тому, где капитал создаёт больший эффект при приемлемом уровне риска.</p>
+              <p class="cm-routes"><span class="fx-meta">Направления</span> <span>Оборотный капитал</span><span>Капитальные вложения (CAPEX)</span><span>Обязательства</span><span>Резерв ликвидности</span></p>
+            </div>
+          </div>
+          <ol class="fx-sequence fx-sequence--row cm-cycle" aria-label="Цикл управления капиталом" data-fx="line">
+            <li data-fx="rise"><span class="fx-index">01</span><div class="fx-sequence__body"><h3 class="fx-h3">Источник капитала</h3><p>Чьи средства работают в бизнесе и сколько они стоят.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">02</span><div class="fx-sequence__body"><h3 class="fx-h3">Размещение</h3><p>Где зафиксированы средства: деньги, оборотный капитал, активы, проекты.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">03</span><div class="fx-sequence__body"><h3 class="fx-h3">Отдача</h3><p>Какой денежный поток и какую доходность создаёт размещение.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">04</span><div class="fx-sequence__body"><h3 class="fx-h3">Риск</h3><p>Стоимость, срок, валюта и долговая нагрузка.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">05</span><div class="fx-sequence__body"><h3 class="fx-h3">Высвобождение</h3><p>Что возвращается из замороженного и избыточного капитала.</p></div></li>
+            <li data-fx="rise"><span class="fx-index">06</span><div class="fx-sequence__body"><h3 class="fx-h3">Перераспределение</h3><p>Куда направить следующий евро.</p></div></li>
+          </ol>
+        </div>
+      </section>
+    </div>
 
     <section class="sec capital-logic" id="capital-logic" aria-labelledby="capital-logic-title">
       <div class="container">
@@ -416,7 +423,7 @@
           <span>Источник капитала</span><span>Где он размещён</span><span>Как он работает</span><span>Какую отдачу создаёт</span><span>Сколько стоит</span><span>Какой риск несёт</span><span>Что делать дальше</span>
         </div>
 
-        <ol class="capital-principles">
+        <ol class="capital-principles fx-deck">
           <li class="capital-principle reveal">
             <span class="capital-principle__num">01</span>
             <div><h3>Сохранить стоимость</h3><p>Контролировать ликвидность, потери и экономическую устойчивость капитала.</p></div>
@@ -439,53 +446,64 @@
       </div>
     </section>
 
-    <section class="sec materials sec--light capital-deep" id="capital-decisions" aria-labelledby="capital-decisions-title">
-      <div class="container">
-        <div class="section-head">
-          <p class="overline reveal">Капитальные вложения и инвестиции</p>
-          <h2 class="section-title reveal" id="capital-decisions-title">Глубже: решения о капитале</h2>
-          <p class="section-lead reveal">Отдельные материалы FINMENTOR о том, как оценивать капитальные вложения, измерять созданную стоимость и замечать, где бизнес проедает капитал.</p>
+    <section class="fx-band cm-deep" id="capital-decisions" aria-labelledby="capital-decisions-title">
+      <div class="fx-container">
+        <div class="fx-head fx-head--split">
+          <div>
+            <p class="fx-eyebrow" data-fx="rise">Капитальные вложения и инвестиции</p>
+            <h2 class="fx-h2" id="capital-decisions-title" data-fx="rise">Глубже: решения о капитале</h2>
+          </div>
+          <p class="fx-lead" data-fx="rise">Отдельные материалы FINMENTOR о том, как оценивать капитальные вложения, измерять созданную стоимость и замечать, где бизнес проедает капитал.</p>
         </div>
-        <div class="materials-grid">
-          <a class="material-card reveal" href="capex-hurdle-rate.html" data-reveal-delay="1"><span class="material-card__title">Как принимать CAPEX и инвестиционные решения: Incremental Return vs Hurdle Rate</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="capital-allocation-value.html" data-reveal-delay="2"><span class="material-card__title">Финансовый директор как управляющий капиталом: от высвобождения к созданию стоимости</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="capital-preservation.html" data-reveal-delay="3"><span class="material-card__title">Как компания проедает капитал</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="working-capital.html" data-reveal-delay="4"><span class="material-card__title">Оборотный капитал: где застревают деньги бизнеса</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
-          <a class="material-card reveal" href="fcf-postavshiki.html" data-reveal-delay="5"><span class="material-card__title">Финансирование бизнеса за счёт поставщиков: какие товары реально создают денежный поток</span><span class="material-card__arrow">Читать&nbsp;&rarr;</span></a>
+        <div class="fx-rows">
+          <a href="capex-hurdle-rate.html" data-fx="rise"><span class="fx-index">01</span><span><span class="fx-meta">Методология</span><span class="fx-h3 cm-deep__title">Как принимать CAPEX и инвестиционные решения: Incremental Return vs Hurdle Rate</span></span><span class="fx-rows__arrow">Читать&nbsp;&rarr;</span></a>
+          <a href="capital-allocation-value.html" data-fx="rise"><span class="fx-index">02</span><span><span class="fx-meta">Методология</span><span class="fx-h3 cm-deep__title">Финансовый директор как управляющий капиталом: от высвобождения к созданию стоимости</span></span><span class="fx-rows__arrow">Читать&nbsp;&rarr;</span></a>
+          <a href="capital-preservation.html" data-fx="rise"><span class="fx-index">03</span><span><span class="fx-meta">Капитал</span><span class="fx-h3 cm-deep__title">Как компания проедает капитал</span></span><span class="fx-rows__arrow">Читать&nbsp;&rarr;</span></a>
+          <a href="working-capital.html" data-fx="rise"><span class="fx-index">04</span><span><span class="fx-meta">Оборотный капитал</span><span class="fx-h3 cm-deep__title">Оборотный капитал: где застревают деньги бизнеса</span></span><span class="fx-rows__arrow">Читать&nbsp;&rarr;</span></a>
+          <a href="fcf-postavshiki.html" data-fx="rise"><span class="fx-index">05</span><span><span class="fx-meta">Практика</span><span class="fx-h3 cm-deep__title">Финансирование бизнеса за счёт поставщиков: какие товары реально создают денежный поток</span></span><span class="fx-rows__arrow">Читать&nbsp;&rarr;</span></a>
         </div>
       </div>
     </section>
 
-    <section class="sec sec--alt" id="mini-scan">
-      <div class="container">
-        <div class="cta-band">
-          <p class="overline reveal">Лёгкий вход · 3 минуты</p>
-          <p class="cta-band__title reveal">Не готовы к полному рентгену? Начните с экспресс-диагностики оборотного капитала</p>
-          <p class="cta-band__text reveal">9 вопросов покажут, где могут застревать деньги: дебиторка, запасы, авансы, условия поставщиков или платёжная дисциплина. Это первичная финансовая оценка, а не полноценная диагностика.</p>
-          <div class="cta-band__row reveal">
-            <a href="working-capital-scan.html" class="btn btn--ghost btn--lg" data-ga="click_working_capital_scan">Открыть экспресс-диагностику</a>
-            <a href="working-capital.html" class="hero__link" data-ga="click_working_capital">Подробнее об оборотном капитале&nbsp;&rarr;</a>
+    <section class="fx-band fx-band--tight cm-scan" id="mini-scan">
+      <div class="fx-container fx-container--wide">
+        <div class="fx-split fx-split--round cm-scan__split">
+          <div class="fx-split__text fx-split__text--stone" data-fx="rise">
+            <p class="fx-eyebrow">Лёгкий вход · 3 минуты</p>
+            <p class="fx-h2">Не готовы к полному рентгену? Начните с экспресс-диагностики оборотного капитала</p>
+            <p>9 вопросов покажут, где могут застревать деньги: дебиторка, запасы, авансы, условия поставщиков или платёжная дисциплина. Это первичная финансовая оценка, а не полноценная диагностика.</p>
+            <div class="fx-cta__actions">
+              <a href="working-capital-scan.html" class="btn btn--primary btn--lg" data-ga="click_working_capital_scan">Открыть экспресс-диагностику</a>
+              <a href="working-capital.html" class="fx-link" data-ga="click_working_capital">Подробнее об оборотном капитале&nbsp;&rarr;</a>
+            </div>
+          </div>
+          <div class="fx-split__figure cm-scan__figure" data-fx="rise" aria-hidden="true">
+            <span class="fx-figure cm-scan__num">9</span>
+            <span class="fx-h3">вопросов</span>
+            <span class="fx-meta">3 минуты · первичная оценка оборотного капитала</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="sec hub-cta" aria-labelledby="hub-cta-title">
-      <div class="container container--editorial">
-        <p class="overline reveal">Следующий шаг</p>
-        <h2 class="section-title reveal" id="hub-cta-title">Опишите ситуацию — определим подходящий формат.</h2>
-        <p class="section-lead reveal">Кратко расскажите, что происходит и какое решение вам нужно.</p>
-        <div class="hub-cta__actions reveal">
+    <section class="fx-cta" aria-labelledby="hub-cta-title">
+      <div class="fx-container">
+        <p class="fx-eyebrow" data-fx="rise">Следующий шаг</p>
+        <h2 class="fx-statement" id="hub-cta-title" data-fx="rise">Опишите ситуацию — определим подходящий формат.</h2>
+        <p class="fx-lead" data-fx="rise">Кратко расскажите, что происходит и какое решение вам нужно.</p>
+        <div class="fx-cta__actions" data-fx="rise">
           <a href="index.html#consult" class="btn btn--primary btn--lg" data-cta-id="hub_consult" data-cta-location="capital" data-event="cta_click" data-destination="consult">Обсудить задачу</a>
           <a href="questionnaire.html" class="btn btn--ghost btn--lg" data-ga="click_questionnaire" data-cta-id="hub_diagnostic" data-cta-location="capital" data-event="health_check_cta" data-destination="questionnaire">Финансовый рентген</a>
         </div>
       </div>
     </section>
-
-      </main>
+  </main>
 
   <footer class="footer" id="contacts">
     <div class="container">
+      <div class="fx-closing">
+        <p class="fx-closing__statement">Видеть <strong>деньги</strong>.<br>Понимать <strong>прибыль</strong>.<br>Управлять <em class="fx-gold">капиталом</em>.</p>
+      </div>
       <div class="footer__top">
         <div class="footer__brand">
           <a class="logo" href="index.html" aria-label="finmentor — наверх"><img class="logo__mark" src="images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>
