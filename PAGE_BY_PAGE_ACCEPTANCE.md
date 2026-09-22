@@ -18,43 +18,43 @@ How each column is decided (no column is filled by hand):
 
 | URL | Full Content Read | Art Direction | Typography | Hierarchy | Motion | Images | Mobile 390 | Desktop 1440 | Content Preserved | CTA | SEO | Links | Status | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| about.html | ✓ | Hub · founder-led | ✓ᵐ | ✓ | 28 | 1 | ✓ | ✓ | ✓ 13/13 | 4 | ✓ | ✓ | **ACCEPTED** | No team, no metrics invented. id=about stays before #method (privacy test). |
+| about.html | ✓ | Hub · founder-led | ✓ᵐ | ✓ | 28 | 1 | ✓ | ✓ | ✓ 13/13 | 4 | ✓ | ✓ | **ACCEPTED** | No team, no metrics invented. Portrait now served from the 780w source (sizes fixed). id=about stays before #method (privacy test). |
 | ai-agent-economics.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 41/41 | 5 | ✓ | ✓ | **ACCEPTED** |  |
 | ai-dlya-cfo.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 26/28 | 6 | ✓ | ✓ | **ACCEPTED** | 2 block(s) = recorded copy corrections (see preservation report) |
 | budgeting-forecasting.html | ✓ | Hub | ✓ᵐ | ✓ | 28 | 0 | ✓ | ✓ | ✓ 14/14 | 13 | ✓ | ✓ | **ACCEPTED** | Stage descriptors are grounded in the linked articles (pipeline-to-cash, cash-flow, payment calendar, management P&L, capex, business control system, treasury waterfall). |
 | business-control-system.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 41/41 | 6 | ✓ | ✓ | **ACCEPTED** |  |
-| business-models.html | ✓ | Hub | ✓ᵐ | ✓ | 24 | 1 | ✓ | ✓ | ✓ 52/52 | 5 | ✓ | ✓ | **ACCEPTED** | Asset-logic callout keeps its no-link contract; methodology details stay open and fully readable. |
+| business-models.html | ✓ | Hub | ✓ᵐ | ✓ | 24 | 1 | ✓ | ✓ | ✓ 52/52 | 5 | ✓ | ✓ | **ACCEPTED** | Asset-logic callout keeps its no-link contract; methodology details stay open and fully readable. Scale pass: PHOTO 03 holds the right half of the first screen edge to edge, caption inside the image; H1 at display scale. |
 | capacity-released.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 17/18 | 2 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
 | capex-hurdle-rate.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 121/121 | 1 | ✓ | ✓ | **ACCEPTED** |  |
-| capital-allocation-value.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 1 | ✓ | ✓ | ✓ 127/127 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| capital-allocation-value.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 1 | ✓ | ✓ | ✓ 127/127 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | capital-management.html | ✓ | Hub · flagship | ✓ᵐ | ✓ | 37 | 1 | ✓ | ✓ | ✓ 41/41 | 4 | ✓ | ✓ | **ACCEPTED** | Capital-logic section kept verbatim (tested contract: 4 principles, 7-step flow, map counts, one link, word ceiling); composition applied by page CSS. |
-| capital-preservation.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 35/35 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| capital-preservation.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 35/35 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | cases.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 58/59 | 6 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
-| cash-flow.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 48/48 | 9 | ✓ | ✓ | **ACCEPTED** |  |
+| cash-flow.html | ✓ | Knowledge | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 48/48 | 9 | ✓ | ✓ | **ACCEPTED** |  |
 | cfo-consultation.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 25/25 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | client-base-control-system.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 61/61 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | closed-won-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 108/108 | 1 | ✓ | ✓ | **ACCEPTED** |  |
-| deal-economics.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 126/126 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| deal-economics.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 126/126 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | fcf-postavshiki.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 142/143 | 4 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
 | financial-health-check.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 34/34 | 6 | ✓ | ✓ | **ACCEPTED** |  |
-| index.html | ✓ | Home | ✓ | ✓ | 71 | 3 | ✓ | ✓ | ✓ 91/91 | 21 | ✓ | ✓ | **ACCEPTED** | Nine scenes kept (tested choreography). This pass: mixed-weight scene titles RU + RO; the contact title keeps its dash on the first line. |
+| index.html | ✓ | Home | ✓ | ✓ | 71 | 3 | ✓ | ✓ | ✓ 91/91 | 21 | ✓ | ✓ | **ACCEPTED** | Nine scenes kept (tested choreography). Mixed-weight scene titles RU + RO; the capital cycle set as display rows (the scene's second primary object); the industries thesis at statement scale; homepage formats contrast fixed. |
 | kaznacheystvo.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 42/42 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | margin-factor-analysis-flags.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 198/203 | 4 | ✓ | ✓ | **ACCEPTED** | 5 block(s) = recorded copy corrections (see preservation report) |
 | materials.html | ✓ | Library index | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 238/239 | 5 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) · 24 stages, 5 chapter blocks, 10 principles, 34 items unchanged (financial-map QA). Copy: «Заметки финансового директора», RO «Notele directorului financiar», P&L glossary fixes. Map title contrast fixed. |
 | methodology.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 41/41 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | monthly-cfo-support.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 46/46 | 6 | ✓ | ✓ | **ACCEPTED** |  |
-| owner.html | ✓ | Hub | ✓ᵐ | ✓ | 78 | 0 | ✓ | ✓ | ✓ 80/80 | 4 | ✓ | ✓ | **ACCEPTED** | Sections re-ordered into the story; inner markup kept (analytics attributes, working-contour contract, sample documents). |
-| pipeline-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 112/112 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| owner.html | ✓ | Hub | ✓ᵐ | ✓ | 78 | 0 | ✓ | ✓ | ✓ 80/80 | 4 | ✓ | ✓ | **ACCEPTED** | Sections re-ordered into the story; inner markup kept (analytics attributes, working-contour contract, sample documents). Scale pass: «Прибыль.» set at statement-scene scale (light variant between the two navy scenes). |
+| pipeline-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 112/112 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | platezhnyy-kalendar.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 31/31 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | power-bi-dlya-sobstvennika.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 49/49 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | pribyl-vs-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 22/23 | 2 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
-| price-leakage.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 110/110 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| price-leakage.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 110/110 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | privacy.html | ✓ | Legal | ✓ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 44/44 | 0 | ✓ | ✓ | **ACCEPTED** | Released privacy text untouched. The visual-evidence legal gate expects a .legal__note; the owner removed it in the C4.11 privacy release (b0a4cc2), so that check stays red by decision, not by defect. |
 | questionnaire.html | ✓ | Product UX · Financial X-Ray | ✓ᵐ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 29/29 | 8 | ✓ | ✓ | **ACCEPTED** | Nothing inside <form> changed: the machine-control signatures (409 controls) match. RO H1 differs in substance from RU («Cât de sănătos este sistemul financiar…»): flagged for the RO editorial review, not changed. |
 | real-estate-control-system.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 1 | ✓ | ✓ | ✓ 24/24 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | renewal-revenue-at-risk.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 34/35 | 2 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
 | retail-margin-engine.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 72/73 | 5 | ✓ | ✓ | **ACCEPTED** | 1 block(s) = recorded copy corrections (see preservation report) |
-| revenue-quality.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 126/126 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| revenue-quality.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 126/126 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/about.html | ✓ | Hub · founder-led | ✓ᵐ | ✓ | 28 | 1 | ✓ | ✓ | ✓ 13/13 | 4 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/ai-agent-economics.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 41/41 | 5 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/ai-dlya-cfo.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 28/28 | 6 | ✓ | ✓ | **ACCEPTED** |  |
@@ -63,15 +63,15 @@ How each column is decided (no column is filled by hand):
 | ro/business-models.html | ✓ | Hub | ✓ᵐ | ✓ | 24 | 1 | ✓ | ✓ | ✓ 57/57 | 5 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/capacity-released.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 18/18 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/capex-hurdle-rate.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 124/124 | 1 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/capital-allocation-value.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 1 | ✓ | ✓ | ✓ 129/129 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/capital-allocation-value.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 1 | ✓ | ✓ | ✓ 129/129 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/capital-management.html | ✓ | Hub · flagship | ✓ᵐ | ✓ | 37 | 1 | ✓ | ✓ | ✓ 41/41 | 4 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/capital-preservation.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 35/35 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/capital-preservation.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 35/35 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/cases.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 59/59 | 6 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/cash-flow.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 48/48 | 9 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/cash-flow.html | ✓ | Knowledge | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 48/48 | 9 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/cfo-consultation.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 25/25 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/client-base-control-system.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 62/62 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/closed-won-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 107/107 | 1 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/deal-economics.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 132/132 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/deal-economics.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 132/132 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/fcf-postavshiki.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 151/151 | 4 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/financial-health-check.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 34/34 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/index.html | ✓ | Home | ✓ | ✓ | 71 | 3 | ✓ | ✓ | ✓ 99/99 | 20 | ✓ | ✓ | **ACCEPTED** |  |
@@ -81,22 +81,22 @@ How each column is decided (no column is filled by hand):
 | ro/methodology.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 41/41 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/monthly-cfo-support.html | ✓ | Offer | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 47/47 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/owner.html | ✓ | Hub | ✓ᵐ | ✓ | 78 | 0 | ✓ | ✓ | ✓ 87/87 | 4 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/pipeline-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 114/114 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/pipeline-to-cash.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 114/114 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/platezhnyy-kalendar.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 31/31 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/power-bi-dlya-sobstvennika.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 49/49 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/pribyl-vs-cash.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 23/23 | 2 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/price-leakage.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 117/117 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/price-leakage.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 117/117 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/privacy.html | ✓ | Legal | ✓ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 44/44 | 0 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/questionnaire.html | ✓ | Product UX · Financial X-Ray | ✓ᵐ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 29/29 | 8 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/real-estate-control-system.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 1 | ✓ | ✓ | ✓ 24/24 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/renewal-revenue-at-risk.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 35/35 | 2 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/retail-margin-engine.html | ✓ | Solution | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 77/77 | 5 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/revenue-quality.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 131/131 | 1 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/revenue-quality.html | ✓ | Article | ✓ᵐ | ✓ | 6 | 0 | ✓ | ✓ | ✓ 131/131 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/supplier-rating-purchasing-priorities.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 122/122 | 4 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/supplier-shelf-credit.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 18/18 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/templates.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 43/43 | 8 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/terms.html | ✓ | Legal | ✓ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 28/28 | 0 | ✓ | ✓ | **ACCEPTED** |  |
-| ro/treasury-waterfall.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 281/281 | 4 | ✓ | ✓ | **ACCEPTED** |  |
+| ro/treasury-waterfall.html | ✓ | Article | ✓ᵐ | ✓ | 5 | 0 | ✓ | ✓ | ✓ 281/281 | 4 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/upravlencheskiy-pl.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 33/33 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/working-capital-scan.html | ✓ | Tool | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 26/26 | 5 | ✓ | ✓ | **ACCEPTED** |  |
 | ro/working-capital.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 93/93 | 9 | ✓ | ✓ | **ACCEPTED** |  |
@@ -104,7 +104,7 @@ How each column is decided (no column is filled by hand):
 | supplier-shelf-credit.html | ✓ | Article | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 18/18 | 1 | ✓ | ✓ | **ACCEPTED** |  |
 | templates.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 39/42 | 8 | ✓ | ✓ | **ACCEPTED** | 3 block(s) = recorded copy corrections (see preservation report) |
 | terms.html | ✓ | Legal | ✓ | ✓ | 0 | 0 | ✓ | ✓ | ✓ 27/27 | 0 | ✓ | ✓ | **ACCEPTED** | Unchanged in this pass beyond the shared shell; polished and passing the legal gate. |
-| treasury-waterfall.html | ✓ | Article | ✓ᵐ | ✓ | 3 | 0 | ✓ | ✓ | ✓ 267/269 | 4 | ✓ | ✓ | **ACCEPTED** | 2 block(s) = recorded copy corrections (see preservation report) |
+| treasury-waterfall.html | ✓ | Article | ✓ᵐ | ✓ | 5 | 0 | ✓ | ✓ | ✓ 267/269 | 4 | ✓ | ✓ | **ACCEPTED** | 2 block(s) = recorded copy corrections (see preservation report) |
 | upravlencheskiy-pl.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 33/33 | 6 | ✓ | ✓ | **ACCEPTED** |  |
 | working-capital-scan.html | ✓ | Tool | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 17/17 | 5 | ✓ | ✓ | **ACCEPTED** |  |
 | working-capital.html | ✓ | Knowledge | ✓ᵐ | ✓ | 4 | 0 | ✓ | ✓ | ✓ 85/85 | 9 | ✓ | ✓ | **ACCEPTED** |  |
@@ -123,7 +123,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage, pinned inside its scene
 - **Foreground scene:** ivory thesis sheet rises over the stage; the founder split (portrait + text) follows as a band
 - **Overlap behaviour:** sheet radius = overlap; bands after it paint in order
-- **Body:** thesis statement · founder split, media first, rounded · practice principles · the method section (kept verbatim; its Telegram route is part of the privacy contract) · navy CTA
+- **Body:** philosophy statement at display scale (авторская финансовая система bold) · founder scene: the portrait fills its half of a near-full-screen split, heading at display scale, first paragraph as the lead · practice principles · the method section (kept verbatim) · navy CTA
 - **Reveal order:** statement rises; founder text after the portrait; principles in sequence
 - **Mobile fallback:** portrait above the text; principles stack; CTA full width
 - **Typography:** display statement XL mixed-weight; H2 in the site scale; eyebrow uppercase only
@@ -137,7 +137,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column
+- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column. Elevated moments: thesis scene — «ИИ может работать хорошо — и всё равно быть финансово невыгодным.»; dark scene — «Управлять нужно не токенами. Управлять нужно принятым результатом.»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Вы уже инвестируете в искусственный интеллект (AI). **Вопрос — создаёт ли он _экономическую ценность_?**
@@ -151,7 +151,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Где ИИ реально помогает финансам»; dark scene — «Риски и ограничения»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Искусственный интеллект для финансового директора**: как автоматизировать финансовое управление
@@ -179,7 +179,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage with the commercial terms as one quiet strip of facts
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA
+- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA. Elevated moments: thesis scene — «Базовый финансовый контур»; dark scene — «Результат»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Business Control System**: система управления бизнесом _через цифры_
@@ -207,7 +207,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему проблема существует»; dark scene — «Что происходит финансово»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Высвобожденная мощность _≠_ Cash Saving**: почему высвобожденные часы — ещё не экономия
@@ -221,7 +221,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Два разных вопроса, которые нельзя смешивать»; dark scene — «Прибыльный проект может быть неисполнимым»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Как принимать **CAPEX и инвестиционные решения**: Incremental Return _vs_ Hurdle Rate
@@ -235,7 +235,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** photograph stage with a directional scrim, pinned inside its scene
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Отчёт о прибыли не отвечает на вопрос о капитале»; dark scene — «Высвобождение капитала не является созданием стоимости»; statement scene «Капитал.» — «Распределение капитала: где следующий евро»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Финансовый директор как **управляющий капиталом**: от высвобождения к _созданию стоимости_
@@ -263,7 +263,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Капитал.» — «Почему прибыль не отвечает на вопрос о сохранности капитала»; dark scene — «Не всякое ухудшение капитала выглядит как прямой убыток»; conclusion at statement scale
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Как компания **проедает _капитал_**
@@ -291,7 +291,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: statement scene «Деньги.» — «Почему прибыль есть, а денег нет»; dark scene — «Какие ошибки делают собственники»; thesis scene — «Почему денежный поток зависит от оборотного капитала»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Денежный поток**: почему деньги важнее _бухгалтерской прибыли_
@@ -305,7 +305,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage with the commercial terms as one quiet strip of facts
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA
+- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA. Elevated moments: thesis scene — «Что получает клиент»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: CFO **Advisory Session**
@@ -319,7 +319,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage: headline left, the page's chain / key thesis as a panel right
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column
+- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column. Elevated moments: dark scene — «Два уровня системы»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Client Base Control System**: клиентская база _под управлением_
@@ -333,7 +333,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Где в компании «заканчивается» сделка»; dark scene — «Невыставленная выручка — самый тихий разрыв»; thesis scene — «Сколько стоит одна неделя цикла»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Closed Won _≠_ Cash**: финансовый путь сделки от CRM до денег
@@ -347,7 +347,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Маржа.» — «Почему валовая маржа не является критерием сделки»; dark scene — «Риски, которые нужно оценить до подписи»; thesis scene — «Коммерческий рубеж: четыре решения»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Экономика сделки** до подписания: Deal Economics &amp; _Commercial Gate_
@@ -361,7 +361,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему продажи и маржа не равны деньгам»; dark scene — «Кто финансирует товар: поставщик или ваша компания»; thesis scene — «Классификация товарных позиций: четыре типа товаров по деньгам»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Финансирование бизнеса за счёт поставщиков: какие товары **реально создают _денежный поток_**
@@ -375,7 +375,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage with the commercial terms as one quiet strip of facts
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA
+- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA. Elevated moments: thesis scene — «Какие боли решает»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Экспертная финансовая диагностика**: диагностика финансовой системы бизнеса
@@ -403,7 +403,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Водопад платежей»; dark scene — «Покрытие 7 / 14 / 30 дней»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Казначейство и водопад платежей**: как управлять деньгами без хаоса
@@ -417,7 +417,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему обычный отчёт по марже не отвечает на главный вопрос»; dark scene — «Почему нужен анализ с флагами»; thesis scene — «Общая формула управленческого решения»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Факторный анализ маржи с флагами**: как понять, _почему_ бизнес заработал больше или меньше
@@ -431,7 +431,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone library cover (pinned while it fits, released when taller than the viewport)
 - **Foreground scene:** the Financial Map rises over the cover as a navy sheet; the library rises over the map as an ivory sheet
 - **Overlap behaviour:** two sheet overlaps, each by one radius
-- **Body:** map chapters with 24 stages · ten principles · sticky section nav · numbered library sections · index cards, featured pair on stone
+- **Body:** map chapters with 24 stages · ten principles · FEATURED MATERIAL: one lead on navy with the rest of the selection as a ruled list · COLLECTION SCENES: each topic with a display-size title and its note, entries as an editorial index (three columns, ruled, no boxes) · FULL LIBRARY heading at the same scale
 - **Reveal order:** eyebrow → title → subtitle → lead; chain panel glides; index rises
 - **Mobile fallback:** single column, index as a two-column list, section nav static, cards single column
 - **Typography:** display L mixed-weight title (логика bold); map title display L light; library section H2 with mono index numbers
@@ -445,7 +445,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Принцип: сначала логика, потом инструменты»; dark scene — «Что мы обещаем и чего не обещаем»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Методология FINMENTOR**: как строится система контроля денег, прибыли и рисков
@@ -459,7 +459,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage with the commercial terms as one quiet strip of facts
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA
+- **Body:** what the session / format is · fit · preparation · deliverables · pricing terms as facts · FAQ · related formats · navy CTA. Elevated moments: thesis scene — «Зачем нужно сопровождение»; dark scene — «Контроль решений и исполнения»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Ежемесячное финансовое сопровождение** для собственника бизнеса
@@ -487,7 +487,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Прогноз.» — «Два прогноза, которые нельзя складывать в один»; dark scene — «Восемь переходов между сделкой и деньгами»; thesis scene — «Тринадцать недель как рабочий горизонт»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **От Pipeline до Cash**: почему план продаж — _ещё не финансовый прогноз_
@@ -501,7 +501,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Почему платежи идут хаотично»; dark scene — «Фонды, лимиты, согласование»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Платёжный календарь**: как убрать хаос в оплатах
@@ -515,7 +515,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Почему панель собственника начинается не с дизайна, а с данных»; dark scene — «Частые ошибки при подключении 1С к Power BI»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Power BI для собственника**: Панель собственника (Dashboard) на основе _корректных данных_
@@ -529,7 +529,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему проблема существует»; dark scene — «Что происходит финансово»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Прибыль есть, денег нет**: почему P&amp;L не отвечает на вопрос собственника о _Cash_
@@ -543,7 +543,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Цена.» — «Утечка цены — это не одна скидка»; dark scene — «Кто имеет право на уступку: матрица полномочий»; thesis scene — «Сколько стоит один процентный пункт фактической цены»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Price Leakage**: куда исчезает _маржа_ между прайсом и фактической продажей
@@ -585,7 +585,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** photograph stage with a directional scrim, pinned inside its scene
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column
+- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column. Elevated moments: thesis scene — «Боль собственника недвижимости»; dark scene — «Управленческий риск, если это не контролировать»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Система финансового управления недвижимостью: **доходность объекта** под управлением
@@ -599,7 +599,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему проблема существует»; dark scene — «Что на самом деле предсказывает продление: привычка»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Продление** — управляемая величина, _а не удача_
@@ -613,7 +613,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage: headline left, the page's chain / key thesis as a panel right
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column
+- **Body:** problem → risk → what FINMENTOR builds → what the owner sees → decisions → deliverable → who and how; prose sections as a heading rail + text column, exhibit sections as a wider column. Elevated moments: thesis scene — «Полка как финансовый актив»; dark scene — «Поставщик должен финансировать свою долю полки»; thesis scene — «Target Margin → Space → Category → SKU → Supplier → Decision»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: Каждая полка **должна зарабатывать**
@@ -627,7 +627,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Выручка.» — «Почему выручка почти всегда оценивается некритически»; dark scene — «Четыре решения по выручке низкого качества»; thesis scene — «Сколько оборотного капитала стоит рост»; conclusion at statement scale; owner view as a navy field
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Revenue _≠_ Good Revenue**: как измерять качество выручки
@@ -641,7 +641,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: thesis scene — «Почему цена — это только часть решения»; dark scene — «Почему рейтинг нельзя использовать механически»; thesis scene — «Управленческая формула выбора поставщика»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Справочник коэффициентов рейтинга поставщиков**: как выбрать, у кого купить одинаковый товар
@@ -655,7 +655,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: conclusion at statement scale
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Финансирование товарной полки поставщиком**: кто на самом деле _финансирует_ торговую полку
@@ -697,7 +697,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** navy thesis stage (architectural hairline drawing), pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading
+- **Body:** numbered article sections · the financial mechanism as a stone field · formulas as navy calculation fields · premium tables · the owner's takeaway as a gold-ruled paper panel · «what the owner sees» as a navy field · related reading. Elevated moments: statement scene «Платежи.» — «Почему платежи идут хаотично»; thesis scene — «Правило 7 / 14 / 30 дней»; dark scene — «Funding Gap: главный сигнал тревоги»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Фондовое планирование и водопад платежей**: как расставить приоритеты, когда _денег на всё не хватает_
@@ -711,7 +711,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Чем управленческий отчёт о прибылях и убытках отличается от бухгалтерского отчёта»; dark scene — «Частые ошибки»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Управленческий отчёт о прибылях и убытках**: как понять, где бизнес зарабатывает и теряет деньги
@@ -739,7 +739,7 @@ RU and RO share one definition; the RO page carries the same scenes with its own
 - **Background scene:** stone light cover with navy type, pinned inside its scene while it fits
 - **Foreground scene:** the ivory reading sheet rises over the cover by one radius (28–52px); designed moments inside it
 - **Overlap behaviour:** sheet radius = overlap; the cover is released (.is-tall) when taller than the viewport
-- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings
+- **Body:** reading column with callouts, checklists, formulas and tables as designed moments; conclusion and owner view marked from the article's own headings. Elevated moments: thesis scene — «Почему прибыль есть, а денег нет»; dark scene — «Качество оборотного капитала: почему не все активы являются свободными деньгами»
 - **Reveal order:** crumbs → eyebrow → mixed-weight H1 → lead → context (rise, once, IntersectionObserver); sheet content static
 - **Mobile fallback:** cover compact, single column (split panel under the headline), sheet radius reduced, designed panels bleed to 8px from the gutter
 - **Typography:** H1 mixed weight: **Оборотный капитал**: где застревают _деньги бизнеса_

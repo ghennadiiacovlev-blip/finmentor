@@ -75,3 +75,22 @@ ceb715e style: rebuild supporting pages
 be3b773 fix: place split cover columns explicitly
         docs: record page-by-page final acceptance (this report and its companions)
 ```
+
+## 8. Final scale and choreography correction
+
+Goal: one screen = one primary idea. The information architecture is unchanged, no content was removed, and no new photographs were added.
+
+| Area | Change |
+|---|---|
+| Articles (31 pages × RU/RO) | 2–3 of each article's own sections elevated into scenes: a thesis band (stone) and a dark scene (navy), both full bleed, with a rounded rise and an ivory cap closing them. The statement heading is set at display scale with its payoff clause bold; the conclusion is at statement scale. Body text stays in the reading column. |
+| Statement scene (new primitive `.fx-word`) | One financial word in very large Manrope 800 with a gold full stop, and the article's own thesis heading beneath it as the question. Used on 8 articles as their opening transition (Деньги, Капитал ×2, Маржа, Выручка, Платежи, Цена, Прогноз; RO equivalents). Owner's «Прибыль. А если это ещё не деньги?» is at the same scale. |
+| Covers | Reading-page H1s at display scale; photo covers take the first screen (capped at 1000px). |
+| Photography | Business Models: PHOTO 03 holds the right half of the first screen. About: the portrait fills its half and is served from the 780w source (it was served at 420w). |
+| Materials | Featured material (one navy lead + a ruled list) → collection scenes (display titles, ruled editorial index, no boxes) → full library. |
+| About | Philosophy statement at display scale with «авторская финансовая система» bold; founder heading and lead at display scale. |
+| Homepage | Nine scenes unchanged. The capital cycle is set as display rows; the industries thesis at statement scale. |
+| Mobile | Covers and statements scale down under 400px; the word never exceeds the frame. |
+
+Gates after the correction: run-all **102/102, 3 659 assertions, floors PASS** · visual evidence **30/31** (privacy note only, §5.1) · motion **76/76** · contrast **0 failing keys / 90 pages** · overflow **0 / 810 surfaces** · a new ink-level text audit (every text line box inside the viewport) **0 defects** across 90 pages at 7 widths · preservation unchanged (6 393 blocks, 0 lost) · 93/93 acceptance rows.
+
+One harness change: the capture tool's full-page mode previously capped the capture at 16 000px, which duplicated imagery on long pages. It now stitches real scroll positions. Screenshots are in `qa-artifacts/scale-final/` (`desktop/`, `mobile/`, `full-desktop/`, `full-mobile/`: home, capital-management, business-models, materials, about, cash-flow, capital-allocation-value, deal-economics, owner, X-Ray).

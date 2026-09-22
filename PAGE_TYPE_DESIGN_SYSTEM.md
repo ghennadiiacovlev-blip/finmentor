@@ -84,3 +84,52 @@ Marked from each article's **own headings**, never by position:
 - Body markers asserted by QA stay exact (for example `materials-page fm-shell`), so page scopes use inner classes.
 - Machine-control signatures of the questionnaire are hash-locked; design changes stop at the form boundary.
 - `app-premium/` is byte-sealed and is not touched.
+
+## 8. Scale and choreography (final correction)
+
+Target: **one screen = one primary idea**. Fewer, larger scenes instead of many small components.
+
+### 8.1 Article scenes (`.rd-scene`, `editorial.css` §24)
+
+Every substantial reading page elevates 2–4 of its **own** sections, chosen by hand from its headings (`scenes-config`): the thesis, one risk / comparison / framework / process, then the existing conclusion and owner view.
+
+| Scene | Composition | Mechanism |
+|---|---|---|
+| `rd-scene--s` thesis | stone band, the heading as a large light statement with its payoff clause bold, the first paragraph as a lead | band painted full bleed behind the section; rounded top rises over the page; an ivory cap (the next sheet) closes it |
+| `rd-scene--d` dark | the same on deep navy, with a full dark ink set for tables, callouts, formulas and cards | the same cap mechanism |
+| conclusion | the existing takeaway panel, the conclusion set at statement scale | panel width unchanged |
+
+The section box stays the reading column (≤ 840px, asserted by visual evidence on the gated articles); only the statement heading leaves it. Paragraphs are never animated. The mixed weight is applied to the page's own words (the clause after the first separator, else the last word); the builder refuses any change of words and any section that is already a designed moment.
+
+### 8.2 Statement scene (`.fx-word`, `editorial.css` §25)
+
+A reusable primitive for **major conceptual transitions only**:
+
+- deep FINMENTOR navy, full bleed, rounded top;
+- one financial word in very large Manrope 800 (uppercase), with a restrained gold full stop;
+- the question or counter-thesis beneath it, in light weight: the article's **existing** thesis heading, which keeps the document outline (the word itself is `aria-hidden` emphasis);
+- large negative space (up to 84svh);
+- controlled reveal: the word, then the question (a deliberate step in `main.js` STEPS; static under reduced motion);
+- the next ivory sheet rises over its lower edge.
+
+Used on eight articles, as their opening transition. The word is always the article's own subject, and the builder asserts it occurs on the page:
+
+| Article | Word (RU / RO) | Question (the article's thesis heading) |
+|---|---|---|
+| cash-flow | Деньги / Banii | Почему прибыль есть, а денег нет |
+| capital-allocation-value | Капитал / Capitalul | Распределение капитала: где следующий евро |
+| deal-economics | Маржа / Marja | Почему валовая маржа не является критерием сделки |
+| revenue-quality | Выручка / Veniturile | Почему выручка почти всегда оценивается некритически |
+| treasury-waterfall | Платежи / Plățile | Почему платежи идут хаотично |
+| capital-preservation | Капитал / Capitalul | Почему прибыль не отвечает на вопрос о сохранности капитала |
+| price-leakage | Цена / Prețul | Утечка цены — это не одна скидка |
+| pipeline-to-cash | Прогноз / Prognoza | Два прогноза, которые нельзя складывать в один |
+
+On Owner, «Прибыль. А если это ещё не деньги?» takes the primitive's scale in a light variant, because it sits between two navy scenes.
+
+### 8.3 Photographic authority
+
+The approved photographs are used larger where they carry the argument, and no new photograph was added:
+- Business Models: PHOTO 03 holds the right half of the first screen, edge to edge.
+- Photo covers (capital-allocation-value, real-estate): the photograph takes the whole first screen.
+- About: the founder portrait fills its half of the founder scene, now served from the 780w source.
