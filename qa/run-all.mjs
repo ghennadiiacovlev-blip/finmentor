@@ -25,6 +25,7 @@ const GATES = [
   ['Website contract', 'website-contract.test.mjs'],
   ['Commercial polish v1.1.1', 'commercial-polish.test.mjs'],
   ['Premium typography and Financial X-Ray presentation', 'premium-typography.test.mjs'],
+  ['Typography lock — sans-serif everywhere, no serif face', 'typography-lock.test.mjs'],
   ['Final editorial, Materials and legal presentation', 'editorial-production.test.mjs'],
   ['Privacy policy release (controller, retention, legal basis)', 'privacy-policy-release.test.mjs'],
   ['Public lead identity lifecycle', 'public-identity-lifecycle.test.mjs'],

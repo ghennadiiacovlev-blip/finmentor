@@ -46,7 +46,7 @@
   --focus-ring: var(--gold-300);
 
   /* Fonts */
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;   /* typography lock: sans-serif everywhere, no serif face */
   --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -6055,10 +6055,10 @@ body.menu-open .doc-bar { visibility: hidden; }
 
 /* --- 4. TYPOGRAPHY -------------------------------------------------------
    Significantly larger headings, fewer words per heading, generous leading,
-   controlled measure. Same two families — Playfair Display + Manrope. */
+   controlled measure. One family — Manrope (sans-serif only, typography lock). */
 /* FINMENTOR is an advisory firm, not a magazine. The homepage speaks in the
-   neutral grotesk it already loads; the serif is reserved for long-form
-   article pages, where it belongs. Hierarchy comes from scale, weight and
+   neutral grotesk it already loads, and so does every other page: there is
+   no serif anywhere. Hierarchy comes from scale, weight and
    spacing — never from a decorative face. */
 .home .section-title,
 .home h2,
