@@ -44,7 +44,22 @@ const EDITS = {
   ],
 };
 
-const BLOCK = /<\/?(?:p|li|h[1-6]|dt|dd|div|section|article|aside|ul|ol|dl|summary|details|figure|figcaption|header|footer|nav|main|br|form|label|button|table|tr|td|th|blockquote)\b[^>]*>/gi;
+// Owner-approved SPLITS (homepage Formats, CFO Advisory Session): one baseline block, set as a
+// visible purpose line on the panel and the remainder inside «Состав и условия». Narrow by
+// construction: the baseline block must match exactly, it must equal its parts joined by one
+// space (nothing dropped or reworded), and every part must be present as written.
+const SPLITS = {
+  ru: [[
+    'Экспертная CFO-сессия по одному заранее определённому финансовому или управленческому решению. CFO FINMENTOR оценивает риски, сравнивает реалистичные варианты и формирует рекомендуемое направление — без обязательства продолжать сотрудничество.',
+    ['Экспертная CFO-сессия по одному заранее определённому финансовому или управленческому решению.', 'CFO FINMENTOR оценивает риски, сравнивает реалистичные варианты и формирует рекомендуемое направление — без обязательства продолжать сотрудничество.'],
+  ]],
+  ro: [[
+    'Sesiune CFO de expertiză pentru o singură decizie financiară sau managerială stabilită în prealabil. CFO-ul FINMENTOR evaluează riscurile, compară opțiunile realiste și formulează direcția recomandată — fără obligația continuării colaborării.',
+    ['Sesiune CFO de expertiză pentru o singură decizie financiară sau managerială stabilită în prealabil.', 'CFO-ul FINMENTOR evaluează riscurile, compară opțiunile realiste și formulează direcția recomandată — fără obligația continuării colaborării.'],
+  ]],
+};
+
+const BLOCK =/<\/?(?:p|li|h[1-6]|dt|dd|div|section|article|aside|ul|ol|dl|summary|details|figure|figcaption|header|footer|nav|main|br|form|label|button|table|tr|td|th|blockquote)\b[^>]*>/gi;
 const norm = (t) => t.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&rarr;/g, '→').replace(/&ne;/g, '≠').replace(/&[a-z]+;/g, ' ')
   .replace(/\s+/g, ' ').trim();
 function blocks(html) {
@@ -68,9 +83,15 @@ for (const lang of ['ru', 'ro']) {
   for (const [, replacement] of EDITS[lang]) {
     if (!now.includes(replacement)) { failures++; console.log(`FAIL ${lang} declared replacement missing: ${replacement}`); }
   }
+  const splits = new Map(SPLITS[lang]);
+  for (const [whole, parts] of SPLITS[lang]) {
+    if (parts.join(' ') !== whole) { failures++; console.log(`FAIL ${lang} declared split does not recompose its baseline: ${whole.slice(0, 80)}`); }
+    for (const part of parts) if (!now.includes(part)) { failures++; console.log(`FAIL ${lang} declared split part missing: ${part}`); }
+  }
   for (const b of blocks(base.replace(TEASERS, ' '))) {
     checked++;
     if (now.includes(b)) continue;
+    if (splits.has(b) && splits.get(b).every((part) => now.includes(part))) continue;
     const edited = [...edits.keys()].find((k) => b.includes(k));
     if (edited && now.includes(b.replace(edited, edits.get(edited)))) continue;
     failures++; console.log(`FAIL ${lang} text not found anywhere: ${b.slice(0, 140)}`);
