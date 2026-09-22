@@ -4218,17 +4218,17 @@ body.menu-open .fa-panel {
 .sec--light {
   --text-primary: #16233C;
   --text-secondary: #3D4A5F;
-  --text-muted: #6B7688;
+  --text-muted: #5E6A7C;
   --glass-fill: rgba(255, 255, 255, 0.78);
   --glass-fill-strong: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(18, 28, 46, 0.12);
   --glass-border-gold: rgba(140, 106, 26, 0.38);
   --border-hairline: rgba(18, 28, 46, 0.11);
   --border-gold: rgba(140, 106, 26, 0.5);
-  --accent: #8C6A1A;
+  --accent: #7E5F16;
   --accent-bright: #6F5312;
   --micro-label-gold: #765814;
-  --gold-500: #8C6A1A;
+  --gold-500: #7E5F16;
   --focus-ring: #6F5312;
   --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
   --elev-2: 0 14px 34px rgba(16, 27, 44, 0.10);
@@ -8277,6 +8277,417 @@ body.fm-shell { padding-top: var(--header-h); }
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--ink-900);
+}
+
+/* ==========================================================================
+   EDITORIAL CONVERGENCE — final art-direction pass
+   Less interface, more composition. Less darkness, more light and photography.
+   Scene order, copy and components are unchanged: this layer re-composes them
+   through light tokens, placement and scale. The benchmark was an investment
+   firm's calm photographic confidence; nothing here copies its layouts.
+   ========================================================================== */
+:root {
+  --ed-ivory: #F4F1EA;       /* the editorial field */
+  --ed-paper: #FAF8F4;       /* lightest surface */
+  --ed-stone: #E7E1D5;       /* warm stone tonal block */
+  --ed-navy:  #0B1627;       /* deep navy scenes */
+  --ed-ink:   #0B1627;       /* type on light */
+  --ed-gold:  #7E5F16;       /* gold that holds 4.5:1 on ivory, paper and stone */
+}
+/* the light token set, shared by every light surface below */
+:is(.home .packages, .home .page-head, .hero--editorial .hero__panel, .mobile-menu,
+    :is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header), .fm-shell main) {
+  --text-primary: #16233C;
+  --text-secondary: #3D4A5F;
+  --text-muted: #5E6A7C;
+  --label-muted: #5E6A7C;
+  --border-hairline: rgba(18, 28, 46, 0.11);
+  --border-gold: rgba(140, 106, 26, 0.5);
+  --glass-fill: rgba(255, 255, 255, 0.7);
+  --glass-fill-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(18, 28, 46, 0.12);
+  --glass-border-gold: rgba(140, 106, 26, 0.38);
+  --accent: var(--ed-gold);
+  --accent-bright: #6F5312;
+  --gold-400: var(--ed-gold);
+  --gold-500: var(--ed-gold);
+  --micro-label-gold: #765814;
+  --glow-gold: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* --- Typography: larger, calmer, less tiny tracked uppercase ------------- */
+.home .section-title {
+  font-size: clamp(2rem, 3.5vw, 3.35rem);
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  max-width: 20ch;
+}
+.home .section-lead { max-width: 50ch; }
+.home .overline { letter-spacing: 0.1em; }
+.hero--editorial .hero__kicker { letter-spacing: 0.1em; }
+
+/* --- Header: transparent over the hero photograph; a light institutional
+   state once it scrolls, on light pages, and whenever the drawer is open --- */
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) {
+  background: rgba(250, 248, 244, 0.94);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid rgba(18, 28, 46, 0.08);
+  box-shadow: none;
+}
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link { color: rgba(22, 35, 60, 0.78); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link:hover { color: var(--ed-ink); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__link[aria-current="page"] { color: var(--ed-gold); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .nav__toggle { color: rgba(22, 35, 60, 0.5); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .logo__fin { color: var(--ed-ink); -webkit-text-fill-color: var(--ed-ink); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .logo__mentor { color: #9A7A1E; -webkit-text-fill-color: #9A7A1E; }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .burger span { background: var(--ed-ink); }
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .header__cta.btn--primary {
+  border-color: rgba(140, 106, 26, 0.55);
+  color: #6F5312;
+}
+:is(.home .header.is-scrolled, .home .header.is-solid, .fm-shell .header.is-scrolled, .fm-shell .header.is-solid, .menu-open .header) .header__cta.btn--primary:hover { color: var(--navy-900); }
+/* the CTA is a refined rule with type, not a filled pill, in every state */
+:is(.home, .fm-shell) .header__cta.btn--primary { padding: 8px 16px; font-size: 0.72rem; letter-spacing: 0.08em; }
+/* dropdown panels read as paper under the light bar */
+:is(.home, .fm-shell) .nav__panel {
+  background: rgba(250, 248, 244, 0.98);
+  border: 1px solid rgba(18, 28, 46, 0.09);
+  border-top: 1px solid var(--ed-gold);
+  box-shadow: 0 24px 48px -28px rgba(8, 17, 31, 0.35);
+}
+:is(.home, .fm-shell) .nav__sublink { border-top-color: rgba(18, 28, 46, 0.07); }
+:is(.home, .fm-shell) .nav__subtitle { color: var(--ed-ink); }
+:is(.home, .fm-shell) .nav__subnote { color: #5E6A7C; }
+:is(.home, .fm-shell) .nav__sublink:hover .nav__subtitle,
+:is(.home, .fm-shell) .nav__sublink:focus-visible .nav__subtitle { color: var(--ed-gold); }
+/* the drawer is a light editorial sheet */
+.mobile-menu {
+  background: rgba(250, 248, 244, 0.985);
+  color: var(--text-primary);
+}
+.mobile-menu .mobile-menu__link,
+.mobile-menu .mobile-menu__group > summary { color: var(--ed-ink); }
+
+/* --- 01 HERO: the photograph owns the viewport; the copy sits on one
+   restrained paper panel instead of under a dark overlay ------------------ */
+.hero--editorial .hero__scrim {
+  background:
+    linear-gradient(to bottom, rgba(8, 17, 31, 0.55) 0%, rgba(8, 17, 31, 0) 22%),
+    linear-gradient(to top, rgba(8, 17, 31, 0.28) 0%, rgba(8, 17, 31, 0) 26%);
+}
+.hero--editorial .hero__content {
+  padding-block: calc(var(--header-h) + 48px) clamp(40px, 7vh, 88px);
+}
+.hero--editorial .hero__panel {
+  max-width: 700px;
+  padding: clamp(30px, 3vw, 48px) clamp(28px, 3.2vw, 52px) clamp(28px, 2.8vw, 42px);
+  background: rgba(247, 244, 238, 0.9);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+  backdrop-filter: blur(10px) saturate(115%);
+  border-radius: 6px;
+  box-shadow: 0 30px 60px -32px rgba(4, 10, 20, 0.5);
+  color: var(--text-secondary);
+}
+.hero--editorial .hero__panel .hero__kicker { color: #6F5312; }
+.hero--editorial .hero__panel .hero__title {
+  max-width: 19ch;
+  font-size: clamp(2.4rem, 3.6vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.032em;
+  color: var(--ed-ink);
+  -webkit-text-fill-color: var(--ed-ink);
+  background: none;
+}
+.hero--editorial .hero__panel .hero__statement,
+.hero--editorial .hero__panel .hero__statement span { color: #16233C; }
+.hero--editorial .hero__panel .hero__subtitle { color: #3D4A5F; }
+.hero--editorial .hero__panel .hero__trust-line { color: #465265; }
+.hero--editorial .hero__panel .btn--ghost {
+  border-color: rgba(22, 35, 60, 0.28);
+  color: var(--ed-ink);
+  background: transparent;
+}
+.hero--editorial .hero__panel .btn--ghost:hover { border-color: var(--ed-ink); background: rgba(22, 35, 60, 0.04); }
+/* the panel arrives with the photograph (0.01, not 0: the H1 inside is the LCP) */
+.m-js .home .hero--editorial .hero__panel {
+  transition: opacity 900ms var(--m-ease), transform 900ms var(--m-ease);
+}
+.m-js .home .hero--editorial:not(.is-visible) .hero__panel { opacity: 0.01; transform: translateY(14px); }
+@media (max-width: 860px) {
+  /* mobile is composed, not stacked: a photographic band, then the paper panel over its edge */
+  .hero--editorial { display: block; min-height: 0; min-height: auto; background: var(--ed-ivory); }
+  .hero--editorial .hero__media { position: relative; inset: auto; height: 56svh; min-height: 340px; }
+  .hero--editorial .hero__scrim {
+    bottom: auto;
+    height: 56svh;
+    min-height: 340px;
+    background: linear-gradient(to bottom, rgba(8, 17, 31, 0.6) 0%, rgba(8, 17, 31, 0) 32%);
+  }
+  .hero--editorial .hero__content { padding: 0 12px 28px; margin-top: -64px; }
+  .hero--editorial .hero__panel {
+    max-width: none;
+    padding: 28px 22px 26px;
+    background: rgba(247, 244, 238, 0.97);
+    box-shadow: 0 18px 40px -26px rgba(4, 10, 20, 0.45);
+  }
+  .hero--editorial .hero__panel .hero__title { font-size: clamp(2.1rem, 9vw, 2.7rem); }
+  .hero--editorial .hero__scroll { display: none; }
+}
+
+/* --- 02 PROBLEM: a light editorial scene; the verdict is the event ------- */
+.home .chaos .section-title { max-width: 12ch; }
+.home .chaos__grid { grid-row: 1; }
+.home .chaos-card__text { font-size: clamp(1.06rem, 1.3vw, 1.22rem); color: #16233C; }
+.home .chaos__verdict {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 24ch;
+  margin-top: clamp(32px, 5vw, 80px);
+  padding-top: clamp(28px, 3vw, 44px);
+  font-size: clamp(1.9rem, 3.6vw, 3.4rem);
+  line-height: 1.07;
+  letter-spacing: -0.03em;
+}
+.home .chaos .chaos__more { grid-column: 1 / -1; grid-row: 3; }
+.home .chaos__verdict .text-gold::after { display: none; }
+@media (max-width: 900px) {
+  .home .chaos__grid { grid-row: 2; }
+  .home .chaos__verdict { grid-row: 3; }
+  .home .chaos .chaos__more { grid-row: 4; }
+}
+
+/* --- 03 OWNER CONTROL: three large connected tonal blocks ---------------- */
+.home .pillars { background: var(--ed-paper); }
+.home .pillars .pillars__grid { gap: 0; margin-top: clamp(40px, 5vw, 72px); border-top: 0; }
+.home .pillars .pillar {
+  padding: clamp(36px, 4vw, 64px) clamp(28px, 3vw, 52px) clamp(40px, 4.4vw, 68px);
+  border: 0;
+}
+.home .pillars .pillar:nth-child(1) {
+  background: var(--ed-navy);
+  --text-primary: #F3F5F8;
+  --text-secondary: #C3CBD7;
+  --text-muted: #8F9AAB;
+  --label-muted: #A9B3C2;
+  --border-gold: rgba(201, 162, 39, 0.45);
+  --accent: #C9A227;
+  --border-hairline: rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+.home .pillars .pillar:nth-child(2) { background: var(--ed-stone); }
+.home .pillars .pillar:nth-child(3) { background: #FFFFFF; box-shadow: inset 0 2px 0 var(--ed-gold); }
+.home .pillars .pillar__index { font-size: clamp(2.6rem, 4.4vw, 4.4rem); }
+.home .pillars .pillar__title { font-size: clamp(1.3rem, 1.8vw, 1.8rem); letter-spacing: 0.04em; }
+.home .pillars .pillar__descriptor { font-size: clamp(1.02rem, 1.2vw, 1.14rem); line-height: 1.55; }
+
+/* --- 04 CAPITAL: PHOTO 02 owns the right; the question and the framework
+   stand on navy at the left, so the photograph is no longer darkened ------- */
+.home .capital-management { padding-block: 0; background: var(--ed-navy); }
+.home .capital-management__media { left: 44%; }
+.home .capital-management__scrim {
+  left: 44%;
+  background:
+    linear-gradient(90deg, var(--ed-navy) 0%, rgba(11, 22, 39, 0.55) 12%, rgba(11, 22, 39, 0) 34%),
+    linear-gradient(to top, rgba(11, 22, 39, 0.35) 0%, rgba(11, 22, 39, 0) 30%);
+}
+@media (min-width: 901px) {
+  /* the photograph (1586×992) is held near its native scale: it fills the upper part of
+     the scene and fades into navy under the framework, instead of being stretched over
+     the full height of the section */
+  .home :is(.capital-management__media, .capital-management__scrim) { bottom: auto; height: min(100%, 62vw); }
+  .home .capital-management__scrim {
+    background:
+      linear-gradient(90deg, var(--ed-navy) 0%, rgba(11, 22, 39, 0.55) 12%, rgba(11, 22, 39, 0) 34%),
+      linear-gradient(to top, var(--ed-navy) 0%, rgba(11, 22, 39, 0) 32%);
+  }
+}
+.home .capital-management__inner {
+  display: block;
+  padding-block: clamp(80px, 10vw, 150px);
+}
+.home .capital-management__head,
+.home .capital-management .capital-cycle { width: min(520px, 40%); }
+.home .capital-management .capital-cycle { margin-top: clamp(40px, 5vw, 64px); }
+@media (max-width: 900px) {
+  .home .capital-management__media { position: relative; inset: auto; left: 0; height: 300px; }
+  .home .capital-management__scrim {
+    left: 0; top: 0; bottom: auto; height: 300px;
+    background: linear-gradient(to top, var(--ed-navy) 0%, rgba(11, 22, 39, 0) 45%);
+  }
+  .home .capital-management__inner { padding-block: 8px clamp(56px, 12vw, 80px); }
+  .home .capital-management__head,
+  .home .capital-management .capital-cycle { width: auto; }
+}
+
+/* --- 05 BUSINESS MODELS: a large image tile beside editorial rows -------- */
+@media (min-width: 901px) {
+  .home .industries > .container { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .home .industries__figure img { height: clamp(520px, 80vh, 880px); }
+}
+.home .industries__figure img { border-radius: 4px; }
+.home .industries__caption {
+  margin-top: 16px;
+  max-width: 44ch;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.home .industry-card__badge {
+  border: 0;
+  padding: 0;
+  background: none;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+.home .industry-card h3 { font-size: clamp(1.25rem, 1.8vw, 1.7rem); }
+.home .industries .section-title { max-width: none; font-size: clamp(2rem, 3vw, 3rem); }
+@media (max-width: 900px) {
+  .home .industries__figure img { height: clamp(280px, 76vw, 400px); }
+}
+
+/* --- 06 FORMATS: light advisory mandates in tonal bands ------------------- */
+.home .packages { background: var(--ed-ivory); color: var(--text-secondary); }
+.home .packages .section-title { color: var(--ed-ink); }
+.home .packages__expert,
+.home .package {
+  margin-top: 12px;
+  border-top: 0;
+  border-radius: 4px;
+  padding: clamp(32px, 3.4vw, 56px) clamp(24px, 3vw, 56px) clamp(32px, 3.4vw, 56px)
+           calc(clamp(24px, 3vw, 56px) + clamp(44px, 4.4vw, 78px));
+  background: var(--ed-paper);
+}
+.home .packages__grid > .package:nth-child(odd) { background: #EDE7DB; }
+.home .packages__expert::before,
+.home .package::before { left: clamp(24px, 3vw, 56px); color: var(--ed-gold); }
+.home .package__name { font-size: clamp(1.3rem, 2.1vw, 2.3rem); color: var(--ed-ink); }
+@media (max-width: 640px) {
+  /* on a phone the index sits above the mandate instead of spending a column */
+  .home .packages__expert,
+  .home .package { padding: 26px 20px 30px; }
+  .home .packages__expert::before,
+  .home .package::before { position: static; display: block; margin-bottom: 14px; }
+}
+.home .packages .btn--ghost {
+  border-color: rgba(22, 35, 60, 0.3);
+  color: var(--ed-ink);
+  background: transparent;
+}
+.home .packages .btn--ghost:hover { border-color: var(--ed-ink); background: rgba(22, 35, 60, 0.04); }
+
+/* --- 07 PRACTICE: a stone-toned pause ------------------------------------- */
+.home .proof-cases { background: var(--ed-stone); }
+.home .result-row p { font-size: 1rem; }
+.home .result-row--out p { font-size: 1.1rem; font-weight: 600; color: var(--ed-ink); }
+
+/* --- 08 MATERIALS: an indexed research library, not a card grid ---------- */
+.home .materials-grid--three {
+  display: block;
+  counter-reset: mat;
+  border-top: 1px solid var(--border-hairline);
+}
+.home .materials-grid--three .material-card {
+  counter-increment: mat;
+  display: grid;
+  grid-template-columns: clamp(48px, 6vw, 96px) minmax(0, 1fr) auto;
+  column-gap: clamp(16px, 2vw, 32px);
+  row-gap: 8px;
+  align-items: baseline;
+  padding: clamp(26px, 3vw, 40px) 0;
+}
+.home .materials-grid--three .material-card::before {
+  content: counter(mat, decimal-leading-zero);
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.home .materials-grid--three .material-card__tag { grid-column: 2; }
+.home .materials-grid--three .material-card__title {
+  grid-column: 2;
+  max-width: 40ch;
+  font-size: clamp(1.35rem, 2.1vw, 2rem);
+  line-height: 1.15;
+  color: var(--ed-ink);
+}
+.home .materials-grid--three .material-card__desc {
+  grid-column: 2;
+  max-width: 62ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.home .materials-grid--three .material-card__arrow {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  align-self: center;
+  white-space: nowrap;
+}
+.home .materials-grid--three .material-card:hover .material-card__title { color: var(--accent); }
+@media (max-width: 640px) {
+  .home .materials-grid--three .material-card { grid-template-columns: 36px minmax(0, 1fr); }
+  .home .materials-grid--three .material-card__arrow { grid-column: 2; grid-row: auto; }
+}
+
+/* --- Hub pages: a light editorial page head ------------------------------- */
+.home .page-head {
+  background: var(--ed-ivory);
+  border-bottom: 1px solid rgba(18, 28, 46, 0.08);
+  padding-top: calc(var(--header-h) + clamp(56px, 8vh, 110px));
+}
+.home .page-head .overline { color: var(--ed-gold); }
+.home .page-head__title {
+  font-size: clamp(2.4rem, 4.6vw, 4.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-width: 17ch;
+  color: var(--ed-ink);
+}
+.home .page-head__lead { color: #3D4A5F; }
+
+/* --- Reading pages (Materials, articles, offers): light reading theme ---- */
+.fm-shell main { background: var(--ed-ivory); color: var(--text-primary); --gold-300: var(--ed-gold); }
+.fm-shell :is(.doc-hero h1, .materials-section__head h2) { color: var(--ed-ink); }
+.fm-shell .article-page .doc-hero__lead,
+.fm-shell.article-page .doc-hero__lead { color: var(--text-secondary); }
+/* components written for the dark field keep their meaning on ivory */
+.fm-shell .cta-btn-primary { background: #C9A227; border-color: #C9A227; }
+.fm-shell .cta-btn-primary:hover { background: #D8B450; }
+.fm-shell .cb-table-wrap .risk { color: #8A4B12; }
+.fm-shell .fcf-bar__supplier { color: #123A66; }
+.fm-shell .fcf-bar__company { color: #7A1F22; }
+.fm-shell .ai-status-card div { background: rgba(255, 255, 255, 0.6); }
+.fm-shell .ai-status-card strong { color: #1E6B35; }
+.fm-shell .ai-status-card :is(.is-risk, .is-stop) strong { color: #9A2B1F; }
+/* the bar is opaque paper on reading pages (the body ground stays navy for the footer),
+   and no margin escapes main to show navy above the footer */
+.fm-shell .header.is-solid { background: var(--ed-paper); }
+.fm-shell main { display: flow-root; }
+/* the owner-vs-accounting comparison and the chapter map of Materials stay
+   dark exhibits inside the light page: they keep the dark token set */
+.fm-shell :is(.finmentor-compare__panel, .fmap) {
+  --text-primary: #F3F5F8;
+  --text-secondary: #C3CBD7;
+  --text-muted: #9AA5B5;
+  --accent: #C9A227;
+  --micro-label-gold: #D8B450;
+  --accent-bright: #E7C55A;
+  --border-hairline: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+/* the practice scene is stone: its quiet labels need a darker grey */
+.home .proof-cases { --text-muted: #525D6E; --label-muted: #525D6E; }
+@keyframes edRise { from { opacity: 0.01; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.fm-shell .doc-hero .container > * { animation: edRise 700ms cubic-bezier(0.2, 0.7, 0.12, 1) both; }
+.fm-shell .doc-hero .container > :nth-child(2) { animation-delay: 80ms; }
+.fm-shell .doc-hero .container > :nth-child(3) { animation-delay: 160ms; }
+.fm-shell .doc-hero .container > :nth-child(n+4) { animation-delay: 240ms; }
+@media (prefers-reduced-motion: reduce) {
+  .fm-shell .doc-hero .container > * { animation: none; }
+  .home .hero--editorial .hero__panel { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
 
 /* ==========================================================================
