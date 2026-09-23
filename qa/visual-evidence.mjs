@@ -776,6 +776,7 @@ const MEASURE = `(() => {
       updated: !![...document.querySelectorAll('.legal__updated')].find(visible),
       eyebrow: !![...document.querySelectorAll('.legal__eyebrow')].find(visible),
       note: !![...document.querySelectorAll('.legal__note')].find(visible),
+      privacyVersion: legal ? (legal.getAttribute('data-privacy-notice-version') || '') : '',
       email: !![...document.querySelectorAll('.legal a[href^="mailto:"]')].find(visible),
       width: lr ? Math.round(lr.width) : 0
     };
@@ -1751,8 +1752,10 @@ const drawerProbes = {};
       const l = r.legal;
       if (!l) { bad.push(k + ': legal metrics missing'); continue; }
       if (l.h1 !== 1 || l.h2 < 9) { bad.push(k + ': h1=' + l.h1 + ', h2=' + l.h2); }
-      if (!l.updated || !l.eyebrow || !l.note || !l.email) {
-        bad.push(k + ': updated=' + l.updated + ', eyebrow=' + l.eyebrow + ', note=' + l.note + ', email=' + l.email);
+      const isPrivacy = /-privacy(?:-list)?@/.test(k);
+      const approvedLegalMarker = isPrivacy ? l.privacyVersion === 'pn-2026-09-11.v1' : l.note;
+      if (!l.updated || !l.eyebrow || !approvedLegalMarker || !l.email) {
+        bad.push(k + ': updated=' + l.updated + ', eyebrow=' + l.eyebrow + ', approved-marker=' + approvedLegalMarker + ', email=' + l.email);
       }
       if (l.width <= 0 || l.width > Math.min(900, r.width)) { bad.push(k + ': legal column width=' + l.width + ' at ' + r.width); }
     }

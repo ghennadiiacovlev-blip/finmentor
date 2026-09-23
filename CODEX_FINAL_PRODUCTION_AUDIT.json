@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "audit_name": "FINMENTOR final production audit",
+  "timestamp": "2026-09-23T09:38:21.6933652+03:00",
+  "branch": "redesign/visual-system-2",
+  "audit_baseline_head": "921c74702bf45b0f881bea68d9541fb510667152",
+  "audit_final_head_source": "post-commit git rev-parse HEAD",
+  "commit_message": "fix: final production audit corrections",
+  "release_assessment": "CONDITIONAL GO",
+  "fixes_applied": 13,
+  "changed_paths_pre_commit": 56,
+  "scope_review": {
+    "complete_diff_reviewed": true,
+    "subjective_redesign_introduced": false,
+    "approved_content_deleted": false,
+    "modified_indexed_html_pages_compared": 19,
+    "visible_text_identical_to_baseline": true,
+    "protected_text_blocks": 221,
+    "protected_internal_links": 62,
+    "content_migration_loss": 0,
+    "diff_check": "PASS"
+  },
+  "fable": {
+    "combined_unique_surfaces": 40,
+    "objective_failures": 0,
+    "must_fix_1": {
+      "status": "PASS",
+      "pages": [
+        "CFO Advisory Session RU/RO",
+        "Financial Health Check RU/RO",
+        "Business Control System RU/RO",
+        "Monthly CFO Support RU/RO"
+      ],
+      "viewports": ["320x844", "390x844", "430x932", "1440x900"],
+      "surfaces": 32,
+      "scroll_y": 0,
+      "lead_opacity": 1,
+      "terms_opacity": 1,
+      "terms_inside_first_viewport": true,
+      "scroll_required_for_visibility": false
+    },
+    "must_fix_2": {
+      "status": "PASS",
+      "pages": [
+        "Financial Health Check RU/RO",
+        "Treasury Waterfall RU/RO",
+        "equivalent long RU/RO cover titles"
+      ],
+      "viewports": ["320x844", "390x844", "430x932", "1440x900"],
+      "long_titles_inside_first_viewport": true,
+      "responsive_typography_fallback": true,
+      "copy_removed": false,
+      "romanian_verified_independently": true,
+      "maximum_observed_mobile_title_lines": 6
+    }
+  },
+  "verification": {
+    "editorial_production": "34/34 PASS",
+    "premium_typography": "17/17 PASS",
+    "commercial_polish": "51/51 PASS",
+    "canonical_qa": "102/102 PASS; 3659 assertions; assertion floors PASS",
+    "responsive": "720/720 surfaces; 0 defects",
+    "accessibility": "90/90 indexed pages; 4899 AX controls; 4022 mobile controls; 0 defects",
+    "visual_evidence": "31/31 PASS; deterministic A/B hashes",
+    "public_references": "8769 references; 0 broken",
+    "financial_map": "19 PASS; 0 WARN; 0 ERROR",
+    "i18n_seo": "RU 45/45; RO 45/45; 0 defects",
+    "performance": "16/16 surfaces; CLS 0.000; 0 defects; 5 quality watches",
+    "content_migration": "221 text blocks + 62 internal links; nothing lost"
+  },
+  "remaining_watch_items": [
+    "Five DPR2 image-source softness watches; no higher-resolution approved sources are available",
+    "C1 live-derived closure requires transient .uat/c1-final-closure artifacts",
+    "Twenty-two noindex legacy aliases remain directly reachable pending owner and traffic evidence",
+    "Two owner-approved Romanian homepage phrases remain flagged for native idiom review",
+    "app-premium live/build equality remains credential-gated",
+    "agent-browser is unavailable; repository Chrome/CDP supplied rendered evidence"
+  ],
+  "production_only_checks": [
+    "Production CWV/RUM and live cache/compression behavior",
+    "Live response security headers",
+    "Live GA4 consent/event delivery",
+    "Real form and endpoint delivery",
+    "Production smoke and public-journey verification",
+    "C1 closure with transient UAT artifacts",
+    "Credentialed app-premium live/build equality"
+  ],
+  "prohibited_actions_performed": {
+    "push": false,
+    "deploy": false,
+    "merge": false
+  }
+}

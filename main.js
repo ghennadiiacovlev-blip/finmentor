@@ -301,6 +301,18 @@
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
+  /* ------------------------------------------------------------- SCROLLABLE TABLE NAMES */
+  function initScrollableTables() {
+    document.querySelectorAll('.fin-table-wrap[tabindex]').forEach(function (wrap, index) {
+      if (wrap.hasAttribute('aria-label') || wrap.hasAttribute('aria-labelledby')) return;
+      var caption = wrap.querySelector('caption');
+      if (!caption) return;
+      if (!caption.id) caption.id = 'fin-table-caption-' + (index + 1);
+      wrap.setAttribute('role', 'region');
+      wrap.setAttribute('aria-labelledby', caption.id);
+    });
+  }
+
 
   /* ------------------------------------------------------------- MOBILE MENU */
   function initMenu() {
@@ -1367,6 +1379,7 @@
     guard(initCanvases);
     guard(initCursor);
     guard(initHeader);
+    guard(initScrollableTables);
     guard(initMenu);
     guard(initNavMenus);
     guard(initCounters);

@@ -9,7 +9,9 @@
 // turn those into 404s. noindex,follow removes them from search results while keeping the
 // URL alive and letting equity flow through their internal links. Fully reversible.
 //
-// The broken canonical is also removed, since a canonical to a 404 has no valid meaning.
+// Canonicals are also removed. These aliases are deliberately excluded from indexing and a
+// guessed canonical is more harmful than no canonical when the preserved filename and content
+// no longer describe the same current page.
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -36,6 +38,9 @@ const files = [];
 let changed = 0;
 for (const f of files) {
   if (KEEP.has(f)) continue;
+  // Legacy website aliases are root-level files. Do not rewrite separately gated applications,
+  // gateway diagnostics, or other subdirectory-owned HTML.
+  if (f.includes('/')) continue;
   const loc = f === 'index.html' ? '' : f;
   const roLoc = f === 'ro/index.html' ? 'ro/' : f;
   if (inMap.has(loc) || inMap.has(roLoc)) continue;
@@ -44,11 +49,15 @@ for (const f of files) {
   const crlf = raw.includes('\r\n');
   let s = crlf ? raw.split('\r\n').join('\n') : raw;
 
-  if (/name="robots"[^>]*noindex/i.test(s)) continue;
-
-  const canon = /<link[^>]+rel="canonical"[^>]+href="([^"]+)"[^>]*>\s*\n?/i.exec(s);
+  const canon = /^[ \t]*<link[^>]+rel="canonical"[^>]+href="([^"]+)"[^>]*>[ \t]*\n?/im.exec(s);
   const canonHref = canon ? /href="([^"]+)"/i.exec(canon[0])[1] : '(none)';
   if (canon) s = s.replace(canon[0], '');
+
+  // Remove every prior robots declaration first. Several aliases already carried the inserted
+  // noindex tag plus their old `index, follow`, so an early return left contradictory directives.
+  const marker = /^[ \t]*<!-- Legacy alias page: kept live for inbound links, excluded from search\. -->[ \t]*\n?/gmi;
+  const robots = /^[ \t]*<meta[^>]+name=["']robots["'][^>]*>[ \t]*\n?/gmi;
+  s = s.replace(marker, '').replace(robots, '');
 
   const anchor = /<meta charset=["'][^"']*["']\s*\/?>/i.exec(s);
   if (!anchor) { console.log(`  SKIP (no charset anchor): ${f}`); continue; }
@@ -56,8 +65,10 @@ for (const f of files) {
     + '  <meta name="robots" content="noindex,follow" />';
   s = s.slice(0, anchor.index + anchor[0].length) + tag + s.slice(anchor.index + anchor[0].length);
 
-  if (apply) writeFileSync(join(ROOT, f), crlf ? s.split('\n').join('\r\n') : s);
+  const result = crlf ? s.split('\n').join('\r\n') : s;
+  if (result === raw) continue;
+  if (apply) writeFileSync(join(ROOT, f), result);
   changed++;
-  console.log(`  ${f.padEnd(38)} noindex added; removed canonical -> ${canonHref.replace('https://www.finmentor.md', '')}`);
+  console.log(`  ${f.padEnd(38)} robots normalized; removed canonical -> ${canonHref.replace('https://www.finmentor.md', '')}`);
 }
 console.log(`\n${changed} legacy alias page(s)${apply ? ' updated' : ' (dry run)'}`);

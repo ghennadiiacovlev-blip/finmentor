@@ -454,25 +454,28 @@ h1, h2, h3 { font-weight: 600; line-height: 1.15; }
 /* Burger */
 .burger {
   display: none;
-  width: 28px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   position: relative;
   z-index: calc(var(--z-menu) + 1);
   cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 .burger span {
-  position: absolute; left: 0; right: 0; height: 2px;
+  position: absolute; left: 8px; right: 8px; height: 2px;
   background: var(--text-primary);
   border-radius: 2px;
   transition: transform var(--dur-base) var(--ease-out-expo),
               opacity var(--dur-fast) ease, top var(--dur-base) ease;
 }
-.burger span:nth-child(1) { top: 2px; }
-.burger span:nth-child(2) { top: 10px; }
-.burger span:nth-child(3) { top: 18px; }
-.burger.is-open span:nth-child(1) { top: 10px; transform: rotate(45deg); }
+.burger span:nth-child(1) { top: 14px; }
+.burger span:nth-child(2) { top: 21px; }
+.burger span:nth-child(3) { top: 28px; }
+.burger.is-open span:nth-child(1) { top: 21px; transform: rotate(45deg); }
 .burger.is-open span:nth-child(2) { opacity: 0; }
-.burger.is-open span:nth-child(3) { top: 10px; transform: rotate(-45deg); }
+.burger.is-open span:nth-child(3) { top: 21px; transform: rotate(-45deg); }
 
 /* ----------------------------------------------------------------- MOBILE MENU */
 .mobile-menu {
@@ -1410,6 +1413,7 @@ body.menu-open .mobile-menu {
 .industry-card__cta {
   display: inline-flex;
   align-items: center;
+  min-height: 24px;
   width: fit-content;
   margin-top: auto;
   color: var(--accent);
@@ -3490,6 +3494,9 @@ body.legal-page { cursor: auto; }
   min-width: 0;
 }
 .legal-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--text-secondary);
   font-size: 0.88rem;
   line-height: 1.4;

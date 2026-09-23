@@ -131,7 +131,7 @@
     body { cursor: auto; }
     .q-bar { position: sticky; top: 0; z-index: 20; background: rgba(8,17,31,0.85); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-gold); }
     .q-bar__row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
-    .q-back { font-size: 0.9rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
+    .q-back { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.9rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
     .q-back:hover { color: var(--accent); }
     .q-progress { height: 3px; background: rgba(255,255,255,0.06); }
     .q-progress__fill { height: 100%; width: 2%; background: var(--grad-gold); transition: width 0.15s linear; }
@@ -149,7 +149,7 @@
     .q-block__title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; }
     .q-block__count { margin-left: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
 
-    .q { margin-bottom: var(--sp-5); border: 0; padding: 0; }
+    .q { display: block; margin-bottom: var(--sp-5); border: 0; padding: 0; }
     .q__label { display: block; font-size: 0.92rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-2); }
     .q input[type="text"], .q input[type="email"], .q input[type="tel"], .q input[type="number"], .q select, .q textarea {
       width: 100%; padding: 12px 14px; border-radius: var(--r-md);
@@ -497,11 +497,11 @@
 -->
 
   <header class="q-bar">
-    <div class="container q-bar__row">
+    <nav class="container q-bar__row" aria-label="Навигация анкеты">
       <a class="logo" href="index.html" aria-label="finmentor — на главную"><img class="logo__mark" src="images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>
       <span class="lang" role="group" aria-label="Выбор языка"><a class="lang__btn is-active" href="questionnaire.html" data-lang-switch="ru" lang="ru" aria-current="true">RU</a><a class="lang__btn" href="ro/questionnaire.html" data-lang-switch="ro" lang="ro">RO</a></span>
       <a class="q-back" href="index.html">← На главную</a>
-    </div>
+    </nav>
     <div class="q-progress" aria-hidden="true"><div class="q-progress__fill" id="qProgress"></div></div>
   </header>
 
@@ -595,15 +595,15 @@
         <section class="q-block" id="extendedIntake" hidden>
           <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Контакт и формат коммуникации</h2><span class="q-block__count">1 / 11</span></div>
           <div class="q-grid">
-            <div class="q"><span class="q__label">Имя</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
-            <div class="q"><span class="q__label">Компания</span><input type="text" name="q_company" data-key="company" /></div>
-            <div class="q"><span class="q__label">Должность</span><input type="text" name="q_role" /></div>
-            <div class="q"><span class="q__label">E-mail</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></div>
-            <div class="q"><span class="q__label">Телефон / мессенджер</span><input type="tel" name="q_phone" /></div>
-            <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></div>
-            <div class="q"><span class="q__label">Страна</span><input type="text" name="q_country" /></div>
-            <div class="q"><span class="q__label">Город</span><input type="text" name="q_city" /></div>
-            <div class="q"><span class="q__label">Часовой пояс</span><input type="text" name="q_timezone" placeholder="напр. GMT+2" /></div>
+            <label class="q"><span class="q__label">Имя</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></label>
+            <label class="q"><span class="q__label">Компания</span><input type="text" name="q_company" data-key="company" /></label>
+            <label class="q"><span class="q__label">Должность</span><input type="text" name="q_role" /></label>
+            <label class="q"><span class="q__label">E-mail</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></label>
+            <label class="q"><span class="q__label">Телефон / мессенджер</span><input type="tel" name="q_phone" /></label>
+            <label class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></label>
+            <label class="q"><span class="q__label">Страна</span><input type="text" name="q_country" /></label>
+            <label class="q"><span class="q__label">Город</span><input type="text" name="q_city" /></label>
+            <label class="q"><span class="q__label">Часовой пояс</span><input type="text" name="q_timezone" placeholder="напр. GMT+2" /></label>
             <fieldset class="q" data-key="language"><legend class="q__label">Язык общения</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Русский" /> Русский</label><label><input type="radio" name="q_lang" value="Румынский" /> Румынский</label><label><input type="radio" name="q_lang" value="Английский" /> Английский</label><label><input type="radio" name="q_lang" value="Другое" /> Другое</label></div></fieldset>
             <fieldset class="q" data-key="preferred_meeting_format"><legend class="q__label">Формат встречи</legend><div class="q__choices"><label><input type="radio" name="q_meetfmt" value="Zoom" /> Zoom</label><label><input type="radio" name="q_meetfmt" value="Google Meet" /> Google Meet</label><label><input type="radio" name="q_meetfmt" value="Microsoft Teams" /> Microsoft Teams</label><label><input type="radio" name="q_meetfmt" value="Telegram call" /> Telegram call</label><label><input type="radio" name="q_meetfmt" value="Личная встреча в Кишинёве" /> Личная встреча в Кишинёве</label></div></fieldset>
           <p class="q-meet-note">Личная встреча возможна по предварительному согласованию после первичной квалификации запроса.</p>
@@ -616,18 +616,18 @@
           <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Бизнес-профиль</h2><span class="q-block__count">2 / 11</span></div>
           <div class="q-grid">
             <fieldset class="q" data-key="industry_category"><legend class="q__label">Сфера деятельности</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="Торговля / Retail" /> Торговля / розничная торговля</label><label><input type="radio" name="q_industry" value="HoReCa / рестораны / кафе" /> HoReCa / рестораны / кафе</label><label><input type="radio" name="q_industry" value="Недвижимость / аренда" /> Недвижимость / аренда</label><label><input type="radio" name="q_industry" value="Строительство / проекты / CAPEX" /> Строительство / проекты / капитальные вложения (CAPEX)</label><label><input type="radio" name="q_industry" value="Импорт / дистрибуция" /> Импорт / дистрибуция</label><label><input type="radio" name="q_industry" value="Производство" /> Производство</label><label><input type="radio" name="q_industry" value="Услуги / консалтинг" /> Услуги / консалтинг</label><label><input type="radio" name="q_industry" value="E-commerce" /> Интернет-торговля</label><label><input type="radio" name="q_industry" value="Группа компаний" /> Группа компаний</label><label><input type="radio" name="q_industry" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
-          <div class="q"><span class="q__label">Кратко уточните сферу деятельности, если нужно</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></div>
+          <label class="q"><span class="q__label">Кратко уточните сферу деятельности, если нужно</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></label>
             <fieldset class="q" data-key="companies_in_group"><legend class="q__label">Компаний в группе</legend><div class="q__choices"><label><input type="radio" name="q_companies" value="1 компания" /> 1 компания</label><label><input type="radio" name="q_companies" value="2–3 компании" /> 2–3 компании</label><label><input type="radio" name="q_companies" value="4–5 компаний" /> 4–5 компаний</label><label><input type="radio" name="q_companies" value="6+ компаний" /> 6+ компаний</label><label><input type="radio" name="q_companies" value="Есть связанные компании, но структура не формализована" /> Есть связанные компании, но структура не формализована</label><label><input type="radio" name="q_companies" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
             <fieldset class="q" data-key="employees_range"><legend class="q__label">Сотрудников</legend><div class="q__choices"><label><input type="radio" name="q_employees" value="до 10" /> до 10</label><label><input type="radio" name="q_employees" value="10–25" /> 10–25</label><label><input type="radio" name="q_employees" value="25–50" /> 25–50</label><label><input type="radio" name="q_employees" value="50–100" /> 50–100</label><label><input type="radio" name="q_employees" value="100+" /> 100+</label><label><input type="radio" name="q_employees" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
             <fieldset class="q" data-key="branches_objects_directions_range"><legend class="q__label">Филиалов / объектов / направлений</legend><div class="q__choices"><label><input type="radio" name="q_branches" value="1 направление / объект" /> 1 направление / объект</label><label><input type="radio" name="q_branches" value="2–3 направления / объекта" /> 2–3 направления / объекта</label><label><input type="radio" name="q_branches" value="4–5 направлений / объектов" /> 4–5 направлений / объектов</label><label><input type="radio" name="q_branches" value="6+ направлений / объектов" /> 6+ направлений / объектов</label><label><input type="radio" name="q_branches" value="Есть несколько направлений, но учёт не разделён" /> Есть несколько направлений, но учёт не разделён</label><label><input type="radio" name="q_branches" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
-          <div class="q"><span class="q__label">Какие направления / объекты нужно учитывать отдельно?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></div>
+          <label class="q"><span class="q__label">Какие направления / объекты нужно учитывать отдельно?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></label>
           </div>
           <fieldset class="q" data-key="annual_turnover"><legend class="q__label">Примерный годовой оборот</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> до 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Предпочитаю обсудить лично</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть ли сезонность бизнеса?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Да</label><label><input type="radio" name="q_seasonality" value="Нет" /> Нет</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Есть ли кредиты / лизинг / инвесторы?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Нет</label><label><input type="radio" name="q_loans" value="Кредиты" /> Кредиты</label><label><input type="radio" name="q_loans" value="Лизинг" /> Лизинг</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Инвесторы</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Несколько источников</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Есть ли проекты / капитальные вложения / стройка?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Нет</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Да, отдельные проекты</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Да, активная стройка</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Не знаю / обсудить лично</label></div></fieldset>
-          <div class="q"><span class="q__label">Основные источники дохода</span><input type="text" name="q_income" /></div>
+          <label class="q"><span class="q__label">Основные источники дохода</span><input type="text" name="q_income" /></label>
           <fieldset class="q"><legend class="q__label">Основные статьи расходов</legend><div class="q__choices q__choices--multi" data-key="main_expense_categories"><label><input type="checkbox" name="q_expenses" value="Зарплата / ФОТ" /> Зарплата / ФОТ</label><label><input type="checkbox" name="q_expenses" value="Аренда" /> Аренда</label><label><input type="checkbox" name="q_expenses" value="Закупка товара / материалов" /> Закупка товара / материалов</label><label><input type="checkbox" name="q_expenses" value="Логистика" /> Логистика</label><label><input type="checkbox" name="q_expenses" value="Маркетинг" /> Маркетинг</label><label><input type="checkbox" name="q_expenses" value="Кредиты / проценты" /> Кредиты / проценты</label><label><input type="checkbox" name="q_expenses" value="Налоги" /> Налоги</label><label><input type="checkbox" name="q_expenses" value="Подрядчики" /> Подрядчики</label><label><input type="checkbox" name="q_expenses" value="Коммунальные / эксплуатационные расходы" /> Коммунальные / эксплуатационные расходы</label><label><input type="checkbox" name="q_expenses" value="IT / CRM / ERP" /> IT / CRM / корпоративная учётная система (ERP)</label><label><input type="checkbox" name="q_expenses" value="Другое" /> Другое</label></div></fieldset>
-          <div class="q"><span class="q__label">Уточните крупные расходы, если нужно</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></div>
-          <div class="q"><span class="q__label">Кто принимает финансовые решения?</span><input type="text" name="q_decision" /></div>
+          <label class="q"><span class="q__label">Уточните крупные расходы, если нужно</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></label>
+          <label class="q"><span class="q__label">Кто принимает финансовые решения?</span><input type="text" name="q_decision" /></label>
           <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Есть ли финансовый директор / финансовая команда?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет финансового директора" /> Нет финансового директора</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает финансовую функцию" /> Бухгалтер совмещает финансовую функцию</label><label><input type="radio" name="q_finteam" value="Есть финансист / экономист" /> Есть финансист / экономист</label><label><input type="radio" name="q_finteam" value="Есть финансовый директор" /> Есть финансовый директор</label><label><input type="radio" name="q_finteam" value="Есть внешнее CFO-сопровождение" /> Есть внешнее финансовое сопровождение</label><label><input type="radio" name="q_finteam" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
         </section>
 
@@ -656,7 +656,7 @@
             <label><input type="checkbox" name="q_pain" value="Нужно внедрить BI / автоматизацию" /> Нужны управленческая аналитика / автоматизация</label>
             <label><input type="checkbox" name="q_pain" value="Другое" /> Другое</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
+          <label class="q" style="margin-top:var(--sp-5)"><span class="q__label">Опишите главную проблему своими словами</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></label>
           <fieldset class="q" data-key="urgency"><legend class="q__label">Срочность запроса</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Обычная</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Повышенная</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Высокая — есть кассовый разрыв</label><label><input type="radio" name="q_urgency" value="Кризис" /> Кризис</label></div></fieldset>
           <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Что вы хотите от FINMENTOR в первую очередь?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовый рентген бизнеса" /> Финансовый рентген бизнеса</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Построить систему контроля</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Регулярное финансовое сопровождение</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / панель собственника</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Контроль платежей / казначейство</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Оборотный капитал</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Финансирование (банк / инвестор)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Пока не знаю — нужна консультация</label></div></fieldset>
         </fieldset>
@@ -685,7 +685,7 @@
         <!-- Блок 5 — Данные и системы -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">5</span><h2 class="q-block__title">Данные и системы</h2><span class="q-block__count">5 / 11</span></div>
-          <div class="q"><span class="q__label">Где ведётся бухгалтерский учёт?</span><input type="text" name="q_accounting" /></div>
+          <label class="q"><span class="q__label">Где ведётся бухгалтерский учёт?</span><input type="text" name="q_accounting" /></label>
           <fieldset class="q"><legend class="q__label">Что используется (отметьте, что есть):</legend><div class="q__choices q__choices--multi">
             <label><input type="checkbox" name="q_systems" value="1C" /> 1C</label>
             <label><input type="checkbox" name="q_systems" value="Excel" /> Excel</label>
@@ -697,7 +697,7 @@
             <label><input type="checkbox" name="q_systems" value="Make / n8n / Zapier / automation" /> Make / n8n / Zapier</label>
           </div></fieldset>
           <fieldset class="q" data-key="reporting_prepared_by"><legend class="q__label">Кто готовит отчёты?</legend><div class="q__choices"><label><input type="radio" name="q_reporter" value="Бухгалтер" /> Бухгалтер</label><label><input type="radio" name="q_reporter" value="Финансист" /> Финансист</label><label><input type="radio" name="q_reporter" value="Финансовый директор" /> Финансовый директор</label><label><input type="radio" name="q_reporter" value="Собственник сам" /> Собственник сам</label><label><input type="radio" name="q_reporter" value="Внешний консультант" /> Внешний консультант</label><label><input type="radio" name="q_reporter" value="Команда готовит в Excel / Google Sheets" /> Команда готовит в Excel / Google Sheets</label><label><input type="radio" name="q_reporter" value="Отчёты не готовятся" /> Отчёты не готовятся</label><label><input type="radio" name="q_reporter" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
-          <div class="q"><span class="q__label">Кто реально собирает цифры и как?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></div>
+          <label class="q"><span class="q__label">Кто реально собирает цифры и как?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></label>
           <fieldset class="q" data-key="owner_reporting_frequency"><legend class="q__label">Как часто собственник получает цифры?</legend><div class="q__choices"><label><input type="radio" name="q_frequency" value="Ежедневно" /> Ежедневно</label><label><input type="radio" name="q_frequency" value="Еженедельно" /> Еженедельно</label><label><input type="radio" name="q_frequency" value="Раз в месяц" /> Раз в месяц</label><label><input type="radio" name="q_frequency" value="Раз в квартал" /> Раз в квартал</label><label><input type="radio" name="q_frequency" value="Только по запросу" /> Только по запросу</label><label><input type="radio" name="q_frequency" value="Только когда возникает проблема" /> Только когда возникает проблема</label><label><input type="radio" name="q_frequency" value="Не получает регулярные цифры" /> Не получает регулярные цифры</label><label><input type="radio" name="q_frequency" value="Другое / свой ответ" /> Другое / свой ответ</label></div></fieldset>
           <fieldset class="q" data-key="report_preparation_time"><legend class="q__label">Сколько времени занимает подготовка отчётов?</legend><div class="q__choices"><label><input type="radio" name="q_prep_time" value="До 1 дня" /> До 1 дня</label><label><input type="radio" name="q_prep_time" value="2–3 дня" /> 2–3 дня</label><label><input type="radio" name="q_prep_time" value="4–7 дней" /> 4–7 дней</label><label><input type="radio" name="q_prep_time" value="Более недели" /> Более недели</label><label><input type="radio" name="q_prep_time" value="Каждый раз вручную и по-разному" /> Каждый раз вручную и по-разному</label><label><input type="radio" name="q_prep_time" value="Отчёты не готовятся" /> Отчёты не готовятся</label><label><input type="radio" name="q_prep_time" value="Не знаю / нужно обсудить" /> Не знаю / нужно обсудить</label></div></fieldset>
           <fieldset class="q" data-key="data_reliability"><legend class="q__label">Насколько данные достоверны?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="Низко" /> Достоверность низкая</label><label><input type="radio" name="q_reliability" value="Средне" /> Достоверность средняя</label><label><input type="radio" name="q_reliability" value="Хорошо" /> Достоверность высокая</label><label><input type="radio" name="q_reliability" value="Не знаю" /> Не знаю</label></div></fieldset>
@@ -748,14 +748,14 @@
             <label><input type="checkbox" name="q_goal" value="Навести порядок в финансах" /> Навести порядок в финансах</label>
             <label><input type="checkbox" name="q_goal" value="Заменить хаос системой" /> Заменить хаос системой</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Какой результат вы хотите получить через 3–6 месяцев?</span><textarea name="q_goal_text"></textarea></div>
+          <label class="q" style="margin-top:var(--sp-5)"><span class="q__label">Какой результат вы хотите получить через 3–6 месяцев?</span><textarea name="q_goal_text"></textarea></label>
         </fieldset>
 
         <!-- Блок 8 — Срочность и последствия -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">8</span><h2 class="q-block__title">Срочность и последствия</h2><span class="q-block__count">8 / 11</span></div>
           <fieldset class="q"><legend class="q__label">Насколько срочно нужно решение?</legend><div class="q__choices"><label><input type="radio" name="q_urgency" value="Сейчас" /> Сейчас</label><label><input type="radio" name="q_urgency" value="1 месяц" /> 1 месяц</label><label><input type="radio" name="q_urgency" value="3 месяца" /> 3 месяца</label><label><input type="radio" name="q_urgency" value="Пока изучаю" /> Пока изучаю</label></div></fieldset>
-          <div class="q"><span class="q__label">Что будет, если ничего не менять 3 месяца?</span><textarea name="q_ifnothing"></textarea></div>
+          <label class="q"><span class="q__label">Что будет, если ничего не менять 3 месяца?</span><textarea name="q_ifnothing"></textarea></label>
           <fieldset class="q"><legend class="q__label">Есть сейчас критическая проблема с деньгами?</legend><div class="q__choices"><label><input type="radio" name="q_critical" value="Да" /> Да</label><label><input type="radio" name="q_critical" value="Нет" /> Нет</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть просрочки по платежам?</legend><div class="q__choices"><label><input type="radio" name="q_overdue" value="Да" /> Да</label><label><input type="radio" name="q_overdue" value="Нет" /> Нет</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Есть давление со стороны банков / поставщиков / инвесторов?</legend><div class="q__choices"><label><input type="radio" name="q_pressure" value="Да" /> Да</label><label><input type="radio" name="q_pressure" value="Нет" /> Нет</label></div></fieldset>
@@ -825,8 +825,8 @@
             <label><input type="checkbox" name="q_workinterest" value="BI / автоматизация" /> Управленческая аналитика / автоматизация</label>
             <label><input type="checkbox" name="q_workinterest" value="Пока не знаю" /> Пока не знаю</label>
           </div></fieldset>
-          <div class="q"><span class="q__label">Когда удобно провести встречу?</span><input type="text" name="q_meettime" placeholder="дни / время / часовой пояс" /></div>
-          <div class="q"><span class="q__label">Комментарий</span><textarea name="q_comment"></textarea></div>
+          <label class="q"><span class="q__label">Когда удобно провести встречу?</span><input type="text" name="q_meettime" placeholder="дни / время / часовой пояс" /></label>
+          <label class="q"><span class="q__label">Комментарий</span><textarea name="q_comment"></textarea></label>
         </section>
 
         <!-- Блок 11 — Согласие и конфиденциальность -->

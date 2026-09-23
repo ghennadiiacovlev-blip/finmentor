@@ -1522,6 +1522,54 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
 }
 .rd-page .rd-cover--photo { min-height: min(calc(100svh - var(--fx-head, 76px)), 1000px); }
 
+/* Fable final audit: a cover is the first viewport, so none of its copy may wait for
+   an IntersectionObserver scroll event. Keep long offer/article titles and the offer
+   facts strip inside that opening viewport without changing or removing their copy. */
+.m-js .rd-page .rd-cover [data-fx] {
+  opacity: 1;
+  transform: none;
+}
+.rd-page .rd-cover:not(.rd-cover--short) h1 {
+  max-width: 24ch;
+  font-size: clamp(2.1rem, 1.1rem + 2.8vw, 4.25rem);
+}
+.rd-page .rd-cover--offer .fx-stage__content {
+  padding-top: calc(var(--fx-head) + clamp(20px, 3vh, 36px));
+  padding-bottom: calc(var(--fx-r) + clamp(24px, 4vh, 48px));
+}
+.rd-page .rd-cover--offer .crumbs { margin-bottom: clamp(14px, 2vh, 24px); }
+.rd-page .rd-cover--offer .doc-hero__eyebrow { margin-bottom: 12px; }
+.rd-page .rd-cover--offer h1 {
+  max-width: 28ch;
+  font-size: clamp(2rem, 1.1rem + 2.5vw, 4rem);
+}
+.rd-page .rd-cover--offer .doc-hero__lead {
+  max-width: 72ch;
+  margin-top: 18px;
+  font-size: clamp(1rem, 0.96rem + 0.25vw, 1.2rem);
+  line-height: 1.45;
+}
+.rd-page .rd-cover--offer .doc-hero__context { margin-top: 18px; }
+@media (max-width: 600px) {
+  .rd-page .rd-cover:not(.rd-cover--short) h1,
+  .rd-page .rd-cover--offer h1 {
+    max-width: none;
+    font-size: clamp(1.65rem, 1.25rem + 2vw, 1.95rem);
+  }
+  .rd-page .rd-cover--offer .fx-stage__content {
+    padding-top: calc(var(--fx-head) + 16px);
+    padding-bottom: calc(var(--fx-r) + 24px);
+  }
+  .rd-page .rd-cover--offer .crumbs { margin-bottom: 12px; }
+  .rd-page .rd-cover--offer .doc-hero__eyebrow { margin-bottom: 10px; }
+  .rd-page .rd-cover--offer .doc-hero__lead {
+    margin-top: 14px;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+  .rd-page .rd-cover--offer .doc-hero__context { margin-top: 14px; }
+}
+
 /* ==========================================================================
    26. HOME — ENGAGEMENT FORMATS (.fmt) · four advisory mandates
    BACKGROUND  the ivory homepage band
@@ -1570,7 +1618,7 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
 .home .packages[data-formats] .fmt-panel__more:hover { gap: 10px; }
 .home .packages[data-formats] .fmt-panel--1 .fmt-panel__more { color: var(--fx-gold-l); }
 .home .packages[data-formats] .fmt-panel__details { width: 100%; margin-top: 18px; }
-.home .packages[data-formats] .fmt-panel__details > summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-size: var(--t-meta); font-weight: 600; color: inherit; opacity: 0.72; }
+.home .packages[data-formats] .fmt-panel__details > summary { display: inline-flex; align-items: center; min-height: 24px; gap: 8px; cursor: pointer; list-style: none; font-size: var(--t-meta); font-weight: 600; color: inherit; opacity: 0.72; }
 .home .packages[data-formats] .fmt-panel__details > summary::-webkit-details-marker { display: none; }
 .home .packages[data-formats] .fmt-panel__details > summary::after { content: "+"; font-weight: 400; }
 .home .packages[data-formats] .fmt-panel__details[open] > summary::after { content: "−"; }

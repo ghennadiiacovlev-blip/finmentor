@@ -172,7 +172,7 @@
     body { cursor: auto; }
     .q-bar { position: sticky; top: 0; z-index: 20; background: rgba(8,17,31,0.85); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-gold); }
     .q-bar__row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
-    .q-back { font-size: 0.9rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
+    .q-back { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.9rem; color: var(--text-secondary); transition: color var(--dur-base) ease; }
     .q-back:hover { color: var(--accent); }
     .q-progress { height: 3px; background: rgba(255,255,255,0.06); }
     .q-progress__fill { height: 100%; width: 2%; background: var(--grad-gold); transition: width 0.15s linear; }
@@ -190,7 +190,7 @@
     .q-block__title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; }
     .q-block__count { margin-left: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
 
-    .q { margin-bottom: var(--sp-5); border: 0; padding: 0; }
+    .q { display: block; margin-bottom: var(--sp-5); border: 0; padding: 0; }
     .q__label { display: block; font-size: 0.92rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--sp-2); }
     .q input[type="text"], .q input[type="email"], .q input[type="tel"], .q input[type="number"], .q select, .q textarea {
       width: 100%; padding: 12px 14px; border-radius: var(--r-md);
@@ -538,11 +538,11 @@
 -->
 
   <header class="q-bar">
-    <div class="container q-bar__row">
+    <nav class="container q-bar__row" aria-label="Navigarea chestionarului">
       <a class="logo" href="index.html" aria-label="finmentor — spre pagina principală"><img class="logo__mark" src="../images/brand/finmentor-wordmark-on-dark-h108.png" width="534" height="108" alt="" decoding="async"></a>
       <span class="lang" role="group" aria-label="Selectarea limbii"><a class="lang__btn" href="../questionnaire.html" data-lang-switch="ru" lang="ru">RU</a><a class="lang__btn is-active" href="questionnaire.html" data-lang-switch="ro" lang="ro" aria-current="true">RO</a></span>
       <a class="q-back" href="index.html">← Pagina principală</a>
-    </div>
+    </nav>
     <div class="q-progress" aria-hidden="true"><div class="q-progress__fill" id="qProgress"></div></div>
   </header>
 
@@ -636,15 +636,15 @@
         <section class="q-block" id="extendedIntake" hidden>
           <div class="q-block__head"><span class="q-block__num">1</span><h2 class="q-block__title">Contact și format de comunicare</h2><span class="q-block__count">1 / 11</span></div>
           <div class="q-grid">
-            <div class="q"><span class="q__label">Nume</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></div>
-            <div class="q"><span class="q__label">Companie</span><input type="text" name="q_company" data-key="company" /></div>
-            <div class="q"><span class="q__label">Funcție</span><input type="text" name="q_role" /></div>
-            <div class="q"><span class="q__label">E-mail</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></div>
-            <div class="q"><span class="q__label">Telefon / messenger</span><input type="tel" name="q_phone" /></div>
-            <div class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></div>
-            <div class="q"><span class="q__label">Țară</span><input type="text" name="q_country" /></div>
-            <div class="q"><span class="q__label">Oraș</span><input type="text" name="q_city" /></div>
-            <div class="q"><span class="q__label">Fus orar</span><input type="text" name="q_timezone" placeholder="ex.: GMT+2" /></div>
+            <label class="q"><span class="q__label">Nume</span><input type="text" name="q_name" data-key="name" autocomplete="name" /></label>
+            <label class="q"><span class="q__label">Companie</span><input type="text" name="q_company" data-key="company" /></label>
+            <label class="q"><span class="q__label">Funcție</span><input type="text" name="q_role" /></label>
+            <label class="q"><span class="q__label">E-mail</span><input type="email" name="q_email" data-key="email" autocomplete="email" /></label>
+            <label class="q"><span class="q__label">Telefon / messenger</span><input type="tel" name="q_phone" /></label>
+            <label class="q"><span class="q__label">Telegram</span><input type="text" name="q_telegram" data-key="telegram" /></label>
+            <label class="q"><span class="q__label">Țară</span><input type="text" name="q_country" /></label>
+            <label class="q"><span class="q__label">Oraș</span><input type="text" name="q_city" /></label>
+            <label class="q"><span class="q__label">Fus orar</span><input type="text" name="q_timezone" placeholder="ex.: GMT+2" /></label>
             <fieldset class="q" data-key="language"><legend class="q__label">Limba de comunicare</legend><div class="q__choices"><label><input type="radio" name="q_lang" value="Русский" /> Rusă</label><label><input type="radio" name="q_lang" value="Румынский" /> Română</label><label><input type="radio" name="q_lang" value="Английский" /> Engleză</label><label><input type="radio" name="q_lang" value="Другое" /> Altceva</label></div></fieldset>
             <fieldset class="q" data-key="preferred_meeting_format"><legend class="q__label">Formatul întâlnirii</legend><div class="q__choices"><label><input type="radio" name="q_meetfmt" value="Zoom" /> Zoom</label><label><input type="radio" name="q_meetfmt" value="Google Meet" /> Google Meet</label><label><input type="radio" name="q_meetfmt" value="Microsoft Teams" /> Microsoft Teams</label><label><input type="radio" name="q_meetfmt" value="Telegram call" /> Telegram call</label><label><input type="radio" name="q_meetfmt" value="Личная встреча в Кишинёве" /> Întâlnire personală la Chișinău</label></div></fieldset>
           <p class="q-meet-note">Întâlnirea personală este posibilă prin acord prealabil, după calificarea inițială a solicitării.</p>
@@ -657,18 +657,18 @@
           <div class="q-block__head"><span class="q-block__num">2</span><h2 class="q-block__title">Profilul de business</h2><span class="q-block__count">2 / 11</span></div>
           <div class="q-grid">
             <fieldset class="q" data-key="industry_category"><legend class="q__label">Domeniul de activitate</legend><div class="q__cards"><label><input type="radio" name="q_industry" value="Торговля / Retail" /> Comerț / comerț cu amănuntul</label><label><input type="radio" name="q_industry" value="HoReCa / рестораны / кафе" /> HoReCa / restaurante / cafenele</label><label><input type="radio" name="q_industry" value="Недвижимость / аренда" /> Imobiliare / închiriere</label><label><input type="radio" name="q_industry" value="Строительство / проекты / CAPEX" /> Construcții / proiecte / investiții de capital (CAPEX)</label><label><input type="radio" name="q_industry" value="Импорт / дистрибуция" /> Import / distribuție</label><label><input type="radio" name="q_industry" value="Производство" /> Producție</label><label><input type="radio" name="q_industry" value="Услуги / консалтинг" /> Servicii / consultanță</label><label><input type="radio" name="q_industry" value="E-commerce" /> Comerț online</label><label><input type="radio" name="q_industry" value="Группа компаний" /> Grup de companii</label><label><input type="radio" name="q_industry" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
-          <div class="q"><span class="q__label">Precizați pe scurt domeniul, dacă este nevoie</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></div>
+          <label class="q"><span class="q__label">Precizați pe scurt domeniul, dacă este nevoie</span><input type="text" name="q_industry_comment" data-key="industry_comment" /></label>
             <fieldset class="q" data-key="companies_in_group"><legend class="q__label">Companii în grup</legend><div class="q__choices"><label><input type="radio" name="q_companies" value="1 компания" /> 1 companie</label><label><input type="radio" name="q_companies" value="2–3 компании" /> 2–3 companii</label><label><input type="radio" name="q_companies" value="4–5 компаний" /> 4–5 companii</label><label><input type="radio" name="q_companies" value="6+ компаний" /> 6+ companii</label><label><input type="radio" name="q_companies" value="Есть связанные компании, но структура не формализована" /> Există companii afiliate, dar structura nu este formalizată</label><label><input type="radio" name="q_companies" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
             <fieldset class="q" data-key="employees_range"><legend class="q__label">Angajați</legend><div class="q__choices"><label><input type="radio" name="q_employees" value="до 10" /> până la 10</label><label><input type="radio" name="q_employees" value="10–25" /> 10–25</label><label><input type="radio" name="q_employees" value="25–50" /> 25–50</label><label><input type="radio" name="q_employees" value="50–100" /> 50–100</label><label><input type="radio" name="q_employees" value="100+" /> 100+</label><label><input type="radio" name="q_employees" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
             <fieldset class="q" data-key="branches_objects_directions_range"><legend class="q__label">Filiale / locații / direcții</legend><div class="q__choices"><label><input type="radio" name="q_branches" value="1 направление / объект" /> 1 direcție / locație</label><label><input type="radio" name="q_branches" value="2–3 направления / объекта" /> 2–3 direcții / locații</label><label><input type="radio" name="q_branches" value="4–5 направлений / объектов" /> 4–5 direcții / locații</label><label><input type="radio" name="q_branches" value="6+ направлений / объектов" /> 6+ direcții / locații</label><label><input type="radio" name="q_branches" value="Есть несколько направлений, но учёт не разделён" /> Există mai multe direcții, dar evidența nu este separată</label><label><input type="radio" name="q_branches" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
-          <div class="q"><span class="q__label">Ce direcții / locații trebuie evidențiate separat?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></div>
+          <label class="q"><span class="q__label">Ce direcții / locații trebuie evidențiate separat?</span><input type="text" name="q_branches_comment" data-key="branches_objects_directions_comment" /></label>
           </div>
           <fieldset class="q" data-key="annual_turnover"><legend class="q__label">Cifra de afaceri anuală aproximativă</legend><div class="q__cards"><label><input type="radio" name="q_turnover" value="до 500k €" /> până la 500k €</label><label><input type="radio" name="q_turnover" value="500k–1M €" /> 500k–1M €</label><label><input type="radio" name="q_turnover" value="1–5M €" /> 1–5M €</label><label><input type="radio" name="q_turnover" value="5–10M €" /> 5–10M €</label><label><input type="radio" name="q_turnover" value="10M+ €" /> 10M+ €</label><label><input type="radio" name="q_turnover" value="Предпочитаю обсудить лично" /> Prefer să discut personal</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există sezonalitate în business?</legend><div class="q__choices"><label><input type="radio" name="q_seasonality" value="Да" /> Da</label><label><input type="radio" name="q_seasonality" value="Нет" /> Nu</label></div></fieldset><fieldset class="q" data-key="has_loans_or_investors"><legend class="q__label">Există credite / leasing / investitori?</legend><div class="q__choices"><label><input type="radio" name="q_loans" value="Нет" /> Nu</label><label><input type="radio" name="q_loans" value="Кредиты" /> Credite</label><label><input type="radio" name="q_loans" value="Лизинг" /> Leasing</label><label><input type="radio" name="q_loans" value="Инвесторы" /> Investitori</label><label><input type="radio" name="q_loans" value="Несколько источников" /> Mai multe surse</label><label><input type="radio" name="q_loans" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset><fieldset class="q" data-key="has_projects_or_capex"><legend class="q__label">Există proiecte / investiții de capital / construcții?</legend><div class="q__choices"><label><input type="radio" name="q_capex" value="Нет" /> Nu</label><label><input type="radio" name="q_capex" value="Да, отдельные проекты" /> Da, proiecte separate</label><label><input type="radio" name="q_capex" value="Да, активная стройка" /> Da, construcții active</label><label><input type="radio" name="q_capex" value="Не знаю / обсудить лично" /> Nu știu / de discutat personal</label></div></fieldset>
-          <div class="q"><span class="q__label">Sursele principale de venit</span><input type="text" name="q_income" /></div>
+          <label class="q"><span class="q__label">Sursele principale de venit</span><input type="text" name="q_income" /></label>
           <fieldset class="q"><legend class="q__label">Principalele articole de cheltuieli</legend><div class="q__choices q__choices--multi" data-key="main_expense_categories"><label><input type="checkbox" name="q_expenses" value="Зарплата / ФОТ" /> Salarii / fond de salarizare</label><label><input type="checkbox" name="q_expenses" value="Аренда" /> Chirie</label><label><input type="checkbox" name="q_expenses" value="Закупка товара / материалов" /> Achiziția de marfă / materiale</label><label><input type="checkbox" name="q_expenses" value="Логистика" /> Logistică</label><label><input type="checkbox" name="q_expenses" value="Маркетинг" /> Marketing</label><label><input type="checkbox" name="q_expenses" value="Кредиты / проценты" /> Credite / dobânzi</label><label><input type="checkbox" name="q_expenses" value="Налоги" /> Impozite</label><label><input type="checkbox" name="q_expenses" value="Подрядчики" /> Antreprenori</label><label><input type="checkbox" name="q_expenses" value="Коммунальные / эксплуатационные расходы" /> Utilități / cheltuieli de exploatare</label><label><input type="checkbox" name="q_expenses" value="IT / CRM / ERP" /> IT / CRM / sistem integrat de gestiune (ERP)</label><label><input type="checkbox" name="q_expenses" value="Другое" /> Altceva</label></div></fieldset>
-          <div class="q"><span class="q__label">Precizați cheltuielile mari, dacă este nevoie</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></div>
-          <div class="q"><span class="q__label">Cine ia deciziile financiare?</span><input type="text" name="q_decision" /></div>
+          <label class="q"><span class="q__label">Precizați cheltuielile mari, dacă este nevoie</span><input type="text" name="q_expenses_comment" data-key="main_expense_comment" /></label>
+          <label class="q"><span class="q__label">Cine ia deciziile financiare?</span><input type="text" name="q_decision" /></label>
           <fieldset class="q" data-key="financial_director_or_team"><legend class="q__label">Există director financiar / echipă financiară?</legend><div class="q__choices"><label><input type="radio" name="q_finteam" value="Нет финансового директора" /> Nu există director financiar</label><label><input type="radio" name="q_finteam" value="Бухгалтер совмещает финансовую функцию" /> Contabilul cumulează funcția financiară</label><label><input type="radio" name="q_finteam" value="Есть финансист / экономист" /> Există finanțist / economist</label><label><input type="radio" name="q_finteam" value="Есть финансовый директор" /> Există director financiar</label><label><input type="radio" name="q_finteam" value="Есть внешнее CFO-сопровождение" /> Există suport financiar extern</label><label><input type="radio" name="q_finteam" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
         </section>
 
@@ -697,7 +697,7 @@
             <label><input type="checkbox" name="q_pain" value="Нужно внедрить BI / автоматизацию" /> Este nevoie de analiză managerială / automatizare</label>
             <label><input type="checkbox" name="q_pain" value="Другое" /> Altceva</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Descrieți problema principală cu propriile cuvinte</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></div>
+          <label class="q" style="margin-top:var(--sp-5)"><span class="q__label">Descrieți problema principală cu propriile cuvinte</span><textarea name="q_pain_text" data-key="primary_comment"></textarea></label>
           <fieldset class="q" data-key="urgency"><legend class="q__label">Urgența solicitării</legend><div class="q__cards"><label><input type="radio" name="q_urgency" value="Обычная" /> Obișnuită</label><label><input type="radio" name="q_urgency" value="Повышенная" /> Ridicată</label><label><input type="radio" name="q_urgency" value="Высокая — есть кассовый разрыв" /> Înaltă — există gol de numerar</label><label><input type="radio" name="q_urgency" value="Кризис" /> Criză</label></div></fieldset>
           <fieldset class="q" data-key="desired_first_step"><legend class="q__label">Ce doriți de la FINMENTOR în primul rând?</legend><div class="q__cards"><label><input type="radio" name="q_request" value="Финансовый рентген бизнеса" /> Test financiar FINMENTOR</label><label><input type="radio" name="q_request" value="Построить систему контроля" /> Construirea sistemului de control</label><label><input type="radio" name="q_request" value="Регулярное CFO-сопровождение" /> Suport financiar regulat</label><label><input type="radio" name="q_request" value="Power BI / dashboard" /> Power BI / tablou de bord</label><label><input type="radio" name="q_request" value="Контроль платежей / казначейство" /> Controlul plăților / trezorerie</label><label><input type="radio" name="q_request" value="Оборотный капитал" /> Capital de lucru</label><label><input type="radio" name="q_request" value="Финансирование (банк / инвестор)" /> Finanțare (bancă / investitor)</label><label><input type="radio" name="q_request" value="Пока не знаю — нужна консультация" /> Încă nu știu — am nevoie de consultație</label></div></fieldset>
         </fieldset>
@@ -726,7 +726,7 @@
         <!-- Блок 5 — Данные и системы -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">5</span><h2 class="q-block__title">Date și sisteme</h2><span class="q-block__count">5 / 11</span></div>
-          <div class="q"><span class="q__label">Unde se ține contabilitatea?</span><input type="text" name="q_accounting" /></div>
+          <label class="q"><span class="q__label">Unde se ține contabilitatea?</span><input type="text" name="q_accounting" /></label>
           <fieldset class="q"><legend class="q__label">Ce se folosește (bifați ce există):</legend><div class="q__choices q__choices--multi">
             <label><input type="checkbox" name="q_systems" value="1C" /> 1C</label>
             <label><input type="checkbox" name="q_systems" value="Excel" /> Excel</label>
@@ -738,7 +738,7 @@
             <label><input type="checkbox" name="q_systems" value="Make / n8n / Zapier / automation" /> Make / n8n / Zapier</label>
           </div></fieldset>
           <fieldset class="q" data-key="reporting_prepared_by"><legend class="q__label">Cine pregătește rapoartele?</legend><div class="q__choices"><label><input type="radio" name="q_reporter" value="Бухгалтер" /> Contabilul</label><label><input type="radio" name="q_reporter" value="Финансист" /> Finanțistul</label><label><input type="radio" name="q_reporter" value="Финансовый директор" /> Directorul financiar</label><label><input type="radio" name="q_reporter" value="Собственник сам" /> Proprietarul singur</label><label><input type="radio" name="q_reporter" value="Внешний консультант" /> Consultant extern</label><label><input type="radio" name="q_reporter" value="Команда готовит в Excel / Google Sheets" /> Echipa pregătește în Excel / Google Sheets</label><label><input type="radio" name="q_reporter" value="Отчёты не готовятся" /> Rapoartele nu se pregătesc</label><label><input type="radio" name="q_reporter" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
-          <div class="q"><span class="q__label">Cine adună efectiv cifrele și cum?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></div>
+          <label class="q"><span class="q__label">Cine adună efectiv cifrele și cum?</span><input type="text" name="q_reporter_comment" data-key="reporting_prepared_by_comment" /></label>
           <fieldset class="q" data-key="owner_reporting_frequency"><legend class="q__label">Cât de des primește proprietarul cifrele?</legend><div class="q__choices"><label><input type="radio" name="q_frequency" value="Ежедневно" /> Zilnic</label><label><input type="radio" name="q_frequency" value="Еженедельно" /> Săptămânal</label><label><input type="radio" name="q_frequency" value="Раз в месяц" /> O dată pe lună</label><label><input type="radio" name="q_frequency" value="Раз в квартал" /> O dată pe trimestru</label><label><input type="radio" name="q_frequency" value="Только по запросу" /> Doar la cerere</label><label><input type="radio" name="q_frequency" value="Только когда возникает проблема" /> Doar când apare o problemă</label><label><input type="radio" name="q_frequency" value="Не получает регулярные цифры" /> Nu primește cifre regulate</label><label><input type="radio" name="q_frequency" value="Другое / свой ответ" /> Altceva / răspuns propriu</label></div></fieldset>
           <fieldset class="q" data-key="report_preparation_time"><legend class="q__label">Cât timp durează pregătirea rapoartelor?</legend><div class="q__choices"><label><input type="radio" name="q_prep_time" value="До 1 дня" /> Până la 1 zi</label><label><input type="radio" name="q_prep_time" value="2–3 дня" /> 2–3 zile</label><label><input type="radio" name="q_prep_time" value="4–7 дней" /> 4–7 zile</label><label><input type="radio" name="q_prep_time" value="Более недели" /> Mai mult de o săptămână</label><label><input type="radio" name="q_prep_time" value="Каждый раз вручную и по-разному" /> De fiecare dată manual și diferit</label><label><input type="radio" name="q_prep_time" value="Отчёты не готовятся" /> Rapoartele nu se pregătesc</label><label><input type="radio" name="q_prep_time" value="Не знаю / нужно обсудить" /> Nu știu / de discutat</label></div></fieldset>
           <fieldset class="q" data-key="data_reliability"><legend class="q__label">Cât de fiabile sunt datele?</legend><div class="q__choices"><label><input type="radio" name="q_reliability" value="Низко" /> Fiabilitate scăzută</label><label><input type="radio" name="q_reliability" value="Средне" /> Fiabilitate medie</label><label><input type="radio" name="q_reliability" value="Хорошо" /> Fiabilitate ridicată</label><label><input type="radio" name="q_reliability" value="Не знаю" /> Nu știu</label></div></fieldset>
@@ -789,14 +789,14 @@
             <label><input type="checkbox" name="q_goal" value="Навести порядок в финансах" /> Să pun ordine în finanțe</label>
             <label><input type="checkbox" name="q_goal" value="Заменить хаос системой" /> Să înlocuiesc haosul cu un sistem</label>
           </div>
-          <div class="q" style="margin-top:var(--sp-5)"><span class="q__label">Ce rezultat doriți să obțineți în 3–6 luni?</span><textarea name="q_goal_text"></textarea></div>
+          <label class="q" style="margin-top:var(--sp-5)"><span class="q__label">Ce rezultat doriți să obțineți în 3–6 luni?</span><textarea name="q_goal_text"></textarea></label>
         </fieldset>
 
         <!-- Блок 8 — Срочность и последствия -->
         <section class="q-block">
           <div class="q-block__head"><span class="q-block__num">8</span><h2 class="q-block__title">Urgență și consecințe</h2><span class="q-block__count">8 / 11</span></div>
           <fieldset class="q"><legend class="q__label">Cât de urgent este necesară soluția?</legend><div class="q__choices"><label><input type="radio" name="q_urgency" value="Сейчас" /> Acum</label><label><input type="radio" name="q_urgency" value="1 месяц" /> 1 lună</label><label><input type="radio" name="q_urgency" value="3 месяца" /> 3 luni</label><label><input type="radio" name="q_urgency" value="Пока изучаю" /> Deocamdată studiez</label></div></fieldset>
-          <div class="q"><span class="q__label">Ce se întâmplă dacă nu se schimbă nimic 3 luni?</span><textarea name="q_ifnothing"></textarea></div>
+          <label class="q"><span class="q__label">Ce se întâmplă dacă nu se schimbă nimic 3 luni?</span><textarea name="q_ifnothing"></textarea></label>
           <fieldset class="q"><legend class="q__label">Există acum o problemă critică cu banii?</legend><div class="q__choices"><label><input type="radio" name="q_critical" value="Да" /> Da</label><label><input type="radio" name="q_critical" value="Нет" /> Nu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există restanțe la plăți?</legend><div class="q__choices"><label><input type="radio" name="q_overdue" value="Да" /> Da</label><label><input type="radio" name="q_overdue" value="Нет" /> Nu</label></div></fieldset>
           <fieldset class="q"><legend class="q__label">Există presiune din partea băncilor / furnizorilor / investitorilor?</legend><div class="q__choices"><label><input type="radio" name="q_pressure" value="Да" /> Da</label><label><input type="radio" name="q_pressure" value="Нет" /> Nu</label></div></fieldset>
@@ -866,8 +866,8 @@
             <label><input type="checkbox" name="q_workinterest" value="BI / автоматизация" /> Analiză managerială / automatizare</label>
             <label><input type="checkbox" name="q_workinterest" value="Пока не знаю" /> Încă nu știu</label>
           </div></fieldset>
-          <div class="q"><span class="q__label">Când vă este comod să facem întâlnirea?</span><input type="text" name="q_meettime" placeholder="zile / ore / fus orar" /></div>
-          <div class="q"><span class="q__label">Comentariu</span><textarea name="q_comment"></textarea></div>
+          <label class="q"><span class="q__label">Când vă este comod să facem întâlnirea?</span><input type="text" name="q_meettime" placeholder="zile / ore / fus orar" /></label>
+          <label class="q"><span class="q__label">Comentariu</span><textarea name="q_comment"></textarea></label>
         </section>
 
         <!-- Блок 11 — Согласие и конфиденциальность -->

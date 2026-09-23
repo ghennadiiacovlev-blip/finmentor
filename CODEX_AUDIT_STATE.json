@@ -1,0 +1,74 @@
+{
+  "baseline_head": "921c74702bf45b0f881bea68d9541fb510667152",
+  "current_head_before_final_commit": "921c74702bf45b0f881bea68d9541fb510667152",
+  "audit_final_head_source": "post-commit git rev-parse HEAD",
+  "branch": "redesign/visual-system-2",
+  "current_phase": "FINALIZED - ready for the single authorized local commit",
+  "completed_phases": [
+    "CHECKPOINT 01 - repository state and full site inventory",
+    "CHECKPOINT 02 - existing QA and test integrity",
+    "CHECKPOINT 03 - navigation, links, functional behavior and forms",
+    "CHECKPOINT 04 - responsive and RU/RO audit",
+    "CHECKPOINT 05 - accessibility and motion/interactions",
+    "CHECKPOINT 06 - SEO, sitemap, robots, legacy and privacy",
+    "CHECKPOINT 07 - CSS, JavaScript, performance, assets and security hygiene",
+    "CHECKPOINT 08 - safe fixes and full regression",
+    "CHECKPOINT 09 - Fable confirmation and final release record"
+  ],
+  "last_completed_checkpoint": "CHECKPOINT 09",
+  "blockers": [],
+  "high": [],
+  "medium": [],
+  "low": [],
+  "resolved": [
+    "QA-LOW-01: visual evidence validates the approved versioned privacy release instead of the removed draft note",
+    "FUNC-LOW-02: all eight legacy language-switch destinations resolve or retired EN controls were removed",
+    "SEO-LOW-03: all 22 legacy aliases carry exactly one noindex,follow directive",
+    "A11Y-MED-04: all 42 RU/RO Financial X-Ray text controls have programmatic wrapping labels without changing protected control signatures",
+    "A11Y-LOW-05: all 54 focusable table scrollers receive named region semantics from their captions",
+    "A11Y-LOW-06: questionnaire and legal utility headers expose navigation landmarks",
+    "A11Y-MED-07: shared navigation and distinct action/disclosure targets meet the audited target-size floor",
+    "I18N-LOW-08: Romanian localization loads before shared navigation initialization on all eight affected pages",
+    "SEO-LOW-09: legacy aliases no longer make misleading canonical claims",
+    "PERF-LOW-10: all six capital-decision image instances declare the approved 1586x992 intrinsic dimensions",
+    "SEO-LOW-11: the standalone gateway canary declares noindex,nofollow",
+    "FABLE-MUST-FIX-01: RU/RO offer-cover lead and commercial terms are visible on first load without scrolling",
+    "FABLE-MUST-FIX-02: long RU/RO cover titles use a responsive fallback and remain inside the first viewport without copy removal"
+  ],
+  "fixes_applied_count": 13,
+  "scope_review": {
+    "subjective_redesign": false,
+    "approved_content_deleted": false,
+    "visible_text_identical_on_modified_indexed_html": true,
+    "content_migration": "221 text blocks + 62 internal links; nothing lost"
+  },
+  "final_results": {
+    "fable": "40/40 unique surfaces; 0 objective failures",
+    "canonical": "102/102 gates; 3659 assertions; assertion floors PASS",
+    "responsive": "720/720 surfaces; 0 defects",
+    "accessibility": "90 indexed pages; 4899 AX controls; 4022 mobile controls; 0 defects",
+    "visual": "31/31 PASS",
+    "public_references": "8769 references; 0 broken",
+    "performance": "16/16 surfaces; CLS 0.000; 0 defects; 5 watches"
+  },
+  "watch": [
+    "Five DPR2 image-source softness watches remain because no higher-resolution approved source exists",
+    "Standalone C1 live-derived closure requires transient .uat/c1-final-closure artifacts",
+    "Twenty-two noindex legacy aliases remain reachable pending owner and traffic evidence",
+    "Native Romanian review remains advisable for two owner-approved homepage phrases",
+    "app-premium live/build equality remains credential-gated",
+    "agent-browser is unavailable; repository Chrome/CDP provided rendered verification"
+  ],
+  "production_only_checks": [
+    "Production CWV/RUM and live cache/compression behavior",
+    "Live response security headers",
+    "GA4 consent and event delivery",
+    "Real form and endpoint delivery",
+    "Production smoke and public-journey verification",
+    "C1 closure with transient UAT artifacts",
+    "Credentialed app-premium live/build equality"
+  ],
+  "release_assessment": "CONDITIONAL GO",
+  "commit_message": "fix: final production audit corrections",
+  "push_deploy_merge_authorized": false
+}
