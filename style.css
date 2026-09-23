@@ -8347,13 +8347,16 @@ body.fm-shell { padding-top: var(--header-h); }
 .hero--editorial .hero__panel .hero__kicker { color: #6F5312; }
 .hero--editorial .hero__panel .hero__title {
   max-width: 19ch;
-  font-size: clamp(2.4rem, 3.6vw, 3.5rem);
+  font-size: clamp(2.5rem, 4vw, 3.75rem);
+  font-weight: 300;
   line-height: 1.02;
-  letter-spacing: -0.032em;
+  letter-spacing: -0.035em;
   color: var(--ed-ink);
   -webkit-text-fill-color: var(--ed-ink);
   background: none;
 }
+/* «Финансовая система» light · «собственника» bold — the site's headline rule, applied to the hero */
+.hero--editorial .hero__panel .hero__title strong { font-weight: 800; letter-spacing: -0.03em; }
 .hero--editorial .hero__panel .hero__statement,
 .hero--editorial .hero__panel .hero__statement span { color: #16233C; }
 .hero--editorial .hero__panel .hero__subtitle { color: #3D4A5F; }
@@ -8370,24 +8373,37 @@ body.fm-shell { padding-top: var(--header-h); }
 }
 .m-js .home .hero--editorial:not(.is-visible) .hero__panel { opacity: 0.01; transform: translateY(14px); }
 @media (max-width: 860px) {
-  /* mobile is composed, not stacked: a photographic band, then the paper panel over its edge */
-  .hero--editorial { display: block; min-height: 0; min-height: auto; padding-top: 0; background: var(--ed-ivory); }
-  .hero--editorial .hero__media { position: relative; inset: auto; height: 56svh; min-height: 340px; }
+  /* mobile is composed, not stacked: a photographic band, then the paper panel over its edge.
+     The band is sized so the primary action lands inside the first viewport at 390×844
+     and 320×672 while the photograph still owns the top third of the screen. */
+  .hero--editorial { --hero-band: clamp(300px, 46svh, 400px); display: block; min-height: 0; min-height: auto; padding-top: 0; background: var(--ed-ivory); }
+  .hero--editorial .hero__media { position: relative; inset: auto; height: var(--hero-band); min-height: 0; }
   .hero--editorial .hero__scrim {
     bottom: auto;
-    height: 56svh;
-    min-height: 340px;
+    height: var(--hero-band);
+    min-height: 0;
     background: linear-gradient(to bottom, rgba(8, 17, 31, 0.6) 0%, rgba(8, 17, 31, 0) 32%);
   }
-  .hero--editorial .hero__content { padding: 0 12px 28px; margin-top: -64px; }
+  .hero--editorial .hero__content { padding: 0 12px 24px; margin-top: -88px; }
   .hero--editorial .hero__panel {
     max-width: none;
-    padding: 28px 22px 26px;
+    padding: 24px 20px 22px;
     background: rgba(247, 244, 238, 0.97);
     box-shadow: 0 18px 40px -26px rgba(4, 10, 20, 0.45);
   }
-  .hero--editorial .hero__panel .hero__title { font-size: clamp(2.1rem, 9vw, 2.7rem); }
+  .hero--editorial .hero__panel .hero__kicker { margin-bottom: 14px; }
+  .hero--editorial .hero__panel .hero__title { font-size: clamp(2.1rem, 9vw, 2.7rem); line-height: 1.04; }
+  .hero--editorial .hero__panel .hero__statement { margin-top: 16px; }
+  .hero--editorial .hero__panel .hero__subtitle { margin-top: 14px; }
+  .hero--editorial .hero__panel .hero__actions { margin-top: 22px; gap: 10px; }
+  .hero--editorial .hero__panel .hero__trust-line { margin-top: 18px; }
   .hero--editorial .hero__scroll { display: none; }
+  /* The floating help dot stays out of the hero composition on phones: it appears once the
+     first scene after the hero has entered (reduced motion marks it entered on load). */
+  body.home:not(:has(#chaos .is-visible)) .fa-launch { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+@media (max-width: 360px) {
+  .hero--editorial { --hero-band: clamp(270px, 42svh, 320px); }
 }
 
 /* --- 02 PROBLEM: a light editorial scene; the verdict is the event ------- */
