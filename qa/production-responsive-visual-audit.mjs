@@ -25,17 +25,20 @@ const CHROME = [
     ? process.env.LOCALAPPDATA.replace(/\\/g, '/') + '/Google/Chrome/Application/chrome.exe'
     : '',
 ].find((path) => path && existsSync(path));
-const ALL_WIDTHS = [320, 375, 390, 393, 430, 768, 1024, 1440, 1728];
+const ALL_WIDTHS = [320, 375, 390, 393, 430, 768, 1024, 1280, 1440, 1728];
 const WIDTHS = (arg('--widths') || ALL_WIDTHS.join(',')).split(',').map(Number);
 if (WIDTHS.some((width) => !ALL_WIDTHS.includes(width))) throw new Error(`unsupported widths: ${WIDTHS.join(',')}`);
 const HEIGHT_FOR = (width) => width <= 430 ? 844 : width <= 768 ? 1024 : 1000;
 const REQUESTED_ORIGIN = arg('--origin') || 'https://www.finmentor.md';
 const PHASE = arg('--phase') || 'before';
 const ONLY = arg('--only');
+const EXACT_ROUTES = (arg('--routes') || '').split(',').map((route) => route.trim()).filter(Boolean);
 const LIMIT = Number(arg('--limit') || 0);
 const MOTION = arg('--motion') || 'reduced';
 const MOTION_SETTLE_MS = MOTION === 'reduced' ? 0 : 1100;
 const STATEMENT_WORDS_ONLY = process.argv.includes('--statement-words');
+const TABLES_ONLY = process.argv.includes('--tables-only');
+const CONTRACTS_ONLY = process.argv.includes('--contracts-only');
 const OUT = join(ROOT, 'qa-artifacts', 'production-responsive-correction', PHASE);
 const SHOT_OUT = join(OUT, 'screenshots');
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +60,7 @@ function publicRoutes() {
   const routes = [...new Set([...indexed, '/thank-you.html', '/ro/thank-you.html', '/404.html'])];
   if (routes.length !== 93) throw new Error(`public route inventory drifted: ${routes.length} != 93`);
   let selected = ONLY ? routes.filter((route) => route.includes(ONLY)) : routes;
+  if (EXACT_ROUTES.length) selected = selected.filter((route) => EXACT_ROUTES.includes(route));
   if (STATEMENT_WORDS_ONLY) {
     selected = selected.filter((route) => {
       const relative = route === '/' || route.endsWith('/')
@@ -64,6 +68,15 @@ function publicRoutes() {
         : route.replace(/^\/+/, '');
       const file = join(ROOT, relative);
       return existsSync(file) && /(?:statement-screen__keyword|fx-word__term)/.test(readFileSync(file, 'utf8'));
+    });
+  }
+  if (TABLES_ONLY) {
+    selected = selected.filter((route) => {
+      const relative = route === '/' || route.endsWith('/')
+        ? `${route.replace(/^\/+/, '')}index.html`
+        : route.replace(/^\/+/, '');
+      const file = join(ROOT, relative);
+      return existsSync(file) && /<table\b/i.test(readFileSync(file, 'utf8'));
     });
   }
   return LIMIT ? selected.slice(0, LIMIT) : selected;
@@ -214,14 +227,45 @@ const SCAN = `(() => {
     if (typeof element.checkVisibility === 'function'
       && !element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
     const style = styleOf(element);
-    return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.02
-      && rect.width > 0.5 && rect.height > 0.5;
+    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.02
+      || rect.width <= 0.5 || rect.height <= 0.5) return false;
+    for (let node = element; node && node !== document.body; node = node.parentElement) {
+      const nodeStyle = styleOf(node);
+      const nodeRect = rectOf(node);
+      const visuallyClipped = nodeStyle.clip !== 'auto' || (nodeStyle.clipPath && nodeStyle.clipPath !== 'none');
+      if (visuallyClipped && nodeRect.width <= 2 && nodeRect.height <= 2) return false;
+    }
+    return true;
   };
   const selector = (element) => {
     if (!element) return '';
     if (element.id) return '#' + CSS.escape(element.id);
     const classes = [...element.classList].slice(0, 3).map((name) => '.' + CSS.escape(name)).join('');
     return element.localName + classes;
+  };
+  const textRect = (element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect();
+  };
+  const box = (rect) => ({
+    left: Math.round(rect.left * 10) / 10,
+    top: Math.round(rect.top * 10) / 10,
+    right: Math.round(rect.right * 10) / 10,
+    bottom: Math.round(rect.bottom * 10) / 10,
+    width: Math.round(rect.width * 10) / 10,
+    height: Math.round(rect.height * 10) / 10,
+  });
+  const directionalSeparation = (first, second) => {
+    const overlapX = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+    const overlapY = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+    if (overlapX > 0.5 && overlapY > 0.5) return { axis: 'overlap', gap: -Math.min(overlapX, overlapY) };
+    if (overlapY > 0.5 && second.left >= first.right - 0.5) return { axis: 'horizontal', gap: second.left - first.right };
+    if (second.top >= first.bottom - 0.5) return { axis: 'vertical', gap: second.top - first.bottom };
+    return { axis: 'diagonal', gap: Math.hypot(
+      Math.max(0, second.left - first.right, first.left - second.right),
+      Math.max(0, second.top - first.bottom, first.top - second.bottom),
+    ) };
   };
   const positionedChrome = (element) => {
     for (let node = element; node && node !== document.body; node = node.parentElement) {
@@ -375,6 +419,53 @@ const SCAN = `(() => {
     : []);
   issues.push(...hiddenReveal);
 
+  // These two editorial compositions place independent text objects in adjacent tracks. Generic
+  // paint/overflow checks miss a collision when both nodes belong to one semantic section, so the
+  // contract uses the actual post-font text ranges and requires a measurable gap.
+  const statement = document.querySelector('.pg-owner #profit-question');
+  if (statement) {
+    const keyword = statement.querySelector('.statement-screen__keyword');
+    const copy = statement.querySelector('.statement-screen__copy');
+    const rightColumn = statement.querySelector('.capital-chain');
+    if (keyword && copy && rightColumn) {
+      const keywordRect = textRect(keyword);
+      const copyRect = copy.getBoundingClientRect();
+      const rightRect = textRect(rightColumn);
+      const separation = directionalSeparation(keywordRect, rightRect);
+      if (keywordRect.left < copyRect.left - 1 || keywordRect.right > copyRect.right + 1) {
+        issues.push({ type: 'statement-keyword-outside-column', selector: selector(keyword),
+          text: keyword.textContent.trim(), fontSize: styleOf(keyword).fontSize,
+          keyword: box(keywordRect), column: box(copyRect) });
+      }
+      if (separation.axis === 'overlap') {
+        issues.push({ type: 'statement-column-overlap', selector: selector(keyword),
+          text: keyword.textContent.trim(), keyword: box(keywordRect), rightColumn: box(rightRect) });
+      } else if (separation.gap < 24) {
+        issues.push({ type: 'statement-column-gap-too-small', selector: selector(keyword),
+          text: keyword.textContent.trim(), axis: separation.axis,
+          gap: Math.round(separation.gap * 10) / 10, keyword: box(keywordRect), rightColumn: box(rightRect) });
+      }
+    }
+  }
+
+  for (const [index, row] of [...document.querySelectorAll('.pg-capital .capital-states > div')].entries()) {
+    const label = row.querySelector('dt');
+    const description = row.querySelector('dd');
+    if (!label || !description) continue;
+    const labelRect = textRect(label);
+    const descriptionRect = textRect(description);
+    const separation = directionalSeparation(labelRect, descriptionRect);
+    if (separation.axis === 'overlap') {
+      issues.push({ type: 'capital-label-description-overlap', row: index + 1,
+        label: label.textContent.trim(), labelBox: box(labelRect), descriptionBox: box(descriptionRect) });
+    } else if (separation.gap < 6) {
+      issues.push({ type: 'capital-label-description-gap-too-small', row: index + 1,
+        label: label.textContent.trim(), axis: separation.axis,
+        gap: Math.round(separation.gap * 10) / 10,
+        labelBox: box(labelRect), descriptionBox: box(descriptionRect) });
+    }
+  }
+
   // Regression for the defect that document-overflow checks missed: a complete word can fit the
   // viewport and still be cut by its own clip-path/mask or by a clipping ancestor. Statement words
   // are measured even when aria-hidden because their visible lettering is deliberately decorative.
@@ -439,7 +530,38 @@ const PAGE_BASELINE = `(() => {
 
 const CONTRACTS = `(() => {
   const round = (n) => Math.round(n * 10) / 10;
+  const textBox = (element) => {
+    if (!element) return null;
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const rect = range.getBoundingClientRect();
+    return { left: round(rect.left), top: round(rect.top + scrollY), right: round(rect.right),
+      bottom: round(rect.bottom + scrollY), width: round(rect.width), height: round(rect.height) };
+  };
   const contracts = {};
+  const statement = document.querySelector('.pg-owner #profit-question');
+  if (statement) {
+    const keyword = statement.querySelector('.statement-screen__keyword');
+    const copy = statement.querySelector('.statement-screen__copy');
+    const right = statement.querySelector('.capital-chain');
+    const copyRect = copy?.getBoundingClientRect();
+    contracts.ownerStatement = {
+      keyword: textBox(keyword),
+      rightColumn: textBox(right),
+      copyColumn: copyRect ? { left: round(copyRect.left), top: round(copyRect.top + scrollY),
+        right: round(copyRect.right), bottom: round(copyRect.bottom + scrollY),
+        width: round(copyRect.width), height: round(copyRect.height) } : null,
+      fontSize: keyword ? getComputedStyle(keyword).fontSize : null,
+    };
+  }
+  const stateRows = [...document.querySelectorAll('.pg-capital .capital-states > div')];
+  if (stateRows.length) {
+    contracts.capitalStates = stateRows.map((row) => ({
+      label: row.querySelector('dt')?.textContent.trim() || '',
+      labelBox: textBox(row.querySelector('dt')),
+      descriptionBox: textBox(row.querySelector('dd')),
+    }));
+  }
   const tiles = [...document.querySelectorAll('.ab-mosaic__tile')];
   if (tiles.length) {
     const data = tiles.map((tile) => {
@@ -487,6 +609,120 @@ const CONTRACTS = `(() => {
     });
     contracts.relatedGrid = { count: cards.length, cards };
   }
+  const tableWrapSelector = '.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll';
+  const financialTables = [...document.querySelectorAll('.rd-page .rd-sheet table')];
+  if (financialTables.length) {
+    const tableIssues = [];
+    let smallCount = 0;
+    let complexCount = 0;
+    const summaries = financialTables.map((table, tableIndex) => {
+      const headers = [...table.querySelectorAll('thead tr:first-child > th')];
+      const rows = [...table.querySelectorAll('tbody > tr')];
+      const columnCount = Math.max(headers.length, ...rows.map((row) => row.children.length));
+      const small = columnCount > 0 && columnCount <= 3;
+      small ? smallCount++ : complexCount++;
+      const wrap = table.closest(tableWrapSelector);
+      const tableRect = table.getBoundingClientRect();
+      const wrapRect = wrap?.getBoundingClientRect();
+      const pseudo = wrap ? getComputedStyle(wrap, '::after') : null;
+      const pseudoOverlay = Boolean(pseudo && pseudo.content !== 'none' && Number(pseudo.opacity) > 0.02
+        && parseFloat(pseudo.width) > 1 && pseudo.backgroundImage !== 'none');
+      const geometryViolations = [];
+      let priorRowBottom = -Infinity;
+
+      rows.forEach((row, rowIndex) => {
+        const cells = [...row.children];
+        let priorCellBottom = -Infinity;
+        cells.forEach((cell, cellIndex) => {
+          const range = document.createRange();
+          range.selectNodeContents(cell);
+          const cellRect = cell.getBoundingClientRect();
+          const rangeRects = [...range.getClientRects()].filter((rect) => rect.width > 0.25 && rect.height > 0.25);
+          const outsideCell = rangeRects.some((rect) => rect.left < cellRect.left - 1 || rect.right > cellRect.right + 1
+            || rect.top < cellRect.top - 1 || rect.bottom > cellRect.bottom + 1);
+          if (outsideCell) geometryViolations.push({ row: rowIndex + 1, cell: cellIndex + 1, type: 'text-outside-cell' });
+          if (small && innerWidth <= 760) {
+            const expected = headers[cellIndex]?.textContent.trim() || '';
+            if (!expected || cell.getAttribute('data-table-label') !== expected) {
+              geometryViolations.push({ row: rowIndex + 1, cell: cellIndex + 1, type: 'mobile-label-mismatch' });
+            }
+            if (cellRect.top < priorCellBottom - 1) {
+              geometryViolations.push({ row: rowIndex + 1, cell: cellIndex + 1, type: 'mobile-field-order' });
+            }
+            priorCellBottom = cellRect.bottom;
+          }
+        });
+        const rowRect = row.getBoundingClientRect();
+        if (small && innerWidth <= 760 && rowRect.top < priorRowBottom - 1) {
+          geometryViolations.push({ row: rowIndex + 1, type: 'mobile-row-order' });
+        }
+        priorRowBottom = rowRect.bottom;
+      });
+
+      const scrollOverflow = wrap ? table.scrollWidth - wrap.clientWidth : 0;
+      const accessibleScroll = !wrap || scrollOverflow <= 1 || (wrap.tabIndex >= 0 && wrap.getAttribute('role') === 'region'
+        && Boolean(wrap.getAttribute('aria-label') || wrap.getAttribute('aria-labelledby')));
+      const mobileCard = table.classList.contains('financial-table--cards')
+        && Boolean(wrap?.classList.contains('financial-table-wrap--cards'));
+      const mobileContained = !wrapRect || (tableRect.left >= wrapRect.left - 1 && tableRect.right <= wrapRect.right + 1);
+      const desktopNative = innerWidth <= 760 || (getComputedStyle(table).display === 'table'
+        && (!rows[0] || getComputedStyle(rows[0]).display === 'table-row')
+        && (!rows[0]?.children[0] || getComputedStyle(rows[0].children[0]).display === 'table-cell'));
+
+      if (pseudoOverlay) tableIssues.push({ type: 'financial-table-data-overlay', table: tableIndex + 1 });
+      if (!accessibleScroll) tableIssues.push({ type: 'financial-table-scroll-not-accessible', table: tableIndex + 1 });
+      if (!desktopNative) tableIssues.push({ type: 'financial-table-desktop-layout-changed', table: tableIndex + 1 });
+      if (small && innerWidth <= 760 && (!mobileCard || scrollOverflow > 1 || !mobileContained)) {
+        tableIssues.push({ type: 'financial-table-mobile-card-broken', table: tableIndex + 1,
+          mobileCard, scrollOverflow: round(scrollOverflow), mobileContained });
+      }
+      geometryViolations.forEach((violation) => tableIssues.push({
+        ...violation, type: 'financial-table-rendered-text-geometry', violationType: violation.type,
+        table: tableIndex + 1,
+      }));
+
+      return {
+        table: tableIndex + 1,
+        caption: table.querySelector('caption')?.textContent.trim() || '',
+        columnCount,
+        rowCount: rows.length,
+        small,
+        mobileCard,
+        scrollOverflow: round(scrollOverflow),
+        pseudoOverlay,
+        accessibleScroll,
+        geometryViolationCount: geometryViolations.length,
+      };
+    });
+    contracts.financialTables = { count: financialTables.length, smallCount, complexCount, issues: tableIssues, summaries };
+  }
+  const photoHero = document.querySelector('.rd-cover--photo');
+  if (photoHero) {
+    const sheet = photoHero.nextElementSibling?.matches('.rd-sheet') ? photoHero.nextElementSibling : null;
+    const content = photoHero.querySelector('.fx-stage__content');
+    const scrim = photoHero.querySelector('.fx-stage__scrim');
+    const firstScene = sheet?.querySelector('section.rd-scene');
+    const heroRect = photoHero.getBoundingClientRect();
+    const sheetRect = sheet?.getBoundingClientRect();
+    const contentRect = content?.getBoundingClientRect();
+    const text = [...(content?.querySelectorAll('.crumbs,.doc-hero__eyebrow,h1,.doc-hero__lead,.doc-hero__context') || [])]
+      .map((element) => textBox(element)).filter(Boolean);
+    const sheetStyle = sheet ? getComputedStyle(sheet) : null;
+    contracts.photoHero = {
+      hero: { left: round(heroRect.left), top: round(heroRect.top + scrollY), right: round(heroRect.right),
+        bottom: round(heroRect.bottom + scrollY), width: round(heroRect.width), height: round(heroRect.height) },
+      sheet: sheetRect ? { left: round(sheetRect.left), top: round(sheetRect.top + scrollY), right: round(sheetRect.right),
+        bottom: round(sheetRect.bottom + scrollY), width: round(sheetRect.width), height: round(sheetRect.height) } : null,
+      content: contentRect ? { left: round(contentRect.left), top: round(contentRect.top + scrollY), right: round(contentRect.right),
+        bottom: round(contentRect.bottom + scrollY), width: round(contentRect.width), height: round(contentRect.height) } : null,
+      text,
+      sheetOverlap: sheetRect ? round(heroRect.bottom - sheetRect.top) : null,
+      sheetRadius: sheetStyle ? parseFloat(sheetStyle.borderTopLeftRadius) : null,
+      firstSceneMarginTop: firstScene ? parseFloat(getComputedStyle(firstScene).marginTop) : null,
+      scrimFloor: scrim ? parseFloat(getComputedStyle(scrim).getPropertyValue('--rd-copy-scrim-floor')) : null,
+      scrimBackground: scrim ? getComputedStyle(scrim).backgroundImage : null,
+    };
+  }
   return contracts;
 })()`;
 
@@ -500,10 +736,32 @@ const REPRESENTATIVE = new Set([
   '/thank-you.html', '/ro/thank-you.html', '/404.html',
 ]);
 
+const SECTION_CAPTURES = new Map([
+  ['/owner.html', [{ selector: '#profit-question', label: 'statement-section', padding: 0, reveal: true }]],
+  ['/ro/owner.html', [{ selector: '#profit-question', label: 'statement-section', padding: 0, reveal: true }]],
+  ['/capital-management.html', [{ selector: '[aria-labelledby="capital-state-title"]', label: 'capital-states-section', padding: 20, reveal: true }]],
+  ['/ro/capital-management.html', [{ selector: '[aria-labelledby="capital-state-title"]', label: 'capital-states-section', padding: 20, reveal: true }]],
+  ['/capex-hurdle-rate.html', [
+    { selector: '.fin-table-wrap', index: 0, label: 'financial-table-1', padding: 12 },
+    { selector: '.fin-table-wrap', index: 1, label: 'financial-table-2', padding: 12 },
+  ]],
+  ['/ro/capex-hurdle-rate.html', [
+    { selector: '.fin-table-wrap', index: 0, label: 'financial-table-1', padding: 12 },
+    { selector: '.fin-table-wrap', index: 1, label: 'financial-table-2', padding: 12 },
+  ]],
+  ['/real-estate-control-system.html', [
+    { selector: '.rd-cover--photo', label: 'hero-transition', padding: 0, extendBottom: 260 },
+  ]],
+  ['/ro/real-estate-control-system.html', [
+    { selector: '.rd-cover--photo', label: 'hero-transition', padding: 0, extendBottom: 260 },
+  ]],
+]);
+
 function dedupeIssues(issues) {
   const seen = new Set();
   return issues.filter((issue) => {
-    const key = [issue.route, issue.width, issue.type, issue.selector, issue.text, issue.blocker, issue.with].join('|');
+    const key = [issue.route, issue.width, issue.type, issue.selector, issue.text, issue.blocker, issue.with,
+      issue.table, issue.row, issue.cell, issue.violationType].join('|');
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -572,12 +830,14 @@ async function main() {
         // used to duplicate most positions and multiply style/layout work without increasing
         // visual coverage.
         const step = Math.max(420, Math.floor(height * 0.82));
-        for (let y = 0; y <= maxY; y += step) points.add(Math.min(maxY, y));
-        for (const y of [...points].sort((a, b) => a - b)) {
-          await evaluate(`scrollTo(0, ${Math.round(y)}); new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))`);
-          if (MOTION_SETTLE_MS) await sleep(MOTION_SETTLE_MS);
-          const scan = await evaluate(SCAN);
-          routeIssues.push(...scan.issues.map((issue) => ({ ...issue, y: scan.y })));
+        if (!CONTRACTS_ONLY) {
+          for (let y = 0; y <= maxY; y += step) points.add(Math.min(maxY, y));
+          for (const y of [...points].sort((a, b) => a - b)) {
+            await evaluate(`scrollTo(0, ${Math.round(y)}); new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))`);
+            if (MOTION_SETTLE_MS) await sleep(MOTION_SETTLE_MS);
+            const scan = await evaluate(SCAN);
+            routeIssues.push(...scan.issues.map((issue) => ({ ...issue, y: scan.y })));
+          }
         }
         await evaluate('scrollTo(0,0)');
         const contracts = await evaluate(CONTRACTS);
@@ -592,10 +852,63 @@ async function main() {
         if (contracts.contactStrip && !contracts.contactStrip.insideViewport) {
           routeIssues.push({ type: 'contact-actions-outside-viewport', contract: contracts.contactStrip });
         }
+        if (contracts.financialTables?.issues.length) {
+          routeIssues.push(...contracts.financialTables.issues);
+        }
+        if (contracts.photoHero) {
+          const hero = contracts.photoHero;
+          const textOutside = hero.text.some((rect) => rect.left < hero.hero.left - 1 || rect.right > hero.hero.right + 1
+            || rect.top < hero.hero.top - 1 || rect.bottom > hero.hero.bottom + 1);
+          const textHitsSheet = hero.sheet && hero.text.some((rect) => rect.bottom > hero.sheet.top - 12);
+          if (!hero.sheet || hero.sheetOverlap < 20 || hero.sheetOverlap > 70 || hero.sheetRadius < 20) {
+            routeIssues.push({ type: 'photo-hero-sheet-geometry', contract: hero });
+          }
+          if (hero.firstSceneMarginTop > 1) {
+            routeIssues.push({ type: 'photo-hero-double-transition-gap', contract: hero });
+          }
+          if (textOutside || textHitsSheet) {
+            routeIssues.push({ type: 'photo-hero-text-outside-stage', textOutside, textHitsSheet, contract: hero });
+          }
+          if (!hero.scrimBackground || hero.scrimBackground === 'none' || !(hero.scrimFloor >= 0.65)) {
+            routeIssues.push({ type: 'photo-hero-insufficient-copy-scrim', contract: hero });
+          }
+        }
 
         const unique = dedupeIssues(routeIssues.map((issue) => ({ route, width, ...issue })));
         allIssues.push(...unique);
         results.push({ route, url, width, height, baseline, contracts, issues: unique });
+
+        const sectionCaptures = SECTION_CAPTURES.get(route) || [];
+        if (sectionCaptures.length && (width === 320 || width === 390 || width === 1440)) {
+          for (const sectionCapture of sectionCaptures) {
+            if (sectionCapture.reveal) {
+              await evaluate(`(() => {
+                const elements = document.querySelectorAll(${JSON.stringify(sectionCapture.selector)});
+                elements[${sectionCapture.index || 0}]?.scrollIntoView({ block: 'center' });
+                return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+              })()`);
+              await sleep(Math.max(700, MOTION_SETTLE_MS));
+            }
+            const clip = await evaluate(`(() => {
+              const elements = document.querySelectorAll(${JSON.stringify(sectionCapture.selector)});
+              const element = elements[${sectionCapture.index || 0}];
+              if (!element) return null;
+              const rect = element.getBoundingClientRect();
+              const padding = ${sectionCapture.padding};
+              const extendBottom = ${sectionCapture.extendBottom || 0};
+              const x = Math.max(0, rect.left + scrollX - padding);
+              const y = Math.max(0, rect.top + scrollY - padding);
+              return { x, y, width: Math.min(document.documentElement.scrollWidth - x, rect.width + padding * 2),
+                height: Math.min(document.documentElement.scrollHeight - y, rect.height + padding * 2 + extendBottom), scale: 1 };
+            })()`);
+            if (clip) {
+              const capture = await cdp.send('Page.captureScreenshot', {
+                format: 'png', captureBeyondViewport: true, fromSurface: true, clip,
+              });
+              writeFileSync(join(SHOT_OUT, `${slug(route)}-${width}-${sectionCapture.label}.png`), Buffer.from(capture.data, 'base64'));
+            }
+          }
+        }
 
         if (REPRESENTATIVE.has(route) && (width === 390 || width === 1440)) {
           const shotPoints = [
@@ -643,6 +956,8 @@ async function main() {
     widths: WIDTHS,
     routeCount: routes.length,
     surfaceCount: results.length,
+    financialTableCount: results.filter((result) => result.width === WIDTHS[0])
+      .reduce((sum, result) => sum + (result.contracts.financialTables?.count || 0), 0),
     scrollInspectionCount: results.reduce((sum, result) => sum + new Set(result.issues.map((issue) => issue.y).filter(Number.isFinite)).size, 0),
     issueCount: uniqueIssues.length,
     issues: uniqueIssues,
@@ -658,8 +973,10 @@ async function main() {
   ].join('\n') + '\n');
   console.log(`AUDIT_ROUTES=${report.routeCount}`);
   console.log(`AUDIT_SURFACES=${report.surfaceCount}`);
+  if (TABLES_ONLY) console.log(`AUDIT_FINANCIAL_TABLES=${report.financialTableCount}`);
   console.log(`AUDIT_ISSUES=${report.issueCount}`);
   console.log(`AUDIT_REPORT=${join(OUT, 'chromium-scroll-audit.json')}`);
+  if (uniqueIssues.length) process.exitCode = 1;
 }
 
 main().catch((error) => {

@@ -165,3 +165,38 @@ Production-дефекта в Lead Transport не обнаружено. `newReque
 - Deployment ID: `6611153984`; deployment status ID: `18721554309`, state `success`.
 - Remote `redesign/visual-system-2` совпадал с production commit; divergence перед release: `0/0`.
 - Rollback выполняется обычной повторной публикацией сохранённого commit из истории. Force push, удаление deployment и изменение DNS не требуются.
+
+---
+
+## 5. Final production layout correction — financial tables and Real Estate Hero
+
+Дата release gate: `2026-09-23`
+
+Source branch: `redesign/visual-system-2`, path `/`
+
+### Scope and root causes
+
+- RU/RO financial tables: причиной дефекта были одновременно фиксированная минимальная ширина таблицы и постоянно видимый 36 px тёмный `::after`-градиент обёртки. На мобильном градиент рисовался поверх данных, а горизонтальное смещение отделяло названия показателей от значений и выводов. Sticky-колонки причиной не являлись.
+- Все малые таблицы с двумя или тремя колонками теперь на ширинах до 760 px показываются как последовательные записи с видимыми нативными заголовками полей. Семантический `thead` сохранён для assistive technology. Сложные таблицы сохраняют горизонтальную прокрутку, но получают видимый scrollbar, keyboard focus и именованную `region` только когда прокрутка действительно нужна. Данные, валюты, проценты, формулы и выводы не менялись; desktop layout остаётся нативной таблицей.
+- RU/RO Real Estate Hero: позднее CSS-правило ослабляло scrim именно под мобильным текстом, а первый `rd-scene` добавлял второй верхний отступ внутри уже поднятой и скруглённой reading sheet. Усилен направленный overlay без замены фотографии; двойной отступ устранён. Радиусы, overlap sheet и композиция сохранены. Аналогичный photo-cover Capital Allocation включён в regression coverage.
+- RU/RO Owner: viewport-relative размер `ПРИБЫЛЬ` / `PROFIT` превышал фактическую ширину левой grid-колонки. Размер теперь привязан к inline-size самой copy-column через container units с безопасным fallback; clipping, `overflow:hidden`, `transform:scale()` и произвольные отступы не используются.
+- RU/RO Capital classification: фиксированный label-track был уже фактической ширины `Недоиспользуемый`, поэтому label пересекал описание. Все пять label размещены над описаниями с единым интервалом; маркеры и разделители сохранены.
+
+### Regression and visual evidence
+
+- Chromium financial-table audit: **30 RU/RO routes × 10 widths = 300 route-width surfaces**, **190 unique tables** (**150 small**, **40 complex**), issues `0`.
+- Chromium affected layout contracts: **10 routes × 10 widths = 100 surfaces**, issues `0`.
+- Chromium statement-word sweep: **18 routes × 10 widths = 180 surfaces**, issues `0`.
+- WebKit rendered-layout regression: **3/3 PASS** на ширинах `320, 375, 390, 393, 430, 768, 1024, 1280, 1440, 1728` после загрузки шрифтов и завершения анимаций.
+- Canonical QA: **102/102 gates PASS**, **3667 assertions**, assertion floors PASS.
+- Content migration: **221 blocks**, **62 internal links**, nothing lost.
+- Before/after evidence сохранён в `qa-artifacts/production-responsive-correction/`; локальные QA artifacts не входят в production payload.
+
+### Rollback point preserved before publication
+
+- Production commit: `77d1cfab21902032e04ded10698132fb8007c8da`.
+- Pages build ID: `1234303984`, status `built`.
+- Deployment ID: `6615520082`, source `redesign/visual-system-2`.
+- GitHub Pages: build type `legacy`, source path `/`, CNAME `www.finmentor.md`, HTTPS enforced.
+- Release commit: commit containing this section; its exact SHA and the new deployment ID are verified from GitHub after the ordinary branch push and reported in the production closeout.
+- Rollback commit and deployment remain in history. Force push, deployment deletion, DNS changes and source switching are not part of this release.

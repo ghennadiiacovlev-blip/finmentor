@@ -303,14 +303,71 @@
 
   /* ------------------------------------------------------------- SCROLLABLE TABLE NAMES */
   function initScrollableTables() {
-    document.querySelectorAll('.fin-table-wrap[tabindex]').forEach(function (wrap, index) {
-      if (wrap.hasAttribute('aria-label') || wrap.hasAttribute('aria-labelledby')) return;
-      var caption = wrap.querySelector('caption');
-      if (!caption) return;
-      if (!caption.id) caption.id = 'fin-table-caption-' + (index + 1);
-      wrap.setAttribute('role', 'region');
-      wrap.setAttribute('aria-labelledby', caption.id);
+    var wrapSelector = '.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll';
+    var tables = document.querySelectorAll('.rd-page .rd-sheet table');
+    var wraps = [];
+    document.querySelectorAll('.rd-page .rd-sheet').forEach(function (sheet) {
+      Array.prototype.push.apply(wraps, sheet.querySelectorAll(wrapSelector));
     });
+
+    Array.prototype.forEach.call(tables, function (table) {
+      var headers = table.querySelectorAll('thead tr:first-child > th');
+      var bodyRows = table.querySelectorAll('tbody > tr');
+      var columns = headers.length;
+      Array.prototype.forEach.call(bodyRows, function (row) {
+        columns = Math.max(columns, row.children.length);
+      });
+      if (!headers.length || columns > 3) return;
+
+      table.classList.add('financial-table--cards');
+      var wrap = table.closest(wrapSelector);
+      if (wrap) wrap.classList.add('financial-table-wrap--cards');
+      Array.prototype.forEach.call(bodyRows, function (row) {
+        Array.prototype.forEach.call(row.children, function (cell, cellIndex) {
+          var header = headers[cellIndex];
+          if (header) cell.setAttribute('data-table-label', header.textContent.trim());
+        });
+      });
+    });
+
+    function nameAndFocusRegions() {
+      Array.prototype.forEach.call(wraps, function (wrap, index) {
+        var table = wrap.querySelector('table');
+        if (!table) return;
+        var scrollable = table.scrollWidth > wrap.clientWidth + 1;
+        if (scrollable && !wrap.hasAttribute('tabindex')) {
+          wrap.setAttribute('tabindex', '0');
+          wrap.setAttribute('data-table-tabindex', 'auto');
+        } else if (!scrollable && wrap.getAttribute('data-table-tabindex') === 'auto') {
+          wrap.removeAttribute('tabindex');
+          wrap.removeAttribute('data-table-tabindex');
+        }
+        if (!scrollable || wrap.hasAttribute('aria-label') || wrap.hasAttribute('aria-labelledby')) return;
+
+        var label = table.querySelector('caption');
+        if (!label) {
+          var section = wrap.closest('section, article');
+          label = section && section.querySelector('h2, h3');
+        }
+        wrap.setAttribute('role', 'region');
+        if (label) {
+          if (!label.id) label.id = 'financial-table-label-' + (index + 1);
+          wrap.setAttribute('aria-labelledby', label.id);
+        } else {
+          wrap.setAttribute('aria-label', document.documentElement.lang === 'ro'
+            ? 'Tabel financiar cu derulare orizontală'
+            : 'Финансовая таблица с горизонтальной прокруткой');
+        }
+      });
+    }
+
+    nameAndFocusRegions();
+    if ('ResizeObserver' in window) {
+      var observer = new ResizeObserver(nameAndFocusRegions);
+      Array.prototype.forEach.call(wraps, function (wrap) { observer.observe(wrap); });
+    } else {
+      window.addEventListener('resize', nameAndFocusRegions, { passive: true });
+    }
   }
 
 

@@ -5178,34 +5178,26 @@ body.menu-open .doc-bar { visibility: hidden; }
 }
 
 /* --- scrollable table affordance ----------------------------------------- */
-/* .fin-table keeps a min-width so columns stay readable; on narrow screens the
-   wrapper scrolls. Give that scroll a visible edge and a keyboard focus state. */
-.fin-table-wrap { position: relative; }
-.fin-table-wrap::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 36px;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(90deg, rgba(8, 17, 31, 0), rgba(8, 17, 31, 0.92));
-  transition: opacity var(--dur-ui) ease;
+/* Wide tables keep native horizontal scrolling. A visible scrollbar provides the
+   affordance without painting a gradient over financial data. */
+.fin-table-wrap {
+  position: relative;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-500) rgba(8, 17, 31, 0.12);
 }
+.fin-table-wrap::-webkit-scrollbar { height: 8px; }
+.fin-table-wrap::-webkit-scrollbar-track { background: rgba(8, 17, 31, 0.12); }
+.fin-table-wrap::-webkit-scrollbar-thumb { background: var(--gold-500); border-radius: 999px; }
 .fin-table-wrap:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
   border-radius: var(--r-sm);
 }
 @media (max-width: 760px) {
-  .fin-table-wrap::after { opacity: 1; }
   .fin-table-wrap { scroll-snap-type: x proximity; }
   .fin-table thead th:first-child,
   .fin-table tbody th { scroll-snap-align: start; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fin-table-wrap::after { transition: none; }
 }
 
 /* ==========================================================================

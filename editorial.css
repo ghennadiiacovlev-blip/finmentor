@@ -500,8 +500,14 @@ body.fx-page { background: var(--fx-navy); }
 .pg-capital .capital-dimension li > span { font-size: var(--t-index); color: var(--fx-gold-l); }
 .pg-capital .capital-dimension li strong, .pg-capital .capital-states dt { font-size: 1.02rem; font-weight: 700; }
 .pg-capital .capital-dimension li p, .pg-capital .capital-states dd, .pg-capital .capital-risk p { font-size: var(--t-small); color: #B9C2CF; }
-/* the five states read as a scale: working → excess */
-.pg-capital .capital-states > div { position: relative; padding-left: 18px; }
+/* the five states read as a scale: working → excess. Labels sit above their definitions because
+   the longest approved RU label is wider than the label track at every desktop map width. */
+.pg-capital .capital-states > div {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 6px;
+  padding-left: 18px;
+}
 .pg-capital .capital-states > div::before { content: ""; position: absolute; left: 0; top: 18px; width: 7px; height: 7px; border-radius: 50%; background: var(--fx-gold-l); }
 .pg-capital .capital-states > div:nth-child(2)::before { opacity: 0.78; }
 .pg-capital .capital-states > div:nth-child(3)::before { opacity: 0.56; }
@@ -1493,8 +1499,14 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
 @media (min-width: 1100px) {
   html .rd-page .rd-sheet .rd-word > :is(p.fx-word__term, h2.fx-word__q) { margin-left: calc((100% - min(1200px - 2 * var(--fx-gutter), 100vw - 2 * var(--fx-gutter))) / 2); }
 }
-/* Owner · the framing question at statement-scene scale (light variant: it sits between two navy scenes) */
-.pg-owner .ow-question .statement-screen__keyword { display: block; font-size: clamp(2.6rem, 0.4rem + 10vw, 9rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.045em; text-transform: uppercase; }
+/* Owner · the framing question at statement-scene scale (light variant: it sits between two navy scenes).
+   The copy cell is the sizing authority: viewport-relative type outgrew the left grid track and
+   crossed into the capital chain. Container units keep the full word inside its allocated column. */
+.pg-owner .ow-question .statement-screen__copy { width: 100%; max-width: none; min-width: 0; container-type: inline-size; }
+.pg-owner .ow-question .statement-screen__keyword { display: block; font-size: clamp(2.6rem, 7.4vw, 6.75rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.045em; text-transform: uppercase; }
+@supports (font-size: 1cqi) {
+  .pg-owner .ow-question .statement-screen__keyword { font-size: clamp(2.6rem, 19cqi, 6.75rem); }
+}
 .pg-owner .ow-question .statement-screen__question { display: block; margin-top: clamp(24px, 3vw, 48px); font-size: clamp(1.5rem, 0.95rem + 2.1vw, 3.1rem); line-height: 1.14; letter-spacing: -0.025em; }
 /* Home · the capital cycle becomes the scene's second primary object; the industries thesis a statement */
 .home .capital-cycle { max-width: none; }
@@ -1521,6 +1533,92 @@ html .rd-page .rd-sheet .rd-word > p.fx-word__term { margin: 0; font-family: var
   .fx-page .fx-statement--xl { font-size: clamp(1.9rem, 0.5rem + 7vw, 2.6rem); }
 }
 .rd-page .rd-cover--photo { min-height: min(calc(100svh - var(--fx-head, 76px)), 1000px); }
+
+/* Photo reading covers: the late choreography rule above used a side fade that became
+   nearly transparent under mobile copy. Keep the approved image, but give every line a
+   stable dark field. The first designed scene also no longer adds a second top margin
+   inside the already raised reading sheet. */
+.rd-page .rd-cover--photo .fx-stage__scrim {
+  --rd-copy-scrim-floor: 0.65;
+  background:
+    linear-gradient(90deg, rgba(8,17,31,0.94) 0%, rgba(8,17,31,0.86) 46%, rgba(8,17,31,0.5) 74%, rgba(8,17,31,0.18) 100%),
+    linear-gradient(180deg, rgba(8,17,31,0.5) 0%, rgba(8,17,31,0.18) 34%, rgba(8,17,31,0.24) 62%, rgba(8,17,31,0.82) 100%);
+}
+html .rd-page .rd-cover--photo + .rd-sheet > .container:first-child > section.rd-scene.rd-scene:first-child,
+html .rd-page .rd-cover--photo + .rd-sheet > .container:first-child > .doc > section.rd-scene.rd-scene:first-child {
+  margin-top: 0;
+}
+@media (max-width: 860px) {
+  .rd-page .rd-cover--photo .fx-stage__scrim {
+    --rd-copy-scrim-floor: 0.66;
+    background:
+      linear-gradient(90deg, rgba(8,17,31,0.8), rgba(8,17,31,0.66)),
+      linear-gradient(180deg, rgba(8,17,31,0.6) 0%, rgba(8,17,31,0.48) 38%, rgba(8,17,31,0.76) 100%);
+  }
+}
+
+/* Small financial tables become self-contained records on phones. Their native
+   header remains in the accessibility tree; the same labels are repeated visibly
+   beside each value. Four-plus-column comparison tables retain horizontal scrolling. */
+.rd-page .rd-sheet :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll) {
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--fx-gold-f) rgba(18, 28, 46, 0.14);
+}
+.rd-page .rd-sheet :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll)::-webkit-scrollbar { height: 8px; }
+.rd-page .rd-sheet :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll)::-webkit-scrollbar-track { background: rgba(18, 28, 46, 0.14); }
+.rd-page .rd-sheet :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll)::-webkit-scrollbar-thumb { background: var(--fx-gold-f); border-radius: 999px; }
+.rd-page .rd-sheet :is(.fin-table-wrap, .art-table-wrap, .fcf-table-wrap, .cb-table-wrap, .retail-table-wrap, .table-scroll):focus-visible {
+  outline: 2px solid var(--fx-gold);
+  outline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .rd-page .rd-sheet .financial-table-wrap--cards {
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  .rd-page .rd-sheet table.financial-table--cards {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .rd-page .rd-sheet table.financial-table--cards caption { display: block; }
+  .rd-page .rd-sheet table.financial-table--cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .rd-page .rd-sheet table.financial-table--cards tbody { display: block; padding: 0 18px; }
+  .rd-page .rd-sheet table.financial-table--cards tbody tr { display: block; padding: 12px 0; border-bottom: 1px solid var(--fx-rule); }
+  .rd-page .rd-sheet table.financial-table--cards tbody tr:last-child { border-bottom: 0; }
+  .rd-page .rd-sheet table.financial-table--cards tbody :is(th, td) {
+    display: block;
+    width: 100%;
+    padding: 9px 0;
+    border: 0;
+    white-space: normal;
+    text-align: left;
+  }
+  .rd-page .rd-sheet table.financial-table--cards tbody :is(th, td)::before {
+    content: attr(data-table-label);
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fx-gold);
+  }
+}
 
 /* Fable final audit: a cover is the first viewport, so none of its copy may wait for
    an IntersectionObserver scroll event. Keep long offer/article titles and the offer
