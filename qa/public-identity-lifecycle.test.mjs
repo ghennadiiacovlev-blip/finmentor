@@ -530,11 +530,12 @@ check('CG-4 the frozen fixture is not served, and the low-entropy fallback is go
   }
   assert(TRANSPORT !== TRANSPORT_PRE, 'the deployed transport is still the pre-identity one');
   assert(/submissionToken/.test(TRANSPORT), 'the deployed transport has no submission slot');
-  // Comments stripped: the header explains WHY the fallback was removed, and a naive grep reads
-  // that explanation as the thing it documents.
-  const executable = TRANSPORT.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\n)\s*\/\/[^\n]*/g, '$1');
-  assert(!/Math\.random/.test(executable), 'the transport still has a low-entropy fallback');
-  assert(!/Date\.now\(\)/.test(executable), 'the transport still derives identity from a clock');
+  // Inspect the executable identity minting function, not the whole transport. Date.now() is also
+  // used legitimately by the confirmed-lead marker whose timestamp is validated by analytics.js.
+  const { T } = loadTransport(TRANSPORT, new Map());
+  const identityMinting = Function.prototype.toString.call(T.newRequestId);
+  assert(!/Math\.random/.test(identityMinting), 'the transport still has a low-entropy identity fallback');
+  assert(!/Date\.now\(\)/.test(identityMinting), 'the transport still derives identity from a clock');
 });
 
 // ───────────────────────────────────────────────────────────────────────────────────────────────

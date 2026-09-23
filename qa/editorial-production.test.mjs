@@ -22,6 +22,11 @@ const ruCapitalLogic = read('capital-management.html');
 const roCapitalLogic = read('ro/capital-management.html');
 const ruCapital = read('capital-preservation.html');
 const roCapital = read('ro/capital-preservation.html');
+const ruOwner = read('owner.html');
+const roOwner = read('ro/owner.html');
+const ruBusinessModels = read('business-models.html');
+const roBusinessModels = read('ro/business-models.html');
+const responsiveAudit = read('qa/production-responsive-visual-audit.mjs');
 
 const ARTICLE_SLUGS = [
   'ai-dlya-cfo.html',
@@ -405,6 +410,48 @@ check('Capital Map uses one restrained editorial surface and responsive source-o
   assert(/@media \(max-width:\s*820px\)[\s\S]*?\.capital-source__list\s*\{\s*grid-template-columns:\s*1fr/s.test(css), 'mobile source stack missing');
   assert(/\.capital-map__material\s*\{[^}]*display:\s*inline-flex[^}]*border-bottom:/s.test(css), 'editorial material link treatment missing');
   assert(!/\.capital-(?:map|logic)[^{]*\{[^}]*animation:/s.test(css), 'decorative capital animation found');
+});
+
+check('statement words keep complete RU/RO source text and never inherit the headline clip mask', () => {
+  assert(ruOwner.includes('<span class="statement-screen__keyword reveal">Прибыль.</span>'), 'RU statement word is incomplete');
+  assert(roOwner.includes('<span class="statement-screen__keyword reveal">Profit.</span>'), 'RO statement word is incomplete');
+  const statementRuleBodies = [...css.matchAll(/[^{}]*\.home \.statement-screen__keyword[^{}]*\{([^{}]*)\}/g)]
+    .map((match) => match[1]);
+  assert(statementRuleBodies.length > 0, 'statement-word CSS contract missing');
+  for (const body of statementRuleBodies) {
+    assert(!/\banimation(?:-name)?\s*:/.test(body), 'statement word still inherits a keyframe animation');
+    assert(!/\bclip-path\s*:/.test(body), 'statement word still inherits a clipping mask');
+  }
+});
+
+check('Business Models keeps the accessible photograph and the complete asset logic without a duplicate caption', () => {
+  const pages = [
+    [ruBusinessModels, 'Коммерческая недвижимость как объект управления капиталом',
+      'Одна финансовая логика — разные активы', 'В производстве — заказ и незавершёнка.',
+      'Для каждой модели есть расчётная методология:'],
+    [roBusinessModels, 'Imobiliare comerciale ca obiect al managementului de capital',
+      'O singură logică financiară — active diferite', 'În producție — comanda și producția neterminată.',
+      'Fiecare model are o metodologie de calcul:'],
+  ];
+  for (const [html, alt, heading, uniqueExample, methodology] of pages) {
+    assert(html.includes('<figure class="industries__figure bm-figure"'), 'architectural figure missing');
+    assert(html.includes(`alt="${alt}"`), 'localized accessible photograph alt text missing');
+    assert(!html.includes('<figcaption class="industries__caption">'), 'redundant photograph caption remains');
+    assert(html.includes(heading), 'main asset-logic heading missing');
+    assert(html.includes(uniqueExample), 'unique asset example missing from main section');
+    assert(html.includes(methodology), 'unique methodology conclusion missing from main section');
+  }
+});
+
+check('rendered responsive audit detects text clipped inside its own or ancestor container', () => {
+  for (const detector of ['clipped-meaningful-text', 'statement-word-clipped-by-mask',
+    'statement-word-container-clips-text', 'statement-word-clipped-by-ancestor']) {
+    assert(responsiveAudit.includes(`type: '${detector}'`), 'missing rendered clipping detector: ' + detector);
+  }
+  assert(responsiveAudit.includes('element.scrollHeight > element.clientHeight'), 'internal vertical clipping geometry missing');
+  assert(responsiveAudit.includes('element.scrollWidth > element.clientWidth'), 'internal horizontal clipping geometry missing');
+  assert(responsiveAudit.includes("details:not([open])"), 'closed disclosure content is not excluded from painted-text checks');
+  assert(responsiveAudit.includes("localStorage.setItem('finmentor_language', 'ru')"), 'root language gate is not settled before capture');
 });
 
 console.log('\n' + pass + ' passed, ' + failures.length + ' failed');

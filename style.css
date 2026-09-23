@@ -6605,19 +6605,19 @@ body.menu-open .doc-bar { visibility: hidden; }
   transition-duration: 900ms;
 }
 
-/* HEADLINE CLIP REVEAL — the display lines rise out of their own box rather
-   than fading in place. Applied only to the two signature headlines.
+/* HEADLINE CLIP REVEAL — the homepage display title rises out of its own box
+   rather than fading in place.
 
    Deliberately driven by a keyframe on `.is-visible` rather than by a resting
    `clip-path` on `.reveal`: the hidden state must not gain a SECOND way to
-   stay hidden. If the observer never fires, these headlines behave exactly as
-   every other `.reveal` does today — no worse. */
+   stay hidden. The statement-word scene is intentionally excluded: its complete
+   word must remain painted during the reveal in Safari/WKWebView as well as
+   Chromium, so it uses the shared opacity transition without a mask. */
 @keyframes clipRise {
   from { clip-path: inset(0 0 108% 0); }
   to   { clip-path: inset(0 0 -20% 0); }
 }
-.home .hero__title.reveal.is-visible,
-.home .statement-screen__keyword.reveal.is-visible {
+.home .hero__title.reveal.is-visible {
   animation: clipRise 900ms var(--ease-editorial) both;
 }
 
@@ -7878,9 +7878,8 @@ body.menu-open .doc-bar { visibility: hidden; }
   .home .reveal { transition: none; }
   .home .chaos-card,
   .home .industry-card { transition: none; }
-  /* the clip reveal must not leave a headline half-drawn when motion is off */
-  .home .hero__title.reveal.is-visible,
-  .home .statement-screen__keyword.reveal.is-visible {
+  /* the hero clip reveal must not leave the headline half-drawn when motion is off */
+  .home .hero__title.reveal.is-visible {
     animation: none;
     clip-path: none;
   }
@@ -8723,14 +8722,13 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
 .m-js .home :is(.overline, .hero__kicker).reveal:not(.is-visible) {
   transform: translateY(var(--m-rise-small));
 }
-/* the two signature headlines keep their clip rise as their one movement */
+/* The hero keeps its clip rise; the statement word stays fixed and fades without a mask. */
 .m-js .home :is(.hero__title, .statement-screen__keyword).reveal:not(.is-visible) { transform: none; }
 /* The H1 is the page's largest contentful paint. Chrome does not record an element
    painted at opacity 0 until some later repaint, which pushed LCP to ~3 s; at 0.01
    it is painted from the first frame and is still invisible to the eye. */
 .m-js .home :is(.hero__title, .page-head__title).reveal:not(.is-visible) { opacity: 0.01; }
-.home .hero__title.reveal.is-visible,
-.home .statement-screen__keyword.reveal.is-visible { animation-delay: var(--m-delay, 0ms); }
+.home .hero__title.reveal.is-visible { animation-delay: var(--m-delay, 0ms); }
 
 /* --- D. SEQUENCE — rows travel less and finish sooner than statements ---- */
 .home :is(.chaos-card, .capital-cycle__stage, .industry-card, .audience__item,
