@@ -75,6 +75,7 @@
 
   var DEFAULT_TIMEOUT_MS = 12000;
   var SLOT_PREFIX = 'fm_sub_';
+  var GA4_CONFIRMED_PREFIX = 'finmentor_ga4_confirmed_lead:';
   // Fallback for a browser that refuses sessionStorage (private mode, blocked site data). It
   // survives retries within the page, which is the common case, but not a reload.
   var memory = {};
@@ -188,6 +189,19 @@
     return !!body && body.ok === true && typeof body.lead_id === 'string' && body.lead_id.trim() !== '';
   }
 
+  // A conversion is eligible only after the backend has authoritatively settled this exact
+  // submission. The marker is tab-scoped, contains no identity or free text, and is created only
+  // under the analytics consent that was attached to the submitted payload.
+  function markConfirmedLead(tool, requestId, analyticsConsent) {
+    if (analyticsConsent !== true || !tool || !requestId) return;
+    try {
+      window.sessionStorage.setItem(GA4_CONFIRMED_PREFIX + requestId, JSON.stringify({
+        tool: String(tool),
+        at: Date.now()
+      }));
+    } catch (e) {}
+  }
+
   /*
    * Resolves with { ok:true, body, requestId, leadId, mode } only on an authoritative settlement.
    * Rejects with err.fmCode set to one of:
@@ -268,6 +282,7 @@
 
         // (F) — authoritative settlement. Retiring here, and only here, is what makes the next
         // genuine submission from this tab a new request rather than a replay of this one.
+        markConfirmedLead(slot, requestId, payload.meta.analytics_consent);
         if (owned) { retire(slot); }
         return { ok: true, body: body, requestId: requestId, leadId: String(body.lead_id), mode: String(body.mode || '') };
       });

@@ -37,8 +37,8 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 // --------------------------------------------------------------- browser shim
 // Minimal DOM/BOM surface, enough to execute analytics.js and lead-transport.js.
 function makeWindow(opts = {}) {
-  const store = new Map();
-  const session = new Map();
+  const store = opts.localStore || new Map();
+  const session = opts.sessionStore || new Map();
   const listeners = new Map();
   const head = { appendChild(el) { win.__appended.push(el); } };
   const body = { appendChild() {}, };
@@ -171,8 +171,8 @@ check('all inline <script> blocks parse', () => {
 // --------------------------------------------------------------- lead transport
 console.log('\nLEAD SUBMISSION SUCCESS CONTRACT');
 
-function loadTransport(fetchImpl) {
-  const win = makeWindow({ fetch: fetchImpl });
+function loadTransport(fetchImpl, opts = {}) {
+  const win = makeWindow(Object.assign({}, opts, { fetch: fetchImpl }));
   runScript('lead-transport.js', win);
   return win.FMLeadTransport;
 }
@@ -266,6 +266,36 @@ transportCases.push(['thankYouUrl carries tool and sid', async () => {
   const t = loadTransport(() => Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}')));
   const u = t.thankYouUrl('mini_scan', 'fmr_abc');
   assert(u === 'thank-you.html?tool=mini_scan&sid=fmr_abc', 'unexpected url: ' + u);
+}]);
+transportCases.push(['an authoritative consented settlement marks the submission for GA4', async () => {
+  const session = new Map();
+  const t = loadTransport(
+    () => Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}')),
+    { sessionStore: session }
+  );
+  const r = await t.postLead('https://example.test/hook', { tool: 'contact', meta: { analytics_consent: true } });
+  const marker = JSON.parse(session.get('finmentor_ga4_confirmed_lead:' + r.requestId) || 'null');
+  assert(marker && marker.tool === 'contact', 'the confirmed submission marker was not stored');
+  assert(Number(marker.at) > 0, 'the confirmed submission marker has no timestamp');
+}]);
+transportCases.push(['a settlement without analytics consent creates no GA4 marker', async () => {
+  const session = new Map();
+  const t = loadTransport(
+    () => Promise.resolve(jsonResponse(200, '{"ok":true,"lead_id":"FIN-1","mode":"new"}')),
+    { sessionStore: session }
+  );
+  const r = await t.postLead('https://example.test/hook', { tool: 'contact', meta: { analytics_consent: false } });
+  assert(!session.has('finmentor_ga4_confirmed_lead:' + r.requestId), 'a marker was stored without analytics consent');
+}]);
+transportCases.push(['a rejected response creates no GA4 marker', async () => {
+  const session = new Map();
+  const t = loadTransport(
+    () => Promise.resolve(jsonResponse(200, '{"ok":false,"error":"invalid"}')),
+    { sessionStore: session }
+  );
+  await expectReject(t.postLead('https://example.test/hook', { tool: 'contact', meta: { analytics_consent: true } }), 'rejected');
+  assert([...session.keys()].every((k) => !k.startsWith('finmentor_ga4_confirmed_lead:')),
+    'a rejected response marked a conversion');
 }]);
 
 // --------------------------------------------------------------- submitters wired
@@ -389,10 +419,38 @@ check('generate_lead covers contact, xray_extended and mini_scan', () => {
     assert(block[1].includes(tool + ':'), 'missing lead tool: ' + tool);
   }
 });
-check('conversion dedup keys on the submission id, not the tool', () => {
+check('conversion requires a confirmed submission and dedupes on its id', () => {
   const src = read('analytics.js');
-  assert(/dedupeKey = 'finmentor_ga4_generate_lead:' \+ \(submissionId \|\| tool\)/.test(src),
+  assert(/if \(!hasConfirmedLead\(tool, submissionId\)\) return;/.test(src),
+    'generate_lead is not gated on an authoritative settlement marker');
+  assert(/dedupeKey = 'finmentor_ga4_generate_lead:' \+ submissionId/.test(src),
     'dedup is not keyed on the submission id');
+});
+check('direct thank-you navigation does not emit generate_lead', () => {
+  const win = loadAnalyticsAccepted({
+    pathname: '/thank-you.html',
+    search: '?tool=xray_extended&sid=fmr_direct',
+    href: 'https://www.finmentor.md/thank-you.html?tool=xray_extended&sid=fmr_direct',
+    referrer: 'https://www.finmentor.md/questionnaire.html'
+  });
+  const conversions = (win.dataLayer || []).filter((call) => call && call[0] === 'event' && call[1] === 'generate_lead');
+  assert(conversions.length === 0, 'direct navigation emitted generate_lead');
+});
+check('a fresh matching settlement marker emits generate_lead once and is consumed', () => {
+  const sid = 'fmr_confirmed';
+  const session = new Map([['finmentor_ga4_confirmed_lead:' + sid,
+    JSON.stringify({ tool: 'xray_extended', at: Date.now() })]]);
+  const win = loadAnalyticsAccepted({
+    pathname: '/thank-you.html',
+    search: '?tool=xray_extended&sid=' + sid,
+    href: 'https://www.finmentor.md/thank-you.html?tool=xray_extended&sid=' + sid,
+    referrer: 'https://www.finmentor.md/questionnaire.html',
+    sessionStore: session
+  });
+  const conversions = (win.dataLayer || []).filter((call) => call && call[0] === 'event' && call[1] === 'generate_lead');
+  assert(conversions.length === 1, 'confirmed submission emitted ' + conversions.length + ' conversions');
+  assert(session.get('finmentor_ga4_generate_lead:' + sid) === '1', 'the conversion was not deduped');
+  assert(!session.has('finmentor_ga4_confirmed_lead:' + sid), 'the settlement marker was not consumed');
 });
 check('mini-scan redirects carry a submission id', () => {
   for (const f of ['working-capital-scan.html', 'ro/working-capital-scan.html']) {

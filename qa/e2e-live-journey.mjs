@@ -128,6 +128,9 @@ async function main() {
     // 4. GA4 beacons across the whole journey
     OUT.ga = events.filter((e) => e.method === 'Network.requestWillBeSent').map((e) => e.params.request.url)
       .filter((u) => /google-analytics\.com\/g\/collect/.test(u));
+    OUT.gaEventNames = OUT.ga.map((u) => {
+      try { return new URL(u).searchParams.get('en') || ''; } catch (e) { return ''; }
+    }).filter(Boolean);
   } finally { try { ws.close(); } catch (e) {} chrome.kill(); }
 
   // ── assertions ───────────────────────────────────────────────────────────────────────────────
@@ -189,9 +192,15 @@ async function main() {
     console.log('        (' + OUT.ga.length + ' GA4 beacons scanned)');
   });
 
+  check('the successful consented submission emits generate_lead exactly once', () => {
+    const n = OUT.gaEventNames.filter((name) => name === 'generate_lead').length;
+    assert(n === 1, 'generate_lead fired ' + n + ' times (saw: ' + OUT.gaEventNames.join(',') + ')');
+  });
+
   const rid = OUT.requestId || OUT.pageRequestId;
   writeFileSync((process.env.TEMP || '.') + '\\fin-e2e-' + LOCALE + '.json',
-    JSON.stringify({ locale: LOCALE, identity: IDENTITY, requestId: rid, posts: OUT.posts.length, ga: OUT.ga.length }, null, 2));
+    JSON.stringify({ locale: LOCALE, identity: IDENTITY, requestId: rid, posts: OUT.posts.length,
+      ga: OUT.ga.length, gaEventNames: OUT.gaEventNames }, null, 2));
   console.log('\n  request id prefix (for joining the server half): ' + String(rid).slice(0, 12) + '…');
   console.log('  company (for the CRM join): ' + IDENTITY.company);
   console.log('\n' + pass + ' passed, ' + failures.length + ' failed');

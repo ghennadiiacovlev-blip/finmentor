@@ -15,8 +15,9 @@
 //     handles and chat ids, lead ids, request ids, submission keys, review tokens and free text.
 //
 // It never submits a form, so no lead is created. The one conversion event (`generate_lead`) is
-// exercised the way the code actually gates it — by loading `thank-you.html?tool=…` with a
-// same-origin referrer — rather than by pushing a real lead through the pipeline.
+// exercised with the same short-lived, non-PII settlement marker that lead-transport.js writes
+// after an authoritative accepted response. Direct navigation is checked separately and must not
+// produce a conversion.
 //
 // No credentials, no tenant, no writes. Read-only against the public site.
 
@@ -135,6 +136,10 @@ async function visit(cdp, url, opts) {
   const inj = await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
     source: "try{localStorage.setItem('finmentor_cookie_consent'," + JSON.stringify(o.consent || 'accept') + ");}catch(e){}"
       + (o.clearSession ? "try{sessionStorage.clear();}catch(e){}" : '')
+      + (o.confirmedLead
+        ? "try{sessionStorage.setItem(" + JSON.stringify('finmentor_ga4_confirmed_lead:' + o.confirmedLead.sid)
+          + ",JSON.stringify({tool:" + JSON.stringify(o.confirmedLead.tool) + ",at:Date.now()}));}catch(e){}"
+        : '')
   });
   cdp._injected = inj.identifier;
   await cdp.send('Page.navigate', { url, referrer: o.referrer || '' });
@@ -198,9 +203,18 @@ async function main() {
     await sleep(9500);
     RESULTS.roFormStartAgain = { names: eventNames(gaCollects(cdp.events)) };
 
-    // ── 5. the conversion, exercised the way the code gates it ─────────────────────────────────
+    // ── 5. direct navigation must not convert; a confirmed settlement must convert once ────────
     ev = await visit(cdp, ORIGIN + '/thank-you.html?tool=xray_extended&sid=SYNTHETIC-UAT-0001',
       { consent: 'accept', clearSession: true, referrer: ORIGIN + '/questionnaire.html' });
+    RESULTS.directNavigation = { urls: gaCollects(ev), names: eventNames(gaCollects(ev)) };
+    ev = await visit(cdp, ORIGIN + '/thank-you.html?tool=xray_extended&sid=SYNTHETIC-UAT-0001',
+      {
+        consent: 'accept',
+        clearSession: true,
+        referrer: ORIGIN + '/questionnaire.html',
+        confirmedLead: { tool: 'xray_extended', sid: 'SYNTHETIC-UAT-0001' },
+        expect: 2
+      });
     RESULTS.conversion = { urls: gaCollects(ev), names: eventNames(gaCollects(ev)) };
     // reload in the same session must not double-count
     // The injected bootstrap clears sessionStorage on every document load. A real customer's
@@ -277,7 +291,12 @@ async function main() {
     assert(n === 0, 'a repeated focus emitted ' + n + ' more lead_form_start');
   });
 
-  check('the conversion fires once on thank-you with a same-origin referrer', () => {
+  check('direct navigation to thank-you emits no conversion', () => {
+    const n = RESULTS.directNavigation.names.filter((x) => x === 'generate_lead').length;
+    assert(n === 0, 'direct navigation emitted ' + n + ' generate_lead event(s)');
+  });
+
+  check('the conversion fires once after a confirmed consented submission', () => {
     const n = RESULTS.conversion.names.filter((x) => x === 'generate_lead').length;
     assert(n === 1, 'generate_lead fired ' + n + ' times (saw: ' + RESULTS.conversion.names.join(',') + ')');
   });
@@ -308,7 +327,8 @@ async function main() {
 
   check('no beacon anywhere in this run carried forbidden content', () => {
     const all = [].concat(RESULTS.ru.urls, RESULTS.ro.urls, RESULTS.roForm.urls,
-      RESULTS.roContact.urls || [], RESULTS.roFormStart.urls || [], RESULTS.conversion.urls);
+      RESULTS.roContact.urls || [], RESULTS.roFormStart.urls || [], RESULTS.directNavigation.urls,
+      RESULTS.conversion.urls);
     let scanned = 0;
     for (const u of all) {
       const hits = scanForbidden(u);
@@ -320,7 +340,7 @@ async function main() {
   });
 
   console.log('\n--- observed event names ---');
-  for (const k of ['ru', 'ro', 'roForm', 'roContact', 'roFormStart', 'conversion']) {
+  for (const k of ['ru', 'ro', 'roForm', 'roContact', 'roFormStart', 'directNavigation', 'conversion']) {
     if (RESULTS[k]) { console.log('  ' + k.padEnd(14) + (RESULTS[k].names || []).join(', ') || '(none)'); }
   }
 

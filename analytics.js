@@ -217,6 +217,30 @@
     mini_scan:     { form_name: 'working_capital_mini_scan', lead_type: 'working_capital_mini_scan' }
   };
 
+  var CONFIRMED_LEAD_PREFIX = 'finmentor_ga4_confirmed_lead:';
+  var CONFIRMED_LEAD_TTL_MS = 10 * 60 * 1000;
+
+  function confirmedLeadKey(submissionId) {
+    return CONFIRMED_LEAD_PREFIX + String(submissionId || '');
+  }
+
+  function hasConfirmedLead(tool, submissionId) {
+    if (!tool || !submissionId) return false;
+    try {
+      var raw = sessionStorage.getItem(confirmedLeadKey(submissionId));
+      if (!raw) return false;
+      var marker = JSON.parse(raw);
+      var age = Date.now() - Number(marker && marker.at);
+      if (!marker || marker.tool !== tool || !Number.isFinite(age) || age < 0 || age > CONFIRMED_LEAD_TTL_MS) {
+        sessionStorage.removeItem(confirmedLeadKey(submissionId));
+        return false;
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function emitConfirmedLead() {
     if (!/\/thank-you\.html$/i.test(location.pathname || '')) return;
 
@@ -232,23 +256,30 @@
     if (!meta) return;
     // Reaching thank-you only counts when it followed a same-origin submission.
     if (!sameOriginReferrer()) return;
+    // Referrer + URL alone are navigation hints, not proof that the backend accepted a lead.
+    // postLead writes this tab-scoped marker only after ok:true + a canonical lead_id.
+    if (!hasConfirmedLead(tool, submissionId)) return;
 
-    // Dedupe on the submission id, so a genuine second lead from the same tool in the
-    // same tab is still counted. Keying on the tool alone suppressed it for the whole
-    // session. Falls back to the tool name when no id is present.
-    var dedupeKey = 'finmentor_ga4_generate_lead:' + (submissionId || tool);
+    // Dedupe on the confirmed submission id, so a genuine second lead from the same tool in the
+    // same tab is still counted. Keying on the tool alone suppressed it for the whole session.
+    var dedupeKey = 'finmentor_ga4_generate_lead:' + submissionId;
     try {
       if (sessionStorage.getItem(dedupeKey) === '1') return;
-      sessionStorage.setItem(dedupeKey, '1');
     } catch (e) {}
 
-    trackBusiness('generate_lead', {
+    var sent = trackBusiness('generate_lead', {
       source: 'website',
       page_slug: 'thank-you',
       site_language: document.documentElement.lang || '',
       form_name: meta.form_name,
       lead_type: meta.lead_type
     });
+    if (sent) {
+      try {
+        sessionStorage.setItem(dedupeKey, '1');
+        sessionStorage.removeItem(confirmedLeadKey(submissionId));
+      } catch (e) {}
+    }
   }
 
   function contactMethod(href) {
