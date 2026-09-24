@@ -7834,6 +7834,22 @@ body.menu-open .doc-bar { visibility: hidden; }
   .fa-launch { right: 8px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
 }
 
+/* Real-estate cover guard: the launcher stays clear of the approved Hero and
+   its rounded sheet handoff. The component itself is unchanged. */
+.rd-page .fa-launch.is-hero-guarded {
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+.fa-launch.is-context-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .rd-page .fa-launch.is-hero-guarded {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* --- D1.4 MEASURE DISCIPLINE --------------------------------------------
    Same principle as the flow: a rule should end where the composition says,
    not where the container happens to stop. */

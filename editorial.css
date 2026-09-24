@@ -909,6 +909,35 @@ body.fx-page { background: var(--fx-navy); }
 .rd-page .rd-cover--short h1 { font-size: var(--t-display-xl); max-width: 14ch; }
 .rd-page .rd-cover .doc-hero__lead { max-width: 60ch; margin: 28px 0 0; font-size: var(--t-lead); line-height: 1.55; color: #D0D7E1; }
 .rd-page .rd-cover .doc-hero__context { max-width: 70ch; margin: 28px 0 0; padding: 18px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: var(--t-meta); font-weight: 500; line-height: 1.55; color: #9AA5B5; }
+/* Real-estate decision chain: a content-sized outline whose block geometry follows
+   every wrapped line. This class is deliberately local so other hero notes retain
+   their established editorial treatment. */
+.rd-page .rd-cover .doc-hero__context.doc-hero__flow {
+  display: block;
+  box-sizing: border-box;
+  inline-size: fit-content;
+  max-inline-size: min(70ch, 100%);
+  block-size: auto;
+  min-block-size: 0;
+  margin-top: 28px;
+  padding: 12px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--fx-cr);
+  line-height: 1.6;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+}
+@media (max-width: 600px) {
+  .rd-page .rd-cover .doc-hero__context.doc-hero__flow {
+    inline-size: 100%;
+    max-inline-size: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    line-height: 1.65;
+  }
+}
 .rd-page .rd-cover .ai-doc-hero__subtitle { color: var(--fx-gold-l); font-size: var(--t-lead); max-width: 56ch; }
 /* light cover: stone field, navy type (knowledge base, methodology, templates) */
 .rd-page .rd-cover--light { background: var(--fx-stone); color: var(--fx-ink); }

@@ -266,7 +266,61 @@
       close();
     }
 
+    function initHeroLauncherGuard() {
+      var flow = document.querySelector('.doc-hero__flow');
+      var hero = flow && flow.closest ? flow.closest('.rd-cover--photo') : null;
+      if (!hero) return;
+
+      var mobile = window.matchMedia('(max-width: 640px)');
+      var protectedElements = hero.querySelectorAll('.crumbs, .doc-hero__eyebrow, h1, .doc-hero__lead, .doc-hero__flow, a, button');
+      var scheduled = false;
+      launch.classList.add('is-hero-guarded');
+
+      function intersectsWithGap(first, second, gap) {
+        return first.left < second.right + gap && first.right > second.left - gap
+          && first.top < second.bottom + gap && first.bottom > second.top - gap;
+      }
+
+      function update() {
+        scheduled = false;
+        var heroRect = hero.getBoundingClientRect();
+        var hidden = mobile.matches && heroRect.bottom > 0;
+
+        if (!hidden) {
+          var launcherRect = launch.getBoundingClientRect();
+          hidden = Array.prototype.some.call(protectedElements, function (element) {
+            var rect = element.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0 && intersectsWithGap(launcherRect, rect, 20);
+          });
+        }
+
+        if (hidden && !panel.hidden) close();
+        launch.classList.toggle('is-context-hidden', hidden);
+        if (hidden) {
+          launch.setAttribute('aria-hidden', 'true');
+          launch.setAttribute('tabindex', '-1');
+          if (document.activeElement === launch) launch.blur();
+        } else {
+          launch.removeAttribute('aria-hidden');
+          launch.removeAttribute('tabindex');
+        }
+      }
+
+      function schedule() {
+        if (scheduled) return;
+        scheduled = true;
+        window.requestAnimationFrame(update);
+      }
+
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule, { passive: true });
+      if (mobile.addEventListener) mobile.addEventListener('change', schedule);
+      else if (mobile.addListener) mobile.addListener(schedule);
+      update();
+    }
+
     launch.addEventListener('click', function () { panel.hidden ? open() : close(); });
     closeBtn.addEventListener('click', function () { close(); });
+    initHeroLauncherGuard();
   });
 })();
