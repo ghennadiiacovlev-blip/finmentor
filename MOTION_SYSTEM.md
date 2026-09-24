@@ -69,6 +69,25 @@ Owner feedback on Pass 1: technically right, visually too subtle. Pass 2 keeps t
   for `load` (capped at 1200ms) so the mask never opens on nothing.
 - Once only, settled on the way back, no replay; desktop rules untouched; reduced motion,
   no-JS and the failsafe unchanged.
+
+### 2c. Pass 3 — cards and panels land (≤ 860px)
+
+The card is the animation unit. Only transform and opacity move; geometry is reserved from the first
+frame, so CLS stays 0. Desktop is untouched.
+
+| Unit | Rise → 0 | Scale → 1 | Duration | Members |
+|---|---|---|---|---|
+| Card | 24px (even siblings 28px) | 0.99 | 760ms | pillars, industry cards, step and sample cards, material rows, audience items, capital principles, after-steps, client voices; editorial decks, related cards, mosaic tiles and principle panels (`[data-fx]`) |
+| Feature panel | 32px | 0.99 | 900ms | engagement-format mandates, practice panels, working contour, asset callout, flagship columns, capital map and flow, system map, compare band, the consult form |
+| Small card / row | 16px | 0.995 | 600ms | symptom cards, capital-cycle stages, method, diff and topic rows |
+
+- The practice panels and the format mandates are one unit on a phone: the panel lands and its parts
+  ride with it (no inner unfold competing with the landing).
+- Cards get their own observer on a phone with the trigger line at 80% of the viewport (photographs
+  75%, text 88%); the batch stagger stays 80–130ms in document order, so the most important card —
+  first in the composition — arrives first and no more than one or two are moving at once.
+- Financial tables are never animated; the intro, menu, launcher and the Real Estate and Cases frames
+  are untouched.
 - **Why Pass 1 read as a fade (root cause found in Pass 2).** A clip-path only animates between
   two basic shapes of the same kind. Every mask so far ended at the implicit value none, and a
   transition towards none does not interpolate — it jumps the moment the class lands, leaving

@@ -1965,3 +1965,42 @@ html .rd-page .rd-cover--photo + .rd-sheet > .container:first-child > .doc > sec
   .home .client-voices[data-client-voices] .client-voices__attr { margin-top: 18px; }
   .home .client-voices[data-client-voices] .client-voices__note { margin-top: 32px; }
 }
+
+/* ==========================================================================
+   MOBILE CARD GRAMMAR (Pass 3, ≤ 860px only) — the editorial surfaces. The engagement-format
+   mandates and the practice panels are ONE unit each on a phone: the panel lands (32px, 0.99,
+   900ms) and its parts ride with it instead of unfolding separately; editorial decks, related
+   cards, mosaics and principle panels land as cards (24 / 28px, 0.99, 760ms).
+   ========================================================================== */
+@media (max-width: 860px) {
+  .m-js .home .packages[data-formats] .fmt-panel.reveal {
+    transition: opacity var(--m-panel-dur, 900ms) var(--m-ease, ease), transform var(--m-panel-dur, 900ms) var(--m-ease, ease), border-color 0.25s ease;
+    transition-delay: var(--m-delay, 0ms);
+  }
+  .m-js .home .packages[data-formats] .fmt-panel.reveal:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(var(--m-panel-rise, 32px)) scale(var(--m-panel-scale, 0.99));
+  }
+  .m-js .home .proof-cases[data-practice] .case-panel.reveal {
+    transition: opacity var(--m-panel-dur, 900ms) var(--m-ease, ease), transform var(--m-panel-dur, 900ms) var(--m-ease, ease);
+    transition-delay: var(--m-delay, 0ms);
+  }
+  .m-js .home .proof-cases[data-practice] .case-panel.reveal:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(var(--m-panel-rise, 32px)) scale(var(--m-panel-scale, 0.99));
+  }
+  .m-js .home .proof-cases[data-practice] .case-panel.reveal :is(.case-panel__index, .m-c),
+  .m-js .home .proof-cases[data-practice] .case-panel.reveal:not(.is-visible) :is(.case-panel__index, .m-c) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  :is(.fx-deck, .fx-related, .fx-mosaic, .fx-principles) > [data-fx] { transition-duration: 760ms, 760ms, 900ms; }
+  .m-js :is(.fx-deck, .fx-related, .fx-mosaic, .fx-principles) > [data-fx]:not(.is-visible) {
+    opacity: 0.01;
+    transform: translateY(24px) scale(0.99);
+  }
+  .m-js :is(.fx-deck, .fx-related, .fx-mosaic, .fx-principles) > [data-fx]:nth-child(even):not(.is-visible) {
+    transform: translateY(28px) scale(0.99);
+  }
+}

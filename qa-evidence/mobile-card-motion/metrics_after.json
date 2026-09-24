@@ -1,0 +1,926 @@
+{
+  "phase": "cards",
+  "head": "a9400af8847b1a11f198f0de2d6f3b8dc47dc0ba",
+  "captured": "2026-09-24T11:12:31.501Z",
+  "perf": [
+    {
+      "path": "/",
+      "width": 390,
+      "lcpMs": 340,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0005,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/about.html",
+      "width": 390,
+      "lcpMs": 256,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/cases.html",
+      "width": 390,
+      "lcpMs": 264,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 390,
+      "lcpMs": 272,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 390,
+      "lcpMs": 276,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/materials.html",
+      "width": 390,
+      "lcpMs": 320,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 390,
+      "lcpMs": 252,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/ro/",
+      "width": 390,
+      "lcpMs": 308,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0005,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 390,
+      "lcpMs": 256,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/",
+      "width": 430,
+      "lcpMs": 352,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/about.html",
+      "width": 430,
+      "lcpMs": 268,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0003,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/cases.html",
+      "width": 430,
+      "lcpMs": 264,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0003,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 430,
+      "lcpMs": 272,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.1129,
+      "longTaskMs": 0,
+      "shifts": [
+        {
+          "t": 2956,
+          "v": 0.1126
+        }
+      ],
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 430,
+      "lcpMs": 280,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0003,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/materials.html",
+      "width": 430,
+      "lcpMs": 292,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0003,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 430,
+      "lcpMs": 260,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/ro/",
+      "width": 430,
+      "lcpMs": 324,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0004,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 430,
+      "lcpMs": 268,
+      "clsAfterLoad": 0,
+      "clsAfterScroll": 0.0003,
+      "longTaskMs": 0,
+      "shifts": [],
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      }
+    }
+  ],
+  "webkit": [
+    {
+      "path": "/",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "0.997821",
+        "top": 305
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 287
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/cases.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 394
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 316
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 428
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/materials.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 263
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 188
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "0.997984",
+        "top": 305
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 320,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 394
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "0.998102",
+        "top": 373
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 296
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/cases.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 366
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 324
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 428
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/materials.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 263
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 188
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "0.998727",
+        "top": 373
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 390,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 366
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "0.998696",
+        "top": 373
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 298
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/cases.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 366
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 298
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 406
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/materials.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 263
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 188
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "0.998696",
+        "top": 373
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 430,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 366
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "0.998102",
+        "top": 368
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/about.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 441
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 28,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/cases.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 406
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/capital-management.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 441
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 37,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 495
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/materials.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 265
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 6,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/questionnaire.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 198
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 0,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "0.997984",
+        "top": 368
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 103,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    },
+    {
+      "path": "/ro/cases.html",
+      "width": 820,
+      "heroPaint": {
+        "opacity": "1",
+        "top": 447
+      },
+      "overflow": 0,
+      "stuck": {
+        "targets": 4,
+        "onScreen": 0,
+        "stuck": 0,
+        "samples": []
+      },
+      "notRevealedAfterScroll": 0
+    }
+  ],
+  "reduced": [
+    {
+      "path": "/",
+      "mjs": false,
+      "targets": 83,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/about.html",
+      "mjs": false,
+      "targets": 28,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/cases.html",
+      "mjs": false,
+      "targets": 4,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/capital-management.html",
+      "mjs": false,
+      "targets": 38,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/real-estate-control-system.html",
+      "mjs": false,
+      "targets": 5,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/materials.html",
+      "mjs": false,
+      "targets": 6,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/questionnaire.html",
+      "mjs": false,
+      "targets": 0,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/ro/",
+      "mjs": false,
+      "targets": 83,
+      "notImmediate": 0,
+      "samples": []
+    },
+    {
+      "path": "/ro/cases.html",
+      "mjs": false,
+      "targets": 4,
+      "notImmediate": 0,
+      "samples": []
+    }
+  ],
+  "recordings": []
+}

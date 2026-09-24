@@ -1,0 +1,75 @@
+{
+  "phase": "after",
+  "head": "a9400af8847b1a11f198f0de2d6f3b8dc47dc0ba",
+  "captured": "2026-09-24T10:55:12.018Z",
+  "perf": [],
+  "webkit": [],
+  "reduced": [],
+  "recordings": [
+    {
+      "id": "homepage-390-cards",
+      "label": "before",
+      "path": "/",
+      "width": 390,
+      "height": 844,
+      "photoY": 2279,
+      "docH": 17824,
+      "scrollMs": 34009,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\homepage-390-cards-before.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\homepage-390-cards-before-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\homepage-390-cards-before-stages.png"
+    },
+    {
+      "id": "business-models-390-cards",
+      "label": "before",
+      "path": "/business-models.html",
+      "width": 390,
+      "height": 844,
+      "photoY": 1570,
+      "docH": 13084,
+      "scrollMs": 24772,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\business-models-390-cards-before.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\business-models-390-cards-before-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\business-models-390-cards-before-stages.png"
+    },
+    {
+      "id": "practice-390-cards",
+      "label": "before",
+      "path": "/cases.html",
+      "width": 390,
+      "height": 844,
+      "photoY": null,
+      "docH": 13136,
+      "scrollMs": 24912,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\practice-390-cards-before.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\practice-390-cards-before-sheet.png",
+      "strip": null
+    },
+    {
+      "id": "capital-390-cards",
+      "label": "before",
+      "path": "/capital-management.html",
+      "width": 390,
+      "height": 844,
+      "photoY": 6494,
+      "docH": 12089,
+      "scrollMs": 22948,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\capital-390-cards-before.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\capital-390-cards-before-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\capital-390-cards-before-stages.png"
+    },
+    {
+      "id": "materials-390-cards",
+      "label": "before",
+      "path": "/materials.html",
+      "width": 390,
+      "height": 844,
+      "photoY": null,
+      "docH": 22169,
+      "scrollMs": 42110,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\materials-390-cards-before.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\materials-390-cards-before-sheet.png",
+      "strip": null
+    }
+  ]
+}

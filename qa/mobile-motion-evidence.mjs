@@ -86,6 +86,20 @@ const RECORD2 = [
   { id: '06_materials_390', path: '/materials.html', width: 390, height: 844 },
 ];
 const PHOTO_SEL = '.industries__figure, [data-fx="unveil"], .capital-management, .fx-stage__media';
+// Pass 3 owner-review set (cards / panels): --set cards --only record2 --label before|after --out <dir>
+//   files are named <id>-<label>.webm; key-stage strips are cut around the first card group.
+const SET = argOf('--set') || 'pass2';
+const RECORD3 = [
+  { id: 'homepage-390-cards', path: '/', width: 390, height: 844 },
+  { id: 'business-models-390-cards', path: '/business-models.html', width: 390, height: 844 },
+  { id: 'practice-390-cards', path: '/cases.html', width: 390, height: 844 },
+  { id: 'capital-390-cards', path: '/capital-management.html', width: 390, height: 844 },
+  { id: 'materials-390-cards', path: '/materials.html', width: 390, height: 844 },
+];
+const CARD_SEL = '.pillar, .industry-card, .fmt-panel, .case-panel, .capital-principle, .step-card, .flagship__col, .fx-mosaic > [data-fx], .fx-principles > [data-fx]';
+const RECORD_SET = SET === 'cards' ? RECORD3 : RECORD2;
+const STAGE_SEL = SET === 'cards' ? CARD_SEL : PHOTO_SEL;
+const nameOf = (id, label) => (SET === 'cards' ? `${id}-${label}` : `${id}_${label}`);
 const DESKTOP_WIDTHS = [1024, 1280, 1440, 1728];
 const DESKTOP_PAGES = ['/', '/about.html', '/business-models.html', '/capital-management.html'];
 const BOOT = (lang) => `try{localStorage.setItem('finmentor_language','${lang}');sessionStorage.setItem('fm_intro_played','1');localStorage.setItem('finmentor_cookie_consent','deny');}catch(e){}`;
@@ -232,23 +246,24 @@ function keyStages(video, name, times, outDir) {
 if (ONLY === 'record2') {
   mkdirSync(OUT2, { recursive: true });
   const browser = await webkit.launch();
-  for (const rec of RECORD2) {
+  for (const rec of RECORD_SET) {
     const ctx = await browser.newContext({ viewport: { width: rec.width, height: rec.height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, recordVideo: { dir: OUT2, size: { width: rec.width, height: rec.height } } });
     await ctx.addInitScript(BOOT(langOf(rec.path)));
     const page = await ctx.newPage();
     await page.goto(ORIGIN + rec.path, { waitUntil: 'load' });
     await sleep(900);
-    // Where the first editorial photograph sits, so the key-stage strip can be cut around it.
-    const photoY = await page.evaluate(`(()=>{const el=[...document.querySelectorAll(${JSON.stringify(PHOTO_SEL)})].find(e=>e.getBoundingClientRect().top+scrollY>innerHeight*0.6);return el?Math.round(el.getBoundingClientRect().top+scrollY):null;})()`);
+    // Where the first editorial photograph (or, for the cards set, the first card group) sits,
+    // so the key-stage strip can be cut around it.
+    const photoY = await page.evaluate(`(()=>{const el=[...document.querySelectorAll(${JSON.stringify(STAGE_SEL)})].find(e=>e.getBoundingClientRect().top+scrollY>innerHeight*0.6);return el?Math.round(el.getBoundingClientRect().top+scrollY):null;})()`);
     const docH = await page.evaluate('document.documentElement.scrollHeight');
     const t0 = Date.now();
     await page.evaluate(SLOW_SCROLL);
     const scrollMs = Date.now() - t0;
     const video = page.video();
     await ctx.close();
-    const out = join(OUT2, `${rec.id}_${LABEL}.webm`);
+    const out = join(OUT2, `${nameOf(rec.id, LABEL)}.webm`);
     renameSync(await video.path(), out);
-    const sheet = contactSheet(out, { name: `${rec.id}_${LABEL}`, width: rec.width }, OUT2);
+    const sheet = contactSheet(out, { name: nameOf(rec.id, LABEL), width: rec.width }, OUT2);
     const strip = stagesFor(out, rec, LABEL, photoY, docH, scrollMs);
     results.recordings.push({ id: rec.id, label: LABEL, path: rec.path, width: rec.width, height: rec.height, photoY, docH, scrollMs, video: out, sheet, strip });
     console.log(`record2 ${rec.id}_${LABEL}: photoY=${photoY} scroll=${scrollMs}ms sheet=${!!sheet} strip=${!!strip}`);
@@ -284,7 +299,7 @@ function stagesFor(video, rec, label, photoY, docH, scrollMs) {
   if (photoY === null || !docH || !scrollMs) return null;
   const pace = Math.max(1, (docH - rec.height) / Math.max(1, (scrollMs - 1500) / 1000)); // px/s
   const tPhoto = 0.9 + Math.max(0, photoY - rec.height * 0.75) / pace;
-  return keyStages(video, `${rec.id}_${label}`, [Math.max(0.3, tPhoto - 0.5), tPhoto + 0.25, tPhoto + 0.7, tPhoto + 1.6], OUT2);
+  return keyStages(video, nameOf(rec.id, label), [Math.max(0.3, tPhoto - 0.5), tPhoto + 0.25, tPhoto + 0.7, tPhoto + 1.6], OUT2);
 }
 
 // ── 6. Desktop freeze proof: computed motion styles + settled end-state screenshots ──────
@@ -303,7 +318,9 @@ if (ONLY === 'desktop') {
       const out={};for(const s of sel){const e=document.querySelector(s);if(!e)continue;const c=getComputedStyle(e);out[s]={};for(const p of pick)out[s][p]=c.getPropertyValue(p);}
       out.__stepsRoot=getComputedStyle(document.body).getPropertyValue('--m-dur')+'|'+getComputedStyle(document.body).getPropertyValue('--m-scale');return out;})()`);
     await page.evaluate(AUDIT_SCROLL);
-    await page.evaluate('window.scrollTo(0,0)'); await sleep(400);
+    // Settle long enough for every entry transition to finish before the end-state shot
+    // (the homepage has 80+ targets; a 400 ms wait still caught a few in flight).
+    await page.evaluate('window.scrollTo(0,0)'); await sleep(Number(argOf('--settle') || 2600));
     const shot = join(OUT2, `desktop_${path.replace(/[^a-z]+/gi, '') || 'home'}_${width}_${LABEL}.png`);
     await page.screenshot({ path: shot, fullPage: true });
     desktop.push({ path, width, styles, shot });
