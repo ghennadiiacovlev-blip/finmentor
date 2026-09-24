@@ -72,6 +72,22 @@ const RECORD = [
   { name: 'real-estate-390-mobile-motion', path: '/real-estate-control-system.html', width: 390, height: 844 },
   { name: 'ro-homepage-390-mobile-motion', path: '/ro/', width: 390, height: 844 },
 ];
+// Pass 2 owner-review set: identical viewport, scroll, start point, engine and content state for
+// both labels ("before" from the production worktree, "pass2" from the branch).
+//   node qa/mobile-motion-evidence.mjs --only record2 --label before|pass2 --out <dir>
+const LABEL = argOf('--label') || PHASE;
+const OUT2 = argOf('--out') || join(ROOT, 'qa-artifacts', 'mobile-motion-pass-2');
+const RECORD2 = [
+  { id: '01_homepage_390', path: '/', width: 390, height: 844 },
+  { id: '02_homepage_430', path: '/', width: 430, height: 932 },
+  { id: '03_about_390', path: '/about.html', width: 390, height: 844 },
+  { id: '04_practice_390', path: '/cases.html', width: 390, height: 844 },
+  { id: '05_real-estate_390', path: '/real-estate-control-system.html', width: 390, height: 844 },
+  { id: '06_materials_390', path: '/materials.html', width: 390, height: 844 },
+];
+const PHOTO_SEL = '.industries__figure, [data-fx="unveil"], .capital-management, .fx-stage__media';
+const DESKTOP_WIDTHS = [1024, 1280, 1440, 1728];
+const DESKTOP_PAGES = ['/', '/about.html', '/business-models.html', '/capital-management.html'];
 const BOOT = (lang) => `try{localStorage.setItem('finmentor_language','${lang}');sessionStorage.setItem('fm_intro_played','1');localStorage.setItem('finmentor_cookie_consent','deny');}catch(e){}`;
 const langOf = (p) => (p.startsWith('/ro') ? 'ro' : 'ru');
 const results = { phase: PHASE, head: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim(), captured: new Date().toISOString(), perf: [], webkit: [], reduced: [], recordings: [] };
@@ -181,7 +197,7 @@ if (ONLY === 'sheets') {
 
 // Two frames per second, half size, six per row: the whole scroll on one reviewable page.
 // Playwright's ffmpeg has no tile filter, so frames are extracted and laid out here.
-function contactSheet(video, rec) {
+function contactSheet(video, rec, outDir = EVI) {
   if (!FFMPEG) return null;
   const dir = mkdtempSync(join(tmpdir(), 'fm-frames-'));
   // A third of the device width keeps a whole 16–25 s scroll under ~1 MB per sheet.
@@ -189,12 +205,122 @@ function contactSheet(video, rec) {
   if (r.status !== 0) { console.log('ffmpeg: ' + r.stderr); return null; }
   const frames = readdirSync(dir).filter((f) => f.endsWith('.png')).sort().map((f) => join(dir, f));
   if (!frames.length) return null;
-  const sheet = join(EVI, `${rec.name}-sheet.png`);
+  const sheet = join(outDir, `${rec.name}-sheet.png`);
   writeFileSync(sheet, tileFrames(frames, { cols: 6 }));
   rmSync(dir, { recursive: true, force: true });
   return sheet;
 }
 
+// Four full-size frames at given seconds — initial → entering → reveal → settled — in one strip.
+function keyStages(video, name, times, outDir) {
+  if (!FFMPEG) return null;
+  const dir = mkdtempSync(join(tmpdir(), 'fm-stages-'));
+  const frames = [];
+  times.forEach((t, i) => {
+    const f = join(dir, `s_${i}.png`);
+    const r = spawnSync(FFMPEG, ['-y', '-loglevel', 'error', '-ss', t.toFixed(2), '-i', video, '-frames:v', '1', f], { encoding: 'utf8' });
+    if (r.status === 0 && existsSync(f)) frames.push(f);
+  });
+  if (frames.length < 2) { rmSync(dir, { recursive: true, force: true }); return null; }
+  const strip = join(outDir, `${name}-stages.png`);
+  writeFileSync(strip, tileFrames(frames, { cols: 4, gap: 10 }));
+  rmSync(dir, { recursive: true, force: true });
+  return strip;
+}
+
+// ── 5. Pass 2 owner-review recordings: before vs pass2, same everything ─────────────────
+if (ONLY === 'record2') {
+  mkdirSync(OUT2, { recursive: true });
+  const browser = await webkit.launch();
+  for (const rec of RECORD2) {
+    const ctx = await browser.newContext({ viewport: { width: rec.width, height: rec.height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, recordVideo: { dir: OUT2, size: { width: rec.width, height: rec.height } } });
+    await ctx.addInitScript(BOOT(langOf(rec.path)));
+    const page = await ctx.newPage();
+    await page.goto(ORIGIN + rec.path, { waitUntil: 'load' });
+    await sleep(900);
+    // Where the first editorial photograph sits, so the key-stage strip can be cut around it.
+    const photoY = await page.evaluate(`(()=>{const el=[...document.querySelectorAll(${JSON.stringify(PHOTO_SEL)})].find(e=>e.getBoundingClientRect().top+scrollY>innerHeight*0.6);return el?Math.round(el.getBoundingClientRect().top+scrollY):null;})()`);
+    const docH = await page.evaluate('document.documentElement.scrollHeight');
+    const t0 = Date.now();
+    await page.evaluate(SLOW_SCROLL);
+    const scrollMs = Date.now() - t0;
+    const video = page.video();
+    await ctx.close();
+    const out = join(OUT2, `${rec.id}_${LABEL}.webm`);
+    renameSync(await video.path(), out);
+    const sheet = contactSheet(out, { name: `${rec.id}_${LABEL}`, width: rec.width }, OUT2);
+    const strip = stagesFor(out, rec, LABEL, photoY, docH, scrollMs);
+    results.recordings.push({ id: rec.id, label: LABEL, path: rec.path, width: rec.width, height: rec.height, photoY, docH, scrollMs, video: out, sheet, strip });
+    console.log(`record2 ${rec.id}_${LABEL}: photoY=${photoY} scroll=${scrollMs}ms sheet=${!!sheet} strip=${!!strip}`);
+  }
+  await browser.close();
+}
+
+// Rebuild only the key-stage strips from recordings already on disk (uses the measured scroll
+// pace stored in evidence_record2_<label>.json):  --only stages2 --label before|pass2 --out <dir>
+if (ONLY === 'stages2') {
+  const manifest = JSON.parse(readFileSync(join(OUT2, `evidence_record2_${LABEL}.json`), 'utf8'));
+  const browser = await webkit.launch();
+  for (const r of manifest.recordings) {
+    let docH = r.docH;
+    if (!docH) { // older manifest: read the page height once, same viewport
+      const ctx = await browser.newContext({ viewport: { width: r.width, height: r.height || (r.width === 430 ? 932 : 844) }, isMobile: true, hasTouch: true });
+      await ctx.addInitScript(BOOT(langOf(r.path)));
+      const page = await ctx.newPage(); await page.goto(ORIGIN + r.path, { waitUntil: 'load' }); await sleep(600);
+      docH = await page.evaluate('document.documentElement.scrollHeight'); await ctx.close();
+    }
+    const rec = { id: r.id, width: r.width, height: r.height || (r.width === 430 ? 932 : 844) };
+    r.strip = stagesFor(r.video, rec, LABEL, r.photoY, docH, r.scrollMs);
+    r.docH = docH;
+    console.log(`stages2 ${r.id}_${LABEL}: ${r.strip ? 'ok' : 'no photograph after the first viewport'}`);
+  }
+  await browser.close();
+  writeFileSync(join(OUT2, `evidence_record2_${LABEL}.json`), JSON.stringify(manifest, null, 2));
+}
+
+// Key stages around the first editorial photograph, cut at the MEASURED scroll pace of that
+// recording: initial (photo still below the trigger) → entering → mid-reveal → settled.
+function stagesFor(video, rec, label, photoY, docH, scrollMs) {
+  if (photoY === null || !docH || !scrollMs) return null;
+  const pace = Math.max(1, (docH - rec.height) / Math.max(1, (scrollMs - 1500) / 1000)); // px/s
+  const tPhoto = 0.9 + Math.max(0, photoY - rec.height * 0.75) / pace;
+  return keyStages(video, `${rec.id}_${label}`, [Math.max(0.3, tPhoto - 0.5), tPhoto + 0.25, tPhoto + 0.7, tPhoto + 1.6], OUT2);
+}
+
+// ── 6. Desktop freeze proof: computed motion styles + settled end-state screenshots ──────
+if (ONLY === 'desktop') {
+  mkdirSync(OUT2, { recursive: true });
+  const browser = await launchChromium();
+  const desktop = [];
+  for (const width of DESKTOP_WIDTHS) for (const path of DESKTOP_PAGES) {
+    const ctx = await browser.newContext({ viewport: { width, height: 1000 }, deviceScaleFactor: 1 });
+    await ctx.addInitScript(BOOT('ru'));
+    const page = await ctx.newPage();
+    await page.goto(ORIGIN + path, { waitUntil: 'load' });
+    await sleep(600);
+    const styles = await page.evaluate(`(()=>{const pick=['transition-duration','transition-delay','transition-timing-function','transform','clip-path','opacity','animation-name','animation-duration'];
+      const sel=['.reveal','.overline','.section-title','.hero__media img','.capital-management__media img','.industries__figure img','[data-fx]','[data-fx="unveil"] img','.fx-stage__media img','.package .m-c'];
+      const out={};for(const s of sel){const e=document.querySelector(s);if(!e)continue;const c=getComputedStyle(e);out[s]={};for(const p of pick)out[s][p]=c.getPropertyValue(p);}
+      out.__stepsRoot=getComputedStyle(document.body).getPropertyValue('--m-dur')+'|'+getComputedStyle(document.body).getPropertyValue('--m-scale');return out;})()`);
+    await page.evaluate(AUDIT_SCROLL);
+    await page.evaluate('window.scrollTo(0,0)'); await sleep(400);
+    const shot = join(OUT2, `desktop_${path.replace(/[^a-z]+/gi, '') || 'home'}_${width}_${LABEL}.png`);
+    await page.screenshot({ path: shot, fullPage: true });
+    desktop.push({ path, width, styles, shot });
+    console.log(`desktop ${path} @${width}: styles captured, end-state screenshot`);
+    await ctx.close();
+  }
+  await browser.close();
+  writeFileSync(join(OUT2, `desktop_${LABEL}.json`), JSON.stringify(desktop, null, 2));
+}
+
+// Pass 2 review modes write their own manifest beside the recordings, never into the phase set.
+if (ONLY === 'record2' || ONLY === 'desktop' || ONLY === 'stages2') {
+  if (ONLY !== 'stages2') writeFileSync(join(OUT2, `evidence_${ONLY}_${LABEL}.json`), JSON.stringify(results, null, 2));
+  server.close();
+  console.log('done →', OUT2);
+  process.exit(0);
+}
 // A partial run (--only …) keeps whatever the earlier phases of this evidence set recorded.
 const metricsPath = join(EVI, 'metrics.json');
 let merged = results;

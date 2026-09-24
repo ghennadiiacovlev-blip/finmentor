@@ -551,7 +551,13 @@
       // On a phone a photograph never leads: the headline enters, a short pause, then the
       // picture is uncovered, then the supporting copy. (Desktop keeps photographs first.)
       var PHOTO = '.industries__figure, [data-fx="unveil"], .capital-management';
-      var PHOTO_PAUSE = 160;
+      var PHOTO_PAUSE = 120;
+      // Pass 2 — a photograph on a phone starts only once about a quarter of the viewport
+      // has taken it in (its own observer, trigger line at 75%), and never on an empty
+      // shell: if its image is still loading, the reveal waits for it (capped, so a slow
+      // network can never leave the picture clipped).
+      var PHOTO_WAIT_MAX = 1200;
+      var photoImg = function (el) { return el.querySelector('img'); };
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [
         ['.chaos__verdict', '.chaos-card:last-child', 260],
@@ -595,9 +601,18 @@
         pending.delete(el);
         el.style.setProperty('--m-delay', delay + 'ms');
         el.__mAt = performance.now() + delay;
-        el.classList.add('is-visible');
-        // Let later transitions on the element (hover, focus) run without the entry delay.
-        window.setTimeout(function () { el.style.setProperty('--m-delay', '0ms'); }, delay + 2600);
+        var go = function () {
+          el.classList.add('is-visible');
+          // Let later transitions on the element (hover, focus) run without the entry delay.
+          window.setTimeout(function () { el.style.setProperty('--m-delay', '0ms'); }, delay + 2600);
+        };
+        var img = narrow.matches && el.matches(PHOTO) ? photoImg(el) : null;
+        if (!img || img.complete) { go(); return; }
+        var done = false;
+        var once = function () { if (done) return; done = true; go(); };
+        img.addEventListener('load', once, { once: true });
+        img.addEventListener('error', once, { once: true });
+        window.setTimeout(once, PHOTO_WAIT_MAX);
       };
       var instant = function (el) {
         pending.delete(el);
@@ -651,7 +666,7 @@
       var withWholeHero = function (batch) {
         if (!batch.some(function (el) { return el.closest('.hero'); })) return batch;
         pending.forEach(function (el) {
-          if (el.closest('.hero') && batch.indexOf(el) < 0) { io.unobserve(el); batch.push(el); }
+          if (el.closest('.hero') && batch.indexOf(el) < 0) { (el.matches(PHOTO) ? ioPhoto : io).unobserve(el); batch.push(el); }
         });
         return batch;
       };
@@ -665,21 +680,31 @@
         window.setTimeout(release, 12000); // never leave the hero waiting on a stalled intro
       }
 
-      var io = new IntersectionObserver(function (entries) {
-        var batch = [];
-        entries.forEach(function (en) {
-          var el = en.target;
-          if (en.isIntersecting) {
-            io.unobserve(el);
-            if (held && el.closest('.hero')) held.push(el); else batch.push(el);
-          } else if (en.boundingClientRect.bottom <= 0) {
-            io.unobserve(el);
-            instant(el);
-          }
-        });
-        if (batch.length) run(withWholeHero(batch));
-      }, { threshold: 0, rootMargin: '0px 0px -12% 0px' });
-      all.forEach(function (el) { io.observe(el); });
+      var onEntries = function (observer) {
+        return function (entries) {
+          var batch = [];
+          entries.forEach(function (en) {
+            var el = en.target;
+            if (en.isIntersecting) {
+              observer.unobserve(el);
+              if (held && el.closest('.hero')) held.push(el); else batch.push(el);
+            } else if (en.boundingClientRect.bottom <= 0) {
+              observer.unobserve(el);
+              instant(el);
+            }
+          });
+          if (batch.length) run(withWholeHero(batch));
+        };
+      };
+      var io = new IntersectionObserver(function (entries) { onEntries(io)(entries); },
+        { threshold: 0, rootMargin: '0px 0px -12% 0px' });
+      // Photographs on a phone wait until they are genuinely on screen (trigger at 75% of the
+      // viewport instead of 88%), so the uncovering is seen rather than already finished.
+      var ioPhoto = narrow.matches
+        ? new IntersectionObserver(function (entries) { onEntries(ioPhoto)(entries); },
+          { threshold: 0, rootMargin: '0px 0px -25% 0px' })
+        : io;
+      all.forEach(function (el) { (el.matches(PHOTO) ? ioPhoto : io).observe(el); });
 
       // A fling or an anchor jump can carry an element from below the fold to above
       // it between two observer ticks; sweep those once the scroll settles. The page
@@ -689,10 +714,11 @@
         var batch = [];
         pending.forEach(function (el) {
           if (held && el.closest('.hero')) return;
+          var obs = el.matches(PHOTO) ? ioPhoto : io;
           var r = el.getBoundingClientRect();
-          if (r.bottom <= 0) { io.unobserve(el); instant(el); }
+          if (r.bottom <= 0) { obs.unobserve(el); instant(el); }
           else if (r.top < vh && (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 4) {
-            io.unobserve(el); batch.push(el);
+            obs.unobserve(el); batch.push(el);
           }
         });
         if (batch.length) run(batch);

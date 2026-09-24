@@ -407,15 +407,23 @@ body.fx-page { background: var(--fx-navy); }
    load (opacity 0.92 → 1, 1.025 → 1) — painted from the first frame, so LCP is unaffected.
    The Real Estate cover keeps its approved, motionless state. Desktop rules are untouched. */
 @media (max-width: 860px) {
-  [data-fx] { transition-duration: 720ms, 720ms, 900ms; }
+  /* Pass 2: text stays quiet (640ms, 14px); photographs are the event. A framed photograph is
+     uncovered behind its own rounded frame — top → bottom by default, bottom → top for the
+     founder portrait, which rises into its frame — while the picture settles from 1.045 and
+     20px. Covers settle from 1.05 at load, painted from the first frame. */
+  [data-fx] { transition-duration: 640ms, 640ms, 900ms; }
   .m-js [data-fx="rise"]:not(.is-visible) { transform: translateY(14px); }
   .m-js [data-fx="glide"]:not(.is-visible), .m-js [data-fx="glide-r"]:not(.is-visible) { transform: translateY(14px); }
   .m-js [data-fx="unveil"]:not(.is-visible) { clip-path: inset(0 0 100% 0 round var(--fx-pr)); }
-  .m-js [data-fx="unveil"]:not(.is-visible) img { transform: scale(1.03); }
+  .m-js .pg-about [data-fx="unveil"]:not(.is-visible) { clip-path: inset(100% 0 0 0 round var(--fx-pr)); }
+  .m-js [data-fx="unveil"]:not(.is-visible) img { transform: scale(1.045) translateY(20px); }
+  /* settled state as an explicit inset(0 … round r): a clip-path only animates between two
+     basic shapes of the same kind — towards none it jumps */
+  .m-js [data-fx="unveil"].is-visible { clip-path: inset(0 0 0 0 round var(--fx-pr)); }
   [data-fx="unveil"] img { transition-duration: 900ms; }
-  @keyframes fxCoverSettle { from { opacity: 0.92; transform: scale(1.025); } to { opacity: 1; transform: none; } }
+  @keyframes fxCoverSettle { from { opacity: 0.9; transform: scale(1.05); } to { opacity: 1; transform: none; } }
   .m-js .rd-page:not(.rd-solution) .rd-cover--photo .fx-stage__media img,
-  .m-js .pg-capital .cm-stage .fx-stage__media img { animation: fxCoverSettle 900ms var(--fx-ease) both; }
+  .m-js .pg-capital .cm-stage .fx-stage__media img { animation: fxCoverSettle 1000ms var(--fx-ease) both; }
 }
 
 /* ==========================================================================
