@@ -1928,9 +1928,9 @@ html .rd-page .rd-cover--photo + .rd-sheet > .container:first-child > .doc > sec
    its own. Rendered by client-voices.js from data/testimonials.js and hidden until a
    consent-approved, published voice exists for the page language.
    ========================================================================== */
-.home .client-voices[data-client-voices] { background: var(--fx-ivory); padding-block: 0 clamp(72px, 8vw, 130px); }
+.home .client-voices[data-client-voices] { background: #FCFBF8; padding-block: clamp(40px, 4vw, 64px) clamp(88px, 9vw, 150px); }
 .home .client-voices[data-client-voices][hidden] { display: none; }
-.home .client-voices[data-client-voices] .client-voices__inner { border-top: 1px solid rgba(8, 17, 31, 0.3); padding-top: clamp(44px, 5vw, 84px); }
+.home .client-voices[data-client-voices] .client-voices__inner { border-top: 1px solid rgba(8, 17, 31, 0.16); padding-top: clamp(44px, 5vw, 84px); }
 .home .client-voices[data-client-voices] .client-voices__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; margin-bottom: clamp(32px, 4vw, 60px); }
 .home .client-voices[data-client-voices] .overline { margin: 0; font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold); }
 /* the consent note: a discreet footnote after the voices — no box, no rule, muted */
