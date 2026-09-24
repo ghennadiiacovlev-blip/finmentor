@@ -535,16 +535,23 @@
     try {
       var narrow = window.matchMedia('(max-width: 860px)');
       // [selector, desktop step, mobile step] — the pause between siblings.
+      // Mobile (≤ 860px) steps are deliberately wider than desktop's: a phone shows one idea
+      // per viewport, so its elements arrive one after another (80–120ms) rather than as a
+      // single group — one or two things moving at any moment, never five.
       var STEPS = [
-        ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 70],
-        ['.capital-cycle__stage', 110, 60],
-        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 45],
+        ['.pillar, .package, .packages__expert, .step-card, .result-card, .sample-card', 120, 110],
+        ['.capital-cycle__stage', 110, 90],
+        ['.chaos-card, .industry-card, .audience__item, .after-step, .capital-principle, .diff__row, .about-method__row, .topic-row', 80, 80],
         // editorial primitives: panels and stages follow one another; rows are quicker
-        ['.fx-principles > [data-fx], .fx-deck > [data-fx], .fx-related > [data-fx], .fx-mosaic > [data-fx]', 110, 60],
-        ['.fx-sequence > [data-fx], .fx-rows > [data-fx]', 70, 40],
+        ['.fx-principles > [data-fx], .fx-deck > [data-fx], .fx-related > [data-fx], .fx-mosaic > [data-fx]', 110, 100],
+        ['.fx-sequence > [data-fx], .fx-rows > [data-fx]', 70, 70],
         // statement scene: the word, then its question — a deliberate pause
-        ['.fx-word > [data-fx]', 380, 200]
+        ['.fx-word > [data-fx]', 380, 260]
       ];
+      // On a phone a photograph never leads: the headline enters, a short pause, then the
+      // picture is uncovered, then the supporting copy. (Desktop keeps photographs first.)
+      var PHOTO = '.industries__figure, [data-fx="unveil"], .capital-management';
+      var PHOTO_PAUSE = 160;
       // [element, the element it must follow, minimum gap in ms after that one starts]
       var AFTER = [
         ['.chaos__verdict', '.chaos-card:last-child', 260],
@@ -575,10 +582,10 @@
         for (var i = 0; i < STEPS.length; i++) {
           if (el.matches(STEPS[i][0])) return narrow.matches ? STEPS[i][2] : STEPS[i][1];
         }
-        return narrow.matches ? 55 : 90;
+        return narrow.matches ? 95 : 90;
       };
       var isPhoto = function (el) {
-        return el.matches('.hero--editorial, .industries__figure');
+        return el.matches(narrow.matches ? '.hero--editorial' : '.hero--editorial, .industries__figure');
       };
       var byOrder = function (a, b) {
         if (isPhoto(a) !== isPhoto(b)) return isPhoto(a) ? -1 : 1;
@@ -615,11 +622,12 @@
         // (a first pass around an anchor jump can report a whole page).
         var spread = 0;
         batch.forEach(function (el, i) { if (i > 0) spread += stepOf(el); });
-        var MAX_SPREAD = narrow.matches ? 600 : 900;
+        var MAX_SPREAD = narrow.matches ? 800 : 900;
         var squeeze = spread > MAX_SPREAD ? MAX_SPREAD / spread : 1;
         batch.forEach(function (el, i) {
           if (el.closest('.hero') && !el.classList.contains('hero')) { heroItems.push(el); return; }
           if (i > 0) t += Math.round(stepOf(el) * squeeze);
+          if (narrow.matches && i > 0 && el.matches(PHOTO)) t += PHOTO_PAUSE;
           var d = t;
           for (var k = 0; k < AFTER.length; k++) {
             if (!el.matches(AFTER[k][0])) continue;
