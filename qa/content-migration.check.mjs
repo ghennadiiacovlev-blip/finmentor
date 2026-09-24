@@ -11,9 +11,12 @@ import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = process.argv[2] || '392efde';
+// The professional-experience value is computed, never typed: qa/experience-counter.test.mjs.
+const YEARS = createRequire(import.meta.url)(join(ROOT, 'experience.js')).formatExperienceYears();
 const HUBS = ['index.html', 'owner.html', 'capital-management.html', 'business-models.html', 'about.html', 'materials.html'];
 // Homepage material cards are teasers of the library: they are proven by their link reaching
 // materials.html (which titles its own cards), not by identical teaser text.
@@ -22,6 +25,15 @@ const TEASERS = /<a class="material-card[\s\S]*?<\/a>/g;
 // Owner-approved wording changes (brief IA 2.0 §3, §11, §47): [baseline text, replacement].
 const EDITS = {
   ru: [
+    // Refine-proof-practice-flow: the hero proof line and the About thesis carry the computed experience value.
+    ['15+ лет в корпоративных финансах', YEARS + ' лет в корпоративных финансах'],
+    ['на основе многолетней практики финансового директора и работы', 'на основе ' + YEARS + ' лет практики в корпоративных финансах и финансовом управлении и работы'],
+    // Practice scene: situation → CFO control → owner decision (decisions end with the owner, not an instrument);
+    // CFO Control Partner cycle: … → действие → контроль.
+    ['Денежный поток, реестр дебиторской и кредиторской задолженности, платёжный календарь и приоритеты платежей.', 'Под контроль берутся денежный поток, дебиторская и кредиторская задолженность, запасы и очередь платежей — деньги видны там, где они заморожены.'],
+    ['Собственник видит кассовый разрыв на 30 дней вперёд и получает план действий.', 'Собственник заранее видит дефицит денег на 30 дней вперёд и понимает, какие платежи можно провести без угрозы ликвидности и какую дебиторку возвращать первой.'],
+    ['Структура управленческого отчёта о прибыли и убытках, денежного потока и панели собственника.', 'Управленческий отчёт о прибыли и убытках, денежный поток и обязательства — в одной структуре и одной панели собственника.'],
+    ['цифры → анализ → решение → исполнение → контроль', 'цифры → анализ → решение → действие → контроль'],
     ['Платежи согласуются хаотично, без приоритетов и фондов.', 'Платежи согласуются без приоритетов и резервов.'],
     ['Собственник не видит ключевые показатели, риски и отклонения в одном месте.', 'Собственник не видит деньги, результат и риски в одной системе.'],
     ['Это диагностика, а не аудит, due diligence, полная финансовая модель или внедрение системы.', 'Это диагностика, а не аудит, комплексная проверка (due diligence), полная финансовая модель или внедрение системы.'],
@@ -33,6 +45,11 @@ const EDITS = {
     ['Много Excel-файлов, но нет единой картины — прибыль, деньги и обязательства порознь.', 'Отчётов много. Единой картины нет. Прибыль, деньги и обязательства существуют отдельно.'],
   ],
   ro: [
+    ['15+ ani în finanțe corporative', YEARS + ' ani în finanțe corporative'],
+    ['pe baza practicii mele de mulți ani ca director financiar și a lucrului', 'pe baza a ' + YEARS + ' ani de practică în finanțe corporative și management financiar și a lucrului'],
+    ['Proprietarul vede golul de numerar cu 30 de zile înainte și primește un plan de acțiuni.', 'Proprietarul vede din timp deficitul de numerar pe 30 de zile înainte și înțelege ce plăți pot fi efectuate fără a pune în pericol lichiditatea și ce creanțe trebuie recuperate mai întâi.'],
+    ['Structura contului de profit și pierdere managerial, a fluxului de numerar și a tabloului de bord al proprietarului.', 'Contul de profit și pierdere managerial, fluxul de numerar și obligațiile — într-o singură structură și un singur tablou de bord al proprietarului.'],
+    ['cifre → analiză → decizie → execuție → control', 'cifre → analiză → decizie → acțiune → control'],
     ['Plățile se aprobă haotic, fără priorități și fonduri.', 'Plățile se aprobă fără priorități și fără rezerve.'],
     ['Proprietarul nu vede indicatorii-cheie, riscurile și abaterile într-un singur loc.', 'Proprietarul nu vede banii, rezultatul și riscurile într-un singur sistem.'],
     ['Este un diagnostic, nu audit, due diligence, model financiar complet sau implementare de sistem.', 'Este un diagnostic, nu audit, verificare aprofundată (due diligence), model financiar complet sau implementare de sistem.'],
