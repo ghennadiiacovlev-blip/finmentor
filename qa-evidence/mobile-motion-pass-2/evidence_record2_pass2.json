@@ -1,0 +1,88 @@
+{
+  "phase": "after",
+  "head": "fa83d0e4096d6614fe205ead207274b30fb7c48b",
+  "captured": "2026-09-24T09:38:54.155Z",
+  "perf": [],
+  "webkit": [],
+  "reduced": [],
+  "recordings": [
+    {
+      "id": "01_homepage_390",
+      "label": "pass2",
+      "path": "/",
+      "width": 390,
+      "height": 844,
+      "photoY": 3466,
+      "docH": 17824,
+      "scrollMs": 33949,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\01_homepage_390_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\01_homepage_390_pass2-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\01_homepage_390_pass2-stages.png"
+    },
+    {
+      "id": "02_homepage_430",
+      "label": "pass2",
+      "path": "/",
+      "width": 430,
+      "height": 932,
+      "photoY": 3419,
+      "docH": 17260,
+      "scrollMs": 32671,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\02_homepage_430_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\02_homepage_430_pass2-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\02_homepage_430_pass2-stages.png"
+    },
+    {
+      "id": "03_about_390",
+      "label": "pass2",
+      "path": "/about.html",
+      "width": 390,
+      "height": 844,
+      "photoY": 1197,
+      "docH": 7062,
+      "scrollMs": 13407,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\03_about_390_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\03_about_390_pass2-sheet.png",
+      "strip": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\03_about_390_pass2-stages.png"
+    },
+    {
+      "id": "04_practice_390",
+      "label": "pass2",
+      "path": "/cases.html",
+      "width": 390,
+      "height": 844,
+      "photoY": null,
+      "docH": 13136,
+      "scrollMs": 25033,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\04_practice_390_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\04_practice_390_pass2-sheet.png",
+      "strip": null
+    },
+    {
+      "id": "05_real-estate_390",
+      "label": "pass2",
+      "path": "/real-estate-control-system.html",
+      "width": 390,
+      "height": 844,
+      "photoY": null,
+      "docH": 7707,
+      "scrollMs": 14583,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\05_real-estate_390_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\05_real-estate_390_pass2-sheet.png",
+      "strip": null
+    },
+    {
+      "id": "06_materials_390",
+      "label": "pass2",
+      "path": "/materials.html",
+      "width": 390,
+      "height": 844,
+      "photoY": null,
+      "docH": 22169,
+      "scrollMs": 42106,
+      "video": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\06_materials_390_pass2.webm",
+      "sheet": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-motion-pass-2\\06_materials_390_pass2-sheet.png",
+      "strip": null
+    }
+  ]
+}

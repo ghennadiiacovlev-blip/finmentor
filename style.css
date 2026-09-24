@@ -8695,13 +8695,15 @@ body.fm-shell { padding-top: var(--header-h); }
    as uncovered, never zoomed. */
 @media (max-width: 860px) {
   .home {
-    --m-dur: 720ms;
-    --m-dur-row: 560ms;
-    --m-dur-img: 900ms;
+    --m-dur: 640ms;
+    --m-dur-row: 520ms;
+    --m-dur-img: 950ms;
     --m-rise: 14px;
     --m-rise-row: 10px;
     --m-rise-small: 8px;
-    --m-scale: 1.025;
+    --m-scale: 1.025;          /* the hero photograph: a restrained finish only */
+    --m-scale-photo: 1.055;    /* editorial photographs: composed into the page */
+    --m-settle-photo: 22px;    /* their vertical settle */
   }
 }
 
@@ -8824,6 +8826,24 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
   opacity: 0.01;
   transform: scale(var(--m-scale));
 }
+@media (max-width: 860px) {
+  /* Pass 2: the picture rises into place from the bottom edge of its own section (the
+     section already reserves the space; only clip-path and transform animate). */
+  .m-js .home .capital-management__media img {
+    transition: opacity var(--m-dur-img) var(--m-ease),
+                transform var(--m-dur-img) var(--m-ease),
+                clip-path var(--m-dur-img) var(--m-ease);
+    transition-delay: var(--m-delay, 0ms);
+  }
+  .m-js .home .capital-management:not(.is-visible) .capital-management__media img {
+    opacity: 0.01;
+    clip-path: inset(100% 0 0 0);
+    transform: scale(var(--m-scale-photo, 1.055)) translateY(var(--m-settle-photo, 22px));
+  }
+  /* the settled state is an explicit inset(0): a clip-path can only animate between two
+     basic shapes — towards 'none' it jumps, which is what made Pass 1 read as a fade */
+  .m-js .home .capital-management.is-visible .capital-management__media img { clip-path: inset(0 0 0 0); }
+}
 .m-js .home .capital-cycle::before {
   transform: scaleY(0);
   transform-origin: top center;
@@ -8841,6 +8861,12 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
 .m-js .home .industries__figure.reveal:not(.is-visible) img {
   clip-path: inset(0 0 100% 0);
   transform: scale(1.03);
+}
+@media (max-width: 860px) {
+  .m-js .home .industries__figure.reveal:not(.is-visible) img {
+    transform: scale(var(--m-scale-photo, 1.055)) translateY(var(--m-settle-photo, 22px));
+  }
+  .m-js .home .industries__figure.reveal.is-visible img { clip-path: inset(0 0 0 0); }
 }
 /* a methodology opens only on request, and then quietly */
 @keyframes mDetailOpen {

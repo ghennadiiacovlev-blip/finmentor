@@ -21,11 +21,11 @@ No bounce, rotation, 3D, blur, parallax, looping or scroll-linked movement.
 |---|---|---|
 | `--m-ease` | `cubic-bezier(0.2, 0.7, 0.12, 1)`: long, quiet deceleration | same |
 | `--m-ease-line` | `cubic-bezier(0.42, 0.08, 0.28, 1)`: near-even, so a spine reads as progress | same |
-| `--m-dur` (text) | 820ms | 720ms |
-| `--m-dur-row` | 700ms | 560ms |
-| `--m-dur-img` | 1150ms | 900ms |
+| `--m-dur` (text) | 820ms | 640ms |
+| `--m-dur-row` | 700ms | 520ms |
+| `--m-dur-img` | 1150ms | 950ms |
 | `--m-rise` / `-row` / `-small` | 26 / 16 / 12px | 14 / 10 / 8px |
-| `--m-scale` | 1.025 | 1.025 |
+| `--m-scale` (hero) / `--m-scale-photo` | 1.025 / — | 1.025 / 1.055 (+ 22px settle) |
 | Stagger step (text / rows / units) | 90 / 80 / 120ms | 95 / 80 / 110ms |
 
 ### 2a. Mobile grammar (≤ 860px) — the mobile motion pass
@@ -33,7 +33,7 @@ No bounce, rotation, 3D, blur, parallax, looping or scroll-linked movement.
 One viewport, one idea, one controlled sequence. Desktop is untouched; every rule below is
 inside a `max-width: 860px` query or behind the engine's `narrow` check.
 
-- **Slower and further apart, not more.** Text 720ms, rows 560ms; the batch stagger widens to
+- **Quiet text, further apart.** Text 640ms, rows 520ms; the batch stagger widens to
   80–110ms (statement scene 260ms) and a batch may spread to 800ms, so one or two elements
   move at any moment instead of a group arriving together. Travel stays at 8–14px.
 - **The photograph never leads on a phone.** The headline enters, a 160ms pause, then the
@@ -49,6 +49,32 @@ inside a `max-width: 860px` query or behind the engine's `narrow` check.
 - **Menu:** unchanged (240ms, 40ms item stagger already reads as fast and confident).
 - Reduced motion, no-JS and the failsafe behave exactly as before: `m-js` absent → complete
   page, no clip, no transform, no animation.
+
+### 2b. Pass 2 — photography is the event (≤ 860px)
+
+Owner feedback on Pass 1: technically right, visually too subtle. Pass 2 keeps the text quiet
+(640ms, 14px) and makes the photographs clearly perceptible, still calm:
+
+- **Composed into the page, not popped.** Editorial photographs settle from **1.055 and 22px**
+  over **950ms** (PHOTO 02, PHOTO 03); framed photographs from **1.045 and 20px** over 900ms;
+  photographic covers from **1.05 / opacity 0.9** over 1000ms at load. Nothing flies, bounces or blurs.
+- **Real masks, direction by composition.** PHOTO 02 (the capital scene) rises from the bottom
+  edge of its own section; PHOTO 03 and the Business-models figure are uncovered top → bottom;
+  the founder portrait rises bottom → top into its rounded frame. The container already holds
+  its final size — only `clip-path` and `transform` animate, so CLS stays ≈ 0.
+- **Seen, not already finished.** Photographs use their own IntersectionObserver on a phone
+  with the trigger line at **75%** of the viewport (text keeps 88%), and a picture starts only
+  after the headline plus a **120ms** pause; the copy follows one step (80–110ms) later.
+- **Never an empty shell.** If the image is still loading when its turn comes, the reveal waits
+  for `load` (capped at 1200ms) so the mask never opens on nothing.
+- Once only, settled on the way back, no replay; desktop rules untouched; reduced motion,
+  no-JS and the failsafe unchanged.
+- **Why Pass 1 read as a fade (root cause found in Pass 2).** A clip-path only animates between
+  two basic shapes of the same kind. Every mask so far ended at the implicit value none, and a
+  transition towards none does not interpolate — it jumps the moment the class lands, leaving
+  only the scale to be seen. On a phone the settled state is now an explicit inset(0 …), so the
+  mask actually opens over its 900–950ms (verified in WebKit: 100% → 20% → 2% → 0). Desktop still
+  carries the old behaviour on purpose (frozen); it is noted as a follow-up, not changed here.
 
 ## 3. Engine (`main.js › initReveal`)
 
