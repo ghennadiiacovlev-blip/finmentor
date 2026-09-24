@@ -142,7 +142,7 @@ The counter is kept exactly as implemented. No redesign, no new content, no depl
 | Refinement branch | `design/refine-proof-practice-flow` (local only, not pushed) |
 | Refinement HEAD | `e29d1b64ddf3116802cba4eec8cbd1e0522262f6` — exactly one commit on top of the baseline |
 | Relationship | fast-forward onto `redesign/visual-system-2` (ahead 1 / behind 0, merge-base = baseline) |
-| `git status` | 4 tracked files modified, 4 untracked files — **all belong to the concurrent Real Estate work, none to the refinement** |
+| `git status` | 4 tracked files modified, 10 untracked PNGs + `test-results/` — **all belong to the concurrent Real Estate work, none to the refinement** |
 
 ### 7.2 Files outside the refinement commit (concurrent Real Estate work)
 
@@ -152,11 +152,14 @@ The counter is kept exactly as implemented. No redesign, no new content, no depl
 | `real-estate-control-system.html` | modified, uncommitted | adds class `doc-hero__flow` to the hero context line (1 line) |
 | `ro/real-estate-control-system.html` | modified, uncommitted | same, Romanian (1 line) |
 | `qa/production-layout-regression.spec.mjs` | modified, uncommitted | Chrome executable lookup + `REAL_ESTATE_FLOWS` + new Playwright test «real-estate flow text stays inside its content-driven frame» (+92 lines) |
-| `real-estate-flow-1440-RU-after.png`, `real-estate-flow-1440-RO-after.png`, `real-estate-flow-390-RU-after.png`, `real-estate-flow-390-RO-after.png` | untracked | evidence renders written to the repository root (3.1 MB) |
+| `real-estate-flow-{1440,390}-{RU,RO}-after.png` (4 files) | untracked | evidence renders written to the repository root (3.1 MB) |
+| `real-estate-launcher-{1440,430,390}-{RU,RO}-before.png` (6 files) | untracked | further evidence renders, appeared 07:52–07:53 while this report was being written |
+| `test-results/` (`.last-run.json`) | untracked | Playwright run marker, 07:53 |
 
 Verification performed:
 - `git grep` for `doc-hero__flow` and `REAL_ESTATE_FLOWS` across **every local and remote ref**: no hit — these changes are **not part of any commit anywhere**; they exist only in this working tree.
 - Not in any stash (the single stash predates this work).
+- **The concurrent job was still active at 07:53** (spec file grew from +92 to +104 lines, new PNGs and `test-results/` appeared after the refinement commits). The inventory above is a snapshot at 07:54; re-run `git status` before acting on it.
 - Zero file overlap with the refinement commit (`git diff-tree` of `e29d1b6` ∩ `git diff --name-only` = ∅), so the two pieces of work are cleanly separable.
 - **They need their own commit before any merge.** Recommended: their owner commits them on a separate branch cut from `bf3cf0c` (e.g. `fix/real-estate-flow-frame`); whether the four root-level PNGs are committed is the owner's call (they would ship in the Pages payload). Nothing was discarded, overwritten or staged.
 
@@ -197,13 +200,13 @@ Decision: **kept as is** — it is an owner-provided, already-published source; 
 | `scripts/sync-experience-fallback.mjs --check` | all four pages `18+` | **all four pages `18+`; every root `*.js` parses** |
 | Rendered surfaces | 48 before / 48 after, overflow 0 | — |
 
-Clean-checkout run:  (status empty), then the same commands. The commit is
+Clean-checkout run: `git worktree add --detach <tmp> e29d1b6` (status empty), then the same commands. The commit is
 self-sufficient — the green result does not depend on the concurrent working-tree files.
 
 ### 7.7 Verdict
 
 **SAFE TO MERGE once the concurrent Real Estate changes are isolated** (committed on their own branch or
 deliberately set aside by their owner). The refinement commit fast-forwards onto
-, touches none of the concurrent files, passes the full canonical QA both with
+`redesign/visual-system-2`, touches none of the concurrent files, passes the full canonical QA both with
 and without them present, and introduces no new public claim beyond the owner-confirmed start date.
 Not merged, not pushed, not deployed.
