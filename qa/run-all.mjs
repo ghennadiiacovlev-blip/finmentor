@@ -119,6 +119,7 @@ const GATES = [
   ['Financial X-Ray authority and review', 'xray-analysis.test.mjs'],
   ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
+  ['Professional experience counter (one source, calendar rule, static fallback)', 'experience-counter.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
 

@@ -290,7 +290,10 @@ client counts, ROI figures, revenue improvements, testimonials, case-study numbe
 certifications, awards.
 
 The only proof line permitted in the hero is the one already published:
-`15+ лет в корпоративных финансах`.
+`N+ лет в корпоративных финансах`, where N is no longer typed by hand: since the
+refine-proof-practice-flow branch it is computed from the single career-start date in
+`experience.js` (August 2008, calendar-anniversary rule) and verified by
+`qa/experience-counter.test.mjs`.
 
 Where a content or architectural decision is uncertain, the existing implementation
 is **preserved** and recorded as a WATCH item in `REDESIGN_QA_REPORT.md`.
