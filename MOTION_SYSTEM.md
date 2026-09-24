@@ -21,12 +21,34 @@ No bounce, rotation, 3D, blur, parallax, looping or scroll-linked movement.
 |---|---|---|
 | `--m-ease` | `cubic-bezier(0.2, 0.7, 0.12, 1)`: long, quiet deceleration | same |
 | `--m-ease-line` | `cubic-bezier(0.42, 0.08, 0.28, 1)`: near-even, so a spine reads as progress | same |
-| `--m-dur` (text) | 820ms | 620ms |
-| `--m-dur-row` | 700ms | 520ms |
+| `--m-dur` (text) | 820ms | 720ms |
+| `--m-dur-row` | 700ms | 560ms |
 | `--m-dur-img` | 1150ms | 900ms |
 | `--m-rise` / `-row` / `-small` | 26 / 16 / 12px | 14 / 10 / 8px |
-| `--m-scale` | 1.025 | 1.012 |
-| Stagger step (text / rows / units) | 90 / 80 / 120ms | 55 / 45 / 70ms |
+| `--m-scale` | 1.025 | 1.025 |
+| Stagger step (text / rows / units) | 90 / 80 / 120ms | 95 / 80 / 110ms |
+
+### 2a. Mobile grammar (≤ 860px) — the mobile motion pass
+
+One viewport, one idea, one controlled sequence. Desktop is untouched; every rule below is
+inside a `max-width: 860px` query or behind the engine's `narrow` check.
+
+- **Slower and further apart, not more.** Text 720ms, rows 560ms; the batch stagger widens to
+  80–110ms (statement scene 260ms) and a batch may spread to 800ms, so one or two elements
+  move at any moment instead of a group arriving together. Travel stays at 8–14px.
+- **The photograph never leads on a phone.** The headline enters, a 160ms pause, then the
+  picture, then the supporting copy (`PHOTO_PAUSE` in `initReveal`; on desktop PHOTO 03 still
+  leads its batch).
+- **Framed photographs are uncovered, not popped.** `[data-fx="unveil"]` (About portrait,
+  Business-models figure) clips top → bottom behind its own rounded frame and settles from
+  1.03 — the language PHOTO 03 already used. Full-bleed photographs settle from 1.025.
+- **Covers settle once at load.** A photographic hub cover (`.rd-cover--photo`, the capital
+  stage) runs a 900ms opacity 0.92 → 1 / 1.025 → 1 keyframe; it is painted from the first
+  frame, so LCP is unchanged. The Real Estate cover (`.rd-solution`) is deliberately excluded.
+- **Hero:** unchanged apart from the wider statement step (90ms); first paint stays immediate.
+- **Menu:** unchanged (240ms, 40ms item stagger already reads as fast and confident).
+- Reduced motion, no-JS and the failsafe behave exactly as before: `m-js` absent → complete
+  page, no clip, no transform, no animation.
 
 ## 3. Engine (`main.js › initReveal`)
 

@@ -8689,15 +8689,19 @@ body.fm-shell { padding-top: var(--header-h); }
   --m-rise-small: 12px;
   --m-scale: 1.025;
 }
+/* Mobile motion pass: one viewport, one idea, one controlled sequence. Statements take a
+   little longer and arrive further apart than on desktop (the engine widens its stagger
+   below 860px); travel stays within 8–14px; a photograph settles from 1.025 so it reads
+   as uncovered, never zoomed. */
 @media (max-width: 860px) {
   .home {
-    --m-dur: 620ms;
-    --m-dur-row: 520ms;
+    --m-dur: 720ms;
+    --m-dur-row: 560ms;
     --m-dur-img: 900ms;
     --m-rise: 14px;
     --m-rise-row: 10px;
     --m-rise-small: 8px;
-    --m-scale: 1.012;
+    --m-scale: 1.025;
   }
 }
 
@@ -8771,7 +8775,7 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
 }
 @media (max-width: 860px) {
   .m-js .home .hero__statement.reveal > span {
-    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 70ms);
+    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 90ms);
   }
 }
 
@@ -8861,7 +8865,7 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
 }
 @media (max-width: 860px) {
   .m-js .home :is(.package, .packages__expert).reveal .m-c {
-    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 50ms);
+    transition-delay: calc(var(--m-delay, 0ms) + var(--m-k, 0) * 80ms);
   }
 }
 
