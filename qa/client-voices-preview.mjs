@@ -19,14 +19,17 @@ import { MOCK_TESTIMONIALS_JS } from './fixtures/client-voices.mock.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-const OUT = process.argv[2] || join(ROOT, 'qa-evidence', 'client-voices');
+const OUT = (process.argv[2] && !process.argv[2].startsWith('--')) ? process.argv[2] : join(ROOT, 'qa-evidence', 'client-voices');
 const PORT = 8137, DEBUG_PORT = 9137;
 mkdirSync(OUT, { recursive: true });
 
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   process.env.LOCALAPPDATA ? process.env.LOCALAPPDATA.replace(/\\/g, '/') + '/Google/Chrome/Application/chrome.exe' : ''].find((p) => p && existsSync(p));
 if (!CHROME) throw new Error('Chrome not found');
-const WIDTHS = [1440, 1280, 820, 430, 390, 320];
+//   --widths 1440,390   --suffix final     capture a subset and name the files client-voices-<w>-<RU|RO>-<suffix>.png
+const argOf = (name) => { const i = process.argv.indexOf(name); return i === -1 ? null : process.argv[i + 1]; };
+const WIDTHS = (argOf('--widths') || '1440,1280,820,430,390,320').split(',').map(Number);
+const SUFFIX = argOf('--suffix') ? '-' + argOf('--suffix') : '';
 const PAGES = [{ path: '/index.html', lang: 'ru', tag: 'RU' }, { path: '/ro/index.html', lang: 'ro', tag: 'RO' }];
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.avif': 'image/avif', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.txt': 'text/plain', '.xml': 'application/xml' };
@@ -80,14 +83,18 @@ for (const motion of ['reduced', 'normal']) {
     await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width <= 430 });
     // One bootstrap at a time: a stale reduced-motion stylesheet must not leak into the motion run.
     if (bootstrapId) { await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: bootstrapId }); }
-    bootstrapId = (await send('Page.addScriptToEvaluateOnNewDocument', { source: `try{localStorage.setItem('finmentor_language','${page.lang}');sessionStorage.setItem('fm_intro_played','1');
+    bootstrapId = (await send('Page.addScriptToEvaluateOnNewDocument', { source: `try{localStorage.setItem('finmentor_language','${page.lang}');sessionStorage.setItem('fm_intro_played','1');localStorage.setItem('finmentor_cookie_consent','deny');
       var s=document.createElement('style');s.textContent=${JSON.stringify(motion === 'reduced' ? DETERMINISM : DETERMINISM.replace('.reveal,[data-reveal-delay]{opacity:1!important;transform:none!important}', ''))};(document.head||document.documentElement).appendChild(s);}catch(e){}` })).identifier;
     const loaded = new Promise((r) => { loadResolve = r; });
     await send('Page.navigate', { url: `http://127.0.0.1:${PORT}${page.path}` });
     await loaded; await sleep(500);
     // Scroll so the section sits below the fixed header (never inside the clip), then let the
     // site's own reveal pass finish under normal motion before measuring.
-    await evalJs(`(async()=>{const el=document.getElementById('client-voices');window.scrollTo(0,el.getBoundingClientRect().top+scrollY-160);await new Promise(r=>setTimeout(r,${motion === 'reduced' ? 250 : 3500}));return true;})()`);
+    // Under normal motion the site reveals only what enters the viewport, so walk the whole
+    // section (a phone viewport is shorter than it) before returning to its top.
+    await evalJs(`(async()=>{const el=document.getElementById('client-voices');const top=el.getBoundingClientRect().top+scrollY;
+      if(${motion === 'normal'}){for(let y=top-160;y<top+el.offsetHeight;y+=innerHeight*0.6){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,900));}}
+      window.scrollTo(0,top-160);await new Promise(r=>setTimeout(r,${motion === 'reduced' ? 250 : 2500}));return true;})()`);
     await evalJs(`document.fonts ? document.fonts.ready.then(()=>true) : true`);
     const info = await evalJs(`(()=>{const s=document.getElementById('client-voices');const r=s.getBoundingClientRect();const list=s.querySelector('[data-client-voices-list]');
       const quotes=[...s.querySelectorAll('.client-voices__quote p')].map(p=>{const q=p.getBoundingClientRect();return {w:Math.round(q.width),h:Math.round(q.height),clipped:p.scrollWidth>p.clientWidth+1}});
@@ -96,13 +103,13 @@ for (const motion of ['reduced', 'normal']) {
       return {hidden:s.hidden, top:Math.round(r.top+scrollY), height:Math.round(r.height), voices:list.querySelectorAll('.client-voices__voice').length, quotes, attrs, visibleReveal,
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, sectionOverflow: s.scrollWidth - s.clientWidth };})()`);
     const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: info.top - 8, width, height: info.height + 16, scale: 1 } });
-    const name = motion === 'reduced' ? `client-voices-${width}-${page.tag}.png` : `client-voices-${width}-${page.tag}-motion.png`;
+    const name = motion === 'reduced' ? `client-voices-${width}-${page.tag}${SUFFIX}.png` : `client-voices-${width}-${page.tag}${SUFFIX}-motion.png`;
     writeFileSync(join(OUT, name), Buffer.from(shot.data, 'base64'));
     if (motion === 'reduced' && [1440, 390].includes(width)) {
       // context shot: the seam Practice → Client voices → Materials
       const ctx = await evalJs(`(()=>{const a=document.getElementById('cases').getBoundingClientRect();const b=document.getElementById('knowledge').getBoundingClientRect();return {y:Math.round(a.bottom+scrollY-${width <= 430 ? 700 : 900}),h:Math.round(b.top-a.bottom+${width <= 430 ? 700 : 900}+${width <= 430 ? 500 : 700})};})()`);
       const cs = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: ctx.y, width, height: ctx.h, scale: 1 } });
-      writeFileSync(join(OUT, `client-voices-flow-${width}-${page.tag}.png`), Buffer.from(cs.data, 'base64'));
+      writeFileSync(join(OUT, `client-voices-flow-${width}-${page.tag}${SUFFIX}.png`), Buffer.from(cs.data, 'base64'));
     }
     manifest.push({ page: page.path, width, motion, ...info });
     console.log(`${name}  voices=${info.voices} h=${info.height} overflow=${info.overflow}/${info.sectionOverflow} clipped=${info.quotes.some((q) => q.clipped)} reveal=${info.visibleReveal}`);
