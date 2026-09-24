@@ -29,8 +29,10 @@ const assert = (c, m) => { if (!c) throw new Error(m); };
 
 const DATA = require(join(ROOT, 'data', 'testimonials.js'));
 const CV = require(join(ROOT, 'client-voices.js'));
-const REQUIRED = ['id', 'language', 'quote', 'person_display', 'role', 'industry', 'company_display', 'company_permission', 'date', 'source', 'consent_status', 'is_published', 'featured'];
+const REQUIRED = ['id', 'language', 'quote', 'person_display', 'role', 'industry', 'company_display', 'company_permission', 'anonymous', 'date', 'source', 'consent_status', 'is_published', 'featured'];
 const PAGES = { 'index.html': 'ru', 'ro/index.html': 'ro' };
+const approvedForPublication = (e) => e.consent_status === 'approved'
+  || (e.consent_status === 'approved_anonymous' && e.anonymous === true);
 
 // ------------------------------------------------------------------ data file contract
 check('data/testimonials.js loads and exposes { version, entries[] }', () => {
@@ -41,8 +43,8 @@ check('every entry carries the full schema with sane values', () => {
   for (const e of DATA.entries) {
     for (const k of REQUIRED) assert(Object.prototype.hasOwnProperty.call(e, k), e.id + ' missing ' + k);
     assert(['ru', 'ro'].includes(e.language), e.id + ' language');
-    assert(['approved', 'pending', 'declined'].includes(e.consent_status), e.id + ' consent_status');
-    assert(typeof e.is_published === 'boolean' && typeof e.featured === 'boolean' && typeof e.company_permission === 'boolean', e.id + ' booleans');
+    assert(['approved', 'approved_anonymous', 'pending', 'declined'].includes(e.consent_status), e.id + ' consent_status');
+    assert(typeof e.is_published === 'boolean' && typeof e.featured === 'boolean' && typeof e.company_permission === 'boolean' && typeof e.anonymous === 'boolean', e.id + ' booleans');
     assert(/^\d{4}(-\d{2})?$/.test(String(e.date)), e.id + ' date');
   }
   const ids = DATA.entries.map((e) => e.id);
@@ -50,7 +52,7 @@ check('every entry carries the full schema with sane values', () => {
 });
 
 check('no entry is published without approved consent', () => {
-  for (const e of DATA.entries) assert(!(e.is_published && e.consent_status !== 'approved'), e.id + ' published without consent');
+  for (const e of DATA.entries) assert(!(e.is_published && !approvedForPublication(e)), e.id + ' published without consent');
 });
 
 check('company names appear only with explicit permission', () => {
@@ -69,8 +71,25 @@ check('the data file declares no preview flag (that belongs to the mock only)', 
   assert(DATA.preview !== true, 'preview flag in production data');
 });
 
+check('production publishes exactly one anonymous bilingual Client Voice with no identifying data', () => {
+  const published = DATA.entries.filter((e) => e.is_published && approvedForPublication(e));
+  assert(published.length === 2, 'expected one RU/RO locale pair, got ' + published.length + ' records');
+  assert(published.map((e) => e.language).sort().join(',') === 'ro,ru', 'RU/RO pair missing');
+  for (const e of published) {
+    assert(e.anonymous === true && e.consent_status === 'approved_anonymous', e.id + ' anonymity/consent');
+    assert(e.company_display === '' && e.company_permission === false, e.id + ' company identity exposed');
+    assert(e.featured === true && e.date === '2026', e.id + ' publication metadata');
+  }
+  const ru = published.find((e) => e.language === 'ru');
+  const ro = published.find((e) => e.language === 'ro');
+  assert(ru.quote === 'Раньше мы смотрели в основном на выручку и остаток на счёте. Когда собрали финансовую картину целиком, стало понятнее, где клуб действительно зарабатывает, а где деньги просто остаются занятыми.', 'RU quote drift');
+  assert(ru.person_display === 'Собственник бизнеса' && ru.industry === 'фитнес-клуб', 'RU attribution drift');
+  assert(ro.quote === 'Înainte ne uitam în principal la venituri și la soldul din cont. După ce am pus imaginea financiară cap la cap, a devenit mai clar unde clubul câștigă cu adevărat și unde banii rămân doar blocați.', 'RO quote drift');
+  assert(ro.person_display === 'Proprietar de afacere' && ro.industry === 'club de fitness', 'RO attribution drift');
+});
+
 // ------------------------------------------------------------------ selection rule
-const fx = (over) => Object.assign({ id: 'x', language: 'ru', quote: 'Слова клиента.', person_display: '', role: 'Собственник', industry: '', company_display: '', company_permission: false, date: '2026', source: 's', consent_status: 'approved', is_published: true, featured: false }, over);
+const fx = (over) => Object.assign({ id: 'x', language: 'ru', quote: 'Слова клиента.', person_display: '', role: 'Собственник', industry: '', company_display: '', company_permission: false, anonymous: false, date: '2026', source: 's', consent_status: 'approved', is_published: true, featured: false }, over);
 
 check('selectVoices: only published + approved + same-language entries, featured first, max 3', () => {
   const data = { entries: [
@@ -88,6 +107,11 @@ check('selectVoices: an empty quote is never shown', () => {
   assert(CV.selectVoices({ entries: [fx({ quote: '   ' })] }, 'ru').length === 0, 'blank quote rendered');
 });
 
+check('selectVoices: approved_anonymous requires the anonymous flag', () => {
+  assert(CV.selectVoices({ entries: [fx({ consent_status: 'approved_anonymous', anonymous: true })] }, 'ru').length === 1, 'approved anonymous voice withheld');
+  assert(CV.selectVoices({ entries: [fx({ consent_status: 'approved_anonymous', anonymous: false })] }, 'ru').length === 0, 'anonymous consent used for identified entry');
+});
+
 check('attribution: name + role, role + industry, or anonymous fallback; company only with permission', () => {
   let a = CV.attribution(fx({ person_display: 'Имя', role: 'Собственник', industry: 'розница', date: '2026-03' }), 'ru');
   assert(a.who === 'Имя' && a.meta === 'Собственник · розница · 2026', 'name form: ' + JSON.stringify(a));
@@ -101,6 +125,8 @@ check('attribution: name + role, role + industry, or anonymous fallback; company
   assert(!a.meta.includes('ACME'), 'company leaked without permission');
   a = CV.attribution(fx({ company_display: 'ACME', company_permission: true }), 'ru');
   assert(a.meta.includes('ACME'), 'company withheld despite permission');
+  a = CV.attribution(fx({ anonymous: true, company_display: 'ACME', company_permission: true }), 'ru');
+  assert(!a.meta.includes('ACME'), 'company leaked from anonymous entry');
 });
 
 // ------------------------------------------------------------------ renderer safety
@@ -145,6 +171,15 @@ check('render: eligible entries unhide the section — one featured, up to two s
   assert(texts(list).includes('<b>x</b> & y'), 'quote must be literal text, never parsed');
 });
 
+check('render: one approved anonymous voice uses one featured item with no empty secondary layout', () => {
+  const { doc, section, list } = fakeDom();
+  const n = CV.render(doc, { entries: [fx({ consent_status: 'approved_anonymous', anonymous: true, featured: true })] });
+  assert(n === 1 && !('hidden' in section.attrs), 'single voice not rendered');
+  assert(list.children.length === 1 && list.children[0].className.includes('client-voices__featured'), 'single featured composition');
+  assert(list.attrs['data-voice-count'] === '1', 'single-item layout marker missing');
+  assert(!Object.prototype.hasOwnProperty.call(list.attrs, 'data-count'), 'must not collide with the global counter engine');
+});
+
 check('render: the preview marker appears only for preview data', () => {
   let d = fakeDom(); CV.render(d.doc, { entries: [fx()] });
   assert(!texts(d.head).some((t) => /DESIGN MOCK/.test(t)), 'marker on production-shaped data');
@@ -152,14 +187,16 @@ check('render: the preview marker appears only for preview data', () => {
   assert(texts(d.head).some((t) => /DESIGN MOCK/.test(t)), 'marker missing on preview data');
 });
 
-check('shipped files run in a browser-like window and leave the skeleton hidden with today\'s data', () => {
-  const { doc, section } = fakeDom();
+check('shipped files render exactly one approved RU voice and unhide the skeleton', () => {
+  const { doc, section, list } = fakeDom();
   doc.readyState = 'complete'; doc.addEventListener = () => {};
   const win = { document: doc }; win.window = win;
   vm.runInNewContext(read('data/testimonials.js'), win, { filename: 'data/testimonials.js' });
   vm.runInNewContext(read('client-voices.js'), win, { filename: 'client-voices.js' });
   assert(win.FM_TESTIMONIALS && win.FMClientVoices, 'globals');
-  assert('hidden' in section.attrs, 'section became visible with no approved testimonial');
+  assert(!('hidden' in section.attrs), 'section stayed hidden with approved testimonial');
+  assert(list.children.length === 1 && list.attrs['data-voice-count'] === '1', 'expected one featured voice');
+  assert(texts(list).includes('Собственник бизнеса') && texts(list).includes('фитнес-клуб · 2026'), 'anonymous RU attribution missing');
 });
 
 // ------------------------------------------------------------------ pages

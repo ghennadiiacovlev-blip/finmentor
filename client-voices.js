@@ -4,7 +4,8 @@
    hidden skeleton <section id="client-voices" data-client-voices hidden> and
    unhides it ONLY when at least one entry passes the publication rule:
 
-     is_published === true && consent_status === 'approved' && language === page
+     is_published === true && consent is approved for the entry's identity level
+     && language === page
 
    Composition: one featured quote (the main weight) + up to two quieter ruled
    quotes. Everything is written with textContent — no HTML from data ever
@@ -33,8 +34,13 @@
   var MAX_SECONDARY = 2;
   var ANON = { ru: 'Анонимно · Собственник бизнеса', ro: 'Anonim · Proprietar de afacere' };
 
+  function approvedConsent(entry) {
+    return entry.consent_status === 'approved'
+      || (entry.consent_status === 'approved_anonymous' && entry.anonymous === true);
+  }
+
   function eligible(entry, lang) {
-    return !!entry && entry.is_published === true && entry.consent_status === 'approved'
+    return !!entry && entry.is_published === true && approvedConsent(entry)
       && entry.language === lang && typeof entry.quote === 'string' && entry.quote.trim() !== '';
   }
 
@@ -60,7 +66,7 @@
     if (who) { if (entry.role) { meta.push(entry.role); } }
     else { who = (entry.role || '').trim() || ANON[lang] || ANON.ru; }
     if (entry.industry) { meta.push(entry.industry); }
-    if (entry.company_permission === true && entry.company_display) { meta.push(entry.company_display); }
+    if (entry.anonymous !== true && entry.company_permission === true && entry.company_display) { meta.push(entry.company_display); }
     if (entry.date) { meta.push(String(entry.date).slice(0, 4)); }
     return { who: who, meta: meta.join(' · ') };
   }
@@ -97,6 +103,7 @@
     if (!voices.length || !list) { section.setAttribute('hidden', ''); return 0; }
 
     while (list.firstChild) { list.removeChild(list.firstChild); }
+    list.setAttribute('data-voice-count', String(voices.length));
     var featured = figure(doc, voices[0], lang, 1);
     featured.className = 'client-voices__voice client-voices__featured reveal';
     list.appendChild(featured);
