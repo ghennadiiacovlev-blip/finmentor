@@ -1,0 +1,1050 @@
+[
+  {
+    "path": "/",
+    "width": 1024,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0.24s, 0.24s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.378697)",
+        "clip-path": "none",
+        "opacity": "0.968442",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".hero__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00062, 0, 0, 1.00062, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.998011",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".capital-management__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.025, 0, 0, 1.025, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.01",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.03, 0, 0, 1.03, 0, 0)",
+        "clip-path": "inset(0px 0px 100%)",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".package .m-c": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_home_1024_after.png"
+  },
+  {
+    "path": "/about.html",
+    "width": 1024,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.00642201)",
+        "clip-path": "none",
+        "opacity": "0.999735",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.06, 0, 0, 1.06, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_abouthtml_1024_after.png"
+  },
+  {
+    "path": "/business-models.html",
+    "width": 1024,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00393, 0, 0, 1.00393, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0.09s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.976044)",
+        "clip-path": "none",
+        "opacity": "0.959738",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00393, 0, 0, 1.00393, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_businessmodelshtml_1024_after.png"
+  },
+  {
+    "path": "/capital-management.html",
+    "width": 1024,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0138781)",
+        "clip-path": "none",
+        "opacity": "0.999428",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".fx-stage__media img": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_capitalmanagementhtml_1024_after.png"
+  },
+  {
+    "path": "/",
+    "width": 1280,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0.24s, 0.24s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.250711)",
+        "clip-path": "none",
+        "opacity": "0.979107",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".hero__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00046, 0, 0, 1.00046, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.998542",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".capital-management__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.025, 0, 0, 1.025, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.01",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.03, 0, 0, 1.03, 0, 0)",
+        "clip-path": "inset(0px 0px 100%)",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".package .m-c": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_home_1280_after.png"
+  },
+  {
+    "path": "/about.html",
+    "width": 1280,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0136187)",
+        "clip-path": "none",
+        "opacity": "0.999438",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.06, 0, 0, 1.06, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_abouthtml_1280_after.png"
+  },
+  {
+    "path": "/business-models.html",
+    "width": 1280,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00109, 0, 0, 1.00109, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0.09s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0857252)",
+        "clip-path": "none",
+        "opacity": "0.996464",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00109, 0, 0, 1.00109, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_businessmodelshtml_1280_after.png"
+  },
+  {
+    "path": "/capital-management.html",
+    "width": 1280,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0138068)",
+        "clip-path": "none",
+        "opacity": "0.99943",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".fx-stage__media img": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_capitalmanagementhtml_1280_after.png"
+  },
+  {
+    "path": "/",
+    "width": 1440,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0.24s, 0.24s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.215881)",
+        "clip-path": "none",
+        "opacity": "0.98201",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".hero__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00041, 0, 0, 1.00041, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.998695",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".capital-management__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.025, 0, 0, 1.025, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.01",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.03, 0, 0, 1.03, 0, 0)",
+        "clip-path": "inset(0px 0px 100%)",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".package .m-c": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_home_1440_after.png"
+  },
+  {
+    "path": "/about.html",
+    "width": 1440,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0138673)",
+        "clip-path": "none",
+        "opacity": "0.999428",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.06, 0, 0, 1.06, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_abouthtml_1440_after.png"
+  },
+  {
+    "path": "/business-models.html",
+    "width": 1440,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00122, 0, 0, 1.00122, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0.09s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.111817)",
+        "clip-path": "none",
+        "opacity": "0.995388",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00122, 0, 0, 1.00122, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_businessmodelshtml_1440_after.png"
+  },
+  {
+    "path": "/capital-management.html",
+    "width": 1440,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0137641)",
+        "clip-path": "none",
+        "opacity": "0.999432",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".fx-stage__media img": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_capitalmanagementhtml_1440_after.png"
+  },
+  {
+    "path": "/",
+    "width": 1728,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0.24s, 0.24s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.209479)",
+        "clip-path": "none",
+        "opacity": "0.982543",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".hero__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.0004, 0, 0, 1.0004, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.998723",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".capital-management__media img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.025, 0, 0, 1.025, 0, 0)",
+        "clip-path": "none",
+        "opacity": "0.01",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.03, 0, 0, 1.03, 0, 0)",
+        "clip-path": "inset(0px 0px 100%)",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".package .m-c": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_home_1728_after.png"
+  },
+  {
+    "path": "/about.html",
+    "width": 1728,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0135)",
+        "clip-path": "none",
+        "opacity": "0.999443",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.06, 0, 0, 1.06, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_abouthtml_1728_after.png"
+  },
+  {
+    "path": "/business-models.html",
+    "width": 1728,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".industries__figure img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00122, 0, 0, 1.00122, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0.09s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.111859)",
+        "clip-path": "none",
+        "opacity": "0.995386",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx=\"unveil\"] img": {
+        "transition-duration": "1.15s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1.00122, 0, 0, 1.00122, 0, 0)",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_businessmodelshtml_1728_after.png"
+  },
+  {
+    "path": "/capital-management.html",
+    "width": 1728,
+    "styles": {
+      ".reveal": {
+        "transition-duration": "0.82s, 0.82s, 0.35s, 0.35s, 0.35s, 0.35s",
+        "transition-delay": "0s, 0s, 0s, 0s, 0s, 0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), ease, ease, ease, ease",
+        "transform": "matrix(1, 0, 0, 1, 0, 26)",
+        "clip-path": "none",
+        "opacity": "0",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".overline": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".section-title": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "[data-fx]": {
+        "transition-duration": "0.82s, 0.82s, 1.15s",
+        "transition-delay": "0s",
+        "transition-timing-function": "cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1), cubic-bezier(0.2, 0.7, 0.12, 1)",
+        "transform": "matrix(1, 0, 0, 1, 0, 0.0064672)",
+        "clip-path": "none",
+        "opacity": "0.999733",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      ".fx-stage__media img": {
+        "transition-duration": "0s",
+        "transition-delay": "0s",
+        "transition-timing-function": "ease",
+        "transform": "none",
+        "clip-path": "none",
+        "opacity": "1",
+        "animation-name": "none",
+        "animation-duration": "0s"
+      },
+      "__stepsRoot": "820ms|1.025"
+    },
+    "shot": "C:\\Users\\User\\Documents\\GitHub\\finmentor\\qa-artifacts\\mobile-card-motion\\desktop_capitalmanagementhtml_1728_after.png"
+  }
+]

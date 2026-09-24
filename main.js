@@ -551,6 +551,12 @@
       // On a phone a photograph never leads: the headline enters, a short pause, then the
       // picture is uncovered, then the supporting copy. (Desktop keeps photographs first.)
       var PHOTO = '.industries__figure, [data-fx="unveil"], .capital-management';
+      // Pass 3 — cards and panels on a phone start once about a fifth of the viewport has taken
+      // them in (line at 80%), so the landing is seen; they keep the batch stagger (80–130ms).
+      var CARD = '.pillar, .industry-card, .step-card, .sample-card, .material-card, .audience__item, ' +
+        '.capital-principle, .after-step, .client-voices__voice, .fmt-panel, .case-panel, .working-contour, ' +
+        '.industries__asset-callout, .flagship__col, .capital-map, .capital-flow, .sysmap, .finmentor-compare, ' +
+        '.fx-deck > [data-fx], .fx-related > [data-fx], .fx-mosaic > [data-fx], .fx-principles > [data-fx]';
       var PHOTO_PAUSE = 120;
       // Pass 2 — a photograph on a phone starts only once about a quarter of the viewport
       // has taken it in (its own observer, trigger line at 75%), and never on an empty
@@ -666,7 +672,7 @@
       var withWholeHero = function (batch) {
         if (!batch.some(function (el) { return el.closest('.hero'); })) return batch;
         pending.forEach(function (el) {
-          if (el.closest('.hero') && batch.indexOf(el) < 0) { (el.matches(PHOTO) ? ioPhoto : io).unobserve(el); batch.push(el); }
+          if (el.closest('.hero') && batch.indexOf(el) < 0) { observerFor(el).unobserve(el); batch.push(el); }
         });
         return batch;
       };
@@ -704,7 +710,17 @@
         ? new IntersectionObserver(function (entries) { onEntries(ioPhoto)(entries); },
           { threshold: 0, rootMargin: '0px 0px -25% 0px' })
         : io;
-      all.forEach(function (el) { (el.matches(PHOTO) ? ioPhoto : io).observe(el); });
+      var ioCard = narrow.matches
+        ? new IntersectionObserver(function (entries) { onEntries(ioCard)(entries); },
+          { threshold: 0, rootMargin: '0px 0px -20% 0px' })
+        : io;
+      var observerFor = function (el) {
+        if (!narrow.matches) return io;
+        if (el.matches(PHOTO)) return ioPhoto;
+        if (el.matches(CARD)) return ioCard;
+        return io;
+      };
+      all.forEach(function (el) { observerFor(el).observe(el); });
 
       // A fling or an anchor jump can carry an element from below the fold to above
       // it between two observer ticks; sweep those once the scroll settles. The page
@@ -714,7 +730,7 @@
         var batch = [];
         pending.forEach(function (el) {
           if (held && el.closest('.hero')) return;
-          var obs = el.matches(PHOTO) ? ioPhoto : io;
+          var obs = observerFor(el);
           var r = el.getBoundingClientRect();
           if (r.bottom <= 0) { obs.unobserve(el); instant(el); }
           else if (r.top < vh && (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 4) {

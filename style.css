@@ -8928,3 +8928,44 @@ html:not(.m-js) body.home .capital-chain::before { transform: scaleY(1); }
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   MOBILE CARD GRAMMAR (Pass 3, ≤ 860px only). A card lands: it rises 24–32px from 0.99 and
+   settles over 600–900ms with the site's calm deceleration — heavier for feature panels,
+   lighter for small cards, alternating rows travel 4px further. Only transform and opacity
+   animate; the card's geometry is reserved from the first frame, so CLS stays 0. Desktop
+   rules are untouched: everything below lives inside the mobile query.
+   ========================================================================== */
+@media (max-width: 860px) {
+  .home {
+    --m-card-rise: 24px;  --m-card-rise-alt: 28px;  --m-card-scale: 0.99;  --m-card-dur: 760ms;
+    --m-panel-rise: 32px; --m-panel-scale: 0.99;    --m-panel-dur: 900ms;
+    --m-small-rise: 16px; --m-small-scale: 0.995;   --m-small-dur: 600ms;
+  }
+  /* cards */
+  .home :is(.pillar, .industry-card, .step-card, .sample-card, .material-card, .audience__item, .capital-principle, .after-step, .client-voices__voice).reveal {
+    transition-duration: var(--m-card-dur), var(--m-card-dur), var(--dur-base), var(--dur-base), var(--dur-base), var(--dur-base);
+  }
+  .m-js .home :is(.pillar, .industry-card, .step-card, .sample-card, .material-card, .audience__item, .capital-principle, .after-step, .client-voices__voice).reveal:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(var(--m-card-rise)) scale(var(--m-card-scale));
+  }
+  .m-js .home :is(.pillar, .industry-card, .step-card, .sample-card, .material-card, .audience__item, .capital-principle, .after-step, .client-voices__voice):nth-child(even).reveal:not(.is-visible) {
+    transform: translateY(var(--m-card-rise-alt)) scale(var(--m-card-scale));
+  }
+  /* large feature panels: slower, heavier */
+  .home :is(.working-contour, .industries__asset-callout, .flagship__col, .capital-map, .capital-flow, .sysmap, .finmentor-compare, .consult .form).reveal {
+    transition-duration: var(--m-panel-dur), var(--m-panel-dur), var(--dur-base), var(--dur-base), var(--dur-base), var(--dur-base);
+  }
+  .m-js .home :is(.working-contour, .industries__asset-callout, .flagship__col, .capital-map, .capital-flow, .sysmap, .finmentor-compare, .consult .form).reveal:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(var(--m-panel-rise)) scale(var(--m-panel-scale));
+  }
+  /* small information cards and rows: less motion */
+  .home :is(.chaos-card, .capital-cycle__stage, .about-method__row, .diff__row, .topic-row).reveal {
+    transition-duration: var(--m-small-dur), var(--m-small-dur), var(--dur-base), var(--dur-base), var(--dur-base), var(--dur-base);
+  }
+  .m-js .home :is(.chaos-card, .capital-cycle__stage, .about-method__row, .diff__row, .topic-row).reveal:not(.is-visible) {
+    transform: translateY(var(--m-small-rise)) scale(var(--m-small-scale));
+  }
+}
