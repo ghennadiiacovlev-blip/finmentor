@@ -30,6 +30,11 @@ const CHROME = [
 const WIDTHS = [320, 375, 390, 393, 430, 768, 1024, 1280, 1440, 1728];
 const HEIGHT_FOR = (width) => width <= 430 ? 844 : width <= 768 ? 1024 : 1000;
 const TABLE_ROUTES = ['/capex-hurdle-rate.html', '/ro/capex-hurdle-rate.html'];
+const CASES_LOGIC_WIDTHS = [320, 390, 430, 820, 1280, 1440, 1728];
+const CASES_LOGIC_FRAMES = new Map([
+  ['/cases.html', 'Логика каждого сценария: бизнес-проблема → финансовый сигнал → вмешательство CFO → видимость для собственника → управленческое решение.'],
+  ['/ro/cases.html', 'Logica fiecărui scenariu: problemă de business → semnal financiar → intervenție CFO → vizibilitate pentru proprietar → decizie managerială.'],
+]);
 const REAL_ESTATE_FLOWS = new Map([
   ['/real-estate-control-system.html', {
     language: 'RU',
@@ -198,6 +203,59 @@ test('photo heroes keep readable copy and one clean rounded sheet transition', a
       expect(contract.radius, `${route} sheet radius at ${width}px`).toBeGreaterThanOrEqual(20);
       expect(contract.scrimFloor, `${route} scrim floor at ${width}px`).toBeGreaterThanOrEqual(0.65);
       expect(contract.scrim, `${route} scrim background at ${width}px`).not.toBe('none');
+    }
+  }
+});
+
+test('Cases logic statement stays fully inside its content-driven frame', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of CASES_LOGIC_WIDTHS) {
+    await page.setViewportSize({ width, height: width <= 430 ? 844 : width <= 820 ? 1100 : 1000 });
+    for (const [route, expectedText] of CASES_LOGIC_FRAMES) {
+      await page.goto(new URL(route, origin).href, { waitUntil: 'load' });
+      await settle(page);
+      const geometry = await page.evaluate(() => {
+        const frame = document.querySelector('.doc-hero__logic-frame');
+        if (!frame) return { missing: true };
+        const range = document.createRange();
+        range.selectNodeContents(frame);
+        const frameRect = frame.getBoundingClientRect();
+        const textRect = range.getBoundingClientRect();
+        const style = getComputedStyle(frame);
+        return {
+          missing: false,
+          text: frame.textContent.trim(),
+          padding: {
+            top: textRect.top - frameRect.top,
+            right: frameRect.right - textRect.right,
+            bottom: frameRect.bottom - textRect.bottom,
+            left: textRect.left - frameRect.left,
+          },
+          frameOverflow: {
+            x: frame.scrollWidth - frame.clientWidth,
+            y: frame.scrollHeight - frame.clientHeight,
+          },
+          documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          css: {
+            overflow: style.overflow,
+            textOverflow: style.textOverflow,
+            transform: style.transform,
+            whiteSpace: style.whiteSpace,
+            position: style.position,
+          },
+        };
+      });
+      expect(geometry.missing, `${route} frame at ${width}px`).toBe(false);
+      expect(geometry.text, `${route} copy at ${width}px`).toBe(expectedText);
+      for (const [side, inset] of Object.entries(geometry.padding)) {
+        expect(inset, `${route} ${side} visible inset at ${width}px`).toBeGreaterThanOrEqual(8);
+      }
+      expect(geometry.frameOverflow.x, `${route} frame horizontal overflow at ${width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.frameOverflow.y, `${route} frame vertical overflow at ${width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.documentOverflow, `${route} document horizontal overflow at ${width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.css).toMatchObject({
+        overflow: 'visible', textOverflow: 'clip', transform: 'none', whiteSpace: 'normal', position: 'static',
+      });
     }
   }
 });
