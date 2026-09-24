@@ -120,6 +120,7 @@ const GATES = [
   ['Lead Intelligence v1 owner brief and client review', 'lead-intelligence-v1.test.mjs'],
   ['MCP project-scope config', 'mcp-config.test.mjs'],
   ['Professional experience counter (one source, calendar rule, static fallback)', 'experience-counter.test.mjs'],
+  ['Client voices (consent-gated testimonials, one data source, no placeholder praise)', 'client-voices.test.mjs'],
   ['Assertion floor mechanism', 'assertion-floor.test.mjs']
 ];
 
