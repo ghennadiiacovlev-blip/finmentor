@@ -1,0 +1,646 @@
+{
+  "note": "DESIGN MOCK content — not client testimonials",
+  "captured": "2026-09-24T05:47:26.969Z",
+  "surfaces": [
+    {
+      "page": "/index.html",
+      "width": 1440,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 10629,
+      "height": 646,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 513,
+          "h": 263,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 57,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 86,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 152
+        },
+        {
+          "left": 851
+        },
+        {
+          "left": 851
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 1280,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 9972,
+      "height": 601,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 473,
+          "h": 242,
+          "clipped": false
+        },
+        {
+          "w": 405,
+          "h": 56,
+          "clipped": false
+        },
+        {
+          "w": 405,
+          "h": 84,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 72
+        },
+        {
+          "left": 767
+        },
+        {
+          "left": 767
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 820,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 11814,
+      "height": 740,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 424,
+          "h": 147,
+          "clipped": false
+        },
+        {
+          "w": 756,
+          "h": 27,
+          "clipped": false
+        },
+        {
+          "w": 756,
+          "h": 54,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 32
+        },
+        {
+          "left": 32
+        },
+        {
+          "left": 32
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 430,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 12465,
+      "height": 756,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 390,
+          "h": 92,
+          "clipped": false
+        },
+        {
+          "w": 390,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 390,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 390,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 12759,
+      "height": 781,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 350,
+          "h": 118,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 320,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 13849,
+      "height": 921,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 280,
+          "h": 137,
+          "clipped": false
+        },
+        {
+          "w": 280,
+          "h": 79,
+          "clipped": false
+        },
+        {
+          "w": 280,
+          "h": 105,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 1440,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 10452,
+      "height": 635,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 513,
+          "h": 158,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 57,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 86,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 152
+        },
+        {
+          "left": 851
+        },
+        {
+          "left": 851
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 1280,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 9797,
+      "height": 601,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 473,
+          "h": 145,
+          "clipped": false
+        },
+        {
+          "w": 405,
+          "h": 56,
+          "clipped": false
+        },
+        {
+          "w": 405,
+          "h": 84,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 72
+        },
+        {
+          "left": 767
+        },
+        {
+          "left": 767
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 820,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 11576,
+      "height": 704,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 424,
+          "h": 110,
+          "clipped": false
+        },
+        {
+          "w": 756,
+          "h": 27,
+          "clipped": false
+        },
+        {
+          "w": 756,
+          "h": 54,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 32
+        },
+        {
+          "left": 32
+        },
+        {
+          "left": 32
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 430,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 12109,
+      "height": 725,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 390,
+          "h": 61,
+          "clipped": false
+        },
+        {
+          "w": 390,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 390,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 390,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 12430,
+      "height": 752,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 350,
+          "h": 88,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 320,
+      "motion": "reduced",
+      "hidden": false,
+      "top": 13251,
+      "height": 822,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 280,
+          "h": 82,
+          "clipped": false
+        },
+        {
+          "w": 280,
+          "h": 79,
+          "clipped": false
+        },
+        {
+          "w": 280,
+          "h": 105,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 1440,
+      "motion": "normal",
+      "hidden": false,
+      "top": 10629,
+      "height": 646,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 513,
+          "h": 263,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 57,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 86,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 152
+        },
+        {
+          "left": 851
+        },
+        {
+          "left": 851
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/index.html",
+      "width": 390,
+      "motion": "normal",
+      "hidden": false,
+      "top": 12759,
+      "height": 781,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 350,
+          "h": 118,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 1440,
+      "motion": "normal",
+      "hidden": false,
+      "top": 10452,
+      "height": 635,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 513,
+          "h": 158,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 57,
+          "clipped": false
+        },
+        {
+          "w": 410,
+          "h": 86,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 152
+        },
+        {
+          "left": 851
+        },
+        {
+          "left": 851
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    },
+    {
+      "page": "/ro/index.html",
+      "width": 390,
+      "motion": "normal",
+      "hidden": false,
+      "top": 12430,
+      "height": 752,
+      "voices": 3,
+      "quotes": [
+        {
+          "w": 350,
+          "h": 88,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 53,
+          "clipped": false
+        },
+        {
+          "w": 350,
+          "h": 79,
+          "clipped": false
+        }
+      ],
+      "attrs": [
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        },
+        {
+          "left": 20
+        }
+      ],
+      "visibleReveal": true,
+      "overflow": 0,
+      "sectionOverflow": 0
+    }
+  ]
+}

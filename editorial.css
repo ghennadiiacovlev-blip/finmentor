@@ -1857,3 +1857,46 @@ html .rd-page .rd-cover--photo + .rd-sheet > .container:first-child > .doc > sec
 .home .proof-cases[data-practice] .case-panel--2 :is(.case-panel__meaning, .case-panel__control p) { opacity: 1; color: #2A2006; }
 @media (max-width: 960px) { .home .proof-cases[data-practice] .case-panel__head { font-size: clamp(1.8rem, 1.2rem + 2.8vw, 2.5rem); } }
 @media (max-width: 960px) { .home .proof-cases[data-practice] .case-panel__control + .case-panel__decision { margin-top: 28px; } }
+
+/* ============================================================================
+   27b. HOME — CLIENT VOICES (.client-voices): the closing beat of Practice.
+   One featured quote carries the weight; up to two quieter ruled quotes beside it.
+   Same ivory field as Practice, one hairline above, no cards, no stars, no motion of
+   its own. Rendered by client-voices.js from data/testimonials.js and hidden until a
+   consent-approved, published voice exists for the page language.
+   ========================================================================== */
+.home .client-voices[data-client-voices] { background: var(--fx-ivory); padding-block: 0 clamp(72px, 8vw, 130px); }
+.home .client-voices[data-client-voices][hidden] { display: none; }
+.home .client-voices[data-client-voices] .client-voices__inner { border-top: 1px solid rgba(8, 17, 31, 0.3); padding-top: clamp(44px, 5vw, 84px); }
+.home .client-voices[data-client-voices] .client-voices__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 32px; margin-bottom: clamp(32px, 4vw, 60px); }
+.home .client-voices[data-client-voices] .overline { margin: 0; font-family: var(--font-sans); font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.14em; color: var(--fx-gold); }
+.home .client-voices[data-client-voices] .client-voices__note { margin: 0; max-width: 48ch; font-size: var(--t-meta); line-height: 1.5; color: var(--fx-ink-2); }
+.home .client-voices[data-client-voices] .client-voices__grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: clamp(40px, 6vw, 120px); row-gap: 40px; align-items: start; }
+.home .client-voices[data-client-voices] .client-voices__voice { margin: 0; }
+.home .client-voices[data-client-voices] .client-voices__quote { margin: 0; }
+.home .client-voices[data-client-voices] .client-voices__quote p { margin: 0; }
+/* featured: the main weight, set like a Practice headline */
+.home .client-voices[data-client-voices] .client-voices__featured .client-voices__quote p { max-width: 22ch; font-family: var(--font-sans); font-size: clamp(1.6rem, 0.85rem + 2.2vw, 2.9rem); font-weight: 300; line-height: 1.16; letter-spacing: -0.028em; color: var(--fx-ink); text-wrap: balance; }
+.home .client-voices[data-client-voices] .client-voices__featured .client-voices__quote p::before { content: "«"; }
+.home .client-voices[data-client-voices] .client-voices__featured .client-voices__quote p::after { content: "»"; }
+.home .client-voices[data-client-voices] .client-voices__attr { display: flex; flex-direction: column; gap: 4px; margin-top: clamp(20px, 2.4vw, 32px); padding-top: 16px; border-top: 1px solid var(--fx-gold-f); max-width: 36ch; }
+.home .client-voices[data-client-voices] .client-voices__who { font-size: var(--t-small); font-weight: 700; letter-spacing: 0.01em; color: var(--fx-ink); }
+.home .client-voices[data-client-voices] .client-voices__meta { font-size: var(--t-meta); line-height: 1.45; color: var(--fx-ink-2); }
+/* secondary: quiet, ruled, no boxes */
+.home .client-voices[data-client-voices] .client-voices__aside { display: grid; gap: 0; }
+.home .client-voices[data-client-voices] .client-voices__aside .client-voices__voice { padding: clamp(22px, 2.4vw, 32px) 0; border-top: 1px solid var(--fx-rule); }
+.home .client-voices[data-client-voices] .client-voices__aside .client-voices__voice:last-child { border-bottom: 1px solid var(--fx-rule); }
+.home .client-voices[data-client-voices] .client-voices__aside .client-voices__quote p { max-width: 40ch; font-size: var(--t-body-l); font-weight: 400; line-height: 1.5; letter-spacing: -0.005em; color: var(--fx-ink); }
+.home .client-voices[data-client-voices] .client-voices__aside .client-voices__attr { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 14px; padding-top: 0; border-top: 0; max-width: none; }
+/* the design-preview marker (only the local mock data can produce it) */
+.home .client-voices[data-client-voices] .client-voices__mock { align-self: center; padding: 4px 8px; border: 1px dashed var(--fx-gold-f); border-radius: 6px; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fx-gold); }
+@media (max-width: 960px) {
+  .home .client-voices[data-client-voices] .client-voices__grid { grid-template-columns: minmax(0, 1fr); row-gap: clamp(28px, 4vw, 40px); }
+  .home .client-voices[data-client-voices] .client-voices__featured .client-voices__quote p { max-width: 26ch; }
+  .home .client-voices[data-client-voices] .client-voices__aside .client-voices__quote p { max-width: none; }
+}
+@media (max-width: 480px) {
+  .home .client-voices[data-client-voices] .client-voices__head { margin-bottom: 28px; }
+  .home .client-voices[data-client-voices] .client-voices__featured .client-voices__quote p { max-width: none; font-size: clamp(1.45rem, 1rem + 2.4vw, 1.7rem); }
+  .home .client-voices[data-client-voices] .client-voices__attr { margin-top: 18px; }
+}

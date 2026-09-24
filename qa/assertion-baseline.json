@@ -8,13 +8,14 @@
     "checks while another gains ten, which is exactly how coverage quietly moves out of the",
     "place that needed it. CI keeps its own ASSERTION_BASELINE on the total as a second net."
   ],
-  "total": 3702,
+  "total": 3722,
   "gates": {
     "ai-brief-suppression.test.mjs": 9,
     "ai-safe-projection.test.mjs": 52,
     "api-import.test.mjs": 48,
     "assertion-floor.test.mjs": 20,
     "experience-counter.test.mjs": 35,
+    "client-voices.test.mjs": 20,
     "bot-sessions-legacy-cycle.test.mjs": 21,
     "c2-final-closure.test.mjs": 28,
     "c3-final-closure.test.mjs": 30,

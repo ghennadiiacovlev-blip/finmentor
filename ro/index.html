@@ -773,6 +773,18 @@
       </div>
     </section>
 
+    <!-- Client voices: curated, consent-gated, rendered by client-voices.js from data/testimonials.js.
+         Stays hidden until an approved, published entry for this language exists. -->
+    <section class="client-voices sec sec--light" id="client-voices" data-client-voices data-lang="ro" aria-labelledby="client-voices-title" hidden>
+      <div class="container client-voices__inner">
+        <div class="client-voices__head" data-client-voices-head>
+          <p class="overline reveal" id="client-voices-title">Din practica clienților</p>
+          <p class="client-voices__note reveal" data-reveal-delay="1">Se publică doar cu acordul clientului — fără denumiri de companii și fără cifre financiare.</p>
+        </div>
+        <div class="client-voices__grid" data-client-voices-list></div>
+      </div>
+    </section>
+
     <section class="sec materials sec--light" id="knowledge" data-research>
       <div class="container">
         <div class="section-head">
@@ -904,6 +916,8 @@
   </footer>
 
   <script src="../i18n-ro.js"></script>
+  <script src="../data/testimonials.js"></script>
+  <script src="../client-voices.js"></script>
   <script src="../experience.js"></script>
   <script src="../lang.js"></script>
   <script src="../main.js"></script>
