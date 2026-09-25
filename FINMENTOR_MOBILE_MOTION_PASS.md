@@ -36,7 +36,8 @@ parallax, letter or line animation, counters, scroll-linked movement or repeated
 
 Files: `style.css` (mobile tokens, hero/mandate steps), `editorial.css` (mobile `[data-fx]` block, unveil, cover settle),
 `main.js` (`initReveal`: mobile steps, spread cap, photo order and pause), `MOTION_SYSTEM.md` (§2a mobile grammar),
-`qa/mobile-motion-evidence.mjs` + `qa/lib/png-tile.mjs` (evidence harness), `qa-evidence/mobile-motion/` (evidence).
+`qa/mobile-motion-evidence.mjs` + `qa/lib/png-tile.mjs` (evidence harness). Generated evidence is ignored and retained in
+the tagged release history rather than the current production tree.
 
 ## 2. Pages enhanced
 
@@ -92,10 +93,12 @@ stage is layout, not motion, and outside this pass.
 
 ## 4. Evidence for owner review
 
-`qa-evidence/mobile-motion/after/` — contact sheets (2 fps, six frames per row) of WebKit recordings of a slow scroll:
+`qa-evidence/mobile-motion/after/` is the ignored regeneration target for contact sheets (2 fps, six frames per row) of
+WebKit recordings of a slow scroll:
 `homepage-390-mobile-motion-sheet.png`, `homepage-430-mobile-motion-sheet.png`, `practice-390-mobile-motion-sheet.png`,
 `real-estate-390-mobile-motion-sheet.png`, `ro-homepage-390-mobile-motion-sheet.png`; `metrics.json` for both phases;
-`before/` holds the baseline sheets and numbers. The recordings themselves (`.webm`, ~2–4 MB each) are in
+`before/` holds the baseline sheets and numbers when regenerated. The accepted 2026-09-24 evidence remains recoverable
+from tag `production-approved-2026-09-24`. The recordings themselves (`.webm`, ~2–4 MB each) are in
 `qa-artifacts/mobile-motion/{before,after}/` — untracked by repository policy; regenerate with
 `node qa/mobile-motion-evidence.mjs --phase after --only record`.
 

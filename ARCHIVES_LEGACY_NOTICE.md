@@ -19,16 +19,16 @@ was needed.
 | `FINMENTOR_CAMPAIGN_READY_REPORT.md` | historical | LEGACY — do not edit |
 | `FINMENTOR_UPDATE_REPORT.md` | historical | LEGACY — do not edit |
 | `QUESTIONNAIRE_WEBHOOK_READY_REPORT.md` | historical | LEGACY — do not edit |
-| `finmentor_premium_final_candidate_APPROVED.zip` | 85 | LEGACY ARCHIVE — never deploy |
-| `finmentor_premium_restored_owner_review.zip` | 85 | LEGACY ARCHIVE — never deploy |
-| `finmentor_production_v1.zip` | 0 | clean of the obsolete ID |
 | `qa/website-contract.test.mjs` | 1 | INTENTIONAL — asserts the obsolete ID is absent from runtime |
 
-## The ZIP archives are not deployable
+## Removed ZIP archives are not deployable
 
 `finmentor_premium_final_candidate_APPROVED.zip` and
-`finmentor_premium_restored_owner_review.zip` are point-in-time snapshots kept for
-provenance. Deploying either would reintroduce, at minimum:
+`finmentor_premium_restored_owner_review.zip` were point-in-time snapshots. Stage 2A
+removed them, together with `finmentor_production_v1.zip`, from the current tree.
+They remain recoverable from tag `production-approved-2026-09-24`; they must not be
+restored for deployment. Deploying either obsolete premium snapshot would reintroduce,
+at minimum:
 
 - the obsolete GA4 measurement ID (85 occurrences each)
 - submitters that treat any HTTP 2xx as success

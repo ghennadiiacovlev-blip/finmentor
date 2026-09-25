@@ -116,9 +116,9 @@ step-3 title); the titles were restored and the suite re-run green. No test cont
 
 ## 5. Visual evidence
 
-Retained under `qa-evidence/refine-proof-practice-flow/` (before/after clips of the touched
-sections at 1440 / 1280 / 820 / 390) — see that folder's `README.md` for the pixel-diff of the
-hero trust line proving the counter swap changes only the digits.
+The accepted before/after clips of the touched sections at 1440 / 1280 / 820 / 390 are
+recoverable from tag `production-approved-2026-09-24`. The ignored regeneration target is
+`qa-evidence/refine-proof-practice-flow/`.
 
 ## 6. Unresolved / owner decisions
 
@@ -178,7 +178,7 @@ Exact public wording (unchanged from production): RU `Big4 / IFRS-фундаме
 
 Source trace in the repository:
 - present in the owner's own initial site upload (`c3d2143`, `105f93b`, 2026-06-20/21, committed under the owner's git identity);
-- published continuously since (v1.1 rendered-text evidence in `qa-evidence/v1.1-final/rendered-text.json`);
+- published continuously since (the v1.1 rendered-text evidence is retained at tag `production-approved-2026-09-24`);
 - reviewed in the owner-gated terminology register of 2026-09-07 (`docs/TERMINOLOGY_REVIEW_REGISTER_2026-09-07.*`) as an approved compound term.
 
 Decision: **kept as is** — it is an owner-provided, already-published source; the refinement neither expanded nor reworded it. It has never been independently verified (LinkedIn not machine-readable), so the exact wording above is **flagged for explicit owner confirmation**, not asserted as proven.

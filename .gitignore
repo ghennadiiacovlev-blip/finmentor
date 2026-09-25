@@ -7,6 +7,9 @@ db/validation/node_modules/
 db/validation/package-lock.json
 db/validation/.pgdata/
 
-# rendered visual-evidence working output (browser profile + the full render set).
-# The retained release screenshots are committed at the repository root; see qa/visual-evidence.mjs.
+# rendered visual-evidence working output (browser profile + the full render set)
 qa-artifacts/
+
+# generated QA evidence and Playwright state (regenerate on demand)
+qa-evidence/
+test-results/

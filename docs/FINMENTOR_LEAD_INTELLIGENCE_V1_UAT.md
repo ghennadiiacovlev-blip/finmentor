@@ -1,6 +1,6 @@
 # FINMENTOR Lead Intelligence v1 — exact 5-minute owner UAT
 
-Fixture: Niagara club, rebuilt from the live-derived sanitized semantics in `qa/fixtures/lead-intelligence-fixtures.mjs`. Identifiers and PII are synthetic. Leads and Pipeline intentionally have different synthetic Lead IDs and one shared request ID. Use the deterministic files in `qa-evidence/lead-intelligence-v1/`. Do not open Raw JSON during the test.
+Fixture: Niagara club, rebuilt from the live-derived sanitized semantics in `qa/fixtures/lead-intelligence-fixtures.mjs`. Identifiers and PII are synthetic. Leads and Pipeline intentionally have different synthetic Lead IDs and one shared request ID. Run `node scripts/build-lead-intelligence-evidence.mjs` first, then use the deterministic files generated under the ignored `qa-evidence/lead-intelligence-v1/` directory. Do not open Raw JSON during the test.
 
 ## 00:00–00:30 — Telegram entry point
 

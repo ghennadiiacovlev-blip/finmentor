@@ -103,8 +103,9 @@ strips and recordings) · READY FOR OWNER REVIEW: YES.
 
 ## 8. Evidence
 
-`qa-evidence/mobile-card-motion/`: key-stage strips and 0.2 s comparisons (before vs after) for homepage, Business
-Models and Capital Management, manifests and this comparison's numbers. Recordings (source of truth):
+`qa-evidence/mobile-card-motion/` is the ignored regeneration target for key-stage strips and 0.2 s comparisons
+(before vs after) for homepage, Business Models and Capital Management, manifests and this comparison's numbers. The
+accepted evidence remains recoverable from tag `production-approved-2026-09-24`. Recordings (source of truth):
 `qa-artifacts/mobile-card-motion/` (untracked) — homepage-390-cards, business-models-390-cards, practice-390-cards,
 capital-390-cards, materials-390-cards, each as `-before.webm` and `-after.webm`, identical WebKit build, viewport,
 start point, pace (~525 px/s measured) and content state.

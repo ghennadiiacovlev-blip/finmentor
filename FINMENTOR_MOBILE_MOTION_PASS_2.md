@@ -104,8 +104,9 @@ recordings) · READY FOR OWNER REVIEW: YES.
 
 ## 8. Evidence
 
-`qa-evidence/mobile-motion-pass-2/`: key-stage strips and 0.2 s comparisons (before vs pass2) for homepage 390 /
-430 and About 390, manifests and this comparison's numbers. Recordings (source of truth):
+`qa-evidence/mobile-motion-pass-2/` is the ignored regeneration target for key-stage strips and 0.2 s comparisons
+(before vs pass2) for homepage 390 / 430 and About 390, manifests and this comparison's numbers. The accepted evidence
+remains recoverable from tag `production-approved-2026-09-24`. Recordings (source of truth):
 `qa-artifacts/mobile-motion-pass-2/` (untracked) — 01_homepage_390, 02_homepage_430, 03_about_390, 04_practice_390,
 05_real-estate_390, 06_materials_390, each as `_before.webm` and `_pass2.webm`, identical viewport, pace (~525 px/s
 measured), start point, engine and content state.

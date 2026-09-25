@@ -1,5 +1,9 @@
 # FINMENTOR v1.1 — FINAL RELEASE CANDIDATE
 
+> Historical release record. Its generated `qa-evidence/v1.1-final/` files were removed
+> from the current tree during Stage 2A cleanup and remain recoverable from tag
+> `production-approved-2026-09-24`.
+
 **PAGES BUILD BLOCKER CLOSED — RESEALED FOR OWNER-AUTHORIZED CONTROLLED DEPLOYMENT**
 
 This record is written by the engineer who did the work. It is **not** an independent approval,

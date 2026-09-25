@@ -1,5 +1,10 @@
 # FINMENTOR — Post-Remediation Repository Hygiene Review
 
+> Historical hygiene snapshot. Stage 2A cleanup on 2026-09-24 subsequently removed the
+> listed noindex duplicate uploads, root review images, release ZIPs, and tracked
+> generated QA evidence. The pre-cleanup tree is preserved by tag
+> `production-approved-2026-09-24`.
+
 Date: 2026-08-26
 Scope: **N7 — repository only.** No n8n, Sheets, production webhook, Telegram, GA4, DNS or
 Cloudflare surface was accessed. No Mini App was activated. `main` was not modified and no PR

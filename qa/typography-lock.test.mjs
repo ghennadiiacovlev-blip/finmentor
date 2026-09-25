@@ -45,11 +45,6 @@ const EXCEPTION = new Set([
   // the sealed Mini App (C2 closure hashes the whole app-premium tree)
   'app-premium/app.css',
   'app-premium/index.html',
-  // stored evidence produced by the renderer above; not served as part of the website
-  'qa-evidence/lead-intelligence-v1/niagara-client-result-editor.html',
-  'qa-evidence/lead-intelligence-v1/niagara-client-result-preview.html',
-  'qa-evidence/lead-intelligence-v1/niagara-owner-brief-desktop.html',
-  'qa-evidence/lead-intelligence-v1/niagara-owner-brief-mobile.html',
 ]);
 const fontDecls = (css) => [...css.matchAll(/(?:font-family|font|--font-[\w-]+|--display|--sans|--serif)\s*:\s*([^;}]+)/gi)].map((m) => m[1]);
 

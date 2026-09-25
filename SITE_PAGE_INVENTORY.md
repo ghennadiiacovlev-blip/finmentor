@@ -1,6 +1,6 @@
 # FINMENTOR — Site page inventory
 
-Generated 2026-09-22 from the working tree (`inventory.mjs` → `gen-docs.mjs`). 124 HTML files: **90 indexed** (45 RU + 45 RO), 17 noindex (utility, legacy, sealed product and QA evidence), 17 tracked duplicates named `… (n).html`.
+Generated 2026-09-22 from the working tree (`inventory.mjs` → `gen-docs.mjs`) and reconciled after repository cleanup on 2026-09-24. 102 HTML files: **90 indexed** (45 RU + 45 RO) and 12 noindex utility, legacy, or sealed-product pages.
 
 Every indexed URL carries its art-direction plan: family, story, hero, and the scene order BACKGROUND → FOREGROUND → OVERLAP → REVEAL → MOBILE. The full per-page definition lives in [PAGE_BY_PAGE_ACCEPTANCE.md](PAGE_BY_PAGE_ACCEPTANCE.md); the family patterns in [PAGE_TYPE_DESIGN_SYSTEM.md](PAGE_TYPE_DESIGN_SYSTEM.md).
 
@@ -66,16 +66,14 @@ Every indexed URL carries its art-direction plan: family, story, hero, and the s
 | gateway/n8n/canary-page.html | n8n gateway test page | sans system face (typography lock) |
 | power-bi-for-owner.html | legacy RO page (noindex, canonical elsewhere) | kept as is: outside the indexed scope, superseded by the canonical target |
 | power-bi-pentru-proprietar.html | legacy RO page (noindex, canonical elsewhere) | kept as is: outside the indexed scope, superseded by the canonical target |
-| qa-evidence/lead-intelligence-v1/niagara-client-result-editor.html | QA evidence render | sealed evidence — documented typography exception |
-| qa-evidence/lead-intelligence-v1/niagara-client-result-preview.html | QA evidence render | sealed evidence — documented typography exception |
-| qa-evidence/lead-intelligence-v1/niagara-owner-brief-desktop.html | QA evidence render | sealed evidence — documented typography exception |
-| qa-evidence/lead-intelligence-v1/niagara-owner-brief-mobile.html | QA evidence render | sealed evidence — documented typography exception |
-| qa-evidence/lead-intelligence-v1/niagara-telegram-alert.html | QA evidence render | sealed evidence — documented typography exception |
 | ro/thank-you.html | post-submission page | closing brand scene (this rebuild) |
 | thank-you.html | post-submission page | closing brand scene (this rebuild) |
 | treasury.html | legacy RO page (noindex, canonical elsewhere) | kept as is: outside the indexed scope, superseded by the canonical target |
 | trezorerie.html | legacy RO page (noindex, canonical elsewhere) | kept as is: outside the indexed scope, superseded by the canonical target |
 
-## Tracked duplicates
+## Removed duplicate uploads
 
-17 files named `<page> (n).html` are tracked in the repository (earlier uploads). They carry `noindex`, are not linked from the site and were **not modified or deleted** (not ours to discard): `cases (13).html`, `cases (5).html`, `cases (6).html`, `cash-flow (9).html`, `index (11).html`, `index (3).html`, `methodology (14).html`, `methodology (6).html`, `methodology (7).html`, `privacy (15).html`, `privacy (7).html`, `privacy (8).html`, `questionnaire (12).html`, `questionnaire (4).html`, `questionnaire (5).html`, `working-capital (4).html`, `working-capital-scan (2).html`.
+The 17 earlier uploads named `<page> (n).html` were noindex, absent from the sitemap,
+and unlinked from the site. Stage 2A removed them from the current tree after the
+production snapshot was tagged `production-approved-2026-09-24`. Canonical URLs were
+not changed.
